@@ -427,6 +427,31 @@ def test_indexed_movb_signext():
     check(cpu.r[4] == 0x7F, "mov.b @(R0,Rm),Rn pos wrong: 0x%08X" % cpu.r[4])
 
 
+# ---------------------------------------------------------------------------
+# 13. ldc Rn,SR (0x4n0E) — incl. 0x440E (ldc r4,SR), a former rts delay-slot gap
+# ---------------------------------------------------------------------------
+def test_ldc_sr():
+    # 0x440E = ldc r4,SR — SR <- r4 (the byte at ROM 0x440E; once mis-read as a
+    # mov.w R0,@(0xE,R4) store and listed as an emulator gap)
+    cpu = sub([0x440E, 0x000B], regs={4: 0x11223344})
+    check(cpu.sr == 0x11223344,
+          "ldc r4,SR (0x440E) SR=0x%08X expected 0x11223344" % cpu.sr)
+
+    cpu = sub([0x440E, 0x000B], regs={4: 0})
+    check(cpu.sr == 0, "ldc r4,SR (0x440E) SR=0x%08X expected 0" % cpu.sr)
+
+    # generic 0x4n0E family: ldc r6,SR
+    cpu = sub([0x460E, 0x000B], regs={6: 0x000000F0})
+    check(cpu.sr == 0x000000F0,
+          "ldc r6,SR (0x460E) SR=0x%08X expected 0xF0" % cpu.sr)
+
+    # real-world use: 0x440E as the rts DELAY SLOT (0x3920/0x3934 tail) — the
+    # delay slot executes ldc r4,SR and then rts returns to SENT
+    cpu = sub([0x000B, 0x440E, 0x0009, 0x0009], regs={4: 0x1234F0C0})
+    check(cpu.sr == 0x1234F0C0,
+          "ldc r4,SR (0x440E) delay-slot SR=0x%08X expected 0x1234F0C0" % cpu.sr)
+
+
 def main():
     N = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
     print("sh2emu decode-family regression tests")
@@ -444,6 +469,7 @@ def main():
     test_imm_logic()
     test_indexed_movb_signext()
     test_braf_bsrf()
+    test_ldc_sr()
     print("%d checks, %d failures" % (CHECKS[0], len(FAILS)))
     sys.exit(1 if FAILS else 0)
 

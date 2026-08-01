@@ -46,16 +46,16 @@ with `make -C web/explorer serve`.
   primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
   DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
   *actual ROM bytes* running on the emulator over tens of thousands of
-  randomized inputs each (97 verified addresses); the few reconstruction-tier
+  randomized inputs each (49 verified addresses); the few reconstruction-tier
   files (structural, not emulator-verified) are labeled as such in-tree.
 - **193 function docs + 15 subsystem docs** (`docs/functions/`,
   `docs/subsystems/`).
 - **1,210 calibration tables** (`symbols/cal_tables.csv`), **6,953 resolved
   call-graph edges**, **18 jump tables identified** (60E1D400 baseline,
   `analysis/data_regions_60E1D400.csv`).
-- **Host test suites**: 102 Python per-function suites, 21 C suites,
+- **Host test suites**: 112 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
-  disassembler/emulator family regressions (38,008 + 69 checks).
+  disassembler/emulator family regressions (38,008 + 73 checks).
 
 ## Quickstart
 
@@ -78,7 +78,7 @@ Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 149 verified C lifts, `eeprom_immo.h`, host test suites (102 py + 21 c), `verified_addrs.txt` |
+| `c/` | 149 verified C lifts, `eeprom_immo.h`, host test suites (112 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | `symbols/` | Kept symbol-table CSVs (60E0FC00 plain/ghidra, 60E1D400 ida/merged), `cal_tables.csv` (1,210 tables), `callgraph.csv` |
 | `analysis/` | Code-window data-region classification for the 60E1D400 baseline |

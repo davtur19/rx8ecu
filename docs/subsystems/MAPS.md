@@ -1,5 +1,10 @@
 # Calibration map catalog — [REDACTED] (user's ECU)
 
+> **WARNING:** the descriptor addresses below reference a **private ROM variant**
+> (J-line shift +0x298); on the shipped `60E1D400.bin` apply a **+0x298** shift
+> (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264).
+> Always verify with `tools/mapscan.py`.
+
 > **NOTE:** `[REDACTED]` is the owner's **private** live-ECU image and is
 > **not shipped** in this public repo. The commands below reference a local copy
 > only; on a fresh clone there is no `[REDACTED]` unless the
@@ -7,14 +12,14 @@
 > `roms/ROMS.md`).
 
 Auto-extracted by `tools/mapscan.py` using the reverse-engineered TwoDLookup/ThreeDLookup
-descriptor format (emulator-verified). **All descriptors cross-check against RX8Defs by
-pointer.** Dump any map in physical units with:
+descriptor format (emulator-verified). Naming follows RX8Defs conventions
+(original RomRaider XML not redistributed in this repo). Dump any map in physical units with:
 ```
 python tools/mapscan.py [REDACTED] --dump 0x<descAddr>
 ```
 
 ```
-[REDACTED]: 499 map descriptors (119 2D, 380 1D); 499 match RX8Defs by pointer
+[REDACTED]: 499 map descriptors (119 2D, 380 1D); naming follows RX8Defs conventions
 
 addr     kind  dims    type  scale     offset    values    name(RX8Defs)
 0x6969C 1D   16      u8   2         0         0x6CFE4  Table 2D - 0_

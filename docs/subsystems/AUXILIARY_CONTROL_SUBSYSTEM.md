@@ -304,8 +304,8 @@ Called from: torque_dispatcher_225A2 / direct_branch_to_torque_calc_2259C
 ```asm
 ssvControl__:
     r11 = read8(0xFFFFAAE0)        // Engine state / enable flag
-    fr4 = read32(0xFFFFAA10)       // Air demand or RPM (float)
-    fr6 = read32(CAL_SSV_THRESH)   // SSV actuation threshold (~200.0 RPM equivalent)
+    fr4 = read32(0xFFFFAA10)       // NOT CONFIRMED — see note below
+    fr6 = read32(CAL_SSV_THRESH)   // SSV actuation threshold (NOT verified)
     fr5 = fr6 - 3.0                // Hysteresis band (3 RPM deadband)
     
     if (fr4 > fr6) {
@@ -347,15 +347,21 @@ ssvControl__:
     write8(0xFFFFB325, r11)  // Save engine state
 ```
 
+**SSV threshold input not yet verified** — 0xFFFFAA10 is the coolant-temp
+input in the verified OMP gate (`omp_waveform_state_machine_18860.c`), which
+conflicts with the "air demand/RPM" reading assumed above; the real SSV opens
+the secondary port ~3750 RPM per external references. No new values are
+claimed here.
+
 **Decoded C implementation:**
 
 ```c
 void ssvControl(uint8_t param) {
     uint8_t engineState = read8(0xFFFFAAE0);  // Engine running?
-    float airDemand = read32(0xFFFFAA10);       // RPM or air flow
+    float airDemand = read32(0xFFFFAA10);       // NOT CONFIRMED — see note above
     
-    // Calibration thresholds (from memory-mapped constants)
-    float threshold = 200.0f;    // SSV_OPEN_THRESHOLD
+    // Calibration thresholds — NOT verified (see note above)
+    float threshold = 200.0f;    // SSV_OPEN_THRESHOLD (unconfirmed)
     float hysteresis = 3.0f;     // SSV_HYSTERESIS_BAND
     
     // Hysteresis comparison
@@ -404,7 +410,7 @@ void ssvControl(uint8_t param) {
 
 | Parameter | Address | Typical Value | Description |
 |-----------|---------|---------------|-------------|
-| Open threshold | Cal table | ~200.0 RPM equiv. | RPM/load above which SSV opens |
+| Open threshold | Cal table | NOT confirmed (~200.0 claimed, disputed) | NOT VERIFIED — 0xFFFFAA10 conflicts with the OMP ECT gate; real SSV opens ~3750 RPM per external refs |
 | Hysteresis band | Hardcoded | 3.0 | Prevents oscillation at threshold |
 | Ramp target | 0xFFFFB322 | 0xBC (188) | Ramp-down count for soft close |
 
@@ -770,6 +776,12 @@ OMP oil delivery is mapped in 2D and 3D tables:
 | RPM | 0-9000 | Engine speed |
 | Load (MAP) | 20-100+ kPa | Manifold pressure |
 | Coolant temp | -40 to 120°C | Temperature compensation |
+
+> **OMP "cold" gate (0x18860 state 1):** the -40.0 threshold at ROM 0x78E68
+> is a **sensor-validity split**, not a cold-weather calibration A/B: the two
+> cal bytes are identical in stock ROM (CAL_A @0x78E33 == CAL_B @0x78E34 ==
+> 0x3C), so no cold correction is applied — the gate only picks the validity
+> side (temp < -40.0 → cal A / A978, else cal B / A977; A97E = cal byte).
 
 Typical oil delivery rates:
 - **Idle**: ~0.5-1.0 cc/min (very low)

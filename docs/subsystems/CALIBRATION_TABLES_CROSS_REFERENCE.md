@@ -1,11 +1,16 @@
 # RX-8 ECU Calibration Table Cross-Reference Document
 
+> **WARNING:** the descriptor addresses below reference a **private ROM variant**
+> (J-line shift +0x298); on the shipped `60E1D400.bin` apply a **+0x298** shift
+> (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264).
+> Always verify with `tools/mapscan.py`.
+
 > **ROM:** N3J1EL ([REDACTED]) / N3J1EL (60E1D400)  
 > **ECU:** Mazda RX-8 S1 (2004–2008), Renesis dual-rotor 1.3L  
 > **CPU:** Renesas SH7055 (SH-2E)  
 > **ROM Size:** 512 KB (file offset 0x00000–0x7FFFF)  
 > **Generated:** July 2026  
-> **Sources:** `cal_tables.csv`, `mapscan.py`, verified C functions in `c/`, IDA Pro analysis reports (moved to private storage), RomRaider `rx8_defs.xml`
+> **Sources:** `cal_tables.csv`, `mapscan.py`, verified C functions in `c/`, IDA Pro analysis reports (moved to private storage), RomRaider `rx8_defs.xml` (not redistributed; naming here follows its conventions)
 
 ---
 
@@ -44,7 +49,7 @@ This document maps every identified calibration table in the RX-8 ECU firmware t
 
 - The **functions** that consume the table data (from verified C source in `c/`)
 - The **map descriptor** that defines the lookup (from `mapscan.py`)
-- The **RomRaider definition** name and category (from `rx8_defs.xml`)
+- The **RomRaider definition** name and category (naming follows `rx8_defs.xml` conventions; original XML not redistributed)
 - The **analysis report** identification (from analysis reports moved to private storage)
 
 The firmware uses two table-lookup functions:
@@ -660,7 +665,7 @@ All **MEDIUM confidence** from the 50-table analysis report.
 | 0x6D54C | **Rev Limit** | u16 | Maximum engine speed |
 
 ### 5.13 Flex Fuel
-These tables are from the RomRaider `rx8_defs.xml` and are defined for the N3J1EL ROM:
+These tables are named per the RomRaider `rx8_defs.xml` conventions (original XML not redistributed) and are defined for the N3J1EL ROM:
 
 | Table Name | Category | Type | Size |
 |-----------|----------|------|------|
@@ -753,7 +758,7 @@ These tables span multiple ROM regions and likely include fuel corrections, temp
 
 ## 6. RomRaider Definition Cross-Reference
 
-The RomRaider XML definition file (`refs/rx8defs/RomRaider/rx8_defs.xml`) contains ~20,262 `<table>` tags across many categories. The following table maps RomRaider categories to address ranges:
+The RomRaider XML definition file (`refs/rx8defs/RomRaider/rx8_defs.xml`, **not shipped** — this doc only follows its naming conventions) contains ~20,262 `<table>` tags across many categories. The following table maps RomRaider categories to address ranges:
 
 | RomRaider Category | Address Range | Number of Tables | Notes |
 |--------------------|--------------|-----------------|-------|
@@ -916,7 +921,7 @@ The analysis report `ANALYSIS_REPORT_50_NEW_TABLES.md` (moved to private storage
 | `ANALYSIS_REPORT_50_NEW_TABLES.md` (private storage) | Detailed 50-table analysis report |
 | `RX8_Additional_Tables_Identified.txt` (private storage) | 50-table identification evidence |
 | `docs/subsystems/MAPS.md` | Full 499-descriptor catalog |
-| `refs/rx8defs/RomRaider/rx8_defs.xml` | RomRaider definition file |
+| `refs/rx8defs/RomRaider/rx8_defs.xml` | RomRaider definition file (not shipped; naming conventions only) |
 
 ### B. How to Use This Document
 

@@ -876,8 +876,9 @@ void arbitrateFuelCut(void)
  *   - Fuel cut flag, injection enable flag
  *
  * Outputs:
- *   - RAM trailing edge timing at 0xFFFFA734 (float)
- *   - RAM leading edge timing at 0xFFFFA738 (float)
+ *   - Ignition timing values at 0xFFFFA734/0xFFFFA738 (float) — written
+ *     identically by calc_ignition_all_rotors_13C2C; lead/trail split applied
+ *     later in leading_trailing_spark_control (0x2100A, unverified)
  */
 
 void calc_fuel_injection_all_rotors(void)
@@ -921,9 +922,10 @@ void calc_fuel_injection_all_rotors(void)
     calc_fuel_pump_control_output(...);               /* 0x13E6C */
     calc_fuel_pressure_load_compensation(...);         /* 0x13EE6 */
 
-    /* Write outputs */
-    *(volatile float *)0xFFFFA734 = main_inj;  /* trailing edge timing */
-    *(volatile float *)0xFFFFA738 = main_inj;  /* leading edge timing */
+    /* Write outputs — both cells get the same value (no lead/trail split here;
+       that happens later in leading_trailing_spark_control 0x2100A, unverified) */
+    *(volatile float *)0xFFFFA734 = main_inj;  /* ignition timing values (A734/A738) */
+    *(volatile float *)0xFFFFA738 = main_inj;
 }
 ```
 
@@ -1106,7 +1108,7 @@ New fuel-specific tests should be added as `test_fuel_injector_pulse_calc.py`, `
 ### 11.4 Calibration Table Verification
 
 Cross-reference all calibration table addresses between:
-1. `symbols/cal_tables.csv` (from RX8Defs XML, [REDACTED] ROM)
+1. `symbols/cal_tables.csv` (naming follows RX8Defs XML conventions; original XML not redistributed; [REDACTED] ROM)
 2. MAP scan output (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`; substitute the private `[REDACTED]` locally if scanning that variant)
 3. Actual ROM bytes at the target address
 

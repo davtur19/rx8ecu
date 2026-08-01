@@ -22,6 +22,10 @@ No root, no `~/.bashrc` exports, no hidden environment magic.
 Machine requirement: any Linux/macOS box with Python 3, `cc` (for the C test
 suites only) and `make`. ~2 GB free disk is plenty.
 
+> **Note (toolchain):** `tools/get_toolchain.sh` downloads via Debian/Ubuntu
+> `apt-get`, so on macOS the sh-elf binutils (`sh-elf-as`/`ld`/`objcopy`) must
+> be preinstalled (e.g. via a local build) for the rebuild/verify steps.
+
 ---
 
 ## Step 1 — Prerequisites
@@ -126,10 +130,15 @@ python3 tools/organize_src.py \
   --out src/60E1D400_annotated.s
 ```
 
+> **Note (regenerability):** only `src/60E1D400_annotated.s` is regenerable
+> from a clone (`make src`). The other 8 annotated `.s` files require the
+> private xmap CSVs (equinox hand names / `_xmap.csv` / `_idamap.csv`, moved to
+> private storage) and cannot be regenerated from this public tree.
+
 ## Step 6 — Emulator / Track A (verified C lifts)
 
 ```bash
-make c-test        # host-compiled behavior-equivalence suites (21 C suites)
+make c-test        # host-compiled behavior-equivalence suites (26 C suites)
 python3 c/tests/verify_emu.py    # 5 functions x 100k random vs the emulated ROM
 ```
 
@@ -143,13 +152,13 @@ OK  seed_mixer           C == emulated ROM @0x366B8  (100k random)
 OK  calculateImmoSeed    C == emulated ROM @0x3675C  (100k random)
 ```
 
-The full Python test suite (102 per-function suites) and the SH-2E family
+The full Python test suite (112 per-function suites in `c/tests/`, 115 total with `tools/tests/` + `verify_emu.py`) and the SH-2E family
 regression tests can be run from the repo root:
 
 ```bash
 python3 tools/tests/test_decode_families.py      # 38,008 checks (disassembler, GNU-as cross-checked)
-python3 tools/tests/test_emulator_families.py    # 69 checks (emulator)
-for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 102 per-function suites
+python3 tools/tests/test_emulator_families.py    # 73 checks (emulator)
+for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 112 per-function suites
 ```
 
 ## Step 7 — Checksum validation
@@ -197,11 +206,11 @@ code fraction is ~88–91%, with data ~9–12%.
 | 9/9 byte-exact rebuild | `make verify-all` | `OK: all 9 stock ROMs rebuilt byte-exact` |
 | Single-ROM byte-exact | `make ROM=roms/stock/60E1D400.bin verify` | `OK: byte-exact rebuild ...` |
 | Annotated source regenerates 1:1 | `make src` | byte-identical to shipped |
-| C lifts vs ROM (host suites) | `make c-test` | 21/21 pass |
+| C lifts vs ROM (host suites) | `make c-test` | 26/26 pass |
 | C lifts vs emulated ROM | `python3 c/tests/verify_emu.py` | 5/5 OK |
 | Disassembler regression | `python3 tools/tests/test_decode_families.py` | 38,008 checks, 0 failures |
-| Emulator regression | `python3 tools/tests/test_emulator_families.py` | 69 checks, 0 failures |
-| Per-function suites | `for t in c/tests/test_*.py; do python3 "$t" \|\| exit 1; done` | 102/102 pass |
+| Emulator regression | `python3 tools/tests/test_emulator_families.py` | 73 checks, 0 failures |
+| Per-function suites | `for t in c/tests/test_*.py; do python3 "$t" \|\| exit 1; done` | 112/112 pass |
 | Denso checksum | `python3 tools/denso_ck.py roms/stock/60E1D400.bin` | OK |
 
 All evidence tables and hashes are in [VERIFICATION.md](VERIFICATION.md); the
