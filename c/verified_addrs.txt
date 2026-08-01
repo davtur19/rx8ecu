@@ -1,0 +1,218 @@
+0x23DC 0x23E4 0x23F4 0x2404 0x2420 0x2440 0x2490 0x24C0 0x24D0 0x2500 0x2044 0x231C 0x2510
+0x2068 0x20C4 0x20DC 0x2460 0x2478 0x23B0 0xC290
+0x3E0DC 0x3E11C 0x3E1F8 0x3E208 0x3E218 0x3E15C 0x3E1AA 0x3E29E 0x3E2DA 0x3E38A
+0x20AC 0x2120 0x213C 0x2624 0x2658 0x26B0 0x26D0 0x3E330 0x25C8 0x25F4 0x2678
+; 2026-07-31 session: 5 newly verified
+0x2064 0x4BBC 0x2430 0x3D58 0x3854
+; 2026-07-31 session 2: 8 newly verified (emulator + C host tests)
+0x3FE8 0x4144 0x467A 0x35EE 0x42B0 0x60F58 0x5687A 0x46CC
+; 2026-07-31 session 3: 4 math helpers verified (emulator + C host)
+0x2304 0x4308 0x43C8 0x44E0
+; 2026-07-31 session 3: 5 newly verified (PID/feedback, see docs/subsystems/PID_CONTROLLERS.md)
+0x1252C 0x12BC8 0x18054 0x11A34 0x3ED3C
+; 2026-07-31 session 4: bitfield_extract_merge verified — frexp-style float helper
+; (emulator vs model 100k+ inputs, C lift vs emulated ROM 100k+ inputs, 0 mismatches)
+; NOTE: IDA/Ghidra listings mis-decode tail @0x4922 (bytes D1 03 = mov.l @(.lit2,pc),r1)
+0x48C8
+; 2026-07-31 session 5: EVAP purge subsystem verified (emulator vs model,
+; test_purge_subsystem.py; 4 functions, 15000+ tests, 0 mismatches)
+0xF534 0xF544 0xF5B4 0xF5DC
+; 2026-07-31 session 5: calc_fan1_control verified — cooling fan thermostat with
+; hysteresis (on>=97 off<94) + fan-enable latch chain (test_calc_fan1_control.py,
+; 12400 tests, 0 mismatches)
+0x303A6
+; 2026-07-31 session 5: cooling_fan_control verified — coolant sensor-validity check
+; (complement_shift_u32 eps=1e-5 @0x17EC0) + rising-edge fan counter via verified
+; accessors 0x3ED3C/0x3EE58 (test_cooling_fan_control.py, 15400 tests, 0 mismatches)
+0x17DCC
+; 2026-07-31 session 5: radiator_fan_relay_write verified — active-low relay
+; driver from status bit (test_radiator_fan_relay.py, exhaustive + 3000 random, 0 mismatches)
+0x259C0
+; 2026-07-31 session 6: aux_fan_control_task verified — boost filter + delta
+; control + error filter + float swap + pressure hysteresis flag transition
+; (test_aux_fan_control_task.py, 6000 tests, 0 mismatches)
+0x1AED2
+; 2026-07-31 session 6: alternating_sensor_sm_08 verified — sensor state machine
+; (test_alt_sensor_sm.py, 20000 tests, 0 mismatches)
+0x5D3E8
+; 2026-07-31 session 6: ssvControl verified — temp hysteresis on>=200/off<197 +
+; counter reload/decrement + enable gating + sm call + output bit
+; (test_ssv_control.py, 12000 tests, 0 mismatches)
+0x225C8
+; 2026-07-31 session 6: vis_intake_control verified — 3D boost/rpm lookup (type=8
+; u16 cells, scale 1/327.68) via status-byte desc select + clamp [0,84] + 12-deep
+; rolling history buffer shift (test_vis_intake_control.py, 10000 tests, 0 mismatches)
+0x23718
+; 2026-07-31 session 7: seed_mixer verified — immo key mixer leaf, pure fn of
+; (key_word, rolling_key): x build, bit-group swap, byte-wise 2's complement,
+; (y<<21)|(y>>3) fold, byte swap 0<->2 (verify_emu.py, 100k random, 0 mismatches)
+0x366B8
+; 2026-07-31 session 7: calculateImmoSeed verified — immo seed calculator leaf,
+; pure fn of (w2DC, w2E0, key): sum16/sum32 + 0x0D multiples, scN=((b<<7)>>8)+(b<<7),
+; sc4 r5-mix, odd/even byte assignment + fold4 (verify_emu.py, 100k random, 0 mismatches)
+0x3675C
+; 2026-07-31 session 6: alternating_sensor_sm_5D800 verified — second instance of
+; the alternating sensor state machine (base 0x60254, mask 0x6025C, ptr 0x60260,
+; magic 0x17C8, flag D38F); r6+=0x1E delay runs on both branches so the out==0
+; write always lands on D38F (test_alt_sensor_sm_5D800.py, 20000 tests, 0 mismatches)
+0x5D800
+; 2026-07-31 session 6: vfad_control_35BBC verified — boost hysteresis on>=5250/off<5062/
+; hold-in-band (ROM 0x7A5AC=5250.0, 0x7A5B0=188.0) -> 0x5D800 sm -> C234 + F754
+; bit 0x0400 (test_vfad_control_35BBC.py, 10000 tests, 0 mismatches)
+0x35BBC
+; 2026-07-31 session 6: alternating_sensor_sm_5D34C verified — third instance of the
+; alternating sensor state machine (base 0x60204, mask 0x6020C, ptr 0x60210,
+; magic RAM16[D350]==0x172D @ROM 0x5D448, latch D385); RAW variant: out==0 stores
+; the raw r4 in D385, out in {5,7} returns raw D385 (no ==1 gating like sm_08);
+; symbol-table name diagMeteringPumpPositionControl (unconfirmed)
+; (test_alt_sensor_sm_5D34C.py, 20000 tests, 0 mismatches)
+0x5D34C
+; 2026-07-31 session 6: leaf port helpers verified — 0x3EE58 write_port_u16_inv
+; stores ((b)<<8 | ~b) as u16 at [r4]; 0x3EE68 write_port_u32_inv same for 32-bit;
+; 0x3920 returns sr & 0xF0 = 0xF0 const (rts delay 0x440E MOV.W R0,@(0xE,R4) is an
+; emulator gap — not implemented). Used by OMP/waveform subsystem (0x1825E chain).
+; (test_port_helpers.py, 9000 tests, 0 mismatches)
+0x3EE58
+0x3EE68
+; 2026-07-31 session 7: omp_stepper_waveform_driver @0x18552 verified — OMP
+; stepper waveform driver (774B); mode dispatch 0..6 + defaults: advances step
+; RAM8[A97C] (modes 0-3/4/6), conditional waveform byte RAM8[A97F], mode-4
+; A97D feedback, latches A98A/A98D = mode, 4-phase drive of RAM16[FFFFF746]
+; bits 0..3 from the 9x4 pattern table @0x4ED5C via 0x4BBC RMW; SR bracketed
+; by 0x2054/0x2064 and unchanged (test_omp_stepper_waveform_driver.py,
+; 60000 random inputs incl. default modes, 0 mismatches)
+0x18552
+; 2026-07-31 session 7: omp_waveform_state_machine_18860 verified — 4-state
+; stepper timing machine (RAM8[A981]): mode==0 resets A981/A982; state 1 gates
+; on ADDRESS_VAL port bytes 8078/807C then compares f32 AA10 (coolant) vs
+; ROM 0x78E68 (-40.0): temp < -40 -> cal A (A978=1) else cal B (A977=1),
+; A97E = cal byte (both 0x3C); state 0 drives wave() modes 0/2 by A97C with
+; A97B = 0x80/0x30/0x10 and A97F = A974+1 when A974 < 60; state 2 (A977|A978)
+; even step: wave(1), A97C==5 && A97E<=1 -> A982=1,A97F=0,A97E=0,
+; A97B=sat8(+0x30); odd step: wave(1), A97E>0 -> A97E-=1. NOTE: corrects the
+; earlier note — fcmp/gt gives (-40.0 > temp), so the -40.0 gate picks cal A
+; when temp < -40.0 (not the reverse) (test_omp_waveform_state_machine_18860.py,
+; 60000 random inputs, 0 mismatches)
+0x18860
+; 2026-07-31 session 8 (Track A): OMP RTOS tasks verified — omp_control_task_1825E
+; is the top of the stepper-motor control chain: snapshot dispatch flags,
+; hardware fault gate (RAM9ECD bit1), engine-on accumulation, idle reset, A97B
+; countdown, purge block (A974=0/A97F=0/P807C=0/A979=1), mode dispatch (A998 ->
+; 0x18C6C, A968 -> omp_waveform_state_machine_18860, A96A -> 0x18C08,
+; A96B -> 0x18C5C, A969 -> rotor_sync_position_detector), common tail (P807A
+; write/read + A975 ramp + P8078 write), full epilogue
+; (test_omp_task_0x1825E.py, 150000 random inputs across 5 seeds, 0 mismatches)
+0x1825E
+; omp_rotor_overshoot_detector_18CC0 — RTOS companion task to omp_control_task_1825E
+; (OS task table @0x18000: 0x1802C -> 0x18CC0): reads idle/off port 0x807A
+; (default 0x37) every tick; gate A969==1 && A975==0: A976==0 (fault) ->
+; A992=1 if A974 > sat8(port, CAL38); A976!=0 (healthy) -> A993=1 if
+; A974 < port-CAL38; latch flags A990/A991 via saturating debounce counters
+; A994/A995 vs CAL39/CAL3A (test_omp_rotor_overshoot_detector_18CC0.py,
+; 100000 random inputs across 5 seeds, 0 mismatches)
+0x18CC0
+; 2026-07-31 session 8 (Track A): math_min_max_49ED0 verified — flag-setter leaf
+; reads word RAM16[0xFFFFF76C], tests bit 0x100, writes 0/1 flag byte to both
+; 0xFFFFCD48 and 0xFFFFCD49, returns flag. NOTE: mov.w @(disp,PC) sign-extends,
+; so the disassembler's short literals 0xCD49/0xCD48/0xF76C are really
+; 0xFFFFCD49/0xFFFFCD48/0xFFFFF76C (test_math_min_max_49ED0.py emulator,
+; 14 edge + 20000 random; test_math_min_max_49ED0.c host C, 20014 tests;
+; 0 mismatches, make c-test GREEN)
+0x49ED0
+
+; 2026-07-31 session 8 cont. (Track A, OBD DTC-table family, 21 rows at
+; 0xFFFF8930 stride 0x34, index word 0xFFFF8D74): four more verified.
+; obd_dtc_row_update_0x64490: r4 = 16-bit value; p = 0xFFFF8930 + row*0x34;
+; w = word@p+0x02; delta = (s16(w) + ((w>>8)&0xFF)) - (r4 + ((r4&0xFFFF)>>8));
+; byte@p+0x32 = (s8(byte@p+0x32) + delta) & 0xFF; word@p+0x02 = r4 & 0xFFFF
+; (test_obd_dtc_row_update_0x64490.py, targeted + 20000 random; host C
+; test_obd_dtc_row_update_0x64490.c, 22560 tests; 0 mismatches)
+0x64490
+; obd_dtc_find_0x643D4: search leaf, r4 = 16-bit key; first row i (0..0x14)
+; with word@p == (r4 & 0xFFFF) && i != word@0xFFFF8D74 -> return s8(byte@p+0x06),
+; else 0 (test_obd_dtc_find_0x643D4.py, targeted + 2000 random; host C, 5000
+; tests; 0 mismatches)
+0x643D4
+; obd_dtc_find_0x6443E: search leaf, r4 = byte key; first row i with
+; byte@p+0x06 == (r4 & 0xFF) && i != currow -> return s8(byte@p+0x08), else
+; default 0x08 (test_obd_dtc_find_0x6443E.py, targeted + 2000 random; host C,
+; 5000 tests; 0 mismatches)
+0x6443E
+; obd_dtc_row_update_0x64258: row update, no arg (byte ops); p = 0xFFFF8930 + row*0x34;
+; byte@p+0x32 = (byte@p+0x32 + byte@p+0x07 + 0xFF) & 0xFF; byte@p+0x07 = 1;
+; byte@p+0x32 = (byte@p+0x32 + byte@p+0x08 + 0xF9) & 0xFF; byte@p+0x08 = 7
+; (test_obd_dtc_row_update_0x64258.py, targeted + 20000 random; host C
+; test_obd_dtc_row_update_0x64258.c, 22048 tests; 0 mismatches)
+0x64258
+; obd_dtc_row_update_0x64418: row update, r4 = byte value; p = 0xFFFF8930 + row*0x34;
+; byte@p+0x32 = (s8(byte@p+0x32) + s8(byte@p+0x08) - r4) & 0xFF; byte@p+0x08 = r4 & 0xFF
+; (test_obd_dtc_row_update_0x64418.py, targeted + 20000 random; host C
+; test_obd_dtc_row_update_0x64418.c, 22560 tests; 0 mismatches)
+0x64418
+; 2026-07-31 session 8 cont. (Track A, OBD service handlers, emulator + host C):
+; obd_service_handler_632D6: if byte@0xFFFF87CC == 0x01 -> word@0xFFFF87CC =
+; enc8(0x00) = 0x00FF (pending-flag clear; test_obd_service_handler_632D6.py,
+; exhaustive + 20000 random; host C, 0 mismatches)
+0x632D6
+; obd_service_handler_63312: if byte@0xFFFF87D0 == 0x01 -> word@0xFFFF87D0 =
+; enc8(0x00) = 0x00FF (pending-flag clear; test_obd_service_handler_63312.py,
+; exhaustive + 20000 random; host C, 0 mismatches)
+0x63312
+; obd_service_handler_63834: scan the 21-entry DTC context table (base
+; 0xFFFF87D8, stride 16) for the first row with word@p == (r4 & 0xFFFF) and
+; i != word@0xFFFF8928; return s8(byte@p+0x06), else 0 (mode-1 status read;
+; test_obd_service_handler_63834.py, targeted + 20000 random; host C,
+; 0 mismatches)
+0x63834
+; obd_service_handler_63B46: write r4 into the active DTC context row
+; (0xFFFF87D8 + word@0xFFFF8928*16): p[0x0E] = (s8(p[0x0E]) + s8(p[0x0D])
+; - r4) & 0xFF, p[0x0D] = r4 & 0xFF (debounce-state writer;
+; test_obd_service_handler_63B46.py, targeted + 20000 random; host C,
+; 0 mismatches)
+0x63B46
+; obd_service_handler_648B4: OBD run-sum update leaf — fold r4 into the two
+; redundant (value,complement) 16-bit cells 0xFFFF8E98/0xFFFF8E9A with
+; enc8(x) = (x<<8)|~x (verified leaf 0x2420): sum = (s8(hi8(8E98)) +
+; s8(hi8(8E9A)) - s8(b)) & 0xFF (test_obd_service_handler_648B4.py, targeted
+; + 20000 random; host C, 0 mismatches)
+0x648B4
+; can_encode_handler_62ABC: CAN-encode dispatch leaf (common tail of
+; dtc_handler_61550 mode-3 path) — reads the per-DTC mode byte at
+; 0xFFFF8D7C + (dtc & 0xFFFF)*2 and, for modes 0x00 / 0x10 (vl==0x20||0x11)
+; / 0x11 (vl==0x20), calls obd_service_handler_648B4(r5); mode 0x20 or other
+; -> no call (test_can_encode_handler_62ABC.py, targeted + 20000 random,
+; 0 mismatches; no host-C companion — calls the external 0x648B4 leaf)
+0x62ABC
+; 2026-07-31 session 8 cont. (Track A): idx-table + req-queue families + SR accessors.
+; idx_table family (RAM table 0xFFFFD998, stride 0x46C, byte index; 32-bit wrap
+; for index >= 9 pinned in emulator test):
+;   0x68780 clear: word@p = word@p+2 = word@p+4 = 0 (bsr'd from 0x68776 with idx 0)
+;   0x6879C step:  word@p = (word@p+4 >= 0x0464) ? 0 : word@p+4 + 1 (cmp/ge r1,r0
+;                  with r1=0x0464, r0=word@p+4 -> T=(r0>=r1); count-up-then-reset)
+;   0x687C8 step2: identical logic to 0x6879C (separate ROM copy; via ptr table)
+;   0x687F4 dec:   word@p+4 = (word@p == 0) ? 0x0464 : word@p - 1
+;   (test_idx_table_helpers_68780.py: targeted + 4000 random + wrap; host C
+;    test_idx_table_helpers_68780.c: 20090 tests; 0 mismatches)
+0x68780
+0x6879C
+0x687C8
+0x687F4
+; req_queue leaves (byte flag array 0xFFFFDE38, parallel long array 0xFFFFDE40):
+;   0x69602 store(r4,r5): b=r4&0xFF; long@(0xFFFFDE40+b*4) = r5*0x0FA0 + long@0xFFFFF430;
+;                         byte@(0xFFFFDE38+b) = 1 (via ptr tables)
+;   0x69694 clear(r4):    byte@(0xFFFFDE38+(r4&0xFF)) = 0 (via ptr tables)
+;   (test_req_queue_69602.py: all 256 indices + 4000 random; host C
+;    test_req_queue_69602.c: 20512 tests; 0 mismatches)
+0x69602
+0x69694
+; SR accessors (emulator-only; SR modeled as a register, see test_setSR_getSR.py):
+;   0x3934 setSR: SR = r4 always (ldc delay-slot); if r4==0 and byte@(long@0xFFFF72C8+1)
+;                 != 1 -> tail-call OS task-switch 0x3DB0 (delay slot sets SR=0 first;
+;                 0x3DB0 early-exit path now exercised in-emulator with controlled
+;                 struct seeds; the 0x3BF4 context-switch path is NOT traced - OS only)
+;   0x3920 getSR: returns SR&0xF0; if r4 > SR&0xF0 -> SR = r4 (raise IPL only)
+;   0x2054 setSR_PARAM: [r4] = SR&0xF0; SR = (new_sr >= old_masked) ? new_sr : old_masked
+;   (test_setSR_getSR.py: 20000 random each + edge cases; 0 mismatches)
+0x3934
+0x3920
+0x2054

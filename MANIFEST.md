@@ -1,0 +1,744 @@
+# MANIFEST — RX-8 ECU reverse-engineering public release
+
+Every file shipped in this repository, with sha256, size, purpose, and its source path
+in the working repository. **626 entries, 57.5M.** Regenerated 2026-08-01 for the
+9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
+see roms/ROMS.md).
+
+## Summary
+
+| Area | Files | Bytes |
+|------|------:|------:|
+| (root)/ | 13 | 88.7K |
+| roms/ | 10 | 4.5M |
+| src/ | 10 | 39.7M |
+| symbols/ | 6 | 874.4K |
+| c/ | 160 | 647.9K |
+| c/tests/ | 140 | 564.9K |
+| tools/ | 17 | 123.7K |
+| tools/tests/ | 2 | 33.5K |
+| docs/ | 221 | 1006.4K |
+| hardware/ | 1 | 2.0K |
+| web/ | 11 | 864.7K |
+| analysis/ | 31 | 9.2M |
+| .github/ | 4 | 14.1K |
+| **Total** | **626** | **57.5M** |
+
+## External dependencies
+
+The repo is self-contained except for:
+
+| Dependency | Version | Notes |
+|------------|---------|-------|
+| Python 3 | >= 3.8 (tested 3.14) | `python3` on PATH |
+| capstone | >= 5.0 | `python3 -m pip install capstone --break-system-packages` (SH-2 disassembly) |
+| sh-elf binutils | 2.46 | SHIPPED at `tools/toolchain/usr/bin`; re-install via `./tools/get_toolchain.sh` |
+| cc (host C compiler) | any | only for `make c-test` (host-side tests) |
+
+No other runtime dependencies. The repo does NOT ship: the 10th stock ROM ([REDACTED]),
+modified/tuned images, Ghidra/IDA projects (`.gar`, `.i64`), [REDACTED]/[REDACTED]
+binaries, the toolchain source, or the toolchain install (git-ignored; re-create with
+`./tools/get_toolchain.sh`).
+
+## Notes on adapted files
+
+- Path resolution in `c/tests/*.py`, `tools/tests/*.py` and the tools was rewritten to
+  the public layout (`tools/` for `sh2emu.py`/`disasm_sh2e.py`, `roms/stock/` for ROMs,
+  `symbols/` for symbol tables, `analysis/` for data regions). All suites re-verified
+  green in this tree (see VERIFICATION.md).
+- The 9 annotated `.s` files regenerate byte-identical with `make src` (verified).
+- `tools/toolchain/` (sh-elf binutils 2.46) is git-ignored but ships in the working tree
+  at `tools/toolchain/usr/bin`; `./tools/get_toolchain.sh` re-creates it idempotently.
+- `src/*.bin`, `*.elf`, `*.o` build intermediates (e.g. from `make src`) are git-ignored;
+  `make clean` removes them. Only the 9 `src/*_annotated.s` sources ship.
+
+## (root)
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `.gitattributes` | `c7df56f888be333371da8b3a0f15ab946b7dd0e5d751e0a120a9613367b45ab6` | 307B | Git attributes: binary-file handling (no line-ending/diff mangling) |
+| `.gitignore` | `5c1470ae887f70c450f2073f2b675c78e1b031158022658b7b5465f38f50549d` | 321B | Git ignore rules (build artifacts, toolchain, private/local data) |
+| `AGENTS.md` | `e1bda128d74675f027525420c45e35ad6b6578df28932b663825d2488befbf4f` | 483B | Agent working instructions |
+| `CLAUDE.md` | `75b14e37da052b2d8d53663e803c3692e131eaec1af46acfd75436d908df2c77` | 2.8K | Claude/agent working instructions |
+| `CREDITS.md` | `050f041fa87d4d1d8b85f5824cc69093453ee7e0509d68a7d4952cd384030bfe` | 4.7K | Credits: equinox311 + defs source attribution |
+| `LICENSE` | `d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee` | 33.2K | License (GNU AGPL v3) |
+| `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
+| `Makefile` | `f61053aee25d179094d5d6c95af47491ea29214d2e3922e629c2b361180b2a80` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
+| `PLANS.md` | `e0e4dcae0f359459f8878a037f5f2836df4d4820265e3ae23251b8b44b970899` | 9.4K | Master plan (single source of truth) |
+| `PUSH_INSTRUCTIONS.md` | `dd33ba87e2b5bd4586374afbc79379cf9e01c728e6b31376c10c9c8cf14293e1` | 5.1K | Push instructions for the new rx8ecu public repo |
+| `README.md` | `3e0e1ae153280f6e133f51168474ac905396081e16f40b6c58d38561f4e6fe1a` | 7.4K | Project README |
+| `REPLICATION.md` | `593a250912ef9d6d9927ec9023f4e2338f90fae39a45247387d4bc7b39290b63` | 9.5K | Fresh-clone reproduction guide |
+| `VERIFICATION.md` | `4c19d97f6b15b7da55a8d2f3faf4b28b33e14b25a561136b94331622840b5d7f` | 9.9K | Evidence: byte-exact table, coverage, test results, hashes |
+
+## roms
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `roms/ROMS.md` | `1228b995cb3c036bdaa4a61ce3dd790f32cc3f894bee468ba43074a0bb460c88` | 6.9K | ROM catalog: cal IDs, SW modules, keys, checksums, hashes |
+| `roms/stock/60E0E500.bin` | `c05dfd0422b2b773027a22dcce2c24923969f27b94634bfcbdb44d6157087e11` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E0E700_N3YLEE.bin` | `bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E0FB00.bin` | `3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E0FC00.bin` | `476ddcbed4549d89b9835dfbfb1aac48217d943fb53c73f489ffc9414803e35c` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E15120_N3J1E.bin` | `a7cd953c2a87af12ee2814a95c958dc23959d352ef9c5e7f82b8ab8952f264f1` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E1B900.bin` | `b0dc94f96e8eaf6f154df8e7388d12fba490cf2adf13edb077677c4c82b3b1b5` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E1C500_N3J6EB.bin` | `b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E1D400.bin` | `344cb8b960eb6dde973bdb8e8c3e3e96cac542166cd7158c6f5f24d71eb7af78` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+| `roms/stock/60E32000_N3M5E.bin` | `d5406459cc0b19f831a73a021ad2ae47179127097a15cfa323a34bfa47e330de` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
+
+## src
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `src/60E0E500_annotated.s` | `e596b15bd1f419e34e78bd987a57f2744837e6b82fbfa9a34eefa2bde12345c7` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E0E700_N3YLEE_annotated.s` | `4e60f36a9281a96c33adbf7c437650b1beb44fa301823f616b42967d0549328e` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E0FB00_annotated.s` | `c1f2bb2462012fcdd4a195938618762cef4f30a09db0d833042dfee8988baf1e` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E0FC00_annotated.s` | `ce9557fd20d69a3fd39e92f95a2f44265885e91fd1d9894efc7866d9c8e55f5a` | 4.2M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E15120_N3J1E_annotated.s` | `7cd3978ff2f4124761d7648e30129f6b0e1f25dee60a1a3a79c0127bebc0f77b` | 4.5M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E1B900_annotated.s` | `0d435e546932f8ba79334ec0cac4f2c77584d9965c34b22795112b6af099df70` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E1C500_N3J6EB_annotated.s` | `9be5d9504810498059e485c5b7c776e08a698c050d554f0473cb657c8edee8f1` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E1D400_annotated.s` | `578901d694abf01d01ffb1fa0fa372fdf4f34ae9815faf0a581677b637116fa5` | 4.3M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/60E32000_N3M5E_annotated.s` | `b02f03c965154d15ab0e609b1540510cc4727b75e7b7aa55cf8689998cbc6efa` | 4.4M | Annotated, reassemblable source (byte-exact rebuildable) |
+| `src/ANNOTATED_SOURCES.md` | `f500fa5bca41538451ca63b45c89e606ab7e6e86953c05c14fd8e7a68fbb6ad7` | 3.6K | Per-ROM annotated-source notes (coverage, symbols, rebuildability) |
+
+## symbols
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `symbols/cal_tables.csv` | `d0de67554052f39b1ff23b236436aa4e13f1e7769f50badc11b6d24edd542b34` | 34.0K | Calibration table descriptors (1,210 tables) |
+| `symbols/callgraph.csv` | `728ba942fdfd6d2101e8e1474c4eba1b43604da8a1fb3cc656139aadaccf61a1` | 362.9K | Call-graph edge list (caller->callee) |
+| `symbols/symbols_60E0FC00.csv` | `4a9bb03d4b98793c8a09120cfd1bfca2b57f408a61374241ff6886b04bc3c7c3` | 156.7K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00_ghidra.csv` | `53e228ef534d27bb63a80f5ecc8e7722f0a7c3bc279cecd0468364aa91b6ec7d` | 38.7K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `630dfed4b9cb2ab3810aefae8387e6d6ef8239164912effbbd8bab7a6e20eb99` | 140.4K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `b682479aecd05f854d58ccad8fe12960bf765342831081759ff79a5f10d80d07` | 141.7K | Function symbol table (per-ROM) |
+
+## c
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `c/2DLookup.c` | `77ec8562352bd30232b3d660e03badd06c7018b31f2e4c1772f20e2cd8583ac7` | 10.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/3dLookup.c` | `02b55cb88a5111fb69096314f4c84f546f11209677c95c1a35679fb9ccbfbe5b` | 9.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/CANSetupSomethingDifferentBasedOnBit.c` | `0bff14b29e51727cdc74a48c50c51b805a7db45b0d14325b8122901afb72544e` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/CAN_TableLookup_583E4.c` | `0df9934d3a7ced8a8476668d4e8e0256cde4ad849945bcc71f5f5e78a484dd36` | 2.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/E2IntoRAM.c` | `fc2325f82277d914cfd53b7c2e00bc462978406b163aaf722698c724356766e5` | 4.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoBadStateSet.c` | `082ac4cefe69315efb48d5cf511f47e9d4d76ffd103e9aee9a6b1c344aecf49f` | 642B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoGetCANData.c` | `7d94ec5b33b88a614baec2e5da3d8445c5ea74ab9d073f610b5f384003ba3173` | 3.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoGetSeed.c` | `d7ad32c0c9f7ebc67a454cfa705b0feba9c691cd37aefc49372c5ca5191b15a1` | 815B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoGoodStateSet.c` | `1ad50bb9a36813840d0ddfcf7e671190c6a76d872e475a43982b7b3dc54b5d57` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoKeyExpander.c` | `357532455e29c9a11c3fcb1278b9be2932b75377b1728e020608c6fd6a95b631` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoStateMachine.c` | `2f217013a43e688dbf5568f1783c4a1da61b8093041626379ecbd160dd1365a3` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoStateReadyToDriveEngineOff.c` | `914f3872de7c6a23b7805e5cbe8e9c2c7f361c8e97be2396b0dbb32b820f3df6` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoUpdateRelated.c` | `460a0d6936890725e2bb9362cc05557a96d520ee9856d0d9f3100e64a13a2ada` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ImmoWaitForKey.c` | `b832e87709766ea2e33daa7e6901dc62771946063a30a97648ae35e0f609a60f` | 3.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/Immo_Keygen_related_ADC.c` | `7b6fde877ad30d0cd162c8647044df2b780de21cad3334fec1a7b64b5e04c23c` | 3.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/README.md` | `cc5d0448163fb28a8f55a64bf290a063f76e6405faf949d64b227ee911368a71` | 12.1K | Directory README |
+| `c/SetMemoryNotValid2.c` | `76d4d68b7a3753a832ed4437056d867f137cf48c4ef6057d6e3f7a0e006741c2` | 685B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/add16bitSaturate.c` | `33b56a6a1a1c2bd06ddfc65a7ea539156c6ccb885ded9de74eb8c5558d8aaec3` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/addS32Saturate.c` | `bfd0e5ed88ac6633b41c264ff0c324490e9385dcc756622672d232e304d952cd` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/addSaturate8Bit.c` | `3d4e0adb23bc1b18b467af6eb840c6670b1e4405680ae013b6af1994df9a7985` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/alternating_sensor_sm_5D34C.c` | `4e665258bd1ee20449884717e1a47c444c930bf18ce3945a694dee0a1c9b3674` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/atu2_edge_capture_config_6F3A.c` | `6a112d5f1755d848bdd5f37f5df88d75b727f14abd87562ecebf301572f49ae1` | 2.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/atu_fpu_control_wrapper.c` | `843b5fa3c315537922e7abc6ad2fa77b225ffc569062d473acf94003c2747bbc` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/aux_fan_control_task.c` | `8063b51d0eb80a0d94309adc4cdc763ee1ef601a451f7444ac61b142a607b6a3` | 4.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/baro_sensor_value.c` | `ff3fb8099c49013535c2c72a2cd9be211b2643580a487ebdf14570efcebc2e70` | 6.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/battery_voltage_monitor.c` | `d00b0acd0047ed09d82fb526f281dc1e9ab6401f4a957e3eab19d9276b1c9171` | 6.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/bitfield_extract_merge.c` | `df0b0a792955cfd245162565923668420b34385bed9395188d7c96e878b7e4ac` | 6.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/bitfield_flag_selector_33A98.c` | `89f93793393717a0797dd2e113158c2278deda73a3a8a8fbda4a38154715477b` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/bitfield_flag_status_decoder_339AC.c` | `36a71e37aa8696a59863678823ddfb348d4c92e855ec491e23d10e296535d5b0` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/boot_entry.c` | `896aee7f0c42e17c932eafe5076a6edcff054ef06a94ec6810ed239c61564141` | 8.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_adaptive_fuel_trim.c` | `2bfdc014f8d6c2483efec35e26df6c649d6046e8d3fb4f9aa9d12038225fa90c` | 9.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_decel_fuel_cut_445AA.c` | `a5dcaba0a6506029caaee13de21f1f4a9885821494fd77f7680ddbbbd938b89c` | 8.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_fan1_control.c` | `a58ee54e0704b5a2dd881a037f879f8a55b0239fe72ea88b6866378b56c5c50a` | 4.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_fuel_pump_duty_trim.c` | `2beb3a022c7dc161ded017a12e5019246648e14ccbebe6444ee6d4e6e7b53d4a` | 7.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_idle_speed_target.c` | `0edb9447d1c1af1c2fad34bc5859bc9fb2ffdaef60c42b00ff3a65d8fee37c33` | 7.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_ignition_all_rotors_13C2C.c` | `b28df572c20e472eda5dc3a69ef92a45e0a6317e597bf0eeb734f4b0f021d0de` | 17.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_intake_pressure_pid_output_1252C.c` | `d67687057f3988ff99ebae558c3c12fb1c029c5514dde7aa1ba8690b2d1d5a46` | 5.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_lambda_feedback_pid.c` | `7a03bece57d64d821e0136574e5744c68e657b9a430aca1e0c14dfd9ca81349e` | 4.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_manifold_pressure_error_clamp_10A5C.c` | `5398354a0d3bebc6ca010a66227fdca97405893f659e2d3febdfe78b267e5661` | 2.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_rotor_sync_idle_gate_B.c` | `278b71ed6ed92a40f55f5bb47cf4c541f3941cc4fdad0a4deaea82936c3c374b` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calculateImmoSeed.c` | `d95e3de7fafe4260043f271b62314cc3e9d4f114db2c8334df15b3860131792a` | 3.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calibration_apply_4B770.c` | `736812f9567e9b8b55aa18ba89faae9fddaa50fc55a6f7155c41984b227803f7` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calledLots.c` | `219e9669d41e8fa52334b9e063c1e917baac6354243e5a3d9aee3bf993106eee` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/canSetup.c` | `6850cad9a360bfb7b39a7b63fd48a3509f4efad4024a8553673166809d1823ca` | 2.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/can_encode_handler_62ABC.c` | `8d41ea208495da6d0b7e7e42079c5617446e86d9ebf49315591b8b9f8d2fb7e5` | 4.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/can_uds_subsystem.c` | `d4dce76276ad7ff6bbc250afcf776af9d24ccce9ed64e0d8e1bebc0b57f9e959` | 29.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/checkFloatValidity.c` | `8afd2a5c12525ef9f9240031b77b7278cb944b04a933a451a5ca464706366cbe` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/checkImmoStatus.c` | `6bdc74ddb0e547941fd67a835cc316971736c4bdc1e2e654bb675f0f9c5d9c8b` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/checksum_complement_add.c` | `ab9f6cf6f4100417b7c6f14a00264014dbd3020623d8914f73b439921369d879` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/complement_shift_u16.c` | `d08537d7987746e4a32ca48d3c15563abdc498686f0fb747c97e54203a0728fe` | 1.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/complement_shift_u32.c` | `8c03602582c9463aade8e53b8ddeb477691f4cec982d647a960d0393ab26ab6d` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/consistencyCheck.c` | `17c2cface615473c0271b529438a7034dd418e0aac18068b99420802cdd977bc` | 5.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/coolant_temperature_sensor.c` | `f6b72e59f2c0b47290cf23b13976b09d3a01d61cba6f1319edfabd57632d39cc` | 8.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/cooling_fan_control.c` | `39f416f7bd45533adcc26c75b58e093798c57d91609ea7b0de9289b89ddfd651` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/crankSensorInit.c` | `5893d231c7bcdcc9a9913412da43f1c8047a6997669ae3273652530804bf3087` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/delay_loop_n8.c` | `ac54e183ed0843528bbf05ce2389811271d2f82f82ceeb5add689428cf87b12b` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/div32_signed.c` | `6babcde5cf39727ee7de552e26cb017f914057d31da026e6867d300196cb8727` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/div32_unsigned.c` | `375556a81fe66996a77f2ad06858ba38f5b875f04ef638ac008db2b72d2d4007` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtcRelated.c` | `76403b0f909ab0e55ba19510570a88194fedd91cdae823153c82ed2755495669` | 3.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtc_code_set.c` | `c599bb707eb0cc56a2f33dde719a40fb9775cef22f8f35d628080fddcfc0d323` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtc_data_read_60F58.c` | `117f607f28ff86f7f9da59cfa10a9a57646410e668f27463bbcb94bc66e1e7e2` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtc_debounce_monitor_43760.c` | `9a662f2dc94218fc2650fca4ef08663bc6900a99ac0f981c1a5455c8bb6257c3` | 5.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtc_handler_610FA.c` | `103137e640d38df9b5c7801d371f52128c6e2119eee1d658cc336b9a32506c19` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/dtc_handler_61550.c` | `f72a23bfa6305e94fac52a6728e3e72160f734e605f42ca3fd8750f058195a16` | 4.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/eeprom_immo.h` | `1459ba880e4f87ef066e3eb9096ade1263b02d30dd76b92757fbe7bb159e314a` | 9.4K | EEPROM/immobilizer shared definitions |
+| `c/enableDisableCruiseControl.c` | `e479adc91e677d7a4018dc7a630b2b0e853eb9a5021f4a06c29aaba5e37c51ee` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/engineControlCalculateTiming.c` | `7f88526b869a77edf6e73cb6a27a0b29d2ee81fc40f086843368722e58d7be09` | 12.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/firstOrderFilter.c` | `edd2ae05d9b1f0c565eb731011eb8959375d59f189e61b27582f46c63f70202f` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/fpu_nop_stub.c` | `41c50c86918e69698a285ae4f0948446cd29470821cc259458cfbef5d14197cf` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/fuelingInit.c` | `7b4b61867c4dc4a5cf675a6e54a7449c40704827876313082bf1f85398114579` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getACSwitchStatus.c` | `5e09f56f44c1688b5e24cb5590c40c9c7cc3494159e252231e90bba3e34580be` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getCruiseControlAllowedBool.c` | `1d114891643ffa075fb44e252bcef6c1bc52237a4245d3764b5ebb9edc23066e` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getDataFromE2RAM.c` | `e16bd04a9030060389ab79671a5bdaedf19e83b61809419a0bf89fd3d2295de0` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getEngineOffTimer.c` | `a991304600b08d07a380e7f00a85fed24d87c062967fa14f753ed48a5797de7e` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getEngineOnTimeForOilMetering.c` | `95d8becab0ecb97d84a854059ae24330900a2a82c2f1aa3f9ee7d6fa813008e9` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getFaultStatus.c` | `eee3ef06f93ec97147ffc1523eab94cca17c92dfb1bb30cacfd90b22cd2ee19b` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getFromE2.c` | `140f003bc3ab448cf23d0e127a38250d0bd9f8a4b37d097355069ced7d02a095` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getFromGPIO.c` | `5e25baa037946998cb251363517adaf1a927094930a62cb5a48fab535e425406` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getHCANRegisterAddress.c` | `0299aa0eeedf79a6faca8347646d000692a721a21b0dcdb021238d7fab8e9236` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getKnockSensorADC.c` | `9940d4b0e30adff04de2f9ff4daf6de79f74bfae8980626df0408a67e50aed0c` | 3.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getSR.c` | `11b616e749f1094b8576660e9d1a9e4f72df837644a69ddfd495d24a8dc4df67` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getSpeedLimitCal.c` | `400b6d9fd9c2c5dd4fb052f1ab9e7727f9c7070c2cd6a8b0f27f7f4460c49f71` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/iat_sensor.c` | `2b38a3f53e197fc69bc178e4048d3125128ce406c4a0dd39a912da012468f65e` | 4.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/idle_speed_control_18054.c` | `876c632f79755f636a80f3215b0ff67fec039626cafd620068c394b72391cbea` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/idx_table_helpers_68780.c` | `4d650cab21eb9defb03303391062a7cb0101b411bc360b6007ff7f15a4c62fff` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ignitionDwellOutputInit.c` | `612b1c5cb0e2d481691ecb8ff3a8223e20a2ed7c5bbd67b2a34a4864e82a18b2` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/init_main.c` | `e5f49c166d2d09d00992db3426657f7da55f2ca7002517e887551d4c1fc8dcd1` | 8.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/interp_leaves.c` | `55d65a25e37087eefd642a67e153930b88ca62f53f6b6fca89ad77e008a458ed` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/knockFunctionInit.c` | `5cfe866de396903775202a0d34d2a0341577eee848b38ba8b123e3ae9f9df183` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/knockRelatedInit.c` | `3e07458d0d3609abb33b07a02bc586df1505105945b22e337cdcbf026292e5ec` | 4.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/knockSensorADCFault.c` | `0e2da1ebe60ff44a0428f7778b02e5a96e6204e055a3278aedb8b96c6daab5c8` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/knock_sensor_adc_fault.c` | `8d037a428d3955462521faadc1e1576b6cd205bde687259c80ffc5257c00b453` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/knock_sensor_adc_read.c` | `e81623961937d2a72ebc794247a9644c268be64c1e27458c91eed71c5452f0ea` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/least_square_0x5687A.c` | `92927f6f6b34a623e870ae2793822c38f3e7f52d668b803147dccddfd1726c05` | 1.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/limitKnockRetardMax_ConditionalRPM.c` | `0cd5ecce7b0dcf470bbb23ea98cb4b8ad5ecddd460a443581d56742076f1a920` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/loadDatafromE2intoRAM.c` | `688e09298a8445190ada3ce00f18398defef7db140b9c99e305e9fc084a8d510` | 590B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/maf_sensor_value.c` | `a13ed29fd47485136e10f207a591b85d55181286aa3b7c53fdb0ce908256494e` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/math_min_max_49ED0.c` | `da8db972996bd74cca9ff5a18064669fef073a8c5bf3dbfad5464aa3583ef02f` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/math_primitives.c` | `f60a95fae71551c7fce8c2155b65d1fee75affb1718ba0f4180c0c4bd0fcad47` | 6.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/mem_accessors.c` | `196f29a5ea06867bc8256145e622bb1057c162f9d745c46ebd2cbf354328b8a9` | 10.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/memcpy_bytewise_unroll4.c` | `8789bba66067458af6789c3e51373bf6c9ec37f5d08e88b124156542220a630f` | 2.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/message_queue_state_dispatcher_369B8.c` | `b784cd15e38a1e521fbae548d70699144af4282abdf5f6a159046a72789cb85c` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/mod32_signed.c` | `3d0316e52b698213254aebc75b33ea781161e70f8eeebd2395bcd9233f252300` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/nop_delay_40cycles.c` | `3775f576e0cd7224939f6cf1874adbabb933a9cfe6e133a9205391204634418d` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/o2_lambda_subsystem.c` | `02461ce0b22af16769260407168e4a9f417edab653baa18f9b5a381ceb4d8139` | 19.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_dtc_find_0x643D4.c` | `a0dbd20161d73e800594b6fe85b60deda82d9792d7152416b187c79623c95a3b` | 1.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_dtc_find_0x6443E.c` | `b4011cb48b50f383ddde201117cfc75519545bf5954299497f34e76480ed6b2a` | 1.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_dtc_row_update_0x64258.c` | `9c89c83708f8aaf38336bdf14d6e87659021432998cd28ea35d4bf3abc5633d4` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_dtc_row_update_0x64418.c` | `fa8398cb1172d3e108eee48ce118ce81133978c5e1d82df460b94d26f1ae8e5f` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_dtc_row_update_0x64490.c` | `bc397ebc85b240cadac142d1a3f779c5d13b79270604a9d4e420f8377d7ca98e` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_pid_handlers.c` | `3ec8d0574a4e405828daa08de617102c90f93ade1226d7afb820de9272b02bcf` | 22.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_service_handler_632D6.c` | `8bb1f2a90962217f21bc83c7d47621c7eee72607c6410b0d9caf4dde391ccd49` | 2.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_service_handler_63312.c` | `8b570f8b33fdbe0bd93a10bc887704fbe8b240f70b2efe0f5508f8374a20c88a` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_service_handler_63834.c` | `d8821d6af3eaad43b9606a2a20ef24604c27bc4561899ae38dfd58d9c5df8ca0` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_service_handler_63B46.c` | `902a4ee6963a1ff37fe2a4d0ebefbf086d9ff07d4a9022c26e50bb4fe03362d1` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/obd_service_handler_648B4.c` | `2ee267d0a5479238cfa9931b9acaa5b6c946987895729c29cbdabc3b896f1aeb` | 3.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/omp_rotor_overshoot_detector_18CC0.c` | `4812b056e063b3d134efb4dc64146c89509f6312e17c9a287ce11db573564e0b` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/omp_stepper_waveform_driver.c` | `3c75ace88ff2b8bd629b5e370fee178af8a86c78d7a5e9c0d9984fdb23cc0fc0` | 7.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/omp_task_0x1825E.c` | `ed4ff09eb9c613060ce1b369758c1abd75b05f49ef198d07bfa4775b62e68ea3` | 9.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/omp_waveform_state_machine_18860.c` | `1bf77d1249f4f7aad516e2a0b8ea292c5eaccb8deb408313bdb7f93403efd246` | 5.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/osTaskScheduler.c` | `84f3f4c815d974ac1781100ed821e22940894670340ce7f477f1fb75c2ab543e` | 9.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/purge_control_state_update.c` | `39a45cce814b0432cdf229ca74ac5f1e74c3deca55c4a8c6f1c90879d31564ba` | 3.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/purge_flow_counter_init.c` | `39abc3d6f97b2f2e40c495ed575738ef6e2dd070da65eea43d94f1d811451ef8` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/purge_flow_decrement.c` | `f0e11c738461320781f32db5f92782556e72732fb1b8911cf57f689785d06006` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/purge_state_query.c` | `9a8779a2ac2a7f92f03a7c355b1e1151375cc0955e3459d6996bacd1b2d00a73` | 577B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/radiator_fan_relay_write.c` | `0215f20f419235ce40a01cdc4bbf5d2ce98e6b544dfa12f6cff7e4869ed6307d` | 605B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/req_queue_69602.c` | `dd14b521b17e7cc72321b52f3e5024e3cae7091bd5469a9827d513bb7fe9ccc4` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/reset_handler.c` | `603fbac2fbcaa7b77fc293ca6773d238b20d1c1b1b4d73488ea4e0888055dc36` | 14.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/revLimitFuelCutInit.c` | `c2dec9f1642048d238f76fd048cdb5d09f5e7c2b5a0f2eea5aa656b7ceb275df` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/rotor_sync_position_detector.c` | `6e336c56db4fe7fa60bc9663f81076ddef0d568d7a51727dcd1a3a5246ca73aa` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/security_access.c` | `e5031b3f2ac1fbfa9cb331d71b2904850607d94d371dad9f3b8c1a16a7f78356` | 23.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/seed_mixer.c` | `bf6c0551da52b3c54a1261aac2e0237788178be02b8a6e8d49caa5e14ec41f86` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/sensor_check_float_bounds_adjust.c` | `73f31aa8f7135098f3e5a70881c4430964ffaf2449c9d3d6d5d3fe679321e771` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setAlternatorWarningLight.c` | `757b3f95c9e5891ad95a577611bf5169b88ad099b4a90b5de9a7d4742c068a87` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setImmoLight.c` | `910810385fad94fe8fb3c04e41da244b363d495d14303927ec4adfeb10d72b08` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setMemInsideFUNCto1.c` | `8495261806b1e2b8777c12f830292595c18f1594148124130a8a5def8190b1fc` | 585B | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setRegister_REG_BIT_VAL.c` | `6f9dbe798fbc4128ccf0d335a827511e6723c581a50db491bc261b9a75e26664` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setSR.c` | `eae2e3a8936623078a01594ab338c68dff65e26760b33b4505bd55aad8df0ad4` | 4.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/setSR_PARAM.c` | `56bab8d1daad2d01175178ac53e7ec1d3be836bea8543b0f35fd3542b47987b9` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/shift_left_logical_r0.c` | `bf12b8846799ade8d9eb9bc8b10876cdda0576a479b6c50ab615fac0fcc8c893` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/shift_right_8_r0.c` | `f2adae0ba55c8c190f73a867df7403d27cda7ed228db2e23d9a4df2a471b5ffc` | 1.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/shift_right_arithmetic_r0.c` | `3becd54cd021015d718a5d9581e0c5c18f6a43816b2e9cf71bfcc530d375a22c` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/shift_right_logical_r0.c` | `abbd085e7dba393554ecc477f8c3525b3a04566511ec96975b8ffd36fb6b9ea8` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ssvControl.c` | `eaebfe5625dcbb77a131165f5ed39c79d245c17ca22750cd14fba398187c8feb` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/store_knock_learn_buffer.c` | `fbd2aa36fcb7851556b5ed68d141bdbbd2daf6cd6572efe614ac1e9476834c04` | 7.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/sub_37000.c` | `79aee80afeb24da8cffed260ae707a2e3d88a406159900e1b5112eaadbdc8911` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/taskEndRoutine.c` | `ca28384f97eb730d5e29d1e90431ce0b0d86b4614af7033c33794b6d6db7423d` | 4.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/task_execute_by_index.c` | `a433cad7cc85bce936bdeed450ff31bcb2c9c6659d11ae7628ce98e13cdc3c76` | 6.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/task_flag_run_C.c` | `b3bba6c41b80255a326d45bd486a8a2572f78dd8bf7bd17fb09ad0a65384f70c` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/task_full_context_save.c` | `bbdac4e17b6fa65e3756aa86b39b95e7ae6c8c9139a6174a7e9d2df3e9bc3e6c` | 3.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/temperature_gauge_0x5AA5C.c` | `b2774efa881d7673fd62c8fd53d94f900c3a2bdbf2121f6b5885afb556864b51` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/throttle_position_sensor.c` | `2ffa3c218a91536929f2f7a52a34a3173f8b7f22e7acfc278708c34ab17dfe05` | 6.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/updateE2RAMBasedOnInput.c` | `9c674dd24dcbfb82c1b97ed8449b4ae5f48003cb1e0d28be816b40b50bfd2fe7` | 6.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/vehicle_speed_sensor.c` | `aa7dc9697a545d1423febb11e4546c630a30e7f4f1f2e68f9a35ce589be45cf1` | 5.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/verified_addrs.txt` | `def58dd20ae772aee1e6f1791a6fb055dec65df1810a2b47c0ef93faf4a86ee8` | 12.8K | Verified-address ledger (C lifts proven against emulated ROM) |
+| `c/vfad_control_35BBC.c` | `55785deeca85baa930739a07c7e98638d0468d2c87c0e930ea65d387320c9ddd` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/vis_intake_control.c` | `8adb19bb71f837dad6ca572af015e32ff1190f62e49c80174ec62215432c3095` | 4.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/warning_light_0x5AADE.c` | `af4b45c9a16aaf56d50a067a03e43e7eb475ed5c12acd50609dcb9def7a6f827` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/whileLoop.c` | `38344098f7dbe1ef25d7c390cb1656d1db54f4569879652713f53a53cd679d19` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/writeToE2RAMArea.c` | `37a489d2d893d180c5374d426ff643360afb2e0edf47d617ce3ee253e3e38296` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+
+## c/tests
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `c/tests/smoke_dtc_functions.py` | `4757f64f4b1a909333a26e3de87b82354824ddc5c3670951eaec018ebf2458c9` | 8.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_2DLookup_FP_16bit.py` | `96b682a76da1e62e08599a6cb7c081c3d7e8fb1f4a3a2c686fb6ff2132d9d340` | 3.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_2DLookup_FP_8bit.py` | `1722bd5a94aa4e2bf454f621d3ffbe890147e6ce51a9c62bca93ac88b72164d4` | 3.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_2DLookup_type0.py` | `623d852efd22f84e66b95425215d644e4f7585df613d08a2a6afff71fe428665` | 7.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_3DLookup_FP.py` | `cdc2f5b04abc516322e0389c0b7d0b72c0511a70dc53c17f121f53041f62b7c1` | 4.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_3dlookup_type8.py` | `98e9dc99a9176edff1adbbe698d9ee7e2d15994c7d17763313278fcb50462b7b` | 4.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_CANSetupSomethingDifferentBasedOnBit.py` | `e4c9148280c556272a1aab0438e0e2108cce5a5a7fd849e34614fa502000742c` | 1.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_CAN_TableLookup_583E4.py` | `23a782636d3f04a091ce6ded65c7f775e3a90cee45ccb1e7b78b93f317d3a6c9` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_add16bitSaturate.c` | `68dbf734de3d44662fc9cf968627897e61ad0cacb94eb32dd9d088ba08dfdc95` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_add_s32_saturate.py` | `5e72c86880bc7e6c53bb4affdda5f2e45c4122f78f64b360e4f6e25f51f0a71f` | 2.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_alt_sensor_sm.py` | `dfb8148d3c64a933e2beed6b7668d26d796258c766dddbfdc8dd841082923b39` | 4.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_alt_sensor_sm_5D34C.py` | `87918c76c404394402ffc85c6ac206799d81bfdfed41c4e58fdd61ca206a29ec` | 4.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_alt_sensor_sm_5D800.py` | `2f951bdaf6e5e145aecfc154361a57075d3dd92ced54e03e6eea91dbe5c067e4` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_atu2_edge_capture_config_6F3A.c` | `0dfe7a1632bcf99f763b7d7c164bf14ecf00446feb16afef0e466fbbec4eebb4` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_atu2_edge_capture_config_6F3A.py` | `520aab7b84b70f8233f983f09a47ac3f9e352271be2709f58dc98016316a0cc3` | 3.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_atu_fpu_control_wrapper.py` | `cba0daac001c61b169039e4f5908f60d72367479d461348805413f16b86a71ff` | 5.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_aux_fan_control_task.py` | `87e44d369c14a7b21704a476084695ba925ac86a2062049196a9b222f8e04876` | 5.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_bitfield_extract_merge.py` | `476b9a2477fb9228d44dc108b274e1ff43d6b46d88d9c82b163a3139b49ed4ac` | 6.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_bitfield_flag_selector_33A98.c` | `74e061c162b01fdcb33273d4cc88b79e5d9650ab82037c18c8a2a92c53d8b7c8` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_bitfield_flag_selector_33A98.py` | `a45f0d2c4d936e1846ca2374034f0d415f08537fcabe0d14d337bd86f9e72d1f` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_bitfield_flag_status_decoder_339AC.c` | `f50f79e4632f40b346179eb30324bec53d33b28360d33df43d47c6a8f5c54040` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_bitfield_flag_status_decoder_339AC.py` | `579ddb23d3682d20b5c733a91e60dbd6f5087e982e396feddef70a42e257d579` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_decel_fuel_cut_445AA.py` | `4661c049c9b649c9f53c83670efb09df049715e12962990c308e6f6645452458` | 9.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_fan1_control.py` | `8b84ce9a25d4746d7c31926ed986f620b3bfc349d99caace7f1cdabb139c21c3` | 3.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_fuel_pump_duty_trim.py` | `edc3413dea4d62418e6f85150213c757a489765ea7e0bbe03f687e07a9345967` | 9.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_ignition_all_rotors_13C2C.py` | `85609056cff0f898fbfe5a1ffd24e5a54b9adb555822f55fb4e472b5b09b84b2` | 14.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_intake_pressure_pid_output_1252C.py` | `cad7fdd5ae523889604acde3a15fdecb71b2e736707617eebc82bde56dbc6659` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_lambda_feedback_pid.py` | `185b0f847aecbb97a0988e233396519a1286743e251ef6d51d88e9e57bb8e074` | 3.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_manifold_pressure_error_clamp_10A5C.c` | `5152c60c8b708558a54bcd68447e2d1c6d32cbd1db8b079cead6f3bbbd75a00e` | 5.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_calc_manifold_pressure_error_clamp_10A5C.py` | `cdf6f3d5b71c66e7d8c927bb3074b847f53cd83cdeba37aa16779b45e9cc777b` | 3.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_rotor_sync_idle_gate_B.py` | `65a0233dcd3c4402409c337572772163edad160ea8ed1c5e8200f820f1e4fd23` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_calibration_apply_4B770.c` | `7119adb710f3b1dcd2d84ee18066a468504fb736d28613cd9840eae4e33adab0` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_calibration_apply_4B770.py` | `e4ed971e0e154de76e3868b7e1060354c6e13e7ee8339d72edd1f053df6ffd7e` | 2.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_calledLots.py` | `3728bef32f793079b65c5fd64847872105968ccf294975555f59043a247035d4` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_canSetup.py` | `b9a08337ead688fa1fd735a2dc826ee7415b50471c46e3b34a7a2b80604c66b7` | 2.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_can_encode_handler_62ABC.py` | `98c1573589894423575a2db83095e2c2fd5808277ff61b21ff4b5e987374ff78` | 3.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_checkFloatValidity.c` | `ab582c65c5c38249eba595836f90a9e09eb2830039dc8cadb0548908d241d077` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_checksum_complement_add.py` | `006660320cfcec797767f1ea9b67c8b238947ad86b395def822a29c928f1dd05` | 3.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_complement_shift_u16.py` | `30260e87df8208ae9cb13757bdd71020bf7da757ba4992de1627bde5b954793c` | 1.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_complement_shift_u32.py` | `96c373fda8ba106d6f4982fefc67a6ad64c8d64df59e3a9516d1247061d490aa` | 3.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_consistencyCheck.py` | `d8e1538f21e72365f171bd2494b2cb74bd3643eb6915759f0c001a9a865ef2b3` | 13.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_cooling_fan_control.py` | `ed8d94c1306c76de0e70c684a4b0b60edc2b70c99f3351a9a2dbcf1e94a839a7` | 4.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_crankSensorInit.py` | `ef23723f854a27ab0011b33c0b4c13655a9b467028217745ca1311d64b23e6c2` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_dataLookup.py` | `007121b1f630c99805a4492692c0bd1b50925e82914e92870b63460c1498b820` | 4.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_delay_loop_n8.py` | `5084347986d5453524888b9a58fcdfac709ff9fc91a3bf5af1c1383a5de301d3` | 3.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_div32_signed.c` | `76733752f95f1f468434f99ddd4f6d6b1069d097ea7aa3d1105881fbdb61dbe0` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_div32_signed.py` | `933638838f61ecb2e4d86f388057a0f7d0abf670f3bb2c0b5cbc2b22a411970d` | 9.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_div32_unsigned.c` | `ee1ed14e17a880b5f89320dc18a09c7d72757b971882e9122f8812ba09cf438b` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_div32_unsigned.py` | `c8f5ac7380d2af4ec4f5f854640783e84a19a105b8159ae34aa5c47922e81b34` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtcRelated.py` | `58d57517fc7e913663accb0e41d4eeabd9f9b7a76003e85be9c27fd740db11b2` | 5.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtc_code_set_clear.py` | `b437df1d4eebb950934276e0cd87eeb1c80e7a5fb476d4367e3c43c567336f6f` | 2.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtc_data_read_60F58.py` | `5361261f91c1625fb804c18552549ce55cd955c344e240b2e883c78ac29d1a47` | 2.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtc_debounce_monitor_43760.py` | `bc0e818d3978519385ad2931304e76ed158183d8630e2b174f00e55e06c60602` | 6.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtc_handler_610FA.py` | `c5a2cef0c037a4d0df1854fa2adc2dbd4fc2b17b2ae588e56de67f796f506974` | 3.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_dtc_handler_61550.py` | `d98667cbf3bf2ea5034ac307d251c85d53c9f3bc03811b588583e30af9916f81` | 4.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_enableDisableCruiseControl.py` | `59db7e7dec7f9877cbd266c667a92db07fbbc703f014ebe7b7fd1de90a6b71f2` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_fpu_nop_stub.py` | `78815d529bcb986bb0154bb74d58824ef6494f8b672164951142073edc9ae14b` | 1.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_fuelingInit.py` | `06b34a57151af4cb505ffb60f475517c65f6818bfef255dbb8e7fe179fec435d` | 2.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_getACSwitchStatus.py` | `3ca849fffab8422af2c410bf5f4692f2d98a1d4ef326ebf5ad7c9935408fbd59` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_getCruiseControlAllowedBool.py` | `d737ce0603c9c1258763440f03c7a930a44cab9455412003ac0814b1b9cb5b27` | 1.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_getEngineOffTimer.py` | `0e607655ce775e96f883f44a715a08c5e8fddf10a535b9ae5d926ca0805e78a8` | 1.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_getEngineOnTimeForOilMetering.py` | `45871efee94a6cdddd9cf899ba9315149460aaa0058c6e227a33292a3d7f44bf` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_getFaultStatus.py` | `502aff16cdf362817810bb27e7373e9fec67fafa9a76e9bd49ede9e2a657ef9a` | 3.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_getFromE2.py` | `b55f2f3d776ca0e5253fc0c371ff8544876c0c2a72c9e02fd421fab839ff48b0` | 4.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_getFromGPIO.py` | `67532e35eb2f1141030239595316c55ae2d82fda9600b88b5fdc9308305ad4bf` | 2.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_getHCANRegisterAddress.py` | `713e33fcd2052b9e09dd8fa201b98992a207d1b21e767138dbcf30575bd4166b` | 1.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_getKnockSensorADC.py` | `45bab7a9a8849c0d458eb9ebcb86880f7e938c2dfd872461797e011d9f8e4b36` | 4.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_getSpeedLimitCal.py` | `4164cb90b5192c878d03f366e31ea1c9610bb1d1e858b243ac0ba2881ecec428` | 1.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_idle_speed_control_18054.py` | `87a045a1f6f9b4a2aea890decee5e67b91fac30c2ffcaae37f585d8dd2286869` | 5.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_idx_table_helpers_68780.c` | `7e53993a28fb46c76a24faa1025b60e282abdff1edd0e748bbeba06184897539` | 3.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_idx_table_helpers_68780.py` | `380496e78d8c160f267ff96a51c964648d54abf80309b2a37885c37944b9614a` | 4.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_ignitionDwellOutputInit.py` | `3eb1cd8bc3a5092a3c7d05c07cfb95c16f31bb5191d41a59fda4bcf3f2da373a` | 1.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_interp_leaves.py` | `e1a9d0c940c77600197e3661b99b7bb1c168a153c69a2eee8d10e83d792d2155` | 7.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_knockFunctionInit.py` | `9943ab87ade7fbc839adfbc14ae05a6cfef622de6bbba2260836f97731673664` | 1.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_knockSensorADCFault.py` | `3b426011b3fc93d37a3f778c21ccd04e9bc244caa3fa0155d226ef8279a4d7a4` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_least_square_0x5687A.py` | `1ba6674e1089271e038fced04a76621359e4973f1291b6344a57325ac96a83fa` | 2.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_math_min_max_49ED0.c` | `a2782f79cb0b98ce7df5212e6b093ee6d672587f19613b312fba4b6f048bbd1e` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_math_min_max_49ED0.py` | `a46557ffbbdb8f3e555a6d34d66c8a556af64e24a4ccdf1c0bb3b42500f5a132` | 2.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_math_primitives.py` | `f2c0aac449c699df1ef926996cb0474b3422685e1515069fed58d0bde2abe2f4` | 7.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_mem_accessors.py` | `6d1ada8423863bb62303186739fafa1c4c85a36e4911a8345657cdab61f6ae86` | 10.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_memcpy_bytewise_unroll4.py` | `edfe67df156ea880ea18ba0387e4b93a2379c48e5add5ef9bcb8db0e999d5371` | 4.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_mod32_signed.c` | `09df6a2ac60b399d2b2e2725519455492e51636c5cd06b63132feeda157cc512` | 2.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_nop_delay_40cycles.py` | `5c13923de4b431ca89b2fb743ad28a40c98b8c5d6fa48db063da8c45a1798546` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_o2_lambda.py` | `1d2383a365a9026cca36fb2f2002c3f839541f39e20b6deb93e3e99633560fc0` | 7.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_dtc_find_0x643D4.c` | `0a3cdd41c8deae2100535369e768d695564d80f319de9199f18e23f05d247b0b` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_dtc_find_0x643D4.py` | `59c4d5300901a7b1a4b70509454ea4d824cb140d268fcf9f368acc3f8dc9ef29` | 3.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_dtc_find_0x6443E.c` | `1a49d996823a65a97d216c2f54fe08ad50565bfbf0059cd42340835e5d4e9061` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_dtc_find_0x6443E.py` | `fabc2d27b09d72cd7d52fe12dcb56510024781830597af70d47af93543bbd4ae` | 2.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_dtc_row_update_0x64258.c` | `de7ea3ff21effc3672eac022fdf0941a82446e9bf2603d5a1af8822c66a339db` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_dtc_row_update_0x64258.py` | `320a37196088e7ee9aedb574e173628633138699914ffbbf9b3213d503ef6f81` | 3.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_dtc_row_update_0x64418.c` | `6f2451eb000f7952f3c36da24795c103c709ca71918b99972f27a3f8bb845451` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_dtc_row_update_0x64418.py` | `f9da558bbdbe111afb41a506fff9f8d7d995592d731587027ad49951ca0cf5f8` | 2.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_dtc_row_update_0x64490.c` | `4e38cd87554bf870a8ee6274f51854012efa2544776df3a43d489f7eedde84c5` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_dtc_row_update_0x64490.py` | `6d87f9db5067565d7abe207a28673a8834e938612f7c96671f8f618efa9ac05d` | 2.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_service_handler_632D6.c` | `2db2fd211e11833089cb9269cc02d4f53cc79c1fb6dba152a935c525cf3a941b` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_service_handler_632D6.py` | `c459bcde18fa5ca55bfb8f56b210f69536b4740d72572ec4ebab76b4dcc2ea6a` | 2.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_service_handler_63312.c` | `51923c9c36e66f8a8021594f80127ce1cc0221e91537cdd1af8414857978f4f2` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_service_handler_63312.py` | `88ee1da4ae1e22c914c5ea7bbb2537a61831018d7817c2d1d398b62c84301924` | 2.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_service_handler_63834.c` | `b0245b1b5952c4f3255935b8c15ed6db9a31d2b31965f089206d5ef19e28e220` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_service_handler_63834.py` | `122382471c2b3b5b28f070e517dd7559f9ee1caaa98d4403c10ba875fb3132f4` | 3.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_service_handler_63B46.c` | `bd2a362041b6ac4c7a4a1dfe6ed54dfb79ba5d8662d788b5e633f7ed90813443` | 2.5K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_service_handler_63B46.py` | `8e2e444c7389f0c159ef0ec83f1a062af8673b209bc4889bd9f5e85bb4845ba7` | 2.8K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_service_handler_648B4.c` | `7ade23bb482a6958cd7574aa1d77f672fdeb28b5963a7522446afbae42f14ab4` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_obd_service_handler_648B4.py` | `6fe229f96568dde215b68a041814d139368d8b7a392c302c879213f06f3ab0b0` | 2.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_omp_accessors.py` | `e9eb93e8b8c276a5ca62869ced12caeec7b05f09dced876bb8f4574c5b1a533e` | 5.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_omp_rotor_overshoot_detector_18CC0.py` | `fa9b094b6a34b686d50d7fabeb083fad0378be731fa3617cd8b3e4852c2e4da4` | 8.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_omp_stepper_waveform_driver.py` | `154ae7403ad7e6966a01788e8a38bedb640e5c3f84b5a8bc0d80f6e83d9f219b` | 5.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_omp_task_0x1825E.py` | `ec5202c1e7048fb9e61c924e6e3a31b2510e5e3f285051692bacca244dc50410` | 12.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_omp_waveform_state_machine_18860.py` | `5534180427a1bc02536de0438b200e68443e9815f2f29bbe89b0f64617bbcf51` | 7.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_osTaskScheduler.c` | `f763e85fc9bdcd7f7dfed3e9499f50a5dc503e619cf6fa3a59dcb88f8e75215f` | 7.4K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_os_context_switch_3DB0.py` | `a7cbe230f6e2bf9ccc1c478b6b85dc918a90bed6c8ced2f8d71e28b85254e0be` | 6.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_port_helpers.py` | `ce21feca580410897a23608d47e481660807e8e99515d2619ed35ec1b51f0ecd` | 3.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_purge_subsystem.py` | `583a31da56f1913fc9f628fc5bf4e3d6fea4ff305bf15e4f1603ed8c0c9cd6a4` | 5.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_radiator_fan_relay.py` | `e0fbb30fbd041e363ddd0cee2b863e0571c98bccd4fc62fbb79db031dec0f6f9` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_req_queue_69602.c` | `80e2505fea9b0e2c438d360ba36d10c01ae6ef6610c1578e42e46ef9cb540cab` | 3.3K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_req_queue_69602.py` | `29c646cb46c615b93a3716f547fcb5d230f4ff3efd609382774117affe2f658d` | 3.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_revLimitFuelCutInit.py` | `d57950d4cff5062174f19e85878561325658cb1301eab2251c985e248c8998af` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_rotor_sync_position_detector.py` | `8c1485a66c304f3095221cca21af21183b313bc751cace19ea8bf97f5a857858` | 6.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_security_access.py` | `a2f916660fa5e5eae71ecfa260675bc9b0a68a4d85a3b8e19e9d32efd103e6e1` | 23.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_setAlternatorWarningLight.py` | `574567bfad9bcf196af11aeba9f6bf72ecf95b07975cc3c0dab6d45be256c6d5` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_setRegister_REG_BIT_VAL.py` | `8f85bea3c8e621feb3327f9f9cfd003c1dae4a4ab290f235c54f7d1885e29d27` | 2.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_setSR_getSR.py` | `f9202e1fa8db4bde87f9848a740ac4083e9ba859f3995ae0a5c3e942d1b51707` | 10.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_shift_left_logical_r0.py` | `0ac0bdd174f41ed52d4acc2c85569a355f49efcdee183df259c7cb01587b9c99` | 3.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_shift_right_8_r0.py` | `7f1566d157512066db82336620da721e5987eba837efdb0475bef856f1308262` | 3.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_shift_right_arithmetic_r0.py` | `df0ab58bc1639666fdb4e224c83dbd554e6bce43d536618400ecc74cf86af279` | 3.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_shift_right_logical_r0.py` | `e557958f2eeecbc05b59ed87041570cc04eb2a8f8a7e1c39484a7ac0393627ac` | 3.2K | Python per-function behavior-equivalence test |
+| `c/tests/test_ssv_control.py` | `077a95a2985e9e79bacb4b2c62c6a903ac28f5bf413e729d471aa65437690ee1` | 5.0K | Python per-function behavior-equivalence test |
+| `c/tests/test_store_knock_learn_buffer.py` | `ed90e97a871282bef7e5eb19167cace763e939cfbdba500025aeb605ed076d63` | 7.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_taskEndRoutine.py` | `7fb798b9811d64eb2cac0c3cd3b0804afd8b028fa856dabb8967cd77eef9eaa4` | 4.7K | Python per-function behavior-equivalence test |
+| `c/tests/test_task_execute_by_index.py` | `3b15eb3a9abb0203b44eea5066ce68efb704801a4ea35717838d8a8ff4c8ab02` | 4.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_task_flag_run_C.py` | `ecbaa12aef78ef9ca8349a329fa9c3ec247225530f80116d8204bbff6f541ade` | 2.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_task_full_context_save.py` | `b7a89b0c4a72bff97db11a8917047867522276322f4e52ec46355da9fc1e4339` | 8.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_temperature_gauge_0x5AA5C.c` | `c062994160aa2bb9f6837586beef0db5add165c6daf9e83bb26b22ff4f0aae9f` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_temperature_gauge_0x5AA5C.py` | `4ba82d22dfcf8b2bc12a04449bcc2b5283f50acbc7f398b47e1034b7442c9932` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_vfad_control_35BBC.py` | `bb91fbadb598fc5a6ba61fa4f5764b3ae20cb39b734bb10a05be84fc2c3268f6` | 3.6K | Python per-function behavior-equivalence test |
+| `c/tests/test_vis_intake_control.py` | `a2472fa0c428753804bb0d0144c220284daa53aa43daadbe102a160bd4130385` | 5.5K | Python per-function behavior-equivalence test |
+| `c/tests/test_warning_light_0x5AADE.c` | `9a4cdacdb5fc30584bb14a802cb82d83580e07d23461f5c5b3fd62096f9333e6` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/tests/test_warning_light_0x5AADE.py` | `479018ca50ddd0426814cf7d00eabc5a38e0565b72ac388dfdabba0d13522823` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_whileLoop.py` | `8b13b430963add2187b9344a02f583c21e6ebd6b87a07a5fe4531a2a5b119b58` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/verify_emu.py` | `f583e1d294b0966f7203a3eb0addfcbf2c9d828abfc3292a2965e3f8d526de51` | 3.0K | Python per-function behavior-equivalence test |
+
+## tools
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `tools/ASM_BASELINE.md` | `b0675794f7358200a4bffbe3368c05e71994338282942aa86c3409040893311d` | 4.9K | Method, byte-exact proof, coverage, limits, next steps |
+| `tools/README.md` | `10c9317e30be5093c324dfe5cd9420f11543885a0dc0264e1e4a95606c3a1cb6` | 3.3K | Directory README |
+| `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
+| `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
+| `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
+| `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
+| `tools/get_toolchain.sh` | `514087f3ef2bbc1eb3bf7e8e80e358b07f75d217f0a25bc6f043871f3b0e69bc` | 2.9K | RE tool script (see tools/README.md) |
+| `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
+| `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
+| `tools/mazda_security.py` | `047fd50af4ad554bf2fe24af69656b94fdea339f474baf4142b25377e692f631` | 5.1K | RE tool (see tools/README.md) |
+| `tools/organize_src.py` | `952eab08198e20668fe3d8a2b572222993a2247516fb18814e68325cf02a65b4` | 9.5K | RE tool (see tools/README.md) |
+| `tools/rom2asm.py` | `a0cc400125d3f3f913285fc873b73b784c1f2d3f2d07ed139fdb6a7112722da4` | 6.5K | RE tool (see tools/README.md) |
+| `tools/rom_rebuild.py` | `98e4659c01c66ac24defe41eae53cf98a16b2f56c088d2a58d062a7f9ac0ad1b` | 7.0K | RE tool (see tools/README.md) |
+| `tools/run_tests_parallel.py` | `c63d357fc7283b6a4d7e95ca1401c5983b2132a065a792d4480f1155722dcb7d` | 5.1K | Parallel test runner (pytest, all suites) |
+| `tools/sh2emu.py` | `577c7b21d106b66bbc3478d5538c2f8173cded06645721719b56d6cbefc513f6` | 27.0K | RE tool (see tools/README.md) |
+| `tools/verify_all.sh` | `b9c6ceede1952e7cd57cd060e9c5bf44ed56773ab388041fc82629ecbfe077e8` | 4.1K | RE tool script (see tools/README.md) |
+| `tools/xmap_names.py` | `207cf0638e33b58593e47dcce3838e7f13428c92b1c042875674b643ad3d010d` | 5.6K | RE tool (see tools/README.md) |
+
+## tools/tests
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `tools/tests/test_decode_families.py` | `862d5ad96fa8b41081db62eb78258c937ddeb773b8b9a1bd7fbb772cdd0b5b83` | 14.4K | RE tool (see tools/README.md) |
+| `tools/tests/test_emulator_families.py` | `c81b4ac354c2cede5ee7344cac95d6076c384ad5a99c29f817a2cc9f8e32e562` | 19.0K | RE tool (see tools/README.md) |
+
+## docs
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `docs/README.md` | `869b62f3e676a6b9a14af16779d2a4ad4a89d53635aebdeea683586c9dc89bed` | 14.9K | Documentation index (generated/verified against current tree) |
+| `docs/functions/CAN_TableLookup_583E4.md` | `cf6ae058f7fd1af66ce8332d547adb540f09b501a9fdbd34f42427214cf9afe4` | 3.0K | Per-function documentation |
+| `docs/functions/E2IntoRAM.md` | `db9738a5949b1139f278a69467c1c425454a758900000a985c07538d0fce9a59` | 3.1K | Per-function documentation |
+| `docs/functions/INT_ATU101_IMI10AG.md` | `be705c6761839851a08a10db98de35ea1d50fed20284d1aedacd6ec89540769b` | 2.0K | Per-function documentation |
+| `docs/functions/ImmoBadStateSet.md` | `05942012fb4fa3c5c2e59e70a2aac903a98aba0c2d433d1b7fd2a43ebbc6553f` | 1.7K | Per-function documentation |
+| `docs/functions/ImmoStateReadyToDriveEngineOff.md` | `9d3dc91c102ab7e392b4c18e1adcba5ef3ce0c6c8275426d0a4c2bd88ddc1778` | 2.1K | Per-function documentation |
+| `docs/functions/Immo_Keygen_related_ADC.md` | `e8e78ea6c57e5475200cb5c3a672be3147138dbec82d9405585584a0fe65b67e` | 2.3K | Per-function documentation |
+| `docs/functions/LongFunc.md` | `41eb5dd297fb8c47e434caee670139e5149b0f16102fb7783798a78c79754fec` | 1.3K | Per-function documentation |
+| `docs/functions/MAFRelated.md` | `4c89f1234f4b9bf3b53a3efba9bedca53d05a979ff84cfd44045b777bb9fd435` | 2.3K | Per-function documentation |
+| `docs/functions/MAFStuffMaybeVE.md` | `4fbb4543ee8d271bb518f5a5bcbf05c38b30ec744e05bbd58866dea53af7d91e` | 2.8K | Per-function documentation |
+| `docs/functions/OBDStub.md` | `61e2d4e1fd27c89ff3aed146ca619d77a45e66c18a47388b4aad031295bc2f75` | 396B | Per-function documentation |
+| `docs/functions/README.md` | `3e2026b714561368a526ce7b43db768ede34307cde233fea053ba672682934bb` | 2.5K | Per-function documentation |
+| `docs/functions/SetMemoryNotValid2.md` | `4d23748d4173804cc8f79648497d3d93dc0b76ed0f3efc136c16bd007b91990a` | 524B | Per-function documentation |
+| `docs/functions/UDSPositiveResponse_16bit.md` | `b5beb82968daf345e63adeedb6d37a3e888171e98a46fb0a482d8432a48a9d00` | 1.1K | Per-function documentation |
+| `docs/functions/UnknownFueling1.md` | `fe544dffcc5ed064580f2ee94eb0480cbce2266854082764fe676554e61bcd3b` | 2.3K | Per-function documentation |
+| `docs/functions/VDIControl.md` | `9ea54089915dbae603f2218256c005b3d33762d5bfeb05cbdbd788110154cceb` | 2.0K | Per-function documentation |
+| `docs/functions/adcIAT2Volts.md` | `ddcd57e6024cb018af04e5bba00d980c4af0833f6a0af303ae3a53f3918abda6` | 1.2K | Per-function documentation |
+| `docs/functions/adcVoltageOutOfRangeCheck.md` | `4a58322d86a9d8d449769aaa9149b9be7fa7717fead9346d831977e08a05d637` | 1.6K | Per-function documentation |
+| `docs/functions/addS32Saturate.md` | `8f8217d3466ab72c98801b89d3513783a8efa53844c0cc551dff1f6111f8910b` | 1.7K | Per-function documentation |
+| `docs/functions/arbitrateFuelCut.md` | `871fecd5770b62399bac41bddb74a546f3ce27e851b74bb3a279ac8c3f75391c` | 2.7K | Per-function documentation |
+| `docs/functions/bitfield_extract_merge.md` | `bedeac8a4d0844070f5985574428d6260e0a0293e4238dd1ba3972bc95236be8` | 7.0K | Per-function documentation |
+| `docs/functions/byteToUDS_SERVICE_DATA.md` | `dee2556d89d8c9325fce673cb541387e4a44fdad6fd0e6c40f0ed6170a250f6a` | 709B | Per-function documentation |
+| `docs/functions/bytetouds_service_data.md` | `e8d509db9b2a50882724c4759900b4bccc76d1f42b373d69bd2f2ed34af6b0e4` | 1.7K | Per-function documentation |
+| `docs/functions/calcDesiredAlternatorVoltage.md` | `30ed955049a3a883b53f5f2f4bf8ba66f53cddf290869af20c7e0a86e9f38da9` | 4.7K | Per-function documentation |
+| `docs/functions/calcDiagFuelInjectorTrim.md` | `805836873876e51ada9209d7a8ecfafabb59526042cb5685e927301a55581308` | 2.7K | Per-function documentation |
+| `docs/functions/calcInjectorCrankingTime.md` | `80417149c89332327b2f588af80175f957622c22976e9f5cde723c4021fe40e3` | 2.4K | Per-function documentation |
+| `docs/functions/calc_adaptive_fuel_trim.md` | `de69aaa5a6449f3a6b6258a6bc1ca12b269c2351e6e1075d6fb3d31dae33d78c` | 6.7K | Per-function documentation |
+| `docs/functions/calc_decel_fuel_cut_445AA.md` | `d41db5be745804867f03a5ab5907d121fef729f24e070e11226effc93ba2745d` | 5.2K | Per-function documentation |
+| `docs/functions/calc_fuel_injection_all_rotors.md` | `fbf04e64ca1f6d50f04ee359c4d52964b67edb237657baa440c6714089fd23a0` | 2.6K | Per-function documentation |
+| `docs/functions/calc_ignition_all_rotors_13C2C.md` | `9035810ad7b120aca802a9fe40c8fd3a97285c1f4987cb86daf339fa115dc5b3` | 9.0K | Per-function documentation |
+| `docs/functions/calculate12VBatteryTemperature.md` | `64183aef4b9aafd10b07782dc85b0b7c44797657d3beca1104ad6067ca3518ac` | 3.3K | Per-function documentation |
+| `docs/functions/calculateCruiseControlSwitchVolt.md` | `2bb91acd68a9190faa6a3966cb1dbc062c9da7c6d567efbae1a56e5ceb5fc4f1` | 1.4K | Per-function documentation |
+| `docs/functions/calculateEngineTemperatures.md` | `8f784e1b209cb734f11c208bfcaf2075427588fe450c1d77530ffb12d0dae8fa` | 2.6K | Per-function documentation |
+| `docs/functions/calculatePerRotorIgnitionDwell.md` | `36f2ac24e7f12003977966d7ad8a11c26bd6f6044c82c2de408e0899f3abe8fb` | 1.9K | Per-function documentation |
+| `docs/functions/calledLots.md` | `56987a5ecb4eb48179a3d1f6af32db221caac50c707f049519aa8a2bf95e85e2` | 2.5K | Per-function documentation |
+| `docs/functions/canSetup.md` | `8d318b11385ce8c6e46f0b8c93b53b807f5f84ea012b6ea9811b198e1941b5c8` | 2.2K | Per-function documentation |
+| `docs/functions/can_message_handler_24588.md` | `e84de9ffccaf5d0f0956ac8e9787539c7b5f7dd8d511d9efb73f28cfe55991be` | 444B | Per-function documentation |
+| `docs/functions/can_message_setup_dispatcher_33974.md` | `f2b5320509d41b5dd146f1731d645fa9302efff6d884eabd2d9468b5e2d096c9` | 1.1K | Per-function documentation |
+| `docs/functions/can_rx_handler_49100.md` | `4dcd9725ea119e4a86a7e16ca3189ab4c58377ea3d03cbe4e6ac2faeb65340b4` | 788B | Per-function documentation |
+| `docs/functions/checkFloatValidity.md` | `2054c23785419475acb6953ce40a061ea269bd343ab1f3991fac2d07d5993b9c` | 1.6K | Per-function documentation |
+| `docs/functions/checkSubFunctionCurrentlyRunning.md` | `d11d64700734c207d692ec1ceb022966de439b040515d247a4718c8b2b006983` | 1.2K | Per-function documentation |
+| `docs/functions/checksum_complement_add.md` | `1e41dce792a03789dd089c9ef377953c78ea56d0ebd564bfce79a632bcbc795f` | 1.4K | Per-function documentation |
+| `docs/functions/consistencyCheck.md` | `eac98ca10c4bdbe40ffd46e43d7d9873cbf7e12d2ff1cd12441d2a8e6bc97842` | 2.4K | Per-function documentation |
+| `docs/functions/crankSensorInit.md` | `6f63c57b21c502088cbda167b47117b009c30c397251c8853d3781c1d9454d7f` | 1.2K | Per-function documentation |
+| `docs/functions/debounceCalculatedGear.md` | `fa290d548f8b6e17b22c823199aee98aab4face5304ad94b93e6908792eb03ed` | 2.2K | Per-function documentation |
+| `docs/functions/delay.md` | `f5f9484a8c5d34a2ccaef19c107a85fde0eb168a96ce83188dab2c253c917da0` | 1.2K | Per-function documentation |
+| `docs/functions/delay_loop_n8.md` | `2304150ccd15509a48fa9331d1ef3d7eda27a0e0a5d5e1e254230efd830fa9bf` | 1.7K | Per-function documentation |
+| `docs/functions/div32_signed.md` | `e288dc16d7e2773ebf10947bb7ebc9af13e448e833aaf7040bab69e4f6af8a51` | 1.5K | Per-function documentation |
+| `docs/functions/driveCycleDetect.md` | `6904cad18ab126130799f99109c950b2582ab83380f843e5fa9d47b2c7cedf8a` | 4.0K | Per-function documentation |
+| `docs/functions/dtcCodeTypeInit.md` | `11d007426c4b9930f74c4f2389a2da9dc34ecb69b47cc6d619569ee32a3ff5ee` | 606B | Per-function documentation |
+| `docs/functions/dtcRelated.md` | `bc95a8438f2a5d3c7d09318fb3e50a58624606d8d1a941439a2a7de425ce31ce` | 3.4K | Per-function documentation |
+| `docs/functions/dtc_data_read_60F58.md` | `524cdfc08ed70a8eeac9748754da4c72b452f2ea3e9d938c6cf22727f5c659c3` | 867B | Per-function documentation |
+| `docs/functions/dtc_management.md` | `904079b3b6f5e9bebe1a310f4dca452c82a2a80b1abc8a2c0d3225225d2f1a22` | 6.4K | Per-function documentation |
+| `docs/functions/eShaftLearn.md` | `1a7087fe2958b357b79642bcb614a0ea7674b974459b60b89acc6670504f1803` | 3.9K | Per-function documentation |
+| `docs/functions/enableDisableCruiseControl.md` | `5a138bc22767aaa39b513c56c2e59656100529008f192044e9b1e8822a914f2c` | 1.4K | Per-function documentation |
+| `docs/functions/engineControlCalculateTiming.md` | `103d62dfca38286ce15f09f7eacf9c9e4666cc5f90eba14ea791a92a3bbb74c4` | 23.2K | Per-function documentation |
+| `docs/functions/engineSomethingConditonCheckAndSet.md` | `f345a1dda176a648054f534c71ff00386a5addff7db09974e6f5d6f0a7486df8` | 1.4K | Per-function documentation |
+| `docs/functions/engineSpeedInit.md` | `6e88b6c5b1ef043277c1fe73eeede1f05912dc66a39e1eeb8e356305ce9c4f7e` | 1.6K | Per-function documentation |
+| `docs/functions/evapRelated.md` | `ee696d3215ef2c7709f3d09c50812eefdbc2f2a667c6f3e7d65ea6a8c870d0f8` | 2.2K | Per-function documentation |
+| `docs/functions/faultEnableStatus2.md` | `84a33aff0cc33b9bb07550c33b895f061ff2a655778fcc1bfa77592965a4fabe` | 1.2K | Per-function documentation |
+| `docs/functions/faultSomethingIdunno.md` | `5857907ed438cb7bbe789afd7206742a3f221cd0f23454624ec05657dddaa415` | 1.6K | Per-function documentation |
+| `docs/functions/floatDivideDiv0errCheck_SIG_DIVISOR.md` | `418416e133089a1a61e3832265f5f71b8ffc844a38ad379fce4218547cd414fe` | 2.3K | Per-function documentation |
+| `docs/functions/fuelInjectionRelated.md` | `966ec812e4f39f54c444baec0e136c2ddddbfa9393ed2b58ec11bfabdb228abd` | 2.6K | Per-function documentation |
+| `docs/functions/fuelingInit.md` | `ab9a02b0c3655b86e967ee06fefba500afed05315c8e7da533880a44cf45d6c2` | 2.1K | Per-function documentation |
+| `docs/functions/fuelingRelatedInitialVals.md` | `debe3c342858d63bf2ef2623272208a19702b9e753db8a9fbc067abc22eddfd1` | 3.0K | Per-function documentation |
+| `docs/functions/fuelinjectorSet0.md` | `44335ce670a823ae886f9a7f062b3de684a7e9993a9e77c73de6830073bdc9eb` | 1.5K | Per-function documentation |
+| `docs/functions/getACSwitchStatus.md` | `6c2f7584fa53e3250381cb0fe3221d67dd2b210cd3e0c3d44e7ea5be2def4952` | 1.1K | Per-function documentation |
+| `docs/functions/getAPVPosVoltage.md` | `92b1a7e7ccd8cc728bf37e2e549851f615c6465b1d992831bbd92cfafcdc6fd5` | 1.5K | Per-function documentation |
+| `docs/functions/getAutoTransCal.md` | `78e96caba0cc2c35c9035218eb772a4249858508b7f9d32fe16ee15bde7bdd8c` | 1.0K | Per-function documentation |
+| `docs/functions/getBaroSensorVal.md` | `2b91085224079b1e1f632d193aff7605bac9476d2416d725ee869268f67e5dab` | 2.7K | Per-function documentation |
+| `docs/functions/getConditionalsForRevLimit.md` | `12805fc973614be48a97f9114f43bbab9f7fb38acb57250990629e6362d2a9a4` | 2.9K | Per-function documentation |
+| `docs/functions/getCoolantTempforOBD.md` | `0bb4f28bd71de0db90a6e91547805dd8a79bd05771e8cde0fd12a446774d1374` | 1.5K | Per-function documentation |
+| `docs/functions/getCrankAngle.md` | `5fcd8aa4bc4675e2be755980c9aa69856f485ebf26ddda2363ba33808642cc88` | 2.3K | Per-function documentation |
+| `docs/functions/getCrankingInjectorPulseTime.md` | `22f7651611f236195f90af75efc5786ec8837681d4d2161c4a60fd04b476644e` | 1.7K | Per-function documentation |
+| `docs/functions/getCruiseControlAllowedBool.md` | `54e4f6743ae584ff77c14660b5b589bfa26f8e76f5db902d5277da788905f3ba` | 2.0K | Per-function documentation |
+| `docs/functions/getEngineLoadforOBD.md` | `fed60166a2f8df9f2296e018d0eb101179a00fd231b652d6c542d96767f1a8b7` | 2.2K | Per-function documentation |
+| `docs/functions/getEngineOffTimer.md` | `2879f374959e4bd9159b39c6a846ff3c1f2a0c391b10c12d7cb22e37ca02c966` | 1.2K | Per-function documentation |
+| `docs/functions/getEngineOnTimeForOilMetering.md` | `321c9cb9667b61682b16340084f19841e3c755ddfe3c7ac3636fc0f586c7bb16` | 1.6K | Per-function documentation |
+| `docs/functions/getFaultStatus.md` | `833126f94dcadcb521fdb44fbf6924dc0d2dd4d005faea338bc1afad00e0a4df` | 1.5K | Per-function documentation |
+| `docs/functions/getFromE2_E2ADDR_RAMADDR_LEN.md` | `9b8a258de4063a2157954934d9d1c76567ff3f8af61a9a36dd9598b2c4af489a` | 4.1K | Per-function documentation |
+| `docs/functions/getFromGPIO.md` | `caeb5b483f10eb2bf49391e186b42ac793639521beb74ba7ba3dee211f9244d9` | 1.8K | Per-function documentation |
+| `docs/functions/getFuelCutRequestStatus.md` | `fac7be1f8823325f5ec2cb4c6aa4986feb55d5c91bafc0c9988614ddb0480304` | 769B | Per-function documentation |
+| `docs/functions/getHCANRegisterAddress.md` | `d45ad8e4b2da5f60cee2010e851b5fa75ea8c0eaf76994b1d3f0c9175666648d` | 1.3K | Per-function documentation |
+| `docs/functions/getIATOBD.md` | `4ef139e57779fc76f7cb0603a4a14213334d9b3ecff4dca6a645b05a0678049c` | 1.7K | Per-function documentation |
+| `docs/functions/getIgnLeadingOBD.md` | `d86a12c2c680f0a982442c40133b16c67fca2bcc9ed0e92b1855abec239b152d` | 1.6K | Per-function documentation |
+| `docs/functions/getIgnitionDwellTime.md` | `5fd5cd004b8f46c79d8513e7fb2e2793010af478561bcb8d1e403305e37ecfd2` | 2.3K | Per-function documentation |
+| `docs/functions/getIgnitionRelatedCalsForSomething.md` | `b09a079ab46b8296266edc1d2921cc3952b26cabf2bbb829767e403a97457bb8` | 1.7K | Per-function documentation |
+| `docs/functions/getKnockSensorADC.md` | `ce4777090fa32019fbd70ad6470ac9910f0c109185bce117d339de143175bfdd` | 1.7K | Per-function documentation |
+| `docs/functions/getKnownBooleanValue.md` | `9f96d2fe9b01ee833616bbd94018e05175f734aecbe4ccf51d8423fa8fd8cfab` | 2.1K | Per-function documentation |
+| `docs/functions/getLTFTforOBD.md` | `fb583ea5af0adc2e5198f9f5b761dcd40048c119180377c4cfe5789f88b69b12` | 1.5K | Per-function documentation |
+| `docs/functions/getMAFOBD.md` | `a151176783c920627f855fe2bfc5ad62f79c1e996800281bc27f3108287a361b` | 1.9K | Per-function documentation |
+| `docs/functions/getMAFSensorValue.md` | `d62587788fbdcc4aa76aeeaf75095d3488f0d1782c692d4f922467d909c038cb` | 1.8K | Per-function documentation |
+| `docs/functions/getOBDFuelModificationRequest.md` | `75ff0392ece6286aa6f943c5f3729d84ef43dbada34fa6e40968af0efa62de08` | 2.2K | Per-function documentation |
+| `docs/functions/getOLStatusforOBD.md` | `baddcec1c9a40181456921310c3ead71ef8af7b2083a9d9f101d36eaf84768f0` | 2.5K | Per-function documentation |
+| `docs/functions/getRearO2Voltage.md` | `9dff92f80141e8fa699ea6fcbf3f5890883f3741829f0e2f9569de50c7fb11f7` | 1.4K | Per-function documentation |
+| `docs/functions/getRotorNumberForControl.md` | `f93100d266358a3b831b5613fe8c8ebfb5fc4fe29b1ebc7adfefcb039169ec35` | 1.6K | Per-function documentation |
+| `docs/functions/getSR.md` | `3eb1d534ecaf23f02b14ed5316cd15eee67f36e605b4bbf510a61df3e840287a` | 949B | Per-function documentation |
+| `docs/functions/getSTFTforOBD.md` | `065fa5e899243ea8f172fb7a67d0f9374baeb1b5a9027364d8a21bff3439e4e2` | 1.7K | Per-function documentation |
+| `docs/functions/getSecondaryAirPumpRequestForMode22.md` | `6afacbd185c3e76075cd34e259dddbe249fae689e405eacaaeed596e9b0f558c` | 673B | Per-function documentation |
+| `docs/functions/getSensorStuff.md` | `a2261069a69764eb1ad52101476b2caebcb2c1461597769c0157a36b0fe6662c` | 1.9K | Per-function documentation |
+| `docs/functions/getSpeedLimitCal.md` | `43bd23fbe5fa8e46d5bd5ccdd0f082bd419ae117bd357d1bffb18fa032d873b7` | 2.3K | Per-function documentation |
+| `docs/functions/getThrottlePlatePosForOBD.md` | `0a6bf36c286908772e34ed770e5d461de4ca938fb444237fd3a3c51b187b3890` | 1.1K | Per-function documentation |
+| `docs/functions/getfaultstatus.md` | `e579c1068345e76772bee75dc581dfd966a91c452c72447557005472a3addba0` | 1.9K | Per-function documentation |
+| `docs/functions/handleDiagInjectorPulse.md` | `233e2366247ebf7abb30587d8be5cd696cb19983f21caca22460a65d22b3fe7d` | 4.7K | Per-function documentation |
+| `docs/functions/ignitionCoilPulse.md` | `6299232aca06852aefab59402caac0935010db7216687607e0205e145b859881` | 1.3K | Per-function documentation |
+| `docs/functions/ignitionDwellOutputInit.md` | `30cb9267377d05349407294498de63fd1516ff29affb9bca6d3628ba8deac1b0` | 2.8K | Per-function documentation |
+| `docs/functions/ignitionTimingHardwareTimerSomething.md` | `bdd170c5a012e2f0f4cb1dab3f7a90e3338a7c0fafc261c51507fc97e11b2bec` | 3.6K | Per-function documentation |
+| `docs/functions/ignition_advance_limiter.md` | `37af768707a4b984cc3f2a9f46c1a1f324829c850da8836efe20051f26ec18d0` | 1.2K | Per-function documentation |
+| `docs/functions/ignitonSomethingCalc.md` | `fb01f4be77392d81ff48f5646e872de2098adadc4fed5d66806dffe88f39d7e9` | 2.1K | Per-function documentation |
+| `docs/functions/initSparkOutput.md` | `e5161948d72f450e394848f5c88be4edf0e8585a8eb66d217dbe5bc95946d589` | 1.9K | Per-function documentation |
+| `docs/functions/injectionTiming.md` | `309e27a881909e89a609999ead2c15b660d74b1aad9860a70972d441a125bda0` | 2.4K | Per-function documentation |
+| `docs/functions/injectorPulseSet.md` | `c5c0d30acb48a2d17a7b0c31ef3737f2a7be7d1b77f4b2ca9e3837d5f49aef30` | 2.9K | Per-function documentation |
+| `docs/functions/injectorRelatedFunc.md` | `16d15400ae68e435426a3e96d8adf87d82351499a8c8ea2d26c3685090659eb2` | 2.8K | Per-function documentation |
+| `docs/functions/intToUDS_SERVICE_DATA.md` | `cd9782af7b5c6d0d6d46c30b81c91199601ba7c309cb669b3b62fd351f47c880` | 839B | Per-function documentation |
+| `docs/functions/knockFunctionInit.md` | `f568708a95cf291b810eb732073849842ed3e1d9b4cbe04b1a42afe63e74f8a9` | 2.1K | Per-function documentation |
+| `docs/functions/knockRelatedInit.md` | `da347d9aa5329036a443e10d6953cb3575ee2ccd917dc889ddacd1298211f858` | 4.0K | Per-function documentation |
+| `docs/functions/knockSensorADCFault.md` | `8d0171b933f794b8eec69664c41e3a674226f442f05aeb61097406c74c1a6606` | 2.3K | Per-function documentation |
+| `docs/functions/least_square_0x5687A.md` | `b4522f5b5442efe96c59ee05bff2eb92242a50b6190124e76a37c22863693fa0` | 784B | Per-function documentation |
+| `docs/functions/limitKnockRetardMax_ConditonalRPM.md` | `43c58ac7a14c6a3ad82e4541a98bcaaf7228e8ad6a4e81abad87c27c3bad230f` | 2.5K | Per-function documentation |
+| `docs/functions/loadStatusRegister_ADDR.md` | `34787fbc5093f251f17051a8a063d2b820e498f5361287c91fa6903a07fc7018` | 501B | Per-function documentation |
+| `docs/functions/memcpy_bytewise_unroll4.md` | `adcd4ed4c44d61545210fa0a26aee9b13de0aee3c595bc2d2e1476356fd772de` | 1.2K | Per-function documentation |
+| `docs/functions/mod32_signed.md` | `17b45b32e3b2f379dfa9a08bb8c84ffc1e78ca9a3bf587fee70d0ba85e1e504b` | 1.3K | Per-function documentation |
+| `docs/functions/osTaskScheduler.md` | `727836ca633ec1198412564f11a18a5372ee600959a63b3aecd9afdf4199d4e5` | 2.8K | Per-function documentation |
+| `docs/functions/outputSpark1.md` | `435400790c2db1545029433f19f547ea70b8b71dec99eba30caaaad3aa4e6c1f` | 3.0K | Per-function documentation |
+| `docs/functions/outputSpark2.md` | `adfa4dd330824eeb181d1c2150b592793f789a1d4b7637fd41efd6f47af0ab53` | 2.3K | Per-function documentation |
+| `docs/functions/pack_for_OBD_response.md` | `d8329fbd2fd91dbfd748b543844e07bcb36040f66fdf8345df9b2fd2fe057358` | 2.4K | Per-function documentation |
+| `docs/functions/pcmBoardTempADCtoVolts.md` | `d1af1803597005bee768e598fa60c59f676726a433502243eb683bef25c3c50f` | 1.6K | Per-function documentation |
+| `docs/functions/placeCANRX.md` | `5d767a28343c341d9cf03e283265ec3e5e82bc6f2c18a05a38532c5d377687e4` | 2.0K | Per-function documentation |
+| `docs/functions/putFuelingStuffInArray.md` | `2772ace9a8592f11745d10b9d658160fb3c3ea4dfbaab1f7cc704341c77773ae` | 2.9K | Per-function documentation |
+| `docs/functions/putTaskInSchedule_FuelArrayStuff.md` | `9146e68baf5eef34b69acf74b27d80ce45ce0447f91776b607b43da67b640b61` | 1.8K | Per-function documentation |
+| `docs/functions/reInitCrankSensor.md` | `73d8e81fc8a16b4f3a13cc7bb350798dac60cae3fa8a2ebce209db09fee28920` | 1.9K | Per-function documentation |
+| `docs/functions/readADCscoolantTempInHere.md` | `854ddf1a03f798d853f2a2c2193b845c681898341cd3890264a5df205d9fc5b3` | 1.9K | Per-function documentation |
+| `docs/functions/readValue_16bit_ADDRESS_VAL.md` | `825264416c43ec2b947821bef421c314589c92c3c6c064b6de2fc9f558397601` | 2.0K | Per-function documentation |
+| `docs/functions/readValue_32bit_ADDRESS_VAL.md` | `7e96bb91ad9bd3478ff1cdccdac3372410a1e59cdb05ffcdf26bd069e7959729` | 2.1K | Per-function documentation |
+| `docs/functions/readValue_8bit_ADDRESS_VAL.md` | `fe2215fb1339328ff6e2a74f9e284f69e7f779adf1bc0564607a93b87121f93f` | 2.2K | Per-function documentation |
+| `docs/functions/readValue_float_DEFAULTVAL_ADDRESS.md` | `7f87c6af12dad34310e9224a649e3428b47765d1ed2078b065df94fa53fe4aaf` | 2.8K | Per-function documentation |
+| `docs/functions/reset420CANTimer.md` | `1d574400902cd8f581163c535f3b972a9a6868d5b50d01d80012cd280447209d` | 597B | Per-function documentation |
+| `docs/functions/returnCoolantTempGreaterThan71.md` | `cae36880f72beca7fea73184af690c1bf4f18b2e4992e914766150487431bfbc` | 1.2K | Per-function documentation |
+| `docs/functions/returnEngineLoad.md` | `d27f13a1f547fa508dc323b4531c13681d33c12822fb1126897372487a42d35d` | 1.0K | Per-function documentation |
+| `docs/functions/returnEngineRPM.md` | `61a3528795535708cae7903325b39b8a61b43771abb6239275f0ea8a9379cc40` | 1.1K | Per-function documentation |
+| `docs/functions/returnEngineSpeed.md` | `a1ee7a5fb0cf05f93dcbece645282042379c3a8cb686a0ecc43214db7be16c2e` | 989B | Per-function documentation |
+| `docs/functions/revLimitFuelCutInit.md` | `ce8cf7f9a1412d5549ab5f0b1ca93db037d5b36baecd3753030167cb8c9f644e` | 1.7K | Per-function documentation |
+| `docs/functions/secondaryAirRelated.md` | `f877609ee10dbfe2ddddbd013556d73382b5676f5c39c517af787b5de3fd3ef5` | 1.9K | Per-function documentation |
+| `docs/functions/securityNotUnlocked.md` | `69e5379467ea2ad4071a895b3d28904d98866bfbcd4ddcdf3df48addabb4026e` | 1.7K | Per-function documentation |
+| `docs/functions/security_access_handler.md` | `2e0cf5eeb9d3ac6537325d9991af00af8712d434e760862d6124afbd0af36a4f` | 12.7K | Per-function documentation |
+| `docs/functions/sensorADCRead.md` | `43b719ad7131e0a63d5a3e2bc9930de8fc10e07d8d15a70e825aecc7cc9e97e1` | 2.7K | Per-function documentation |
+| `docs/functions/setAlternatorWarningLight.md` | `93fc4ee4a7377256f8c9eac72279a5c8739462936ea230e4e738d8d83d4d93bf` | 2.0K | Per-function documentation |
+| `docs/functions/setCANRXBool.md` | `d7c0358eefafe0aea11a3c8791ea4513c36d65281f987c3d5292a81fec720666` | 474B | Per-function documentation |
+| `docs/functions/setCANRegisters.md` | `98e3e0b7e4629e7cab2ef675d241b5eb07de9610e93aaae4c2b5a644b700a0f2` | 1.9K | Per-function documentation |
+| `docs/functions/setEngineLoadInitalVal.md` | `5c4a9da5409017497e0e5a6b5528a3505c6bc320ec013dec2ccede99b8bc9c6e` | 974B | Per-function documentation |
+| `docs/functions/setEngineRunningInjectorsOffFlag.md` | `35ad398c68016e04307e2701473a1610950a504c11852ae459c7ef14182f9f63` | 1.7K | Per-function documentation |
+| `docs/functions/setFuelInjectorLatency.md` | `928e872b9d732eb471d892d2df7e5f12b2911aae609cd4f6300929c458691f7e` | 1.9K | Per-function documentation |
+| `docs/functions/setImmoCANTXData.md` | `3c2ee756ef498ca6dc758c60b0651318ba4f7cea0dee8b7a3950b737bdfcebe4` | 3.7K | Per-function documentation |
+| `docs/functions/setImmoLight.md` | `65b9949fd9b0b3a5741b405874eaf01d3d744fc2ce4069ada458d4ee13b35b98` | 3.1K | Per-function documentation |
+| `docs/functions/setMainInitDoneBool.md` | `8bf14a4668d2da2011b9f03a3b920f5c494d72b9327c8c31b604ad8b62432917` | 629B | Per-function documentation |
+| `docs/functions/setMemInsideFUNCto1.md` | `bcc2c630ffe669cdcc5d0cc34fe15788c0f37375b6c91627127cdd75621d70bf` | 507B | Per-function documentation |
+| `docs/functions/setMessageRXBool.md` | `7893e243ce1747520708ef0617fbd418541b0cab2ff1fab78fa771033ddc9e0f` | 901B | Per-function documentation |
+| `docs/functions/setRegister_REG_BIT_VAL.md` | `45747a21f56c250e5c7ed9991c4cc630a3289fc0a2f8855cf5e54f2ff8b22cc0` | 1.1K | Per-function documentation |
+| `docs/functions/setSR.md` | `e48d20026436fcb6e8b015c4b061659fbfe4ad4ec8ceadd0b86a3f3bdbff3bba` | 1.2K | Per-function documentation |
+| `docs/functions/setSR_PARAM.md` | `745e196f765976f4f5988167d6a7180ba51fccdfaca2cde0429132477007a02c` | 1.1K | Per-function documentation |
+| `docs/functions/setStartupInjectorPwMult.md` | `86d015f5220969a63e0cecdcef875199f7bd5cfa2bbb31d13e1b10449a8608df` | 1.7K | Per-function documentation |
+| `docs/functions/setTimingArrayValuesForOutput.md` | `2870fb3ed8e5105a9775100ca165e0b75ba5c75d968f539b9890fd108b306527` | 2.2K | Per-function documentation |
+| `docs/functions/setupforudsresponse.md` | `7594cefea96e6034630703f7b00ab5982d04bad1245b61c6879656ab40cc226c` | 1.6K | Per-function documentation |
+| `docs/functions/shift_left_logical_r0.md` | `1364ee4a72006a1b9e2d904c810fb3a67ea4bed4ddef96d718dfdb1eaa66799f` | 1.5K | Per-function documentation |
+| `docs/functions/shift_right_8_r0.md` | `cef21979c7377aeab3ef66a1b7a688535fe3ad22856df1e8f58a0ab034f4abf2` | 996B | Per-function documentation |
+| `docs/functions/shift_right_arithmetic_r0.md` | `6273e2db4ed54b0f95734ee40d96013fd03c101b382f020853a1bbb9a80db635` | 2.1K | Per-function documentation |
+| `docs/functions/shift_right_logical_r0.md` | `8d9e2923d6b095d7831d5557ac3af130739cdc8df5c3e4d5443d468fd6a53aef` | 1.3K | Per-function documentation |
+| `docs/functions/somethingFuelCutRelated.md` | `dd40ac9bd18c42aee28780ec9824ce1f0a6b7cc769d773dfc869f0ebc13a0e15` | 2.7K | Per-function documentation |
+| `docs/functions/sourceOf10kReset.md` | `e3be5103903f0587d18e003cf7a9125893dacec0932829330c93a403fbf396a4` | 2.0K | Per-function documentation |
+| `docs/functions/ssvControl.md` | `fdfccd44a4bf3d7d8bc3230e28dbc7aa3d8ff7d7ec4c3893ca7b5c2d005bb2c1` | 2.6K | Per-function documentation |
+| `docs/functions/store_knock_learn_buffer.md` | `cea595fe9a447b025e481035ea69e14a50ec6e213103fb38cfddad2c50fa784e` | 2.1K | Per-function documentation |
+| `docs/functions/taskEndRoutine.md` | `a346ba446e3512a15fefb1a835a8d0120286a88545c13c609416bf7b562e4acf` | 2.8K | Per-function documentation |
+| `docs/functions/task_flag_run_C.md` | `5ebf172afa38a4d522d8bde096a309d8c2aba5640818b83d1bd7157e36328238` | 1.1K | Per-function documentation |
+| `docs/functions/throttleDownDeFloodCheck.md` | `6b09398e0f6f109f11613bfb55dad33bdbd67ceb0c6dc46164718d70be5e6c74` | 2.8K | Per-function documentation |
+| `docs/functions/throttlePedalADCRead.md` | `be157c4ca29569313fc5439593fbaa5edbd2766f77f57eda8473fde747741fa4` | 864B | Per-function documentation |
+| `docs/functions/throttlePlateSomethingFuelCut.md` | `053bdb2c4193cffc76b21a0ffbbc7e5ac75eb5b549dd0958f5042cb47fc85228` | 3.2K | Per-function documentation |
+| `docs/functions/txCAN_EventBased.md` | `5c07ada8868f0df882a9d40c17140736e7de852fe48342d105f80bd0556d28c3` | 1.8K | Per-function documentation |
+| `docs/functions/udsErrorResponse.md` | `1b06fb402ebfb370feeebb5bea6c6b618f0cfff06fc2a541f4073da0b0d3495b` | 929B | Per-function documentation |
+| `docs/functions/udserrorresponse.md` | `3fc70dc09ac177df47deeedc610b10f8224d4b6fe2c27c1fb8c8866c3dae660c` | 1.5K | Per-function documentation |
+| `docs/functions/udsresponserelated.md` | `d2d37f7a1151c59824b822020cb41026b01d35f64248a566ca1cd542f266650a` | 1.6K | Per-function documentation |
+| `docs/functions/udsserviceresponse.md` | `107e6d554553a69e8e89999ab70f67eccc5c049ea3cda3fe611332ab28c2ad02` | 1.3K | Per-function documentation |
+| `docs/functions/unknownMode22Func.md` | `465e4687b6160d6eb07aaa0e7a529509a619530c2ac2157aa40478ddf2bc7263` | 4.0K | Per-function documentation |
+| `docs/functions/updateE2RAMBasedOnInput.md` | `fc53d623f3adea8d723fb8790d948c8a50deefeaf21b741645b2101845d25170` | 4.0K | Per-function documentation |
+| `docs/functions/updateMemoryAtAddress_16bit_ADDR_VAL.md` | `b6d71f0cc66706b8c01f369d4c6fa1868c3619cf7ef588b31758fa72f0ca2505` | 1.3K | Per-function documentation |
+| `docs/functions/updateMemoryAtAddress_8bit_ADDR_VAL.md` | `f1aabd0e5df96c7869fa6b445f8311f6b5abb5c3a738e3cbca05e940bd89efe4` | 1.4K | Per-function documentation |
+| `docs/functions/updateMemoryAtAddress_float_VAL_ADDR.md` | `2fad86393537236b8e60ffa6ee2132ab009cef8693284c3951647597da50461a` | 2.6K | Per-function documentation |
+| `docs/functions/updateRAM.md` | `3f20b93700146b9d1815e147e428f12ae2cb97440406d088ad64d11b3e35321e` | 990B | Per-function documentation |
+| `docs/functions/updatefaultstatusthunk.md` | `22207bf4da8a021751ed238e81824eb038a5db830c2497311bdf17e006d059bf` | 986B | Per-function documentation |
+| `docs/functions/validateAddressCopy_16bit_ADDRESS.md` | `642641e0b0d86bfd05ce27b9392a3606febb7e179e192cc529e53d92ffe1bbb4` | 1.9K | Per-function documentation |
+| `docs/functions/validateAddressCopy_8bit_ADDRESS.md` | `0a013a7a727971f5de6d5c6ae52a6dda1fb0a1341d3e43f7339dd84bb0309a0e` | 2.2K | Per-function documentation |
+| `docs/functions/vfadControl.md` | `351e30a7ca3e7ca2df4c3acc519e82185c663f4996bc9fb63f8b734b9ddfe905` | 2.1K | Per-function documentation |
+| `docs/functions/vfad_control_35BBC.md` | `2890c1af1ab3cef02ba1d1b43b244a5620481b8006b41baf8d6c61853fa059a1` | 2.8K | Per-function documentation |
+| `docs/functions/whileLoop.md` | `8e9bf007bc688f0f92c0a0ce4a7323bfe0a3142c848dde91cc10dd2b21f9d3af` | 987B | Per-function documentation |
+| `docs/functions/writeO2SensorForApplication.md` | `43ba1bd3b6766f367bb9fc20aa62a62e05eeca9e8339b64b7e8e9594dacfb8d5` | 722B | Per-function documentation |
+| `docs/functions/writeToE2RAMArea_INDEX_ADDR_LEN.md` | `3ab88a9c8624dc81588d2fb2bdcc104e3290bf7255a606869a52fd1759c6fd4d` | 2.6K | Per-function documentation |
+| `docs/hardware/RX8_OBD_UDS_Protocol.txt` | `ba0580e6fb85fb8aee060115f9fe34cb24dfa8905a482f5f14175a7a510d19eb` | 6.8K | Hardware documentation |
+| `docs/hardware/RX8_PCM_Hardware_Reference.txt` | `dcbc98c4566401f2fadfb8d2f3e0e953b00ba0dcd0da0a7e0ba6cee501f04d89` | 2.5K | Hardware documentation |
+| `docs/notes/BOOT_RECOVERY.md` | `f09f1bc4e9d30e7a51e9bf9aa540a08eb76721ba0c8c0159e27920e6b0f562d3` | 5.0K | Project knowledge / session notes |
+| `docs/notes/CAN_PROTOCOL.md` | `0bd4e584a28fcba1d3a1c9c90ef5cb9176ad400f3f91e4315f4f41226ee46fd2` | 7.2K | Project knowledge / session notes |
+| `docs/notes/CONNECTOR_PINOUT.md` | `ffde758d58523046a0e3cbb2e1d5ba75f9f26cb69bef65e579955ecba5bfbc90` | 2.9K | Project knowledge / session notes |
+| `docs/notes/DUMP_ALL.md` | `dfb59f0aa3fac236e4597ae321a085f930ef53aa1568f3d2991e79462d47c45a` | 7.2K | Project knowledge / session notes |
+| `docs/notes/ECU.md` | `6706b0b683ac2909119ca7a302468633e207be1c776d6e0c61db1280e343e5d8` | 4.5K | Project knowledge / session notes |
+| `docs/notes/FINDINGS.md` | `3474a9974b7182deca1a62b265f8d77fe1a9702500a9ca7f54cc53f6dac0a022` | 29.7K | Project knowledge / session notes |
+| `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
+| `docs/notes/KNOWLEDGE.md` | `5ea0ec0a124604ba34f91370fea5a9bc7f6bf2304a87a0818830eb38a0d28b95` | 3.4K | Project knowledge / session notes |
+| `docs/notes/RESUME.md` | `f4c657442238a127b03ed1121f01625296170dbd433e2d4d8fa6335ab8ae2045` | 13.4K | Project knowledge / session notes |
+| `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `7bcb59f47dda3ef592813be6ec10408a8feeaad2572baec5a568a7171627f670` | 46.7K | Subsystem / overview documentation |
+| `docs/subsystems/BOOT_SEQUENCE.md` | `f5cc312a0560ec3daaed96c40e3f1c6902725b323a88d63694be1279d61a141c` | 13.4K | Subsystem / overview documentation |
+| `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `e7a35762ad52cbd4435112bcf0a48f79b95af31088c976aadc7c9a813fff32ff` | 48.0K | Subsystem / overview documentation |
+| `docs/subsystems/CAN_UDS_SUBSYSTEM.md` | `79e1afa515280531338abdc8bf3560d92bdd62cba1e782313d9ddf03a35dbc49` | 44.2K | Subsystem / overview documentation |
+| `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
+| `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `37aa06f077488628afe280e0baacd9144a0aaff3ce197e7963ae197efa02d13b` | 49.8K | Subsystem / overview documentation |
+| `docs/subsystems/IDA_NAMES.md` | `f2f45c00907a5ffb1725ead1f0372b55512d36555b1873b31e1d3172915c5ba4` | 3.2K | Subsystem / overview documentation |
+| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `db8a8298be6db5f0a1781c1e6b07cca2f2c0874f04dcb9d15cc91f587799a980` | 45.0K | Subsystem / overview documentation |
+| `docs/subsystems/MAPS.md` | `7ca324f82cb6460c3cbfd7454296083e670df5c807dcc50a9e309908aa82dcb0` | 36.9K | Subsystem / overview documentation |
+| `docs/subsystems/O2_LAMBDA_SUBSYSTEM.md` | `6c6aaa644ed4781226fb63adad90b7ce20853bcf7834d7b7c6471a8ad3fa03b1` | 31.5K | Subsystem / overview documentation |
+| `docs/subsystems/OBD_SUBSYSTEM.md` | `61fda3060e2485c84b8a8a9ba09646a5b2c039b36a4438ae4621f8532dd8137a` | 17.1K | Subsystem / overview documentation |
+| `docs/subsystems/OVERVIEW.md` | `7534a70e899d53b7dc90f05b26f900fd72134bbdffe58358f0e84b97ff8b3a9a` | 2.9K | Subsystem / overview documentation |
+| `docs/subsystems/PID_CONTROLLERS.md` | `0e48f6009c3a2f8e5758eacda1e304f5022fc66fe971d413e5abdbccd4135602` | 11.9K | Subsystem / overview documentation |
+| `docs/subsystems/RTOS_SUBSYSTEM.md` | `c74331d4fb5a0640e4430d92c97cfd19f52da38abcf6c4056f131977ff3872a6` | 27.8K | Subsystem / overview documentation |
+| `docs/subsystems/SENSOR_PIPELINE.md` | `2bb21602ecca2c2da254253cf3d8334fbc8f057c537f3c93d82e8799323df72b` | 45.1K | Subsystem / overview documentation |
+
+## hardware
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `hardware/HARDWARE_NOTES.md` | `2cfa749146f420054ebdb6abf89dbbe5f3981d7f5fb4af8c517b65b4950b5c51` | 2.0K | Hardware notes / photos / web references |
+
+## web
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `web/explorer/.gitignore` | `9e38f3635d6b89b9d202765b2624d45192da67b8c0c593bfb75c405b070e6a9b` | 66B | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/Makefile` | `db9f6b8a342ee379c193034adaa04bd581a7a2f900c17de78e3850c0a3525cd4` | 2.3K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/README.md` | `be1729716da6b6d66a9f6154663d9f34e42beb9bd1ec0d6fd15399f78e22c4bb` | 12.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/build_site.py` | `e27c545402b548db4da88cd78d58e0ff4acea3955ca674e25d0aaf305ecc0083` | 41.8K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/data/MAPPING_NOTES.md` | `efc33d38a6771d5e96a6ef2c64ff551953fb91928637f9cd550f830e41b4d13b` | 8.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/data/roms_meta.json` | `dad8fd3738c7f3aeaab92fb6879c64a0a84c774784c09805fb0057f05f2631d3` | 6.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/data/table_addr_map.csv` | `c5af53244037338661fa54d8223cc92c88efcd8eb7e18b44113ef2338c0204f2` | 169.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/data/table_addr_map_long.csv` | `2ef23c561f7c2875a85775eb26e85e10bee2a0f479ba04696cde3297ca988349` | 533.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/app.js` | `3036f43176fec5347b6f24123fd9a6121136a58e3e7f0a04e61499f10ab75e78` | 64.9K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/index.template.html` | `54d87d5f309cde1457ce7eb529f4f0d03389e2c7bf193d6614013c80015c6d7f` | 9.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/style.css` | `b883bb70a1bd37b991d442851a7417004843b9b406824a2969f3fcfab93fc789` | 15.1K | Web explorer (static firmware browser; see web/explorer/README.md) |
+
+## analysis
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `analysis/coverage/REPORT.md` | `c73b567ed2f5bfb1a2a48a5dc6b6a8e84825760b215643e857723f7f9bf72e74` | 9.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/coverage_gap.py` | `d95e69c88a666a7b986de747b0eb3a64596aa3e078b8d089c07bcf35cb714cb3` | 18.1K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0E500.csv` | `df521bbe9d636d2182d4c3bd70af39a38dc20ea371a544dc910cc3cd39f45a57` | 458.1K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0E500.txt` | `3e9d5691b1bd24d90f33b3fc68c00749094ae41b7dcd991d30aa5d828d145245` | 391.6K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0E700_N3YLEE.csv` | `407e16cebd787646ff59f331082703cb61c2531175d34b238e4707eb1017f980` | 459.2K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0E700_N3YLEE.txt` | `713ee7aab766eaff476dcfc1f3b616a1247be110cce385099a8474d824ad01af` | 392.3K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0FB00.csv` | `abfc98cd7871cc15b4d8705bd3880e457a8dceb1562ddfc621584f762d3d4f9f` | 450.8K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0FB00.txt` | `77372c90fa56317664a6d644bb2a7aa82f2fd99bd59df1eca22639e4f171cb14` | 385.2K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0FC00.csv` | `3783d1653d9b32464eb7753db0aabf9c49e80845ff3e71636771827677f4db9e` | 595.9K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E0FC00.txt` | `b96ec200523a63399482e078eda8741d566d4d440c121bab7ec7cbef325fda63` | 529.9K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E15120_N3J1E.csv` | `c1f6206600e4031911a277a59e49498b70a18f9dfa5f84b73868d8430375a970` | 447.0K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E15120_N3J1E.txt` | `953bb0233d92bcb44b53601900037635f4b47b45adf0b760160c4701cd09be11` | 382.1K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1B900.csv` | `a9dfbd33a751d936548919c822be6e0923144e9405cb4ee34054d86bd92d43ec` | 449.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1B900.txt` | `b9d58f37d35eb9876d09f13c307f4034d3ef6aa85c5d87ceca5fd0afac61ad98` | 383.7K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1C500_N3J6EB.csv` | `2a251b133f8b914458ef0c2e7f70e3cff372eb5654ceb52b11a024ee8761b9ef` | 457.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1C500_N3J6EB.txt` | `a816b78e2ec0489d646c1f98268afedc352e3c819b9396e5a4f73f395c6f52a5` | 390.7K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1D400.csv` | `89128626ca88bf771d655f08401b054c9c50a71b68778614042bf065ef002c5c` | 529.7K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E1D400.txt` | `e166d3f98b99f1bc9cc17de319bc27fee30c2f893cf1832df7eb200c24c4400b` | 464.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E32000_N3M5E.csv` | `8484e53b04b4770fe9620f74adcbabd3ac736e0908dd07d2979f4d2720ef143b` | 436.2K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/coverage/uncovered_60E32000_N3M5E.txt` | `2150432813810a004616a94090e01e0eb5b304c51693533076669cec0ff63471` | 372.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
+| `analysis/cruise/REPORT.md` | `3ea58d35715a8a75ccac70c23832a1ee4dfc8ece6579dffe04741582d96ee875` | 13.4K | Analysis report (function identification) |
+| `analysis/data_regions_60E1D400.csv` | `a7bd907e6bfa13b8b185728feb00686600e3807725f0a82b844721d982dbf6f9` | 82.8K | Code-window data-region classification |
+| `analysis/data_regions_60E1D400.md` | `01920bbcb0c521a8a7d74e50b9195a3d74ca947b533fd93f0ab42a91c5d856a0` | 5.5K | Code-window data-region classification |
+| `analysis/romdiff/README.md` | `6296920532dc2b48fae136770d22ccf90184b8425aec5f85c3cb9e07ddd93f0e` | 1.7K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/REPORT.md` | `8470f915921229d49884916962ccf3d5ce772d31f260cc962efabb0001386415` | 10.6K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/cal_table_diffs_baseline.csv` | `1950d28497114ce6e3888dcf66f5a47a51f90374a5f1827af08c8385c50328bf` | 610.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/clusters.txt` | `3073878cf18f2bbb32163b579c5bd1d5ed92e1b7bb00181219c3335552c90d0d` | 2.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_matrix.csv` | `e47dddb705664b858c1e8cb37451d3969679472e0f0ad69fb083697349185285` | 2.0K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_matrix_blocks.csv` | `0755641c44a929669be19a9398058b8afcde1623c5bb98ec613988b060d576a1` | 2.1K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_ranges.csv` | `a377efdfb42286f5ffb9bdddbd98deb8c117ba4eef1e65c9e7434f05338a95c9` | 628.6K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/run_romdiff.py` | `b812e448aca996b541c220a8ec6f23c25057c91a4b96538ddc2e7c1735358b07` | 25.8K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+
+## .github
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `.github/requirements.txt` | `24be0b1fed86c04d01ba8755ccec53c237d77817f1a867bfc1bd3f338d3c531e` | 513B | CI requirements (GitHub Actions) |
+| `.github/workflows/README.md` | `bc5dea417e56e3c4bec2da4b03a050bff4e5f15c6237fb42110343ecb52d869c` | 5.4K | CI documentation (GitHub Actions) |
+| `.github/workflows/ci.yml` | `8ad43104d559bb6f8daf95be026e1dcf82b0ecdfe268a4a21f6699db5c17ea85` | 5.2K | CI workflow (GitHub Actions) |
+| `.github/workflows/pages.yml` | `6ba453cce77ff8dc631d16a30212feecef1cafe766ce9632a60041f7aa03f26c` | 3.0K | CI workflow (GitHub Actions) |

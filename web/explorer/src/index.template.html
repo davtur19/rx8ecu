@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="__GENERATOR__">
+<title>RX-8 ECU Firmware Explorer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ LOADING / ERROR ============ -->
+<div id="boot">
+  <div class="boot-box">
+    <div class="spinner"></div>
+    <div id="boot-msg">Loading data.json…</div>    <div id="boot-err" class="hidden">
+      <p><strong>Unable to load <code>data.json</code>.</strong></p>
+      <p>Start a static HTTP server in the explorer folder:</p>
+      <pre>cd rx8ecu/web/explorer &amp;&amp; python3 -m http.server 8000</pre>
+      <p>then open <code>http://localhost:8000/</code></p>
+      <p class="muted">If you opened the file directly (file://) and <code>data.js</code> is present next
+      to <code>index.html</code>, the offline fallback has already been applied: this message should not appear.</p>
+      <p class="muted">Per-model table values (<code>models/&lt;key&gt;.json</code>) are fetched on demand and
+      therefore require an HTTP server; on <code>file://</code> the model selector still works for
+      addresses, but values are only available for the baseline model.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="brand">
+    <div class="logo">RX-8</div>
+    <div>
+      <h1>ECU Firmware Explorer</h1>
+      <div class="subtitle">Mazda RX-8 · Renesis 1.3L · Renesas SH7055 (SH-2E)</div>
+    </div>
+  </div>
+  <div class="header-stats" id="header-stats"></div>
+  <div class="model-box" id="model-box">
+    <label for="model-select">Firmware model</label>
+    <select id="model-select" title="Choose the stock ROM whose table addresses and values are shown"></select>
+    <div class="model-context" id="model-context"></div>
+  </div>
+</header>
+
+<!-- ============ NAV ============ -->
+<nav id="tabs">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="symbols">Functions &amp; Symbols</button>
+  <button data-tab="callgraph">Callgraph</button>
+  <button data-tab="tables">Calibration Tables</button>
+  <button data-tab="docs">Documentation</button>
+  <button data-tab="lookup">Address Lookup</button>
+</nav>
+
+<main>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="panel-dashboard" class="panel active">
+    <h2>Overview</h2>
+    <div class="cards" id="dash-cards"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Functions by category</h3>
+        <div id="dash-sym-cats" class="bars"></div>
+      </div>
+      <div class="card">
+        <h3>Tables by category</h3>
+        <div id="dash-tbl-cats" class="bars"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Top functions by degree (callgraph hubs)</h3>
+      <table class="data-table" id="dash-top"></table>
+    </div>
+
+    <div class="card note">
+      <h3>ROM contexts &amp; firmware models</h3>
+      <p>The project uses two address contexts for <strong>symbols + callgraph</strong>:
+      <code>60E1D400</code> (RE baseline) and <code>60E0FC00</code> (Z-line, equinox reference).
+      The <strong>calibration tables</strong> can be viewed in any of the <strong>9 stock
+      firmware models</strong> using the <em>Firmware model</em> selector in the header: addresses
+      come from <code>data/table_addr_map_long.csv</code> (per-model map, never a global shift) and
+      values are extracted from the matching <code>roms/stock/*.bin</code>. Functions and symbols are
+      <em>not</em> shifted when the selected model is outside their native contexts.</p>
+    </div>
+  </section>
+
+  <!-- ============ SYMBOLS ============ -->
+  <section id="panel-symbols" class="panel">
+    <h2>Functions &amp; Symbols</h2>
+    <div class="model-note hidden" id="sym-ctx-note"></div>
+    <div class="toolbar">
+      <input type="search" id="sym-search" placeholder="Filter by name or address (e.g. can, 0x2f3a, 0x1…)">
+      <select id="sym-cat"></select>
+      <select id="sym-rom"></select>
+      <select id="sym-doc">
+        <option value="">All (with/without docs)</option>
+        <option value="1">Documented only</option>
+      </select>
+      <span class="toolbar-count" id="sym-count"></span>
+    </div>
+    <div class="layout-2">
+      <div class="scroll-pane">
+        <table class="data-table" id="sym-table">
+          <thead><tr>
+            <th>Address</th><th>Name</th><th>Category</th><th>ROM</th><th>Doc</th>
+            <th>Calls</th><th>Called</th>
+          </tr></thead>
+          <tbody id="sym-tbody"></tbody>
+        </table>
+        <div class="pager">
+          <button id="sym-prev">‹ prev</button>
+          <span id="sym-pageinfo"></span>
+          <button id="sym-next">next ›</button>
+        </div>
+      </div>
+      <aside id="sym-detail" class="detail-pane">
+        <p class="muted">Select a function to see details, callers and callees.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ CALLGRAPH ============ -->
+  <section id="panel-callgraph" class="panel">
+    <h2>Callgraph (ego-graph)</h2>
+    <div class="toolbar">
+      <input type="text" id="cg-input" placeholder="Function name or address (e.g. canSetup, 0x9fc)" autocomplete="off">
+      <div id="cg-suggest" class="suggest hidden"></div>
+      <select id="cg-depth"><option value="1">Depth 1</option><option value="2">Depth 2</option></select>
+      <label class="check"><input type="checkbox" id="cg-ref" checked> "ref" edges</label>
+      <label class="check"><input type="checkbox" id="cg-bsr" checked> "bsr" edges</label>
+      <button id="cg-fit">Fit</button>
+      <button id="cg-reset">Reset</button>
+      <span class="toolbar-count" id="cg-info"></span>
+    </div>
+    <div class="cg-wrap">
+      <canvas id="cg-canvas"></canvas>
+      <div id="cg-tip" class="tip hidden"></div>
+      <aside id="cg-detail" class="detail-pane side">
+        <p class="muted">Select a node for details. Drag nodes, scroll to zoom, drag the background to pan.</p>
+      </aside>
+    </div>
+    <div class="legend">
+      <span><i class="dot root"></i> root</span>
+      <span><i class="dot caller"></i> caller</span>
+      <span><i class="dot callee"></i> callee</span>
+      <span><i class="dot mixed"></i> both</span>
+      <span><i class="line bsr"></i> bsr (call)</span>
+      <span><i class="line ref"></i> ref (data reference)</span>
+    </div>
+  </section>
+
+  <!-- ============ TABLES ============ -->
+  <section id="panel-tables" class="panel">
+    <h2>Calibration Tables</h2>
+    <div class="model-note" id="tbl-model-note"></div>
+    <div class="toolbar">
+      <input type="search" id="tbl-search" placeholder="Filter by name or address (e.g. dwell, 0x6cf6c, Ignition)">
+      <select id="tbl-cat"></select>
+      <select id="tbl-type">
+        <option value="">All types</option>
+        <option value="grid">2D grid (extracted values)</option>
+        <option value="vals">1D vector (extracted values)</option>
+        <option value="scalar">Scalar (f32 value)</option>
+        <option value="axis">Axis only (X/Y)</option>
+        <option value="noval">Table without values</option>
+      </select>
+      <select id="tbl-role">
+        <option value="">All entries (1210)</option>
+        <option value="t">Tables only</option>
+        <option value="x">X axes only</option>
+        <option value="y">Y axes only</option>
+      </select>
+      <span class="toolbar-count" id="tbl-count"></span>
+    </div>
+    <div class="layout-2">
+      <div class="scroll-pane">
+        <table class="data-table" id="tbl-table">
+          <thead><tr>
+            <th>Model addr</th><th>Baseline addr</th><th>Name</th><th>Role</th><th>Type</th><th>Category</th><th>Map</th><th>Values</th>
+          </tr></thead>
+          <tbody id="tbl-tbody"></tbody>
+        </table>
+        <div class="pager">
+          <button id="tbl-prev">‹ prev</button>
+          <span id="tbl-pageinfo"></span>
+          <button id="tbl-next">next ›</button>
+        </div>
+      </div>
+      <aside id="tbl-detail" class="detail-pane">
+        <p class="muted">Select an entry to see metadata and (when available) the values with visualization.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ DOCUMENTATION ============ -->
+  <section id="panel-docs" class="panel">
+    <h2>Documentation (docs/functions + docs/subsystems)</h2>
+    <div class="toolbar">
+      <input type="search" id="doc-search" placeholder="Filter by title, file or content…">
+      <select id="doc-group">
+        <option value="">All documents</option>
+        <option value="fun">Functions (doc matched to a symbol)</option>
+        <option value="unatt">Functions (unmatched)</option>
+        <option value="sub">Subsystems</option>
+      </select>
+      <span class="toolbar-count" id="doc-count"></span>
+    </div>
+    <div class="layout-2">
+      <div class="scroll-pane">
+        <div id="doc-list" class="doc-list"></div>
+      </div>
+      <aside id="doc-detail" class="detail-pane">
+        <p class="muted">Select a document to read it. Function docs matched to a symbol
+        can also be read from the "Functions &amp; Symbols" panel (Documentation section).</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ LOOKUP ============ -->
+  <section id="panel-lookup" class="panel">
+    <h2>Address → symbol lookup</h2>
+    <div class="toolbar">
+      <input type="text" id="lk-input" placeholder="Hex address, e.g. 0x6cf6c, 7a9bc, 0x2000" autocomplete="off">
+      <button id="lk-go">Search</button>
+    </div>
+    <div id="lk-result"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>__GENERATOR__</code> · dataset <code>data.json</code> · no external dependencies
+  · data facts from the <code>rx8ecu</code> project.
+  <div class="muted" style="margin-top:6px">__BUILD_STATS__</div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Build artifacts
+build/
+tools/build/
+src/*.bin
+*.o
+*.elf
+*.bin.tmp
+# Toolchain (fetched by get_toolchain.sh)
+tools/toolchain/
+# Third-party + personal data (kept locally, not published)
+[REDACTED]/
+[REDACTED]/
+captures/
+eeprom/
+dump_selfmade/
+tmp/
+# Junk / scratch
+core.*
+*.pyc
+__pycache__/
+.agents/
+.git.private-backup/

@@ -1,0 +1,88 @@
+# GitHub Pages for rx8ecu — RX-8 ECU Firmware Explorer.
+#
+# Builds the static explorer (web/explorer/build_site.py — stdlib-only,
+# deterministic) and deploys web/explorer/dist to GitHub Pages with the modern
+# Actions flow (upload-pages-artifact + deploy-pages).
+#
+# Coexists with ci.yml (which it never touches): Pages runs on a path-filtered
+# push to the project's main branches, CI runs the full verification battery.
+#
+# NOTE: in the repo settings, "Pages → Build and deployment → Source" must be
+# set to "GitHub Actions" for this workflow to be able to deploy.
+
+name: Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'web/explorer/**'
+      - 'symbols/**'
+      - 'docs/functions/**'
+      - 'docs/subsystems/**'
+      - 'roms/**'
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  # Match the local dev environment and ci.yml (Python 3.14.6 at time of writing).
+  PYTHON_VERSION: "3.14"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # build: checkout, regenerate the whole site, upload it as a Pages artifact
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build site (build_site.py)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Regenerate the site (single command, no dependencies)
+        run: python3 web/explorer/build_site.py
+
+      - name: Sanity-check the generated site
+        run: |
+          test -f web/explorer/dist/index.html
+          test -f web/explorer/dist/app.js
+          test -f web/explorer/dist/style.css
+          test -f web/explorer/dist/data.json
+          test -f web/explorer/dist/data.js
+          test -f web/explorer/dist/.nojekyll
+          python3 -c "import json,sys; d=json.load(open('web/explorer/dist/data.json')); assert d['meta']['counts']['symbols']>0 and d['meta']['counts']['edges']>0; print('data.json OK:', d['meta']['counts']['symbols'], 'symbols,', d['meta']['counts']['edges'], 'edges')"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/explorer/dist
+
+  # ---------------------------------------------------------------------------
+  # deploy: publish the artifact to the github-pages environment
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
