@@ -847,7 +847,7 @@ struct UDSDispatchEntry {
 
 The 5-byte security key constant is at 0x5FAC0 in 60E1D400:
 - Stock: `"MazdA"`
-- [REDACTED]: `"vendor-family secret"`
+- [REDACTED]: vendor-family secret (removed for privacy)
 - [REDACTED]: `"[REDACTED]"`
 
 LFSR polynomial parameters at 0x5FAC8.

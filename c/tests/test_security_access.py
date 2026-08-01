@@ -168,6 +168,11 @@ def compute_key_rom_params(seed_bytes, secret_bytes, init, taps):
 #   The legacy value 0x3B15E1 (kept for history) had NO ROM/emulation
 #   support and was the cause of the old self_test FAIL; docs/notes/RESUME.md
 #   still lists the stock algorithm as open — that entry is now out of date.
+# Real-world [REDACTED] capture vectors are not shipped in this public file
+# (their secret is private-capture data).  The ROM-verified stock vectors
+# below exercise the same code paths; the algorithm additionally reproduces
+# the VT captures via the removed vendor-family LFSR-collision twin (see
+# mazda_security.py provenance note).
 STOCK_TEST = {
     'secret': b'MazdA',
     'seed': bytes([0x45, 0x82, 0x0A]),
@@ -175,12 +180,9 @@ STOCK_TEST = {
     'legacy_wrong_key': bytes([0x3B, 0x15, 0xE1]),  # historical, superseded
 }
 
-# Real-world captures from [REDACTED]-tuned ECU (from mazda_security.py)
-REAL_CAPTURES = [
-    {'secret': b'vendor-family secret', 'seed': bytes.fromhex('CBFED4'), 'expected': bytes.fromhex('[REDACTED]')},
-    {'secret': b'vendor-family secret', 'seed': bytes.fromhex('[REDACTED]'), 'expected': bytes.fromhex('[REDACTED]')},
-    {'secret': b'vendor-family secret', 'seed': bytes.fromhex('[REDACTED]'), 'expected': bytes.fromhex('[REDACTED]')},
-]
+# Real-world captures from a [REDACTED]-tuned ECU were removed from this
+# public file (private-capture data).  The ROM-verified stock vectors in
+# ROM_VECTORS (level 1, secret 'MazdA') cover the same code paths.
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -216,16 +218,24 @@ def test_mazda_security_self_test():
 
 
 def test_real_captures():
-    """Verify the real-world CAN captures from [REDACTED]-tuned ECU."""
+    """Verify compute_key against the ROM-verified level-1 reference vectors.
+
+    (The real-world [REDACTED] capture vectors that used to live here were
+    removed from this public file; the stock ROM vectors below cover the same
+    compute_key path — see test_rom_reference_vectors for levels 1-4.)"""
     all_ok = True
-    print(f"\n  Real-world captures (secret=vendor-family secret):")
-    for tc in REAL_CAPTURES:
-        result = compute_key(tc['seed'], tc['secret'])
-        ok = result == tc['expected']
-        print(f"    seed={tc['seed'].hex()}: {result.hex()} "
-              f"{'== ' + tc['expected'].hex() if ok else '!= ' + tc['expected'].hex()}"
-              f"  {'PASS' if ok else 'FAIL'}")
+    print(f"\n  ROM-verified level-1 vectors (secret 'MazdA'):")
+    for level, seed_hex, want_hex in ROM_VECTORS:
+        if level != 1:
+            continue
+        seed = bytes.fromhex(seed_hex)
+        result = compute_key(seed, b'MazdA')
+        want = bytes.fromhex(want_hex)
+        ok = result == want
         all_ok = all_ok and ok
+        print(f"    seed={seed_hex}: {result.hex()} "
+              f"{'== ' + want_hex if ok else '!= ' + want_hex}"
+              f"  {'PASS' if ok else 'FAIL'}")
     
     return all_ok
 
@@ -345,6 +355,18 @@ def test_all_tap_permutations():
     return found
 
 
+# (level, seed, key) extracted from the stock ROM handler via sh2emu
+# (state bytes at compare 0x56CC4, secret 'MazdA' from ROM @0x5FAC0).
+ROM_VECTORS = [
+    (1, '45820A', 'A07258'), (2, '45820A', '30823E'),
+    (3, '45820A', '4F850D'), (4, '45820A', 'F81A48'),
+    (1, 'CBFED4', '75491A'), (2, 'CBFED4', 'E5B97C'),
+    (3, 'CBFED4', '9ABE4F'), (4, 'CBFED4', '2D210A'),
+    (1, '123456', '86CA06'), (2, '123456', '163A60'),
+    (3, '123456', '693D53'), (4, '123456', 'DEA216'),
+]
+
+
 def test_rom_reference_vectors():
     """
     ROM-verified reference vectors for the stock 60E1D400 SeedKeyRelated.
@@ -362,17 +384,6 @@ def test_rom_reference_vectors():
     vectors; levels 2-4 are checked via the table-driven ROM reference.
     """
     print(f"\n  ROM reference vectors (SeedKeyRelated @0x56ADA, emulated):")
-
-    # (level, seed, key) extracted from the ROM handler via sh2emu
-    # (state bytes at compare 0x56CC4, secret 'MazdA' from ROM @0x5FAC0).
-    ROM_VECTORS = [
-        (1, '45820A', 'A07258'), (2, '45820A', '30823E'),
-        (3, '45820A', '4F850D'), (4, '45820A', 'F81A48'),
-        (1, 'CBFED4', '75491A'), (2, 'CBFED4', 'E5B97C'),
-        (3, 'CBFED4', '9ABE4F'), (4, 'CBFED4', '2D210A'),
-        (1, '123456', '86CA06'), (2, '123456', '163A60'),
-        (3, '123456', '693D53'), (4, '123456', 'DEA216'),
-    ]
 
     with open(ROM_PATH, 'rb') as f:
         f.seek(0x5FAC5)
@@ -426,13 +437,18 @@ def test_key_byte_swap():
     """
     print(f"\n  Key byte-order verification:")
     
-    # Test with a known seed/key pair
-    for tc in REAL_CAPTURES:
-        result = compute_key(tc['seed'], tc['secret'])
+    # Test with the ROM-verified stock vectors (secret 'MazdA')
+    swap_cases = [
+        (STOCK_TEST['seed'], STOCK_TEST['expected_key']),
+        (bytes.fromhex('CBFED4'), bytes.fromhex('75491A')),  # ROM level-1 vector
+        (bytes.fromhex('123456'), bytes.fromhex('86CA06')),  # ROM level-1 vector
+    ]
+    for seed_b, exp_b in swap_cases:
+        result = compute_key(seed_b, b'MazdA')
         
         # Try without the final byte swap
-        seed = (tc['seed'][0] << 16) | (tc['seed'][1] << 8) | tc['seed'][2]
-        s1, s2, s3, s4, s5 = tc['secret']
+        seed = (seed_b[0] << 16) | (seed_b[1] << 8) | seed_b[2]
+        s1, s2, s3, s4, s5 = b'MazdA'
         w1 = (s1 << 24) | ((seed & 0xFF) << 16) | (seed & 0xFF00) | ((seed >> 16) & 0xFF)
         w2 = (s5 << 24) | (s4 << 16) | (s3 << 8) | s2
         
@@ -446,19 +462,19 @@ def test_key_byte_swap():
         noswap = bytes([(state >> 16) & 0xFF, (state >> 8) & 0xFF, state & 0xFF])
         
         # With mazda_swap
-        swapped = compute_key(tc['seed'], tc['secret'])
+        swapped = compute_key(seed_b, b'MazdA')
         
         # Try all 6 permutations
         import itertools
         for perm in itertools.permutations([(state >> 16) & 0xFF, (state >> 8) & 0xFF, state & 0xFF]):
             candidate = bytes(perm)
-            if candidate == tc['expected']:
-                print(f"    seed={tc['seed'].hex()}: key permutation {perm} = "
+            if candidate == exp_b:
+                print(f"    seed={seed_b.hex()}: key permutation {perm} = "
                       f"{candidate.hex()} matches!")
                 break
         else:
-            print(f"    seed={tc['seed'].hex()}: noswap={noswap.hex()}, "
-                  f"swapped={swapped.hex()}, expected={tc['expected'].hex()}")
+            print(f"    seed={seed_b.hex()}: noswap={noswap.hex()}, "
+                  f"swapped={swapped.hex()}, expected={exp_b.hex()}")
     
     return True
 
@@ -477,7 +493,7 @@ def main():
     print("\n─── 1. Self-test (stock secret 'MazdA') ───")
     results['self_test'] = test_mazda_security_self_test()
     
-    print("\n─── 2. Real-world captures ([REDACTED] 'vendor-family secret') ───")
+    print("\n─── 2. ROM-verified level-1 vectors (secret 'MazdA') ───")
     results['real_captures'] = test_real_captures()
     
     print("\n─── 3. ROM data integrity ───")
@@ -526,8 +542,8 @@ def main():
 
   3. The ROM reference-vector test validates levels 1-4 x 3 seeds (12
      vectors) extracted by emulating SeedKeyRelated @0x56ADA; the reference
-     also matches the existing compute_key() at level 1 and reproduces all 3
-     real-world [REDACTED] captures ('vendor-family secret').
+     also matches the existing compute_key() at level 1 (ROM-verified stock
+     secret).
 
   4. Seed-key handling differs from ECOMcat only in structure, not in the
      LFSR core: the ROM feeds a 64-bit LSB-first stream

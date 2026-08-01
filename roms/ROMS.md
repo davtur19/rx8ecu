@@ -25,11 +25,9 @@ Provenance: the community stock ROMs come from
 > public circulation; the private images were verified byte-exact before
 > exclusion (see [VERIFICATION.md](../VERIFICATION.md)).
 >
-> `**removed-private**` (N3J1EL 6-port MT) is catalogued above but **not shipped** — its
-> binary is held in `[REDACTED]` (same SHA-256 as
-> the public equinox311 download). No tuned-ROM rows are added here.
+> No tuned-ROM rows are added here.
 
-## Stock ROMs (9 shipped + 1 catalogued)
+## Stock ROMs (9 shipped)
 
 | Cal ID (@0x2000) | Denso SW module | Task module | Sec key | Key offset | Checksum | sha256[:10] | Role / notes |
 |------------------|-----------------|-------------|---------|-----------|----------|-------------|--------------|
@@ -42,7 +40,6 @@ Provenance: the community stock ROMs come from
 | 60E1B900 | SW-N3ZDEH000.HEX | N3ZDEBWW.T50 | MazdA | 0x5DBA4 | OK | `b0dc94f96e` | community ref |
 | 60E1C500 | SW-N3J6EN000.HEX | N3J6EBMW.T50 | MazdA | 0x5E730 | OK | `b3b6e1e416` | community ref (file tagged `_N3J6EB`) |
 | 60E32000 | SW-N3M5EK000.HEX | N3M5E_SW.T01 | MazdA | 0x65134 | OK | `d5406459cc` | community ref (file tagged `_N3M5E`); **structurally distinct** — key ~0x65000 vs ~0x5Exxx elsewhere, task suffix `.T01` not `.T50` (likely a later/different-market build) |
-| ****removed-private**** | SW-N3J1EL000.HEX | N3J1E_1W.T50 | **vendor-family secret** | 0x5F31C | OK | `**removed-private**` | **Catalogued, not shipped** — new public stock ROM (N3J1EL 6-port MT), bin in `[REDACTED]**removed-private**_N3J1EL_Stock.bin` (sha256 `**removed-private**`); **no `MazdA` string anywhere** — security block @0x5F31C holds `vendor-family secret` ([REDACTED] secret; per `[REDACTED]`) |
 
 Full sha256 for every shipped image (and the private `[REDACTED]`): see
 [VERIFICATION.md](../VERIFICATION.md).
@@ -57,16 +54,14 @@ Observations:
 
 - **All stock keys are `MazdA`** (the factory SecurityAccess constant); only the
   key *offset* moves between builds (0x5D90C → 0x65134), tracking code-layout size.
-  **Exception: `**removed-private**`** — its security block holds the [REDACTED] secret
-  `vendor-family secret` @0x5F31C instead (per `[REDACTED]`);
-  the LFSR init table (`C5 41 A9`) is unchanged.
+  The LFSR init table (`C5 41 A9`) is unchanged across builds.
 - Denso SW-module prefixes cluster into families: `N3J1`/`N3J6` (the "J" line,
   incl. the documented baseline), `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z"
   line), and the outlier `N3M5`. `N3` is the RENESIS 13B engine-code prefix in
   Mazda's `N3xx-18-881` PCM part numbers.
 - Market / spec per cal ID, **confirmed** from equinox92's guide: `60E0FC00` =
   US 6-Port MT (equinox's RE target); `60E0FB00` = US 6-Port MT; `60E1B900` =
-  US 6-Port MT; `**removed-private**` = N3J1EL 6-Port MT; `60E1D400` = N3J1EM 6-Port MT;
+  US 6-Port MT; `60E1D400` = N3J1EM 6-Port MT;
   `60E1A300` = 2005 JDM 4-Port MT; `60E1A500` = JDM 4/6-Port. The private
   `[REDACTED]` = 2004 **EU 6-Port MT** (the owner's car). All 04-09 (03-08 global)
   S1 RX-8. `N3` prefix = RENESIS 13B. Editor/logger defs:
@@ -79,7 +74,7 @@ Observations:
 
 | File | Base cal ID | SW module | Sec key | Size | Notes |
 |------|-------------|-----------|---------|------|-------|
-| `[REDACTED]` | [REDACTED] | [REDACTED] | MazdA | 512 KB | **Owner's personal live-ECU dump**; byte-exact verified pre-exclusion (see VERIFICATION.md). **A public copy of the same cal exists** — `[REDACTED]` (SkasLT, sha256 `[REDACTED]`) — differing from this private dump in only **5 bytes** (per-ECU part/serial area `0xFFA`/`0xFFC-0xFFD` and pre-descriptor area `0x7FB01`/`0x7FB03`); both checksums valid → two independent ECUs, same build. |
+| `[REDACTED]` | [REDACTED] | [REDACTED] | MazdA | 512 KB | **Owner's personal live-ECU dump**; byte-exact verified pre-exclusion (see VERIFICATION.md). |
 | `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] tune of 60E1D400; launch-control cave @`0x6C7FE`, checksum bypassed (see `docs/notes/FULL_ANALYSIS.md`) |
 | `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] + finalized LC patch |
 | `[REDACTED]` | 60E1D400 | – | – | **525312 B** | [REDACTED]-saved: **prefixed with a 1024-byte (0x400) header** — the raw 512 KB image starts at file offset `0x400`, so cal ID/strings are shifted. Not a flat dump. |
@@ -109,7 +104,7 @@ matches the internal `SW-*.HEX` calibration flashed on it:
 | Denso copyright | `Copr.DENSO2000S…` @ `0x2022` and `~0x6CE33` |
 | SW module `SW-*.HEX` | ASCII near `~0x6CE40` (search `SW-[0-9A-Z]+\.HEX`) |
 | Task module `N3*.T50` | ASCII near `~0x6CE00` (search `N3[0-9A-Z_]+\.T[0-9][0-9]`) |
-| Security key (5 bytes) | search for `MazdA` / `vendor-family secret` / `[REDACTED]`; offset varies per build (LFSR params follow the key) |
+| Security key (5 bytes) | search for `MazdA` / `[REDACTED]`; offset varies per build (LFSR params follow the key) |
 | Denso checksum | descriptor @`0x7FB80` = `[lo:4][hi:4][diff:4]`; Σ BE32 over `[lo,hi]` + `diff` must equal `0x5AA5A55A`. Verify with `python3 tools/denso_ck.py <rom>` |
 | Reset vector | PC = BE32 @ `0x0` (all = `0x000008B8`), SP = BE32 @ `0x4` (`0xFFFFDFA0`) |
 

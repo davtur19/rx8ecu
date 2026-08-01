@@ -48,12 +48,16 @@ Flash reprogramming SIDs: 0x34→0x1A70, 0x36→0x1B8C, 0x37→0x1CB8. SecurityA
 | ROM variant | Key | Hex |
 |---|---|---|
 | Stock `60E1D400` | `"MazdA"` | `4D 61 7A 64 41` |
-| [REDACTED] (tuned ECU) | `"vendor-family secret"` and `"vendor-family secret"` — both valid 5-byte secrets that collide under the ECOMcat stream (`compute_key(seed, 'vendor-family secret') == compute_key(seed, 'vendor-family secret')` for every tested seed; LFSR collision) | `[REDACTED]` / `[REDACTED]` |
+| [REDACTED] (tuned ECU) | [REDACTED]-family key (removed for privacy) | — |
 | [REDACTED] `[REDACTED]` | `"[REDACTED]"` | `[REDACTED]` |
 
-LFSR: init=`0xC541A9`, taps=`0x909028`. Params at `0x5FAC8` — **unchanged across all variants**.  
-`'vendor-family secret'` provenance: **[REDACTED] captures of a flashed/tuned ECU** (3 real-world CAN captures, not a stock ECU); `'vendor-family secret'` provenance: a Flasher decryptor string.  
-Implementation: `tools/mazda_security.py`. Verified: seed `[REDACTED]` + `vendor-family secret` → `[REDACTED]` ✓ (identical for `vendor-family secret`).  
+LFSR: init=`0xC541A9`, taps=`0x909028`. Per-level LFSR INIT table starts at
+`0x5FAC8` in 60E1D400 (`0x5FAC5`–`0x5FAC7` is `FF FF FF` padding after the
+5-byte secret) — **unchanged across all variants**.  
+The [REDACTED]-family secret was a capture-verified RX-8 UDS SecurityAccess
+secret on a flashed/tuned ECU; its literal and capture vectors are removed for
+privacy (see `tools/mazda_security.py` — the stock `MazdA` vectors are the
+shipped, ROM-verified reference).
 RESOLVED 2026-08-01 (commit `a84eaba`): `mazda_security.py` self-test + `test_security_access.py` pass — ROM-verified stock vector is seed `0x45820A` / `"MazdA"` / level 1 → `0xA07258` (12 ROM vectors).
 
 **[REDACTED] NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expects ROM's actual key. Fix: set correct 5-byte key for the ROM installed in the ECU.
@@ -72,3 +76,11 @@ RESOLVED 2026-08-01 (commit `a84eaba`): `mazda_security.py` self-test + `test_se
 - `0xFFFFC004` = `EEPROM_PairingByte` — non-zero = ECU paired
 - LC checksum window: `0xFFFFC37E–0xFFFFC38E` (17 bytes, signed byte sum must = −23)
 - **OPEN**: boot function that populates `0xFFFFC37E` not yet identified
+
+---
+
+## Cooling fans
+
+Verified fan-control calibration tables (fan 1/2 enable + hysteresis @
+`0x07793C–0x077950`, vehicle-speed cuts @ `0x077988`/`0x07798C`, tuned-ROM
+fanmod evidence): see `docs/notes/COOLING_FANS.md`.

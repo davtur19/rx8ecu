@@ -99,7 +99,7 @@ secret+11     3     LFSR tap bits    (3 bytes, byte[2]=MSB → 24-bit)
 | 60E1C500_N3J6EB| 0x05E730      | `MazdA`  | Stock                       |
 | **60E1D400**   | **0x05FAC0**  | `MazdA`  | **This ROM**                |
 | 60E32000_N3M5E | 0x065134      | `MazdA`  | Structurally distinct       |
-| [REDACTED]     | varies        | `vendor-family secret`  | Aftermarket tune            |
+| [REDACTED]     | varies        | vendor-family secret (removed) | Aftermarket tune            |
 | [REDACTED]     | varies        | `[REDACTED]`  | Aftermarket tune            |
 
 ### LFSR Parameter Values (ROM 60E1D400)
