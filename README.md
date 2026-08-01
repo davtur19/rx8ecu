@@ -1,4 +1,11 @@
 # Mazda RX-8 PCM Reverse Engineering
+![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
+![ASM code window](https://img.shields.io/badge/ASM%20code%20window-93.6%25%20lifted-green)
+![C lifts](https://img.shields.io/badge/C%20lifts-149-blue)
+![C emulator-verified](https://img.shields.io/badge/C%20emulator--verified-107%2F149%20%2872%25%29-yellowgreen)
+![Calibration tables](https://img.shields.io/badge/calibration%20tables-1%2C210%20mapped-blue)
+![Call graph](https://img.shields.io/badge/call%20graph-6%2C953%20edges-blue)
+![Regression checks](https://img.shields.io/badge/checks-38%2C008%20disasm%20%2B%2083%20emu-green)
 
 Complete, byte-exact reverse engineering of the **Mazda RX-8 PCM firmware** —
 the Denso **279700-3313** engine-control module built around a Renesas **SH-2E**
@@ -46,7 +53,7 @@ with `make -C web/explorer serve`.
   primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
   DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
   *actual ROM bytes* running on the emulator over tens of thousands of
-  randomized inputs each (49 verified addresses); the few reconstruction-tier
+  randomized inputs each (107 emulator-verified addresses); the few reconstruction-tier
   files (structural, not emulator-verified) are labeled as such in-tree.
 - **193 function docs + 15 subsystem docs** (`docs/functions/`,
   `docs/subsystems/`).
@@ -55,7 +62,7 @@ with `make -C web/explorer serve`.
   `analysis/data_regions_60E1D400.csv`).
 - **Host test suites**: 112 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
-  disassembler/emulator family regressions (38,008 + 73 checks).
+  disassembler/emulator family regressions (38,008 + 83 checks).
 
 ## Quickstart
 

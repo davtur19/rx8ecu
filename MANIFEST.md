@@ -65,7 +65,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `d4a3a6a3c2e7be21bc55a5fe490d13d13f20a2f6ebee25aab0ab1724e118ff22` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `00cb5180873f77914d5d36e73bc9d3592a84d47702e96f2cc73225352b54c0d0` | 9.4K | Master plan (single source of truth) |
-| `README.md` | `ff860e3061e83afdee8ff155f14a803f5d91d222cb599332d33e9d90ef47b923` | 8.2K | Project README |
+| `README.md` | `3b4f33c538e188dde83b77636ceb9c8beec5777a229a44623a4deb1a238724a1` | 8.8K | Project README |
 | `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `4e598d42d71d1900b4ed4e33e8cbcb0ca45e57e19beb9fc845060ddacfbafb2e` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
 
