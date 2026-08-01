@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **625 entries, 57.4M.** Regenerated 2026-08-01 for the
+in the working repository. **626 entries, 57.5M.** Regenerated 2026-08-01 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,20 +9,20 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root)/ | 11 | 84.4K |
+| (root)/ | 12 | 85.2K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 6 | 874.4K |
-| c/ | 160 | 647.9K |
+| c/ | 160 | 648.1K |
 | c/tests/ | 140 | 566.1K |
-| tools/ | 17 | 123.4K |
-| tools/tests/ | 2 | 33.5K |
-| docs/ | 221 | 1001.5K |
+| tools/ | 18 | 136.3K |
+| tools/tests/ | 2 | 37.0K |
+| docs/ | 221 | 1004.1K |
 | hardware/ | 1 | 2.0K |
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
 | .github/ | 4 | 14.4K |
-| **Total** | **625** | 57.4M |
+| **Total** | **626** | 57.5M |
 
 ## External dependencies
 
@@ -65,9 +65,9 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `d4a3a6a3c2e7be21bc55a5fe490d13d13f20a2f6ebee25aab0ab1724e118ff22` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `00cb5180873f77914d5d36e73bc9d3592a84d47702e96f2cc73225352b54c0d0` | 9.4K | Master plan (single source of truth) |
-| `README.md` | `0f2aa15c552e2e184896a549ef110379303bbbb7b138d77f29a983f890eb7c5a` | 8.2K | Project README |
-| `REPLICATION.md` | `c6760cfddf2e217ffe1bab341c3d71b03e544664a0a3f0e39a76b167728b1ae1` | 9.5K | Fresh-clone reproduction guide |
-| `VERIFICATION.md` | `77d80afb12d53d84d7598cfa45fd20a3c2677193eeb798f618872c320781fa5d` | 9.8K | Evidence: byte-exact table, coverage, test results, hashes |
+| `README.md` | `ff860e3061e83afdee8ff155f14a803f5d91d222cb599332d33e9d90ef47b923` | 8.2K | Project README |
+| `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
+| `VERIFICATION.md` | `4e598d42d71d1900b4ed4e33e8cbcb0ca45e57e19beb9fc845060ddacfbafb2e` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
 
 ## roms
 
@@ -233,7 +233,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/omp_rotor_overshoot_detector_18CC0.c` | `4812b056e063b3d134efb4dc64146c89509f6312e17c9a287ce11db573564e0b` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/omp_stepper_waveform_driver.c` | `3c75ace88ff2b8bd629b5e370fee178af8a86c78d7a5e9c0d9984fdb23cc0fc0` | 7.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/omp_task_0x1825E.c` | `ed4ff09eb9c613060ce1b369758c1abd75b05f49ef198d07bfa4775b62e68ea3` | 9.6K | Verified C lift (behavior-equivalent, emulator-proven) |
-| `c/omp_waveform_state_machine_18860.c` | `1bf77d1249f4f7aad516e2a0b8ea292c5eaccb8deb408313bdb7f93403efd246` | 5.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/omp_waveform_state_machine_18860.c` | `a51fe8e9a2dbe91b0cb7948d81573c84db60c189baa5b57a153797403d09a7ea` | 5.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/osTaskScheduler.c` | `486d9335110f5007c5716bf4f914e25bbb75c504a8952558ce099347a0c4b645` | 9.8K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/purge_control_state_update.c` | `39a45cce814b0432cdf229ca74ac5f1e74c3deca55c4a8c6f1c90879d31564ba` | 3.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/purge_flow_counter_init.c` | `39abc3d6f97b2f2e40c495ed575738ef6e2dd070da65eea43d94f1d811451ef8` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -434,11 +434,12 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
 | `tools/mazda_security.py` | `b354e01c40dd2c4d3d6885cf4d1b2adb8b0afef84a21ce03dd30048e7cd1a86f` | 4.8K | RE tool (see tools/README.md) |
+| `tools/opcode_audit.py` | `5f7d812612caeb380ee38e0e6db7736af5db36bf1e9290b76b7642fe6fc0f1a7` | 12.4K | RE tool (see tools/README.md) |
 | `tools/organize_src.py` | `952eab08198e20668fe3d8a2b572222993a2247516fb18814e68325cf02a65b4` | 9.5K | RE tool (see tools/README.md) |
 | `tools/rom2asm.py` | `a0cc400125d3f3f913285fc873b73b784c1f2d3f2d07ed139fdb6a7112722da4` | 6.5K | RE tool (see tools/README.md) |
 | `tools/rom_rebuild.py` | `389f1044dda89555dd85b02c8f351b6371f02139763eb531af042365000c88a7` | 7.3K | RE tool (see tools/README.md) |
 | `tools/run_tests_parallel.py` | `c63d357fc7283b6a4d7e95ca1401c5983b2132a065a792d4480f1155722dcb7d` | 5.1K | Parallel test runner (pytest, all suites) |
-| `tools/sh2emu.py` | `23b8c5f6150f05517d4d056186169c2f88cefdacfa5538d8ffd5a389b3ebfd42` | 27.0K | RE tool (see tools/README.md) |
+| `tools/sh2emu.py` | `efc03749113f667b139faf5b9f05de7935026d84a5efc3a25274d549f8a6b9d0` | 27.5K | RE tool (see tools/README.md) |
 | `tools/verify_all.sh` | `d264410fe557754c812cc5fa89b3671743f7e8312e886482080a6cd4a79d77b3` | 4.1K | RE tool script (see tools/README.md) |
 | `tools/xmap_names.py` | `9bb65fe324af3d665b562c0b3c8684655529671398bfed1ad7cbc99d22c30e03` | 5.6K | RE tool (see tools/README.md) |
 
@@ -447,7 +448,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
 | `tools/tests/test_decode_families.py` | `862d5ad96fa8b41081db62eb78258c937ddeb773b8b9a1bd7fbb772cdd0b5b83` | 14.4K | RE tool (see tools/README.md) |
-| `tools/tests/test_emulator_families.py` | `c81b4ac354c2cede5ee7344cac95d6076c384ad5a99c29f817a2cc9f8e32e562` | 19.0K | RE tool (see tools/README.md) |
+| `tools/tests/test_emulator_families.py` | `cca903161fcf9d8da96528292899d4a93ece5913cd8eaae9a12c7fbbe9df6e30` | 22.5K | RE tool (see tools/README.md) |
 
 ## docs
 
@@ -481,8 +482,8 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/functions/calcInjectorCrankingTime.md` | `80417149c89332327b2f588af80175f957622c22976e9f5cde723c4021fe40e3` | 2.4K | Per-function documentation |
 | `docs/functions/calc_adaptive_fuel_trim.md` | `de69aaa5a6449f3a6b6258a6bc1ca12b269c2351e6e1075d6fb3d31dae33d78c` | 6.7K | Per-function documentation |
 | `docs/functions/calc_decel_fuel_cut_445AA.md` | `d41db5be745804867f03a5ab5907d121fef729f24e070e11226effc93ba2745d` | 5.2K | Per-function documentation |
-| `docs/functions/calc_fuel_injection_all_rotors.md` | `fbf04e64ca1f6d50f04ee359c4d52964b67edb237657baa440c6714089fd23a0` | 2.6K | Per-function documentation |
-| `docs/functions/calc_ignition_all_rotors_13C2C.md` | `9035810ad7b120aca802a9fe40c8fd3a97285c1f4987cb86daf339fa115dc5b3` | 9.0K | Per-function documentation |
+| `docs/functions/calc_fuel_injection_all_rotors.md` | `9e3aae3305e2a25ff694d2884c999541752d2787061bc6bcd573b06fcc7acb8f` | 2.9K | Per-function documentation |
+| `docs/functions/calc_ignition_all_rotors_13C2C.md` | `de9e31abd6f97d01a605cf3760b724279179d289f33ff40a4911646ed1a14cdb` | 9.2K | Per-function documentation |
 | `docs/functions/calculate12VBatteryTemperature.md` | `64183aef4b9aafd10b07782dc85b0b7c44797657d3beca1104ad6067ca3518ac` | 3.3K | Per-function documentation |
 | `docs/functions/calculateCruiseControlSwitchVolt.md` | `2bb91acd68a9190faa6a3966cb1dbc062c9da7c6d567efbae1a56e5ceb5fc4f1` | 1.4K | Per-function documentation |
 | `docs/functions/calculateEngineTemperatures.md` | `8f784e1b209cb734f11c208bfcaf2075427588fe450c1d77530ffb12d0dae8fa` | 2.6K | Per-function documentation |
@@ -655,19 +656,19 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/notes/CONNECTOR_PINOUT.md` | `ffde758d58523046a0e3cbb2e1d5ba75f9f26cb69bef65e579955ecba5bfbc90` | 2.9K | Project knowledge / session notes |
 | `docs/notes/DUMP_ALL.md` | `b7eb9e1e76917f82576602011d7dd9e369437a7307e9a6769d199650e2085afa` | 7.2K | Project knowledge / session notes |
 | `docs/notes/ECU.md` | `2c6665aeb47b496670b3996acd3e85439a0cf501d08544005f1ce5da68e07103` | 4.5K | Project knowledge / session notes |
-| `docs/notes/FINDINGS.md` | `7f99702ed347721648a5415b5763c35b0a56140d02786b2bf48d341a7f1cc17e` | 29.7K | Project knowledge / session notes |
+| `docs/notes/FINDINGS.md` | `2dac5d2f4326bcf69e55e032baf8da4740f01be70d684d64fb2de9e0e486f1f2` | 29.7K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
 | `docs/notes/KNOWLEDGE.md` | `9b3a10ce1f1e53f2b5b2d0f6be7e4d56495f55d0f9402e9defad8ccf8f2969e5` | 3.9K | Project knowledge / session notes |
 | `docs/notes/RESUME.md` | `32ace9f4bfd8a90dd82cee761ee637ba3662ab9f374d04385f4ce01db40a94c1` | 739B | Project knowledge / session notes |
-| `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `7bcb59f47dda3ef592813be6ec10408a8feeaad2572baec5a568a7171627f670` | 46.7K | Subsystem / overview documentation |
+| `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `73bf0e6b5f3c4c3b8330eed29a8d3008e7ffeb69a6e448eae6c98eee8bc1db58` | 47.5K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `f5cc312a0560ec3daaed96c40e3f1c6902725b323a88d63694be1279d61a141c` | 13.4K | Subsystem / overview documentation |
-| `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `a1fd277a1c9d2c0ea6cce40510b9c1885d46dfc38503a42e4bb2632f6977851b` | 48.2K | Subsystem / overview documentation |
+| `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `754b959499add7a7cb8a4e9fffff2cb8757b19ae4019fdc7074e775995332fcd` | 48.7K | Subsystem / overview documentation |
 | `docs/subsystems/CAN_UDS_SUBSYSTEM.md` | `e7ff610623afe4d865fdb8020ac85683f1e66cf3277efa491abcb01911fa5938` | 44.3K | Subsystem / overview documentation |
 | `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
-| `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `dc7c4e733cfa0d1cf8361e0836666a74b6a3526aa137eaec0c949756cda67edd` | 49.9K | Subsystem / overview documentation |
+| `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `72363f23767a630b8240f6939a5add4c547e18e75ddc05d3ca9dfb21b08e185b` | 50.2K | Subsystem / overview documentation |
 | `docs/subsystems/IDA_NAMES.md` | `f2f45c00907a5ffb1725ead1f0372b55512d36555b1873b31e1d3172915c5ba4` | 3.2K | Subsystem / overview documentation |
-| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `0534ea974b8fd27b0e3339e8db2c07a54c42fd2399fd53df1012850982572b3b` | 45.0K | Subsystem / overview documentation |
-| `docs/subsystems/MAPS.md` | `7a355401c571a0951ed1d1b1395200e7ee3aad417ddabbb66ef120bf683dae38` | 36.9K | Subsystem / overview documentation |
+| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `b2fb40f467139fd19fdc9d5cd249b73da4d7db23a48d86d3b6e5801eae26f6a6` | 45.1K | Subsystem / overview documentation |
+| `docs/subsystems/MAPS.md` | `bfa06274246b804abe8e746f83fbd42cabc4938982511f59a01db68a7769036c` | 37.3K | Subsystem / overview documentation |
 | `docs/subsystems/O2_LAMBDA_SUBSYSTEM.md` | `6c6aaa644ed4781226fb63adad90b7ce20853bcf7834d7b7c6471a8ad3fa03b1` | 31.5K | Subsystem / overview documentation |
 | `docs/subsystems/OBD_SUBSYSTEM.md` | `61fda3060e2485c84b8a8a9ba09646a5b2c039b36a4438ae4621f8532dd8137a` | 17.1K | Subsystem / overview documentation |
 | `docs/subsystems/OVERVIEW.md` | `7534a70e899d53b7dc90f05b26f900fd72134bbdffe58358f0e84b97ff8b3a9a` | 2.9K | Subsystem / overview documentation |
