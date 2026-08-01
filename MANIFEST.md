@@ -436,7 +436,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
-| `tools/gen_badges.py` | `4b5f0a34da5fddc5e9b4a632bfd8c8806bf1ed699fb77251d841c7d8c8190e66` | 7.4K | RE tool (see tools/README.md) |
+| `tools/gen_badges.py` | `45b366d5c5ebae941739db63f3d1aaac7f035b24c523b9f8e7a4c7948ee5d7eb` | 10.3K | RE tool (see tools/README.md) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
@@ -747,6 +747,6 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 |---|--:|---:|---|
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
 | `.github/workflows/README.md` | `4ba420eb633f9177d6a5f5500289c905cfa6b312c4c0e861ad2db6ee93878f6d` | 5.4K | CI documentation (GitHub Actions) |
-| `.github/workflows/badges.yml` | `8d181593c7435d4d2a7a8ce598108ba32277fc2c02c2a895e50a890a6b9b4715` | 944B | CI workflow (GitHub Actions) |
+| `.github/workflows/badges.yml` | `8548873015065d58022a1c5ae7906c236decfd02e9c50f99656dc327e9c4f36d` | 1.3K | CI workflow (GitHub Actions) |
 | `.github/workflows/ci.yml` | `add9447b75c6290815e2a656da3c508988b62c3a9b8aa2846d8894fb894f0e26` | 5.5K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `6ba453cce77ff8dc631d16a30212feecef1cafe766ce9632a60041f7aa03f26c` | 3.0K | CI workflow (GitHub Actions) |
