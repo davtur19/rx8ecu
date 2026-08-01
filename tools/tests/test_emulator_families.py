@@ -452,6 +452,50 @@ def test_ldc_sr():
           "ldc r4,SR (0x440E) delay-slot SR=0x%08X expected 0x1234F0C0" % cpu.sr)
 
 
+# ---------------------------------------------------------------------------
+# 14. GBR bit-ops: tst.b/and.b/xor.b/or.b #imm,@(r0,gbr) (0xCCxx-0xCFxx)
+#     used by calibration_apply_4B770 (0x4B784..0x4B79E) and omp_task_0x1825E
+#     (0x184A0); and/xor/or must NOT touch T.
+# ---------------------------------------------------------------------------
+def test_gbr_bitops():
+    GB = 0x1000; OF = 0x10; AD = GB + OF          # gbr=0x1000, r0=0x10
+    base = lambda op: [0x411E, 0x0018, op, 0x000B]  # ldc r1,GBR; sett (T=1); op; rts
+
+    # tst.b #0,@(r0,gbr) = 0xCC00: (byte & 0) == 0 always -> T=1
+    cpu = sub([0x411E, 0xCC00, 0x000B], regs={1: GB, 0: OF}, ram={AD: 0x3C})
+    check(cpu.T == 1, "tst.b #0,@(r0,gbr) T=%d expected 1" % cpu.T)
+
+    # tst.b #0x06: (byte & 6) == 0 -> T=1
+    cpu = sub([0x411E, 0xCC06, 0x000B], regs={1: GB, 0: OF}, ram={AD: 0x01})
+    check(cpu.T == 1, "tst.b #6,@(r0,gbr) match T=%d expected 1" % cpu.T)
+    # (byte & 6) == 6 -> T=0
+    cpu = sub([0x411E, 0xCC06, 0x000B], regs={1: GB, 0: OF}, ram={AD: 0x07})
+    check(cpu.T == 0, "tst.b #6,@(r0,gbr) no-match T=%d expected 0" % cpu.T)
+
+    # and.b #0x06 (0xCD06): mem &= 6, T untouched (set T=1 first)
+    cpu = sub(base(0xCD06), regs={1: GB, 0: OF}, ram={AD: 0xFF})
+    check(cpu.ram.get(AD) == 0x06, "and.b #6,@(r0,gbr) mem=0x%02X expected 0x06"
+          % cpu.ram.get(AD))
+    check(cpu.T == 1, "and.b #6,@(r0,gbr) T=%d expected unchanged 1" % cpu.T)
+
+    # xor.b #0x01 (0xCE01): mem ^= 1, T untouched
+    cpu = sub(base(0xCE01), regs={1: GB, 0: OF}, ram={AD: 0x11})
+    check(cpu.ram.get(AD) == 0x10, "xor.b #1,@(r0,gbr) mem=0x%02X expected 0x10"
+          % cpu.ram.get(AD))
+    check(cpu.T == 1, "xor.b #1,@(r0,gbr) T=%d expected unchanged 1" % cpu.T)
+
+    # or.b #0x40 (0xCF40): mem |= 0x40, T untouched
+    cpu = sub(base(0xCF40), regs={1: GB, 0: OF}, ram={AD: 0x08})
+    check(cpu.ram.get(AD) == 0x48, "or.b #0x40,@(r0,gbr) mem=0x%02X expected 0x48"
+          % cpu.ram.get(AD))
+    check(cpu.T == 1, "or.b #0x40,@(r0,gbr) T=%d expected unchanged 1" % cpu.T)
+
+    # real-world instances: 0xCE01/0xCE00 (xor) and 0xCD06 (and) round-trip
+    cpu = sub([0x411E, 0xCE01, 0xCE00, 0xCD06, 0x000B], regs={1: GB, 0: OF}, ram={AD: 0x06})
+    check(cpu.ram.get(AD) == 0x06, "xor1/xor0/and6 chain mem=0x%02X expected 0x06"
+          % cpu.ram.get(AD))
+
+
 def main():
     N = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
     print("sh2emu decode-family regression tests")
@@ -470,6 +514,7 @@ def main():
     test_indexed_movb_signext()
     test_braf_bsrf()
     test_ldc_sr()
+    test_gbr_bitops()
     print("%d checks, %d failures" % (CHECKS[0], len(FAILS)))
     sys.exit(1 if FAILS else 0)
 

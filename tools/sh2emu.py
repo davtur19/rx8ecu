@@ -283,6 +283,10 @@ class SH2:
             if op & 0xFF00 == 0xC900: r[0] &= lo; return                          # and #imm,R0
             if op & 0xFF00 == 0xCA00: r[0] ^= lo; return                          # xor #imm,R0
             if op & 0xFF00 == 0xCB00: r[0] |= lo; return                          # or #imm,R0
+            if op & 0xFF00 == 0xCC00: self.T = 1 if (self.rd(self.gbr + r[0], 1) & lo) == 0 else 0; return  # tst.b #imm,@(r0,gbr)
+            if op & 0xFF00 == 0xCD00: self.wr(self.gbr + r[0], 1, self.rd(self.gbr + r[0], 1) & lo); return  # and.b #imm,@(r0,gbr)
+            if op & 0xFF00 == 0xCE00: self.wr(self.gbr + r[0], 1, self.rd(self.gbr + r[0], 1) ^ lo); return  # xor.b #imm,@(r0,gbr)
+            if op & 0xFF00 == 0xCF00: self.wr(self.gbr + r[0], 1, self.rd(self.gbr + r[0], 1) | lo); return  # or.b #imm,@(r0,gbr)
             if op & 0xFF00 == 0xC300: raise NotImplementedError("trapa @0x%X" % pc)  # trapa #imm
             if op & 0xFF00 == 0xC000: self.wr(self.gbr + lo, 1, r[0]); return     # mov.b R0,@(disp,GBR)
             if op & 0xFF00 == 0xC100: self.wr(self.gbr + lo * 2, 2, r[0]); return  # mov.w R0,@(disp,GBR)
