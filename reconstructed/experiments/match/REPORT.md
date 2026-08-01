@@ -263,3 +263,120 @@ python3 scripts/fingerprint.py      # statistiche compilatore su src/*.s
 ```
 
 Non è stato modificato/creato nulla fuori da `reconstructed/experiments/match/`.
+
+---
+
+## 10. SWEEP con GCC 3.4.6 (era ROM)
+
+Data: 2026-08-01 · sweep eseguito con **GCC 3.4.6 sh-elf** (`/home/davide/gcc346-build/gcc/xgcc`),
+l'era a cui la ROM risale (2000–2003, fingerprint §5), per verificare se il codegen
+della ROM è riproducibile byte-exact dal compilatore reale dell'epoca.
+
+### Toolchain e harness
+
+| Componente | Dettaglio |
+|---|---|
+| Compilatore | `/home/davide/gcc346-build/gcc/xgcc` (`-B /home/davide/gcc346-build/gcc/`), version 3.4.6, target `sh-elf`, default big-endian (`-mb`), subtarget `-m2e`/`-m3`/`-m4-nofpu` accettati |
+| Assemblatore / objcopy | `/usr/bin/sh-elf-as -isa=sh2e` / `/usr/bin/sh-elf-objcopy -O binary --only-section=.text` |
+| stdint | stub `/tmp/stubinc/stdint.h` (`-nostdinc -I/tmp/stubinc`, niente newlib) |
+| Harness | `scripts/sweep_gcc346.py` (adattamento di `sweep_gcc14.py`: parser hex robusto per i `rom_hex/*.txt` correnti, che contengono una riga "replacement ; regex…" non-hex; toolchain 3.4.6) |
+
+Matrice: funzione × subtarget (`-m2e`/`-m3`/`-m4-nofpu`) × `-O` (`-O0`/`-O1`/`-O2`/`-Os`) ×
+opzioni (default / `-fno-delayed-branch` / `-fomit-frame-pointer` / `-fno-omit-frame-pointer`)
+= 192 combinazioni per funzione. Report completo: `/tmp/sweep_gcc346/report_full.txt`.
+
+### Risultato per funzione (best configurazione)
+
+| Funzione | Migliore config | Bytes | % | Insn | Prima div. | Esito |
+|---|---|---|---|---|---|---|
+| `add16bitSaturate` (C idiomatico) | `-m2e -O1 -fomit-frame-pointer` | 15/24 | 62.5% | 6/12 | +0x06 | diff |
+| `addSaturate8Bit` (C idiomatico) | `-m2e -O1 -fomit-frame-pointer` | 9/24 | 37.5% | 4/12 | +0x06 | diff |
+| `addS32Saturate` (C a 64-bit) | `-m2e -O1 -fomit-frame-pointer` | 2/22 | 9.1% | 0/11 | +0x00 | diff |
+| `seed_mixer` (C low-opt) | `-m2e -O0` | 5/164 | 3.0% | 0/82 | +0x00 | diff |
+| **`add16bitSaturate_reg`** (variante) | **`-m2e -O1 -fomit-frame-pointer`** | **24/24** | **100%** | **12/12** | — | ✅ **MATCH byte-perfect** |
+| `addSaturate8Bit_reg` (variante) | `-m2e -O1 -fomit-frame-pointer` | 16/24 | 66.7% | 6/12 | +0x01 | diff |
+| `addS32Saturate_addv` (inline asm `addv`) | — (nessuna) | 0/22 | 0% | 0/11 | +0x00 | diff |
+
+### ✅ MATCH byte-perfect: `add16bitSaturate` @0x2460
+
+**Recipe esatta:**
+
+```bash
+/home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/ \
+  -nostdinc -I /tmp/stubinc -c c_src/add16bitSaturate_reg.c \
+  -m2e -O1 -fomit-frame-pointer
+# poi: sh-elf-as -isa=sh2e + sh-elf-objcopy --only-section=.text
+```
+
+Produce esattamente i 24 byte della ROM:
+`644d 655d 345c d503 3452 8f01 0009 6453 000b 6043 0000ffff`
+(disassembly identico istruzione-per-istruzione, pool incluso; `.s` salvato in
+`expected_gcc_sh2e/add16bitSaturate_reg.m2e.-O1.omitfp.s`).
+
+Il sorgente vincente (`c_src/add16bitSaturate_reg.c`) differisce dall'idiomatico
+solo per tre accorgimenti, tutti motivati dal codegen SH osservato in ROM:
+1. **`max` come variabile** (`register unsigned max`) — evita la fold
+   `sum >= 0xFFFF → sum > 0xFFFE` che sia GCC 14 che GCC 3.4.6 applicano alla
+   costante inline (la ROM carica un solo literal 0xFFFF e usa `cmp/hs`);
+2. **registri ancorati r4/r5** (`register … __asm__("r4")/"r5"`) — riproduce la
+   allocazione della ROM (somma in r4, costante in r5, clamp `mov r5,r4`);
+3. **return type `unsigned`** — epilogo `rts; mov r4,r0` senza `extu.w r4,r0`
+   (la somma è già zero-estesa a 16 bit).
+
+Senza il punto 2 (solo 1+3, C "quasi idiomatico") si arriva comunque al 62.5%
+con la stessa struttura di ramo (`bf.s`+`cmp/hs`+clamp `mov`), ma la somma finisce
+in r0/r1 invece che r4/r5.
+
+### Confronto divergenze: GCC 3.4.6 vs GCC 14.2.0
+
+1. **add16bitSaturate**: la *stessa* divergenza strutturale di gcc 14
+   (range-fold `>= 0xFFFF → > 0xFFFE`: due literal 0xFFFE/0xFFFF, `cmp/hi`).
+   Però gcc 3.4.6 è **più vicino**: usa `bf.s` con delay-slot riempito (come la
+   ROM, che fa `bf/s; nop; mov r5,r4; rts; mov r4,r0`), niente frame pointer con
+   `-fomit-frame-pointer`, e a `-O1 -fomit-frame-pointer` i primi 6 byte
+   coincidono. **gcc 14 → 25%, gcc 3.4.6 → 62.5%; con la variante `_reg` → 100%.**
+2. **addSaturate8Bit**: gcc 3.4.6 sceglie `extu.b` (parametri `uint8_t`) mentre
+   la ROM fa `extu.w` e confronto **signed** `cmp/ge` su un valore troncato a 16
+   bit (indizio: i parametri originali erano `uint16_t`). Con la variante
+   `_reg` (parametri `uint16_t`, `uint16_t sum`, confronto `int`) si sale al
+   66.7% con `cmp/ge` corretto; restano solo ordine+regalloc della copia
+   (`extu.w r4,r3` vs gcc `r1`) e il delay-slot (`mov r4,r0` vs `extu.w r4,r0`).
+3. **addS32Saturate**: come gcc 14, GCC 3.4.6 **non emette `addv` per C puro**
+   (`-ftrapv` chiama una routine; il C a 64-bit genera estensione 64-bit
+   `shll/subc` + `jsr`). Con `addv` via inline asm gcc materializza il flag T
+   (`movt`+`tst`) e somma con `subc/sub`, mentre la ROM ramifica direttamente su
+   T (`bf/s`) e somma con `mov #0,r5; addc r5,r0` — **nessuna combinazione
+   matcha** (0%). Divergenza strutturale, identica nella sostanza a gcc 14.
+4. **seed_mixer**: codegen low-opt come la ROM (store/reload su stack a -O0) ma
+   prologo (`mov.l r14`+`sts.l pr`+`add #-20,r15`+`mov r15,r14`), allocazione
+   stack e ordine delle istruzioni diversi → 3.0% (gcc 14: 3.7%). **Lontano.**
+
+### Verdict
+
+- **`add16bitSaturate` MATCHA byte-perfect** con GCC 3.4.6 e la recipe
+  `-m2e -O1 -fomit-frame-pointer` (+ sorgente con `max`-variabile e pin r4/r5).
+  È la prima prova, con un compilatore reale dell'era ROM, che il codegen della
+  ROM è **riproducibile**: l'ipotesi "GCC 3.x Renesas-derivato" (§6) è ora
+  supportata da un match empirico, non solo dal fingerprint.
+- **Generalizzabilità**: alta per helper piccoli pure-math **se** il sorgente
+  usa i tipi originali (`uint16_t` e non `uint8_t` per l'8-bit), il confronto
+  contro **variabile** (evita la fold `>=C→>C-1`), e registri r4..r7 (dove il
+  passaggio argomenti SH mette già i valori) — accorgimenti "naturali" dato che
+  il codice originale era scritto per quel compilatore. La 8-bit è a una
+  copia-`extu.w` di registro di distanza. **Non generalizza** a funzioni con
+  idiomi speciali (`addv`) o codegen low-opt complesso (immo).
+- Nessun match per `addS32Saturate`, `seed_mixer`: per questi resta valido
+  l'approccio assembly-first (`expected_gcc_sh2e/*.s`).
+
+### Riprodurre
+
+```bash
+python3 scripts/sweep_gcc346.py --out /tmp/sweep_gcc346/report_full.txt
+# 7 funzioni (4 base + 3 varianti) × 48 config; ~2 s
+```
+
+Nuovi file (tutti in `reconstructed/experiments/match/`): `scripts/sweep_gcc346.py`,
+`c_src/add16bitSaturate_reg.c`, `c_src/addSaturate8Bit_reg.c`,
+`c_src/addS32Saturate_addv.c`,
+`expected_gcc_sh2e/add16bitSaturate_reg.m2e.-O1.omitfp.s`.
+`scripts/sweep_gcc14.py` non è stato toccato.
