@@ -24,8 +24,12 @@ Provenance: the community stock ROMs come from
 > project files. Every image listed here is stock factory firmware already in
 > public circulation; the private images were verified byte-exact before
 > exclusion (see [VERIFICATION.md](../VERIFICATION.md)).
+>
+> `**removed-private**` (N3J1EL 6-port MT) is catalogued above but **not shipped** — its
+> binary is held in `[REDACTED]` (same SHA-256 as
+> the public equinox311 download). No tuned-ROM rows are added here.
 
-## Stock ROMs (9 shipped)
+## Stock ROMs (9 shipped + 1 catalogued)
 
 | Cal ID (@0x2000) | Denso SW module | Task module | Sec key | Key offset | Checksum | sha256[:10] | Role / notes |
 |------------------|-----------------|-------------|---------|-----------|----------|-------------|--------------|
@@ -38,14 +42,24 @@ Provenance: the community stock ROMs come from
 | 60E1B900 | SW-N3ZDEH000.HEX | N3ZDEBWW.T50 | MazdA | 0x5DBA4 | OK | `b0dc94f96e` | community ref |
 | 60E1C500 | SW-N3J6EN000.HEX | N3J6EBMW.T50 | MazdA | 0x5E730 | OK | `b3b6e1e416` | community ref (file tagged `_N3J6EB`) |
 | 60E32000 | SW-N3M5EK000.HEX | N3M5E_SW.T01 | MazdA | 0x65134 | OK | `d5406459cc` | community ref (file tagged `_N3M5E`); **structurally distinct** — key ~0x65000 vs ~0x5Exxx elsewhere, task suffix `.T01` not `.T50` (likely a later/different-market build) |
+| ****removed-private**** | SW-N3J1EL000.HEX | N3J1E_1W.T50 | **vendor-family secret** | 0x5F31C | OK | `**removed-private**` | **Catalogued, not shipped** — new public stock ROM (N3J1EL 6-port MT), bin in `[REDACTED]**removed-private**_N3J1EL_Stock.bin` (sha256 `**removed-private**`); **no `MazdA` string anywhere** — security block @0x5F31C holds `vendor-family secret` ([REDACTED] secret; per `[REDACTED]`) |
 
 Full sha256 for every shipped image (and the private `[REDACTED]`): see
 [VERIFICATION.md](../VERIFICATION.md).
+
+**Defs coverage gaps** (per `[REDACTED]`):
+`60E0E500` and `60E32000` lack **public address-level defs** (RomRaider/EcuFlash
+table maps). `60E0E500` is likely address-compatible with its sibling `60E0E600`
+(same family — verify by diffing); `60E32000` has Ghidra labels (cjv0513) but no
+table defs. All other shipped ROMs have published defs.
 
 Observations:
 
 - **All stock keys are `MazdA`** (the factory SecurityAccess constant); only the
   key *offset* moves between builds (0x5D90C → 0x65134), tracking code-layout size.
+  **Exception: `**removed-private**`** — its security block holds the [REDACTED] secret
+  `vendor-family secret` @0x5F31C instead (per `[REDACTED]`);
+  the LFSR init table (`C5 41 A9`) is unchanged.
 - Denso SW-module prefixes cluster into families: `N3J1`/`N3J6` (the "J" line,
   incl. the documented baseline), `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z"
   line), and the outlier `N3M5`. `N3` is the RENESIS 13B engine-code prefix in
@@ -65,7 +79,7 @@ Observations:
 
 | File | Base cal ID | SW module | Sec key | Size | Notes |
 |------|-------------|-----------|---------|------|-------|
-| `[REDACTED]` | [REDACTED] | [REDACTED] | MazdA | 512 KB | **Owner's personal live-ECU dump**; byte-exact verified pre-exclusion (see VERIFICATION.md) |
+| `[REDACTED]` | [REDACTED] | [REDACTED] | MazdA | 512 KB | **Owner's personal live-ECU dump**; byte-exact verified pre-exclusion (see VERIFICATION.md). **A public copy of the same cal exists** — `[REDACTED]` (SkasLT, sha256 `[REDACTED]`) — differing from this private dump in only **5 bytes** (per-ECU part/serial area `0xFFA`/`0xFFC-0xFFD` and pre-descriptor area `0x7FB01`/`0x7FB03`); both checksums valid → two independent ECUs, same build. |
 | `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] tune of 60E1D400; launch-control cave @`0x6C7FE`, checksum bypassed (see `docs/notes/FULL_ANALYSIS.md`) |
 | `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] + finalized LC patch |
 | `[REDACTED]` | 60E1D400 | – | – | **525312 B** | [REDACTED]-saved: **prefixed with a 1024-byte (0x400) header** — the raw 512 KB image starts at file offset `0x400`, so cal ID/strings are shifted. Not a flat dump. |

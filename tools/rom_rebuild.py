@@ -18,7 +18,7 @@ Why this is byte-exact and robust
 * Branch / PC-relative operands are rewritten to `L_xxxxxx` labels; the whole ROM
   is one unit linked at VMA 0, so displacements/ranges are the originals.
 * Self-correcting: any word GNU-as rejects (e.g. data that capstone over-decodes
-  as an SH-2A/SH-4 op like `ldc.l @rn+,tbr` or `synco`) or that re-encodes to
+  as an extended-SuperH op like `ldc.l @rn+,tbr` or `synco`) or that re-encodes to
   different bytes is forced back to raw `.word`. The loop converges to cmp == 0.
 
 * capstone fallback: words capstone does not decode are handed to
@@ -49,10 +49,11 @@ import disasm_sh2e as SH2E
 
 PCREL = {'mov.l', 'mov.w', 'mova'}
 BR = {'bra', 'bsr', 'bt', 'bf', 'bt/s', 'bf/s'}
+HEX = re.compile(r'0x([0-9a-fA-F]+)')
 
 
 def _tgt(op):
-    m = re.search(r'0x([0-9a-fA-F]+)', op)
+    m = HEX.search(op)
     return int(m.group(1), 16) if m else None
 
 
@@ -69,13 +70,13 @@ def rebuild(rom, asm_out, bin_out, code_lo, code_hi, max_iter=16):
     d = open(rom, 'rb').read()
     N = len(d)
     md = C.Cs(C.CS_ARCH_SH, C.CS_MODE_SH2 | C.CS_MODE_BIG_ENDIAN)
+    md.skipdata = True                       # one sweep over the code region instead of per-word calls
     dis = {}
-    for a in range(code_lo, code_hi, 2):
-        w = int.from_bytes(d[a:a + 2], 'big')
-        i = (list(md.disasm(d[a:a + 2], a)) or [None])[0]
-        if i is None:
-            i = _sh2e_fallback(w, a)          # capstone miss -> disasm_sh2e
-        dis[a] = i
+    for i in md.disasm(d[code_lo:code_hi], code_lo):
+        a = i.address                        # keep address: fallback replaces i and drops .address
+        if i.id == 0:                        # skipdata pseudo-insn (.byte) == capstone None before
+            i = _sh2e_fallback(int.from_bytes(d[a:a + 2], 'big'), a)
+        dis[a] = i                           # may be None (unknown/fpu_unknown) — old code stored None too
     labels = set()
     for a, i in dis.items():
         if i and (i.mnemonic in BR or i.mnemonic in PCREL):
@@ -97,7 +98,7 @@ def rebuild(rom, asm_out, bin_out, code_lo, code_hi, max_iter=16):
                 if i.mnemonic in PCREL or i.mnemonic in BR:
                     t = _tgt(op)
                     if t is not None and 0 <= t < N:
-                        op = re.sub(r'0x[0-9a-fA-F]+', 'L_%06x' % t, op, count=1)
+                        op = HEX.sub('L_%06x' % t, op, count=1)
                     elif t is not None:                 # unresolved target -> raw
                         out.append('\t.word 0x%04x' % int.from_bytes(d[a:a + 2], 'big'))
                         meta.append(a); a += 2; continue

@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 /* ========================================================================
- * RAM variables (on-chip SH-2A RAM)
+ * RAM variables (on-chip SH-2E RAM)
  * ======================================================================== */
 
 #define RAM_ENGINE_RPM          (*(volatile float *)0xFFFFB5B8)   /* engine speed */

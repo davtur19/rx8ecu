@@ -6,7 +6,7 @@ Active RE work. Non-discoverable facts: `KNOWLEDGE.md`. Confirmed discoveries: `
 
 ## [REDACTED] LC Patch ([REDACTED] vs 60E1D400)
 
-**Code cave**: `0x6C7FE–0x6CBFA` — stock = all `0xFF`; [REDACTED] injected SH-2A code here.
+**Code cave**: `0x6C7FE–0x6CBFA` — stock = all `0xFF`; [REDACTED] injected SH-2E code here.
 
 **Hook at `0x94C8`** (`LC_HookClampEntry`): 16 bytes changed → redirects stock throttle clamp to `LC_ClampAndGateOutput`.
 
@@ -82,9 +82,9 @@ Handler ptr formula: `(b[12] << 16) | int.from_bytes(b[10:12], 'big')`
 
 | CAN ID | Handler | Notes |
 |---|---|---|
-| 0x0201 | 0x1BB5C | Wheel speed / vehicle speed |
-| 0x0231 | 0x1BCC4/0x1BB48 | Engine state |
-| 0x0250 | 0x1CEB8 | Injection pulse width (Rotarytronics patch target) |
+| 0x0201 | 0x1BB5C | RPM / vehicle speed / accel (field-verified; see CAN_PROTOCOL.md "Field vs firmware") |
+| 0x0231 | 0x1BCC4/0x1BB48 | Engine state / gear selector — field data differs (MT/AT split): OPEN |
+| 0x0250 | 0x1CEB8 | Injection pulse width (Rotarytronics patch target) — byte3 = IAT per field: OPEN |
 | 0x0630 | 0x1C044 | Fan status (Rotarytronics patch target) |
 | 0x7DF/0x7E0 | 0x0DE04 | OBD2 UDS handler |
 

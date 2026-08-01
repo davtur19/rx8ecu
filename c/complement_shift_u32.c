@@ -9,7 +9,7 @@
  * Used by PID controllers to detect when an error signal has exceeded
  * the calibrated deadband or threshold window.
  *
- * SH-2A implementation (verified against emulator):
+ * SH-2E implementation (verified against emulator):
  *   fr3 = fr5             ; fr3 = value
  *   fr3 = fr5 - fr6       ; fr3 = value - adjustment
  *   if fr3 > fr4 -> ret 1 ; if value - adj > threshold: outside (above)

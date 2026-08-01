@@ -1,0 +1,6 @@
+# addS32Saturate_2304  ROM offset 0x02304, base 0x60002304
+# body: 18 bytes
+354f8f046053d0034511e500305e000b0009
+replacement ; regex: prefix supported. pool @0x02318: 4 bytes
+7fffffff
+# total span: 22 bytes (0x02304..0x0231A)

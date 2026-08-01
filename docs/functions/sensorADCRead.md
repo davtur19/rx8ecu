@@ -2,7 +2,7 @@
 
 **Verified analysis (capstone disassembly + literal pool resolution)**
 
-**Purpose:** Read all hardware ADC channels from the SH-2A ADC peripheral into a RAM buffer. Configures ADC control registers (0xF819, 0xF818, 0xF838, 0xF858) for multi-channel conversion, polls for completion, then reads 32 channels of 16-bit results into a buffer at 0xFFFF9EE4.
+**Purpose:** Read all hardware ADC channels from the SH-2E ADC peripheral into a RAM buffer. Configures ADC control registers (0xF819, 0xF818, 0xF838, 0xF858) for multi-channel conversion, polls for completion, then reads 32 channels of 16-bit results into a buffer at 0xFFFF9EE4.
 
 **Inputs:** None (direct hardware register access)
 
@@ -64,7 +64,7 @@
    - 0xF840 → buffer[n]   (offset N)
    - ... up to 32 channels
 
-**Confidence:** High — function structure clearly shows ADC init → poll → read pattern typical of SH-2A ADC peripheral usage.
+**Confidence:** High — function structure clearly shows ADC init → poll → read pattern typical of SH-2E ADC peripheral usage.
 
 **RAM buffer layout at 0xFFFF9EE4:**
 ```

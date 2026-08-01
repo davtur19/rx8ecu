@@ -16,7 +16,7 @@
  *
  * SH-2E calling convention: int args r4..r6, return r0.
  *
- * Original SH-2E (big-endian SH-2A, ~146 bytes from 0x4E0):
+ * Original SH-2E (big-endian, ~146 bytes from 0x4E0):
  *
  *   ; Prologue
  *   0x4E0: add #-8,r15            ; allocate 8 bytes

@@ -855,7 +855,7 @@ float checkFloatValidity(float value) {
 | Address | Count | Type | Axis Addr | Values Addr | Description |
 |---------|-------|------|-----------|-------------|-------------|
 | 0x6A0D8 | 5 | 0 | 0x6FAE0 | 0x6FAF4 | Temp lookup (-20°C to +20°C, all values = 100.0) |
-| 0x6A0E4 | 48 | 0 | 0x6FB18 | 0x6FBD8 | **MAF Scaling** (0.86V–4.69V → 1.95–365.2 g/s) |
+| 0x6A0E4 | 48 | 0 | 0x6FB18 | 0x6FBD8 | **MAF Scaling** (0.86V–4.69V → 1.95–365.2 g/s) — **base ROM: 60E1D400** |
 | 0x6A0F0 | 8 | 0 | 0x6FCD8 | 0x6FCF8 | RPM scaling (500–8000 RPM → 0–5000 output) |
 | 0x6A0FC | 8 | 0 | 0x6FD18 | 0x6FD38 | Additional lookup table |
 
@@ -1105,6 +1105,8 @@ The following C implementations exist for sensor pipeline functions:
    calculations use the values.
 
 8. **MAF table is 48-points (not 14):** The MAF scaling table at 0x6A0E4
+   (**base ROM: 60E1D400**; the descriptor lives at 0x69E4C in the [REDACTED]
+   variant — see `CALIBRATION_TABLES_CROSS_REFERENCE.md` / `MAPS.md`)
    contains 48 breakpoints spanning 0.86V–4.69V → 1.95–365.2 g/s, providing
    fine resolution across the entire operating range.
 

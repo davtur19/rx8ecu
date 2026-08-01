@@ -93,7 +93,7 @@ class SH2:
                     raise RuntimeError("runaway at 0x%X" % pc)
                 a = pc
                 if a + 1 < romlen:
-                    op = int.from_bytes(rom[a:a + 2], 'big')
+                    op = (rom[a] << 8) | rom[a + 1]
                 else:                                   # near/over end of ROM
                     b = rom[a] if a < romlen else 0
                     b1 = rom[a + 1] if a + 1 < romlen else 0
@@ -107,7 +107,7 @@ class SH2:
                     target, take = br
                     a = (pc + 2) & M
                     if a + 1 < romlen:
-                        op2 = int.from_bytes(rom[a:a + 2], 'big')
+                        op2 = (rom[a] << 8) | rom[a + 1]
                     else:
                         b = rom[a] if a < romlen else 0
                         b1 = rom[a + 1] if a + 1 < romlen else 0

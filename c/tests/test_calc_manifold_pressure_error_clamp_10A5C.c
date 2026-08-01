@@ -6,7 +6,7 @@
  *   result = (sensor_byte * 0x1E0000 - input - 0x50000) % 0x2D00000
  *
  * The wrapping uses conditional add/subtract of 0x2D00000 rather than
- * an actual modulo operator, matching the SH-2A implementation.
+ * an actual modulo operator, matching the SH-2E implementation.
  */
 
 #include <stdio.h>
@@ -40,7 +40,7 @@ static void map_sensor_ram(void)
     *(volatile uint8_t *)SENSOR_ADDR = 0;
 }
 
-/* Reference implementation — byte-exact transcription of SH-2A instructions */
+/* Reference implementation — byte-exact transcription of SH-2E instructions */
 static uint32_t ref_calc_manifold_pressure_error_clamp_10A5C(uint32_t input)
 {
     uint32_t raw_val, r2, r3, r4, r5, r0;

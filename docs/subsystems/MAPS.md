@@ -97,7 +97,7 @@ addr     kind  dims    type  scale     offset    values    name(RX8Defs)
 0x69E20 1D   5       u8   0.003906  0         0x6FAB0  Table 2D - 58_
 0x69E34 1D   5       f32  4.592e-40 6.41e-40  0x6FACC  Table 2D - 292 Check DataType
 0x69E40 1D   5       f32  4.408e-39 6.411e-40 0x6FAF4  Table 2D - 293 Check DataType
-0x69E4C 1D   48      f32  7.347e-40 6.417e-40 0x6FBD8  MAF Scaling
+0x69E4C 1D   48      f32  7.347e-40 6.417e-40 0x6FBD8  MAF Scaling (**base ROM: [REDACTED]**; 60E1D400 descriptor is @0x6A0E4)
 0x69E58 1D   8       f32  7.347e-40 6.418e-40 0x6FCF8  Table 2D - 295 Check DataType
 0x69E64 1D   8       f32  3.673e-40 6.418e-40 0x6FD20  Table 2D - 296 Check DataType
 0x69E70 1D   4       f32  1.01e-39  6.419e-40 0x6FD38  Injector Barometric Pressure Compensation

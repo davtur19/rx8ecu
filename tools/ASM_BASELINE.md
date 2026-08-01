@@ -51,9 +51,9 @@ labels; the whole ROM is one unit linked at VMA 0, so ranges are original. A
 self-correcting loop forces any as-rejected or mis-encoding word back to raw,
 converging to `cmp == 0`.
 
-The 5–10 raw fallbacks are DATA words capstone over-decodes as SH-2A/SH-4 ops
+The 5–10 raw fallbacks are DATA words capstone over-decodes as extended-SuperH ops
 (`ldc.l @rn+,tbr`, `stc.l tbr,@-rn`, `synco`) which sh-elf-as rejects — extra
-confirmation the real code is plain SH-2. Emitted verbatim, so byte-exactness holds.
+confirmation the real code is plain SH-2 (SH-2E core). Emitted verbatim, so byte-exactness holds.
 
 This delivers the `../PLANS.md` Track-B **oracle** (and the DoD "`make` reproduces the
 stock ROM byte-for-byte") without the original SHC compiler: any future edit is

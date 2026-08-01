@@ -31,6 +31,7 @@ except ImportError:
     sys.exit("need capstone: pip install capstone --break-system-packages")
 
 _md = C.Cs(C.CS_ARCH_SH, C.CS_MODE_SH2 | C.CS_MODE_BIG_ENDIAN)
+_HEXAT = re.compile(r'0x[0-9a-fA-F]+')
 
 
 def sig(d, entry, limit, cap=64):
@@ -40,7 +41,7 @@ def sig(d, entry, limit, cap=64):
         if not g:
             break
         i = g[0]; mn = i.mnemonic
-        out.append((mn, re.sub(r'0x[0-9a-fA-F]+', '@', i.op_str)))
+        out.append((mn, _HEXAT.sub('@', i.op_str)))
         if seen:
             extra += 1
         if extra >= 1:
@@ -53,9 +54,10 @@ def sig(d, entry, limit, cap=64):
 
 def load_syms(p):
     rows = []
-    for r in csv.DictReader(open(p)):
-        rows.append((int(r['addr'], 16), int(r['end'], 16), r['name'],
-                     r.get('source', ''), r.get('flag', '')))
+    with open(p) as f:
+        for r in csv.DictReader(f):
+            rows.append((int(r['addr'], 16), int(r['end'], 16), r['name'],
+                         r.get('source', ''), r.get('flag', '')))
     return rows
 
 
