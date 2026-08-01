@@ -58,18 +58,19 @@ def verify():
 
     Provenance note (secret bytes):
       Stock ROM 60E1D400 @ 0x5FAC0 : b'MazdA'  (4D 61 7A 64 41)  — confirmed in ROM.
-      [REDACTED]-tuned ROM          : b'vendor-family secret'  ([REDACTED])  — provenance: [REDACTED]
-                                      captures of a FLASHED/tuned ECU (3 real-world CAN
-                                      captures), NOT a stock ECU.
-      b'vendor-family secret' ([REDACTED])      : provenance: a Flasher decryptor string.
-                                      Both are RX-8 UDS SecurityAccess secrets.
-      'vendor-family secret' and 'vendor-family secret' are EQUIVALENT under this algorithm (an LFSR collision):
-      compute_key(seed, b'vendor-family secret') == compute_key(seed, b'vendor-family secret') for every tested
-      vector — e.g. seed 0x[REDACTED] → key 0x[REDACTED] for BOTH strings, and identically
-      for seeds 0x45820A, 0xCBFED4, 0x[REDACTED], 0x123456 (see test vectors below).
-      Both are valid 5-byte secrets that yield identical keys because of the
-      nibble-interleave/64-bit stream structure — likely because the algorithm
-      uses only a subset of the secret bits.
+      [REDACTED]-tuned ROM          : the vendor-family 5-byte secret — provenance:
+                                      [REDACTED] captures of a FLASHED/tuned ECU
+                                      (3 real-world CAN captures), NOT a stock ECU.
+      The vendor-family secret literal is NOT shipped in this public file (removed
+      for privacy; see the local ROM-collection docs).
+      Note: there exist multiple 5-byte secret strings that are EQUIVALENT
+      under this algorithm (an LFSR collision): compute_key(seed, <A>) ==
+      compute_key(seed, <B>) for every tested vector — e.g. seed 0x[REDACTED] →
+      key 0x[REDACTED] for several strings, and identically for seeds 0x45820A,
+      0xCBFED4, 0x[REDACTED], 0x123456. Such collision strings are valid 5-byte
+      secrets that yield identical keys because of the nibble-interleave/64-bit
+      stream structure — likely because the algorithm uses only a subset of the
+      secret bits.
 
     Algorithm status (RESOLVED — was listed as an open problem in
     docs/notes/RESUME.md; now verified against ROM 60E1D400):
@@ -85,7 +86,7 @@ def verify():
         - sh2emu emulation of @0x56ADA: levels 1-4 x seeds {45820A, CBFED4,
           123456} -> 12/12 keys reproduced by compute_key (level 1), and by a
           ROM-disassembly-derived reference for ALL levels.
-        - Real-world [REDACTED] captures (secret 'vendor-family secret'): 3/3.
+        - Real-world [REDACTED] captures (vendor-family secret): 3/3.
         - 400 random seeds: compute_key == ROM reference, 0 mismatches.
       The legacy stock vector 0x3B15E1 was WRONG (no ROM/emulation support);
       the ROM-verified value for seed 0x45820A / 'MazdA' / level 1 is 0xA07258.
@@ -97,16 +98,9 @@ def verify():
     ok = "OK" if result == expected else f"FAIL  got={result.hex().upper()}  want={expected.hex().upper()}"
     print(f"Self-test stock  (MazdA) : {ok}")
 
-    # Vettori verificati empiricamente sull'ECU reale
-    real_tests = [
-        (bytes.fromhex('CBFED4'), bytes.fromhex('[REDACTED]')),
-        (bytes.fromhex('[REDACTED]'), bytes.fromhex('[REDACTED]')),
-        (bytes.fromhex('[REDACTED]'), bytes.fromhex('[REDACTED]')),
-    ]
-    for seed_b, exp_b in real_tests:
-        res = compute_key(seed_b, bytes([0x00,0x00,0x00,0x00,0x00]))  # vendor-family secret
-        ok2 = "OK" if res == exp_b else f"FAIL got={res.hex().upper()}"
-        print(f"Self-test VT     (vendor-family secret)  seed={seed_b.hex().upper()}: {ok2}")
+    # (VT-capture vectors removed from this public file: their secret is not
+    # shipped here.  The LFSR-collision twin secret yields the same keys under
+    # this algorithm — see the provenance note above.)
 
     return result == expected
 
