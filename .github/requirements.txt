@@ -3,7 +3,8 @@
 # backend for tools/disasm_sh2e.py / tools/rom_rebuild.py); there is no
 # repo-root requirements file, so CI keeps its own pin here.
 #
-# Version matches the local dev environment at the time of writing
-# (`pip show capstone` -> 5.0.9; VERIFICATION.md still quotes the 5.0.7
-# measurement it was originally validated against — see .github/workflows/README.md).
+# CI pins capstone 5.0.9. VERIFICATION.md quotes the 5.0.7 measurement it was
+# originally validated against; the local install may differ (check
+# `python3 -c 'import capstone; print(capstone.__version__)'`) — see
+# .github/workflows/README.md.
 capstone==5.0.9

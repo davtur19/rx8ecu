@@ -19,7 +19,8 @@
 #
 # Environment reproduced from the local dev box:
 #   - Python 3.14  (local: 3.14.6)
-#   - capstone 5.0.9  (pinned in .github/requirements.txt; local: 5.0.9)
+#   - capstone 5.0.9  (pinned in .github/requirements.txt; local may differ —
+#     check `python3 -c 'import capstone; print(capstone.__version__)'`)
 #   - sh-elf binutils 2.46  (installed by tools/get_toolchain.sh into
 #     tools/toolchain/usr/bin — the repo's documented, rootless method:
 #     apt-get download + dpkg-deb -x on Debian/Ubuntu; git-ignored, so CI
@@ -30,6 +31,11 @@ name: CI
 on:
   push:
     branches: [main, master]
+    # Skip CI for docs-only pushes (verification battery is unaffected).
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/workflows/README.md'
   pull_request:
     branches: [main, master]
 

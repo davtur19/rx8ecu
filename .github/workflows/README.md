@@ -62,14 +62,15 @@ percentages can drift slightly with the `as` version; `BYTE-EXACT` should not.
 | Component | Local (verified 2026-08-01) | CI |
 |-----------|------------------------------|----|
 | Python | 3.14.6 | 3.14 (setup-python) |
-| capstone | 5.0.9 | `capstone==5.0.9` (`.github/requirements.txt`) |
+| capstone | 5.0.7 | `capstone==5.0.9` (`.github/requirements.txt`) |
 | sh-elf binutils | 2.46 | apt `binutils-sh-elf` (may differ, see above) |
 | C compiler | cc (gcc/clang) | preinstalled gcc on the runner |
 
 Note: `VERIFICATION.md` quotes capstone **5.0.7** (the version the original
-measurement used); the local install has since been updated to 5.0.9, so CI
-pins 5.0.9. If you ever need the exact documented-measurement environment,
-pin `.github/requirements.txt` to `capstone==5.0.7` instead.
+measurement used). CI pins 5.0.9; the local install may differ — check
+`python3 -c 'import capstone; print(capstone.__version__)'`. If you ever need
+the exact documented-measurement environment, pin
+`.github/requirements.txt` to `capstone==5.0.7` instead.
 
 ## Running the same checks locally (ci-local)
 
