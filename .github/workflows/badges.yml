@@ -2,6 +2,19 @@ name: update-badges
 on:
   push:
     branches: [ main ]
+    # Only re-derive badges when a metric source actually changed.
+    paths:
+      - README.md
+      - MANIFEST.md
+      - c/**
+      - symbols/**
+      - roms/**
+      - src/**
+      - docs/**
+      - tools/gen_badges.py
+      - tools/cross_decode.py
+      - .github/workflows/badges.yml
+      - c/verified_addrs.txt
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
@@ -12,8 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
