@@ -18,6 +18,10 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* Reserve the scrollbar gutter so the layout does not shift horizontally when
+ * a tab/document change makes the page taller or shorter and the scrollbar
+ * appears or disappears. */
+html { scrollbar-gutter: stable; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -106,8 +110,8 @@ header {
 /* ---------- main / panels ---------- */
 main { padding: 18px 20px 40px; max-width: 1500px; margin: 0 auto; }
 .panel { display: none; }
-.panel.active { display: block; animation: fadeIn .18s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.panel.active { display: block; animation: fadeIn .12s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .panel h2 { margin: 4px 0 14px; font-size: 17px; }
 .panel h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
 
