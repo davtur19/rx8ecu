@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **625 entries, 57.5M.** Regenerated 2026-08-01 for the
+in the working repository. **625 entries, 57.4M.** Regenerated 2026-08-01 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -12,7 +12,7 @@ see roms/ROMS.md).
 | (root)/ | 11 | 84.4K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
-| symbols/ | 6 | 877.1K |
+| symbols/ | 6 | 874.4K |
 | c/ | 160 | 647.9K |
 | c/tests/ | 140 | 566.1K |
 | tools/ | 17 | 123.4K |
@@ -22,7 +22,7 @@ see roms/ROMS.md).
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
 | .github/ | 4 | 14.4K |
-| **Total** | **625** | 57.5M |
+| **Total** | **625** | 57.4M |
 
 ## External dependencies
 
@@ -63,7 +63,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `CREDITS.md` | `53eff7a1f681da319782995f931cab2c48a800deffc12deb6b933a27acee987a` | 4.7K | Credits: equinox311 + defs source attribution |
 | `LICENSE` | `d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee` | 33.2K | License (GNU AGPL v3) |
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
-| `Makefile` | `480cfa8f6afc1b36882a49f4178f644f9dd0db391b1ee0c705be60a3e983bbac` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
+| `Makefile` | `d4a3a6a3c2e7be21bc55a5fe490d13d13f20a2f6ebee25aab0ab1724e118ff22` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `00cb5180873f77914d5d36e73bc9d3592a84d47702e96f2cc73225352b54c0d0` | 9.4K | Master plan (single source of truth) |
 | `README.md` | `0f2aa15c552e2e184896a549ef110379303bbbb7b138d77f29a983f890eb7c5a` | 8.2K | Project README |
 | `REPLICATION.md` | `c6760cfddf2e217ffe1bab341c3d71b03e544664a0a3f0e39a76b167728b1ae1` | 9.5K | Fresh-clone reproduction guide |
@@ -108,7 +108,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `symbols/symbols_60E0FC00.csv` | `4a9bb03d4b98793c8a09120cfd1bfca2b57f408a61374241ff6886b04bc3c7c3` | 156.7K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `53e228ef534d27bb63a80f5ecc8e7722f0a7c3bc279cecd0468364aa91b6ec7d` | 38.7K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E1D400_ida.csv` | `630dfed4b9cb2ab3810aefae8387e6d6ef8239164912effbbd8bab7a6e20eb99` | 140.4K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `667619e15aff073abe3519a0e6dd33367ce0102057bcb21dbbdac9d4e0f5c7fd` | 144.5K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `b682479aecd05f854d58ccad8fe12960bf765342831081759ff79a5f10d80d07` | 141.7K | Function symbol table (per-ROM) |
 
 ## c
 
@@ -244,7 +244,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/reset_handler.c` | `6ebbb32b9219f954c398fc1500fb2b58144c208a572c607da167adb26c079c37` | 14.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/revLimitFuelCutInit.c` | `c2dec9f1642048d238f76fd048cdb5d09f5e7c2b5a0f2eea5aa656b7ceb275df` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/rotor_sync_position_detector.c` | `6e336c56db4fe7fa60bc9663f81076ddef0d568d7a51727dcd1a3a5246ca73aa` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
-| `c/security_access.c` | `2f31baefc4bafa7eedf0ffcdc754f8e221a6a47838d9e10994ebbb1761c8af99` | 23.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/security_access.c` | `f169cfeabd0f45a0164cf7e496f38624c491bb71aec845e86b56e74924f49278` | 23.6K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/seed_mixer.c` | `bf6c0551da52b3c54a1261aac2e0237788178be02b8a6e8d49caa5e14ec41f86` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/sensor_check_float_bounds_adjust.c` | `73f31aa8f7135098f3e5a70881c4430964ffaf2449c9d3d6d5d3fe679321e771` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/setAlternatorWarningLight.c` | `757b3f95c9e5891ad95a577611bf5169b88ad099b4a90b5de9a7d4742c068a87` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -397,7 +397,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_req_queue_69602.py` | `29c646cb46c615b93a3716f547fcb5d230f4ff3efd609382774117affe2f658d` | 3.1K | Python per-function behavior-equivalence test |
 | `c/tests/test_revLimitFuelCutInit.py` | `d57950d4cff5062174f19e85878561325658cb1301eab2251c985e248c8998af` | 1.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_rotor_sync_position_detector.py` | `8c1485a66c304f3095221cca21af21183b313bc751cace19ea8bf97f5a857858` | 6.7K | Python per-function behavior-equivalence test |
-| `c/tests/test_security_access.py` | `7171d18543b69afa8683163e573e6c4c005d3411d0e17e92cbe3d04c0538ddb8` | 24.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_security_access.py` | `8ec7fd87ec82a3dd722d37bf214ea09901ee1d4432cfcc6a426a19c8e9dde62d` | 24.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_setAlternatorWarningLight.py` | `574567bfad9bcf196af11aeba9f6bf72ecf95b07975cc3c0dab6d45be256c6d5` | 1.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_setRegister_REG_BIT_VAL.py` | `8f85bea3c8e621feb3327f9f9cfd003c1dae4a4ab290f235c54f7d1885e29d27` | 2.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_setSR_getSR.py` | `f9202e1fa8db4bde87f9848a740ac4083e9ba859f3995ae0a5c3e942d1b51707` | 10.1K | Python per-function behavior-equivalence test |
@@ -433,7 +433,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
-| `tools/mazda_security.py` | `ef16a674a168afae1febd5cf86770637e051dfd7a8e7810f15ad6c93285c1194` | 4.8K | RE tool (see tools/README.md) |
+| `tools/mazda_security.py` | `b354e01c40dd2c4d3d6885cf4d1b2adb8b0afef84a21ce03dd30048e7cd1a86f` | 4.8K | RE tool (see tools/README.md) |
 | `tools/organize_src.py` | `952eab08198e20668fe3d8a2b572222993a2247516fb18814e68325cf02a65b4` | 9.5K | RE tool (see tools/README.md) |
 | `tools/rom2asm.py` | `a0cc400125d3f3f913285fc873b73b784c1f2d3f2d07ed139fdb6a7112722da4` | 6.5K | RE tool (see tools/README.md) |
 | `tools/rom_rebuild.py` | `389f1044dda89555dd85b02c8f351b6371f02139763eb531af042365000c88a7` | 7.3K | RE tool (see tools/README.md) |
@@ -597,7 +597,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/functions/revLimitFuelCutInit.md` | `ce8cf7f9a1412d5549ab5f0b1ca93db037d5b36baecd3753030167cb8c9f644e` | 1.7K | Per-function documentation |
 | `docs/functions/secondaryAirRelated.md` | `f877609ee10dbfe2ddddbd013556d73382b5676f5c39c517af787b5de3fd3ef5` | 1.9K | Per-function documentation |
 | `docs/functions/securityNotUnlocked.md` | `69e5379467ea2ad4071a895b3d28904d98866bfbcd4ddcdf3df48addabb4026e` | 1.7K | Per-function documentation |
-| `docs/functions/security_access_handler.md` | `2e2ebbbc02ff96ad0e30e6b45558de798f4462cca07e14fca18962ae458396a9` | 12.7K | Per-function documentation |
+| `docs/functions/security_access_handler.md` | `c30fdab0a75b8af3d58f7703888ca33f988f14b4708d00c5419eab39c7e31b01` | 12.7K | Per-function documentation |
 | `docs/functions/sensorADCRead.md` | `c95ff28e088d871c41ce6e56abfb04e723feef94e9afdd0090ff742bda1ce2fb` | 2.7K | Per-function documentation |
 | `docs/functions/setAlternatorWarningLight.md` | `93fc4ee4a7377256f8c9eac72279a5c8739462936ea230e4e738d8d83d4d93bf` | 2.0K | Per-function documentation |
 | `docs/functions/setCANRXBool.md` | `d7c0358eefafe0aea11a3c8791ea4513c36d65281f987c3d5292a81fec720666` | 474B | Per-function documentation |
@@ -662,7 +662,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `7bcb59f47dda3ef592813be6ec10408a8feeaad2572baec5a568a7171627f670` | 46.7K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `f5cc312a0560ec3daaed96c40e3f1c6902725b323a88d63694be1279d61a141c` | 13.4K | Subsystem / overview documentation |
 | `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `a1fd277a1c9d2c0ea6cce40510b9c1885d46dfc38503a42e4bb2632f6977851b` | 48.2K | Subsystem / overview documentation |
-| `docs/subsystems/CAN_UDS_SUBSYSTEM.md` | `89d1b8fcfb61898003efa6c7363b19fe113a9256b31b91a18d90acf2e9e1c6aa` | 44.3K | Subsystem / overview documentation |
+| `docs/subsystems/CAN_UDS_SUBSYSTEM.md` | `e7ff610623afe4d865fdb8020ac85683f1e66cf3277efa491abcb01911fa5938` | 44.3K | Subsystem / overview documentation |
 | `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
 | `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `dc7c4e733cfa0d1cf8361e0836666a74b6a3526aa137eaec0c949756cda67edd` | 49.9K | Subsystem / overview documentation |
 | `docs/subsystems/IDA_NAMES.md` | `f2f45c00907a5ffb1725ead1f0372b55512d36555b1873b31e1d3172915c5ba4` | 3.2K | Subsystem / overview documentation |

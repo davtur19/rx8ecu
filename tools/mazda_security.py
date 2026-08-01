@@ -98,7 +98,7 @@ def verify():
     ok = "OK" if result == expected else f"FAIL  got={result.hex().upper()}  want={expected.hex().upper()}"
     print(f"Self-test stock  (MazdA) : {ok}")
 
-    # (VT-capture vectors removed from this public file: their secret is not
+    # (vendor-capture vectors removed from this public file: their secret is not
     # shipped here.  The LFSR-collision twin secret yields the same keys under
     # this algorithm — see the provenance note above.)
 

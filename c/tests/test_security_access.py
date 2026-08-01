@@ -171,7 +171,7 @@ def compute_key_rom_params(seed_bytes, secret_bytes, init, taps):
 # Real-world [REDACTED] capture vectors are not shipped in this public file
 # (their secret is private-capture data).  The ROM-verified stock vectors
 # below exercise the same code paths; the algorithm additionally reproduces
-# the VT captures via the removed vendor-family LFSR-collision twin (see
+# the vendor captures via the removed vendor-family LFSR-collision twin (see
 # mazda_security.py provenance note).
 STOCK_TEST = {
     'secret': b'MazdA',
