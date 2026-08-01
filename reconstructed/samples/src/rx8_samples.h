@@ -1,13 +1,13 @@
 /*
  * =============================================================================
- * rx8_samples.h  —  public API of the restored-source samples
+ * rx8_samples.h  —  public API of the reconstructed-source samples
  * =============================================================================
- * Each declaration maps a readable "restored" name to a ROM function whose
+ * Each declaration maps a readable "reconstructed" name to a ROM function whose
  * behaviour has been verified against the real ROM bytes (tools/sh2emu.py).
  * The authoritative lift (instruction-for-instruction C, c/) is always cited
  * in the .c file header.
  *
- *   restored name            | ROM @ 60E1D400 | verified lift (c/)
+ *   reconstructed name            | ROM @ 60E1D400 | verified lift (c/)
  *   -------------------------+----------------+---------------------------
  *   rx8_add_s32_saturate     | 0x2304         | addS32Saturate.c
  *   rx8_immo_seed_mixer      | 0x366B8        | seed_mixer.c

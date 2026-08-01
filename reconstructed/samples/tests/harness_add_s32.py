@@ -2,7 +2,7 @@
 """
 harness_add_s32.py — equivalence of rx8_add_s32_saturate @0x2304.
 
-Restored source: samples/src/rx8_s32_saturate.c
+Reconstructed source: samples/src/rx8_s32_saturate.c
 Verified lift   : c/addS32Saturate.c (IDA mislabels the ROM symbol
                   `fpu_compare_float`; the code is an `addv`-based saturating
                   signed 32-bit add).

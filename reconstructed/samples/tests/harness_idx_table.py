@@ -3,7 +3,7 @@
 harness_idx_table.py — equivalence of the rx8_index_table family
 @0x68780 (clear) / 0x6879C (step) / 0x687C8 (step2) / 0x687F4 (dec).
 
-Restored source: samples/src/rx8_index_table.c
+Reconstructed source: samples/src/rx8_index_table.c
 Verified lift   : c/idx_table_helpers_68780.c
 
 These leaves act on RAM (RX8_IDX_TABLE_BASE = 0xFFFFD998, stride 0x46C), so
@@ -12,7 +12,7 @@ the equivalence check compares RAM side-effects, not the return value:
   - emulator side: seed the slot's three 16-bit words as big-endian bytes in
     the sparse `ram` overlay, call the ROM entry, read the words back;
   - host side: the oracle mmap()s the same pages, seeds the same numeric
-    words, runs the restored C, reads them back.
+    words, runs the reconstructed C, reads them back.
 
 Slots 0..8 (realistic firmware range) are compared host-vs-ROM.  The 32-bit
 pointer-wrap behaviour for indices 9..255 is pinned emulator-only, because

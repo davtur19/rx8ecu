@@ -1,7 +1,7 @@
 /* ============================================================================
- * host_oracle.c  —  host test rig for the restored samples
+ * host_oracle.c  —  host test rig for the reconstructed samples
  * ============================================================================
- * Compile together with the restored sources (see Makefile) and pipe test
+ * Compile together with the reconstructed sources (see Makefile) and pipe test
  * vectors on stdin; one vector per line, whitespace-separated hex tokens:
  *
  *     s32 <a> <b>                       -> <r>
@@ -12,7 +12,7 @@
  * The oracle re-implements the *caller-side* set-up only: it mmap()s the
  * pages that back the RAM tables (same trick as c/tests/test_*_49ED0.c) and
  * prints the numeric results.  It contains NO copy of the function logic —
- * that lives solely in the restored sources under test.
+ * that lives solely in the reconstructed sources under test.
  *
  * NOTE: for idx >= 9 the slot pointer wraps through 32-bit arithmetic to
  * addresses below mmap_min_addr on this host; those vectors are pinned on

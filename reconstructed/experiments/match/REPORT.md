@@ -1,7 +1,7 @@
 # Esperimento di fattibilità: match-and-compile per il PCM RX-8 (SH-2E/SH7055)
 
 Data: 2026-08-01 · ROM di riferimento: `roms/stock/60E1D400.bin` (512 KB, big-endian, base 0x60000000)
-Directory: `restored/experiments/match/` (nuova, nessun file del repo è stato modificato)
+Directory: `reconstructed/experiments/match/` (nuova, nessun file del repo è stato modificato)
 
 Domanda sotto test:
 
@@ -225,10 +225,10 @@ Evidenza a favore:
    dimostrato. Usare il match-and-compile solo come *generatore di bozze* per le
    funzioni piccole e pure-math, con verifica byte-exact automatica.
 
-## 8. File creati (solo in `restored/experiments/match/`)
+## 8. File creati (solo in `reconstructed/experiments/match/`)
 
 ```
-restored/experiments/match/
+reconstructed/experiments/match/
 ├── REPORT.md                        (questo file)
 ├── rom_hex/                         byte esatti ROM delle 5 funzioni
 │   ├── add16bitSaturate_2460.txt
@@ -262,4 +262,4 @@ python3 scripts/compare.py          # assemble + confronta (usa sh-elf binutils
 python3 scripts/fingerprint.py      # statistiche compilatore su src/*.s
 ```
 
-Non è stato modificato/creato nulla fuori da `restored/experiments/match/`.
+Non è stato modificato/creato nulla fuori da `reconstructed/experiments/match/`.

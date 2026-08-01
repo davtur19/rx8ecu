@@ -5,7 +5,7 @@
  * ROM         : roms/stock/60E1D400.bin (Mazda RX-8 PCM, N3J1 family)
  * Address     : 0x2304
  * Status      : VERIFIED — behavioural equivalence to the ROM held by
- *               restored/samples/tests/harness_add_s32.py (host-gcc vs
+ *               reconstructed/samples/tests/harness_add_s32.py (host-gcc vs
  *               tools/sh2emu.py over random int32 pairs), in addition to the
  *               existing c/tests/verify_emu.py entry (100k random, 0 errors).
  * Lift (truth): c/addS32Saturate.c  (same address; IDA mislabels the ROM

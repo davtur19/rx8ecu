@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-common.py — shared machinery for the restored-source equivalence harnesses.
+common.py — shared machinery for the reconstructed-source equivalence harnesses.
 
 Every harness in this directory follows the same Track-A pattern as
 c/tests/verify_emu.py:
 
-  1. build the restored sources + tests/host_oracle.c into one host binary
+  1. build the reconstructed sources + tests/host_oracle.c into one host binary
      (system gcc; NO cross toolchain needed — equivalence is behavioural);
   2. generate N random (seeded) input vectors;
   3. execute the ACTUAL ROM bytes of the function under test with
@@ -20,7 +20,7 @@ import random
 import subprocess
 import sys
 
-# restored/samples
+# reconstructed/samples
 SAMPLES = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # rx8ecu (repo root)
 ROOT = os.path.dirname(os.path.dirname(SAMPLES))
@@ -30,14 +30,14 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 from sh2emu import SH2  # noqa: E402
 
 ROM_PATH = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
-BUILD_DIR = os.path.join('/tmp', 'opencode', 'rx8-restored-build')
+BUILD_DIR = os.path.join('/tmp', 'opencode', 'rx8-reconstructed-build')
 
 SRC_FILES = ['rx8_s32_saturate.c', 'rx8_immo_seed_mixer.c', 'rx8_index_table.c']
 ORACLE_SRC = os.path.join(SAMPLES, 'tests', 'host_oracle.c')
 
 
 def build_oracle(cc='cc'):
-    """Compile the restored sources + host_oracle.c into a host binary."""
+    """Compile the reconstructed sources + host_oracle.c into a host binary."""
     os.makedirs(BUILD_DIR, exist_ok=True)
     oracle = os.path.join(BUILD_DIR, 'host_oracle')
     cmd = [cc, '-O2', '-Wall', '-Wextra',

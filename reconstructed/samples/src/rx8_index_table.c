@@ -6,7 +6,7 @@
  * Addresses   : 0x68780 (clear) / 0x6879C (step) / 0x687C8 (step2) /
  *               0x687F4 (dec)   — four packed leaves in one region
  * Status      : VERIFIED — behavioural equivalence to the ROM held by
- *               restored/samples/tests/harness_idx_table.py (host-gcc +
+ *               reconstructed/samples/tests/harness_idx_table.py (host-gcc +
  *               mmap vs tools/sh2emu.py over random slot states), in
  *               addition to the existing emulator + host tests
  *               c/tests/test_idx_table_helpers_68780.{py,c}.
@@ -19,7 +19,7 @@
  * A table of RAM slots at RX8_IDX_TABLE_BASE (0xFFFFD998), each
  * RX8_IDX_TABLE_STRIDE (0x46C) bytes apart, selected by a byte index.  Only
  * the first three 16-bit words of each slot are touched by this family; the
- * rest of the stride is used by other, not-yet-restored code.  The four
+ * rest of the stride is used by other, not-yet-reconstructed code.  The four
  * leaves implement a small counter protocol:
  *
  *     clear (0x68780)  word0 = word2 = word4 = 0

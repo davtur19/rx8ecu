@@ -1,8 +1,8 @@
 # ==============================================================================
-# Makefile — restored/samples: verified readable C models of RX-8 PCM functions
+# Makefile — reconstructed/samples: verified readable C models of RX-8 PCM functions
 # ==============================================================================
 # Targets:
-#   make build    — compile the restored sources + host oracle (host gcc)
+#   make build    — compile the reconstructed sources + host oracle (host gcc)
 #   make test     — run all equivalence harnesses (emulator vs host C)
 #   make verify   — alias of `test`
 #   make clean    — remove the /tmp build artifacts
@@ -13,7 +13,7 @@
 
 CC      ?= cc
 PYTHON  ?= python3
-BUILD   := /tmp/opencode/rx8-restored-build
+BUILD   := /tmp/opencode/rx8-reconstructed-build
 
 SRCS := src/rx8_s32_saturate.c src/rx8_immo_seed_mixer.c src/rx8_index_table.c
 OBJS := $(SRCS:src/%.c=$(BUILD)/%.o)
@@ -23,7 +23,7 @@ OBJS := $(SRCS:src/%.c=$(BUILD)/%.o)
 all: build
 
 build: $(BUILD)/host_oracle $(OBJS)
-	@echo "restored samples: build OK"
+	@echo "reconstructed samples: build OK"
 
 $(BUILD):
 	mkdir -p $(BUILD)
