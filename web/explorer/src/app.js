@@ -1600,30 +1600,3 @@ init().catch((e) => {
   $("boot-msg").textContent = "";
   $("boot-err").classList.remove("hidden");
 });
-
-/* ============================ THEME SWITCHER ============================ */
-(function(){
-  var KEY = 'rx8-theme';
-  var THEMES = ['racing', 'jdm', 'deepblue', 'light'];
-  function current(){ return document.documentElement.dataset.theme || 'racing'; }
-  function apply(t){ document.documentElement.dataset.theme = t; try{ localStorage.setItem(KEY, t); }catch(e){} }
-  function menu(){ return document.getElementById('theme-menu'); }
-  function tbtn(){ return document.getElementById('theme-btn'); }
-  function refresh(){
-    var m = menu(); if(!m) return;
-    var cur = current();
-    m.querySelectorAll('.tsw').forEach(function(b){ b.setAttribute('aria-checked', String(b.dataset.theme === cur)); });
-  }
-  function init(){
-    try{ var s = localStorage.getItem(KEY); apply(THEMES.indexOf(s) >= 0 ? s : 'racing'); }catch(e){ apply('racing'); }
-    document.addEventListener('click', function(e){
-      var w = e.target.closest('#theme-btn');
-      if(w){ var m = menu(); if(m){ var h = m.hidden; m.hidden = !h; w.setAttribute('aria-expanded', String(h)); if(h) refresh(); } return; }
-      var t = e.target.closest('.tsw');
-      if(t){ apply(t.dataset.theme); var mm = menu(); if(mm) mm.hidden = true; var b = tbtn(); if(b) b.setAttribute('aria-expanded','false'); refresh(); return; }
-      if(!e.target.closest('.theme-switch')){ var m2 = menu(); if(m2) m2.hidden = true; var b2 = tbtn(); if(b2) b2.setAttribute('aria-expanded','false'); }
-    });
-    refresh();
-  }
-  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
-})();
