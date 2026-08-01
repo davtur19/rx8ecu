@@ -380,3 +380,187 @@ Nuovi file (tutti in `reconstructed/experiments/match/`): `scripts/sweep_gcc346.
 `c_src/addS32Saturate_addv.c`,
 `expected_gcc_sh2e/add16bitSaturate_reg.m2e.-O1.omitfp.s`.
 `scripts/sweep_gcc14.py` non è stato toccato.
+
+---
+
+## 11. SWEEP ESTESO: 11 candidati pure-math con GCC 3.4.6
+
+Data: 2026-08-01 · harness `scripts/sweep_puremath_gcc346.py`, stesso pipeline
+gcc 3.4.6 → `sh-elf-as` → `objcopy` → confronto byte sul body-window.
+
+### Metodo di selezione dei candidati
+
+La ricerca in `src/60E1D400_annotated.s` con i marker `! --- <name> 0x..-0x..`
+(confini funzione autoritativi; i range del CSV `symbols_60E1D400_merged.csv` non
+allineano con gli `rts`) ha isolato le funzioni **pure-math leaf**:
+≤ 90 byte, nessuna call/FPU/deref di memoria, solo registri r0–r7+pc, almeno
+un'istruzione ALU. Il filtro più stretto (partendo dai nomi del CSV con
+`rts`-leaf) trovava solo 7 funzioni trivially-constanti; quello sui marker
+trovava **28 candidati**, di cui 11 portati avanti qui.
+
+### Tabella best-per-funzione (finestra body; pool non contigui esclusi)
+
+| Funzione | ROM | Migliore config | Bytes | % | Insn | Prima div. | Causa |
+|---|---|---|---|---|---|---|---|
+| `alignment_boundary_validator` | 0xD90C | `-O1 -fomit-frame-pointer` | 21/38 | 55.3% | 9/19 | +0x00 | registri/ordine; struttura ramo ok (bf.s) |
+| `atu_get_rx_byte_count` | 0x1FA2 | `-O1 -fomit-frame-pointer` | 11/20 | 55.0% | 5/10 | +0x06 | `bt`/`bra`+delay vs `bf.s`; costante in r1 vs r4 |
+| `can_get_mailbox_offset_high` | 0xD164 | `-O2 -fomit-frame-pointer` | 11/22 | 50.0% | 5/11 | +0x06 | idem atu |
+| `getHCANRegisterAddress` | 0xD198 | `-O2 -fomit-frame-pointer` | 9/20 | 45.0% | 4/10 | +0x04 | `bt.s` vs `bf.s`; `mov r5,r2` extra |
+| `charging_status` | 0x59C24 | `-O2 -fomit-frame-pointer` | 6/18 | 33.3% | 2/8 | +0x04 | `movt` (booleano) vs ramo a 1/0 |
+| `calc_manifold_pressure_error_diff` | 0x10A88 | `-O2 -fomit-frame-pointer` | 7/22 | 31.8% | 1/11 | +0x01 | primo literal via `mov.l` in r2 vs r6 |
+| `complement_shift_u16` | 0x2430 | `-O1 -fomit-frame-pointer` | 4/16 | 25.0% | 1/8 | +0x00 | gcc ritorna in r0, ROM calcola in r4 |
+| `obd_service_handler` (0x67154) | 0x67154 | `-O2 -fomit-frame-pointer` | 3/18 | 16.7% | 0/8 | +0x01 | `and #31` vs `tst #31` + `movt` |
+| `pulse_window_compute` | 0xFCD2 | `-O2 -fomit-frame-pointer` | 3/20 | 15.0% | 0/10 | +0x00 | add condizionale: registro/ordine diversi |
+| `encode` (0x2420) | 0x2420 | `-O1 -fomit-frame-pointer` | 2/16 | 12.5% | 0/7 | +0x00 | come complement_shift (versione 8-bit) |
+| `shift_right_8_r0` | 0x467A | `-O0 -fomit-frame-pointer` | 1/18 | 5.6% | 0/9 | +0x00 | gcc genera loop/`shar`; ROM 8× `shar r0` srotolato |
+
+**Esito: 0 match byte-perfect su 11 candidati** (best 55.3%). Il match unico
+resta `add16bitSaturate_reg` (§10).
+
+### Pattern di divergenza ricorrenti (documentati con iter_match)
+
+1. **Polarità del ramo**: per i selettori (`atu`/`mbox`/`getHCAN`) la ROM usa
+   `bt`/`bt.s` + `bra` con `mov r5,r4` nel delay slot del `bra`, mentre gcc 3.4.6
+   emette `bf.s` con `mov r5,r4` nel delay e la costante 0x0200 in r1
+   (`mov.w @(pc),r1` + `mov r5,r4` + `add r1,r4`) invece che caricarla
+   direttamente in r4 (`mov.w @(pc),r4` + `add r5,r4`). Prima divergenza
+   sistematica a +0x06 (opcode del ramo).
+2. **Registro di ritorno**: per il complement-shift la ROM accumula in r4 e
+   termina `rts; mov r4,r0`; gcc 3.4.6 insiste a materializzare il risultato in
+   r0 (`mov r3,r0` + `rts; add r2,r0`). Pinning `__asm__("r4")` sul risultato
+   non basta perché gcc folda l'add finale sul registro di ritorno.
+3. **Booleani**: ROM costruisce `mov #0,r4` / `mov #1,r4` via rami; gcc 3.4.6 usa
+   `movt` (`tst`+`movt` o `and #31,r0`+`movt`). Divergenza strutturale,
+   non aggirabile con C puro a -O1/-O2.
+4. **Fold del range** (`>= 32 → > 31`): aggirabile con la costante come
+   **variabile** `register unsigned c __asm__("r3") = 32` (stesso trucco del
+   `max` di `add16bitSaturate`); ha portato atu da 20% → 55% e mbox da 36% → 50%.
+
+### Verdict
+
+La recipe vincente di §10 (variabile-per-constante + pin r4/r5 + return unsigned)
+è **necessaria ma non sufficiente**: si spalma bene sugli helper saturating-add,
+ma i selettori `?:` e i booleani divergono per polarità di ramo e materializzazione
+del booleano (`movt`) che nessun flag del 3.4.6 cambia. Conferma ulteriore che la
+ROM è codegen GCC-3.x (strutture e delay-slot coerenti) ma non sempre *questo*
+3.4.6: piccole variazioni di release/flag tra 3.0.x–3.4.x sono plausibili per i
+restanti casi.
+
+---
+
+## 12. SWEEP FLAG D'EPOCA 3.4.6 (sessione flag, 2026-08-01)
+
+Harness nuovo: `scripts/sweep_flags_epoch346.py` (stesso pipeline gcc 3.4.6 →
+`sh-elf-as` → `objcopy` → confronto byte su body-window). Complementa
+`sweep_puremath_gcc346.py` (solo -O×4+extra) e `sweep_flagmatrix_gcc346.py`
+(ha un bug: `exp` non definito → non eseguibile). Report: `/tmp/flagepoch/report*.txt`.
+
+### 12.1 Inventario flag SH di GCC 3.4.6 (da `sh.h` TARGET_SWITCHES)
+
+`--help=target` NON esiste in 3.4.6 (solo gcc 4+); l'elenco completo è in
+`gcc-3.4.6/gcc/config/sh/sh.h` righe 286–335:
+
+| Famiglia | Opzioni esistenti | Note |
+|---|---|---|
+| CPU | `-m1 -m2 -m2e -m3 -m3e -m4-single-only -m4-single -m4-nofpu -m4 -m5-*` | `-m1` ⇒ `BRANCH_COST=2`, `-m2/-m2e` ⇒ `BRANCH_COST=1` (`sh.h:2757`) |
+| Endian | `-mb -ml` | default big-endian |
+| Calling conv | `-mhitachi`/`-mrenesas`, `-mnomacsave`, `-musermode` | |
+| Codegen | `-mbigtable -mdalign -mfmovd -mieee/-mno-ieee -misize -mpadstruct -mprefergot -mrelax -mspace` | `-misize`/`-mspace` ≈ `-Os` |
+| **NON esistenti** | `-mbranch-cost`, `-mnomovt`, `-madjust-unroll`, `-maccumulate-outgoing-args`, `-mpretend-cmove` | sono **GCC 4.x**; in 3.4.6 il branch cost è la macro `BRANCH_COST` hardcoded e `movt` si spegne solo con `-fno-if-conversion{,2}` |
+
+`movt` in 3.4.6 è emesso dall'if-conversion sui pattern di `sh.md`
+(`movt` righe 3421–3731; `recognize mov #-1/negc/neg` riga 7915). `tst #imm`
+(opcode 0xC8) **non ha pattern** in `sh.md` 3.4.6 (solo `tst rn,rm`). La scelta
+`mov.l @(pc)` vs `mov.w @(pc)` per le costanti SImode è **incondizionata** in
+`broken_move()`/`hi_const()` (`sh.c:2860`, `4150`): ogni costante in
+[-32768,32767] viene ristretta a load HImode. Nessuno di questi tre è
+controllabile con flag 3.4.6.
+
+### 12.2 Risultati matrice (flag×candidato, best per sorgente)
+
+Matrice completa: 15 sorgenti × 20 config in `/tmp/flagepoch/report.txt` +
+`report2.txt` (nuove varianti). Tabella esiti rilevanti:
+
+| Sorgente (ROM) | Migliore config | % | Prima div. | Causa residua |
+|---|---|---|---|---|
+| `add16bitSaturate_reg` (0x2460) | `-m2e -O1 -fomit-frame-pointer` | **100%** | — | ✅ MATCH (confermato, §10) |
+| `complement_shift_u16_2430_match` (0x2430) | `-m2e -O1 -fomit-frame-pointer` | **100%** | — | ✅ **NUOVO MATCH** (16/16, tutte le config tranne nodel/m4) |
+| `encode_2420_match` (0x2420) | `-m2e -O1 -fomit-frame-pointer` | **100%** | — | ✅ **NUOVO MATCH** (16/16, idem) |
+| `pulse_window_compute_FCD2_r4` (0xFCD2) | `-m2e -O1 -fomit-frame-pointer` | **90.0%** | +0x0C | `mov.l @(pc),r3` ROM vs `mov.w` gcc (`hi_const`, non flaggabile) |
+| `shift_right_8_r0_467A_loop` (0x467A) | `-m2e -O2 -funroll-all-loops` | 66.7% | +0x00 | body 8×`shar r0`+`rts;shar` **identico**, ma `mov r4,r0` ABI in testa (ROM: arg già in r0) |
+| `obd_service_handler_67154_m1` (0x67154) | `-m1 -O1 -fno-if-conversion{,2}` | 66.7% | +0x01 | `tst #31` non emesso da 3.4.6; `mov r4,r0` vs `extu.b` |
+| `atu_get_rx_byte_count_1FA2` (0x1FA2) | `-m1 -O1 -fomit-frame-pointer` | 60.0% | +0x06 | polarità ramo (`bf.s` vs `bt`+`bra`) |
+| `can_get_mailbox_offset_high_D164` (0xD164) | `-O2/-Os -fomit-frame-pointer` | 50.0% | +0x06 | idem atu |
+| `getHCANRegisterAddress_D198` (0xD198) | `-O2 -fomit-frame-pointer` | 45.0% | +0x04 | idem atu (+ `bt.s` vs `bf.s`) |
+| `charging_status_59C24_branch` (0x59C24) | `-O1 -fno-if-conversion{,2} -fno-delayed-branch` | 50.0% | +0x05 | `bf`+`bra`-in-delay vs `bf.s`+`nop` |
+| `calc_manifold_pressure_error_diff_10A88` (0x10A88) | `-O1 -fno-delayed-branch` | 40.9% | +0x01 | reg alloc (r5 vs r3/r4) + `mov.l` vs `mov.w` |
+| `alignment_boundary_validator_D90C` (0xD90C) | `-O1 -fomit-frame-pointer` | 55.3% | +0x00 | accumulatore r0 vs r6 + layout blocchi |
+| `alignment_boundary_validator_D90C_r6` (0xD90C) | `-O1 -fomit-frame-pointer` | 36.8% | +0x02 | epilogo `mov #1,r6;rts;mov r6,r0` **matcha**, ma layout rami diverge |
+
+### 12.3 Cosa hanno mosso i flag (evidenze)
+
+- **`-fno-if-conversion -fno-if-conversion2`** → uccide `movt`/`negc` booleani:
+  `obd_branch` 16.7% → 33.3% (m2e) e → **66.7%** con `-m1`.
+- **`-m1`** (BRANCH_COST=2): atu 55→60%, obd_branch 33.3→66.7%, ma **inverte
+  anche il delay-slot** (`bf` senza delay vs `bf.s`): per i selettori è la
+  config migliore, per mbox/charging peggiora.
+- **`-funroll-all-loops` / `-funroll-loops`**: il loop `for(i=0;i<8;i++) v>>=1`
+  viene **srotolato nelle 8× `shar r0` esatte della ROM** (66.7%; prima 5.6%).
+- **`-fno-delayed-branch`**: calc_manifold 31.8→40.9%; charging_branch
+  44.4→50%; ma rovina i match `_match` (75%) e la maggior parte dei selettori.
+- `-mrelax/-misize/-mspace/-mrenesas/-m3/-m4-nofpu`: nessun effetto sulle
+  quattro divergenze.
+
+### 12.4 Riscritture C "speculari" (polarità ramo e registri)
+
+Provate sui selettori/booleani (nuovi sorgenti `_spec`, `_r4`, `_r6`, `_loop`,
+`_m1` in `c_src/`):
+
+1. **Accumulatore per la costante** (`k = 0x0200; k += b;` invece di
+   `k = 0x0200 + b;`) → gcc carica la costante **direttamente in r4**
+   (`mov.w @(pc),r4`) invece che in r1 + `mov r5,r4` (fixa la divergenza di
+   registro, resta solo il ramo).
+2. **Condizione invertita** (`if (d <= 0) d += c;` per pulse) → gcc emette
+   `bt.s` **con la stessa polarità della ROM** (9/10 istruzioni identiche,
+   90%). Per i selettori invece gcc 3.4.6 **normalizza sempre** la polarità
+   (`bf.s`+fall-through) qualunque sia l'ordine if/else: la struttura
+   ROM `bt`+`bra`+delay non è riproducibile né con flag né invertendo il C.
+3. **Pinning r6 (accumulatore) + maschera in r7** (alignment_r6): epilogo
+   `mov #1,r6 / rts / mov r6,r0` **byte-identico**, e `tst r7,rn` registri
+   (niente più `and #3;tst`); il resto del layout blocchi resta diverso.
+4. **Barrier asm vuote** (`__asm__("" : : "r"(x))`) per fissare il registro
+   finale: funzionano (pulse r4, calc) ma non cambiano la polarità.
+
+### 12.5 Verdict per divergenza
+
+| # | Divergenza | Eliminabile con flag 3.4.6? | Eliminabile con C riscritto? | Verdetto |
+|---|---|---|---|---|
+| 1 | Polarità ramo (`bf/bt` + layout `bra`) | ❌ nessun flag (nemmeno -m1/-mrelax/-freorder-blocks) | ⚠️ in alcuni casi (pulse: condizione invertita → `bt.s` ✓); nei selettori gcc normalizza sempre `bf.s` | **parzialmente aggirabile via C**, non via flag |
+| 2 | Materializzazione return (r4 vs r0) | ❌ | ✅ pin `__asm__` + barrier asm (pulse_r4, calc, complement_shift) | **aggirabile via C** (è la recipe `_match`) |
+| 3 | Booleani: `movt`/`and`+`tst` vs ramo a 1/0 | ✅ `-fno-if-conversion{,2}` uccide `movt` (obd → 66.7%) | ✅ `if/else` con pin r4 | **aggirabile via flag**; residuo `tst #imm` (pattern assente in 3.4.6) |
+| 4 | Loop shift vs srotolamento | ✅ `-funroll-all-loops`/`-funroll-loops` (8× `shar` esatte) | ✅ loop esplicito `for(i=0;i<8;i++)` | **aggirabile via flag+C**; residuo `mov r4,r0` ABI (ROM: arg in r0) |
+
+### 12.6 Nuovi MATCH e stato finale
+
+**3 MATCH byte-perfect con GCC 3.4.6**, tutti con `-m2e -O1 -fomit-frame-pointer`:
+
+| Funzione | ROM | Byte | Recipe sorgente |
+|---|---|---|---|
+| `add16bitSaturate` | 0x2460 | 24/24 | `c_src/add16bitSaturate_reg.c` (§10) |
+| `complement_shift_u16` | 0x2430 | 16/16 | `c_src/complement_shift_u16_2430_match.c` (extu.w via asm + pin r3/r2/r4 + barrier) |
+| `encode` | 0x2420 | 16/16 | `c_src/encode_2420_match.c` (stessa ricetta, extu.b naturale) |
+
+I due `_match` sono **robusti**: 16/16 su quasi tutte le 20 config (O1/O2/Os,
+noifconv, unroll, m1/m3, renesas, relax, space, isize); degradano a 75% solo
+con `-fno-delayed-branch` e (solo complement_shift) `-m4-nofpu`.
+
+File `.s` vincenti salvati in `expected_gcc_sh2e/`:
+`add16bitSaturate_reg.m2e.-O1.omitfp.s`,
+`complement_shift_u16_2430_match.m2e.-O1.omitfp.s`,
+`encode_2420_match.m2e.-O1.omitfp.s` (+ reference: `pulse_window_compute_FCD2_r4…`,
+`shift_right_8_r0_467A_loop.m2e.-O2.omitfp.unrollall.s`,
+`obd_service_handler_67154_m1.m1.-O1.omitfp.noifconv.s`).
+
+Nuovi file (tutti in `reconstructed/experiments/match/`): `scripts/sweep_flags_epoch346.py`,
+`c_src/{atu_get_rx_byte_count_1FA2_spec,can_get_mailbox_offset_high_D164_spec,getHCANRegisterAddress_D198_spec,pulse_window_compute_FCD2_r4,shift_right_8_r0_467A_loop,obd_service_handler_67154_m1,alignment_boundary_validator_D90C_r6}.c`.
+`scripts/sweep_flagmatrix_gcc346.py` NON è stato corretto (bug preesistente, regola "non toccare gli script esistenti").

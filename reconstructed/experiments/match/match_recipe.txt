@@ -106,3 +106,112 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
   ricetta ma con `uint16_t`/`int` e una copia extu.w nel registro giusto (r3);
   per addS32Saturate serve asm mano (addv) — nessun C puro; seed_mixer resta
   ricostruzione .s. Dettagli completi in REPORT.md §10.
+
+# =============================================================================
+# match_recipe.txt — SWEEP ESTESO pure-math (GCC 3.4.6) — 2026-08-01
+# Harness: scripts/sweep_puremath_gcc346.py  (report: /tmp/sweep_puremath/report_final.txt)
+# 11 candidati leaf pure-math (6..38 B) da src/60E1D400_annotated.s (marker IDA),
+# finestra body (pool non contigui esclusi) x 16 config (-O0/1/2/s x default/
+# nodel/omitfp/no-omitfp).
+# =============================================================================
+
+## RISULTATO GLOBALE: 0 MATCH su 11 candidati (best 55.3%)
+
+  alignment_boundary_validator_D90C  O1.omitfp    21/38  55.3%  +0x00
+  atu_get_rx_byte_count_1FA2         O1.omitfp    11/20  55.0%  +0x06
+  can_get_mailbox_offset_high_D164   O2.omitfp    11/22  50.0%  +0x06
+  getHCANRegisterAddress_D198        O2.omitfp     9/20  45.0%  +0x04
+  charging_status_59C24              O2.omitfp     6/18  33.3%  +0x04
+  calc_manifold_pressure_error_diff_10A88 O2.omitfp 7/22 31.8%  +0x01
+  complement_shift_u16_2430          O1.omitfp     4/16  25.0%  +0x00
+  obd_service_handler_67154          O2.omitfp     3/18  16.7%  +0x01
+  pulse_window_compute_FCD2          O2.omitfp     3/20  15.0%  +0x00
+  encode_2420                        O1.omitfp     2/16  12.5%  +0x00
+  shift_right_8_r0_467A              O0.omitfp     1/18   5.6%  +0x00
+
+## PERCHE' NON MATCHA (pattern di divergenza, 4 famiglie)
+
+  1) Selettori ?:  (atu/mbox/getHCAN): ROM `bt(s)`+`bra` (costante 0x0200
+     caricata DIRETTAMENTE in r4: `mov.w @(pc),r4; add r5,r4`, e `mov r5,r4`
+     nel delay del `bra`); gcc 3.4.6 inverte a `bf.s` con `mov r5,r4` nel delay
+     e carica la costante in r1 (`mov.w @(pc),r1; mov r5,r4; add r1,r4`).
+     Prima divergenza +0x06 (opcode ramo).
+  2) Registro di ritorno (complement_shift_u16/encode): ROM accumula in r4 e
+     fa `rts; mov r4,r0`; gcc 3.4.6 materializza in r0 (`mov r3,r0; rts; add r2,r0`).
+     Il pin `__asm__("r4")` non basta (gcc folda l'add sul reg. di ritorno).
+  3) Booleani (charging_status/obd_67154): ROM costruisce 0/1 via rami
+     (`mov #0,r4`/`mov #1,r4`); gcc 3.4.6 usa `movt` (`tst`+`movt`,
+     `and #31,r0`+`movt`). Divergenza strutturale, nessun flag la cambia.
+  4) Shift/loop (shift_right_8_r0): ROM e' 8x `shar r0` srotolato; gcc emette
+     loop o `shar` con count. 5.6%, lontano.
+
+## ACCORGIMENTI CHE MIGLIORANO (dall'iterazione)
+
+  - Costante di confronto come VARIABILE `register unsigned c __asm__("r3") = 32`
+    (evita la fold `>= 32 -> > 31`): atu 20% -> 55%, mbox 36% -> 50%.
+  - E' la stessa idea del `max`-variabile della recipe vincente §10: necessaria
+    ma NON sufficiente (restano polarita' di ramo e movt).
+
+## Verdict
+
+  La recipe di §10 si generalizza bene agli helper saturating-add (variabile
+  per costante + pin r4/r5 + return unsigned + -O1 -fomit-frame-pointer) ma NON
+  ai selettori/booleani: qui gcc 3.4.6 diverge per polarita' del ramo e
+  materializzazione `movt`. Il solo match byte-perfect resta add16bitSaturate@0x2460.
+  Dettagli in REPORT.md §11.
+
+# =============================================================================
+# match_recipe.txt — SWEEP FLAG D'EPOCA 3.4.6 (sessione flag) — 2026-08-01
+# Harness: scripts/sweep_flags_epoch346.py (report: /tmp/flagepoch/report.txt + report2.txt)
+# Inventario flag SH 3.4.6: SOLO quelli in sh.h TARGET_SWITCHES (m1/m2/m2e/m3/
+# m4-*, mb/ml, mrenesas, mnomacsave, misize, mspace, mrelax, ...). NON esistono
+# -mbranch-cost/-mnomovt/-madjust-unroll/-maccumulate-outgoing-args/
+# -mpretend-cmove (GCC 4.x). --help=target non supportato.
+# =============================================================================
+
+## RISULTATO GLOBALE: 3 MATCH BYTE-PERFECT (tutti con -m2e -O1 -fomit-frame-pointer)
+
+  add16bitSaturate        @0x2460  24/24  c_src/add16bitSaturate_reg.c          (gia' §10)
+  complement_shift_u16    @0x2430  16/16  c_src/complement_shift_u16_2430_match.c
+  encode                  @0x2420  16/16  c_src/encode_2420_match.c
+
+## RECIPE (uguale per i 3)
+
+  /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/ \
+    -nostdinc -I /tmp/stubinc -c $SRC -m2e -O1 -fomit-frame-pointer
+  # as sh-elf-as -isa=sh2e + objcopy --only-section=.text; confronto su body-window
+  # .s salvati in expected_gcc_sh2e/<nome>.m2e.-O1.omitfp.s
+
+## Perche' i due nuovi match (same idea di §10 + estensione)
+
+  complement_shift_u16_2430_match.c: `extu.w r4,r3` via inline-asm (gcc 3.4.6
+  assume i param HImode gia' zero-estesi e non emette extu.w), pin r3/r2/r4,
+  barrier asm per il sum. encode_2420_match.c: stesso schema; per QImode la
+  widen `extu.b` e' naturale. Entrambi robusti su ~tutte le 20 config (75% solo
+  con -fno-delayed-branch; complement_shift anche -m4-nofpu).
+
+## BEST NON-MATCH (flag o C che migliorano)
+
+  pulse_window_compute_FCD2  @0xFCD2  18/20  90.0%  c_src/pulse_window_compute_FCD2_r4.c
+    recipe: -m2e -O1 -fomit-frame-pointer   (condizione INVERTITA if(d<=0)+pin r3/r4+barrier
+    => polarita' bt.s ROM; residuo: mov.l@pc vs mov.w@pc per 0x168 = hi_const non flaggabile)
+  shift_right_8_r0           @0x467A  12/18  66.7%  c_src/shift_right_8_r0_467A_loop.c
+    recipe: -m2e -O2 -funroll-all-loops (o -funroll-loops): 8x shar r0 esatti;
+    residuo: mov r4,r0 ABI (ROM: arg gia' in r0, frammento leaf)
+  obd_service_handler_67154  @0x67154 12/18  66.7%  c_src/obd_service_handler_67154_m1.c
+    recipe: -m1 -O1 -fno-if-conversion -fno-if-conversion2  (uccide movt);
+    residui: tst #31 (pattern assente in sh.md 3.4.6), mov r4,r0 vs extu.b
+  atu_get_rx_byte_count_1FA2 @0x1FA2 12/20  60.0%  -m1 -O1 -fomit-frame-pointer
+    (accumulatore k=0x200;k+=b fissa la costante in r4; residuo polarita' ramo)
+
+## VERDICT PER DIVERGENZA
+
+  1) Polarita' ramo (bf/bt + bra): nessun flag 3.4.6. C puo' aiutare dove la
+     ROM ramifica su bt (pulse: condizione invertita). Nei selettori gcc 3.4.6
+     normalizza sempre bf.s+fallthrough: STRUTTURALE.
+  2) Registro di ritorno r4 vs r0: C (pin __asm__ + barrier asm) => risolvibile.
+  3) Booleani movt: -fno-if-conversion{,2} la risolve (obd 66.7%); residuo
+     tst #imm assente in 3.4.6.
+  4) Loop shift: -funroll-all-loops + loop esplicito => 8x shar esatti (66.7%);
+     residuo mov r4,r0 ABI.
+  Dettagli in REPORT.md §12.
