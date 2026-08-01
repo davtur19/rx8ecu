@@ -89,6 +89,15 @@
   TX: [0x23, addr_b0, addr_b1, addr_b2, size]
   RX: [0x63, data...]
 
+  >>> OPEN — RMBA wire format (see ConnorRigby/rx8-ecu-dump AUDIT §5):
+  >>> this repo documents  "23 [4B addr BE][2B len BE]"  (no format byte;
+  >>> matches RX8Man BuildReadMemoryRequest()).
+  >>> ConnorRigby's dumper sends "23 00 [3B addr][2B len]" (1-byte format
+  >>> byte 0x00, 3-byte address). Both are equivalent for addresses below
+  >>> 0x01000000 (MSB always 0x00), but the wire frames differ; whether the
+  >>> SH7055 ECU accepts both is UNVERIFIED — needs bench verification.
+  >>> Source: [REDACTED]08_community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md.
+
   Example — full RAM snapshot (~5 seconds):
     ecudump --download=ramdump.bin \
             --start-address=0xffff6000 \
@@ -123,6 +132,10 @@
   Known DIDs (SID 0x22):
     0xF190   VIN
     0xF18C   Calibration ID
+    0xE611   Calibration Hex File (ASCII)   [source: [REDACTED]05_can_protocol/obd_dtc/obd_pid_table.md]
+
+  Cross-reference: the broadcast CAN frame notes in
+  docs/notes/CAN_PROTOCOL.md (DID list duplicated there).
 
 ================================================================
 9. FIRMWARE DISPATCH TABLE (ROM 0x1479)

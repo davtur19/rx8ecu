@@ -14,7 +14,7 @@
  *
  * SH-2E calling convention: int args r4, return r0.
  *
- * Original SH-2E (big-endian SH-2A, ~172 bytes from 0x3E10):
+ * Original SH-2E (big-endian, ~172 bytes from 0x3E10):
  *
  *   0x3E10: sts.l pr,@-r15         ; save pr
  *   0x3E12: mov r4,r0              ; r0 = mode (r4)

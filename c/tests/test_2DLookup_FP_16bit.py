@@ -13,6 +13,8 @@ Run from repo root:  python3 c/tests/test_2DLookup_FP_16bit.py [N]
 import os, sys, random, struct
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+random.seed(0x20C4)   # seed the ONLY RNG source (the stdlib `random` module) at
+                      # module level: deterministic, reproducible runs (flake-free)
 from sh2emu import SH2, ts, s32
 
 
@@ -60,7 +62,13 @@ def ref(x):
         t = ts(ts(x - AXIS[i]) / ts(AXIS[i + 1] - AXIS[i]))
     v0 = float(VALS[i])
     v1 = float(VALS[i + 1]) if i + 1 < n else float(VALS[i])
-    interp = ts(v0 + ts(t * ts(v1 - v0)))
+    # ROM @0x26E8-0x26EC computes this as fsub (fr1 = v1-v0) then
+    # fmac fr0,fr1,fr2  (fr2 = fr2 + fr0*fr1) — a FUSED multiply-add that
+    # rounds ONLY ONCE.  Rounding the product and/or the sum separately
+    # (ts(v0 + ts(t*ts(v1-v0)))) differs by 1 ULP at truncation boundaries,
+    # which used to make this test fail intermittently (got=2078 want=2079).
+    # Single-rounding semantics match the hardware exactly:
+    interp = ts(v0 + t * ts(v1 - v0))
     return int(interp) & 0xFFFF   # ftrc: trunc toward zero, then zero-extend 16 bits
 
 

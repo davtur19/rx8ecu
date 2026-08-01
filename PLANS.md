@@ -51,9 +51,9 @@ one at a time, and the baseline always rebuilds.
   `L_xxxxxx` labels; the whole ROM is linked at VMA 0, so displacements/ranges are
   the originals. A self-correcting loop forces any as-rejected or mis-encoding word
   back to raw `.word` and converges to `cmp == 0`.
-- The 5-10 raw fallbacks per ROM are data words capstone over-decodes as SH-2A/SH-4
+- The 5-10 raw fallbacks per ROM are data words capstone over-decodes as extended-SuperH
   ops (`ldc.l @rn+,tbr`, `stc.l tbr,@-rn`, `synco`) which `sh-elf-as` rejects —
-  confirmation the real code is plain SH-2. Emitted verbatim, so byte-exactness holds.
+  confirmation the real code is plain SH-2 (SH-2E core). Emitted verbatim, so byte-exactness holds.
 - **Toolchain (self-contained, no root):** capstone ≥ 5.0 (SH) + GNU binutils-sh-elf
   fetched by `tools/get_toolchain.sh` into `tools/toolchain/usr/bin`. The Makefile and
   `verify_all.sh` resolve that path themselves — **no `~/.bashrc` exports needed**,

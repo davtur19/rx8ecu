@@ -1,0 +1,6 @@
+# addSaturate8Bit_2478  ROM offset 0x02478, base 0x60002478
+# body: 22 bytes
+644c655c345c634d950533538f0100096453000b6043
+replacement ; regex: prefix supported. pool @0x0248E: 2 bytes
+00ff
+# total span: 24 bytes (0x02478..0x02490)

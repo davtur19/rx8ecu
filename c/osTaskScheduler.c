@@ -12,7 +12,7 @@
  *
  * SH-2E calling convention: int args r4..r6, return r0.
  *
- * Original SH-2E (big-endian SH-2A, 110 bytes from 0x9668):
+ * Original SH-2E (big-endian, 110 bytes from 0x9668):
  *
  *   ; r4 = task_id (uint8_t), r5 = entry_idx (uint16_t), r6 = args (uint32_t*)
  *   0x9668: mov.l r14,@-r15        ; save r14
@@ -155,8 +155,8 @@ struct TaskEntry {
  */
 int osTaskScheduler(uint8_t task_id, uint16_t entry_idx, const uint32_t *args)
 {
-    /* Resolve the global task table.
-     * G_TASK_TABLE_PTR is a uint32_t loaded from ROM (32-bit SH-2A address).
+     /* Resolve the global task table.
+     * G_TASK_TABLE_PTR is a uint32_t loaded from ROM (32-bit SH-2E address).
      * Cast through uintptr_t for host portability. */
     uintptr_t table_base = G_TASK_TABLE_PTR;
     const uint32_t *task_table = (const uint32_t *)table_base;
@@ -189,9 +189,9 @@ int osTaskScheduler(uint8_t task_id, uint16_t entry_idx, const uint32_t *args)
     uint8_t result = 0;          /* r12 in the original */
 
     if (entry->marker == DIRECT_CALL_MARKER) {
-        /* Direct call: invoke the function pointer.
+         /* Direct call: invoke the function pointer.
          * The SH-2E convention passes r4 = &frame[1] (first argument).
-         * On the target (SH-2A) pointers are 32 bits; on the host we use
+         * On the target (SH-2E) pointers are 32 bits; on the host we use
          * uintptr_t to bridge the size gap. */
         void (*func)(uint32_t *) = (void (*)(uint32_t *))(uintptr_t)(uint32_t)entry->func_ptr;
         func(&fp[1]);

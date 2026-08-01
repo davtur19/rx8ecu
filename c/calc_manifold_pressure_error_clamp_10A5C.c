@@ -57,7 +57,7 @@ uint32_t calc_manifold_pressure_error_clamp_10A5C(uint32_t input)
     result = result + OFFSET_DOWN;  /* equivalent to: result -= 0x50000 */
 
     /* Step 3: Wrap into [0, RANGE)
-     * NOTE: SH-2A cmp/ge is a SIGNED comparison, and cmp/pz is signed >= 0.
+     * NOTE: SH-2E cmp/ge is a SIGNED comparison, and cmp/pz is signed >= 0.
      * The wrapping is:
      *   if (signed)temp >= (signed)RANGE: temp -= RANGE
      *   if (signed)temp < 0:              temp += RANGE

@@ -1,0 +1,6 @@
+# add16bitSaturate_2460  ROM offset 0x02460, base 0x60002460
+# body: 20 bytes
+644d655d345cd50334528f0100096453000b6043
+replacement ; regex: prefix supported. pool @0x02474: 4 bytes
+0000ffff
+# total span: 24 bytes (0x02460..0x02478)

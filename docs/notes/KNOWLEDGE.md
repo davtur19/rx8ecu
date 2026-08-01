@@ -31,6 +31,7 @@ These are non-standard. Getting any of them wrong causes silent failure or NRC.
 | Session open | `10 85` directly | NOT `10 01` first |
 | TesterPresent | `3E 00` | NOT `3E 80` → NRC 0x12 |
 | RMBA format | `23 [4B addr BE][2B len BE]` | no format byte (non-standard) |
+| RMBA format — OPEN | `23 00 [3B addr][2B len]` (ConnorRigby dumper) vs `23 [4B addr][2B len]` above (matches RX8Man) — equivalent for addr < 0x01000000; whether the ECU accepts both is **unverified (bench open item)** — see `docs/hardware/RX8_OBD_UDS_Protocol.txt` and `[REDACTED]08_community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md` | assume one is wrong |
 | Pending response | `7F 23 78` before each RMBA = **normal** | not an error |
 | Keepalive interval | every 10 s | S3server timeout ~30 s |
 

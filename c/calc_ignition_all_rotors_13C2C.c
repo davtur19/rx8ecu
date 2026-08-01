@@ -45,7 +45,7 @@
 #include <stdint.h>
 
 /* ========================================================================
- * RAM address map (on-chip SH-2A RAM, 0xFFFFA700–0xFFFFA7FF)
+ * RAM address map (on-chip SH-2E RAM, 0xFFFFA700–0xFFFFA7FF)
  * ======================================================================== */
 
 #define RAM_ENGINE_SPEED       (*(volatile float *)0xFFFFA73C)   /* fr6 input; reused to store 0x13ED2 clamp result */

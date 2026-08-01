@@ -154,7 +154,7 @@ Below is the complete descriptor catalog, grouped by functional region:
 | Desc Addr | Kind | Dims | Type | Scale | Offset | Values Addr | Cal Table Name |
 |-----------|------|------|------|-------|--------|-------------|----------------|
 | 0x69E14 | 1D | 32 | f32 | — | — | 0x6F96C | CLT Sensor Scaling |
-| 0x69E4C | 1D | 48 | f32 | — | — | 0x6FBD8 | MAF Scaling |
+| 0x69E4C | 1D | 48 | f32 | — | — | 0x6FBD8 | MAF Scaling (**base ROM: [REDACTED]**; in 60E1D400 this descriptor is at 0x6A0E4 — see `SENSOR_PIPELINE.md`) |
 | 0x69E58 | 1D | 8 | f32 | — | — | 0x6FCF8 | Table 2D - 295 Check DataType |
 | 0x69E64 | 1D | 8 | f32 | — | — | 0x6FD20 | Table 2D - 296 Check DataType |
 | 0x69E70 | 1D | 4 | f32 | — | — | 0x6FD38 | Injector Barometric Pressure Comp |
@@ -235,7 +235,7 @@ Reads the MAF scaling curve to convert raw MAF sensor frequency to air mass flow
 
 | Address | Cal Table Name | Access | Notes |
 |---------|---------------|--------|-------|
-| 0x6FBD8 | **MAF Scaling** | 1D f32[48] thru desc@0x69E4C | Voltage→g/rev lookup |
+| 0x6FBD8 | **MAF Scaling** | 1D f32[48] thru desc@0x69E4C (**base ROM: [REDACTED]**) | Voltage→g/rev lookup |
 
 ### 4.2 `o2_lambda_subsystem.c`
 Front and rear O₂ sensor voltage→index mapping, plus adaptive trim tables.
@@ -385,7 +385,7 @@ These C files reference ROM addresses that are not yet matched to named calibrat
 #### MAF Sensor
 | Address | Name | Type | Axis | Used By | Descriptor |
 |---------|------|------|------|---------|------------|
-| 0x6FBD8 | **MAF Scaling** | 1D f32[48] | Voltage (0–5V) | `maf_sensor_value.c` | 0x69E4C |
+| 0x6FBD8 | **MAF Scaling** | 1D f32[48] | Voltage (0–5V) | `maf_sensor_value.c` | 0x69E4C (**base ROM: [REDACTED]**) |
 | 0x7A65C | MAF Related | 1D u16[8] | — | sensor pipeline | 0x6B6F4 |
 
 #### Temperature Sensors

@@ -1,7 +1,7 @@
 # REPORT — What the "Cruise Control" function really is in the RX-8 firmware
 
 **Date:** 2026-08-01
-**Scope:** Mazda RX-8 PCM (Renesas SH-2A SH7055), ROM `60E0FC00.bin` (RENESIS 6-port, base variant) with cross-check on `60E1D400.bin` (differentiated variant).
+**Scope:** Mazda RX-8 PCM (Renesas SH-2E SH7055), ROM `60E0FC00.bin` (RENESIS 6-port, base variant) with cross-check on `60E1D400.bin` (differentiated variant).
 **User note:** the user's car does NOT have cruise control installed (no buttons, no actuator).
 
 ---

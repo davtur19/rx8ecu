@@ -3,7 +3,7 @@
  *
  * Verified memory map and shared declarations for the EEPROM management and
  * immobilizer/security functions (Track A lifts in c/). *
- * CPU: SH-2A (SH7055).  EEPROM: ABLIC S-93C56C, 256 bytes, SPI bit-bang via
+ * CPU: SH-2E (SH7055).  EEPROM: ABLIC S-93C56C, 256 bytes, SPI bit-bang via
  * GPIO 0xF74E (CS) / 0xF738 (data).  Data is stored as (value, ~value) pairs
  * in a 256-byte shadow at 0xFFFFC2FE with complement shadow at 0xFFFFC3FE.
  *

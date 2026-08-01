@@ -5,7 +5,7 @@
 | Component | Value |
 |---|---|
 | PCB P/N | 279721-3210 |
-| Main CPU | Renesas SH7055 (SH-2A, 32-bit, big-endian) |
+| Main CPU | Renesas SH7055 (SH-2E, 32-bit, big-endian) |
 | ROM | 512 KB internal flash, `0x000000–0x07FFFF` |
 | RAM | 32 KB, `0xFFFF6000–0xFFFFDFFF` |
 | EEPROM | ABLIC S-93C56C, 256 bytes, SOIC8, SPI bit-bang |
