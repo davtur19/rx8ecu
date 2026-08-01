@@ -62,6 +62,8 @@ mkdir -p "$(dirname "$TC_BIN")"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 ( cd "$tmp" && apt-get download binutils-sh-elf )
-dpkg-deb -x "$tmp"/binutils-sh-elf_*.deb "$(dirname "$TC_BIN")"
+# The .deb root contains usr/bin/sh-elf-*; extract it into tools/toolchain/ so
+# the tools land at $TC_BIN (= toolchain/usr/bin) instead of one dir too deep.
+dpkg-deb -x "$tmp"/binutils-sh-elf_*.deb "$(dirname "$(dirname "$TC_BIN")")"
 "$TC_BIN/sh-elf-as" --version | head -1
 say_done
