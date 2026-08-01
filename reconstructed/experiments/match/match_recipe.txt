@@ -1,0 +1,108 @@
+# match_recipe.txt — sweep gcc reale (GCC 14.2.0 sh-elf) su c_src/*.c
+
+Data: 2026-08-01
+Toolchain: /home/davide/gcc-sh2e-build/gcc/xgcc (GCC 14.2.0, target sh-elf,
+default big-endian -mb, subtarget di default -m2e)
+Assemblatore: /usr/bin/sh-elf-as  (isa: sh2e per -m2e, sh3 per -m3, sh4a-nofpu per -m4-nofpu)
+Disassembler: /usr/bin/sh-elf-objdump
+stdint: stub in /tmp/stubinc/stdint.h (nessuna newlib/sysroot installata;
+usato -nostdinc -I/tmp/stubinc)
+
+## RISULTATO GLOBALE: NESSUN MATCH BYTE-PERFECT
+
+Con GCC 14.2.0 NESSUNA combinazione
+  funzione x subtarget(-m2e/-m3/-m4-nofpu) x -O(-O0/-O1/-O2/-Os) x
+  opzioni(default/-fno-delayed-branch/-fomit-frame-pointer/-fno-omit-frame-pointer)
+produce i byte della ROM per alcuna delle 4 funzioni testate.
+Gli unici match byte-perfect noti restano i .s scritti a mano in
+expected_gcc_sh2e/ (predizione di codegen GCC 2002-era, NON emessi da
+GCC 14.2.0).
+
+## MIGLIORI RISULTATI (best per funzione, % = byte uguali su finestra)
+
+| Funzione | Finestra | Migliore config | Bytes | % | Insn | Primo diff |
+|---|---|---|---|---|---|---|
+| add16bitSaturate@0x2460 | 24 B | -m2e -O1 -fno-delayed-branch | 6/24 | 25.0% | 3/12 | +0x04 |
+| addSaturate8Bit@0x2478 | 24 B | -m2e -O1 (default o -fomit-frame-pointer) | 7/24 | 29.2% | 2/12 | +0x04 |
+| addS32Saturate@0x2304 | 22 B | -m2e -O1 -fno-omit-frame-pointer | 1/22 | 4.5% | 0/11 | +0x00 |
+| seed_mixer@0x366B8 | 164 B | -m4-nofpu -O2 | 6/164 | 3.7% | 0/58 | +0x00 |
+
+## PERCHE' NON MATCHA (divergenze strutturali)
+
+1) add16bitSaturate / addSaturate8Bit:
+   - ROM: `mov.l @(pc),r5` con UN SOLO literal 0xFFFF/0x00FF, `cmp/hs`/`cmp/ge`,
+     `bf/s` con rts delay-slot `mov r4,r0`; clamp via `mov r5,r4` e riuso del
+     registro r4.
+   - GCC 14: trasforma `sum >= 0xFFFF` in `sum > 0xFFFE`: carica 0xFFFE,
+     usa `cmp/hi`, `bt`, ha DUE literal pool (0xFFFE e 0xFFFF), due rts separati
+     e mette `extu.w r2,r0` nel delay slot. Registro risultato diverso (r2).
+2) addS32Saturate:
+   - ROM: idioma `addv r4,r5` + `cmp/pz` + `addc` (signed-overflow detect).
+   - GCC 14 NON emette MAI `addv` per C puro: il C a 64-bit genera la sequenza
+     `subc`+`addc` (64-bit), `__builtin_add_overflow` genera `add`+`xor`+`not`
+     (overflow detect "moderno"). Serve inline-asm/intrinseco.
+3) seed_mixer: la ROM è codegen a bassa ottimizzazione (store/reload di byte su
+   stack, pool PC-relative); GCC 14 -O0/-O1/-O2/-Os produce strutture diverse.
+   Niente match nemmeno a -O0 (layout/reg alloc diversi).
+
+## COME RIPRODURRE LO SWEEP
+
+  python3 scripts/sweep_gcc14.py --out /tmp/sweep_gcc14/report.txt
+  # report completo: /tmp/sweep_gcc14/report.txt
+  # sorgenti .s generati: /tmp/sweep_gcc14/<func>.<isa>.<opt>.<extra>.s
+
+NB: nessuna ricetta di compilazione produce byte-identici => non esiste un
+comando "vincente" da registrare. I file .s dei best-match sono salvati in
+expected_gcc_sh2e/ come riferimento del codegen reale:
+  add16bitSaturate.m2e.-O1.nodel.s
+  addSaturate8Bit.m2e.-O1.default.s
+  addS32Saturate.m2e.-O1.no-omitfp.s
+  seed_mixer.m4-nofpu.-O2.default.s
+
+# =============================================================================
+# match_recipe.txt — SWEEP GCC 3.4.6 (era ROM) — 2026-08-01
+# =============================================================================
+# Toolchain: /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/
+#   (GCC 3.4.6, target sh-elf, big-endian).  Harness: scripts/sweep_gcc346.py
+#   (report completo: /tmp/sweep_gcc346/report_full.txt, 7 funzioni x 48 config).
+
+## RISULTATO GLOBALE: 1 MATCH BYTE-PERFECT su 7 funzioni testate
+##   add16bitSaturate@0x2460  — 24/24 byte, 12/12 istruzioni, pool incluso.
+
+## RECIPE VINCENTE (comando esatto)
+
+  SRC=c_src/add16bitSaturate_reg.c
+  /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/ \
+    -nostdinc -I /tmp/stubinc -c $SRC -m2e -O1 -fomit-frame-pointer
+  # poi: /usr/bin/sh-elf-as -isa=sh2e -o f.o f.s
+  #      /usr/bin/sh-elf-objcopy -O binary --only-section=.text f.o f.bin
+  # byte attesi: 644d655d345cd50334528f0100096453000b60430000ffff
+
+## Perche' il sorgente add16bitSaturate_reg.c vince (e cosa rende gli altri no)
+
+  - `max` come VARIABILE (register unsigned max __asm__("r5") = 0xFFFF):
+    GCC 14 e GCC 3.4.6 foldano `sum >= 0xFFFF` in `sum > 0xFFFE`
+    (cmp/hi + 2 literal), mentre la ROM carica UN solo 0xFFFF e fa cmp/hs.
+  - pin registri `__asm__("r4")/"r5"`: la ROM tiene la somma in r4 e la
+    costante in r5 (clamp `mov r5,r4`); senza pin gcc sceglie r0/r1 (62.5%).
+  - return type `unsigned`: epilogo `rts; mov r4,r0`; con uint16_t gcc mette
+    `extu.w r4,r0` nel delay slot (ultima istruzione diversa, 79.2%).
+  - -O1 (non -O2/-Os: 79.2%) e -fomit-frame-pointer (senza: prologo+frame).
+
+## Tabella best-per-funzione (gcc 3.4.6)
+
+  add16bitSaturate      m2e -O1 -fomit-frame-pointer   15/24  62.5%  +0x06
+  addSaturate8Bit       m2e -O1 -fomit-frame-pointer    9/24  37.5%  +0x06
+  addS32Saturate        m2e -O1 -fomit-frame-pointer    2/22   9.1%  +0x00
+  seed_mixer            m2e -O0 default                 5/164  3.0%  +0x00
+  add16bitSaturate_reg  m2e -O1 -fomit-frame-pointer   24/24 100.0%  ---  MATCH
+  addSaturate8Bit_reg   m2e -O1 -fomit-frame-pointer   16/24  66.7%  +0x01
+  addS32Saturate_addv   nessuna                         0/22   0.0%  +0x00
+
+## Verdict
+
+  La ROM e' codegen GCC-3.x reale: add16bitSaturate e' riproducibile
+  byte-exact con GCC 3.4.6 (recipe sopra). Per addSaturate8Bit serve la stessa
+  ricetta ma con `uint16_t`/`int` e una copia extu.w nel registro giusto (r3);
+  per addS32Saturate serve asm mano (addv) — nessun C puro; seed_mixer resta
+  ricostruzione .s. Dettagli completi in REPORT.md §10.
