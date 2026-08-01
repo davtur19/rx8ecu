@@ -227,7 +227,7 @@ calc_fuel_pressure_load_compensation()  → 0xFFFFA734/0xFFFFA738 (ignition timi
 | Address | Description |
 |---------|-------------|
 | 0xFFFFA744 | Main ignition advance (float, °BTDC) |
-| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in leading_trailing_spark_control (0x2100A, unverified) |
+| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in wankel_leading_trailing_split_487DC (0x2100A is a cold/validity state controller — VERIFIED 2026-08-01) |
 | 0xFFFFA75C | Knock control active flag (saved back) |
 
 **Confidence: high** — all control paths fully traced.
@@ -651,6 +651,8 @@ bool coil_charge_enabled_query(void) {
 ### 4.14 `leading_trailing_spark_control_2100A` (0x2100A) — Split Angle Control
 
 **Size:** 352 bytes (0x2100A–0x2116A)
+
+> STATUS 2026-08-01: Lifted and VERIFIED against the ROM emulator (500,000 random inputs, 0 mismatches; see c/leading_trailing_spark_control_2100A.c and c/tests/test_leading_trailing_spark_control_2100A.py). Despite the IDA name, this function does NOT compute a split angle and does NOT touch A734/A738. It manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as max(state − 0.0667, 0.0), or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, and the shared max helper @0x23E4. A734 == A738 in practice (written identically by calc_ignition_all_rotors_13C2C). The actual lead/trail split is NOT implemented here; see wankel_leading_trailing_split_487DC for further analysis.
 
 Determines whether leading-trailing spark split is applied. Checks:
 1. **Engine running** — RPM above threshold
