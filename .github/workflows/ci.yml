@@ -1,0 +1,139 @@
+# CI for rx8ecu — Mazda RX-8 ECU firmware reverse-engineering project.
+#
+# Runs the full documented verification battery (VERIFICATION.md / REPLICATION.md)
+# on every push/PR against main/master:
+#
+#   verify job  — byte-exact rebuild of all 9 public stock ROMs (make verify-all),
+#                 host-compiled C behavior-equivalence suites (make c-test),
+#                 C lifts vs emulated ROM cross-check (make c-emu).
+#   tests job   — the full Python regression battery in ONE step via the
+#                 project's parallel runner (tools/run_tests_parallel.py, the
+#                 same code as `make test-fast`): it auto-discovers every
+#                 c/tests/test_*.py and tools/tests/test_*.py suite (decode
+#                 families incl. the GNU-as bulk round-trip, emulator families,
+#                 per-function suites), so new suites are picked up without
+#                 editing CI.  -j 2 uses the runner's 2 vCPUs (its default
+#                 cpu_count-1 would be 1 worker = serial on this runner).
+#
+# The two jobs run in parallel and each fails the workflow on any failing step.
+#
+# Environment reproduced from the local dev box:
+#   - Python 3.14  (local: 3.14.6)
+#   - capstone 5.0.9  (pinned in .github/requirements.txt; local: 5.0.9)
+#   - sh-elf binutils 2.46  (installed by tools/get_toolchain.sh into
+#     tools/toolchain/usr/bin — the repo's documented, rootless method:
+#     apt-get download + dpkg-deb -x on Debian/Ubuntu; git-ignored, so CI
+#     installs it fresh and caches the result).
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Match the local dev environment (Python 3.14.6 at time of writing).
+  PYTHON_VERSION: "3.14"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # verify: byte-exact rebuild + C suites + emulator cross-check
+  # ---------------------------------------------------------------------------
+  verify:
+    name: Verify (byte-exact + C + emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: .github/requirements.txt
+
+      - name: Install Python deps (capstone)
+        run: python3 -m pip install --break-system-packages -r .github/requirements.txt
+
+      - name: Cache sh-elf binutils toolchain
+        id: tc-cache
+        uses: actions/cache@v4
+        with:
+          path: tools/toolchain
+          key: sh-elf-binutils-${{ runner.os }}-${{ hashFiles('tools/get_toolchain.sh') }}
+
+      - name: Install sh-elf binutils toolchain
+        if: steps.tc-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          ./tools/get_toolchain.sh
+
+      - name: Sanity-check toolchain and capstone
+        run: |
+          tools/toolchain/usr/bin/sh-elf-as --version | head -1
+          python3 -c 'import capstone; print("capstone", capstone.__version__)'
+
+      - name: make verify-all (9/9 byte-exact ROM rebuild)
+        run: make verify-all
+
+      - name: make c-test (host-compiled behavior-equivalence suites)
+        run: make c-test
+
+      - name: make c-emu (C lifts vs emulated ROM, 5x100k random)
+        run: make c-emu
+
+  # ---------------------------------------------------------------------------
+  # tests: Python regression suites (parallel to the verify job)
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Tests (Python suites)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: .github/requirements.txt
+
+      - name: Install Python deps (capstone)
+        run: python3 -m pip install --break-system-packages -r .github/requirements.txt
+
+      - name: Cache sh-elf binutils toolchain
+        id: tc-cache
+        uses: actions/cache@v4
+        with:
+          path: tools/toolchain
+          key: sh-elf-binutils-${{ runner.os }}-${{ hashFiles('tools/get_toolchain.sh') }}
+
+      - name: Install sh-elf binutils toolchain
+        if: steps.tc-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          ./tools/get_toolchain.sh
+
+      # test_decode_families.py invokes sh-elf-as directly, so the local
+      # toolchain must be on PATH (it skips the bulk round-trip gracefully
+      # otherwise — we want it to run). The parallel runner inherits this env.
+      # Canonical entry point: same code as `make test-fast`. It replaces the
+      # old three steps (decode families, emulator families, serial for-loop
+      # over c/tests/test_*.py) with one auto-discovering invocation.
+      - name: Python suites (parallel runner, auto-discovery)
+        run: |
+          export PATH="$PWD/tools/toolchain/usr/bin:$PATH"
+          python3 tools/run_tests_parallel.py -j 2

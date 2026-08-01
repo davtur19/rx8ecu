@@ -1,0 +1,1492 @@
+addr_start,addr_end,word_count,class,notes
+2160,2170,5,literal_pool,pcrel refs 3/5 words (mov.lx2+mov.wx1)
+2222,2226,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+2480,2486,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+2830,4064,617,padding,all-0xFFFF filler (stray pcrel ref x3)
+4074,4088,7,unknown_data,
+4094,4098,2,padding,all-zero word filler
+4148,4152,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+4250,4254,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+4262,4266,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+4560,4566,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+4766,4770,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+4780,4786,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+4974,4982,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+5692,5698,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+5902,5906,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+6194,6198,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+6470,6474,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+6750,6754,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+7002,7006,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+7578,7582,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+7584,7590,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+8120,8128,4,literal_pool,pcrel refs 2/4 words (mov.wx1+mov.lx1)
+8130,8192,31,unknown_data,
+8194,8198,2,string,"ascii ""E1D4"" (span 32B)"
+8232,8238,3,string,"ascii ""DENSO2"" (span 16B)"
+8958,8962,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+9332,9336,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+9402,9408,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+13034,13038,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+13186,13194,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+13224,13238,7,literal_pool,pcrel refs 3/7 words (mov.lx3)
+13240,13244,2,unknown_data,
+13430,13434,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+13678,13682,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+13936,13942,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+13944,13952,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+13958,13962,2,padding,all-zero word filler
+13964,13974,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+14144,14148,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+14150,14154,2,padding,all-zero word filler
+14162,14170,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+14256,14266,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+14272,14276,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+14586,14594,4,literal_pool,pcrel refs 3/4 words (mov.wx2+mov.lx1)
+14596,14602,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+14686,14690,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+15012,15022,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+15054,15058,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+15108,15112,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+15128,15134,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+15154,15158,2,string,"ascii ""1999"" (span 202B)"
+15342,15348,3,unknown_data,
+15442,15448,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+15450,15462,6,literal_pool,pcrel refs 3/6 words (mov.lx3)
+15480,15486,3,padding,all-zero word filler
+15536,15540,2,padding,all-zero word filler
+15764,15770,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+15870,15874,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+15998,16002,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+16008,16018,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+16048,16054,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+16238,16246,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+16248,16258,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+16344,16358,7,literal_pool,pcrel refs 4/7 words (mov.lx4)
+16932,16936,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+17004,17038,17,jump_table,"32-bit absolute x8 (pairing+0, targets in-window code) indirect access (base loaded via pool/mova)"
+17040,17066,13,jump_table,"32-bit absolute x6 (pairing+0, targets in-window code) indirect access (base loaded via pool/mova)"
+17188,17196,4,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x4324:mov.l,0x4328:mov.l"
+17400,17412,6,jump_table,"32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x43f8:mov.l,0x43fc:mov.l,0x4400:mov.l"
+17664,17668,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+18216,18228,6,jump_table,"32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x4728:mov.l,0x472c:mov.l,0x4730:mov.l"
+18234,18238,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+18628,18632,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+18748,18838,45,unknown_data,
+18844,18854,5,unknown_data,
+18860,18870,5,unknown_data,
+18876,18886,5,unknown_data,
+18892,18902,5,unknown_data,
+18908,18918,5,unknown_data,
+18924,18934,5,unknown_data,
+18940,18950,5,unknown_data,
+18956,18966,5,unknown_data,
+18972,18982,5,unknown_data,
+18988,18998,5,unknown_data,
+19004,19014,5,unknown_data,
+19020,19030,5,unknown_data,
+19036,19046,5,unknown_data,
+19052,19062,5,unknown_data,
+19068,19078,5,unknown_data,
+19084,19094,5,unknown_data,
+19100,19110,5,unknown_data,
+19116,19126,5,unknown_data,
+19132,19136,2,unknown_data,
+19138,19146,4,unknown_data,
+19180,19190,5,unknown_data,
+19194,19214,10,unknown_data,
+19216,19230,7,padding,0x00xx-pattern run (high byte 0x00)
+19232,19248,8,unknown_data,
+19250,19254,2,unknown_data,
+19268,19274,3,unknown_data,
+19284,19300,8,padding,0x00xx-pattern run (high byte 0x00)
+20506,20510,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+20914,20918,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+21594,21598,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+21636,21642,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+22250,22254,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+22898,22910,6,literal_pool,pcrel refs 5/6 words (mov.wx4+mov.lx1)
+23182,23190,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+23196,23206,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+23212,23246,17,literal_pool,pcrel refs 9/17 words (mov.lx9)
+23514,23522,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+23596,23600,2,unknown_data,
+23612,23616,2,unknown_data,
+23704,23708,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+23722,23726,2,unknown_data,
+23896,23904,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+23918,23930,6,literal_pool,pcrel refs 5/6 words (mov.wx3+mov.lx2)
+24230,24238,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+24250,24258,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+24266,24270,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+24600,24606,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+24792,24798,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+25138,25142,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+25268,25272,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+25522,25526,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+25536,25542,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+25580,25586,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+25944,25950,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+26388,26394,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+26408,26414,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+26440,26446,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+26738,26742,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+27186,27190,2,literal_pool,pcrel refs 2/2 words (mov.wx2+mov.lx1)
+27726,27730,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+28050,28054,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+28314,28318,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+28618,28622,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+29056,29060,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+29076,29082,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+29324,29330,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+29344,29348,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+29494,29498,2,padding,all-zero word filler
+29598,29602,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+29758,29762,2,padding,all-zero word filler
+29870,29874,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+29934,29938,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+30178,30182,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+30684,30690,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+31526,31530,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+31534,31538,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+31606,31612,3,literal_pool,pcrel refs 1/3 words (movax1)
+32154,32158,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+32410,32414,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+32676,32682,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+32946,32950,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+32990,32994,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+32998,33006,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+33022,33026,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+33206,33210,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+33582,33586,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+33600,33606,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+33914,33918,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+33926,33930,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+33934,33940,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+33950,33954,2,padding,all-zero word filler
+34250,34254,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+34578,34582,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+34592,34598,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+35214,35218,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+35238,35242,2,padding,all-zero word filler
+35244,35250,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+35474,35478,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+35686,35690,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+36026,36030,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+36500,36506,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+36530,36538,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+36786,36790,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+37118,37122,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+37128,37134,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+37136,37150,7,literal_pool,pcrel refs 4/7 words (mov.lx4)
+37152,37158,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+37184,37190,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+37440,37446,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+37454,37462,4,literal_pool,pcrel refs 3/4 words (movax2+mov.wx1)
+37466,37474,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+37650,37654,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+37656,37662,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+37956,37962,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+37970,37974,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+37998,38006,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+38176,38182,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+38474,38478,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+38782,38786,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+38788,38794,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+38996,39002,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+39310,39314,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+40442,40446,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+40990,40994,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+41212,41218,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+41220,41226,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+41910,41914,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+42338,42346,4,literal_pool,pcrel refs 4/4 words (mov.wx3+mov.lx1)
+42842,42846,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+42850,42854,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+43192,43198,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+43476,43482,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+43618,43622,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+43680,43686,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+43936,43946,5,literal_pool,pcrel refs 3/5 words (mov.lx2+mov.wx1)
+43964,43970,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+43978,43982,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+44270,44274,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+44642,44646,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+44670,44674,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+44732,44742,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+44802,44806,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+45514,45518,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+45542,45546,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+46410,46414,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+46434,46438,2,padding,all-zero word filler
+46742,46746,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+47092,47096,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+47118,47122,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+47124,47130,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+47136,47142,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+47510,47514,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+47740,47746,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+47748,47754,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+48030,48034,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+48372,48376,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+48416,48422,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+48738,48742,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+48748,48754,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+48756,48762,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+48976,48982,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+48996,49002,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+49300,49304,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+49306,49310,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+49316,49320,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+49634,49638,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+49640,49646,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+49652,49660,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+49848,49854,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+50050,50054,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+50096,50102,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+50112,50118,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+50354,50358,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+51382,51386,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+51418,51422,2,padding,all-zero word filler
+51438,51442,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+51844,51850,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+51858,51862,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+51868,51874,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+52138,52142,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+52200,52204,2,literal_pool,pcrel refs 1/2 words (movax1)
+52206,52212,3,literal_pool,pcrel refs 1/3 words (movax1)
+52322,52326,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+52642,52646,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+52660,52670,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+52970,52974,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+53308,53314,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+53650,53654,2,padding,all-zero word filler
+53690,53694,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+53922,53926,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+54222,54226,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+54342,54346,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+54362,54366,2,padding,all-zero word filler
+54414,54418,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+54612,54616,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+54622,54626,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+54628,54634,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+54640,54646,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+55474,55478,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+55488,55494,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+55500,55506,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+55734,55738,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+55784,55790,3,unknown_data,
+55794,55798,2,unknown_data,
+55812,55842,15,unknown_data,
+55894,55898,2,padding,all-0xFFFF filler
+55900,55904,2,padding,all-0xFFFF filler
+55906,55910,2,padding,all-0xFFFF filler
+55912,55918,3,padding,all-0xFFFF filler
+55924,55930,3,unknown_data,
+55938,55942,2,unknown_data,
+55948,55954,3,unknown_data,
+55962,55966,2,unknown_data,
+55974,55978,2,unknown_data,
+55984,55990,3,unknown_data,
+56008,56014,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+56032,56038,3,unknown_data,
+56056,56062,3,unknown_data,
+56080,56086,3,unknown_data,
+56094,56098,2,unknown_data,
+56210,56214,2,unknown_data,
+56224,56230,3,literal_pool,pcrel refs 1/3 words (mov.wx1)
+56234,56244,5,unknown_data,
+56260,56268,4,padding,0x00xx-pattern run (high byte 0x00)
+56272,56278,3,unknown_data,
+56280,56290,5,padding,0x00xx-pattern run (high byte 0x00)
+56292,56298,3,padding,0x00xx-pattern run (high byte 0x00)
+56302,56306,2,unknown_data,
+56310,56314,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+56318,56322,2,padding,all-zero word filler
+56324,56330,3,unknown_data,
+56334,56338,2,padding,all-zero word filler
+56342,56346,2,padding,all-zero word filler
+56348,56354,3,padding,all-zero word filler
+56358,56362,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+56366,56370,2,unknown_data,
+56372,56378,3,unknown_data,
+56380,56386,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+56396,56412,8,unknown_data,
+56422,56426,2,padding,all-zero word filler
+56428,56434,3,unknown_data,
+56436,56442,3,unknown_data,
+56444,56450,3,unknown_data,
+57438,57442,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+58630,58634,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+59242,59248,3,literal_pool,pcrel refs 1/3 words (movax1)
+59252,59262,5,literal_pool,pcrel refs 3/5 words (movax2+mov.lx1)
+59702,59710,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+59714,59718,2,padding,all-zero word filler
+60610,60614,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+60878,60882,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+61154,61158,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+61474,61478,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+61670,61674,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+62738,62742,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+62748,62752,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+62754,62758,2,padding,all-zero word filler
+62760,62766,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+62950,62954,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+62960,62966,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+63310,63314,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+63328,63332,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+63340,63344,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+63610,63614,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+63618,63622,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+63628,63634,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+63640,63646,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+63650,63654,2,padding,all-zero word filler
+63896,63906,5,literal_pool,pcrel refs 3/5 words (mov.lx2+mov.wx1)
+64204,64210,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+64216,64222,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+64230,64234,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+64240,64244,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+64488,64494,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+64500,64504,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+64800,64806,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+64842,64848,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+64850,64858,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+64864,64868,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+65102,65106,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+65108,65114,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+65404,65408,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+65852,65858,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+65930,65938,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+66214,66218,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+66482,66486,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+66768,66772,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+67382,67386,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+67418,67422,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+67424,67428,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+68010,68014,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+68034,68038,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+68040,68050,5,literal_pool,pcrel refs 3/5 words (mov.lx3)
+68624,68630,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+68642,68648,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+68654,68662,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+69040,69046,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+69438,69442,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+69918,69922,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+69926,69934,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+70214,70218,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+70234,70238,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+70354,70358,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+70366,70370,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+71124,71128,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+71316,71320,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+71886,71890,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+71924,71930,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+72068,72072,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+72144,72148,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+72798,72802,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+72936,72940,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73076,73080,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73154,73158,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+73622,73626,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73656,73660,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73740,73744,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73746,73750,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73780,73784,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+73816,73820,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+74110,74114,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+74174,74178,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+74216,74224,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+75272,75276,2,literal_pool,pcrel refs 1/2 words (movax1)
+75564,75568,2,literal_pool,pcrel refs 1/2 words (movax1)
+76908,76914,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+77134,77138,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+77164,77170,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+77410,77414,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+77970,77974,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+78490,78494,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+79086,79090,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+79566,79570,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+80862,80866,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+82268,82272,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+82594,82598,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+82608,82614,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+83260,83264,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+83320,83330,5,literal_pool,pcrel refs 4/5 words (mov.lx3+mov.wx1)
+83900,83910,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x147bc:mov.l,0x147c0:mov.l,0x147c4:mov.l"
+84080,84090,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x14870:mov.l,0x14874:mov.l,0x14878:mov.l"
+84108,84118,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x1488c:mov.l,0x14890:mov.l,0x14894:mov.l"
+84420,84426,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+84440,84448,4,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x149d8:mov.l,0x149dc:mov.l"
+84502,84514,6,jump_table,"32-bit absolute x2 (pairing+1, targets in-window code) pcrel@0x14a18:mov.l,0x14a1c:mov.l,0x14a20:mov.l"
+84526,84530,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+84536,84540,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+84850,84854,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+85006,85010,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+85028,85032,2,literal_pool,pcrel refs 1/2 words (movax1)
+85254,85258,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+85406,85410,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+85428,85432,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+85744,85750,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+85970,85974,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+87606,87618,6,literal_pool,pcrel refs 3/6 words (mov.lx2+movax1)
+88700,88706,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+89032,89038,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+89348,89352,2,literal_pool,pcrel refs 1/2 words (movax1)
+90266,90272,3,literal_pool,pcrel refs 1/3 words (movax1)
+90618,90622,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+90648,90652,2,literal_pool,pcrel refs 1/2 words (movax1)
+91142,91146,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+91474,91478,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+91904,91908,2,literal_pool,pcrel refs 1/2 words (movax1)
+93026,93030,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+93044,93050,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+93060,93066,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+93068,93078,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x16b8c:mov.l,0x16b90:mov.l,0x16b94:mov.l"
+93080,93086,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+93338,93342,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+93692,93698,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+93958,93962,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+94194,94198,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+94214,94218,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+94550,94554,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+94598,94602,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+94806,94810,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+94826,94830,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+94846,94850,2,padding,all-zero word filler
+95070,95074,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+95082,95086,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+95394,95398,2,padding,all-zero word filler
+95778,95782,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+95786,95790,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+95798,95802,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96034,96038,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+96046,96050,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96066,96070,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96090,96094,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96346,96350,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+96366,96370,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96398,96402,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96406,96410,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96678,96682,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96706,96710,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96722,96726,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96730,96734,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96850,96854,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+96866,96872,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+97570,97574,2,padding,all-zero word filler
+97596,97600,2,literal_pool,pcrel refs 1/2 words (movax1)
+97620,97624,2,literal_pool,pcrel refs 1/2 words (movax1)
+97638,97642,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+98290,98294,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+98296,98306,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x17ff8:mov.l,0x17ffc:mov.l,0x18000:mov.l"
+98340,98346,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+98348,98358,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x1802c:mov.l,0x18030:mov.l,0x18034:mov.l"
+98368,98378,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x18040:mov.l,0x18044:mov.l,0x18048:mov.l"
+98380,98388,4,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x1804c:mov.l,0x18050:mov.l"
+98542,98546,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+98826,98830,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+99518,99522,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+99798,99802,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+99836,99842,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+100130,100134,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+100426,100430,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+100440,100446,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+100658,100662,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+100686,100690,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+101370,101374,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+101846,101850,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+101862,101866,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+102202,102206,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+102382,102386,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+102712,102716,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+102898,102902,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+102906,102910,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+102916,102920,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+103294,103300,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+103306,103310,2,padding,all-zero word filler
+103686,103690,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+103938,103942,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+104790,104794,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+104828,104834,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+105254,105258,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+105562,105566,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+106086,106090,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+106240,106246,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+106498,106502,2,padding,all-zero word filler
+106806,106810,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+107942,107948,3,literal_pool,pcrel refs 1/3 words (movax1)
+109162,109166,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+109354,109358,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+109862,109866,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+110754,110758,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+111166,111170,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+111182,111186,2,padding,all-zero word filler
+111566,111570,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+111580,111584,2,literal_pool,pcrel refs 1/2 words (movax1)
+111740,111744,2,literal_pool,pcrel refs 1/2 words (movax1)
+111748,111754,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+112394,112398,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+112694,112698,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+112906,112910,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+113170,113174,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+113422,113426,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+113474,113478,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+113638,113642,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+113930,113934,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+113938,113942,2,padding,all-zero word filler
+114330,114334,2,padding,all-zero word filler
+115344,115348,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+116022,116026,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+116642,116646,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+117292,117296,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+117320,117326,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+117606,117610,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+117618,117622,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+118406,118410,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+118426,118430,2,padding,all-zero word filler
+118442,118446,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+118738,118742,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+119134,119138,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+119446,119450,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+119638,119642,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+120254,120258,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+120278,120282,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+120342,120346,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+120360,120366,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+120370,120374,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+120414,120418,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+120430,120434,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+121294,121298,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+121306,121310,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+121630,121634,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+121702,121706,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+121934,121938,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+121990,121994,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+122518,122522,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+122530,122534,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+122878,122882,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+122934,122938,2,padding,all-zero word filler
+123222,123226,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+123246,123250,2,padding,all-zero word filler
+123844,123850,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+123904,123910,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+124202,124206,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+124218,124222,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+124234,124238,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+124404,124408,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+124914,124918,2,padding,all-zero word filler
+125238,125242,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+126894,126898,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+127062,127066,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+128750,128754,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+128772,128778,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+129054,129058,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+129202,129206,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+129506,129510,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+129536,129542,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+129678,129682,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+129700,129704,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+130302,130306,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+130410,130414,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+130702,130706,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+131002,131006,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+131062,131066,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+131734,131738,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+132040,132046,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+134016,134022,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+134246,134250,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+134726,134730,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+134756,134762,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+135002,135006,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+135260,135266,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+135614,135618,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+135722,135726,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+135994,135998,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+136332,136338,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+136842,136846,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+136962,136966,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+138014,138018,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+138038,138046,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+138158,138162,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+138766,138770,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+138982,138986,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+139048,139052,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+139056,139062,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+140062,140066,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+140334,140338,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+141004,141008,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+141014,141018,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+141032,141036,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+141044,141050,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+141358,141362,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+141658,141662,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+141690,141698,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+142206,142210,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+142606,142610,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+142914,142918,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+143208,143214,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+143224,143230,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+144232,144236,2,literal_pool,pcrel refs 1/2 words (movax1)
+144826,144830,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+145106,145110,2,padding,all-zero word filler
+145754,145758,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+147802,147806,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+147820,147826,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+148734,148738,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+148742,148746,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+148854,148858,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+148986,148990,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+149346,149350,2,padding,all-zero word filler
+149382,149386,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+149962,149966,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+150270,150274,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+150566,150570,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+150806,150810,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+152458,152462,2,padding,all-zero word filler
+152794,152798,2,padding,all-zero word filler
+153998,154002,2,padding,all-zero word filler
+154298,154302,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+154818,154822,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+155114,155118,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+155128,155132,2,literal_pool,pcrel refs 1/2 words (movax1)
+155612,155618,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+155624,155630,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+155680,155686,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+155850,155854,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+155858,155862,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+155868,155874,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+156122,156126,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+156482,156486,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+156504,156510,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+156512,156518,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+156750,156754,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+156760,156764,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+157104,157108,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+157136,157142,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+157148,157154,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+157158,157162,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+157464,157468,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+157714,157718,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+158000,158006,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+158300,158304,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+158872,158880,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+159630,159634,2,padding,all-zero word filler
+159902,159906,2,padding,all-zero word filler
+160306,160312,3,literal_pool,pcrel refs 1/3 words (movax1)
+160580,160586,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+161168,161172,2,literal_pool,pcrel refs 1/2 words (movax1)
+161204,161208,2,literal_pool,pcrel refs 1/2 words (movax1)
+161546,161550,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+161662,161666,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+161670,161674,2,padding,all-zero word filler
+162286,162290,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+162604,162610,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+163370,163374,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+163380,163386,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+163684,163694,5,literal_pool,pcrel refs 5/5 words (mov.wx5)
+163946,163950,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+163992,163996,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+164282,164286,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+164292,164298,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+164566,164570,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+165316,165320,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+165636,165642,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+165904,165910,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+166174,166178,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+166468,166472,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+166474,166478,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+166698,166706,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+167026,167030,2,padding,all-zero word filler
+167324,167328,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+168092,168096,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+168112,168118,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+168456,168460,2,literal_pool,pcrel refs 1/2 words (movax1)
+168986,168992,3,literal_pool,pcrel refs 1/3 words (movax1)
+170444,170450,3,literal_pool,pcrel refs 2/3 words (mov.lx2+mov.wx1)
+170922,170930,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+171220,171224,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+171502,171506,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+171530,171536,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+171538,171542,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+171550,171554,2,padding,all-zero word filler
+172264,172268,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+172270,172274,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+172558,172562,2,padding,all-zero word filler
+173142,173146,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+173426,173432,3,literal_pool,pcrel refs 1/3 words (movax1)
+173434,173438,2,padding,all-zero word filler
+173780,173786,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+174090,174098,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+174112,174116,2,literal_pool,pcrel refs 1/2 words (movax1)
+174432,174438,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+175346,175350,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+175392,175400,4,literal_pool,pcrel refs 2/4 words (movax2)
+175410,175414,2,padding,all-zero word filler
+175420,175424,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+175680,175684,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+175690,175694,2,literal_pool,pcrel refs 1/2 words (movax1)
+175704,175708,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+175962,175966,2,literal_pool,pcrel refs 1/2 words (movax1)
+175990,175994,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+177174,177178,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+177180,177184,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+177428,177434,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+178462,178466,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+178892,178896,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+179430,179434,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+180026,180032,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+180034,180038,2,padding,all-zero word filler
+180344,180350,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+180688,180694,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+180892,180896,2,literal_pool,pcrel refs 1/2 words (movax1)
+180898,180902,2,padding,all-zero word filler
+181244,181250,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+181562,181566,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+181610,181614,2,padding,all-zero word filler
+182114,182118,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+182422,182426,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+183408,183412,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+183670,183674,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+183678,183682,2,padding,all-zero word filler
+185286,185290,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+185564,185568,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+186694,186698,2,padding,all-zero word filler
+187400,187406,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+187704,187708,2,literal_pool,pcrel refs 1/2 words (movax1)
+187818,187822,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+187824,187830,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+188098,188102,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+188498,188502,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+188778,188782,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+189864,189868,2,literal_pool,pcrel refs 1/2 words (movax1)
+189870,189882,6,jump_table,"32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x2e5b0:mova,0x2e5b4:mova,0x2e5b8:mov.l"
+190462,190466,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+191000,191004,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+191290,191294,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+191608,191612,2,literal_pool,pcrel refs 1/2 words (movax1)
+191614,191626,6,jump_table,"32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x2ec80:mova,0x2ec84:mova,0x2ec88:mov.l"
+192162,192166,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+192628,192632,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+193546,193550,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+194324,194330,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+194332,194338,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+195054,195058,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+196482,196486,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+196508,196512,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+196822,196826,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+196828,196834,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+197414,197422,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+197858,197862,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+198422,198426,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+198594,198598,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+198600,198606,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+198738,198742,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+199258,199262,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+199520,199526,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+200346,200352,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+200498,200502,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+200798,200802,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+201130,201134,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+201138,201144,3,literal_pool,pcrel refs 1/3 words (movax1)
+201726,201730,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+201750,201754,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+202058,202062,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+202402,202406,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+202430,202434,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+202634,202638,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+202666,202670,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203046,203050,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+203068,203072,2,literal_pool,pcrel refs 1/2 words (movax1)
+203078,203082,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203086,203090,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203098,203102,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203106,203110,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203114,203118,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203122,203126,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203386,203390,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+203422,203426,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203442,203446,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203718,203722,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+203974,203978,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204202,204206,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204490,204494,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204514,204518,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204530,204534,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204774,204778,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+204786,204790,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+205106,205110,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+205910,205916,3,literal_pool,pcrel refs 1/3 words (movax1)
+205936,205942,3,literal_pool,pcrel refs 2/3 words (movax2)
+205968,205974,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+206250,206254,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+206256,206262,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+206674,206678,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207178,207182,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+207184,207190,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+207210,207214,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207226,207230,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207422,207426,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+207442,207446,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207502,207510,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+207822,207826,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+207834,207838,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207846,207850,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+207854,207858,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+208052,208058,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+208082,208086,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+208342,208346,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+208366,208370,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+208382,208386,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+208690,208694,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+208746,208750,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+209266,209270,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+209292,209298,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+209842,209846,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+210142,210146,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+211474,211478,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+211786,211790,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+212892,212896,2,literal_pool,pcrel refs 1/2 words (movax1)
+213136,213142,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+213452,213456,2,literal_pool,pcrel refs 1/2 words (movax1)
+213484,213488,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+213788,213792,2,literal_pool,pcrel refs 2/2 words (movax1+mov.wx1)
+213812,213818,3,literal_pool,pcrel refs 3/3 words (mov.lx2+mov.wx1)
+214330,214334,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+214964,214970,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+215266,215270,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+215284,215288,2,literal_pool,pcrel refs 1/2 words (movax1)
+215792,215798,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+216322,216326,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+216360,216366,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+217606,217610,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+217938,217942,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+217966,217970,2,padding,all-zero word filler
+218454,218458,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+219050,219054,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+219290,219294,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+219614,219618,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+219682,219686,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+219976,219980,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+219992,219998,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+220230,220236,3,literal_pool,pcrel refs 2/3 words (mov.wx2)
+220248,220254,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+220626,220632,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+220664,220668,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+220672,220678,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+221226,221230,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+221236,221242,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+221500,221506,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+222040,222046,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+222048,222052,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+222058,222062,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+222316,222322,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+222330,222338,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+222596,222602,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+222604,222610,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+222868,222874,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+222876,222882,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+222884,222890,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+222892,222898,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+223550,223554,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+223802,223806,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+223962,223966,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+223984,223988,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+224230,224234,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+224236,224240,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+224248,224254,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+224260,224264,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+224750,224754,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+225494,225498,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+226032,226038,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+226592,226598,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+226616,226620,2,literal_pool,pcrel refs 1/2 words (movax1)
+226858,226862,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+227158,227166,4,literal_pool,pcrel refs 3/4 words (mov.wx2+mov.lx1)
+227196,227202,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+227428,227434,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+227674,227678,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+227978,227982,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+228274,228278,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+228314,228318,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+228848,228852,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+229338,229342,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+229666,229670,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+229984,229990,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+230276,230280,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+230832,230838,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+231136,231142,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+231944,231948,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+231958,231962,2,padding,all-zero word filler
+232198,232202,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+232208,232212,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+232214,232218,2,padding,all-zero word filler
+232220,232224,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+232498,232502,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+233014,233018,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+233044,233050,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+233064,233070,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+233088,233094,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+233104,233108,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+233282,233286,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+233292,233298,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+233962,233966,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+233988,233994,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+234208,234214,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+234302,234306,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+234374,234378,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+235442,235446,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+235476,235480,2,literal_pool,pcrel refs 1/2 words (movax1)
+236350,236354,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+237554,237558,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+238070,238074,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+238110,238114,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+239454,239458,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+241746,241750,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+242382,242386,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+242590,242594,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+242596,242602,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+242904,242908,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+245262,245266,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+245794,245798,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+246120,246124,2,literal_pool,pcrel refs 1/2 words (movax1)
+246132,246138,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+248050,248056,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+248084,248088,2,literal_pool,pcrel refs 1/2 words (movax1)
+248342,248348,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+248368,248372,2,literal_pool,pcrel refs 1/2 words (movax1)
+249526,249530,2,literal_pool,pcrel refs 2/2 words (mov.wx2+mov.lx1)
+249552,249556,2,literal_pool,pcrel refs 1/2 words (movax1)
+253870,253876,3,literal_pool,pcrel refs 1/3 words (movax1)
+254426,254430,2,padding,all-zero word filler
+254688,254692,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+255042,255046,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+257018,257022,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+258416,258420,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+258460,258466,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+258828,258832,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+258872,258878,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+259054,259060,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+259332,259338,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+260238,260242,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+261248,261254,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+261570,261574,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+262538,262542,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+263240,263244,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+263248,263252,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+263644,263648,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+263656,263660,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+264096,264100,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+264108,264114,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+264398,264404,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+264412,264418,3,literal_pool,pcrel refs 2/3 words (mov.lx2+movax1)
+264726,264730,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+265576,265580,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+266110,266114,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+266120,266126,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+266490,266494,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+266520,266526,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+267112,267118,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+267690,267694,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+268254,268258,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+268818,268822,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+269382,269386,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+269634,269638,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+270326,270330,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+271058,271062,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+273150,273154,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+273848,273852,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+274016,274020,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+274524,274528,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+275086,275090,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+275132,275136,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+275742,275746,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+276658,276662,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+276958,276962,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+278232,278238,3,literal_pool,pcrel refs 2/3 words (movax2)
+279228,279234,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+279246,279250,2,padding,all-zero word filler
+279254,279260,3,literal_pool,pcrel refs 1/3 words (movax1)
+279554,279558,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+279570,279574,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+279638,279648,5,jump_table,"32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x44458:mova,0x4445c:mova"
+279824,279832,4,literal_pool,pcrel refs 2/4 words (movax2)
+279846,279854,4,literal_pool,pcrel refs 2/4 words (movax1+mov.lx1)
+280600,280604,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+281614,281618,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+281798,281802,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+281806,281810,2,padding,all-zero word filler
+283274,283278,2,padding,all-zero word filler
+283320,283324,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+283974,283978,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+283994,283998,2,padding,all-zero word filler
+284392,284398,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+284472,284476,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+284758,284762,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+285282,285286,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+286808,286812,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+286914,286918,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+287764,287768,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+288322,288328,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+288918,288924,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+289498,289502,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+289510,289514,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+289948,289954,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+290168,290172,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+290174,290178,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+290342,290346,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+290640,290644,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+290888,290892,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+292170,292174,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+292600,292604,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+292876,292882,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+292884,292888,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+293184,293190,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+293192,293196,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+293572,293576,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+294530,294534,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+295088,295092,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+295100,295104,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+295348,295352,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+295354,295360,3,literal_pool,pcrel refs 2/3 words (mov.wx2)
+295820,295824,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+296148,296160,6,literal_pool,pcrel refs 4/6 words (mov.wx3+mov.lx1)
+296490,296496,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+296782,296788,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+297530,297538,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+298776,298780,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+298782,298788,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+299148,299154,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+299394,299398,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+299406,299410,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+299420,299424,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+299752,299756,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+300556,300560,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+301056,301060,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+301844,301850,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+302358,302362,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+302654,302658,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+302840,302844,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+303032,303038,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+304326,304330,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+304658,304662,2,padding,all-zero word filler
+304666,304670,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+304762,304766,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+304994,304998,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+305324,305328,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+305898,305902,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+306382,306386,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+306400,306406,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+307906,307910,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+308858,308862,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+309290,309294,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+309896,309900,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+310150,310154,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+310194,310198,2,padding,all-zero word filler
+310584,310590,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+311516,311520,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+311822,311826,2,literal_pool,pcrel refs 1/2 words (mov.lx1+movax1)
+311856,311860,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+311864,311868,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312130,312134,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+312162,312166,2,padding,all-zero word filler
+312170,312174,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312422,312426,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312446,312450,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312484,312488,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312734,312738,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+312752,312756,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+312784,312788,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+314208,314212,2,literal_pool,pcrel refs 1/2 words (movax1)
+314766,314770,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+315770,315774,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+315942,315946,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+316446,316450,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+317798,317802,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+318354,318358,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+321598,321602,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+321604,321610,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+321612,321616,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+321856,321860,2,literal_pool,pcrel refs 1/2 words (movax1)
+321862,321898,18,unknown_data,
+321900,321906,3,unknown_data,
+321910,321914,2,unknown_data,
+321916,321922,3,unknown_data,
+321926,321930,2,unknown_data,
+321932,321940,4,unknown_data,
+321942,321946,2,unknown_data,
+321948,321956,4,unknown_data,
+321958,321962,2,unknown_data,
+321964,321972,4,unknown_data,
+321974,321978,2,unknown_data,
+321980,321988,4,unknown_data,
+321990,321994,2,unknown_data,
+321996,322004,4,unknown_data,
+322006,322010,2,unknown_data,
+322012,322020,4,unknown_data,
+322022,322026,2,unknown_data,
+322028,322036,4,padding,0x00xx-pattern run (high byte 0x00)
+322038,322042,2,unknown_data,
+322044,322052,4,unknown_data,
+322054,322058,2,unknown_data,
+322060,322068,4,unknown_data,
+322070,322074,2,unknown_data,
+322076,322084,4,unknown_data,
+322086,322090,2,unknown_data,
+322092,322098,3,unknown_data,
+322102,322106,2,unknown_data,
+322108,322116,4,padding,0x00xx-pattern run (high byte 0x00)
+322118,322122,2,unknown_data,
+322124,322132,4,unknown_data,
+322134,322138,2,unknown_data,
+322140,322154,7,unknown_data,
+322156,322162,3,unknown_data,
+322166,322170,2,unknown_data,
+322172,322178,3,unknown_data,
+322182,322186,2,unknown_data,
+322188,322196,4,unknown_data,
+322198,322202,2,unknown_data,
+322204,322212,4,unknown_data,
+322214,322218,2,unknown_data,
+322220,322228,4,unknown_data,
+322230,322234,2,unknown_data,
+322236,322244,4,unknown_data,
+322246,322250,2,unknown_data,
+322252,322260,4,unknown_data,
+322262,322266,2,unknown_data,
+322268,322276,4,unknown_data,
+322278,322282,2,unknown_data,
+322284,322292,4,padding,0x00xx-pattern run (high byte 0x00)
+322294,322298,2,unknown_data,
+322300,322308,4,unknown_data,
+322310,322314,2,unknown_data,
+322316,322324,4,unknown_data,
+322326,322330,2,unknown_data,
+322332,322340,4,unknown_data,
+322342,322346,2,unknown_data,
+322348,322354,3,unknown_data,
+322358,322362,2,unknown_data,
+322364,322372,4,padding,0x00xx-pattern run (high byte 0x00)
+322374,322378,2,unknown_data,
+322380,322388,4,unknown_data,
+322390,322394,2,unknown_data,
+322396,322410,7,unknown_data,
+322412,322418,3,unknown_data,
+322422,322426,2,unknown_data,
+322428,322434,3,unknown_data,
+322438,322442,2,unknown_data,
+322444,322452,4,unknown_data,
+322454,322458,2,unknown_data,
+322460,322468,4,unknown_data,
+322470,322474,2,unknown_data,
+322476,322484,4,unknown_data,
+322486,322490,2,unknown_data,
+322492,322500,4,unknown_data,
+322502,322506,2,unknown_data,
+322508,322516,4,unknown_data,
+322518,322522,2,unknown_data,
+322524,322532,4,unknown_data,
+322534,322538,2,unknown_data,
+322540,322548,4,padding,0x00xx-pattern run (high byte 0x00)
+322550,322554,2,unknown_data,
+322556,322564,4,unknown_data,
+322566,322570,2,unknown_data,
+322572,322580,4,unknown_data,
+322582,322586,2,unknown_data,
+322588,322596,4,unknown_data,
+322598,322602,2,unknown_data,
+322604,322610,3,unknown_data,
+322614,322618,2,unknown_data,
+322620,322628,4,padding,0x00xx-pattern run (high byte 0x00)
+322630,322634,2,unknown_data,
+322636,322644,4,unknown_data,
+322646,322650,2,unknown_data,
+322652,322658,3,padding,all-zero word filler
+322660,322666,3,unknown_data,
+322668,322674,3,unknown_data,
+322678,322682,2,unknown_data,
+322684,322692,4,unknown_data,
+322694,322698,2,unknown_data,
+322700,322708,4,unknown_data,
+322710,322714,2,unknown_data,
+322716,322724,4,unknown_data,
+322726,322730,2,unknown_data,
+322732,322738,3,unknown_data,
+322742,322746,2,unknown_data,
+322748,322754,3,unknown_data,
+322760,322776,8,unknown_data,
+322788,322798,5,padding,0x00xx-pattern run (high byte 0x00)
+322804,322814,5,padding,0x00xx-pattern run (high byte 0x00)
+322820,322824,2,unknown_data,
+322826,322830,2,unknown_data,
+322834,322842,4,padding,0x00xx-pattern run (high byte 0x00)
+322848,322864,8,unknown_data,
+322882,322890,4,padding,0x00xx-pattern run (high byte 0x00)
+322892,322906,7,padding,0x00xx-pattern run (high byte 0x00)
+322908,322948,20,unknown_data,
+322950,322956,3,unknown_data,
+322960,322968,4,unknown_data,
+322974,322978,2,unknown_data,
+322986,322990,2,unknown_data,
+322996,323000,2,padding,all-zero word filler
+323004,323012,4,unknown_data,
+323358,323362,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+323898,323902,2,padding,all-zero word filler
+324306,324310,2,padding,all-zero word filler
+325340,325344,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+325878,325882,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+326134,326138,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+326338,326342,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+326576,326582,3,literal_pool,pcrel refs 3/3 words (mov.wx3+mov.lx1)
+326898,326902,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+326966,326970,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+328638,328642,2,padding,all-zero word filler
+328644,328648,2,literal_pool,pcrel refs 1/2 words (movax1)
+329016,329040,12,literal_pool,pcrel refs 12/12 words (mov.wx12+mov.lx1)
+329348,329354,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+329636,329642,3,literal_pool,pcrel refs 3/3 words (mov.wx3+mov.lx1)
+330922,330926,2,literal_pool,pcrel refs 2/2 words (mov.wx2+mov.lx1)
+330946,330950,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+331206,331210,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+331516,331520,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+331756,331760,2,literal_pool,pcrel refs 1/2 words (mov.wx1+mov.lx1)
+332016,332022,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+332032,332040,4,literal_pool,pcrel refs 3/4 words (mov.wx3)
+332346,332360,7,literal_pool,pcrel refs 7/7 words (mov.wx7)
+332366,332374,4,literal_pool,pcrel refs 3/4 words (mov.wx2+mov.lx2)
+332636,332640,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+332646,332650,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+332858,332868,5,literal_pool,pcrel refs 5/5 words (mov.wx5)
+333106,333110,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+333386,333394,4,literal_pool,pcrel refs 4/4 words (mov.wx4+mov.lx2)
+333742,333746,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+334036,334042,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx1)
+334048,334058,5,literal_pool,pcrel refs 3/5 words (movax2+mov.lx1)
+334332,334336,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+334364,334370,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+334372,334378,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+334626,334630,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+334640,334644,2,literal_pool,pcrel refs 2/2 words (mov.wx2+mov.lx1)
+335400,335410,5,literal_pool,pcrel refs 5/5 words (mov.wx5)
+336304,336308,2,literal_pool,pcrel refs 1/2 words (mov.lx1+movax1)
+336932,336938,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+337192,337198,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+337208,337212,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+338000,338020,10,literal_pool,pcrel refs 10/10 words (mov.wx10)
+338284,338294,5,literal_pool,pcrel refs 4/5 words (mov.wx3+mov.lx1)
+338604,338610,3,literal_pool,pcrel refs 3/3 words (mov.wx3+mov.lx1)
+338886,338890,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+339160,339164,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+339436,339440,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+339458,339462,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+339730,339736,3,literal_pool,pcrel refs 3/3 words (mov.wx3)
+339990,339996,3,literal_pool,pcrel refs 3/3 words (mov.wx3+mov.lx1)
+340500,340504,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+340746,340760,7,literal_pool,pcrel refs 7/7 words (mov.wx7)
+340976,340996,10,literal_pool,pcrel refs 10/10 words (mov.wx10+mov.lx2)
+341302,341306,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+341570,341574,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+341834,341838,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+341986,341998,6,literal_pool,pcrel refs 6/6 words (mov.wx6+mov.lx1)
+342002,342008,3,literal_pool,pcrel refs 2/3 words (mov.wx2)
+342268,342274,3,literal_pool,pcrel refs 3/3 words (mov.wx2+mov.lx2)
+342358,342366,4,literal_pool,pcrel refs 3/4 words (mov.wx2+mov.lx1)
+343944,343948,2,literal_pool,pcrel refs 1/2 words (movax1)
+345438,345442,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+346024,346028,2,literal_pool,pcrel refs 1/2 words (mov.wx1+mov.lx1)
+347136,347156,10,literal_pool,pcrel refs 10/10 words (mov.wx10+mov.lx3)
+347158,347162,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+348086,348090,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+348844,348848,2,unknown_data,
+349974,349978,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+350298,350302,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+352052,352056,2,literal_pool,pcrel refs 1/2 words (movax1)
+352082,352086,2,padding,all-zero word filler
+352094,352098,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+352426,352430,2,padding,all-zero word filler
+352432,352436,2,literal_pool,pcrel refs 1/2 words (movax1)
+352452,352456,2,literal_pool,pcrel refs 1/2 words (movax1)
+352468,352476,4,literal_pool,pcrel refs 2/4 words (mov.lx2)
+352874,352878,2,padding,all-zero word filler
+352880,352884,2,literal_pool,pcrel refs 1/2 words (movax1)
+352974,352978,2,padding,all-zero word filler
+352980,352984,2,literal_pool,pcrel refs 1/2 words (movax1)
+352992,352996,2,literal_pool,pcrel refs 1/2 words (movax1)
+353438,353442,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+354240,354246,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+354542,354546,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+354840,354846,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+354852,354856,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+355712,355716,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+355718,355722,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+356134,356142,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+356624,356628,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+356874,356878,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+356888,356894,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+357188,357192,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+358362,358366,2,padding,all-zero word filler
+358370,358374,2,padding,all-zero word filler
+358678,358682,2,padding,all-zero word filler
+358694,358698,2,padding,all-zero word filler
+359026,359030,2,padding,all-zero word filler
+359362,359366,2,padding,all-zero word filler
+359370,359374,2,padding,all-zero word filler
+359378,359382,2,padding,all-zero word filler
+359384,359388,2,literal_pool,pcrel refs 1/2 words (movax1)
+361406,361414,4,literal_pool,pcrel refs 4/4 words (mov.wx4)
+361422,361426,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+363042,363046,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+363840,363844,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+364120,364126,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+364440,364446,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+364822,364826,2,padding,all-zero word filler
+365426,365430,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+365436,365440,2,literal_pool,pcrel refs 1/2 words (movax1)
+365452,365458,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+365754,365758,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+365764,365768,2,literal_pool,pcrel refs 1/2 words (movax1)
+365780,365786,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+366070,366074,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+366092,366098,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+366362,366368,3,literal_pool,pcrel refs 1/3 words (movax1)
+366370,366374,2,padding,all-zero word filler
+366654,366658,2,padding,all-zero word filler
+366966,366970,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+366992,366998,3,literal_pool,pcrel refs 2/3 words (movax1+mov.lx1)
+367306,367310,2,padding,all-zero word filler
+367316,367322,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+367560,367564,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+367842,367848,3,literal_pool,pcrel refs 1/3 words (mov.lx1)
+368662,368666,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+369050,369054,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+369896,369900,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+370588,370592,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+371160,371164,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+371792,371796,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+372496,372500,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+372782,372786,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+373436,373442,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+374150,374154,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+374164,374170,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+374416,374422,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+374652,374658,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+374882,374886,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+374896,374902,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+375180,375184,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+375948,375952,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+376288,376292,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+376396,376400,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+376666,376670,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+377016,377022,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+377738,377742,2,literal_pool,pcrel refs 2/2 words (mov.wx2)
+377778,377782,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+377854,377858,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+377874,377878,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+378436,378442,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+378496,378502,3,literal_pool,pcrel refs 2/3 words (mov.wx1+mov.lx1)
+379302,379306,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+379322,379326,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+379606,379610,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+379878,379882,2,padding,all-zero word filler
+379906,379910,2,padding,all-zero word filler
+380836,380840,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+381030,381034,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+381250,381254,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+381470,381474,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+381762,381766,2,padding,all-zero word filler
+382026,382030,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+382370,382374,2,padding,all-zero word filler
+382698,382702,2,padding,all-zero word filler
+382966,382970,2,padding,all-zero word filler
+383166,383170,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+384046,384050,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+384266,384270,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+384546,384550,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+384834,384838,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+385130,385134,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+385418,385422,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+385436,385440,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+386040,386046,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+386382,386386,2,padding,all-0xFFFF filler (stray pcrel ref x1)
+386398,386402,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+386654,386658,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+388342,388346,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+388396,388402,3,literal_pool,pcrel refs 2/3 words (mov.lx2+mov.wx1)
+388784,388788,2,literal_pool,pcrel refs 1/2 words (movax1)
+389824,389830,3,literal_pool,pcrel refs 2/3 words (mov.lx2)
+390110,390114,2,literal_pool,pcrel refs 2/2 words (mov.wx1+mov.lx1)
+390206,390210,2,literal_pool,pcrel refs 1/2 words (mov.lx1)
+390212,390216,2,unknown_data,
+390220,390224,2,unknown_data,
+390228,390232,2,unknown_data,
+390236,390240,2,unknown_data,
+390244,390248,2,unknown_data,
+390252,390256,2,unknown_data,
+390260,390264,2,unknown_data,
+390268,390272,2,unknown_data,
+390276,390280,2,unknown_data,
+390284,390288,2,unknown_data,
+390476,390480,2,padding,all-zero word filler
+390484,390488,2,unknown_data,
+390492,390496,2,unknown_data,
+390500,390504,2,unknown_data,
+390508,390512,2,unknown_data,
+390516,390520,2,padding,all-zero word filler
+390524,390528,2,unknown_data,
+390532,390540,4,padding,0x00xx-pattern run (high byte 0x00)
+390544,390552,4,padding,0x00xx-pattern run (high byte 0x00)
+390556,390564,4,padding,0x00xx-pattern run (high byte 0x00)
+390568,390576,4,unknown_data,
+390580,390588,4,padding,0x00xx-pattern run (high byte 0x00)
+390592,390600,4,padding,0x00xx-pattern run (high byte 0x00)
+390604,390608,2,unknown_data,
+390616,390620,2,unknown_data,
+390628,390632,2,unknown_data,
+390734,390738,2,unknown_data,
+390748,390752,2,unknown_data,
+390868,390872,2,padding,all-zero word filler
+390882,390904,11,padding,all-zero word filler
+390914,391032,59,padding,all-zero word filler
+391038,391046,4,padding,0x00xx-pattern run (high byte 0x00)
+391048,391128,40,padding,0x00xx-pattern run (high byte 0x00)
+391130,391160,15,padding,all-zero word filler
+391164,391172,4,unknown_data,
+391174,391180,3,unknown_data,
+391340,391344,2,unknown_data,
+391678,391684,3,literal_pool,pcrel refs 1/3 words (mov.wx1)
+391688,391692,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+391760,391764,2,unknown_data,
+391776,391804,14,padding,0xFFxx-pattern run (high byte 0xFF)
+391822,391836,7,unknown_data,
+391842,391850,4,padding,0x00xx-pattern run (high byte 0x00)
+391852,391856,2,literal_pool,pcrel refs 1/2 words (mov.wx1)
+391864,391868,2,unknown_data,
+391886,391892,3,literal_pool,pcrel refs 1/3 words (mov.wx1)
+391898,391904,3,unknown_data,
+391982,391988,3,padding,0x00xx-pattern run (high byte 0x00)
+391994,392000,3,padding,all-zero word filler
+392004,392012,4,unknown_data,
+392140,392144,2,unknown_data,
+392152,392156,2,unknown_data,
+392176,392180,2,unknown_data,
+392224,392228,2,unknown_data,
+392236,392240,2,unknown_data,
+392272,392276,2,unknown_data,
+392284,392288,2,unknown_data,
+392296,392300,2,unknown_data,
+392332,392336,2,unknown_data,
+392344,392348,2,unknown_data,
+392356,392360,2,unknown_data,
+392404,392408,2,unknown_data,
+392440,392444,2,unknown_data,
+392512,392516,2,unknown_data,
+392812,392816,2,unknown_data,
+392824,392828,2,unknown_data,
+393114,393120,3,unknown_data,
+393126,393132,3,unknown_data,
+393138,393144,3,unknown_data,
+393150,393156,3,unknown_data,
+393162,393168,3,unknown_data,
+393174,393180,3,unknown_data,
+393186,393192,3,unknown_data,
+393198,393202,2,unknown_data,
+393210,393214,2,unknown_data,

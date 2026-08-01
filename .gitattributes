@@ -1,0 +1,11 @@
+# Binary / non-text files: treat as binary (no line-ending or diff mangling)
+*.bin       text=false
+*.gar       text=false
+*.i64       text=false
+*.png       text=false
+*.jpg       text=false
+*.jpeg      text=false
+*.pdf       text=false
+*.elf       text=false
+*.o         text=false
+*.BIN       text=false

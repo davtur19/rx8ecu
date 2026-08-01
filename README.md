@@ -1,0 +1,126 @@
+# Mazda RX-8 PCM Reverse Engineering
+
+Complete, byte-exact reverse engineering of the **Mazda RX-8 PCM firmware** —
+the Denso **279700-3313** engine-control module built around a Renesas **SH-2E**
+(**SH7055 / HD64F7055**) 32-bit CPU with **512 KB** of program flash, big-endian.
+
+This repository is a full, self-contained, reproducible reverse-engineering
+deliverable: it ships the tools, the annotated assembly, the verified C
+reimplementations, the analysis, the documentation, and the stock firmware
+images — and proves the whole thing by rebuilding every shipped ROM to
+**byte-identical** output.
+
+## What's included
+
+- **Byte-exact rebuild pipeline** — every stock ROM is disassembled (capstone
+  SH-2 + a custom `disasm_sh2e.py` fallback), emitted as ONE reassemblable GNU-as
+  source file, assembled/linked with `sh-elf` binutils, and compared to the source
+  image with `sha256sum`. **10 stock ROMs verified byte-identical (9 shipped
+  publicly here; the 10th — the project owner's personal live-ECU dump
+  `[REDACTED]` — and all modified images are intentionally kept private).**
+- **Annotated assembly** — 9 per-ROM annotated `.s` sources lifting **93.46–93.8%**
+  of the code window (0x800..0x60000) to real SH-2 instructions (remainder is
+  byte-exact `.word` data: literal pools, jump tables, calibration, padding).
+  Coverage is a *round-trip* figure and is real and verified — every shipped ROM
+  rebuilds byte-identical — but it counts every in-window word that decodes and
+  re-encodes to valid bytes; a small fraction (~6%) of those are data tables, so
+  the true code fraction is ~88–91% (data ~9–12%).
+- **SH-2E disassembler + emulator** — `tools/disasm_sh2e.py` (covers the SH-2E
+  decode-gap families capstone misses: FPU, fpul/fpscr, `mov.l @(disp,Rm)`) and
+  `tools/sh2emu.py` (integer + single-precision FPU), the oracle every C lift is
+  proven against.
+- **149 C lifts** — most behavior-equivalent reimplementations (lookup/interp
+  primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
+  DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
+  *actual ROM bytes* running on the emulator over tens of thousands of
+  randomized inputs each (97 verified addresses); the few reconstruction-tier
+  files (structural, not emulator-verified) are labeled as such in-tree.
+- **193 function docs + 15 subsystem docs** (`docs/functions/`,
+  `docs/subsystems/`).
+- **1,210 calibration tables** (`symbols/cal_tables.csv`), **6,953 resolved
+  call-graph edges**, **18 jump tables identified** (60E1D400 baseline,
+  `analysis/data_regions_60E1D400.csv`).
+- **Host test suites**: 102 Python per-function suites, 21 C suites,
+  emulator cross-checks (5 functions × 100k random inputs), and SH-2E
+  disassembler/emulator family regressions (38,008 + 69 checks).
+
+## Quickstart
+
+Prerequisites: Python 3, `make`, a C compiler (only for `make c-test`), and the
+`capstone` pip package — the **only** external dependency:
+
+```bash
+python3 -m pip install capstone --break-system-packages
+./tools/get_toolchain.sh        # one-time, idempotent: installs sh-elf binutils into tools/toolchain/ (no root)
+make verify-all                 # rebuild + byte-compare ALL 9 public stock ROMs -> 9/9 BYTE-EXACT
+```
+
+Step-by-step reproduction from a fresh clone: **see [REPLICATION.md](REPLICATION.md)**.
+All evidence (hashes, test runs, coverage tables): **[VERIFICATION.md](VERIFICATION.md)**.
+Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
+
+## Repository layout
+
+| Path | Contents |
+|------|----------|
+| `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
+| `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
+| `c/` | 149 verified C lifts, `eeprom_immo.h`, host test suites (102 py + 21 c), `verified_addrs.txt` |
+| `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
+| `symbols/` | Kept symbol-table CSVs (60E0FC00 plain/ghidra, 60E1D400 ida/merged), `cal_tables.csv` (1,210 tables), `callgraph.csv` |
+| `analysis/` | Code-window data-region classification for the 60E1D400 baseline |
+| `docs/subsystems/` | 15 docs: subsystem docs + overview, boot sequence, IDA names, maps |
+| `docs/functions/` | 193 per-function documentation |
+| `docs/notes/` | Project knowledge base (FINDINGS, KNOWLEDGE, RESUME, ECU, HARDWARE, CAN_PROTOCOL, ...) |
+| `docs/hardware/` | Legacy protocol / hardware reference texts |
+| `hardware/` | Hardware notes (`HARDWARE_NOTES.md`) — board photos & web refs moved to private storage |
+
+> `docs/maps/`, `docs/analysis/`, `docs/pseudocode/`, `docs/renesis/` and `security/`
+> were moved to private storage (not shipped); `symbols/` ships the kept CSVs only.
+
+`make` targets: `verify-all` (9/9 byte-exact), `verify` (single ROM),
+`all` (rebuild `build/out.bin`), `src` (regenerate the 60E1D400 annotated source),
+`c-test` (host C suites), `c-emu` (emulator cross-checks), `clean`.
+
+## Legal notice
+
+The firmware is the intellectual property of **Mazda Motor Corporation** and
+**Denso Corporation**. The ROM images shipped in `roms/stock/` and the
+byte-exact transcriptions in `src/*_annotated.s` are the property of Mazda
+Motor Corporation and Denso Corporation and are **NOT covered by this repo's
+AGPL license**; they are included unmodified for research, interoperability,
+and preservation purposes, all rights reserved by their owners. The ROM images
+are **stock factory firmware already in public circulation** (community
+stock-ROM collection, verified byte-identical to the published dumps).
+**Modified (tuned) images and personal ECU dumps are intentionally NOT
+included** in this repository. This is an independent, unofficial research
+project; it is not affiliated with, or endorsed by, Mazda Motor Corporation or
+Denso Corporation. This project exists for research, interoperability, and
+preservation purposes. Licensed under the GNU Affero General Public License
+v3 — see [LICENSE](LICENSE).
+
+## Credits & origins
+
+This repository is a **from-scratch refactor and continuation** of the community
+reverse-engineering of the Mazda RX-8 S1 PCM: the tooling, rebuild pipeline, and
+C reimplementations were written and verified for this project, while the function
+naming and calibration-table knowledge build on the prior community work below.
+Full credit and thanks:
+
+- **equinox311** — the original RX-8 PCM reverse-engineering effort and its public
+  repository: https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering
+  (community `Stock_ROMs/` collection — the 9 public ROMs here were verified
+  byte-identical to it — and **931 hand-annotated Ghidra function names**
+  cross-mapped into `symbols/` and `src/*_annotated.s`).
+- **equinox92** — same person; author of the "Open Source S1 RX-8 ECU RE, Data
+  Logging & Tuning" guide (rx8club.com, 2025-01-12) used for ROM-variant mapping,
+  hardware identification, and the ignition/fueling strategy.
+- **RX8Man / equinox311 RX8Defs** — the rx8defs XML definition files behind
+  `symbols/cal_tables.csv` (1,210 tables): the "RX8 Man - RX8 ECU Definitions"
+  project (https://github.com/Rx8Man/Rx8Man), mirrored via
+  https://github.com/equinox311/RX8Defs.
+- **capstone** (SH-2 disassembly) — BSD-3-Clause; **GNU binutils** (sh-elf) —
+  GPL-3.0-or-later; **Ghidra / IDA** — analysis tools.
+
+See **[CREDITS.md](CREDITS.md)** for the full attribution, sources, and evidence.
+Project context and methodology: [PLANS.md](PLANS.md).

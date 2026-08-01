@@ -1,0 +1,61 @@
+RX-8 PCM stock-ROM clustering
+(A) RAW byte distance (%diff at identical offsets) — dominated by layout relocation.
+(B) CONTENT distance (100 - 16B-block content similarity) — relocation-tolerant.
+
+(A) single-linkage merges on raw distance:
+  merge @ 0.008% : 60E0FB00.bin <-> 60E0FC00.bin
+  merge @ 76.428% : 60E1B900.bin <-> 60E0FB00.bin+60E0FC00.bin
+  merge @ 76.847% : 60E0E500.bin <-> 60E0E700_N3YLEE.bin
+  merge @ 77.563% : 60E1C500_N3J6EB.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin
+  merge @ 80.927% : 60E1D400.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E1C500_N3J6EB.bin
+  merge @ 81.215% : 60E0FB00.bin+60E0FC00.bin+60E1B900.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+  merge @ 83.699% : 60E15120_N3J1E.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E0FB00.bin+60E0FC00.bin+60E1B900.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+  merge @ 88.730% : 60E32000_N3M5E.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E0FB00.bin+60E0FC00.bin+60E15120_N3J1E.bin+60E1B900.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+
+(B) single-linkage merges on content distance:
+  merge @ 0.046% : 60E0FB00.bin <-> 60E0FC00.bin
+  merge @ 8.853% : 60E1B900.bin <-> 60E0FB00.bin+60E0FC00.bin
+  merge @ 10.226% : 60E0E500.bin <-> 60E1C500_N3J6EB.bin
+  merge @ 19.733% : 60E1D400.bin <-> 60E0E500.bin+60E1C500_N3J6EB.bin
+  merge @ 22.321% : 60E0E700_N3YLEE.bin <-> 60E0E500.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+  merge @ 26.312% : 60E15120_N3J1E.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+  merge @ 28.903% : 60E0FB00.bin+60E0FC00.bin+60E1B900.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E15120_N3J1E.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+  merge @ 39.993% : 60E32000_N3M5E.bin <-> 60E0E500.bin+60E0E700_N3YLEE.bin+60E0FB00.bin+60E0FC00.bin+60E15120_N3J1E.bin+60E1B900.bin+60E1C500_N3J6EB.bin+60E1D400.bin
+
+(B) groups at content distance <= 1%:
+  60E0E500
+  60E0E700_N3YLEE
+  60E0FB00, 60E0FC00
+  60E15120_N3J1E
+  60E1B900
+  60E1C500_N3J6EB
+  60E1D400
+  60E32000_N3M5E
+
+(B) groups at content distance <= 5%:
+  60E0E500
+  60E0E700_N3YLEE
+  60E0FB00, 60E0FC00
+  60E15120_N3J1E
+  60E1B900
+  60E1C500_N3J6EB
+  60E1D400
+  60E32000_N3M5E
+
+(B) groups at content distance <= 10%:
+  60E0E500
+  60E0E700_N3YLEE
+  60E0FB00, 60E0FC00, 60E1B900
+  60E15120_N3J1E
+  60E1C500_N3J6EB
+  60E1D400
+  60E32000_N3M5E
+
+(B) groups at content distance <= 20%:
+  60E0E500, 60E1C500_N3J6EB, 60E1D400
+  60E0E700_N3YLEE
+  60E0FB00, 60E0FC00, 60E1B900
+  60E15120_N3J1E
+  60E32000_N3M5E
+
+Note: content distance = 100 - block_content_similarity

@@ -1,0 +1,284 @@
+[
+ {
+  "cal_id": "60E1D400",
+  "sw": "SW-N3J1EM000.HEX",
+  "task": "N3J1E_3W.T50",
+  "family": "J-line",
+  "role": "RE baseline - fully documented; primary Track-A/B target",
+  "id": "D400",
+  "file": "60E1D400.bin",
+  "sha256": "344cb8b960eb6dde973bdb8e8c3e3e96cac542166cd7158c6f5f24d71eb7af78",
+  "security_key_offset": "0x5FAC0",
+  "code_end": "0x6C270",
+  "cal_lo": "0x6CE00",
+  "cal_span": 68863,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6CE43",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": 0,
+  "table_map": {
+   "mapped": 1210,
+   "unmatched": 0,
+   "methods": {
+    "same_addr": 1209,
+    "hole": 1
+   },
+   "confidence": {
+    "high": 1209,
+    "low": 1
+   }
+  }
+ },
+ {
+  "cal_id": "60E0E500",
+  "sw": "SW-N3YMEC000.HEX",
+  "task": null,
+  "family": "J-line",
+  "role": "community ref",
+  "id": "E500",
+  "file": "60E0E500.bin",
+  "sha256": "c05dfd0422b2b773027a22dcce2c24923969f27b94634bfcbdb44d6157087e11",
+  "security_key_offset": "0x5E460",
+  "code_end": "0x6AAB4",
+  "cal_lo": "0x6C600",
+  "cal_span": 70911,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6C643",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": -2048,
+  "table_map": {
+   "mapped": 1209,
+   "unmatched": 1,
+   "methods": {
+    "content_match": 845,
+    "family_shift": 364
+   },
+   "confidence": {
+    "high": 845,
+    "medium": 232,
+    "low": 132
+   }
+  }
+ },
+ {
+  "cal_id": "60E1C500",
+  "sw": "SW-N3J6EN000.HEX",
+  "task": "N3J6EBMW.T50",
+  "family": "J-line",
+  "role": "community ref (file tagged _N3J6EB)",
+  "id": "C500",
+  "file": "60E1C500_N3J6EB.bin",
+  "sha256": "b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68",
+  "security_key_offset": "0x5E730",
+  "code_end": "0x6AD84",
+  "cal_lo": "0x6C600",
+  "cal_span": 70911,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6C643",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": -2048,
+  "table_map": {
+   "mapped": 1209,
+   "unmatched": 1,
+   "methods": {
+    "content_match": 947,
+    "family_shift": 262
+   },
+   "confidence": {
+    "high": 947,
+    "medium": 178,
+    "low": 84
+   }
+  }
+ },
+ {
+  "cal_id": "60E0FB00",
+  "sw": "SW-N3Z2ET000.HEX",
+  "task": null,
+  "family": "Z-line",
+  "role": "US 6-Port MT community ref",
+  "id": "FB00",
+  "file": "60E0FB00.bin",
+  "sha256": "3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661",
+  "security_key_offset": "0x5D90C",
+  "code_end": "0x69F44",
+  "cal_lo": "0x6D300",
+  "cal_span": 67583,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6D343",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": 1280,
+  "table_map": {
+   "mapped": 1210,
+   "unmatched": 0,
+   "methods": {
+    "content_match": 762,
+    "family_shift": 447,
+    "hole": 1
+   },
+   "confidence": {
+    "high": 762,
+    "medium": 144,
+    "low": 304
+   }
+  }
+ },
+ {
+  "cal_id": "60E0FC00",
+  "sw": "SW-N3Z2EU000.HEX",
+  "task": null,
+  "family": "Z-line",
+  "role": "US 6-Port MT; Data_binaries dup; equinox hand-annotation reference",
+  "id": "FC00",
+  "file": "60E0FC00.bin",
+  "sha256": "476ddcbed4549d89b9835dfbfb1aac48217d943fb53c73f489ffc9414803e35c",
+  "security_key_offset": "0x5D90C",
+  "code_end": "0x69F44",
+  "cal_lo": "0x6D300",
+  "cal_span": 67583,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6D343",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": 1280,
+  "table_map": {
+   "mapped": 1210,
+   "unmatched": 0,
+   "methods": {
+    "content_match": 764,
+    "family_shift": 445,
+    "hole": 1
+   },
+   "confidence": {
+    "high": 764,
+    "medium": 141,
+    "low": 305
+   }
+  }
+ },
+ {
+  "cal_id": "60E1B900",
+  "sw": "SW-N3ZDEH000.HEX",
+  "task": "N3ZDEBWW.T50",
+  "family": "Z-line",
+  "role": "US 6-Port MT community ref",
+  "id": "B900",
+  "file": "60E1B900.bin",
+  "sha256": "b0dc94f96e8eaf6f154df8e7388d12fba490cf2adf13edb077677c4c82b3b1b5",
+  "security_key_offset": "0x5DBA4",
+  "code_end": "0x6A1DC",
+  "cal_lo": "0x6D300",
+  "cal_span": 67583,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6D343",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": 1280,
+  "table_map": {
+   "mapped": 1210,
+   "unmatched": 0,
+   "methods": {
+    "content_match": 764,
+    "family_shift": 445,
+    "hole": 1
+   },
+   "confidence": {
+    "high": 764,
+    "medium": 141,
+    "low": 305
+   }
+  }
+ },
+ {
+  "cal_id": "60E0E700",
+  "sw": "SW-N3YLEE000.HEX",
+  "task": null,
+  "family": "N3YL (JDM)",
+  "role": "community ref (file tagged _N3YLEE); JDM-flavoured, cal closer to J-line",
+  "id": "E700",
+  "file": "60E0E700_N3YLEE.bin",
+  "sha256": "bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0",
+  "security_key_offset": "0x5E6B8",
+  "code_end": "0x6AD34",
+  "cal_lo": "0x6C600",
+  "cal_span": 70911,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6C643",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": -2048,
+  "table_map": {
+   "mapped": 1209,
+   "unmatched": 1,
+   "methods": {
+    "content_match": 723,
+    "family_shift": 486
+   },
+   "confidence": {
+    "high": 723,
+    "medium": 265,
+    "low": 221
+   }
+  }
+ },
+ {
+  "cal_id": "60E15120",
+  "sw": "SW-N3ZHEB000.HEX",
+  "task": null,
+  "family": "hybrid (tag _N3J1E)",
+  "role": "internal SW-N3ZHEB000 (Z-line sw, J-line cal 91.1%)",
+  "id": "15120",
+  "file": "60E15120_N3J1E.bin",
+  "sha256": "a7cd953c2a87af12ee2814a95c958dc23959d352ef9c5e7f82b8ab8952f264f1",
+  "security_key_offset": "0x5F084",
+  "code_end": "0x6BC7C",
+  "cal_lo": "0x6C000",
+  "cal_span": 72447,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x6C043",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": -3584,
+  "table_map": {
+   "mapped": 1209,
+   "unmatched": 1,
+   "methods": {
+    "content_match": 799,
+    "family_shift": 410
+   },
+   "confidence": {
+    "high": 799,
+    "medium": 207,
+    "low": 203
+   }
+  }
+ },
+ {
+  "cal_id": "60E32000",
+  "sw": "SW-N3M5EK000.HEX",
+  "task": "N3M5E_SW.T01",
+  "family": "outlier N3M5E",
+  "role": "structurally distinct (later/different market build); code dense to 0x7144C",
+  "id": "32000",
+  "file": "60E32000_N3M5E.bin",
+  "sha256": "d5406459cc0b19f831a73a021ad2ae47179127097a15cfa323a34bfa47e330de",
+  "security_key_offset": "0x65134",
+  "code_end": "0x7144C",
+  "cal_lo": "0x71500",
+  "cal_span": 50687,
+  "cal_hi": "0x7DAFF",
+  "sw_string_offset": "0x71543",
+  "denso_copyright_offset": "0x2023",
+  "family_shift_vs_baseline": 18176,
+  "table_map": {
+   "mapped": 1194,
+   "unmatched": 16,
+   "methods": {
+    "content_match": 401,
+    "family_shift": 792,
+    "hole": 1
+   },
+   "confidence": {
+    "high": 401,
+    "low": 777,
+    "medium": 16
+   }
+  }
+ }
+]

@@ -1,0 +1,210 @@
+# REPLICATION — reproduce byte-perfect RX-8 ECU ROMs from scratch
+
+This is THE document: exact, copy-paste-able steps to go from a fresh clone of
+this repository to byte-perfect (1:1, sha256-verified) copies of all 9 shipped
+stock firmware ROMs, plus the reverse-engineering deliverables (annotated
+assembly, verified C lifts, docs, analysis).
+
+The project dataset originally covered **10 stock ROMs**; the 10th
+(`[REDACTED]` — the project owner's personal live-ECU dump) is verified
+byte-exact but **kept private** and not shipped here. This guide covers the 9
+public images (the same procedure applies to any stock ROM, including the
+private one, which was verified identically before exclusion — see
+[VERIFICATION.md](VERIFICATION.md)).
+
+Everything is self-contained. The only external pieces are Python 3, the
+`capstone` pip package, and the sh-elf binutils toolchain — which is **not
+shipped in the repo**: it is downloaded on first use by `tools/get_toolchain.sh`
+into `tools/toolchain/` (git-ignored, absent from a fresh clone). A fresh clone
+must run that script once before any rebuild, which requires internet access.
+No root, no `~/.bashrc` exports, no hidden environment magic.
+
+Machine requirement: any Linux/macOS box with Python 3, `cc` (for the C test
+suites only) and `make`. ~2 GB free disk is plenty.
+
+---
+
+## Step 1 — Prerequisites
+
+```bash
+# Python 3 (check)
+python3 --version          # any 3.x (tested on 3.14)
+
+# capstone (SH-2 disassembly backend) — the ONLY pip dependency
+python3 -m pip install capstone --break-system-packages
+
+# (optional, only for the host test suites) a C compiler
+cc --version               # gcc/clang, any recent version
+```
+
+No root is needed. That is the entire prerequisite list.
+
+## Step 2 — Toolchain (one-time, idempotent)
+
+```bash
+cd <repo root>
+./tools/get_toolchain.sh
+```
+
+This installs the GNU **sh-elf binutils 2.46** assembler/linker/objcopy
+(`sh-elf-as -big`, `sh-elf-ld -Ttext=0`, `sh-elf-objcopy -O binary`) locally at
+`tools/toolchain/usr/bin`. The toolchain is git-ignored and **not present in a
+fresh clone**, so the first run downloads the distro package and unpacks it
+without root (Debian/Ubuntu `apt-get download` + `dpkg-deb -x`; any other
+`sh-elf` binutils with `as`/`ld`/`objcopy` also works). Once installed, later
+runs fast-path with "already installed" and exit 0 — but a fresh copy of the
+repo must run the download once (internet required) before `make verify-all`.
+
+The Makefile targets and `verify_all.sh` resolve this path themselves — **you
+never need to export PATH** for the make-driven steps. The standalone test
+scripts under `tools/tests/` (e.g. `python3 tools/tests/test_decode_families.py`)
+invoke `sh-elf-as` directly, so if it isn't installed system-wide you may need
+`export PATH=$PWD/tools/toolchain/usr/bin:$PATH` before running them.
+
+## Step 3 — Bulk verify: rebuild + byte-compare all 9 public stock ROMs
+
+```bash
+make verify-all
+```
+
+Expected output (this is the core claim of the repo):
+
+```
+Rebuilding and byte-exact-verifying 9 stock ROMs (code window 0x800..0x60000)...
+ROM                            sha256 match                    cov%    raw  STATUS
+-----------------------------------------------------------------------
+60E0E500.bin                   c05dfd0422b2b773027a22dc        93.5    246  BYTE-EXACT
+60E0E700_N3YLEE.bin            bba52346a076c35ded281c14        93.5    326  BYTE-EXACT
+60E0FB00.bin                   3d32e2591a1170d5ac3feed7        93.6    315  BYTE-EXACT
+60E0FC00.bin                   476ddcbed4549d89b9835dfb        93.6    377  BYTE-EXACT
+60E15120_N3J1E.bin             a7cd953c2a87af12ee2814a9        93.7    294  BYTE-EXACT
+60E1B900.bin                   b0dc94f96e8eaf6f154df8e7        93.6    308  BYTE-EXACT
+60E1C500_N3J6EB.bin            b3b6e1e416826d9c9f51ddc8        93.5    253  BYTE-EXACT
+60E1D400.bin                   344cb8b960eb6dde973bdb8e        93.6    252  BYTE-EXACT
+60E32000_N3M5E.bin             d5406459cc0b19f831a73a02        93.8    265  BYTE-EXACT
+-----------------------------------------------------------------------
+OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
+```
+
+Each ROM takes ~1.5 s; the whole run is under 20 s. Exit status 0.
+
+**What just happened:** `tools/rom_rebuild.py` disassembled each 512 KB ROM
+(capstone SH-2 + the `disasm_sh2e.py` fallback), emitted ONE reassemblable GNU-as
+source file, assembled/linked it at the original VMA and compared it to the source
+image byte for byte. `BYTE-EXACT` means `sha256(rebuilt) == sha256(source)` — a
+100% 1:1 copy, not an approximation.
+
+## Step 4 — Verify a single ROM
+
+```bash
+make ROM=roms/stock/60E1D400.bin verify    # any image in the dataset
+```
+
+This rebuilds `build/out.bin` from `60E1D400.bin` and `cmp`s them; it prints
+`OK: byte-exact rebuild of roms/stock/60E1D400.bin` on success.
+
+## Step 5 — Regenerate an annotated source
+
+The annotated sources in `src/` (9 ROMs, table in `src/ANNOTATED_SOURCES.md`)
+are generated by `tools/organize_src.py` (function name labels + calibration
+comments + data-region comments, bytes unchanged):
+
+```bash
+make src          # 60E1D400 baseline (equinox+IDA names, D400 data-region comments)
+```
+
+This regenerates the corresponding `src/60E1D400_annotated.s`; output is
+byte-identical to the shipped file (verified in this repo). The equivalent
+direct invocation is:
+
+```bash
+python3 tools/organize_src.py \
+  --rom roms/stock/60E1D400.bin \
+  --symbols symbols/symbols_60E1D400_merged.csv \
+  --cal symbols/cal_tables.csv \
+  --regions analysis/data_regions_60E1D400.csv \
+  --out src/60E1D400_annotated.s
+```
+
+## Step 6 — Emulator / Track A (verified C lifts)
+
+```bash
+make c-test        # host-compiled behavior-equivalence suites (21 C suites)
+python3 c/tests/verify_emu.py    # 5 functions x 100k random vs the emulated ROM
+```
+
+`verify_emu.py` output:
+
+```
+OK  add16bitSaturate     C == emulated ROM @0x2460  (100k random)
+OK  addSaturate8Bit      C == emulated ROM @0x2478  (100k random)
+OK  addS32Saturate       C == emulated ROM @0x2304  (100k random)
+OK  seed_mixer           C == emulated ROM @0x366B8  (100k random)
+OK  calculateImmoSeed    C == emulated ROM @0x3675C  (100k random)
+```
+
+The full Python test suite (102 per-function suites) and the SH-2E family
+regression tests can be run from the repo root:
+
+```bash
+python3 tools/tests/test_decode_families.py      # 38,008 checks (disassembler, GNU-as cross-checked)
+python3 tools/tests/test_emulator_families.py    # 69 checks (emulator)
+for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 102 per-function suites
+```
+
+## Step 7 — Checksum validation
+
+```bash
+python3 tools/denso_ck.py roms/stock/60E1D400.bin
+```
+
+Expected: `OK — checksum corretto` (the Denso additive checksum descriptor at
+`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
+
+Modified (tuned) images are intentionally NOT shipped with this public repo
+(they are kept private); for such images a non-OK result would be expected
+behavior, not a failure — an [REDACTED] tune legitimately bypasses the Denso
+checksum, so `denso_ck.py` reports `ERRATO` and exits 1.
+
+---
+
+## What the rebuilt ROM is (and the ~6.4% `.word` regions)
+
+**The rebuilt ROM is a byte-identical copy of the original firmware — 100% 1:1,
+sha256-verified.** `make verify-all` proves it for all 9 public stock ROMs.
+
+The annotated sources lift **93.46–93.8%** of the code window
+(`0x800..0x60000`, 195,584 words) to real SH-2 instructions. The remaining
+**~6.4%** of the window is emitted as raw `.word` data — **literal pools, jump
+tables, calibration data and padding — not code**. Those words assemble back to
+the exact original bytes (byte-exactness is by construction: every even offset is
+independently either a decoded instruction or a raw `.word`, and a self-correcting
+loop forces anything GNU-as rejects or re-encodes differently back to `.word`
+until `cmp == 0`). Outside the code window (reset vectors, strings, calibration,
+Hitachi-OS data) everything is `.word` verbatim.
+
+**Coverage honesty caveat.** The 93.46–93.8% figure is *round-trip* coverage —
+every in-window word that decodes and re-encodes to valid bytes is counted — and
+the byte-exact rebuild is real and verified. But a small fraction (~6%) of those
+counted words are data tables that happen to decode as valid instructions (e.g.
+the `0x0007` `mul.l r0,r0` marker appears 2,427× — more than `rts`), so the true
+code fraction is ~88–91%, with data ~9–12%.
+
+## Verifying the deliverables end-to-end
+
+| Check | Command (from repo root) | Result |
+|-------|--------------------------|--------|
+| 9/9 byte-exact rebuild | `make verify-all` | `OK: all 9 stock ROMs rebuilt byte-exact` |
+| Single-ROM byte-exact | `make ROM=roms/stock/60E1D400.bin verify` | `OK: byte-exact rebuild ...` |
+| Annotated source regenerates 1:1 | `make src` | byte-identical to shipped |
+| C lifts vs ROM (host suites) | `make c-test` | 21/21 pass |
+| C lifts vs emulated ROM | `python3 c/tests/verify_emu.py` | 5/5 OK |
+| Disassembler regression | `python3 tools/tests/test_decode_families.py` | 38,008 checks, 0 failures |
+| Emulator regression | `python3 tools/tests/test_emulator_families.py` | 69 checks, 0 failures |
+| Per-function suites | `for t in c/tests/test_*.py; do python3 "$t" \|\| exit 1; done` | 102/102 pass |
+| Denso checksum | `python3 tools/denso_ck.py roms/stock/60E1D400.bin` | OK |
+
+All evidence tables and hashes are in [VERIFICATION.md](VERIFICATION.md); the
+complete file inventory is in [MANIFEST.md](MANIFEST.md). Project context and
+methodology: [PLANS.md](PLANS.md), `src/ANNOTATED_SOURCES.md`,
+`docs/subsystems/OVERVIEW.md`, `c/README.md`, `roms/ROMS.md`.
