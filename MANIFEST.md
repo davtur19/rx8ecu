@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **633 entries, 57.5M.** Regenerated 2026-08-02 for the
+in the working repository. **632 entries, 57.5M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,7 +9,7 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root)/ | 12 | 85.2K |
+| (root)/ | 11 | 85.2K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 6 | 893.0K |
@@ -22,7 +22,7 @@ see roms/ROMS.md).
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
 | .github/ | 4 | 14.4K |
-| **Total** | **633** | 57.5M |
+| **Total** | **632** | 57.5M |
 
 ## External dependencies
 
@@ -58,8 +58,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 |---|--:|---:|---|
 | `.gitattributes` | `c7df56f888be333371da8b3a0f15ab946b7dd0e5d751e0a120a9613367b45ab6` | 307B | Git attributes: binary-file handling (no line-ending/diff mangling) |
 | `.gitignore` | `6069539f06ee271715f3f74cd36acdde563ba14fcb757af33b2f967008697756` | 328B | Git ignore rules (build artifacts, toolchain, private/local data) |
-| `AGENTS.md` | `e1bda128d74675f027525420c45e35ad6b6578df28932b663825d2488befbf4f` | 483B | Agent working instructions |
-| `CLAUDE.md` | `38d2f34ff5b8511c77de961d3b92a86de850fe11ecafa8ed2102cb615cadb07d` | 2.8K | Claude/agent working instructions |
+| `AGENTS.md` | `34f16fac1eb27fb80d6b0be12c4dd60ddb832ac8b6b49d1d451c25951c6dbf7c` | 3.6K | Agent working instructions |
 | `CREDITS.md` | `53eff7a1f681da319782995f931cab2c48a800deffc12deb6b933a27acee987a` | 4.7K | Credits: equinox311 + defs source attribution |
 | `LICENSE` | `d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee` | 33.2K | License (GNU AGPL v3) |
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
