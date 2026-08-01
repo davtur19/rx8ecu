@@ -1,11 +1,15 @@
 # Mazda RX-8 PCM Reverse Engineering
+<!-- BADGES:START -->
 ![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
-![ASM code window](https://img.shields.io/badge/ASM%20code%20window-93.6%25%20lifted-green)
-![C lifts](https://img.shields.io/badge/C%20lifts-149-blue)
-![C emulator-verified](https://img.shields.io/badge/C%20emulator--verified-107%2F149%20%2872%25%29-yellowgreen)
-![Calibration tables](https://img.shields.io/badge/calibration%20tables-1%2C210%20mapped-blue)
-![Call graph](https://img.shields.io/badge/call%20graph-6%2C953%20edges-blue)
-![Regression checks](https://img.shields.io/badge/checks-38%2C008%20disasm%20%2B%2083%20emu-green)
+![Code window](https://img.shields.io/badge/Code%20window-93.6%25%20SH--2%20lift-green)
+![C reimplemented](https://img.shields.io/badge/C%20reimplemented-160%20functions-blue)
+![Emulator-verified](https://img.shields.io/badge/Emulator--verified-107%2F160%20%2867%25%29-yellowgreen)
+![Calibration tables](https://img.shields.io/badge/Calibration%20tables-1210-blue)
+![Call graph](https://img.shields.io/badge/Call%20graph-6953%20edges-blue)
+![Functions mapped](https://img.shields.io/badge/Functions%20mapped-3459-blue)
+![Regression checks](https://img.shields.io/badge/Regression%20checks-38008%2B83%20%E2%9C%93-green)
+<!-- BADGES:END -->
+*Reverse-engineering progress — coverage is round-trip over the code window 0x800–0x60000 (true-code ≈ 88–91%, see VERIFICATION.md §2); C reimplementations are verified against the actual ROM bytes on a custom SH-2E emulator.*
 
 Complete, byte-exact reverse engineering of the **Mazda RX-8 PCM firmware** —
 the Denso **279700-3313** engine-control module built around a Renesas **SH-2E**
@@ -49,7 +53,7 @@ with `make -C web/explorer serve`.
   decode-gap families capstone misses: FPU, fpul/fpscr, `mov.l @(disp,Rm)`) and
   `tools/sh2emu.py` (integer + single-precision FPU), the oracle every C lift is
   proven against.
-- **149 C lifts** — most behavior-equivalent reimplementations (lookup/interp
+- **160 C lifts** — most behavior-equivalent reimplementations (lookup/interp
   primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
   DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
   *actual ROM bytes* running on the emulator over tens of thousands of
@@ -60,7 +64,7 @@ with `make -C web/explorer serve`.
 - **1,210 calibration tables** (`symbols/cal_tables.csv`), **6,953 resolved
   call-graph edges**, **18 jump tables identified** (60E1D400 baseline,
   `analysis/data_regions_60E1D400.csv`).
-- **Host test suites**: 112 Python per-function suites, 26 C suites,
+- **Host test suites**: 115 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
   disassembler/emulator family regressions (38,008 + 83 checks).
 
@@ -85,7 +89,7 @@ Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 149 verified C lifts, `eeprom_immo.h`, host test suites (112 py + 26 c), `verified_addrs.txt` |
+| `c/` | 160 verified C lifts, `eeprom_immo.h`, host test suites (115 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | `symbols/` | Kept symbol-table CSVs (60E0FC00 plain/ghidra, 60E1D400 ida/merged), `cal_tables.csv` (1,210 tables), `callgraph.csv` |
 | `analysis/` | Code-window data-region classification for the 60E1D400 baseline |
