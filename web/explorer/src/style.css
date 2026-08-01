@@ -1,31 +1,10 @@
 /* RX-8 ECU Firmware Explorer — dark theme, zero deps */
-:root, [data-theme="racing"] {
-  --bg:#0d0c0b; --bg2:#151312; --bg3:#1c1a18; --border:#2a2724; --border2:#383431;
-  --text:#eae6e1; --muted:#8f8981; --accent:#c62828; --accent2:#a8b0b8;
-  --green:#7ee787; --red:#e5484d; --purple:#bc8cff; --cyan:#39c5cf;
-  --accent-alpha:rgba(198,40,40,.12); --cg-bg:#0a0908; --shadow:rgba(0,0,0,.5); --zebra:rgba(255,255,255,.02);
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-}
-
-[data-theme="jdm"] {
-  --bg:#0a0f14; --bg2:#101922; --bg3:#16222e; --border:#223340; --border2:#2e4352;
-  --text:#e6f1f7; --muted:#7f97a8; --accent:#00c6ff; --accent2:#ff9f1c;
-  --green:#7ee787; --red:#ff5c5c; --purple:#bc8cff; --cyan:#39c5cf;
-  --accent-alpha:rgba(0,198,255,.14); --cg-bg:#070c11; --shadow:rgba(0,0,0,.5); --zebra:rgba(255,255,255,.02);
-}
-
-[data-theme="deepblue"] {
+:root {
   --bg:#0b0e13; --bg2:#12161d; --bg3:#181d26; --border:#252c38; --border2:#333c4a;
   --text:#e6ebf2; --muted:#8b96a3; --accent:#4d7cff; --accent2:#aab4c4;
   --green:#7ee787; --red:#f85149; --purple:#bc8cff; --cyan:#39c5cf;
   --accent-alpha:rgba(77,124,255,.14); --cg-bg:#080b10; --shadow:rgba(0,0,0,.5); --zebra:rgba(255,255,255,.02);
-}
-
-[data-theme="light"] {
-  --bg:#f4f5f6; --bg2:#ffffff; --bg3:#eceef0; --border:#d7dce1; --border2:#c2c9d0;
-  --text:#1d2229; --muted:#5c6873; --accent:#c1121f; --accent2:#3d6ea8;
-  --green:#1a7f37; --red:#cf222e; --purple:#8250df; --cyan:#0e7490;
-  --accent-alpha:rgba(193,18,31,.10); --cg-bg:#e8eaec; --shadow:rgba(0,0,0,.18); --zebra:rgba(0,0,0,.03);
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -346,14 +325,3 @@ footer { color: var(--muted); font-size: 11.5px; text-align: center; padding: 18
 .doc-nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .doc-nav button:disabled { opacity: .4; cursor: default; }
 .doc-nav .doc-nav-pos { margin-right: auto; font: 12px var(--mono); color: var(--muted); }
-
-/* ---------- theme switcher ---------- */
-.theme-switch{position:fixed;right:16px;bottom:16px;z-index:60}
-.icon-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);color:var(--muted);cursor:pointer}
-.icon-btn:hover{color:var(--text);border-color:var(--border2)}
-.theme-menu{position:absolute;right:0;bottom:46px;min-width:160px;padding:6px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px var(--shadow);display:grid;gap:2px}
-.theme-menu[hidden]{display:none}
-.theme-menu .tsw{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:none;background:transparent;color:var(--text);font-size:13px;cursor:pointer;text-align:left;border-radius:6px}
-.theme-menu .tsw:hover{background:var(--bg3)}
-.theme-menu .tsw .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
-.theme-menu .tsw[aria-checked="true"]::after{content:"✓";margin-left:auto;color:var(--accent)}
