@@ -1,6 +1,6 @@
-# Restored Source Samples — RX-8 PCM (SH7055)
+# Reconstructed Source Samples — RX-8 PCM (SH7055)
 
-Questo progetto è un **campione dimostrativo** di "restored source": il codice
+Questo progetto è un **campione dimostrativo** di "reconstructed source": il codice
 C **astratto, idiomatico e leggibile** che *sarebbe stato* il sorgente originale
 del firmware Mazda/Denso, ricostruito a partire dai lift verificati del progetto
 `rx8ecu` e **dimostrato equivalente alla ROM** funzione per funzione.
@@ -14,7 +14,7 @@ possibile.
 ```
 src/  (assembly annotato, byte-exact, rebuild con rom_rebuild.py)   ← LA VERITÀ
 c/    (decompilazione C istruzione-per-istruzione, verificata con sh2emu.py)
-restored/samples/  (C astratto "come il vero sorgente", verificato  ← QUESTO
+reconstructed/samples/  (C astratto "come il vero sorgente", verificato  ← QUESTO
                     con lo stesso emulatore sui lift di c/)
 ```
 
@@ -26,11 +26,11 @@ restored/samples/  (C astratto "come il vero sorgente", verificato  ← QUESTO
 |---|---|---|
 | `src/60E1D400_annotated.s` | Assembly della ROM, riassemblato byte-exact da `tools/rom_rebuild.py` | **Verità di riferimento**. Se un modello C diverge, vince l'assembly. |
 | `c/` | Lift C istruzione-per-istruzione (track A/B), verificati contro la ROM via `tools/sh2emu.py` | **Fonte di derivazione** di questo progetto. |
-| `restored/samples/` | C astratto e leggibile, derivato dai lift, con stesso comportamento | **Modello leggibile verificato** — non byte-identico. |
+| `reconstructed/samples/` | C astratto e leggibile, derivato dai lift, con stesso comportamento | **Modello leggibile verificato** — non byte-identico. |
 
 Il "match-and-compile" (rendere questo C anche *byte-identico* alla ROM
 compilandolo con un compilatore SH-2E) è l'**evoluzione futura**, già
-abbozzata in `restored/experiments/match/` (fingerprinting del compilatore sul
+abbozzata in `reconstructed/experiments/match/` (fingerprinting del compilatore sul
 prologo/epilogo e sulle istruzioni distintive della ROM). Il lavoro in questo
 sottoprogetto è il prerequisito: prima di chiedere a un compilatore di riprodurre
 byte-identico un pezzo di firmware, quel pezzo deve esistere come C pulito e
@@ -40,7 +40,7 @@ comportamentalmente corretto.
 
 ## 2. Campioni inclusi
 
-| Restored name | ROM @ `60E1D400` | Lift di provenienza (`c/`) | Harness |
+| Reconstructed name | ROM @ `60E1D400` | Lift di provenienza (`c/`) | Harness |
 |---|---|---|---|
 | `rx8_add_s32_saturate` | `0x2304` | `addS32Saturate.c` (IDA mislabeled `fpu_compare_float`) | `tests/harness_add_s32.py` |
 | `rx8_immo_seed_mixer` | `0x366B8` | `seed_mixer.c` (IDA-ai `bitwise_field_encoder_366B8`) | `tests/harness_seed_mixer.py` |
@@ -97,7 +97,7 @@ Prerequisiti: `python3` con `tools/sh2emu.py` (nel repo, già in `sys.path`),
 `roms/stock/60E1D400.bin` (sola lettura).
 
 ```sh
-# dall'interno di restored/samples/
+# dall'interno di reconstructed/samples/
 make build        # compila i sorgenti + l'oracolo host in /tmp/opencode
 make test         # esegue i tre harness di equivalenza
 make verify       # alias di test
@@ -114,7 +114,7 @@ python3 tests/harness_idx_table.py 20000
 
 ### Come funziona un harness (pattern Track-A, identico a `c/tests/verify_emu.py`)
 
-1. compila i sorgenti restored + `tests/host_oracle.c` con il `gcc` di sistema;
+1. compila i sorgenti reconstructed + `tests/host_oracle.c` con il `gcc` di sistema;
 2. genera **N input random** (seed fisso, riproducibile) + vettori edge;
 3. **simula la funzione sulla ROM** con `tools/sh2emu.py` (`cpu.call(entry, …)`)
    sugli stessi input;
@@ -155,13 +155,13 @@ OK  idx_table family @0x68780 (clear/step/step2/dec)  (20000 random + 87 edge)
   gestire l'accesso BE esplicito.
 - **Nomi IDA-ai** (`fpu_compare_float`, `bitwise_field_encoder_366B8`,
   `obd_service_handler_68780`) sono etichette auto-generate, spesso fuorvianti;
-  nei campioni valgono i nomi restored + gli indirizzi ROM.
+  nei campioni valgono i nomi reconstructed + gli indirizzi ROM.
 
 ## 6. Prossimo passo
 
 Chiusura del **match-and-compile**: usare i risultati del fingerprinting
-(`restored/experiments/match/scripts/fingerprint.py`) per scegliere/tarare un
-`sh-elf-gcc` (SH-2E) e verificare se i sorgenti restored, compilati con le
+(`reconstructed/experiments/match/scripts/fingerprint.py`) per scegliere/tarare un
+`sh-elf-gcc` (SH-2E) e verificare se i sorgenti reconstructed, compilati con le
 opzioni giuste, producono le stesse sequenze byte della ROM (`0x2304`,
 `0x366B8`, `0x68780` family sono candidati ideali perché piccoli e già
 verificati). Se il match non è byte-identico al primo colpo, le differenze

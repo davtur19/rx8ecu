@@ -2,7 +2,7 @@
 """
 harness_seed_mixer.py — equivalence of rx8_immo_seed_mixer @0x366B8.
 
-Restored source: samples/src/rx8_immo_seed_mixer.c
+Reconstructed source: samples/src/rx8_immo_seed_mixer.c
 Verified lift   : c/seed_mixer.c (IDA-ai symbol `bitwise_field_encoder_366B8`).
 
 Pure function of two 32-bit words (EEPROM key word + rolling code).  The

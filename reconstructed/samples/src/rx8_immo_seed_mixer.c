@@ -5,7 +5,7 @@
  * ROM         : roms/stock/60E1D400.bin (Mazda RX-8 PCM, N3J1 family)
  * Address     : 0x366B8
  * Status      : VERIFIED — behavioural equivalence to the ROM held by
- *               restored/samples/tests/harness_seed_mixer.py (host-gcc vs
+ *               reconstructed/samples/tests/harness_seed_mixer.py (host-gcc vs
  *               tools/sh2emu.py over random 32-bit word pairs), in addition
  *               to the existing c/tests/verify_emu.py entry (100k random,
  *               0 errors).

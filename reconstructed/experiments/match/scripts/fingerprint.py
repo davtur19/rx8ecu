@@ -7,7 +7,7 @@ Reads ../../../../../src/60E1D400_annotated.s (read-only) and computes:
   * epilogue style statistics (delay slot after `rts`)
   * frequency of distinctive instructions: addv/subv, div0s/div1 (div library),
     mac.l/mulu.w/muls.w, FPU ops, stc/ldc SR (privileged), mov.l @(r15)...
-Used by restored/experiments/match/REPORT.md to fingerprint the compiler
+Used by reconstructed/experiments/match/REPORT.md to fingerprint the compiler
 that produced the ROM.
 
 Usage: python3 fingerprint.py [path-to-annotated.s]

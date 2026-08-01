@@ -1,6 +1,6 @@
 /*
  * =============================================================================
- * rx8_hw.h  —  RX-8 PCM hardware abstraction layer (restored-source project)
+ * rx8_hw.h  —  RX-8 PCM hardware abstraction layer (reconstructed-source project)
  * =============================================================================
  * Target hardware : Mazda RX-8 PCM, Denso N3J1-18-881x family
  *                   Renesas SH7055 (HD64F7055S) = SH-2E core + single-precision
@@ -8,7 +8,7 @@
  * Reference ROM   : roms/stock/60E1D400.bin  (RE baseline, same N3J1 family)
  *
  * This header is the single place where physical addresses are spelled out in
- * the restored source.  It contains ONLY addresses that are documented in the
+ * the reconstructed source.  It contains ONLY addresses that are documented in the
  * project notes (docs/notes/), the verified EEPROM/immobilizer map
  * (c/eeprom_immo.h) or the verified function lifts (c/).  Anything not yet
  * documented is left as an explicit pointer in the sample code, annotated
