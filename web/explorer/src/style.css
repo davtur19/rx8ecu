@@ -101,11 +101,11 @@ header {
 }
 #tabs button {
   background: transparent; color: var(--muted); border: 1px solid transparent;
-  border-bottom: none; padding: 9px 16px; font-size: 13px; cursor: pointer;
+  border-bottom: none; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
   border-radius: 8px 8px 0 0;
 }
 #tabs button:hover { color: var(--text); background: var(--bg3); }
-#tabs button.active { color: var(--accent); background: var(--bg); border-color: var(--border); font-weight: 600; }
+#tabs button.active { color: var(--accent); background: var(--bg); border-color: var(--border); }
 
 /* ---------- main / panels ---------- */
 main { padding: 18px 20px 40px; max-width: 1500px; margin: 0 auto; }
