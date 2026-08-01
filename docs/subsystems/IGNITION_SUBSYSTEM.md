@@ -227,7 +227,7 @@ calc_fuel_pressure_load_compensation()  → 0xFFFFA734/0xFFFFA738 (ignition timi
 | Address | Description |
 |---------|-------------|
 | 0xFFFFA744 | Main ignition advance (float, °BTDC) |
-| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in wankel_leading_trailing_split_487DC (0x2100A is a cold/validity state controller — VERIFIED 2026-08-01) |
+| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; the lead/trail split is NOT applied in wankel_leading_trailing_split_487DC either (VERIFIED 2026-08-01, emulator 500k inputs 0 mismatches: it is a gated state selector -> u8@0xFFFFCCD2 decoded by rotor_sync_timing_48C12; 0x2100A is a cold/validity state controller). **SPLIT ANSWER 2026-08-02:** A734/A738 are also written identically (f32, same value) by calc_fuel_injection_all_rotors (0x13D3C); exhaustive ROM literal scan shows NO function writes them differently — readers are write_knock_detected_flag (0x128C4, reads A734), write_rotor_A_knock_flag (0x128FE, reads A738), updateKnockMaxRAM (0x13B90, reads A734). Lead/trail differentiation NOT FOUND in the analyzed functions; **open item**. |
 | 0xFFFFA75C | Knock control active flag (saved back) |
 
 **Confidence: high** — all control paths fully traced.
