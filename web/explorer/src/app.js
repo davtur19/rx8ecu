@@ -759,11 +759,15 @@ function nodeRadius(i) {
   const r = 3.2 + 4.2 * Math.log10(1 + CG.deg[i]);
   return CG.nodes[i] === CG.root ? r + 4 : r;
 }
+function cssVar(name, fb) {
+  try { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); return v || fb; }
+  catch (e) { return fb; }
+}
 function nodeColor(role) {
-  if (role === "root") return "#d29922";
-  if (role === "caller") return "#58a6ff";
-  if (role === "callee") return "#7ee787";
-  return "#bc8cff";
+  if (role === "root") return cssVar("--accent2", "#d29922");
+  if (role === "caller") return cssVar("--accent", "#58a6ff");
+  if (role === "callee") return cssVar("--green", "#7ee787");
+  return cssVar("--purple", "#bc8cff");
 }
 function drawCG() {
   const cv = $("cg-canvas");
@@ -1596,3 +1600,19 @@ init().catch((e) => {
   $("boot-msg").textContent = "";
   $("boot-err").classList.remove("hidden");
 });
+
+/* ============================ THEME SWITCHER ============================ */
+(function(){
+  var KEY='rx8-theme';
+  var THEMES=['racing','jdm','deepblue','light'];
+  function current(){ return document.documentElement.dataset.theme || 'racing'; }
+  function apply(t){ document.documentElement.dataset.theme = t; try{ localStorage.setItem(KEY, t); }catch(e){} }
+  try{ var s = localStorage.getItem(KEY); if(THEMES.indexOf(s) >= 0) apply(s); else apply('racing'); }catch(e){ apply('racing'); }
+  var btn = document.getElementById('theme-btn'), menu = document.getElementById('theme-menu');
+  if(btn && menu){
+    function refresh(){ menu.querySelectorAll('.tsw').forEach(function(b){ b.setAttribute('aria-checked', String(b.dataset.theme === current())); }); }
+    btn.addEventListener('click', function(){ var h = menu.hidden; menu.hidden = !h; btn.setAttribute('aria-expanded', String(h)); if(h) refresh(); });
+    menu.addEventListener('click', function(e){ var t = e.target.closest('.tsw'); if(!t) return; apply(t.dataset.theme); menu.hidden = true; btn.setAttribute('aria-expanded','false'); refresh(); });
+    document.addEventListener('click', function(e){ if(!e.target.closest('.theme-switch')){ menu.hidden = true; btn.setAttribute('aria-expanded','false'); } });
+  }
+})();
