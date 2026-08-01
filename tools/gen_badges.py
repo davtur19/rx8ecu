@@ -4,18 +4,27 @@
 Pure-Python 3 (stdlib only: subprocess, hashlib, re, urllib, pathlib).
 Run from the repo root:
 
-    python3 tools/gen_badges.py
+    python3 tools/gen_badges.py            # default: derive, fall back on failure
+    python3 tools/gen_badges.py --derive-checks   # strict: fail if a suite cannot run
 
 Computes reverse-engineering progress metrics from live repo data
 (tracked C lifts via `git ls-files`, unique emulator-verified addresses
 from c/verified_addrs.txt, symbol-table sizes, ...) and rewrites the badge
 block in README.md between the `<!-- BADGES:START -->` / `<!-- BADGES:END -->`
-markers.  The regression-check counts are computed live by running the two
-test suites (tools/tests/test_decode_families.py --quick and
-tools/tests/test_emulator_families.py) and parsing their stdout; if a suite
-cannot be run the current constants are used instead.  Also updates the
-`README.md` row (sha256 + byte size) in MANIFEST.md so the file inventory
-stays in sync.
+markers.  No metric is hardcoded:
+
+  * ASM coverage  — parsed from the per-ROM coverage table in VERIFICATION.md
+    §2 (mean rounded to one decimal), with a constant fallback + warning.
+  * Regression checks — the two test suites (tools/tests/test_decode_families.py
+    --quick and tools/tests/test_emulator_families.py) are run and their
+    "<N> checks" line parsed; the constants are only fallbacks when a suite
+    cannot be run, and `--derive-checks` makes that a hard error.
+  * Everything else (ROM count, C lifts, verified addresses, calibration
+    tables, call-graph edges, functions mapped) is derived from `git ls-files`
+    / the shipped CSV files.
+
+Also updates the `README.md` row (sha256 + byte size) in MANIFEST.md so the
+file inventory stays in sync.
 
 Deterministic: no timestamps; running twice yields an identical README.md
 (the badge URLs only change when the underlying data changes).
@@ -32,13 +41,16 @@ ROOT = Path(__file__).resolve().parent.parent
 README = ROOT / "README.md"
 MANIFEST = ROOT / "MANIFEST.md"
 VERIFIED_ADDRS = ROOT / "c" / "verified_addrs.txt"
+VERIFICATION = ROOT / "VERIFICATION.md"
 
-# Round-trip SH-2 lift coverage over the code window 0x800..0x60000, as
-# documented in VERIFICATION.md.  NOTE: this is a *round-trip* figure — it
-# counts every in-window word that decodes and re-encodes to valid bytes; a
-# small fraction (~6%) of those are data tables, so the true-code fraction is
-# ~88–91% (data ~9–12%).  Keep in sync with the README prose.
-ASM_COVERAGE = "93.6"
+# Fallback for the round-trip SH-2 lift coverage badge, used only when the
+# VERIFICATION.md §2 coverage table cannot be read/parsed (derive_asm_coverage
+# normally parses the table and reports the mean rounded to one decimal).
+# NOTE: the figure is a *round-trip* one — it counts every in-window word that
+# decodes and re-encodes to valid bytes; a small fraction (~6%) of those are
+# data tables, so the true-code fraction is ~88–91% (data ~9–12%).  Keep in
+# sync with the README prose.
+ASM_COVERAGE_FALLBACK = "93.6"
 
 # Fallback regression-check counts.  The badge normally uses the LIVE counts
 # from actually running tools/tests/test_decode_families.py (disassembler
@@ -54,14 +66,50 @@ FALLBACK_CHECKS_EMU = 83
 # assertion via a shared check() helper, so N is the full assertion count).
 CHECK_RE = re.compile(r"(\d[\d,]*) checks")
 
+# VERIFICATION.md §2 table rows look like:
+#   | 60E0FB00 | src/60E0FB00_annotated.s | 4,640,621 | 7,197 | 60,236 | 93.60 | YES |
+COVERAGE_ROW_RE = re.compile(
+    r"^\|\s*\S+\s*\|\s*src/[^|]+\|\s*[\d,]+\s*\|\s*[\d,]+\s*\|\s*[\d,]+\s*\|\s*(\d+\.\d+)\s*\|",
+    re.MULTILINE,
+)
 
-def run_suite(argv, fallback, label):
+
+def derive_asm_coverage():
+    """Round-trip SH-2 lift coverage badge value, derived from VERIFICATION.md.
+
+    Parses the per-ROM in-window coverage percentages in the VERIFICATION.md §2
+    table (skipping [REDACTED]/private rows) and returns the mean rounded to
+    one decimal.  If the table cannot be read or parsed, falls back to
+    ASM_COVERAGE_FALLBACK and warns on stderr.
+    """
+    try:
+        text = VERIFICATION.read_text(encoding="utf-8")
+    except OSError as e:
+        print(f"WARNING: {VERIFICATION.name} unreadable ({e!r}); "
+              f"using ASM_COVERAGE={ASM_COVERAGE_FALLBACK}", file=sys.stderr)
+        return ASM_COVERAGE_FALLBACK
+    vals = []
+    for m in COVERAGE_ROW_RE.finditer(text):
+        row = m.group(0)
+        if "REDACTED" in row or "PRIVATE" in row:
+            continue
+        vals.append(float(m.group(1)))
+    if not vals:
+        print(f"WARNING: no coverage values found in {VERIFICATION.name}; "
+              f"using ASM_COVERAGE={ASM_COVERAGE_FALLBACK}", file=sys.stderr)
+        return ASM_COVERAGE_FALLBACK
+    return f"{sum(vals) / len(vals):.1f}"
+
+
+def run_suite(argv, fallback, label, strict=False):
     """Run one regression suite and return its reported check count.
 
     `argv` is the full command line (already resolved through sys.executable),
     executed from the repo root.  The suite's stdout line is parsed for
     `<N> checks`; on any failure to run or parse, the fallback constant is
     returned and a warning is printed to stderr (the badge stays intact).
+    With `strict=True` (--derive-checks) a failure instead exits non-zero, so
+    stale counts can never be silently published.
     """
     try:
         out = subprocess.run(
@@ -72,18 +120,22 @@ def run_suite(argv, fallback, label):
             timeout=600,
         )
     except (OSError, subprocess.SubprocessError) as e:
-        print(f"WARNING: {label}: suite could not be run ({e!r}); "
-              f"using fallback count {fallback}", file=sys.stderr)
+        msg = f"{label}: suite could not be run ({e!r})"
+        if strict:
+            raise SystemExit(f"ERROR: {msg} (--derive-checks)") from e
+        print(f"WARNING: {msg}; using fallback count {fallback}", file=sys.stderr)
         return fallback
     m = CHECK_RE.search(out.stdout or "")
     if m is None:
-        print(f"WARNING: {label}: no '<N> checks' line in suite output; "
-              f"using fallback count {fallback}", file=sys.stderr)
+        msg = f"{label}: no '<N> checks' line in suite output"
+        if strict:
+            raise SystemExit(f"ERROR: {msg} (--derive-checks)")
+        print(f"WARNING: {msg}; using fallback count {fallback}", file=sys.stderr)
         return fallback
     return int(m.group(1).replace(",", ""))
 
 
-def regression_checks():
+def regression_checks(strict=False):
     """Live regression-check counts by actually running the two test suites.
 
     Returns (disasm_checks, emu_checks).  Both suites are pure-stdlib (no
@@ -91,17 +143,20 @@ def regression_checks():
     mode (tables + whole-ROM family coverage — its count is identical to the
     full run, which only adds failure-time checks on the bulk round-trip), and
     the emulator suite runs with its default random-division case count.  Any
-    failure falls back to FALLBACK_CHECKS_*.
+    failure falls back to FALLBACK_CHECKS_* unless `strict` is set
+    (--derive-checks), in which case it is a hard error.
     """
     disasm = run_suite(
         [sys.executable, "tools/tests/test_decode_families.py", "--quick"],
         FALLBACK_CHECKS_DISASM,
         "test_decode_families.py",
+        strict=strict,
     )
     emu = run_suite(
         [sys.executable, "tools/tests/test_emulator_families.py"],
         FALLBACK_CHECKS_EMU,
         "test_emulator_families.py",
+        strict=strict,
     )
     return disasm, emu
 
@@ -164,25 +219,26 @@ def shields_url(label, value, color):
     return f"https://img.shields.io/badge/{enc(label)}-{enc(value)}-{color}"
 
 
-def build_badge_block():
+def build_badge_block(strict=False):
     """Return (metrics, block_text)."""
 
     # Live repo data (tracked-file based, so the numbers self-heal as new
-    # lifts are committed; the regression-check counts come from actually
-    # running the two test suites below).
+    # lifts are committed; the coverage and regression-check counts come from
+    # VERIFICATION.md and from running the two test suites below).
     roms = len(git_ls_files("roms/stock/*.bin"))
     lifts = len(git_ls_files("c/*.c", top_level_subdir="c"))
     verified = unique_verified()
     tables = line_count_minus_one("symbols/cal_tables.csv")
     edges = line_count_minus_one("symbols/callgraph.csv")
     funcs = line_count_minus_one("symbols/symbols_60E0FC00.csv")
-    checks_disasm, checks_emu = regression_checks()
+    checks_disasm, checks_emu = regression_checks(strict=strict)
+    asm_coverage = derive_asm_coverage()
 
     verified_pct = round(100 * verified / lifts) if lifts else 0
 
     badges = [
         ("ROMs byte-exact", shields_url("ROMs byte-exact", f"{roms}/{roms}", "brightgreen")),
-        ("Code window", shields_url("Code window", f"{ASM_COVERAGE}% SH-2 lift", "green")),
+        ("Code window", shields_url("Code window", f"{asm_coverage}% SH-2 lift", "green")),
         ("C reimplemented", shields_url("C reimplemented", f"{lifts} functions", "blue")),
         (
             "Emulator-verified",
@@ -217,7 +273,7 @@ def build_badge_block():
         "tables": tables,
         "edges": edges,
         "funcs": funcs,
-        "asm_coverage": ASM_COVERAGE,
+        "asm_coverage": asm_coverage,
         "regression_checks_disasm": checks_disasm,
         "regression_checks_emu": checks_emu,
     }
@@ -272,7 +328,8 @@ def update_manifest():
 
 
 def main():
-    metrics, block = build_badge_block()
+    strict = "--derive-checks" in sys.argv[1:]
+    metrics, block = build_badge_block(strict=strict)
     update_readme(block)
     manifest_changed = update_manifest()
 
