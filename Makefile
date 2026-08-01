@@ -24,8 +24,8 @@
 #   make ROM=roms/stock/<id>.bin verify   # any image in the dataset
 #   make clean
 #
-# NOTE: the pre-release Makefile had a `live`/`private-rom` target for the owner's
-# personal ECU ROM ([REDACTED]). That ROM is kept private now, so those targets
+# NOTE: the pre-release Makefile had a private personal-ROM target for the
+# owner's own ECU ([REDACTED]). That ROM is kept private now, so those targets
 # were dropped; `make verify ROM=...` still works for any public ROM.
 
 ROM   ?= roms/stock/60E1D400.bin
