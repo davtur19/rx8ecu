@@ -17,6 +17,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # gen_badges.py computes the regression-check counts by actually running
+      # tools/tests/test_decode_families.py --quick and
+      # tools/tests/test_emulator_families.py (parsing their "N checks" line).
+      # Both suites are pure-stdlib (no capstone, no sh-elf toolchain needed),
+      # so no extra pip/toolchain step is required here; if a suite cannot run
+      # on this host, gen_badges.py falls back to its constants.
       - name: Regenerate README badges
         run: python3 tools/gen_badges.py
       - name: Commit and push if changed

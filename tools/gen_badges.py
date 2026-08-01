@@ -10,8 +10,12 @@ Computes reverse-engineering progress metrics from live repo data
 (tracked C lifts via `git ls-files`, unique emulator-verified addresses
 from c/verified_addrs.txt, symbol-table sizes, ...) and rewrites the badge
 block in README.md between the `<!-- BADGES:START -->` / `<!-- BADGES:END -->`
-markers.  Also updates the `README.md` row (sha256 + byte size) in
-MANIFEST.md so the file inventory stays in sync.
+markers.  The regression-check counts are computed live by running the two
+test suites (tools/tests/test_decode_families.py --quick and
+tools/tests/test_emulator_families.py) and parsing their stdout; if a suite
+cannot be run the current constants are used instead.  Also updates the
+`README.md` row (sha256 + byte size) in MANIFEST.md so the file inventory
+stays in sync.
 
 Deterministic: no timestamps; running twice yields an identical README.md
 (the badge URLs only change when the underlying data changes).
@@ -20,6 +24,7 @@ Deterministic: no timestamps; running twice yields an identical README.md
 import hashlib
 import re
 import subprocess
+import sys
 import urllib.parse
 from pathlib import Path
 
@@ -35,11 +40,70 @@ VERIFIED_ADDRS = ROOT / "c" / "verified_addrs.txt"
 # ~88–91% (data ~9–12%).  Keep in sync with the README prose.
 ASM_COVERAGE = "93.6"
 
-# Regression-check constants.  Bump when tools/tests/test_decode_families.py
-# (disassembler decode families) or tools/tests/test_emulator_families.py
-# (emulator instruction families) grow.
-CHECKS_DISASM = 38008
-CHECKS_EMU = 83
+# Fallback regression-check counts.  The badge normally uses the LIVE counts
+# from actually running tools/tests/test_decode_families.py (disassembler
+# decode families) and tools/tests/test_emulator_families.py (emulator
+# instruction families) — see regression_checks().  These constants are only
+# used when a suite cannot be run (missing interpreter/module, unparseable
+# output) so the badge never breaks; keep them in sync with the suites'
+# reported counts.
+FALLBACK_CHECKS_DISASM = 38008
+FALLBACK_CHECKS_EMU = 83
+
+# Suite stdout reports the total as "<N> checks, ..." (both suites count every
+# assertion via a shared check() helper, so N is the full assertion count).
+CHECK_RE = re.compile(r"(\d[\d,]*) checks")
+
+
+def run_suite(argv, fallback, label):
+    """Run one regression suite and return its reported check count.
+
+    `argv` is the full command line (already resolved through sys.executable),
+    executed from the repo root.  The suite's stdout line is parsed for
+    `<N> checks`; on any failure to run or parse, the fallback constant is
+    returned and a warning is printed to stderr (the badge stays intact).
+    """
+    try:
+        out = subprocess.run(
+            argv,
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+    except (OSError, subprocess.SubprocessError) as e:
+        print(f"WARNING: {label}: suite could not be run ({e!r}); "
+              f"using fallback count {fallback}", file=sys.stderr)
+        return fallback
+    m = CHECK_RE.search(out.stdout or "")
+    if m is None:
+        print(f"WARNING: {label}: no '<N> checks' line in suite output; "
+              f"using fallback count {fallback}", file=sys.stderr)
+        return fallback
+    return int(m.group(1).replace(",", ""))
+
+
+def regression_checks():
+    """Live regression-check counts by actually running the two test suites.
+
+    Returns (disasm_checks, emu_checks).  Both suites are pure-stdlib (no
+    capstone, no sh-elf toolchain required): the decode suite runs in --quick
+    mode (tables + whole-ROM family coverage — its count is identical to the
+    full run, which only adds failure-time checks on the bulk round-trip), and
+    the emulator suite runs with its default random-division case count.  Any
+    failure falls back to FALLBACK_CHECKS_*.
+    """
+    disasm = run_suite(
+        [sys.executable, "tools/tests/test_decode_families.py", "--quick"],
+        FALLBACK_CHECKS_DISASM,
+        "test_decode_families.py",
+    )
+    emu = run_suite(
+        [sys.executable, "tools/tests/test_emulator_families.py"],
+        FALLBACK_CHECKS_EMU,
+        "test_emulator_families.py",
+    )
+    return disasm, emu
 
 
 def git_ls_files(pattern, top_level_subdir=None):
@@ -103,14 +167,16 @@ def shields_url(label, value, color):
 def build_badge_block():
     """Return (metrics, block_text)."""
 
-    # Live repo data (all tracked-file based, so the numbers self-heal as
-    # new lifts/suites are committed).
+    # Live repo data (tracked-file based, so the numbers self-heal as new
+    # lifts are committed; the regression-check counts come from actually
+    # running the two test suites below).
     roms = len(git_ls_files("roms/stock/*.bin"))
     lifts = len(git_ls_files("c/*.c", top_level_subdir="c"))
     verified = unique_verified()
     tables = line_count_minus_one("symbols/cal_tables.csv")
     edges = line_count_minus_one("symbols/callgraph.csv")
     funcs = line_count_minus_one("symbols/symbols_60E0FC00.csv")
+    checks_disasm, checks_emu = regression_checks()
 
     verified_pct = round(100 * verified / lifts) if lifts else 0
 
@@ -133,7 +199,7 @@ def build_badge_block():
             "Regression checks",
             shields_url(
                 "Regression checks",
-                f"{CHECKS_DISASM}+{CHECKS_EMU} \u2713",
+                f"{checks_disasm}+{checks_emu} \u2713",
                 "green",
             ),
         ),
@@ -152,6 +218,8 @@ def build_badge_block():
         "edges": edges,
         "funcs": funcs,
         "asm_coverage": ASM_COVERAGE,
+        "regression_checks_disasm": checks_disasm,
+        "regression_checks_emu": checks_emu,
     }
     return metrics, "\n".join(lines) + "\n"
 
