@@ -93,7 +93,11 @@ header {
  * "60E15120 · hybrid (tag _N3J1E) (15120)" = 38 chars) never shifts the header:
  * 38ch * ~7.5px + 16px padding + ~22px dropdown arrow ≈ 323px, rounded up. */
 #model-select { width: 330px; height: 30px; line-height: 1.4; white-space: nowrap; }
-.model-context { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: break-word; }
+/* Fixed height (11px × 1.5 line-height = 16.5px/line) sized for the worst case:
+ * longest context line + confidence tag row wraps to 3 lines at the desktop
+ * box width (~398px) and 4 lines on narrow viewports (≤330px) ⇒ 66px = 4 lines.
+ * overflow:hidden clips any extra wrapped line instead of growing the header. */
+.model-context { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: break-word; height: 66px; overflow: hidden; }
 .model-context b { color: var(--text); font-family: var(--mono); }
 
 /* ---------- model note / confidence badges ---------- */
