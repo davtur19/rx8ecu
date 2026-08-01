@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **626 entries, 57.5M.** Regenerated 2026-08-01 for the
+in the working repository. **629 entries, 57.5M.** Regenerated 2026-08-01 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -12,17 +12,17 @@ see roms/ROMS.md).
 | (root)/ | 12 | 85.2K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
-| symbols/ | 6 | 874.4K |
-| c/ | 160 | 648.1K |
-| c/tests/ | 140 | 566.1K |
-| tools/ | 18 | 136.3K |
+| symbols/ | 6 | 893.0K |
+| c/ | 161 | 655.6K |
+| c/tests/ | 141 | 574.6K |
+| tools/ | 19 | 148.5K |
 | tools/tests/ | 2 | 37.0K |
-| docs/ | 221 | 1004.1K |
+| docs/ | 221 | 1005.5K |
 | hardware/ | 1 | 2.0K |
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
 | .github/ | 4 | 14.4K |
-| **Total** | **626** | 57.5M |
+| **Total** | **629** | 57.5M |
 
 ## External dependencies
 
@@ -103,7 +103,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `symbols/cal_tables.csv` | `5cc2bd6c7cf9c435dde0109ac507c0412fd9748ceb181fd2b04a98e06180228e` | 34.0K | Calibration table descriptors (1,210 tables) |
+| `symbols/cal_tables.csv` | `846b969d058f8d5b5c8f28d292977a8fb2cf30651f7de36a3dd977290d8da880` | 52.6K | Calibration table descriptors (1,210 tables) |
 | `symbols/callgraph.csv` | `728ba942fdfd6d2101e8e1474c4eba1b43604da8a1fb3cc656139aadaccf61a1` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/symbols_60E0FC00.csv` | `4a9bb03d4b98793c8a09120cfd1bfca2b57f408a61374241ff6886b04bc3c7c3` | 156.7K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `53e228ef534d27bb63a80f5ecc8e7722f0a7c3bc279cecd0468364aa91b6ec7d` | 38.7K | Function symbol table (per-ROM) |
@@ -207,6 +207,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/knockSensorADCFault.c` | `0e2da1ebe60ff44a0428f7778b02e5a96e6204e055a3278aedb8b96c6daab5c8` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/knock_sensor_adc_fault.c` | `8d037a428d3955462521faadc1e1576b6cd205bde687259c80ffc5257c00b453` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/knock_sensor_adc_read.c` | `e81623961937d2a72ebc794247a9644c268be64c1e27458c91eed71c5452f0ea` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/leading_trailing_spark_control_2100A.c` | `e5ede10d44e9c2498ed0d20edb1ff66b2240d5c129d486416cd0046ea9e0dddf` | 7.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/least_square_0x5687A.c` | `92927f6f6b34a623e870ae2793822c38f3e7f52d668b803147dccddfd1726c05` | 1.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/limitKnockRetardMax_ConditionalRPM.c` | `0cd5ecce7b0dcf470bbb23ea98cb4b8ad5ecddd460a443581d56742076f1a920` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/loadDatafromE2intoRAM.c` | `688e09298a8445190ada3ce00f18398defef7db140b9c99e305e9fc084a8d510` | 590B | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -354,6 +355,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_interp_leaves.py` | `e1a9d0c940c77600197e3661b99b7bb1c168a153c69a2eee8d10e83d792d2155` | 7.6K | Python per-function behavior-equivalence test |
 | `c/tests/test_knockFunctionInit.py` | `9943ab87ade7fbc839adfbc14ae05a6cfef622de6bbba2260836f97731673664` | 1.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_knockSensorADCFault.py` | `3b426011b3fc93d37a3f778c21ccd04e9bc244caa3fa0155d226ef8279a4d7a4` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_leading_trailing_spark_control_2100A.py` | `f7bd6750d2e9356ffd98eca58ff34cc988a0d34e68514a6ed821c6967a5899df` | 8.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_least_square_0x5687A.py` | `1ba6674e1089271e038fced04a76621359e4973f1291b6344a57325ac96a83fa` | 2.0K | Python per-function behavior-equivalence test |
 | `c/tests/test_math_min_max_49ED0.c` | `a2782f79cb0b98ce7df5212e6b093ee6d672587f19613b312fba4b6f048bbd1e` | 3.2K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/tests/test_math_min_max_49ED0.py` | `a46557ffbbdb8f3e555a6d34d66c8a556af64e24a4ccdf1c0bb3b42500f5a132` | 2.4K | Python per-function behavior-equivalence test |
@@ -427,6 +429,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/ASM_BASELINE.md` | `f7fefa9757def58943b0887686f0b5f5369a95600ee35ba247477ff64252df33` | 4.5K | Method, byte-exact proof, coverage, limits, next steps |
 | `tools/README.md` | `10c9317e30be5093c324dfe5cd9420f11543885a0dc0264e1e4a95606c3a1cb6` | 3.3K | Directory README |
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
+| `tools/cross_decode.py` | `3a6532e07091d41fc4f4f94d3890bec87cb37726f7fb0bb8c3a6c9e32cf028c8` | 12.2K | RE tool (see tools/README.md) |
 | `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
@@ -667,8 +670,8 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
 | `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `72363f23767a630b8240f6939a5add4c547e18e75ddc05d3ca9dfb21b08e185b` | 50.2K | Subsystem / overview documentation |
 | `docs/subsystems/IDA_NAMES.md` | `f2f45c00907a5ffb1725ead1f0372b55512d36555b1873b31e1d3172915c5ba4` | 3.2K | Subsystem / overview documentation |
-| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `b2fb40f467139fd19fdc9d5cd249b73da4d7db23a48d86d3b6e5801eae26f6a6` | 45.1K | Subsystem / overview documentation |
-| `docs/subsystems/MAPS.md` | `bfa06274246b804abe8e746f83fbd42cabc4938982511f59a01db68a7769036c` | 37.3K | Subsystem / overview documentation |
+| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `9428d17fd3479f088637164d9c1d288984b3057e32eaa0315d4a8ca374a710b8` | 45.9K | Subsystem / overview documentation |
+| `docs/subsystems/MAPS.md` | `e4c035a3991b1e5d191c732659d3c1915419c31f4c30cef6b392a45d4c4794e5` | 37.9K | Subsystem / overview documentation |
 | `docs/subsystems/O2_LAMBDA_SUBSYSTEM.md` | `6c6aaa644ed4781226fb63adad90b7ce20853bcf7834d7b7c6471a8ad3fa03b1` | 31.5K | Subsystem / overview documentation |
 | `docs/subsystems/OBD_SUBSYSTEM.md` | `61fda3060e2485c84b8a8a9ba09646a5b2c039b36a4438ae4621f8532dd8137a` | 17.1K | Subsystem / overview documentation |
 | `docs/subsystems/OVERVIEW.md` | `7534a70e899d53b7dc90f05b26f900fd72134bbdffe58358f0e84b97ff8b3a9a` | 2.9K | Subsystem / overview documentation |
