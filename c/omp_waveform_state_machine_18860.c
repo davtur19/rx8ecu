@@ -10,11 +10,14 @@
  *
  *   state 1:  if RAM8[A968] == 1, gate on the redundant port bytes
  *             readValue_8bit_ADDRESS_VAL(0xFFFF8078/0xFFFF807C, 0):
- *               - if val8078 == 0, or val807C != 1:  cold-weather cal A
+ *               - if val8078 == 0, or val807C != 1:  sensor-validity split (cal A)
  *               - else compare RAM_AA10 (f32 coolant temp) against
  *                 ROM 0x78E68 = -40.0:  temp < -40.0 -> cal A, else cal B
- *             A97E = cal byte (both 0x3C in stock ROM) and the discriminator
- *             is latched: A977 = (cal B) / A978 = (cal A).  A981 -> 2.
+ *             A97E = cal byte and the discriminator is latched:
+ *             A977 = (cal B) / A978 = (cal A).  A981 -> 2.
+ *             NOTE: the -40.0 threshold is a SENSOR-VALIDITY split, not a
+ *             cold-weather calibration: CAL_A (0x78E33) == CAL_B (0x78E34)
+ *             == 0x3C in stock ROM, so no cold correction is actually applied.
  *
  *   state 0 step block:  drive the stepper via omp_stepper_waveform_driver:
  *               A97C == 5 -> A97B = 0x80, A981 -> 1
@@ -81,7 +84,7 @@ void omp_waveform_state_machine_18860(uint8_t mode)
             RAM_A97E = (r9 == 1) ? ROM_CAL_B : ROM_CAL_A;
         }
         RAM_A977 = r9;               /* cal-B flag (temp >= -40.0) */
-        RAM_A978 = r14;              /* cal-A flag (cold / gate fail) */
+        RAM_A978 = r14;              /* cal-A flag (sensor-validity / gate fail) */
         RAM_A981 = 2;
     }
 

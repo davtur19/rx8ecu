@@ -129,10 +129,10 @@
 - Emulator tests run the actual ROM bytes and validate the writes
 
 ### Emulator gaps (sh2emu.py)
-- `0x440E` = MOV.W R0,@(0xE,R4) (4-bit-disp store form, byte offset 0x1C) is
-  NOT implemented — used as the rts delay slot in 0x3920 and 0x3934; when the
-  delay path is taken the real hardware writes [r4+0x1C] but the emulator
-  skips it. Verified return values are unaffected (0x3920 always returns
+- `0x440E` `ldc r4,SR` — **implemented** (verified: sh2emu.py decodes the
+  0x4n0E family as `ldc Rn,SR`, SR ← r4). Used as the rts delay slot in
+  0x3920 and 0x3934; the delay path sets SR from r4 (no memory write).
+  Verified return values are unaffected (0x3920 always returns
   sr & 0xF0 = 0xF0).
 
 ## Remaining Analysis Targets
@@ -141,8 +141,8 @@
   `test_omp_task_0x1825E.py`, 150000+ inputs, 0 mismatches). Call
   chain mapped (session 6): 0x1825E -> {0x3EE58*, 0x3ED3C, 0x2478
   (addSaturate8Bit), 0x18860 (omp_waveform_state_machine_18860), 0x189EE
-  (rotor_sync_position_detector), 0x18C08 (leading_edge_spark_calc),
-  0x18C5C (waveform_state_transition), 0x18C6C (trailing_edge_spark_calc)};
+  (rotor_sync_position_detector), 0x18C08 (omp_diag_rotor_18C08),
+  0x18C5C (waveform_state_transition), 0x18C6C (omp_wave_reload_18C6C)};
   those -> {0x18552 (omp_stepper_waveform_driver), 0x9668, 0x3F050 ->
   0x3ED7C/0x3EE68/0x60D54/0x2620E, 0x3ED3C -> 0x3920*/0x3934 -> 0x3DB0 ->
   0x35EE/0x3BF4}. * = verified this session. Reads RAM cluster A968..A98B +
@@ -284,7 +284,8 @@ sub-functions by state bytes. Chain verified bottom-up against the ROM emulator:
   Verified 60000 random inputs, 0 mismatches.
 - **0x18860 omp_waveform_state_machine_18860** — 4-state machine on RAM8[0xFFFFA981]
   (0x982/0x97E/0x977/0x978 latches, ADDRESS_VAL port 8078/807C gates, float
-  -40.0 cal gate), drives wave(0/1/2), A97C==5 -> A97B=0x80,A981=1.
+  -40.0 sensor-validity gate — CAL_A==CAL_B==0x3C stock, so no cold
+  correction is applied), drives wave(0/1/2), A97C==5 -> A97B=0x80,A981=1.
   Verified 60000 random inputs, 0 mismatches.
 - **0x189EE rotor_sync_position_detector** — 5-state machine on RAM8[0xFFFFA98B]
   tracking A8F1 (old) vs A974 (new) rotor position; tail dispatches

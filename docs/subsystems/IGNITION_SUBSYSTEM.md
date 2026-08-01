@@ -16,8 +16,8 @@ The RX-8 Renesis (13B-MSP) has a unique ignition architecture compared to piston
 | Plugs per rotor | 2 (leading + trailing) | 1 per cylinder |
 | Power strokes | 1 per rotor per e-shaft rev | 1 per 2 crank revs |
 | Total plugs | 4 (2 leading, 2 trailing) | 4–16 |
-| Firing order | Rotor 1 L → Rotor 2 L → Rotor 1 T → Rotor 2 T | L1 L2 L3 L4... |
-| Angle domain | 1080° e-shaft per rotor-face cycle (1 rotor revolution = 3 face cycles); fires every 180° e-shaft | 720° per crank cycle |
+| Firing order | R1 Lead → R1 Trail (few ° later) → R2 Lead → R2 Trail (180° e-shaft after R1) | L1 L2 L3 L4... |
+| Angle domain | 1 rotor face-cycle = 360° e-shaft (1 rotor revolution = 3 face-cycles = 1080° e-shaft); fires every 180° e-shaft | 720° per crank cycle |
 | Split (lead-trail gap) | 5–20° BTDC typical | N/A |
 
 ### Coil Configuration
@@ -218,16 +218,16 @@ if engine_warm AND ect_enable:
 # Dispatch results
 compare_select_two_float_values()
 calc_fuel_pump_control_output(fr15)    → 0xFFFFA744 (trailing edge)
-calc_fuel_pressure_load_compensation()  → 0xFFFFA734 (leading edge)
-                                          → 0xFFFFA738 (second trailing)
+calc_fuel_pressure_load_compensation()  → 0xFFFFA734/0xFFFFA738 (ignition timing
+                                          values, written identically)
+
 ```
 
 **Output RAM:**
 | Address | Description |
 |---------|-------------|
 | 0xFFFFA744 | Main ignition advance (float, °BTDC) |
-| 0xFFFFA734 | Leading edge timing (float, °BTDC) |
-| 0xFFFFA738 | Second trailing edge timing (float, °BTDC) |
+| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in leading_trailing_spark_control (0x2100A, unverified) |
 | 0xFFFFA75C | Knock control active flag (saved back) |
 
 **Confidence: high** — all control paths fully traced.

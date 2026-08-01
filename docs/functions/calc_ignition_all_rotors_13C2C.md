@@ -183,8 +183,8 @@ call 0x13ED2  ; compare_select_two_float_values
 call 0x13E6C  ; calc_fuel_pump_control_output(fr15)
   [0xFFFFA744] = result  ; trailing edge ignition timing
 call 0x13EE6  ; calc_fuel_pressure_load_compensation
-  + output to 0xFFFFA734 (leading edge)
-  + output to 0xFFFFA738 (trailing edge secondary)
+  + output to 0xFFFFA734/0xFFFFA738 (ignition timing values, written identically;
+    lead/trail split applied later in leading_trailing_spark_control 0x2100A, unverified)
 [0xFFFFA75C] = r14      ; save byte flag back
 ```
 
@@ -209,8 +209,9 @@ Where:
 
 The function writes final timing values to:
 - 0xFFFFA744: Main ignition advance (float, degrees BTDC)
-- 0xFFFFA734: Trailing edge timing (float, degrees BTDC)
-- 0xFFFFA738: Second trailing edge timing (float, degrees BTDC)
+- 0xFFFFA734/0xFFFFA738: Ignition timing values (float, degrees BTDC) — written
+  identically by this function; the lead/trail split is applied later in
+  leading_trailing_spark_control (0x2100A, not yet emulated)
 
 ---
 
