@@ -112,6 +112,8 @@ project; it is not affiliated with, or endorsed by, Mazda Motor Corporation or
 Denso Corporation. This project exists for research, interoperability, and
 preservation purposes. Licensed under the GNU Affero General Public License
 v3 — see [LICENSE](LICENSE).
+**Owner policy:** the repository must remain **public under AGPL-3.0**
+indefinitely — do not make it private, and do not relicense it.
 
 ## Credits & origins
 

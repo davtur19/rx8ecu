@@ -156,5 +156,5 @@ assembled SH bytes match the expected math over 30k+ random inputs each.
 
 ## Next
 
-- `2DLookup` / `3dLookup` (table interpolation), fueling/ignition helpers, CAN
-  handlers — all equinox-named on the reliable reference.
+- Fueling/ignition helpers and CAN handlers — equinox-named on the reliable
+  reference; lifts not yet started.

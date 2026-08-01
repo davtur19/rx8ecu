@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **626 entries, 57.5M.** Regenerated 2026-08-01 for the
+in the working repository. **625 entries, 57.4M.** Regenerated 2026-08-01 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,20 +9,20 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root)/ | 13 | 88.7K |
+| (root)/ | 12 | 84.4K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 6 | 874.4K |
 | c/ | 160 | 647.9K |
 | c/tests/ | 140 | 564.9K |
-| tools/ | 17 | 123.7K |
+| tools/ | 17 | 123.4K |
 | tools/tests/ | 2 | 33.5K |
-| docs/ | 221 | 1006.4K |
+| docs/ | 221 | 993.8K |
 | hardware/ | 1 | 2.0K |
-| web/ | 11 | 864.7K |
+| web/ | 11 | 870.4K |
 | analysis/ | 31 | 9.2M |
-| .github/ | 4 | 14.1K |
-| **Total** | **626** | **57.5M** |
+| .github/ | 4 | 14.4K |
+| **Total** | **625** | 57.4M |
 
 ## External dependencies
 
@@ -65,8 +65,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `f61053aee25d179094d5d6c95af47491ea29214d2e3922e629c2b361180b2a80` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `e0e4dcae0f359459f8878a037f5f2836df4d4820265e3ae23251b8b44b970899` | 9.4K | Master plan (single source of truth) |
-| `PUSH_INSTRUCTIONS.md` | `dd33ba87e2b5bd4586374afbc79379cf9e01c728e6b31376c10c9c8cf14293e1` | 5.1K | Push instructions for the new rx8ecu public repo |
-| `README.md` | `3e0e1ae153280f6e133f51168474ac905396081e16f40b6c58d38561f4e6fe1a` | 7.4K | Project README |
+| `README.md` | `de78ffcd9f1c4d3cc9047d3ad549b13680e6a9ecbf7bd0734ce061896fef9541` | 8.2K | Project README |
 | `REPLICATION.md` | `593a250912ef9d6d9927ec9023f4e2338f90fae39a45247387d4bc7b39290b63` | 9.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `4c19d97f6b15b7da55a8d2f3faf4b28b33e14b25a561136b94331622840b5d7f` | 9.9K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -130,7 +129,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/ImmoUpdateRelated.c` | `460a0d6936890725e2bb9362cc05557a96d520ee9856d0d9f3100e64a13a2ada` | 2.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/ImmoWaitForKey.c` | `b832e87709766ea2e33daa7e6901dc62771946063a30a97648ae35e0f609a60f` | 3.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/Immo_Keygen_related_ADC.c` | `7b6fde877ad30d0cd162c8647044df2b780de21cad3334fec1a7b64b5e04c23c` | 3.5K | Verified C lift (behavior-equivalent, emulator-proven) |
-| `c/README.md` | `cc5d0448163fb28a8f55a64bf290a063f76e6405faf949d64b227ee911368a71` | 12.1K | Directory README |
+| `c/README.md` | `8f82bc75f44cc86761399207d12bd861051980549dfe0637822ecf3c24fd31ac` | 12.1K | Directory README |
 | `c/SetMemoryNotValid2.c` | `76d4d68b7a3753a832ed4437056d867f137cf48c4ef6057d6e3f7a0e006741c2` | 685B | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/add16bitSaturate.c` | `33b56a6a1a1c2bd06ddfc65a7ea539156c6ccb885ded9de74eb8c5558d8aaec3` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/addS32Saturate.c` | `bfd0e5ed88ac6633b41c264ff0c324490e9385dcc756622672d232e304d952cd` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -425,13 +424,13 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `tools/ASM_BASELINE.md` | `b0675794f7358200a4bffbe3368c05e71994338282942aa86c3409040893311d` | 4.9K | Method, byte-exact proof, coverage, limits, next steps |
+| `tools/ASM_BASELINE.md` | `d45be355503f1b8b9d0254615c0adf8b1bb04a0b752b03982e43ebe99d16ed83` | 4.5K | Method, byte-exact proof, coverage, limits, next steps |
 | `tools/README.md` | `10c9317e30be5093c324dfe5cd9420f11543885a0dc0264e1e4a95606c3a1cb6` | 3.3K | Directory README |
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
 | `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
-| `tools/get_toolchain.sh` | `514087f3ef2bbc1eb3bf7e8e80e358b07f75d217f0a25bc6f043871f3b0e69bc` | 2.9K | RE tool script (see tools/README.md) |
+| `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
 | `tools/mazda_security.py` | `047fd50af4ad554bf2fe24af69656b94fdea339f474baf4142b25377e692f631` | 5.1K | RE tool (see tools/README.md) |
@@ -659,7 +658,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/notes/FINDINGS.md` | `3474a9974b7182deca1a62b265f8d77fe1a9702500a9ca7f54cc53f6dac0a022` | 29.7K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
 | `docs/notes/KNOWLEDGE.md` | `5ea0ec0a124604ba34f91370fea5a9bc7f6bf2304a87a0818830eb38a0d28b95` | 3.4K | Project knowledge / session notes |
-| `docs/notes/RESUME.md` | `f4c657442238a127b03ed1121f01625296170dbd433e2d4d8fa6335ab8ae2045` | 13.4K | Project knowledge / session notes |
+| `docs/notes/RESUME.md` | `32ace9f4bfd8a90dd82cee761ee637ba3662ab9f374d04385f4ce01db40a94c1` | 739B | Project knowledge / session notes |
 | `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `7bcb59f47dda3ef592813be6ec10408a8feeaad2572baec5a568a7171627f670` | 46.7K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `f5cc312a0560ec3daaed96c40e3f1c6902725b323a88d63694be1279d61a141c` | 13.4K | Subsystem / overview documentation |
 | `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `e7a35762ad52cbd4435112bcf0a48f79b95af31088c976aadc7c9a813fff32ff` | 48.0K | Subsystem / overview documentation |
@@ -688,15 +687,15 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 |---|--:|---:|---|
 | `web/explorer/.gitignore` | `9e38f3635d6b89b9d202765b2624d45192da67b8c0c593bfb75c405b070e6a9b` | 66B | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/Makefile` | `db9f6b8a342ee379c193034adaa04bd581a7a2f900c17de78e3850c0a3525cd4` | 2.3K | Web explorer (static firmware browser; see web/explorer/README.md) |
-| `web/explorer/README.md` | `be1729716da6b6d66a9f6154663d9f34e42beb9bd1ec0d6fd15399f78e22c4bb` | 12.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/README.md` | `fbfd540a45f0b9e93c83de52e23f4854ef260f4e82b0344955c9e1b3bd16ff61` | 12.6K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/build_site.py` | `e27c545402b548db4da88cd78d58e0ff4acea3955ca674e25d0aaf305ecc0083` | 41.8K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/MAPPING_NOTES.md` | `efc33d38a6771d5e96a6ef2c64ff551953fb91928637f9cd550f830e41b4d13b` | 8.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/roms_meta.json` | `dad8fd3738c7f3aeaab92fb6879c64a0a84c774784c09805fb0057f05f2631d3` | 6.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/table_addr_map.csv` | `c5af53244037338661fa54d8223cc92c88efcd8eb7e18b44113ef2338c0204f2` | 169.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/table_addr_map_long.csv` | `2ef23c561f7c2875a85775eb26e85e10bee2a0f479ba04696cde3297ca988349` | 533.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
-| `web/explorer/src/app.js` | `3036f43176fec5347b6f24123fd9a6121136a58e3e7f0a04e61499f10ab75e78` | 64.9K | Web explorer (static firmware browser; see web/explorer/README.md) |
-| `web/explorer/src/index.template.html` | `54d87d5f309cde1457ce7eb529f4f0d03389e2c7bf193d6614013c80015c6d7f` | 9.7K | Web explorer (static firmware browser; see web/explorer/README.md) |
-| `web/explorer/src/style.css` | `b883bb70a1bd37b991d442851a7417004843b9b406824a2969f3fcfab93fc789` | 15.1K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/app.js` | `8bf76e787d53615e7512fe5e27ff0083393fff47f99546563c2cce4253a3bbc8` | 67.6K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/index.template.html` | `e13e9d53f9dbd4a4768fce56c9a948a57b17b2ece140a40f0f51168475faa551` | 9.8K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/src/style.css` | `532bdd8181524f56f56c26c6a0e72bd21257e02a73d0b42d9607c6c79df40480` | 18.0K | Web explorer (static firmware browser; see web/explorer/README.md) |
 
 ## analysis
 
@@ -738,7 +737,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `.github/requirements.txt` | `24be0b1fed86c04d01ba8755ccec53c237d77817f1a867bfc1bd3f338d3c531e` | 513B | CI requirements (GitHub Actions) |
-| `.github/workflows/README.md` | `bc5dea417e56e3c4bec2da4b03a050bff4e5f15c6237fb42110343ecb52d869c` | 5.4K | CI documentation (GitHub Actions) |
-| `.github/workflows/ci.yml` | `8ad43104d559bb6f8daf95be026e1dcf82b0ecdfe268a4a21f6699db5c17ea85` | 5.2K | CI workflow (GitHub Actions) |
+| `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
+| `.github/workflows/README.md` | `4ba420eb633f9177d6a5f5500289c905cfa6b312c4c0e861ad2db6ee93878f6d` | 5.4K | CI documentation (GitHub Actions) |
+| `.github/workflows/ci.yml` | `add9447b75c6290815e2a656da3c508988b62c3a9b8aa2846d8894fb894f0e26` | 5.5K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `6ba453cce77ff8dc631d16a30212feecef1cafe766ce9632a60041f7aa03f26c` | 3.0K | CI workflow (GitHub Actions) |

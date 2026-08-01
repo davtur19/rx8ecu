@@ -84,12 +84,5 @@ up to the 200-byte multi-function span 0x23B0–0x2478 (2 pools), and the IPL pr
 
 ## Next steps
 
-1. Ingest IDA/Ghidra symbol maps into `symbols/symbols*.csv` (authoritative
-   code/data boundaries + function names): retype the remaining ~6% of
-   mis-decoded data and give functions real names in the `.s`.
-2. Cross-ROM diffing across the 9-ROM public dataset (`roms/ROMS.md`) to separate
-   calibration from code and spot per-variant deltas (the private 10th ROM,
-   [REDACTED], can be added locally — it is not shipped; point the tooling at a
-   local copy of `[REDACTED]`).
-3. Begin Track A: replace individual `.s` functions with compiled C (sh-elf-gcc),
-   keeping `make verify` green (diff only the touched region).
+All three original next steps (IDA/Ghidra symbol-map ingest, cross-ROM diffing,
+Track-A C lifts) are **completed** — see `../VERIFICATION.md` and the `c/` tree.
