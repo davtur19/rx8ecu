@@ -232,14 +232,16 @@ def main():
         emu.append(tuple(cpu.rd(a, 1) for a in OUTPUT_ADDRS))
 
     # (b) host-C on the same pre-states (oracle seeds the same 82 bytes).  The
-    # u16 cells are byte-swapped into the oracle's native (little-endian) byte
-    # order so both sides operate on identical 16-bit values.
+    # u16 cells and the two f32 inputs are byte-swapped into the oracle's
+    # native (little-endian) byte order so both sides operate on identical
+    # 16-bit values and identical float bit patterns.
     lines = []
     for ram60, mmio14, xbits, ybits in vectors:
         toks = ['%02X' % b
                 for b in swap16(ram60, RAM_WORD_PAIRS) + swap16(mmio14, MMIO_WORD_PAIRS)]
-        toks += ['%02X' % ((ybits >> (8 * (3 - i))) & 0xFF) for i in range(4)]
-        toks += ['%02X' % ((xbits >> (8 * (3 - i))) & 0xFF) for i in range(4)]
+        # the oracle memcpy's these bytes into host-native (LE) floats
+        toks += ['%02X' % ((ybits >> (8 * i)) & 0xFF) for i in range(4)]
+        toks += ['%02X' % ((xbits >> (8 * i)) & 0xFF) for i in range(4)]
         lines.append('dwl ' + ' '.join(toks))
     raw = [tuple(int(x, 16) for x in out.split())
            for out in run_oracle(oracle, lines)]
