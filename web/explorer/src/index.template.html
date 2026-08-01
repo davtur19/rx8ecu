@@ -210,14 +210,16 @@
       </select>
       <span class="toolbar-count" id="doc-count"></span>
     </div>
-    <div class="layout-2">
-      <div class="scroll-pane">
-        <div id="doc-list" class="doc-list"></div>
-      </div>
-      <aside id="doc-detail" class="detail-pane">
+    <div class="docs-layout">
+      <aside class="doc-side">
+        <div class="doc-list-wrap" id="doc-list-wrap">
+          <div id="doc-list" class="doc-list"></div>
+        </div>
+      </aside>
+      <article id="doc-detail" class="doc-reader">
         <p class="muted">Select a document to read it. Function docs matched to a symbol
         can also be read from the "Functions &amp; Symbols" panel (Documentation section).</p>
-      </aside>
+      </article>
     </div>
   </section>
 
