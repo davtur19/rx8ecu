@@ -18,6 +18,13 @@ descriptor format (emulator-verified). Naming follows RX8Defs conventions
 python tools/mapscan.py [REDACTED] --dump 0x<descAddr>
 ```
 
+> **cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence`.
+> Columns 4-9 are appended backward-compatibly (first 3 columns unchanged; `mapscan.py` reads only
+> `name`/`address` via DictReader). `kind` (1210 rows): `axis`=662 (bare "X"/"Y", pointer-verified
+> 3D-map axis arrays), `table`=443 (334 anonymous "Table 2D/3D - NNN" + 109 descriptive),
+> `intermediate`=105 ("Check DataType" annotations). `dims`: 1D=1014, 2D=87, blank where not derivable (109).
+> `scale`/`offset`/`units` are **unverified** (blank) unless declared by a verified source; `confidence`: high=1072, low=138.
+
 ```
 [REDACTED]: 499 map descriptors (119 2D, 380 1D); naming follows RX8Defs conventions
 
