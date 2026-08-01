@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="racing">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,10 +30,14 @@
 <!-- ============ HEADER ============ -->
 <header>
   <div class="brand">
-    <div class="logo">RX-8</div>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+        <path fill-rule="evenodd" d="M12 3.4 L20.6 19.3 Q12 14.4 3.4 19.3 Z M12 12 m-3.1 0 a3.1 3.1 0 1 0 6.2 0 a3.1 3.1 0 1 0 -6.2 0"/>
+      </svg>
+    </div>
     <div>
-      <h1>ECU Firmware Explorer</h1>
-      <div class="subtitle">Mazda RX-8 · Renesis 1.3L · Renesas SH7055 (SH-2E)</div>
+      <h1 class="wordmark">RX-<span class="wm-accent">8</span></h1>
+      <div class="subtitle">ECU Firmware Explorer · Renesis 1.3L · Renesas SH7055 (SH-2E)</div>
     </div>
   </div>
   <div class="header-stats" id="header-stats"></div>
@@ -242,5 +246,16 @@
 </footer>
 
 <script src="app.js"></script>
+<div class="theme-switch" id="theme-switch">
+  <button type="button" id="theme-btn" class="icon-btn" title="Cambia tema" aria-label="Cambia tema" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3.4" fill="currentColor" stroke="none"/><circle cx="17" cy="6" r="3.4" fill="currentColor" stroke="none"/><circle cx="11.5" cy="16" r="3.4" fill="currentColor" stroke="none"/></svg>
+  </button>
+  <div class="theme-menu" id="theme-menu" hidden>
+    <button type="button" class="tsw" data-theme="racing"><i class="dot" style="background:#e63946"></i>Rosso racing</button>
+    <button type="button" class="tsw" data-theme="jdm"><i class="dot" style="background:#00c6ff"></i>JDM cyan</button>
+    <button type="button" class="tsw" data-theme="deepblue"><i class="dot" style="background:#4d7cff"></i>Blu profondo</button>
+    <button type="button" class="tsw" data-theme="light"><i class="dot" style="background:#c1121f"></i>Chiaro</button>
+  </div>
+</div>
 </body>
 </html>
