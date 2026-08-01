@@ -253,10 +253,10 @@ function mdInline(s) {
   return s;
 }
 
-function mdToHtml(src) {
+function mdToHtml(src, out) {
   if (!src) return "";
   const lines = String(src).split(/\r?\n/);
-  let html = "", i = 0, inUl = false, inOl = false;
+  let html = "", i = 0, inUl = false, inOl = false, secN = 0;
   const closeList = () => {
     if (inUl) { html += "</ul>"; inUl = false; }
     if (inOl) { html += "</ol>"; inOl = false; }
@@ -281,8 +281,11 @@ function mdToHtml(src) {
     const h = /^(#{1,5})\s+(.*)$/.exec(t);
     if (h) {
       closeList();
-      const lv = Math.min(6, h[1].length + 2);
-      html += `<h${lv} class="md-h">${mdInline(esc(h[2]))}</h${lv}>`;
+      const lv = Math.min(6, h[1].length + 1);
+      const id = "sec-" + (++secN);
+      if (out && out.toc) out.toc.push({ level: lv, text: h[2].replace(/\*\*/g, "").replace(/`/g, "").trim(), id });
+      const link = (out && out.toc) ? ` <a class="hlink" href="#${id}" data-sec="${id}" title="Link to this section">§</a>` : "";
+      html += `<h${lv} id="${id}" class="md-h">${mdInline(esc(h[2]))}${link}</h${lv}>`;
       i++; continue;
     }
     // separator
@@ -465,13 +468,19 @@ function detailSymbolHtml(i) {
 }
 
 /* ============================ TABS ============================ */
+function activateTab(name) {
+  document.querySelectorAll("#tabs button").forEach((x) => x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach((x) => x.classList.remove("active"));
+  const b = document.querySelector(`#tabs button[data-tab="${name}"]`);
+  if (b) b.classList.add("active");
+  const p = $("panel-" + name);
+  if (p) p.classList.add("active");
+}
 function wireTabs() {
   document.querySelectorAll("#tabs button").forEach((b) => {
     b.addEventListener("click", () => {
-      document.querySelectorAll("#tabs button").forEach((x) => x.classList.remove("active"));
-      document.querySelectorAll(".panel").forEach((x) => x.classList.remove("active"));
-      b.classList.add("active");
-      $("panel-" + b.dataset.tab).classList.add("active");
+      activateTab(b.dataset.tab);
+      try { history.pushState(null, "", "#" + b.dataset.tab); } catch (e) { /* file:// ok */ }
     });
   });
 }
@@ -1177,6 +1186,7 @@ function wireTables() {
  * (docs/functions/*.md, including those not matched to a symbol). */
 const DocView = {
   rows: [],
+  cur: -1,
   apply() {
     const q = $("doc-search").value.trim().toLowerCase();
     const grp = $("doc-group").value;
@@ -1200,26 +1210,53 @@ const DocView = {
   },
   render() {
     $("doc-count").textContent = `${fmtNum(this.rows.length)} documents`;
-    $("doc-list").innerHTML = this.rows.map((r, k) => {
+    let html = "", lastType = "";
+    this.rows.forEach((r, k) => {
+      if (r.type !== lastType) {
+        html += `<div class="doc-group">${r.type === "sub" ? "Subsystems" : "Functions"}</div>`;
+        lastType = r.type;
+      }
       const tag = r.type === "sub"
         ? '<span class="tag sub">subsystem</span>'
         : (r.symI >= 0 ? '<span class="tag doc">function</span>'
                         : '<span class="tag">function (unmatched)</span>');
       const addr = (r.a !== null && r.a !== undefined) ? ` ${hex(r.a)}` : "";
-      return `<div class="doc-item" data-k="${k}">
+      html += `<div class="doc-item" data-k="${k}">
         <div class="doc-item-title">${esc(r.t)}${addr}</div>
         <div class="doc-item-meta">${tag} <span class="muted">${esc(r.f)}.md</span></div>
       </div>`;
-    }).join("") || '<div class="muted" style="padding:12px">No documents match.</div>';
+    });
+    $("doc-list").innerHTML = html || '<div class="muted" style="padding:12px">No documents match.</div>';
   },
-  detail(k) {
+  select(k, scrollTop) {
+    if (k < 0 || k >= this.rows.length) return;
+    this.cur = k;
+    document.querySelectorAll("#doc-list .doc-item.sel").forEach((x) => x.classList.remove("sel"));
+    const it = Array.from(document.querySelectorAll("#doc-list .doc-item")).find((x) => +x.dataset.k === k);
+    if (it) { it.classList.add("sel"); it.scrollIntoView({ block: "nearest" }); }
+    this.detail(k, scrollTop === false ? false : true);
+  },
+  detail(k, scrollTop) {
     const r = this.rows[k];
     if (!r) { $("doc-detail").innerHTML = ""; return; }
+    const out = { toc: [] };
+    const body = mdToHtml(r.b, out);
     let btn = "";
     if (r.symI >= 0) {
       const s = DATA.symbols[r.symI];
       btn = `<div class="toolbar" style="margin-top:8px"><button data-goto-sym="${r.symI}">Open ${esc(s.n)} in Symbols</button></div>`;
     }
+    const tocHtml = out.toc.length >= 2
+      ? `<div class="doc-toc"><div class="doc-toc-h">On this page</div><ul>` +
+        out.toc.map((t) => `<li class="doc-toc-${t.level}"><a href="#${t.id}" data-sec="${t.id}">${esc(t.text)}</a></li>`).join("") +
+        `</ul></div>`
+      : "";
+    const n = this.rows.length;
+    const nav = `<div class="doc-nav">
+        <span class="doc-nav-pos">${k + 1} / ${n}</span>
+        <button data-nav="prev" ${k > 0 ? "" : "disabled"}>‹ Previous</button>
+        <button data-nav="next" ${k < n - 1 ? "" : "disabled"}>Next ›</button>
+      </div>`;
     $("doc-detail").innerHTML = `<h4>${esc(r.t)}</h4>
       <div class="kv-list">
         <div>Type</div><div>${r.type === "sub" ? "Subsystem" : "Function"}</div>
@@ -1227,10 +1264,17 @@ const DocView = {
         ${r.symI >= 0 ? `<div>Symbol</div><div>${hex(DATA.symbols[r.symI].a)} · ${esc(DATA.symbols[r.symI].n)}</div>` : ""}
       </div>
       ${btn}
-      <div class="doc-block">${mdToHtml(r.b)}</div>`;
+      <div class="doc-block">${tocHtml}${body}</div>
+      ${nav}`;
     const g = $("doc-detail").querySelector("[data-goto-sym]");
     if (g) g.addEventListener("click", () => openSymFromDoc(parseInt(g.dataset.gotoSym, 10)));
+    $("doc-detail").querySelectorAll("[data-nav]").forEach((b) =>
+      b.addEventListener("click", () => DocView.select(k + (b.dataset.nav === "next" ? 1 : -1))));
     try { history.pushState(null, "", "#doc-" + r.f); } catch (e) { /* file:// ok */ }
+    if (scrollTop) {
+      const el = $("doc-detail");
+      if (el) el.scrollIntoView({ block: "start" });
+    }
   },
 };
 function openSymFromDoc(i) {
@@ -1245,10 +1289,19 @@ function wireDocs() {
     $(id).addEventListener("input", () => DocView.apply()));
   $("doc-list").addEventListener("click", (ev) => {
     const it = ev.target.closest(".doc-item");
-    if (!it) return;
-    document.querySelectorAll("#doc-list .doc-item.sel").forEach((x) => x.classList.remove("sel"));
-    it.classList.add("sel");
-    DocView.detail(parseInt(it.dataset.k, 10));
+    if (it) DocView.select(parseInt(it.dataset.k, 10));
+  });
+  $("doc-detail").addEventListener("click", (ev) => {
+    const a = ev.target.closest("a[data-sec]");
+    if (!a) return;
+    ev.preventDefault();
+    const sec = a.dataset.sec;
+    const el = $("doc-detail").querySelector("#" + sec);
+    const r = (DocView.cur >= 0) ? DocView.rows[DocView.cur] : null;
+    if (el && r) {
+      el.scrollIntoView({ block: "start" });
+      try { history.pushState(null, "", "#doc-" + r.f + "#" + sec); } catch (e) { /* file:// ok */ }
+    }
   });
   DocView.apply();
 }
@@ -1489,23 +1542,29 @@ function jumpToTable(addr) {
   TblDetail(rid);
   return true;
 }
-function jumpToDoc(fname) {
+function jumpToDoc(fname, secId) {
   document.querySelector("#tabs button[data-tab=docs]").click();
   $("doc-search").value = ""; $("doc-group").value = "";
   DocView.apply();
   const k = DocView.rows.findIndex((r) => r.f.toLowerCase() === fname.toLowerCase());
   if (k < 0) return false;
-  const it = Array.from(document.querySelectorAll("#doc-list .doc-item")).find((x) => +x.dataset.k === k);
-  if (it) { it.classList.add("sel"); it.scrollIntoView({ block: "center" }); }
-  DocView.detail(k);
+  DocView.select(k, !secId);
+  if (secId) {
+    const el = $("doc-detail").querySelector("#" + secId);
+    if (el) {
+      el.scrollIntoView({ block: "start" });
+      try { history.pushState(null, "", "#doc-" + fname + "#" + secId); } catch (e) { /* file:// ok */ }
+    }
+  }
   return true;
 }
 function handleHash() {
   const h = location.hash || "";
   let m;
+  if (/^#(dashboard|symbols|callgraph|tables|docs|lookup)$/.test(h)) { activateTab(h.slice(1)); return; }
   if ((m = /^#sym-0x([0-9a-fA-F]{1,8})$/.exec(h))) { jumpToSymbol(parseInt(m[1], 16)); return; }
   if ((m = /^#tbl-0x([0-9a-fA-F]{1,8})$/.exec(h))) { jumpToTable(parseInt(m[1], 16)); return; }
-  if ((m = /^#doc-([\w.-]+)$/.exec(h))) { jumpToDoc(m[1]); return; }
+  if ((m = /^#doc-([\w.-]+)(?:#sec-(\d+))?$/.exec(h))) { jumpToDoc(m[1], m[2] ? "sec-" + m[2] : null); return; }
 }
 
 /* ============================ INIT ============================ */
