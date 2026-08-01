@@ -19,6 +19,17 @@
  * as tests/host_oracle.c), so the volatile fixed-address pointers in the
  * sample compile and fault-free on the host.  This is exactly what the ROM
  * does on the SH-2E, where all addresses are plain on-chip RAM.
+ *
+ * Multi-byte cells are seeded and read back through NATIVE uint16_t/uint32_t
+ * pointers — the ROM's big-endian `mov.w`/`mov.l` and the host's native
+ * store/load produce the same NUMBER, and the harness compares numeric
+ * values (exactly like oracle_immo_bad_state_set.c / oracle_immo_update_
+ * related.c / oracle_immo_state_machine_360e8.c).  Single bytes stay u8.  Two
+ * special cases: the 8-byte CAN TX buffer 0xFFFFC238 is only ever touched by
+ * the sample via u8 (buf[i]) so it stays bytewise; the 8-byte adc_read block
+ * 0xFFFF869C is read by the sample as four 16-bit words (w0..w3, plus the
+ * 32-bit word composed from w0:w1) so it is seeded/read as four native
+ * uint16_t words split from the big-endian value.
  * ==========================================================================*/
 #include <stdio.h>
 #include <stdint.h>
@@ -74,6 +85,52 @@ static void map_page(uintptr_t addr)
     }
 }
 
+/* Seed a cell with its native width so the numeric value survives the host's
+ * little-endian byte order (same approach as oracle_immo_update_related.c's
+ * wr_cell/rd_cell).  The two 8-byte cells are handled per-cell: the CAN TX
+ * buffer (0xFFFFC238) is only accessed bytewise by the sample, the adc_read
+ * checksum block (0xFFFF869C) only as four 16-bit words. */
+static void wr_cell(uintptr_t addr, int width, uint64_t val)
+{
+    int i;
+    if (addr == 0xFFFF869Cu) {
+        *(volatile uint16_t *)(uintptr_t)(addr + 0) = (uint16_t)(val >> 48);
+        *(volatile uint16_t *)(uintptr_t)(addr + 2) = (uint16_t)(val >> 32);
+        *(volatile uint16_t *)(uintptr_t)(addr + 4) = (uint16_t)(val >> 16);
+        *(volatile uint16_t *)(uintptr_t)(addr + 6) = (uint16_t)val;
+        return;
+    }
+    if (width == 1)
+        *(volatile uint8_t  *)(uintptr_t)addr = (uint8_t)val;
+    else if (width == 2)
+        *(volatile uint16_t *)(uintptr_t)addr = (uint16_t)val;
+    else if (width == 4)
+        *(volatile uint32_t *)(uintptr_t)addr = (uint32_t)val;
+    else                            /* 0xFFFFC238 CAN TX buffer (8 bytes) */
+        for (i = 0; i < 8; i++)
+            *(volatile uint8_t *)(uintptr_t)(addr + i) =
+                (uint8_t)(val >> (8 * (7 - i)));
+}
+
+static uint64_t rd_cell(uintptr_t addr, int width)
+{
+    int i;
+    uint64_t v;
+    if (addr == 0xFFFF869Cu) {
+        return ((uint64_t)*(volatile uint16_t *)(uintptr_t)(addr + 0) << 48)
+             | ((uint64_t)*(volatile uint16_t *)(uintptr_t)(addr + 2) << 32)
+             | ((uint64_t)*(volatile uint16_t *)(uintptr_t)(addr + 4) << 16)
+             | (uint64_t)*(volatile uint16_t *)(uintptr_t)(addr + 6);
+    }
+    if (width == 1) return *(volatile uint8_t  *)(uintptr_t)addr;
+    if (width == 2) return *(volatile uint16_t *)(uintptr_t)addr;
+    if (width == 4) return *(volatile uint32_t *)(uintptr_t)addr;
+    v = 0;                          /* 0xFFFFC238 CAN TX buffer (8 bytes) */
+    for (i = 0; i < 8; i++)
+        v = (v << 8) | *(volatile uint8_t *)(uintptr_t)(addr + i);
+    return v;
+}
+
 int main(void)
 {
     char line[512];
@@ -101,30 +158,18 @@ int main(void)
             return 2;
         }
 
-        /* Seed the 26 cells as big-endian bytes. */
-        for (i = 0; i < NCELLS; i++) {
-            uint32_t addr = LOCS[i][0];
-            int w = (int)LOCS[i][1];
-            uint64_t val = (uint64_t)v[i];
-            int b;
-            for (b = 0; b < w; b++) {
-                *(volatile uint8_t *)(uintptr_t)(addr + b) =
-                    (uint8_t)(val >> (8 * (w - 1 - b)));
-            }
-        }
+        /* Seed the 26 cells with their native width (u8/u16/u32; the two
+         * 8-byte cells per their special case, see wr_cell). */
+        for (i = 0; i < NCELLS; i++)
+            wr_cell(LOCS[i][0], (int)LOCS[i][1], (uint64_t)v[i]);
 
         rx8_immo_state_ready_to_drive_engine_off();
 
-        /* Print the 26 resulting cells (same widths). */
+        /* Print the 26 resulting cells (same widths, numeric values). */
         for (i = 0; i < NCELLS; i++) {
-            uint32_t addr = LOCS[i][0];
-            int w = (int)LOCS[i][1];
-            uint64_t val = 0;
-            int b;
-            for (b = 0; b < w; b++)
-                val = (val << 8) | *(volatile uint8_t *)(uintptr_t)(addr + b);
             if (i) putchar(' ');
-            printf("%0*llX", w * 2, (unsigned long long)val);
+            printf("%0*llX", (int)LOCS[i][1] * 2,
+                   (unsigned long long)rd_cell(LOCS[i][0], (int)LOCS[i][1]));
         }
         putchar('\n');
     }

@@ -152,7 +152,13 @@ static uint32_t rx8_immo_adc_read(void)
     uint16_t comp = (uint16_t)(~(uint32_t)((int16_t)w0 + (int16_t)w1));
 
     if (comp == w2 || comp == w3)
-        return RX8_IO32(0xFFFF869C);
+        /* ROM 0x3EDF0: `mov.l @r14,r13` loads the 32-bit word at 0xFFFF869C,
+         * which on the big-endian SH-2E is exactly w0:w1.  Composing it from
+         * the two already-read words (instead of a second native uint32_t
+         * access to the same bytes) keeps the value endianness-independent, so
+         * the little-endian host oracle sees the same number the BE emulator
+         * does.  Identical result on the BE target. */
+        return ((uint32_t)w0 << 16) | w1;
     RX8_IO8(0xFFFFC6AC) = 1u;
     return 0u;
 }
