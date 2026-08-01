@@ -8,12 +8,12 @@ src/*.bin
 # Toolchain (fetched by get_toolchain.sh)
 tools/toolchain/
 # Third-party + personal data (kept locally, not published)
-[REDACTED]/
-[REDACTED]/
 captures/
 eeprom/
 dump_selfmade/
 tmp/
+# Python cache
+.pytest_cache/
 # Junk / scratch
 core.*
 *.pyc
