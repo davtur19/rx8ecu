@@ -1603,16 +1603,27 @@ init().catch((e) => {
 
 /* ============================ THEME SWITCHER ============================ */
 (function(){
-  var KEY='rx8-theme';
-  var THEMES=['racing','jdm','deepblue','light'];
+  var KEY = 'rx8-theme';
+  var THEMES = ['racing', 'jdm', 'deepblue', 'light'];
   function current(){ return document.documentElement.dataset.theme || 'racing'; }
   function apply(t){ document.documentElement.dataset.theme = t; try{ localStorage.setItem(KEY, t); }catch(e){} }
-  try{ var s = localStorage.getItem(KEY); if(THEMES.indexOf(s) >= 0) apply(s); else apply('racing'); }catch(e){ apply('racing'); }
-  var btn = document.getElementById('theme-btn'), menu = document.getElementById('theme-menu');
-  if(btn && menu){
-    function refresh(){ menu.querySelectorAll('.tsw').forEach(function(b){ b.setAttribute('aria-checked', String(b.dataset.theme === current())); }); }
-    btn.addEventListener('click', function(){ var h = menu.hidden; menu.hidden = !h; btn.setAttribute('aria-expanded', String(h)); if(h) refresh(); });
-    menu.addEventListener('click', function(e){ var t = e.target.closest('.tsw'); if(!t) return; apply(t.dataset.theme); menu.hidden = true; btn.setAttribute('aria-expanded','false'); refresh(); });
-    document.addEventListener('click', function(e){ if(!e.target.closest('.theme-switch')){ menu.hidden = true; btn.setAttribute('aria-expanded','false'); } });
+  function menu(){ return document.getElementById('theme-menu'); }
+  function tbtn(){ return document.getElementById('theme-btn'); }
+  function refresh(){
+    var m = menu(); if(!m) return;
+    var cur = current();
+    m.querySelectorAll('.tsw').forEach(function(b){ b.setAttribute('aria-checked', String(b.dataset.theme === cur)); });
   }
+  function init(){
+    try{ var s = localStorage.getItem(KEY); apply(THEMES.indexOf(s) >= 0 ? s : 'racing'); }catch(e){ apply('racing'); }
+    document.addEventListener('click', function(e){
+      var w = e.target.closest('#theme-btn');
+      if(w){ var m = menu(); if(m){ var h = m.hidden; m.hidden = !h; w.setAttribute('aria-expanded', String(h)); if(h) refresh(); } return; }
+      var t = e.target.closest('.tsw');
+      if(t){ apply(t.dataset.theme); var mm = menu(); if(mm) mm.hidden = true; var b = tbtn(); if(b) b.setAttribute('aria-expanded','false'); refresh(); return; }
+      if(!e.target.closest('.theme-switch')){ var m2 = menu(); if(m2) m2.hidden = true; var b2 = tbtn(); if(b2) b2.setAttribute('aria-expanded','false'); }
+    });
+    refresh();
+  }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();

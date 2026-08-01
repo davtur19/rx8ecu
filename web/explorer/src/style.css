@@ -1,9 +1,9 @@
 /* RX-8 ECU Firmware Explorer — dark theme, zero deps */
 :root, [data-theme="racing"] {
-  --bg:#0b0c0e; --bg2:#131518; --bg3:#1a1d21; --border:#26292f; --border2:#33383f;
-  --text:#e8e6e3; --muted:#8a867e; --accent:#e63946; --accent2:#b9c0c9;
-  --green:#7ee787; --red:#f85149; --purple:#bc8cff; --cyan:#39c5cf;
-  --accent-alpha:rgba(230,57,70,.14); --cg-bg:#07080a; --shadow:rgba(0,0,0,.5); --zebra:rgba(255,255,255,.02);
+  --bg:#0d0c0b; --bg2:#151312; --bg3:#1c1a18; --border:#2a2724; --border2:#383431;
+  --text:#eae6e1; --muted:#8f8981; --accent:#c62828; --accent2:#a8b0b8;
+  --green:#7ee787; --red:#e5484d; --purple:#bc8cff; --cyan:#39c5cf;
+  --accent-alpha:rgba(198,40,40,.12); --cg-bg:#0a0908; --shadow:rgba(0,0,0,.5); --zebra:rgba(255,255,255,.02);
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
