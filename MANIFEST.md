@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **634 entries, 57.5M.** Regenerated 2026-08-02 for the
+in the working repository. **1008 entries, 59.4M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,20 +9,22 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root)/ | 11 | 85.2K |
+| (root) | 11 | 188.7K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
-| symbols/ | 6 | 893.0K |
+| symbols/ | 6 | 893.1K |
 | c/ | 163 | 667.2K |
 | c/tests/ | 143 | 586.4K |
-| tools/ | 20 | 155.9K |
+| tools/ | 20 | 161.4K |
 | tools/tests/ | 2 | 37.0K |
-| docs/ | 221 | 1006.6K |
+| docs/ | 223 | 1015.8K |
 | hardware/ | 1 | 2.0K |
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
-| .github/ | 5 | 15.3K |
-| **Total** | **634** | 57.5M |
+| .github/ | 5 | 16.0K |
+| reconstructed/experiments/match/ | 62 | 142.0K |
+| reconstructed/samples/ | 310 | 1.6M |
+| **Total** | **1008** | 59.4M |
 
 ## External dependencies
 
@@ -51,6 +53,10 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
   at `tools/toolchain/usr/bin`; `./tools/get_toolchain.sh` re-creates it idempotently.
 - `src/*.bin`, `*.elf`, `*.o` build intermediates (e.g. from `make src`) are git-ignored;
   `make clean` removes them. Only the 9 `src/*_annotated.s` sources ship.
+- `reconstructed/` is fully inventoried (no longer excluded): compiler-match experiments
+  (C sources, expected GCC sh-elf output, ROM hex, sweep scripts) under
+  `reconstructed/experiments/match`, and readable reconstructed-source C samples with
+  Python harnesses + host oracles under `reconstructed/samples`.
 
 ## (root)
 
@@ -436,7 +442,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
-| `tools/gen_badges.py` | `45b366d5c5ebae941739db63f3d1aaac7f035b24c523b9f8e7a4c7948ee5d7eb` | 10.3K | RE tool (see tools/README.md) |
+| `tools/gen_badges.py` | `d2f94a51a86f0500edba4536949e3221ea4f86c92250a3b5088305859abdb9f1` | 13.0K | RE tool (see tools/README.md) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
@@ -661,11 +667,13 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/notes/BOOT_RECOVERY.md` | `cbf923cbb35ac92653635b9077646b7116b87e6e0e764d645dec839ce4c243de` | 5.0K | Project knowledge / session notes |
 | `docs/notes/CAN_PROTOCOL.md` | `48de5de5f0871de1d5f2afe5c4ded862016dc097873c0106e403849a766eae77` | 10.2K | Project knowledge / session notes |
 | `docs/notes/CONNECTOR_PINOUT.md` | `ffde758d58523046a0e3cbb2e1d5ba75f9f26cb69bef65e579955ecba5bfbc90` | 2.9K | Project knowledge / session notes |
+| `docs/notes/COOLING_FANS.md` | `ed52344439aed6750027a5d4efd2df201b43d6f4084b2c9c1feb069c64d6cac6` | 2.2K | Project knowledge / session notes |
 | `docs/notes/DUMP_ALL.md` | `b7eb9e1e76917f82576602011d7dd9e369437a7307e9a6769d199650e2085afa` | 7.2K | Project knowledge / session notes |
 | `docs/notes/ECU.md` | `2c6665aeb47b496670b3996acd3e85439a0cf501d08544005f1ce5da68e07103` | 4.5K | Project knowledge / session notes |
 | `docs/notes/FINDINGS.md` | `2dac5d2f4326bcf69e55e032baf8da4740f01be70d684d64fb2de9e0e486f1f2` | 29.7K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
 | `docs/notes/KNOWLEDGE.md` | `9b3a10ce1f1e53f2b5b2d0f6be7e4d56495f55d0f9402e9defad8ccf8f2969e5` | 3.9K | Project knowledge / session notes |
+| `docs/notes/LAUNCH_CONTROL_CHECKSUM_GUARD.md` | `a428cbdd11829eb5363f95024fbb63028e890db253537edbae41da523244eff1` | 7.5K | Project knowledge / session notes |
 | `docs/notes/RESUME.md` | `32ace9f4bfd8a90dd82cee761ee637ba3662ab9f374d04385f4ce01db40a94c1` | 739B | Project knowledge / session notes |
 | `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `73bf0e6b5f3c4c3b8330eed29a8d3008e7ffeb69a6e448eae6c98eee8bc1db58` | 47.5K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `f5cc312a0560ec3daaed96c40e3f1c6902725b323a88d63694be1279d61a141c` | 13.4K | Subsystem / overview documentation |
@@ -747,6 +755,389 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 |---|--:|---:|---|
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
 | `.github/workflows/README.md` | `4ba420eb633f9177d6a5f5500289c905cfa6b312c4c0e861ad2db6ee93878f6d` | 5.4K | CI documentation (GitHub Actions) |
-| `.github/workflows/badges.yml` | `8548873015065d58022a1c5ae7906c236decfd02e9c50f99656dc327e9c4f36d` | 1.3K | CI workflow (GitHub Actions) |
+| `.github/workflows/badges.yml` | `5d6c573f395da94674ca196f2f6ccf78c4908e4c6d91f9f1cc8a54442709c4af` | 1.6K | CI workflow (GitHub Actions) |
 | `.github/workflows/ci.yml` | `add9447b75c6290815e2a656da3c508988b62c3a9b8aa2846d8894fb894f0e26` | 5.5K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `6ba453cce77ff8dc631d16a30212feecef1cafe766ce9632a60041f7aa03f26c` | 3.0K | CI workflow (GitHub Actions) |
+
+## reconstructed/experiments/match
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `reconstructed/experiments/match/REPORT.md` | `507cc1e890a2bacdd494b7788370c77172de88c3b68bd5bf96b41a27ae105f72` | 33.0K | Compiler-match experiment report (GCC sh-elf sweeps) |
+| `reconstructed/experiments/match/c_src/add16bitSaturate.c` | `419f280b2f5edf8c7d8821e4aff1c934ef91fdb837e6f40f9649f97fd02dd005` | 852B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/add16bitSaturate_reg.c` | `db46950abb444f4a9827b38972403e9410a0a8ebbb0c81307ababd5bb305f8d2` | 1.1K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/addS32Saturate.c` | `1b62703a7d1ece53091785ac7b186e17acab07127692df893c192f62ab4528cd` | 1.1K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/addS32Saturate_addv.c` | `0c8cd2cdc797c44ab93e725b77ea2cb17cfdeab127ecee9db94d400887dafbba` | 1.0K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/addSaturate8Bit.c` | `0ee8fd252da1d4928059d7e155638ff972407ee61448aa8500b0fbd9f074fa49` | 963B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/addSaturate8Bit_reg.c` | `5c1aa5655acefb9b6465483938abe7f960d60cdaab1b4e7ce45bb90911d60026` | 968B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/alignment_boundary_validator_D90C.c` | `a157bc2c0b31dfa992b0d93cd55f5e4fed7dfed944ed22e49f33e27d7f198f54` | 870B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/alignment_boundary_validator_D90C_r6.c` | `ca69bec76cd7fee8ac664af76556d6a56bbc7f385d605b453d5553f2169e042c` | 978B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/atu_get_rx_byte_count_1FA2.c` | `09407a7496c365be013f3487b2f02ed82784dd50bd3e09f639561ce18517d755` | 278B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/atu_get_rx_byte_count_1FA2_spec.c` | `2420330838dc32f7e6da3015b1dbbcfc278857c324df053a929f1da266631f12` | 939B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/calc_manifold_pressure_error_diff_10A88.c` | `4ce8688c22c55b7495a1fa6b72a8c2b180f7d9fb6f2a95914bffe18537e949a0` | 684B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/can_get_mailbox_offset_high_D164.c` | `75e2af9af67cf9d68d232a681854ea30515e5fda2792bf6b5de7664a6915f1c9` | 284B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/can_get_mailbox_offset_high_D164_spec.c` | `669a55db607b5308c5f99cf27c79998cb93c13336ac453b0746bff039943f6d8` | 383B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/charging_status_59C24.c` | `53d5af8b12af2f073b055c854133b00b7d4c073da369593eecb6743a9f7bd3f5` | 390B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/charging_status_59C24_branch.c` | `a9e19895e9daf1cce65e3a50c0d889cf6174c3bb748ed91ec68e2646b749bb2d` | 1.0K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/complement_shift_u16_2430.c` | `9bf2ff9f0244a92bd98ce219088f0283eb68694c47ac2712ebf59f7810279398` | 452B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/complement_shift_u16_2430_match.c` | `2490e0ddf5dc505507d827017f542ca4be5e2039d272b83339430707c95c6e9f` | 1.2K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/encode_2420.c` | `50a09b1a0c1767293f72461dc1994d3a70c48c71e6f539cdc9f6c3ac3b9b75f1` | 307B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/encode_2420_match.c` | `885a4eb166ff5c3cfa7dcf7c5891713e758a5725b4476e378bbb4131812734a4` | 1.4K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/getHCANRegisterAddress_D198.c` | `b7aecd06078360435924c236d0f94791ee206ead2a46bbcdfa0aaada5249484d` | 501B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/getHCANRegisterAddress_D198_spec.c` | `f00e3b6b4312d3fdd867d8a8a5eb91e2ed72907015e3669b36251ebd2c139550` | 499B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/obd_service_handler_67154.c` | `22b6b7936d06c9ed6ef16b6f8e8fbca092f5cc54af3d41bc9bf62ae0e0c09f6f` | 312B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/obd_service_handler_67154_branch.c` | `7d8c5931cb9a471c5943dcc00f18ef259024b10230c5be2181a0f467b5f718de` | 979B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/obd_service_handler_67154_m1.c` | `ae92293efc41f0d797e6bf5c3bcec39e4e5e3c031a3d9856d3508ab32fe5b26b` | 1.0K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/pulse_window_compute_FCD2.c` | `3b9df03b1bba225716923573a43312968cc564aa5c6bebac88553eb000de4ccb` | 437B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/pulse_window_compute_FCD2_r4.c` | `b7214b24e4e52f8a0498d8eff5822610d9e6c1e5e4e39035477a49db9039ef8c` | 1.4K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/seed_mixer.c` | `0a9ed05554c2900c0528516a309f2787aa52ebe52f0de2412a99b9eff794cd4b` | 1.0K | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/shift_right_8_r0_467A.c` | `3ba6d6885259ab3e7f7c6ba31dd0246c6cf306dfc9aaa84625cb359b2b8d8b65` | 367B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/c_src/shift_right_8_r0_467A_loop.c` | `2d57f816f02d0101dd5d235b513ad604a67313a2478db20b2e5eae4a203a2bde` | 937B | Compiler-match experiment C source |
+| `reconstructed/experiments/match/expected_gcc_sh2e/add16bitSaturate.O2.s` | `bb4bba062e59ca46f7fa664ef8e0e8e8c9ebe520aff34c1dcd0b79a5cdef2ff6` | 595B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/add16bitSaturate.m2e.-O1.nodel.s` | `924a3aec960969c17061043dce64b90d4b637990498c42be71b50842c2b1e1e3` | 410B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/add16bitSaturate_reg.m2e.-O1.omitfp.s` | `3e36b5c8a6ce49dbe0ce8044ff5f35a03afe59eed8550480509c2084bd881cb9` | 359B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/addS32Saturate.addv.s` | `a89df2d7f686f012a07b8c49f9ed5574787d40d29e8bfd6027222c9e165d5a54` | 766B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/addS32Saturate.m2e.-O1.no-omitfp.s` | `74e0671c8c5382093b98f0add78519e30cb70b0d242fe8acf976bbef1e30848e` | 728B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/addS32Saturate.plain.s` | `d48d92f1ea5f5c0b9f23bf5adbed23820b13ed8032e9c7ac4018ffce8357bf84` | 921B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/addSaturate8Bit.O2.s` | `847d2659c3f0df9f7fa2f638530785892207ec7cf7427bd5109dbdb0274fa30d` | 504B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/addSaturate8Bit.m2e.-O1.default.s` | `995e326c9cd9f35b04d0d13244207b81463808693e944286c9c465532ba3507d` | 392B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/complement_shift_u16_2430_match.m2e.-O1.omitfp.s` | `681e6fad4b5d0fa5ef3394c461413aed29efd5bd81e2077b39cc2bbc65dcad51` | 331B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/encode_2420_match.m2e.-O1.omitfp.s` | `681affe4bded08a1a98d44d89236538191edf0411f2a9c9e802f7f2c55ab47c9` | 271B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/obd_service_handler_67154_m1.m1.-O1.omitfp.noifconv.s` | `d50664d1c79d18021f5af26328d98e77ec27f3edc55e8c32bea1a28e2821e84c` | 374B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/pulse_window_compute_FCD2_r4.m2e.-O1.omitfp.s` | `b4cdc8d47e87db4b3b64d0d33cb38cc1ce57c9c752e279c588e1c6024594ffd2` | 372B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/seed_mixer.m4-nofpu.-O2.default.s` | `e7e2e1690266c99a0c4920e52443c15208d57b44e2df6f4fdf76a13934eee793` | 882B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/seed_mixer.reconstruction.s` | `5443df9e746517c7844efa301c43991258f98df65cb5c74a7b42d9813aca153e` | 2.2K | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/expected_gcc_sh2e/shift_right_8_r0_467A_loop.m2e.-O2.omitfp.unrollall.s` | `0f0bf4b5f2d1c060c99919cc858ed14240a30860b52e16b21e64d2291b845073` | 316B | Expected GCC sh-elf assembly (match reference) |
+| `reconstructed/experiments/match/match_recipe.txt` | `3ab1fae8cfb7247d21b200217fe8525f51846c4050b63649bf02d85e4657e1ed` | 11.7K | Compiler-match sweep recipe (GCC sh-elf) |
+| `reconstructed/experiments/match/rom_hex/add16bitSaturate_2460.txt` | `87074a4f5b73acc97458c8c84e85fb8d7991455823b70c803ab14f43582feee1` | 232B | ROM hex bytes of matched function |
+| `reconstructed/experiments/match/rom_hex/addS32Saturate_2304.txt` | `4a176f09461a54a2e86045f8d7eea51925cfbf2cfa9a85c7be45666a30504847` | 226B | ROM hex bytes of matched function |
+| `reconstructed/experiments/match/rom_hex/addSaturate8Bit_2478.txt` | `9d3cc3c60ed1dfa8a298f000b21c4db662d81b8b1537aedfe1ec6d2c41d1e952` | 231B | ROM hex bytes of matched function |
+| `reconstructed/experiments/match/rom_hex/calculateImmoSeed_3675C.txt` | `63f9d8cb50cb4e8073ce8d09b226500441fa9a6e9721b803c1c846e561d0693b` | 677B | ROM hex bytes of matched function |
+| `reconstructed/experiments/match/rom_hex/seed_mixer_366B8.txt` | `c1819043a5a57906abd890fe83be5d2d39c4bf72b62353618cf810b174467d5c` | 446B | ROM hex bytes of matched function |
+| `reconstructed/experiments/match/scripts/compare.py` | `6494e435d70d4e3fc982acdad3b136e377b097f3b0814d601a9a39480983a94b` | 3.9K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/extract_rom.py` | `5e18880809f5d567986aded113827d5468a70e49590ce5917feea457a0fbc1cc` | 1.7K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/find_puremath.py` | `8c855a2a27f6016ff5ec44bd31101b7aacac8508c12343f260604b9cf38ab116` | 4.2K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/fingerprint.py` | `afee01dbc572ae061d8313bcf17fe48ef43261e049887efebfe1d12bd33a20ee` | 5.2K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/iter_match.py` | `d1e14d44561237cc5c5ff4a1d7f4624e210ae26b4fa5381016a7cd44950fd6f5` | 2.2K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep.py` | `6ae044c79431a726fe08c76dbeea44d1efa6afd315610c96977d6d645ffa49a0` | 6.6K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep_flagmatrix_gcc346.py` | `8cae18239889392ef70d3f1ca7f654219a6aa37225b6e9720e0d2fd7e39e0d1a` | 6.5K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep_flags_epoch346.py` | `517b4a7e4bde5365c07cc9f2f45c72f146988cad92f2505d70125c8fbeff0469` | 7.6K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep_gcc14.py` | `c10231562b6cb2f1325e8625484a8c5dabf57f8c7eaadfb5a5b9421011e86099` | 9.5K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep_gcc346.py` | `569df5c89978603a6c91c463590f1e2d7acd7c192f645a37c201cf525c05e47d` | 10.3K | Compiler-match sweep/analysis script |
+| `reconstructed/experiments/match/scripts/sweep_puremath_gcc346.py` | `519f4904929b9e258f9854abfee31c46a3f2b860bb476b1c5aa9c1ff0b88b39e` | 6.2K | Compiler-match sweep/analysis script |
+
+## reconstructed/samples
+
+| Relative path | sha256 | Size | Purpose |
+|---|--:|---:|---|
+| `reconstructed/samples/.gitignore` | `6855ccd04b303231648a4ff18aac580aa6cee143426ab8a929c71fa341ff948e` | 78B | Git ignore rules (sample build artifacts) |
+| `reconstructed/samples/Makefile` | `e2d2df30acf1de142d8ccb14e5a33992d5f6479d49fcdbdb5607e0d6449ff327` | 1.5K | Build: compile reconstructed samples + host oracle (host gcc) |
+| `reconstructed/samples/README.md` | `accd8c32206a2b9d8c0bde1a69c69c12143e0ec49511b0d662db184bcb477c7b` | 8.4K | Reconstructed-source sample catalog (abstract idiomatic C, verified lifts) |
+| `reconstructed/samples/include/rx8_hw.h` | `fa25d34c3fbb2fd896a7fbddb298ea009f4fb98969b5b8d64f7f93228dfc5634` | 7.6K | Sample shared header (SH7055 hardware access) |
+| `reconstructed/samples/src/rx8_2d_lookup_fp_16bit.c` | `da8456de17ec35390f2b28367d5ea4b5444d94a6544ac4109d9edad354ff4ec6` | 5.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_2d_lookup_fp_8bit.c` | `adea7dc501611a5c4eab5ca4bee8016915c43c9c29964571697ceeb0785b7049` | 4.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_3d_lookup_fp_16bit.c` | `7084acb1f3dad1f01d31a7b8efef4c41eb202f5eb2152d529f9a707a0c790f4e` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_3d_lookup_fp_8bit.c` | `ec4a14079aff03ee36c7de3ee749f4a3808dc622694fa817e701b051d66326b1` | 5.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_alternating_sensor_sm.c` | `30d59c1b52c429f37570b1574552ca80d56aea609f8580030b18d31927f2ce68` | 7.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_aux_fan_control_task.c` | `63e0037eb1dee0ba133085f6bccadaf54f25fd1c79c8ff5da1d91bc5510aa8bd` | 9.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_bitfield_extract_merge.c` | `4bbdc462736f95e157012b3377f81db32e4ee86d85f4486119df203828012060` | 6.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_bitfield_flag_selector_33a98.c` | `45ae41b0a90b8a47c9ca801ec71a6c042ea4de3fbede8d041321edc709e277f2` | 6.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_bitfield_flag_status_decoder_339ac.c` | `11209d8a5138b3cf8b029ac6c0d7b3a80f6affb71f2cc1f40649f54a7ccfffb2` | 6.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_calc_fan1_control.c` | `09870b03244a2558484dd4c3b28d5d86daf97c88fff2aa7dc5ec33ed6edff73a` | 8.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_calc_intake_pressure_pid_output.c` | `4481390a7f4a3cba7518584561345d78de5a23fdeed55f91836c4b2f890d1d0c` | 8.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_calc_rotor_sync_idle_gate_b.c` | `a71ea1a0264013f8afc366a3a3199970e1415b3fcfa24e5be38b05a68e72accc` | 8.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_calibration_apply_4b770.c` | `2df44245d78283ffc1d311bb659b5b950f8d9d1718284c03e9b3e3a8deab1cb1` | 6.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_can_encode_handler_62abc.c` | `cd1bebd9d261e4131ce1c85410a5af7d99ac9ffbd3c6f18a1fa6ce3587815bd6` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_check_float_validity.c` | `93e4a46bcc27a9328a9faec5c1a9baa658c37948566a4fc82254b8ddc2a72c54` | 3.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_checksum_complement_add.c` | `a461f3ec3d9f627695a4cc10059efb82d279a62fda00060ea780e6940b507a61` | 3.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_complement_shift_u16.c` | `f5ea49b0a800b5cf79d7f1720882f167149e9ad93e6c30ce0d535eea5a169f94` | 3.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_complement_shift_u32.c` | `2ee4b77956e7d43b39fc583eaa278a879f386206d07d5c44f1abe74e3221d553` | 4.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_cooling_fan_control.c` | `0851ab4177f11b47138af9d305d8d1a615d0f6f3f9b69878a1846173599f1c88` | 8.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_crank_sensor_init.c` | `3ae33cdc57cc47e9a27421074a880366f1ffd874ab1a61444202ccaad887be03` | 4.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_data_lookup.c` | `54230b603452ca1cfbe09a9687c54349fcb98450c3663ac629430d0a77af31a2` | 5.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_delay_loop_n8.c` | `50696335480fc7b6fc9be2f6e3da20ca3daf40753ac9e5c30a713fb585bb4276` | 3.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_div32_signed.c` | `6a821db7031b0917a4f2e3f6755fd96d8dae765ae8dc140c44c35270120c6a54` | 4.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_div32_unsigned.c` | `370be2e1bf40a6ccad94f4b4944dfd8ad36323de9fd9f38c82166597d5dbe81b` | 3.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_dtc_data_read_60f58.c` | `b9be7739963e2bfd6959d053c008274cfda71e3c0a1504520735fde4f5c8c46a` | 3.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_dtc_handler_610fa.c` | `8f4ffc8f76a3bb2e44da5fe737755059b73be54d46cab9a9d2b989f32cd657d1` | 6.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_encode.c` | `f39cc4f62b786e2841542acc1f27ed693673e317fcf586266e24b6bd2b7dee9b` | 2.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_first_order_filter.c` | `0b2143051504fa2398263698d8298d9a77a7a6fa040f215afd7bb44aa3a52954` | 4.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_float_to_fp_16bit.c` | `7b8a47bb38b2938fe196b38698b716e2d17fc3695dd87881c820b9338aad0548` | 2.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_float_to_int.c` | `8d9670d590b0b4451db68318411c64bf081034455b0d227498f97e1307c29998` | 2.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_fpu_nop_stub.c` | `fae86484c74837324cef82276680994f6cae05c14f94c0dbd87f3a071840980d` | 2.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_data_from_e2_ram.c` | `aa1d7c7563ee0535c314e3d7397840d8b34abf629a4dbb450e54581a98242ca6` | 9.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_engine_off_timer.c` | `310f38059d20df5e29aebe8917035aabdcbfbeb34022257ef4b62eac8cc719b0` | 6.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_engine_on_time_for_oil_metering.c` | `da92525f26bdab740b8b01d3f4e3cf46741845f4d62609bef1b2397c9285c2fe` | 5.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_fault_status.c` | `250b82149b6eb994e65bc642d21365b229fc84e80cf9a86d30f98cf21cbbc612` | 5.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_hcan_register_address.c` | `69e334cd177c1aa47c5b27f695eb42688178e8e96e48c49e4ee98f8a08815612` | 3.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_maf_sensor_value.c` | `28d84701f275a80cbdcce20fe3fdb3afbad61ce9db463673a67c1733bed9f722` | 8.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_get_sr.c` | `8af31041941cf4ddf700674c9df8ac42c3c59d84d3a610d920cc6ba92017d884` | 4.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_idle_speed_control.c` | `872c83d0399ab9ed296809b2018ef18567d42607444d36c852ddb44360c13a7f` | 9.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_ignition_dwell_output_init.c` | `e0cfec43acc4a0eefd7bf45bf0befd9c040263df2835d3086ff942cc4475c828` | 7.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_bad_state_set.c` | `9c554d1042f949abcd5ccf28adc8d4c2721c48fed2be80132d94ce576a692a86` | 4.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_get_seed_3664e.c` | `e91c9f9ee1245a4205aac52f893b1a1510d3ffc651eea136b412f176aefd8572` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_good_state_set.c` | `848d19b3e9b6b9b4b81705593938d314b3368d329aaefe9d45fd3ead55f9b12f` | 7.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_key_expander_365d6.c` | `623c442fa6383470f67ac66c0bb69a0f3be4650836f06bf5222c4fefe5510926` | 7.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_seed_mixer.c` | `b15179cbf652b7d73cfd466dee163f86b8afd14e88a132bb2ab992de7b1a6a30` | 4.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_state_machine_360e8.c` | `729fb6a6aef2ecb6b3e082f0f98f6020966aa5b7343a5b29b4e5eb4242ae1be3` | 8.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_state_ready_to_drive_engine_off.c` | `8b63b63f941b6e02f125244367fb139851917a77bd50743d330ea654bc03b544` | 15.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_immo_update_related.c` | `496d4c3d7fbe5024a55e0cc4be0ce128048ec7234124d243fb38490d44ce96e9` | 15.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_index_lookup.c` | `b1e02c397853bc9ccf8388316dd94978e16056b84d70c3125bc3155896ddf3ac` | 5.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_index_table.c` | `1aab140e4c59c3c8c73a633e69389544cc661878ca14a94b111beeccfe859f4f` | 4.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_interpolate_u16_table.c` | `b0d6902514dcd0ce98d8782ad4d8706ec0dfa35b19401d4223a0a7780f43cf7c` | 5.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_interpolate_u8_table.c` | `7c8a26add746c3c853e5f1d72064d456f367840d5c7a50f8eb2c54f8c8b50735` | 4.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_invert_and_return_8bit.c` | `46f6d31c8cf791698682ad1302101b377b778363f3312e8a653041aee99beaca` | 2.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_knock_function_init.c` | `bcce0f7f2091dac9dae7ec839ea406c07fb5db57f7a2e4871316b411b088d909` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_knock_sensor_adc_fault.c` | `cb863964d6fc86abd2de7f729e02152835b3512c800c803020899f4a919053ba` | 5.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_least_square.c` | `1e20fb81148a9393c8315cb9282c1cc6ee7eaa09f60f7b1d8e26471e948aae2d` | 3.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_load_data_from_e2_into_ram.c` | `e12e7ce35f1326c7a7dcc2ec2aeb423788c9b7e40fd8ebec226ffa1c83193232` | 3.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_math_min_max_49ed0.c` | `fc505290a904ad8e5cf0c6a0b93635b7f8964de2eaaa7f47a6f6751092069024` | 3.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_math_primitives_2490.c` | `aca2bcfa580d1090aea0c4dcb12016d589238f5c638aa47020f19308d97f41eb` | 7.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_memcpy_bytewise.c` | `ba1eca373adac8e40f6a21cab8a1f4dfe4b95aa2fb0f7aa55369c1c4a3ac68f2` | 3.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_min_value.c` | `e88eedb7c5b5f9819a1e0b1a284a451ad014f67950f87115b19d48c56660f33a` | 2.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_mod32_signed.c` | `6a0430b12e2bb4b3f04fce6c9f833ae973b1252ed4055494da296d1849212959` | 3.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_multiply32_saturating.c` | `b89b64bab7b806d71c002eb73be18f972f5f7d5d47074e79f3bbeb009f087cdb` | 3.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_dtc_find_643d4.c` | `289a6c21717b719c758307b7f5385754a7b7dafb2dd767d20f7bb991e595a22e` | 5.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_dtc_find_6443e.c` | `3903eae0025abafa40f7994378e9f70138cab01d6575b9d73270bfa8e2f7338c` | 5.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_dtc_row_update_64258.c` | `cd778df062c8add4990338d9b7e5516f6c5fd00f587e07bb8ec788f13109b65d` | 4.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_dtc_row_update_64418.c` | `7ab0424d3be76277cbd17998c37a5d9861c4e3c65441de0a687e3d0ce1a1fbed` | 4.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_dtc_row_update_64490.c` | `32be5b94cd6d2434f86c5dc6777b596a1a9763ec36f831f5299c3bbb62181ce5` | 5.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_service_handler_632d6.c` | `ce2f87cb7be9ab3adef9b4524dfe050f6e9e58f33ab602c9f4baebb2b30ec9fe` | 3.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_service_handler_63312.c` | `68cdcc386315029fc715242c9679858f5db4012a195946bf219e5497f736935c` | 3.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_service_handler_63834.c` | `79c840c524e3b68aaf2e31d2e57f6d9591dd0ed32acfee13fa1d8708ae7f8a40` | 5.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_service_handler_63b46.c` | `751847d6028b635662aae4ccaaea7b53fd38d4827197ce519521cc25c7b2e2a9` | 5.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_obd_service_handler_648b4.c` | `65ef9fb028be7218833fc6bcdd28e07a6aeb13c1da69332f054b4b60aa8ea3cf` | 4.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_omp_rotor_overshoot_detector.c` | `4debd7554b64b10291110e5c88e5c811fca9c2090135e3531e3af2672ee6c15e` | 6.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_purge_control_state_update.c` | `5ffd6bd54972bea9f5e83d1b83e9b7203abc6850c2f3dfb37b3d5c339c1a452e` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_purge_flow_counter_init.c` | `b32884083fdd396ed2da0501a5decf1ab963bf04dcc9a8fedaa9a1c102ca392c` | 2.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_purge_flow_decrement.c` | `256970f53073afb9fc2421e267f661ab705878540d6bd31686aac12987a4e3d9` | 3.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_purge_state_query.c` | `1dc77a14162b224d3abb682caa48b3545f485d346c910a095228b6d66b3a4d49` | 2.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_radiator_fan_relay_write.c` | `7e79d54eb17fce642fd7d6809074b1454588b935e57b4ce54d33f92aa1effbac` | 3.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_req_queue_69602.c` | `210655eada7f8547303a69af9099186261c2c08e58bb1fbc3b2f2d4102b600a9` | 4.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_rev_limit_fuel_cut_init.c` | `98560f0cc516499344028cbb88c8829e15993bc13dcbdac894963606567dcb0d` | 4.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_s32_saturate.c` | `329e3695b69224cb154c831c259026dd4ad7bc2fc7dda11dcd8dda807333d456` | 2.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_samples.h` | `c75e188a4c1d913e0d5db35ce5b03510e29efc572b2c2d79323cb1614ace220b` | 2.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_saturate.c` | `a10d27e9b10fca0dd7fe4c6b3f3f7ea01dcbe5ba5ab04cb14bb263cca59df30f` | 3.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_saturate_low.c` | `c31d11b83cf56e7e82c941c5923520be215e7eca912f7c89003952114e9e938b` | 2.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_set_mem_inside_func_to1.c` | `d8f06111bea7bb1d1f9d769d70926b496398baff8f9404332cc6c03fb221a892` | 2.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_set_memory_not_valid2.c` | `b975f2eb0bdeaf98682e40d372459807df0df655924c6482e40ffe3d9acedaa8` | 3.6K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_set_register_reg_bit_val.c` | `3608526e183f2d5934e2863aaa6361a2f6f557f119818a8b1b2d69ac436f8508` | 3.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_set_sr.c` | `b8078381256ee6b55bf4e7853757cf44b070a52f5d4f8be371ebe814fc192a93` | 5.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_set_sr_param.c` | `0e58336d3e83bfb9402a5bcca3ffff63a882709b30319fed27b27987201abd34` | 4.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_shift_left_logical.c` | `9d66e0d5002d719b7f481c2d5f9e803d922802b03be962e07d4c8c2096d09739` | 2.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_shift_right_8.c` | `b07e083a800fbd72530f2a4fe237bff3a5240c45ef4b4cf0491a6343db1f8ff5` | 2.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_shift_right_arithmetic.c` | `5b0cf57c84a2f933d911f84c5a1e7a5dd0838a9575eb5692fccca974b2805598` | 3.4K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_shift_right_logical.c` | `6a06256c6d1b5e16a80decfed35c50f50cad502aea921908e417655977a0f620` | 3.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_ssv_control.c` | `7247341ebd36df3b44dd93e7e41c51d6714ed6bf849150a693283a070bd8135f` | 13.2K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_subtract_absolute.c` | `f3826d8bdd282ade5f4d232059dc7ce24bcb5e990a7c4a0440426c89c0d4132b` | 2.1K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_task_end_routine.c` | `ddf00f07874542779d63b4fd9f7dfd07a061bb22f81cb6d3b3a9af36c33febf9` | 9.8K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_task_execute_by_index.c` | `266eb21d62e116e920047e74238759f1b1a22945ba32a87513f4cc93b9a7000a` | 13.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_task_flag_run_c.c` | `ffb06746138fc19eed7ad08963480e8e081a18ca5dd88b7908ccc8869de7a01a` | 4.5K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_temperature_gauge_5aa5c.c` | `05e533b996464c26e732ad3de5f88c7ec3c65a3d64cfe680833263298755389d` | 5.3K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_vfad_control_35bbc.c` | `76639fd447b588671fe00d283e0616dcc6e75defbfd552653764b3c2948b8a05` | 8.9K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_vis_intake_control.c` | `0692ec2e93f7dbea9ab67067e5f3066db5338b1f0340f8f15411548141d0b1b4` | 11.7K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/src/rx8_warning_light_5aade.c` | `32bbe649c2c9aef7ca5ebf99a959b2cb867a559d4005c11fc0ebbdd484f954f1` | 5.0K | Reconstructed C source sample (readable, verified lift) |
+| `reconstructed/samples/tests/common.py` | `71dd5817c77ed274b0f61c13c1392955000202cae697bb92cd7ee01b5a565ef8` | 2.9K | Shared harness helpers (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_2d_lookup_fp_16bit.py` | `5b310e37a64297d24a3dd56bc9c2ceaf965b72c022129b18be11c6ba0ebce974` | 5.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_2d_lookup_fp_8bit.py` | `5a54f6f3849df71cfe1d9db6b0c6df96b4f56f05b69600e233782158043a3094` | 7.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_3d_lookup_fp_16bit.py` | `8b52c2d672f5e2a365c92454392749387843af141b62da1554364ac0097dbbc4` | 5.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_3d_lookup_fp_8bit.py` | `651d526f0233d2265970f5d819e26c852901153cf81a281390003798273735a2` | 8.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_add_s32.py` | `75d3ef0f9a258043f5b5fcecf7f32a1fc33f0529470d87001867c01b81bc8530` | 2.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_alternating_sensor_sm.py` | `9aabc76c7eae86ce247449c5d08bd763db9c2cc5e56af678c97aba7b675e7714` | 8.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_aux_fan_control_task.py` | `ecf4bdb63dd462cc6cc057576330063144761068ac2b40a8b717afad9e64c71d` | 10.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_bitfield_extract_merge.py` | `6beeb3e85df6b22a57db35a3f798939deff96badf3a92c2ce9b4745cec7f232e` | 6.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_bitfield_flag_selector_33a98.py` | `80f59d8a1e6ae7e2c2f88a7e77381920ce33576b45923479a0f77cc0d83711bd` | 4.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_bitfield_flag_status_decoder_339ac.py` | `fd30bc037c4616b0b93000c7fd77bb84e1c63271e4c83d47102c8cba8346451e` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_calc_fan1_control.py` | `b79038f09ecfc69b0376f81703446cd5306f966c9f9bc3ce6affb9776d2cb467` | 7.7K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_calc_intake_pressure_pid_output.py` | `37b341400d28e62e1048f797bd43451d9e1845070b588f716332edbc34dddf76` | 10.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_calc_rotor_sync_idle_gate_b.py` | `f79d4165f00f48e2c9903492a4a3f6ee098c51e5e92c5ae7f1fa6776846f43e7` | 11.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_calibration_apply_4b770.py` | `eb6e5f011b52141cb23fde8b23a25a472c25779589a4fcca5655abd175f370e2` | 4.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_can_encode_handler_62abc.py` | `81b961eb6102c11901f6a2c7aa2ddd2e6072bc16bb9e61e532e4d6ca45e191b3` | 5.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_check_float_validity.py` | `651642fdfd87f4ad3ca43900672edd1fb10a85f5f7b663ed7e83d322610319b6` | 4.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_checksum_complement_add.py` | `0abb18e1c7b2398b5252fee7792c0cd26c01f664b89f70974e092f467fa21536` | 4.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_complement_shift_u16.py` | `f1c33d8850c9c3d793b3561b77bf69485fed4660d0a4bee6f8bee9c14034961d` | 3.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_complement_shift_u32.py` | `749c18d589a5ef50fab428a37a5e5809d26fa4d82a56e38901ed4d5835a54645` | 6.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_cooling_fan_control.py` | `ce7507aa3e4c74d4eb1b68452c66b58f7cf4025e71ae138b442861b923bbd30c` | 7.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_crank_sensor_init.py` | `ff5887e4a1ce60f747cb159ce96955c1ca3f03a43ce83244402b147018416609` | 9.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_data_lookup.py` | `20623085b5014de820074f98e3b85a0d67a0294e12a647ceb879e4cdb49dfe36` | 8.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_delay_loop_n8.py` | `52cc8a24d1410f3427a74d6ee6ad3359fb854e7296648c354c007363a7c955ac` | 5.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_div32_signed.py` | `48201a0af396f75cbbf2f2871c7bd374cc969dbe87323199431a5e1b842aa563` | 5.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_div32_unsigned.py` | `83b3428cd63531cf71cc3033d514c965fcbd5affa35c89ffc02609e34391d565` | 5.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_dtc_data_read_60f58.py` | `0cd6f3292099c977cf84ff20bd83f124126f8bf516e7cf3ec4dd34a1e11ba355` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_dtc_handler_610fa.py` | `d0292aa635d58c50a740ce84e23e85bb68acb85c6a36bed704383da69c17b16c` | 8.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_encode.py` | `366d444bd7fde51e7ad70a8efcc36f261a74255897dd93645a8fe69de2ddd0df` | 3.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_first_order_filter.py` | `90f73ab1709a03bfaaac0518080357e71ce9319358bba5316f3ee355989b8375` | 4.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_float_to_fp_16bit.py` | `bec93ceee6ff81e68c4a2244c8cfc86c3fbc19c235037b359973c69e6946434a` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_float_to_int.py` | `8758dcfdf25f42df64c777160c92089b4610506d7fecfbf95236ae9fa1a107df` | 6.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_fpu_nop_stub.py` | `a88607659ae281562ccd620ec3ad2acc633f71f82d536ad416864f4de8e2dc19` | 4.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_data_from_e2_ram.py` | `5c20cc7a541d0d58946f03019e9b41d4c2f6e4bc67d3fda5ee9c8801f42d8f24` | 9.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_engine_off_timer.py` | `074eafc75519f49baa52764104e3914fa3cd761aec62dd27c1edf793b5b11093` | 5.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_engine_on_time_for_oil_metering.py` | `5cb844003d71cf867dd76e076270abbb9563519fcf1fa01a9309e4e1ce780d83` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_fault_status.py` | `a2777d57128ac578a7886b00aefd49bd2379390847a6c95be1087dea7e2d0348` | 7.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_hcan_register_address.py` | `65ae2ec47957f47edfea4a592253d454fe89ba2353b13b5dbad9f70b7e198e27` | 4.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_maf_sensor_value.py` | `af2ece1b2fb3ce4058552fce3ef3a34ddf8fc3acc641703a432a8345a2f92faa` | 5.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_get_sr.py` | `629cc0825b53931e4e0e197aeb6e08cd9655b23f03e2ef7b560b7476223bbd58` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_idle_speed_control.py` | `472ac630eaa842295fff481979e6ca4622dca7a93171cac8c2ae57568de80d06` | 9.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_idx_table.py` | `d065b25977e18ac0acc9fa20e7548aa897ad45ca6cf86c930da6b6c300fbe309` | 4.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_ignition_dwell_output_init.py` | `432ac13ba030b6906a651a0d8cedf925786c4fc0d442237e2986591bf616e6b3` | 11.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_bad_state_set.py` | `a3d1cb5f0ee4b58d5bfd1ed7e61f3319ae8d77f9d080c324c571d50b573e62c5` | 5.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_get_seed_3664e.py` | `e75222c793f6a0e1b8a4ec7eac04107b9678d49dfb74ab221ac995619fe6be72` | 5.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_good_state_set.py` | `3a6031f140541293e416fca238d0ba938231f630d4a140a1139d94f9a5242497` | 6.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_key_expander_365d6.py` | `814608f26d57ac37267e86b8abacc6b8ab0f83b51c9a0c85f9b355a6a15447bf` | 5.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_state_machine_360e8.py` | `6e0a5b7dd7d71ad79d00f5769f04bd719d95475dd43e4fd9fbb0f5aa1227b7e7` | 10.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_state_ready_to_drive_engine_off.py` | `476959740aab6df22df4983d5924bc372b805103e76d6f9373d559f978f11028` | 10.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_immo_update_related.py` | `47db13015ea5b810795d3d9b5ab83211f13ed54ab51ec26f22f10359ab1d74c6` | 7.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_index_lookup.py` | `e719719c53c7fd4bd5c23a93420939e01ccc5298a6b3582dda18e8d08797faec` | 7.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_interpolate_u16_table.py` | `d242f4805240922d483e215bf17b90d82a7ef0b0b4c5e971a223e5d9bf3eab19` | 8.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_interpolate_u8_table.py` | `8c461b914f5141950b25b135f1c4ea93fd91de2e17c6e7a8c2124c208a4e5932` | 8.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_invert_and_return_8bit.py` | `89126dde79ef1de016b8d796e611f35f52ee17ed0e0bcb292926c55a0f297805` | 4.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_knock_function_init.py` | `e6cbf7b3af2f877865cb0f41c93948eb35cdc16d55925f5d0975bc923f5f74d9` | 6.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_knock_sensor_adc_fault.py` | `2b6e8b9915a2a4a8555b001c9875cfc19aab4e5fd1708c22f7eba025d59456e1` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_least_square.py` | `c57555ecfeee62686e15b5552d483e7269ff52f00f89aa8769ebd74efeae5780` | 3.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_load_data_from_e2_into_ram.py` | `c474286a42bc3775e11d78fbb107d6ac4d28374e3b707a221ea991f402ad3f3f` | 8.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_math_min_max_49ed0.py` | `20aa105fd371cc3a1107b4cd3072c0641ab88b51fc5bdc6c9f538e6221825dfa` | 6.7K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_math_primitives_2490.py` | `8a1777e2f5681593c98a96da8119a5be135b764422f04e030427464c37a64210` | 9.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_memcpy_bytewise.py` | `1dfec820a7c72c51b3242855c17561ce7c7e65fe382e83155080b76debead6a5` | 7.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_min_value.py` | `954708f1db44d30f67acea00f6f1aa195d146fffde82228e1d7fcdf5eb0f0960` | 5.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_mod32_signed.py` | `4b9b5c9ea7aa7530f15b5f8f194293de3918383de1b54782082845c06e9d089a` | 6.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_multiply32_saturating.py` | `3b54446edb02f86c06517c631f298aeb89541fa7fe047d21a074e6f8ee73cfc8` | 4.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_dtc_find_643d4.py` | `76b999d4a05ef12ee2e7f024f56b44fbb6b1f216012b0f7ab5ce84930d7d3b82` | 7.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_dtc_find_6443e.py` | `b88a960c53bf2f73b9cc816e24fe4cd81ebffceccc34e8c7e1f2f53a0ffc9bc6` | 7.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_dtc_row_update_64258.py` | `8dae2b99820846e95f907876598f6c0dde3d5f8f3be11d22e22665dfd6728e3c` | 5.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_dtc_row_update_64418.py` | `85efe7064745085b4b345473630b30811c0ccdf4f981621221035c11a84d6804` | 6.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_dtc_row_update_64490.py` | `148cbfaa337fa6d63ccca3a26f27a29b848c79aecd3a4403b8b0f540c307da31` | 6.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_service_handler_632d6.py` | `c419d886d3b9f63be78e36f4e0ecf5f2fa089d1051712fb67b02661dae5baeb0` | 3.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_service_handler_63312.py` | `a373a6fd43e195ce7df035451d0d8802065101c1d53cc43c2b3fbc1bffaa8797` | 4.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_service_handler_63834.py` | `ae6ef15b1737c61fa31f7b1f74f135dae49138f50014fc4f24b7bd2f66c9603a` | 6.8K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_service_handler_63b46.py` | `b696f68dd9e4dfe367726a7d3b43946af52defd8f70dad1b047ef16afc2eca88` | 7.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_obd_service_handler_648b4.py` | `fac4ace8979ba9d275e2cc00bb21f9666bb2496f0cfc309d2ecc6e247c185142` | 6.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_omp_rotor_overshoot_detector.py` | `4f0a120a5823a57848e1091085e9beef7d8ea37088759f399c72a515229bb6cf` | 8.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_purge_control_state_update.py` | `8dc465a281ef7bd4b94724ce7fda9c95a8b080471fbc6253e12f988696bcb018` | 5.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_purge_flow_counter_init.py` | `2a2f6a945b1f32349eff46bb5d8df24e99b70e8aeac6dbd802057aa72b2370e6` | 4.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_purge_flow_decrement.py` | `10cec04cfd0334dd2ad7f4dfe71d25afafe39ffd6ffe77ce316f8a04d05217dd` | 4.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_purge_state_query.py` | `1ed5ec749195b58dc4f1957cc8b45cdc3584eeda62f8b3b94a5342618a53f753` | 3.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_radiator_fan_relay_write.py` | `3ed7230ba772a4c1a29a4f10ba16c2869c47f9f650c64015a657bd3ee2c81a7a` | 3.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_req_queue_69602.py` | `1c4b317f3a19fe877773149156d18479a668d1df7e0eb177fbc3889f3df77886` | 5.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_rev_limit_fuel_cut_init.py` | `37d99175bb273f34d76eadf724375cdbe962b31af45c68e8181b4e132204f1d1` | 5.7K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_saturate.py` | `ca1425ba722e08653bae34df58967193f5f93d2f2a07950f6c54f02b5ed63776` | 6.4K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_saturate_low.py` | `c009e2215745e8bcfa9a54a402bd381483ebe3e790103825fdfe5408f22e033f` | 4.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_seed_mixer.py` | `ec9e8c62a64aed9b8f58ac42b23d48f5a14af948d3ec40e17803cb1d4129ff52` | 2.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_set_mem_inside_func_to1.py` | `f9cba41247ab457ce3a8b97c3c419282ff620c282d5a07671db98bb5697cf241` | 4.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_set_memory_not_valid2.py` | `b134cc26664545389f7e48f944e301ec6dc853d84a0992aadd3a5c64a06aa049` | 6.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_set_register_reg_bit_val.py` | `b682a9a7b390e2cd3d7770a6d4be57a253236bd64b2ee739422f9d543885cd34` | 5.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_set_sr.py` | `8e5b25b77bd13601f1b73c17e7e1d078296b95126a0a8467ff7a1506534f1107` | 5.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_set_sr_param.py` | `6155ba57db0e567e2a692d8de21af8e7b71c008da7e6d7c0c32c87b582bcc1ba` | 5.5K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_shift_left_logical.py` | `702259b4645d1f50f25bb67eb493223f289d0d15aad5d002f47275b7347f3aa2` | 4.6K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_shift_right_8.py` | `aa8aebd845fe7313af9ff060be8ef59ae9bf876c00ff8abe12f5d1eb8503c42d` | 4.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_shift_right_arithmetic.py` | `e014ecb63c546193b4c70bb7a88850d9d3395336e9ffade03efb249a2ce5051d` | 5.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_shift_right_logical.py` | `1373f137e11fa278b07b9b62cc2cf55c73cd5e8084bd8333b8f2801f8a9a5510` | 4.3K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_ssv_control.py` | `e7def96a7b005fc496b7f9ca3f099732b4ac476828739c35ad97b6a13adf75ac` | 13.2K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_subtract_absolute.py` | `90729c324699dc09e6b473c137ddb56bdaecbabe8742e06f51e38bb4bf1b919e` | 4.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_task_end_routine.py` | `7fbd6c77183919edfd424edba7805d4cf9e8fc4c7b4fd81f800158d0ce318405` | 9.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_task_execute_by_index.py` | `2c09abb2238cb5f3a0845190b5cb6e0f6c992a9fc5ca2a3a2eca2c63499b9bbb` | 16.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_task_flag_run_c.py` | `13790fff5bc207ac296292b911907dbf61a33ba4e7600483cf7f9a84269b9236` | 7.1K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_temperature_gauge_5aa5c.py` | `933c180d4ad644d4be6f5a0ae48a0965b7f9e666c3ebc0b395b6ecb4ed4fab65` | 3.7K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_vfad_control_35bbc.py` | `2159d97b2530932be5dca1c60b675ce2b2f60e3295144a91e8cd91a5c991211b` | 9.0K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_vis_intake_control.py` | `cef37f86f80fb145c04f6ab38f27423f6d2fd135b9df395e9f427033499f05a4` | 11.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/harness_warning_light_5aade.py` | `46b85c5ae7caf9234770c5ba2a904f97c17319abce8558e320f932c834b39a09` | 3.9K | Sample Python harness (emulator vs C equivalence) |
+| `reconstructed/samples/tests/host_oracle.c` | `664baab2a6ed228d8fff68e281915d4e0957d069d279a3f13289198a7990252a` | 3.7K | Host oracle driver for sample harnesses |
+| `reconstructed/samples/tests/oracle_2d_lookup_fp_16bit.c` | `90910fe43a133d72b947bad4450890c313ca5d67e6783d2bd6a571e1f68a5e5e` | 5.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_2d_lookup_fp_8bit.c` | `6a98021c575ff5ad9522495e71107d20ce22e6d8a725cf4feb9f61f937a6230a` | 3.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_3d_lookup_fp_16bit.c` | `12d67c1bf73a74538684faccdc50b2d48d352fddf47e496e26c5e737ccd66c84` | 3.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_3d_lookup_fp_8bit.c` | `220483b6f72fcdd9be7b4ff054fced14428578019b8b2a189306eee97e9f1b29` | 3.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_alternating_sensor_sm.c` | `fee29d18a5a4a6b3bc1e0d95cfd0365c7d4413c69487b0c3651cd433035bb5da` | 4.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_aux_fan_control_task.c` | `a4a7b558a6d523deee8ff50d8d1e07c44fcf68b8c93a0ef39f5f0bdf565cf94a` | 7.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_bitfield_extract_merge.c` | `996388dbb9b3d8a028ff32fbd36b304ad9fbaa60ff4ad3548301e24451dcd4a5` | 1.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_bitfield_flag_selector_33a98.c` | `c217adaa207fd6c2cd316921d74949170a6ea06778fc49d49b9509639307253c` | 2.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_bitfield_flag_status_decoder_339ac.c` | `ae5d3e209b442094f3153577fa2c390d23e1b3fd9d8bc0db94c44af894e1958d` | 2.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_calc_fan1_control.c` | `dfadfe2bcf4a2a7b2e1d58d0ebda0536dad0731f58c982d25b34d11a5b357d17` | 5.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_calc_intake_pressure_pid_output.c` | `f66fa30c67278cdd84c7fd86606f6238dc8b4f1a177343b237ec6303dd1b1386` | 7.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_calc_rotor_sync_idle_gate_b.c` | `10e91fd83fbb4ab5f1fab850eb869716e67722445abb16cd92acec6c61566196` | 7.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_calibration_apply_4b770.c` | `bcf5b05566616d73423c74ddfa2cbb75ec90e5bc4917ef31b429b25d9e6dd976` | 3.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_can_encode_handler_62abc.c` | `6968a6b177e6d7d692402b8c6a38c4bb3a57c42cf4ee5f34947599169cfe67c7` | 4.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_check_float_validity.c` | `d8e7801e73ac28096f438075238d9d971d2ea222e324e2a72f8913e667f906f2` | 1.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_checksum_complement_add.c` | `046d8e674138641e30f18d1c18640125ae9e698c1bf7743bd01fd3c777148183` | 1.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_complement_shift_u16.c` | `7c02492f3788801a6dd695ef6d14d1714b73099d5e7f283b6f33c79c2c072e7c` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_complement_shift_u32.c` | `bc950cb0a5d1b7f547cf2d6953ce49fcab4a1d7d4197a4250ea5f34e94cc3446` | 2.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_cooling_fan_control.c` | `c28ef080849d1e67244473207de7391c4f0a93547a25927b885273183855072b` | 4.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_crank_sensor_init.c` | `1980018c0f898b453f4710deff6332141fdb090cb89e70501ba7e3ce29ff0952` | 4.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_data_lookup.c` | `f835f6af549d66a0aa3a1035c9fa53bee24c9b8993cb05d3501a0ceceeee587a` | 2.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_delay_loop_n8.c` | `77e2c1773c77527f340cd05e1ee662d13b80b3157146947c596ef3ed8cbbb574` | 1.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_div32_signed.c` | `da394089fdbf4b43caa525d9a1c0eaf485860eaf1e46c8b9bcce2aa473482861` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_div32_unsigned.c` | `a7c8c4206f3d48e29614cd49d4a9248e12888fca9d22a73724499e1081e2726b` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_dtc_data_read_60f58.c` | `d8bbced5a35cc670c45197926546a9360eb3e9bb5c4ca9600963d6bd09ed553b` | 3.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_dtc_handler_610fa.c` | `2468e7312d4d094e0aca7f29d8825c70cc7d2ead287a819905dd2cee5323bfa5` | 7.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_encode.c` | `caf3f35d661e21fb3dc3f78f29e1d227e3b20c6b74475b7813b49d619481369e` | 1.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_first_order_filter.c` | `aba7fa50e68888a1384933bbf36012052a759423d1f279b7ced278176a7d33aa` | 2.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_float_to_fp_16bit.c` | `89495b4b8e288745d5c653b85d7edd3dc54f5823a27b4812cbf319dbad6bc43f` | 2.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_float_to_int.c` | `0926d00e7af2f1b6db156d06650f8470c0d416eebf255d3e431ff507a456dc21` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_fpu_nop_stub.c` | `c1e9a3cee122f02b95dd21dbc8f41bf28f7eeda06491053a4943dba399253eca` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_data_from_e2_ram.c` | `6c31f7870b83f07a2027a333dbfbdb063bf2de0a9dc1d5cbd6d1a2bd606c6a48` | 7.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_engine_off_timer.c` | `fc8cb2ff5c6c759d2c7f5aaf58c02ef5b747691411bad3d86606c31f572a9021` | 3.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_engine_on_time_for_oil_metering.c` | `fa6f35d94436a1f750c0bb932649f6c9782e406472894519a644f95bdef28ef8` | 3.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_fault_status.c` | `dae4d8677d798609b10b434e023980481c8eb90c6d54c46b7823c98de5b4f2b9` | 11.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_hcan_register_address.c` | `0f2fcadb55d6e575abcb1c11254dc16a09e0602edf93f1de43183554b6bfe68d` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_maf_sensor_value.c` | `07ef127665e4a52d22c46da05719ce89942bfff7d73993df150b8bb5282c55f6` | 6.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_get_sr.c` | `7643c2dd4d30a5f2801650baacdddb81feafdf84daa758593a36843e1089d85c` | 1.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_idle_speed_control.c` | `7abf6e29bcc6096988a057f81bbe881a526dcf9ba38935b132a2ce330a386890` | 9.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_ignition_dwell_output_init.c` | `528ce26951d1df8a65d4c62daf32b6acbaccaf66a3d0e02e43f112619d16bf60` | 10.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_bad_state_set.c` | `04e7957c2938de13e9a3207f65ccec37ba1cec2ad6638f9663ad16b5b80b5f58` | 3.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_get_seed_3664e.c` | `069f8961dc75dbebc23a136d90e17a3a31f5378c60a5b9b788df6b61624ca626` | 3.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_good_state_set.c` | `d7d86868cf6e3c4fc4367bbfae1b9e721e13d826683d5dd11984b7e844e7642e` | 4.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_key_expander_365d6.c` | `a0d0cbe68d2b09e5bee21b31c4bc7122d5289c3983fbd9084e01c9090e48178d` | 3.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_state_machine_360e8.c` | `775a929518b23e40d93f9d2a55405898918cf57ba0e8a18a3677adb5d9eae8aa` | 6.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_state_ready_to_drive_engine_off.c` | `a4717c29ed3787b02db4129ff1fde0edcdcb07ef6b31ffb5c7d1ac688dc106fb` | 8.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_immo_update_related.c` | `6d9d1cd45ddbef8c5753b0d2c1446f7efdbdd58f677811fe5660e41074849630` | 7.0K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_index_lookup.c` | `1804fda6d3de5cefa1fbb1045864b2f302be3a202712db92b419d35e04e21d46` | 4.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_interpolate_u16_table.c` | `8ab03eafdadd874738219f0edd815e67955b970440505dd1f29b9c36f0ec4d2b` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_interpolate_u8_table.c` | `772ce16d410ef017ac0b3b2c5c910c0bc0b4df13d3203500a0d0c132243aaa0a` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_invert_and_return_8bit.c` | `2cad51b2511b311039d71f21a9513c978599fea6607f0b74a55f9d515372c705` | 1.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_knock_function_init.c` | `ee6e09bd1da4c2ff598cda5df2b0ceb309664727354d0cec1a624c215b4c2f69` | 5.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_knock_sensor_adc_fault.c` | `067687a98530ed83fda1fcb130911f8172d11c8db9f5c6c6bf2697cc1a9b6c6d` | 3.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_least_square.c` | `d0b82e22ed26b93f4911c6df1b8e60ade6274c25dd92d245807a656252242ad0` | 2.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_load_data_from_e2_into_ram.c` | `6853a17165515e6357492e916e5ae941099e3c24acc3a68b99656632d47e2456` | 7.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_math_min_max_49ed0.c` | `c23fffceaed8c2f9e33e26137e4b44914538e13b4bc3640deb53669410baa664` | 3.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_math_primitives_2490.c` | `5cad025e59ec272d09c5c2fba9033e335d739ba2720e74f311c4da33addb7d02` | 3.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_memcpy_bytewise.c` | `cc01b7823776e8ac852208c841a414af62311c51f68808ac49a810eaec99275a` | 4.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_min_value.c` | `85e648ae6981a4b8c05eeabbae0240295024eb22cf98d22ed7f537c0800b367a` | 1.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_mod32_signed.c` | `77b839fe4356595675d4a5fbe6bd0c6d7fada4e96e86929f6cbb98ed11b7e8a5` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_multiply32_saturating.c` | `c9bf7b195af596246c16a2fa4a9f26c610038bc86df20405d87051f64d09c60e` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_dtc_find_643d4.c` | `9a18fab798e37ca4ff7ab86b274719610bcca4e64f01052f1331538fa6c535b3` | 3.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_dtc_find_6443e.c` | `47f4dcc0422ff8d75c1b14fbaa637ec54cb9a54bb20b88f944011ed6e21fe88d` | 4.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_dtc_row_update_64258.c` | `cd02d37e886b8b1c45b04583283415bfb94c828d59b047fccaf85d0f1ea63ce3` | 3.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_dtc_row_update_64418.c` | `b5f3f21407384ee554dde7801e2e581d2fc7217dc66d2dcf0f0bc2cab7ee9f9b` | 3.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_dtc_row_update_64490.c` | `71b87fde53654a204f545436b5c336680f28a1596388fa7d92e2bf8ef86506f2` | 3.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_service_handler_632d6.c` | `6bc28609f82de0ba7fa77b8630132d5a8b331632cf74cb7e205c94ce86685ff3` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_service_handler_63312.c` | `d72469eb3af3608a7a6234b35a747ae80386749d9e25f62c191791bb4818f848` | 2.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_service_handler_63834.c` | `494dbc97c00c0da4c5bf615e1e116beebe39ba7a382d7495a741fa2c470df295` | 3.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_service_handler_63b46.c` | `7ab878330b441ec35e076c08ca1660190abe4f8150122d0a4236baeaaf6f4cf3` | 3.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_obd_service_handler_648b4.c` | `e52b70c3b31fda887a094a6620a3872b85e405907d42c92a2cf224817461f894` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_omp_rotor_overshoot_detector.c` | `b50333dfb7d6501fb60bbc63220b410b43d590eb99ffe5a1a6da979c9ed1de49` | 7.4K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_purge_control_state_update.c` | `2c4ebeecfb51b1fa74bd918c95f3cd4af68d4a4e2a4e4b758c8ba404c4d02352` | 5.1K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_purge_flow_counter_init.c` | `34b93a66fc1f5431dbd5dd2ee913c13c69824935a791b8ddf269c10a36da9ef2` | 3.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_purge_flow_decrement.c` | `b5d65146f976ef7eafe650d59a22fa275b4cbfc092286669129f61040b36b4d8` | 2.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_purge_state_query.c` | `d20f3e6ecb53ebabf5f52844bbe23e3ecac3ff41b485d52c2d6057d2c5fefe6e` | 2.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_radiator_fan_relay_write.c` | `6493153267e59c9af64d8fc34cc22e237790cd9fd3388e39321c09b4ceb01829` | 2.7K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_req_queue_69602.c` | `486ecd26545b918d509021a738dc71005887e90e85b7c5fdb349f292a110954a` | 3.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_rev_limit_fuel_cut_init.c` | `02a8c27c8c0784b57bfca0a096e49a5c9cdc2b2ee6be591b3b71ee8efbf9e0cf` | 4.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_saturate.c` | `71a19a5d9bf2767533ddb266ca2d31d5ff5ca0805446ad2eb10e0ffb959929e0` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_saturate_low.c` | `734f42d4c4febefc613a2ebf43ca6026e7c00379ef0cbb52bb2a26beeffd0528` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_set_mem_inside_func_to1.c` | `f5dd08b7826c7602d0ed5cc8e79d5c42661adf518a8f670f6c0206636af2a398` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_set_memory_not_valid2.c` | `e7655aea439bc9eba920eded71ead7b949d112fa7c0ba14f34bae2ed07eb5615` | 3.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_set_register_reg_bit_val.c` | `31f166096e611fe482ab88dfa5be1983fc9209976fdd7f20aa1fc67dd9dcbb2a` | 3.3K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_set_sr.c` | `d70ad203267ed654fc1b1d638af3cbcaae2e17e2fece7a199711d5af477ca2f7` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_set_sr_param.c` | `f82eddb937a5d7d98cf7a1af706351a11e2ab3b889752e0d2152dc6d7b2525c4` | 1.9K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_shift_left_logical.c` | `908439b431bdb90a832fd611332e324af528c978394bdb5d469eb0817cb529d9` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_shift_right_8.c` | `add053ae8b35b298a5f41b44eb1847687e80070bd561b75e1c94006bae186988` | 1.2K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_shift_right_arithmetic.c` | `7b629ad9a5cfb57a35418f88d53a0a4235b4b05a20eec21a79bf72450adf53c0` | 1.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_shift_right_logical.c` | `12c985ab9d1f835cb11746964246dff812d892a307fcacc5454fcd859141dc55` | 1.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_ssv_control.c` | `7aa1415019cd82dfb02832996db0a38b6b6bc454a95709d7b02e0cb073d2ded5` | 9.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_subtract_absolute.c` | `1030a7ad61f10bed7d24a1a874d71c69976675c372d5bbaaf2005a2c6c58a42a` | 1.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_task_end_routine.c` | `d7f37b1458eebb02e7fd12004d905cd0aa9bc0521cac88b373bfe1803f98ee16` | 6.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_task_execute_by_index.c` | `74cef7ea5828b26eeb681b21142c513ec207387cd3e923a6185b82b15bf6905d` | 8.5K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_task_flag_run_c.c` | `4a09f3de21955f028ca759ef2afc23bb8d010644ed3095942ca47307c880661a` | 3.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_temperature_gauge_5aa5c.c` | `8dce302de8ac0ed3ef4bd7754f6ce4d608d51afa1c642b7a8a3142303151605e` | 2.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_vfad_control_35bbc.c` | `90c1679ef570d0e776a9bb31227f087ddf69abdc5f6712fc3ae80fd3c5c2b344` | 5.8K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_vis_intake_control.c` | `709818e8f2eb9fece967f5693c84fce25e4c206e639ac032c63a1c5507558f13` | 9.6K | Host oracle for sample harness |
+| `reconstructed/samples/tests/oracle_warning_light_5aade.c` | `5addc8a58a8f97a07ae56a3f311a88d6e600ab9dcd2ae2948fddea553f8d46df` | 2.7K | Host oracle for sample harness |
+
