@@ -1,4 +1,4 @@
-/* omp_task_0x1825E.c
+/* omp_control_task_1825E.c
  *
  * ROM: 60E1D400  |  Address: 0x1825E  |  Size: 756 bytes  |  VERIFIED vs ROM emulator
  *
@@ -49,7 +49,7 @@
  *     A97B = 0x30, A980 = 1; else rotor_sync_position_detector(A984).
  *
  * Verified: 150000+ random + edge inputs across 5 seeds vs the ROM emulator,
- * 0 mismatches (test_omp_task_0x1825E.py).
+ * 0 mismatches (test_omp_control_task_1825E.py).
  */
 #include <stdint.h>
 

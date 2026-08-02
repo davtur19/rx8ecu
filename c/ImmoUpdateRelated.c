@@ -39,7 +39,7 @@ void ImmoUpdateRelated(void)
     /* armed: drive the queued write */
     {
         uint8_t was_busy = E2_WQ_BUSY; /* 0xFFFFC2D7 */
-        sub_37000(E2_WQ_PENDING_CODE); /* 0x37000(*0xFFFFC2D1) */
+        eeprom_commit_dispatcher_37000(E2_WQ_PENDING_CODE); /* 0x37000(*0xFFFFC2D1) */
         if (E2_WRITE_COMPLETE == 1) {  /* 0xC2F8 */
             E2_WQ_FLAG_D2 = 0;         /* 0xFFFFC2D2 */
             if (was_busy) {

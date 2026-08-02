@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Verify least_square_0x5687A (0x05687A) against the ACTUAL ROM bytes, run
+Verify sentinel_equality_check_5687A (0x05687A) against the ACTUAL ROM bytes, run
 in the SH-2E emulator.  Compares input byte against stored reference at
 0xFFFFD20B, returns 0 if equal, 1 if different.
 
 C:
-  uint32_t least_square_0x5687A(uint8_t val)
+  uint32_t sentinel_equality_check_5687A(uint8_t val)
 
-Run from repo root:  python3 c/tests/test_least_square_0x5687A.py [N]
+Run from repo root:  python3 c/tests/test_sentinel_equality_check_5687A.py [N]
 """
 import os, sys, random
 
@@ -19,7 +19,7 @@ ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ENTRY = 0x05687A
 REF_ADDR = 0xFFFFD20B
 
-def test_least_square(cpu, N):
+def test_sentinel_equality_check(cpu, N):
     """Test with varying RAM state (the ref byte at 0xFFFFD20B)."""
     for _ in range(N):
         ref_byte = random.randint(0, 0xFF)
@@ -47,13 +47,13 @@ def main():
                 sys.exit(1)
 
     # Random tests
-    err = test_least_square(cpu, N)
+    err = test_sentinel_equality_check(cpu, N)
     if err:
         val, ref_byte, result, expected = err
         print("FAIL: val=0x%02X ref=0x%02X → %d expected %d" % (val, ref_byte, result, expected))
         sys.exit(1)
     else:
-        print("OK  least_square_0x5687A @0x%04X  (all 256×5 + %d random)" % (ENTRY, N))
+        print("OK  sentinel_equality_check_5687A @0x%04X  (all 256×5 + %d random)" % (ENTRY, N))
         sys.exit(0)
 
 if __name__ == '__main__':

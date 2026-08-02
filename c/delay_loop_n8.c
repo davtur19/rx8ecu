@@ -5,7 +5,7 @@
  * zero-extended byte from the caller).  Used as a small-integer timing
  * delay inserted via function-pointer table.
  *
- * NOTE: Despite the Ghidra/IDA name "mul16_unsigned", this is NOT a
+ * NOTE: Despite the old Ghidra/IDA name "mul16_unsigned", this is NOT a
  * multiplication helper — it's a counter loop whose trip count is
  * proportional to 8×param_1.  The name likely came from the `shll2; shll`
  * sequence that multiplies by 8, combined with the fact callers zero-extend
@@ -29,7 +29,7 @@
  */
 #include <stdint.h>
 
-/* 0x239C  busy-wait loop for n × 8 iterations  (was "mul16_unsigned")           */
+/* 0x239C  busy-wait loop for n × 8 iterations  (old name "mul16_unsigned")      */
 void delay_loop_n8(uint16_t n)
 {
     uint32_t count = (uint32_t)n * 8u;

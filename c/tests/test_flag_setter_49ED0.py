@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify math_min_max_49ED0 (0x49ED0) against the ACTUAL ROM bytes, run
+Verify flag_setter_49ED0 (0x49ED0) against the ACTUAL ROM bytes, run
 in the SH-2E emulator.
 
 Flag-setter leaf: reads a 16-bit word at RAM 0xFFFFF76C, tests bit 0x100
@@ -8,7 +8,7 @@ and writes a 0/1 flag byte to both 0xFFFFCD48 and 0xFFFFCD49.
 Returns the flag in r0.
 
 C:
-  uint32_t math_min_max_49ED0(void)  // no args; reads 0xFFFFF76C itself
+  uint32_t flag_setter_49ED0(void)  // no args; reads 0xFFFFF76C itself
 
 Model:
   v  = (word & 0x100) ? 1 : 0
@@ -18,7 +18,7 @@ NOTE: the disassembler prints the mov.w literals as 0xCD49/0xCD48/0xF76C,
 but mov.w @(disp,PC) SIGN-EXTENDS (bit 15 set) → real addresses are
 0xFFFFCD49/0xFFFFCD48/0xFFFFF76C.
 
-Run from repo root:  python3 c/tests/test_math_min_max_49ED0.py [N]
+Run from repo root:  python3 c/tests/test_flag_setter_49ED0.py [N]
 """
 import os, sys, random
 
@@ -69,7 +69,7 @@ def main():
     for _ in range(N):
         check(random.randint(0, 0xFFFF))
 
-    print("OK  math_min_max_49ED0 @0x%04X  (%d edge + %d random)" % (ENTRY, 14, N))
+    print("OK  flag_setter_49ED0 @0x%04X  (%d edge + %d random)" % (ENTRY, 14, N))
     sys.exit(0)
 
 

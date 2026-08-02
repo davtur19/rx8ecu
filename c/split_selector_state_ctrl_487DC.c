@@ -1,12 +1,13 @@
-/* wankel_leading_trailing_split_487DC.c
+/* split_selector_state_ctrl_487DC.c
  *
  * ROM: 60E1D400  |  Address: 0x487DC  |  Size: 0x232 bytes (562 B)
  *       0x487DC..0x48C10 code (rts @0x48C0E, delay-slot pop r14); literal
  *       pools @0x488EA..0x488FC, @0x48A32..0x48A42, @0x48B76..0x48B86 and
- *       @0x48C62..0x48C6C; next function rotor_sync_timing_48C12 @0x48C12.
+ *       @0x48C62..0x48C6C; next function split_selector_decoder_48C12 @0x48C12.
  *       VERIFIED vs ROM emulator (0 mismatches).
  *
- * Gated "split state" selector (IDA: wankel_leading_trailing_split).  Despite
+ * Gated "split state" selector (old IDA label: wankel_leading_trailing_split).
+ * Despite
  * the IDA name, this routine does NOT compute a split angle and does NOT touch
  * the per-rotor timing words A734/A738 (those are written identically by
  * calc_ignition_all_rotors_13C2C; see its lift).  It computes ONE byte,
@@ -27,10 +28,10 @@
  *
  * The 29 thresholds cal8[0x7C27F..0x7C29B] are small calibration bytes
  * (stock values 0..3), so CCD2 ends up a 0..3 state/selector value, NOT a
- * split angle.  The very next function rotor_sync_timing_48C12 decodes it
- * into the output pair (CCE2, CCE3): 0 -> (0,0), 1 -> (0,1), >=2 -> (1,0),
+ * split angle.  The very next function split_selector_decoder_48C12 decodes
+ * it into the output pair (CCE2, CCE3): 0 -> (0,0), 1 -> (0,1), >=2 -> (1,0),
  * i.e. this whole call chain is a mode/state selector in the spark-control
- * area (0xFFFFCCEx is also read by leading_trailing_spark_control_2100A).
+ * area (0xFFFFCCEx is also read by rotor_sync_gate_state_ctrl_2100A).
  * The A734/A738 lead vs trail split is therefore NOT applied here.
  *
  * Inputs (RAM reads):
@@ -46,7 +47,7 @@
  *   u8 @0xFFFFC6AC  = fault flag (only set to 1 on a bad redundant pair)
  *
  * Verified: 100000 random inputs x 5 seeds (500000 total) vs the ROM emulator,
- * 0 mismatches (c/tests/test_wankel_leading_trailing_split_487DC.py).
+ * 0 mismatches (c/tests/test_split_selector_state_ctrl_487DC.py).
  */
 #include <stdint.h>
 
@@ -140,7 +141,7 @@ static uint8_t gate_max(uint8_t cur, uint8_t gate, uint8_t thresh)
     return cur;
 }
 
-void wankel_leading_trailing_split_487DC(void)
+void split_selector_state_ctrl_487DC(void)
 {
     uint8_t r14 = 0;
 

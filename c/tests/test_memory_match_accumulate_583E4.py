@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify CAN_TableLookup_583E4 (0x583E4) — memory scan / match accumulator.
+Verify memory_match_accumulate_583E4 (0x583E4) — memory scan / match accumulator.
 Scans 36 entries, checks signature+filter, accumulates matched data.
 """
 import os, sys
@@ -12,7 +12,7 @@ from sh2emu import SH2
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ENTRY = 0x583E4
 
-def test_CAN_TableLookup_583E4():
+def test_memory_match_accumulate_583E4():
     rom = open(ROM, 'rb').read()
     cpu = SH2(rom)
 
@@ -33,11 +33,11 @@ def test_CAN_TableLookup_583E4():
     rts_op = int.from_bytes(rom[ENTRY+96:ENTRY+98], 'big')
     assert rts_op == 0x000B, f"Expected RTS at +96, got 0x{rts_op:04X}"
 
-    print("OK  CAN_TableLookup_583E4 @0x%04X  size/opcodes verified" % ENTRY)
+    print("OK  memory_match_accumulate_583E4 @0x%04X  size/opcodes verified" % ENTRY)
     return True
 
 def main():
-    if test_CAN_TableLookup_583E4():
+    if test_memory_match_accumulate_583E4():
         sys.exit(0)
     else:
         sys.exit(1)

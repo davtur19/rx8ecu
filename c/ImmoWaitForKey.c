@@ -32,12 +32,12 @@ void ImmoWaitForKey_35F92(void)
     if (*state == 3) {
         if (E2_WORK_INDEX10 == 1) {            /* 0xFFFFC2E4 (paired) */
             IMMO_WAIT_STATE = 0xFF;            /* 0x35FCC */
-            message_queue_state_dispatcher_369B8(0x09);
+            setImmoCANTXData_369B8(0x09);
             IMMO_STATE_CODE = 0;
         } else {
             ImmoKeyExpander_365D6();           /* 0x365D6 */
             IMMO_WAIT_STATE = 1;               /* 0x35FBE */
-            message_queue_state_dispatcher_369B8(0x09);
+            setImmoCANTXData_369B8(0x09);
             *(volatile uint16_t *)0xFFFFC27E = 0x01F4;   /* 0x35FC8 */
         }
     } else if (*state == 4) {
@@ -47,25 +47,25 @@ void ImmoWaitForKey_35F92(void)
         case 1:
             if (IMMO_EXPECTED1 == key)         /* 0xFFFFC260 */
                 IMMO_WAIT_STATE = 2;
-            message_queue_state_dispatcher_369B8(0x09);
+            setImmoCANTXData_369B8(0x09);
             break;
         case 2:
             if (IMMO_EXPECTED2 == key)         /* 0xFFFFC264 */
                 IMMO_WAIT_STATE = 3;
-            message_queue_state_dispatcher_369B8(0x09);
+            setImmoCANTXData_369B8(0x09);
             break;
         case 3:
             if (IMMO_EXPECTED3 == key)         /* 0xFFFFC268 */
                 IMMO_WAIT_STATE = 4;
-            message_queue_state_dispatcher_369B8(0x09);
+            setImmoCANTXData_369B8(0x09);
             break;
         case 4:
             if (IMMO_EXPECTED4 == key) {       /* 0xFFFFC26C */
                 IMMO_TIMER_27C = 0x01F4;       /* 0xFFFFC27C */
-                message_queue_state_dispatcher_369B8(0xC6);
+                setImmoCANTXData_369B8(0xC6);
                 IMMO_STATE_CODE = 0;
             } else {
-                message_queue_state_dispatcher_369B8(0x09);
+                setImmoCANTXData_369B8(0x09);
             }
             break;
         default:
@@ -81,7 +81,7 @@ void ImmoWaitForKey_35F92(void)
         if (*(volatile uint16_t *)0xFFFFC27E == 0) {
             ImmoBadStateSet();                 /* 0x365B8 */
             IMMO_RESP_BYTE = 0;                /* 0xFFFFC294 */
-            message_queue_state_dispatcher_369B8(0x01);
+            setImmoCANTXData_369B8(0x01);
             IMMO_GOODSTATE_FLAG = 1;           /* 0xFFFFC29A */
         }
     }

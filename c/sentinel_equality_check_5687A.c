@@ -1,5 +1,5 @@
 /*
- * least_square_0x5687A.c  —  RX-8 PCM least-square check byte (0x05687A)
+ * sentinel_equality_check_5687A.c  —  RX-8 PCM sentinel equality check (0x05687A)
  *
  * Compares a byte-wide calibration/status value against a stored
  * reference byte at 0xFFFFD20B.  Returns 0 if equal, 1 if different.
@@ -34,7 +34,7 @@
 #define REF_ADDR    0xFFFFD20Bu
 
 /* 0x05687A  Returns 1 if param_1 differs from the stored reference byte */
-uint32_t least_square_0x5687A(uint8_t val)
+uint32_t sentinel_equality_check_5687A(uint8_t val)
 {
     volatile uint8_t *ref_ptr = (volatile uint8_t *)REF_ADDR;
     uint8_t ref = *ref_ptr;

@@ -8,11 +8,11 @@ Disassembly of the ROM function (60E1D400.bin):
   2. setRegister_REG_BIT_VAL(0x4BBC) called with
      (addr=word@0x717E=0xF74E -> 0xFFFFF74E, bit_val=word@0x717C=0x0100,
       size=1) — ORs 0x0100 into the 16-bit register at 0xFFFFF74E.
-  3. fpu_nop_stub(0x2064) called with the saved old SR — restores SR.
+  3. loadStatusRegister_ADDR(0x2064) called with the saved old SR — restores SR.
 
 Net observable behaviour (verified against the emulator):
   * RAM word[0xFFFFF74E] |= 0x0100   (bit 8 set; OR semantics, other bits kept)
-  * SR_out = SR_in & 0x000000F0       (fpu_nop_stub restores the saved value)
+  * SR_out = SR_in & 0x000000F0       (loadStatusRegister_ADDR restores the saved value)
   * pr restored, stack balanced (r15 back to the call-time value)
 
 Every sub-test below asserts these; any failure exits non-zero.
@@ -86,7 +86,7 @@ def test_wrapper_fpu_register_write():
 
 def test_wrapper_sr_manipulation():
     """SR is preserved through the wrapper: setSR_PARAM saves SR & 0xF0 and
-    fpu_nop_stub restores it, so SR_out == SR_in & 0x000000F0."""
+    loadStatusRegister_ADDR restores it, so SR_out == SR_in & 0x000000F0."""
     rom = open(ROM, 'rb').read()
     cpu = SH2(rom)
     for sr_in in (0x000000F0, 0x000000E0, 0x00000000, 0x00000F00, 0x000000F1):
@@ -106,7 +106,7 @@ def test_wrapper_sr_manipulation():
 def test_wrapper_subcall_chain():
     """Prove all three sub-functions ran, without stub hacks: the FPU register
     write can only come from setRegister_REG_BIT_VAL, the SR restore from
-    fpu_nop_stub, and pr/stack cleanup from the wrapper prologue/epilogue."""
+    loadStatusRegister_ADDR, and pr/stack cleanup from the wrapper prologue/epilogue."""
     rom = open(ROM, 'rb').read()
     cpu = SH2(rom)
     before_r15 = 0xFFFFDF00     # cpu.call() initialises r15 here
@@ -119,7 +119,7 @@ def test_wrapper_subcall_chain():
     check(cpu.rd(FPU_REG, 2) & BIT == BIT,
           "sub-call chain: FPU register bit 8 not set (setRegister_REG_BIT_VAL didn't run)")
     check(cpu.sr == 0x000000F0,
-          "sub-call chain: SR not restored (fpu_nop_stub didn't run)")
+          "sub-call chain: SR not restored (loadStatusRegister_ADDR didn't run)")
     check(cpu.r[15] == before_r15,
           "sub-call chain: r15 not balanced (0x%08X != 0x%08X)"
           % (cpu.r[15], before_r15))

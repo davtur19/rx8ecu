@@ -1,10 +1,12 @@
-/* aux_fan_control_task.c
+/* pressure_delta_monitor_1AED2.c
  *
  * ROM: 60E1D400  |  Address: 0x1AED2  |  Size: 48 bytes  |  VERIFIED vs ROM emulator
  *
- * Boost-pressure auxiliary-fan task.  Wraps a chain of boost calculations
- * and a pressure hysteresis flag update in a getSR/setSR critical section
- * (SR bits are preserved across the whole chain).
+ * Pressure-delta monitor task (old name: aux_fan_control_task — the "aux
+ * fan" label is NOT supported by the lift: no fan output is written; the
+ * observable effect is a filtered boost-pressure delta chain plus a
+ * pressure hysteresis flag).  Wraps the chain in a getSR/setSR critical
+ * section (SR bits are preserved across the whole chain).
  *
  * Steps, in execution order:
  *   1. getSR(0x10); saved SR restored at the end via setSR.
@@ -30,7 +32,7 @@
  *   8. setSR(saved_SR).
  *
  * Verified: 6000 random float/byte inputs vs the ROM emulator, 0 mismatches
- * (test_aux_fan_control_task.py).
+ * (test_pressure_delta_monitor_1AED2.py).
  */
 
 #include <stdint.h>
@@ -77,7 +79,7 @@ static void flag_transition(uint8_t flag)
     }
 }
 
-void aux_fan_control_task(void)
+void pressure_delta_monitor_1AED2(void)
 {
     /* step 2: boost low-pass filter */
     RAM_BOOST_IN = firstOrderFilter(RAM_BOOST_IN, RAM_FILT_PREV,

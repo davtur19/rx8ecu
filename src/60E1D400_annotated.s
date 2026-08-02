@@ -796,8 +796,8 @@ L_0004dc:
 	.word 0x0fe0
 	.word 0xffff
 
-! --- resetHandler?  0x4E0-0x572  [ghidra-hand-xmap] ---
-resetHandler_:
+! --- main_init  0x4E0-0x572  [ghidra-hand-xmap] ---
+main_init:
 	add #-8,r15
 	mov.l r4,@(4,r15)
 	mov.b r5,@r15
@@ -881,8 +881,8 @@ L_00056e:
 	bra L_00056e
 	nop
 
-! --- resetWatchdog?  0x572-0x586  [ghidra-hand-xmap] ---
-resetWatchdog_:
+! --- wdt_init  0x572-0x586  [ghidra-hand-xmap] ---
+wdt_init:
 L_000572:
 	mov.w L_000596,r3
 	mov.w L_000598,r2
@@ -2991,8 +2991,8 @@ L_00137c:
 L_00137e:
 	mov.b r0,@(0,r0)
 
-! --- resetWatchdog?  0x1380-0x1394  [ghidra-hand-xmap] ---
-resetWatchdog__001380:
+! --- wdt_disable  0x1380-0x1394  [ghidra-hand-xmap] ---
+wdt_disable:
 	mov.w L_00144e,r3
 	mov.w L_001450,r2
 	mov.w r3,@r2
@@ -3562,8 +3562,8 @@ L_00171c:
 	.word 0xffff
 	mov.l L_001ae8,r3
 
-! --- handleException?  0x1720-0x174E  [ghidra-hand-xmap] ---
-handleException_:
+! --- diag_reset_session_state  0x1720-0x174E  [ghidra-hand-xmap] ---
+diag_reset_session_state:
 L_001720:
 	mov.l L_001834,r7
 	mov #0,r5
@@ -5032,13 +5032,13 @@ L_002060:
 	rts
 	ldc r5,sr
 
-! --- fpu_nop_stub  0x2064-0x2068  [ida-ai] ---
-fpu_nop_stub:
+! --- loadStatusRegister_ADDR  0x2064-0x2068  [ida-ai] ---
+loadStatusRegister_ADDR:
 	rts
 	ldc r4,sr
 
-! --- fpu_multiply_accumulate  0x2068-0x2096  [ida-ai] ---
-fpu_multiply_accumulate:
+! --- 2DLookup  0x2068-0x2096  [ida-ai] ---
+_2DLookup:
 	sts.l pr,@-r15
 	mov.w @(0,r4),r0
 L_00206c:
@@ -5409,8 +5409,8 @@ L_002300:
 	.word 0x0000
 	add #-1,r15
 
-! --- fpu_compare_float  0x2304-0x2316  [ida-ai] ---
-fpu_compare_float:
+! --- addS32Saturate  0x2304-0x2316  [ida-ai] ---
+addS32Saturate:
 	addv r4,r5
 	bf/s L_002312
 	mov r5,r0
@@ -5426,8 +5426,8 @@ L_002318:
 	add #-1,r15
 	.word 0xffff
 
-! --- multiply32Bit??  0x231C-0x238E  [ghidra-hand-xmap] ---
-multiply32Bit__:
+! --- mul32_saturated  0x231C-0x238E  [ghidra-hand-xmap] ---
+mul32_saturated:
 	sts mach,r1
 	sts macl,r2
 	dmuls.l r4,r5
@@ -5499,8 +5499,8 @@ L_002394:
 	rts
 	nop
 
-! --- mul16_unsigned  0x239C-0x23B0  [ida-ai] ---
-mul16_unsigned:
+! --- delay_loop_n8  0x239C-0x23B0  [ida-ai] ---
+delay_loop_n8:
 	mov #0,r5
 	shll2 r4
 	shll r4
@@ -5514,8 +5514,8 @@ L_0023ac:
 	rts
 	nop
 
-! --- fpu_abs_float  0x23B0-0x23D8  [ida-ai] ---
-fpu_abs_float:
+! --- firstOrderFilter  0x23B0-0x23D8  [ida-ai] ---
+firstOrderFilter:
 	flds fr5,fpul
 	mov.l L_0023d8,r4
 	sts fpul,r0
@@ -5595,8 +5595,8 @@ L_00241a:
 	fmov fr7,fr0
 	.word 0xffff
 
-! --- encode??  0x2420-0x2430  [ghidra-hand-xmap] ---
-encode__:
+! --- complement_shift_u8  0x2420-0x2430  [ghidra-hand-xmap] ---
+complement_shift_u8:
 	extu.b r4,r3
 	shll8 r3
 	not r4,r2
@@ -9277,8 +9277,8 @@ L_003c7c:
 	.word 0x0000
 	add r5,r7
 
-! --- handleHUDIException??  0x3C80-0x3D42  [ghidra-hand-xmap] ---
-handleHUDIException__:
+! --- task_priority_scheduler  0x3C80-0x3D42  [ghidra-hand-xmap] ---
+task_priority_scheduler:
 	mov.l L_003cb0,r5
 	ldc r5,sr
 	mov.l @(16,r4),r3
@@ -9408,8 +9408,8 @@ L_003d44:
 	mov #-33,r15
 	bsr L_003c58
 
-! --- taskEndRoutine?  0x3D58-0x3D94  [ghidra-hand-xmap] ---
-taskEndRoutine_:
+! --- task_completion_handler  0x3D58-0x3D94  [ghidra-hand-xmap] ---
+task_completion_handler:
 	sts.l pr,@-r15
 	mov.l L_003d98,r14
 	mov.l @(20,r14),r13
@@ -10010,8 +10010,8 @@ L_004140:
 	.word 0x0000
 	mov.l @(r0,r4),r4
 
-! --- engineSomethingConditonCheckAndSet?  0x4144-0x4202  [ghidra-hand-xmap] ---
-engineSomethingConditonCheckAndSet_:
+! --- mod32_signed  0x4144-0x4202  [ghidra-hand-xmap] ---
+mod32_signed:
 	tst r0,r0
 	mov.l r2,@-r15
 	bt L_0041f6
@@ -12226,8 +12226,8 @@ L_005028:
 	rts
 	nop
 
-! --- writeWatchdog_disable?  0x502C-0x503A  [ghidra-hand-xmap] ---
-writeWatchdog_disable_:
+! --- wdt_disable_and_set_timer  0x502C-0x503A  [ghidra-hand-xmap] ---
+wdt_disable_and_set_timer:
 L_00502c:
 	mov.w L_005156,r1
 	mov.w L_005158,r0
@@ -15852,8 +15852,8 @@ L_006764:
 	.word 0x0001
 	mov.l r14,@(24,r14)
 
-! --- getVehicleStatusInputs?  0x6768-0x67BA  [ghidra-hand-xmap] ---
-getVehicleStatusInputs_:
+! --- atu2_capture_snapshot_init  0x6768-0x67BA  [ghidra-hand-xmap] ---
+atu2_capture_snapshot_init:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 	mov.w L_00686e,r2
@@ -16720,8 +16720,8 @@ L_006cfc:
 	rts
 	nop
 
-! --- readADCs_coolantTempInHere??  0x6D00-0x6D72  [ghidra-hand-xmap] ---
-readADCs_coolantTempInHere__:
+! --- atu2_read_captures_bank2  0x6D00-0x6D72  [ghidra-hand-xmap] ---
+atu2_read_captures_bank2:
 L_006d00:
 	mov.l L_006d9c,r2
 	mov.b @(2,r2),r0
@@ -17325,8 +17325,8 @@ atu_fpu_control_wrapper:
 	rts
 	nop
 
-! --- getFromGPIO?  0x70D0-0x717A  [ghidra-hand-xmap] ---
-getFromGPIO_:
+! --- adc_read_channel  0x70D0-0x717A  [ghidra-hand-xmap] ---
+adc_read_channel:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -17742,8 +17742,8 @@ sensor_latch_ch1:
 L_00735a:
 	mov.w r2,@r1
 
-! --- readECMVoltage??  0x735C-0x739E  [ghidra-hand-xmap] ---
-readECMVoltage__:
+! --- sensor_calc_freq_ch1  0x735C-0x739E  [ghidra-hand-xmap] ---
+sensor_calc_freq_ch1:
 	sts.l pr,@-r15
 	add #-4,r15
 	mov.l L_0073a0,r3
@@ -18058,8 +18058,8 @@ L_007534:
 	rts
 	nop
 
-! --- fuelingInit??  0x753C-0x758C  [ghidra-hand-xmap] ---
-fuelingInit__:
+! --- crank_subsystem_init  0x753C-0x758C  [ghidra-hand-xmap] ---
+crank_subsystem_init:
 	mov.l r14,@-r15
 L_00753e:
 	sts.l pr,@-r15
@@ -19181,8 +19181,8 @@ L_007c2a:
 	rts
 	mov.b r4,@r3
 
-! --- crankSensorInit?  0x7C30-0x7C54  [ghidra-hand-xmap] ---
-crankSensorInit_:
+! --- crank_timing_vars_clear  0x7C30-0x7C54  [ghidra-hand-xmap] ---
+crank_timing_vars_clear:
 L_007c30:
 	mov.l L_007c84,r1
 	mov #0,r2
@@ -20785,8 +20785,8 @@ L_00860e:
 	rts
 	mov.l @r15+,r14
 
-! --- putFuelingStuffInArray?  0x861C-0x86E4  [ghidra-hand-xmap] ---
-putFuelingStuffInArray_:
+! --- ign_channel_data_access  0x861C-0x86E4  [ghidra-hand-xmap] ---
+ign_channel_data_access:
 L_00861c:
 	mov.l r14,@-r15
 	mov #19,r0
@@ -25298,8 +25298,8 @@ L_00a432:
 	rts
 	nop
 
-! --- getRotorNumberForControl?  0xA436-0xA46C  [ghidra-hand-xmap] ---
-getRotorNumberForControl_:
+! --- can_msg_buffer_read_next  0xA436-0xA46C  [ghidra-hand-xmap] ---
+can_msg_buffer_read_next:
 	mov r4,r7
 	mov.l L_00a470,r6
 	mov r4,r3
@@ -26337,8 +26337,8 @@ L_00aab2:
 	rts
 	mov.l @r15+,r14
 
-! --- apvHardwareOutputRelated?  0xAB06-0xAC60  [ghidra-hand-xmap] ---
-apvHardwareOutputRelated_:
+! --- task_scheduler  0xAB06-0xAC60  [ghidra-hand-xmap] ---
+task_scheduler:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -30090,8 +30090,8 @@ L_00c2dc:
 	jmp @r2
 	lds.l @r15+,pr
 
-! --- enableDisableCruiseControl??  0xC2E6-0xC31C  [ghidra-hand-xmap] ---
-enableDisableCruiseControl__:
+! --- task_msg_dispatch_conditional  0xC2E6-0xC31C  [ghidra-hand-xmap] ---
+task_msg_dispatch_conditional:
 	sts.l pr,@-r15
 	mov.l L_00c384,r3
 	add #-4,r15
@@ -32372,8 +32372,8 @@ L_00d13a:
 	rts
 	mov r4,r0
 
-! --- can_clear_tx_acknowledge  0xD144-0xD164  [ida-ai] ---
-can_clear_tx_acknowledge:
+! --- baro_sensor_value  0xD144-0xD164  [ida-ai] ---
+baro_sensor_value:
 	extu.b r4,r4
 L_00d146:
 	tst r4,r4
@@ -32937,8 +32937,8 @@ L_00d4b2:
 	bra L_00d4b2
 	nop
 
-! --- main??  0xD4B6-0xD4FA  [ghidra-hand-xmap] ---
-main__:
+! --- boot_rom_validation_controller  0xD4B6-0xD4FA  [ghidra-hand-xmap] ---
+boot_rom_validation_controller:
 	mov.l r14,@-r15
 L_00d4b8:
 	sts.l pr,@-r15
@@ -35945,8 +35945,8 @@ L_00e722:
 	rts
 	nop
 
-! --- injectionTimingMaybe?  0xE726-0xE756  [ghidra-hand-xmap] ---
-injectionTimingMaybe_:
+! --- multi_channel_fpu_accumulate  0xE726-0xE756  [ghidra-hand-xmap] ---
+multi_channel_fpu_accumulate:
 L_00e726:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
@@ -39693,8 +39693,8 @@ L_00fe08:
 	rts
 	mov.l @r15+,r14
 
-! --- setFuelCutDriver?  0xFE24-0xFF76  [ghidra-hand-xmap] ---
-setFuelCutDriver_:
+! --- injection_timing_filter_mask  0xFE24-0xFF76  [ghidra-hand-xmap] ---
+injection_timing_filter_mask:
 L_00fe24:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
@@ -42699,8 +42699,8 @@ L_011162:
 	rts
 	mov r4,r0
 
-! --- getEngineCrankingStatusEnum??  0x11166-0x1117A  [ghidra-hand-xmap] ---
-getEngineCrankingStatusEnum__:
+! --- calc_traction_control_mode  0x11166-0x1117A  [ghidra-hand-xmap] ---
+calc_traction_control_mode:
 	mov.w L_01123c,r2
 	mov.b @r2,r3
 	tst r3,r3
@@ -42714,8 +42714,8 @@ L_011176:
 	rts
 	mov r4,r0
 
-! --- getEngineCrankingStatus?  0x1117A-0x11198  [ghidra-hand-xmap] ---
-getEngineCrankingStatus_:
+! --- init_rotor_status_flags  0x1117A-0x11198  [ghidra-hand-xmap] ---
+init_rotor_status_flags:
 	mov.l L_011248,r5
 	mov r5,r4
 	mov r5,r6
@@ -42736,8 +42736,8 @@ L_011194:
 L_011196:
 	nop
 
-! --- setTimingArrayValuesForOutput?  0x11198-0x11206  [ghidra-hand-xmap] ---
-setTimingArrayValuesForOutput_:
+! --- calc_sensor_pressure_value  0x11198-0x11206  [ghidra-hand-xmap] ---
+calc_sensor_pressure_value:
 	mov.b @r4,r0
 	cmp/eq #0,r0
 	bt/s L_0111aa
@@ -44341,8 +44341,8 @@ L_011b68:
 L_011b6e:
 	lds.l @r15+,pr
 
-! --- cruiseControl?  0x11B70-0x11BC0  [ghidra-hand-xmap] ---
-cruiseControl_:
+! --- calc_knock_retard_filter  0x11B70-0x11BC0  [ghidra-hand-xmap] ---
+calc_knock_retard_filter:
 	sts.l pr,@-r15
 	mov.l L_011d30,r3
 	jsr @r3
@@ -49392,8 +49392,8 @@ L_0139fa:
 	jmp @r3
 	nop
 
-! --- getKnockControlAllowed??  0x13A0E-0x13A5E  [ghidra-hand-xmap] ---
-getKnockControlAllowed__:
+! --- calc_ignition_advance_modifier  0x13A0E-0x13A5E  [ghidra-hand-xmap] ---
+calc_ignition_advance_modifier:
 	mov.w L_013ab0,r3
 	mov.l L_013acc,r4
 	mov.l L_013ad0,r1
@@ -49438,8 +49438,8 @@ L_013a5a:
 	rts
 	nop
 
-! --- getKnockSensorFaultedStatus?  0x13A5E-0x13A86  [ghidra-hand-xmap] ---
-getKnockSensorFaultedStatus_:
+! --- calc_rotor_sync_base_A  0x13A5E-0x13A86  [ghidra-hand-xmap] ---
+calc_rotor_sync_base_A:
 L_013a5e:
 	mov.l L_013ae4,r4
 	mov.w L_013ab8,r3
@@ -57884,8 +57884,8 @@ L_016cb8:
 L_016cba:
 	mov.w L_016d06,r12
 
-! --- ImmoRelatedFaultSomething?  0x16CBC-0x16D04  [ghidra-hand-xmap] ---
-ImmoRelatedFaultSomething_:
+! --- init_string_buffer_copy  0x16CBC-0x16D04  [ghidra-hand-xmap] ---
+init_string_buffer_copy:
 	mov.w L_016dde,r4
 L_016cbe:
 	mov.l L_016dec,r2
@@ -62938,8 +62938,8 @@ L_018c04:
 	.word 0xffff
 	bra L_017f04
 
-! --- leading_edge_spark_calc  0x18C08-0x18C5C  [ida-ai] ---
-leading_edge_spark_calc:
+! --- omp_diag_rotor_18C08  0x18C08-0x18C5C  [ida-ai] ---
+omp_diag_rotor_18C08:
 L_018c08:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
@@ -62999,8 +62999,8 @@ L_018c5c:
 	rts
 	mov.b r2,@r3
 
-! --- trailing_edge_spark_calc  0x18C6C-0x18CA6  [ida-ai] ---
-trailing_edge_spark_calc:
+! --- omp_wave_reload_18C6C  0x18C6C-0x18CA6  [ida-ai] ---
+omp_wave_reload_18C6C:
 L_018c6c:
 	mov.l r14,@-r15
 	mov #7,r5
@@ -63381,8 +63381,8 @@ L_018e7e:
 	rts
 	mov.l @r15+,r14
 
-! --- secondary_spark_limiter  0x18ECC-0x18F98  [ida-ai] ---
-secondary_spark_limiter:
+! --- omp_enable_output_18ECC  0x18ECC-0x18F98  [ida-ai] ---
+omp_enable_output_18ECC:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -63935,8 +63935,8 @@ L_01921c:
 	.word 0x0000
 	mov.b r15,@-r3
 
-! --- dscRelatedTiming?  0x19220-0x1940E  [ghidra-hand-xmap] ---
-dscRelatedTiming_:
+! --- air_temp_comp_multivar_calc  0x19220-0x1940E  [ghidra-hand-xmap] ---
+air_temp_comp_multivar_calc:
 	mov.l r14,@-r15
 	mov #12,r0
 	mov.w L_019344,r2
@@ -65124,8 +65124,8 @@ L_019980:
 	.word 0x0000
 	mov.b r6,@-r0
 
-! --- getConditonalsFuelCutRelated?  0x19984-0x19AD8  [ghidra-hand-xmap] ---
-getConditonalsFuelCutRelated_:
+! --- knock_sensor_voltage_limit_check  0x19984-0x19AD8  [ghidra-hand-xmap] ---
+knock_sensor_voltage_limit_check:
 	mov.l r14,@-r15
 L_019986:
 	mov #1,r5
@@ -66114,8 +66114,8 @@ L_019f92:
 	rts
 	fmov.s fr3,@r7
 
-! --- decrementTempForCatModel??  0x19F96-0x19FC0  [ghidra-hand-xmap] ---
-decrementTempForCatModel__:
+! --- pulse_width_modulator_error_handler  0x19F96-0x19FC0  [ghidra-hand-xmap] ---
+pulse_width_modulator_error_handler:
 	sts.l pr,@-r15
 	mov.w L_019fec,r1
 	mov.b @r1,r3
@@ -68583,8 +68583,8 @@ L_01aebe:
 	jmp @r3
 	lds.l @r15+,pr
 
-! --- aux_fan_control_task  0x1AED2-0x1AF02  [ida-ai] ---
-aux_fan_control_task:
+! --- pressure_delta_monitor_1AED2  0x1AED2-0x1AF02  [ida-ai] ---
+pressure_delta_monitor_1AED2:
 	sts.l pr,@-r15
 	mov.l L_01b020,r3
 	add #-4,r15
@@ -78843,8 +78843,8 @@ L_01edac:
 	.word 0x0000
 	mov.b r14,@-r3
 
-! --- calculateEngineControlState???  0x1EDB0-0x1EFAE  [ghidra-hand-xmap] ---
-calculateEngineControlState___:
+! --- multi_sensor_fault_check_1EDB0  0x1EDB0-0x1EFAE  [ghidra-hand-xmap] ---
+multi_sensor_fault_check_1EDB0:
 	mov.l r14,@-r15
 	mov #0,r5
 	mov.w L_01ee8a,r3
@@ -79296,8 +79296,8 @@ L_01f074:
 	bsrf r0
 	mov #-22,r15
 
-! --- fuelTrimRelated?  0x1F078-0x1F374  [ghidra-hand-xmap] ---
-fuelTrimRelated_:
+! --- sensor_validation_monitor_1F078  0x1F078-0x1F374  [ghidra-hand-xmap] ---
+sensor_validation_monitor_1F078:
 	mov.l r14,@-r15
 	mov #4,r0
 	mov.w L_01f146,r3
@@ -83806,8 +83806,8 @@ L_020c88:
 L_020c8a:
 	bsr L_02111c
 
-! --- fuelingStateStuff??  0x20C8C-0x20E46  [ghidra-hand-xmap] ---
-fuelingStateStuff__:
+! --- apex_seal_detonation_control_20C8C  0x20C8C-0x20E46  [ghidra-hand-xmap] ---
+apex_seal_detonation_control_20C8C:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	sts.l pr,@-r15
@@ -84382,8 +84382,8 @@ L_020ffc:
 	rts
 	mov.l @r15+,r14
 
-! --- leading_trailing_spark_control_2100A  0x2100A-0x2116A  [ida-ai] ---
-leading_trailing_spark_control_2100A:
+! --- rotor_sync_gate_state_ctrl_2100A  0x2100A-0x2116A  [ida-ai] ---
+rotor_sync_gate_state_ctrl_2100A:
 	mov.l r14,@-r15
 L_02100c:
 	mov.l r13,@-r15
@@ -84631,8 +84631,8 @@ L_02118c:
 	mul.l r0,r0
 	mov.l r7,@(32,r12)
 
-! --- CLChangeoverEnrichment??  0x21190-0x211BA  [ghidra-hand-xmap] ---
-CLChangeoverEnrichment__:
+! --- manifold_pressure_calc_21190  0x21190-0x211BA  [ghidra-hand-xmap] ---
+manifold_pressure_calc_21190:
 	sts.l pr,@-r15
 	mov.l L_0211c0,r2
 	mov.w @r2,r3
@@ -87982,8 +87982,8 @@ L_0225c4:
 	.word 0x0000
 	div1 r3,r9
 
-! --- ssvControl??  0x225C8-0x226C2  [ghidra-hand-xmap] ---
-ssvControl__:
+! --- ssvControl  0x225C8-0x226C2  [ghidra-hand-xmap] ---
+ssvControl:
 	mov.l r14,@-r15
 	mov #1,r6
 	mov.l L_0226d8,r4
@@ -88275,8 +88275,8 @@ L_0227a2:
 	rts
 	fmov.s @r15+,fr15
 
-! --- throttleMapDetermineBools?  0x227AC-0x22924  [ghidra-hand-xmap] ---
-throttleMapDetermineBools_:
+! --- transmission_torque_calc_227AC  0x227AC-0x22924  [ghidra-hand-xmap] ---
+transmission_torque_calc_227AC:
 	mov.l r14,@-r15
 L_0227ae:
 	mov #0,r4
@@ -97143,8 +97143,8 @@ L_025d9e:
 	rts
 	mov.l @r15+,r14
 
-! --- calculatePredictedEngineSpeed?  0x25DAA-0x25DDA  [ghidra-hand-xmap] ---
-calculatePredictedEngineSpeed_:
+! --- feedback_control_filter_25DAA  0x25DAA-0x25DDA  [ghidra-hand-xmap] ---
+feedback_control_filter_25DAA:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 	mov.w L_025dda,r14
@@ -98164,8 +98164,8 @@ L_0263c0:
 	rts
 	nop
 
-! --- setImmoLight??  0x263C8-0x2644A  [ghidra-hand-xmap] ---
-setImmoLight__:
+! --- port_write_bit_control_263C8  0x263C8-0x2644A  [ghidra-hand-xmap] ---
+port_write_bit_control_263C8:
 	mov.l r14,@-r15
 	extu.b r4,r0
 	mov.l r13,@-r15
@@ -107398,8 +107398,8 @@ L_029bb4:
 	.word 0x0000
 	mov.b r13,@r4
 
-! --- canRX_216_stubs?  0x29BB8-0x29BD8  [ghidra-hand-xmap] ---
-canRX_216_stubs_:
+! --- fpu_init_constant_29BB8  0x29BB8-0x29BD8  [ghidra-hand-xmap] ---
+fpu_init_constant_29BB8:
 	sts.l pr,@-r15
 	bsr L_029e50
 	nop
@@ -110978,8 +110978,8 @@ L_02b0d2:
 	jmp @r3
 	lds.l @r15+,pr
 
-! --- updateDSCRelatedCANStuff??  0x2B0D6-0x2B136  [ghidra-hand-xmap] ---
-updateDSCRelatedCANStuff__:
+! --- priority_task_dispatch_2B0D6  0x2B0D6-0x2B136  [ghidra-hand-xmap] ---
+priority_task_dispatch_2B0D6:
 L_02b0d6:
 	sts.l pr,@-r15
 	mov.l L_02b270,r3
@@ -113639,8 +113639,8 @@ counter_init_threshold_2C12C:
 	rts
 	mov.w r4,@r1
 
-! --- can212RXSignalValidity??  0x2C13C-0x2C1A4  [ghidra-hand-xmap] ---
-can212RXSignalValidity__:
+! --- counter_decrement_check_2C13C  0x2C13C-0x2C1A4  [ghidra-hand-xmap] ---
+counter_decrement_check_2C13C:
 	mov.l L_02c1d0,r0
 	mov.w L_02c1a6,r7
 	mov.l L_02c1c4,r5
@@ -114989,8 +114989,8 @@ L_02c920:
 	.word 0x0000
 	mov.b r6,@r4
 
-! --- writeOilPressureLight??  0x2C924-0x2C986  [ghidra-hand-xmap] ---
-writeOilPressureLight__:
+! --- adc_sensor_accum_saturate_2C924  0x2C924-0x2C986  [ghidra-hand-xmap] ---
+adc_sensor_accum_saturate_2C924:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -115073,8 +115073,8 @@ ctrl_flag_set_2C99C:
 	rts
 	mov.b r3,@r2
 
-! --- writeOilPressureGauge??  0x2C9A4-0x2CA2C  [ghidra-hand-xmap] ---
-writeOilPressureGauge__:
+! --- update_pid_integral_term_2C9A4  0x2C9A4-0x2CA2C  [ghidra-hand-xmap] ---
+update_pid_integral_term_2C9A4:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -116909,8 +116909,8 @@ L_02d4dc:
 	.word 0x0000
 	.word 0xffff
 
-! --- dscDerateInit?  0x2D4E0-0x2D4F8  [ghidra-hand-xmap] ---
-dscDerateInit_:
+! --- state_flags_clear_2D4E0  0x2D4E0-0x2D4F8  [ghidra-hand-xmap] ---
+state_flags_clear_2D4E0:
 	mov.w L_02d5be,r3
 	mov #0,r4
 	mov.w L_02d5c0,r2
@@ -117677,8 +117677,8 @@ L_02d98c:
 	rts
 	mov.l @r15+,r14
 
-! --- arbitrateDSCFuelCut?  0x2D994-0x2D9CE  [ghidra-hand-xmap] ---
-arbitrateDSCFuelCut_:
+! --- fault_flag_dispatch_2D994  0x2D994-0x2D9CE  [ghidra-hand-xmap] ---
+fault_flag_dispatch_2D994:
 L_02d994:
 	mov.l r14,@-r15
 	extu.b r4,r6
@@ -119372,8 +119372,8 @@ L_02e3a8:
 	mul.l r0,r0
 	negc r6,r11
 
-! --- getCruiseControlAllowedBool??  0x2E3AC-0x2E412  [ghidra-hand-xmap] ---
-getCruiseControlAllowedBool__:
+! --- brake_control_enable_2E3AC  0x2E3AC-0x2E412  [ghidra-hand-xmap] ---
+brake_control_enable_2E3AC:
 	mov.w L_02e450,r4
 	mov.w L_02e452,r3
 	mov.b @r3,r0
@@ -122524,8 +122524,8 @@ L_02f724:
 L_02f726:
 	or.b #168,@(r0,gbr)
 
-! --- calculateACClutchOn??  0x2F728-0x2F7F4  [ghidra-hand-xmap] ---
-calculateACClutchOn__:
+! --- dual_threshold_compare_handler_2F728  0x2F728-0x2F7F4  [ghidra-hand-xmap] ---
+dual_threshold_compare_handler_2F728:
 	mov.l r14,@-r15
 	mov #1,r4
 	mov.w L_02f7f4,r3
@@ -125514,8 +125514,8 @@ L_0309a8:
 	mul.l r0,r0
 	add #-80,r9
 
-! --- fuelingAddOBDControlMode?  0x309AC-0x30A50  [ghidra-hand-xmap] ---
-fuelingAddOBDControlMode_:
+! --- conditional_fpu_threshold_increment_309AC  0x309AC-0x30A50  [ghidra-hand-xmap] ---
+conditional_fpu_threshold_increment_309AC:
 	mov.l r14,@-r15
 	mov #1,r6
 	mov.l L_030a68,r4
@@ -126680,8 +126680,8 @@ L_031084:
 	.word 0x0000
 	mov.w L_03115a,r6
 
-! --- calcInjectorCrankingTime??  0x31088-0x310D4  [ghidra-hand-xmap] ---
-calcInjectorCrankingTime__:
+! --- fpu_control_calc_31088  0x31088-0x310D4  [ghidra-hand-xmap] ---
+fpu_control_calc_31088:
 	mov.w L_031174,r1
 	mov.b @r1,r3
 	tst r3,r3
@@ -126747,8 +126747,8 @@ L_0310f6:
 	rts
 	nop
 
-! --- getDiagnosticFuelPulseCranking?  0x310FC-0x31210  [ghidra-hand-xmap] ---
-getDiagnosticFuelPulseCranking_:
+! --- coil_output_timing_calc_310FC  0x310FC-0x31210  [ghidra-hand-xmap] ---
+coil_output_timing_calc_310FC:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -126931,8 +126931,8 @@ L_03120c:
 L_03120e:
 	mov.l @r15+,r14
 
-! --- throttleDownDeFloodCheck?  0x31210-0x3126E  [ghidra-hand-xmap] ---
-throttleDownDeFloodCheck_:
+! --- conditional_fpu_calc_31210  0x31210-0x3126E  [ghidra-hand-xmap] ---
+conditional_fpu_calc_31210:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 L_031214:
@@ -127401,8 +127401,8 @@ L_0314e0:
 	rts
 	mov.l @r15+,r14
 
-! --- diagCrankingInjectorPulseAdder?  0x314E8-0x3151A  [ghidra-hand-xmap] ---
-diagCrankingInjectorPulseAdder_:
+! --- conditional_fpu_addition_314E8  0x314E8-0x3151A  [ghidra-hand-xmap] ---
+conditional_fpu_addition_314E8:
 	mov.w L_031522,r1
 	mov.b @r1,r2
 	tst r2,r2
@@ -130126,8 +130126,8 @@ L_032570:
 	.word 0x0000
 	mov.b r15,@-r3
 
-! --- turnOnSecondaryAir??  0x32574-0x325A4  [ghidra-hand-xmap] ---
-turnOnSecondaryAir__:
+! --- port_control_bitfield_toggle_32574  0x32574-0x325A4  [ghidra-hand-xmap] ---
+port_control_bitfield_toggle_32574:
 	sts.l pr,@-r15
 	add #-8,r15
 	mov.w L_0325a4,r3
@@ -136193,8 +136193,8 @@ L_034a74:
 	rts
 	mov.l @r15+,r14
 
-! --- detectDriverIntentKnockControl?  0x34A80-0x34AD8  [ghidra-hand-xmap] ---
-detectDriverIntentKnockControl_:
+! --- saturated_counter_multi_34A80  0x34A80-0x34AD8  [ghidra-hand-xmap] ---
+saturated_counter_multi_34A80:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 	mov.l L_034ae8,r5
@@ -138003,8 +138003,8 @@ L_035532:
 	rts
 	nop
 
-! --- resetStartupEnrich??  0x35538-0x3554E  [ghidra-hand-xmap] ---
-resetStartupEnrich__:
+! --- conditional_fpu_zero_load_35538  0x35538-0x3554E  [ghidra-hand-xmap] ---
+conditional_fpu_zero_load_35538:
 L_035538:
 	mov.l L_03558c,r2
 	mov.b @r2,r0
@@ -139091,8 +139091,8 @@ L_035bb8:
 	.word 0x0000
 	div1 r3,r9
 
-! --- vfadControl?  0x35BBC-0x35C40  [ghidra-hand-xmap] ---
-vfadControl_:
+! --- vfad_control_35BBC  0x35BBC-0x35C40  [ghidra-hand-xmap] ---
+vfad_control_35BBC:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -140607,8 +140607,8 @@ L_03653c:
 	rts
 	mov.l @r15+,r14
 
-! --- ImmoGoodStateSet?  0x36544-0x3657C  [ghidra-hand-xmap] ---
-ImmoGoodStateSet_:
+! --- port_control_setup_timer_36544  0x36544-0x3657C  [ghidra-hand-xmap] ---
+port_control_setup_timer_36544:
 L_036544:
 	sts.l pr,@-r15
 	mov.l L_0365a8,r3
@@ -140689,8 +140689,8 @@ L_0365b4:
 	.word 0xffff
 	mov.l r0,@(616,gbr)
 
-! --- ImmoBadStateSet?  0x365B8-0x365D6  [ghidra-hand-xmap] ---
-ImmoBadStateSet_:
+! --- port_control_reset_timer_365B8  0x365B8-0x365D6  [ghidra-hand-xmap] ---
+port_control_reset_timer_365B8:
 L_0365b8:
 	sts.l pr,@-r15
 	mov.l L_03666c,r3
@@ -140708,8 +140708,8 @@ L_0365b8:
 	rts
 	mov.b r2,@r1
 
-! --- immo_related??  0x365D6-0x3664E  [ghidra-hand-xmap] ---
-immo_related__:
+! --- lookup_table_bitwise_encode_365D6  0x365D6-0x3664E  [ghidra-hand-xmap] ---
+lookup_table_bitwise_encode_365D6:
 L_0365d6:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
@@ -141291,8 +141291,8 @@ L_0369b0:
 	rts
 	mov.b r3,@r1
 
-! --- message_queue_state_dispatcher_369B8  0x369B8-0x36ABC  [ida-ai] ---
-message_queue_state_dispatcher_369B8:
+! --- setImmoCANTXData_369B8  0x369B8-0x36ABC  [ida-ai] ---
+setImmoCANTXData_369B8:
 L_0369b8:
 	mov.l L_036a40,r5
 	mov #0,r6
@@ -141615,8 +141615,8 @@ L_036bcc:
 	rts
 	mov.l @r15+,r14
 
-! --- loadDatafromE2intoRAM?  0x36BD6-0x36BE6  [ghidra-hand-xmap] ---
-loadDatafromE2intoRAM_:
+! --- wrapper_init_function_36BD6  0x36BD6-0x36BE6  [ghidra-hand-xmap] ---
+wrapper_init_function_36BD6:
 	mov #32,r5
 	mov.l L_036c18,r3
 	sts.l pr,@-r15
@@ -142267,8 +142267,8 @@ L_036ffc:
 	.word 0xffff
 	mov.l r0,@(968,gbr)
 
-! --- state_machine_conditional_dispatch_37000  0x37000-0x37120  [ida-ai] ---
-state_machine_conditional_dispatch_37000:
+! --- eeprom_commit_dispatcher_37000  0x37000-0x37120  [ida-ai] ---
+eeprom_commit_dispatcher_37000:
 L_037000:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
@@ -142553,8 +142553,8 @@ L_0371e0:
 	.word 0xffff
 	mov.l r0,@(864,gbr)
 
-! --- checkImmoStatus?  0x371E4-0x372EA  [ghidra-hand-xmap] ---
-checkImmoStatus_:
+! --- configuration_register_setup_371E4  0x371E4-0x372EA  [ghidra-hand-xmap] ---
+configuration_register_setup_371E4:
 	mov.l r14,@-r15
 	mov.l r12,@-r15
 	mov.l r11,@-r15
@@ -147046,8 +147046,8 @@ L_038f54:
 	.word 0x0000
 	div1 r3,r9
 
-! --- E2IntoRAM?  0x38F58-0x39124  [ghidra-hand-xmap] ---
-E2IntoRAM_:
+! --- bulk_data_write_with_bounds_38F58  0x38F58-0x39124  [ghidra-hand-xmap] ---
+bulk_data_write_with_bounds_38F58:
 	mov.l r14,@-r15
 	mov r5,r0
 L_038f5c:
@@ -162230,8 +162230,8 @@ L_03eef0:
 	rts
 	mov.l @r15+,r14
 
-! --- validateAddressCopy_8bit_ADDRESS??  0x3EEFE-0x3EF3A  [ghidra-hand-xmap] ---
-validateAddressCopy_8bit_ADDRESS__:
+! --- accel_tps_comp_3EEFE  0x3EEFE-0x3EF3A  [ghidra-hand-xmap] ---
+accel_tps_comp_3EEFE:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 	add #-8,r15
@@ -162266,8 +162266,8 @@ L_03ef2a:
 	rts
 	mov.l @r15+,r14
 
-! --- validateAddressCopy_16bit_ADDRESS??  0x3EF3A-0x3EF76  [ghidra-hand-xmap] ---
-validateAddressCopy_16bit_ADDRESS__:
+! --- idle_target_calc_3EF3A  0x3EF3A-0x3EF76  [ghidra-hand-xmap] ---
+idle_target_calc_3EF3A:
 	mov.l r14,@-r15
 	sts.l pr,@-r15
 	add #-8,r15
@@ -162322,8 +162322,8 @@ L_03ef8c:
 	bsrf r0
 	fcmp/eq fr6,fr1
 
-! --- validateAddressCopy_32bit_ADDRESS??  0x3EF90-0x3EFEA  [ghidra-hand-xmap] ---
-validateAddressCopy_32bit_ADDRESS__:
+! --- vvt_control_3EF90  0x3EF90-0x3EFEA  [ghidra-hand-xmap] ---
+vvt_control_3EF90:
 	mov.l r14,@-r15
 	mov r4,r14
 	mov.l L_03f044,r3
@@ -162373,8 +162373,8 @@ L_03efd8:
 	rts
 	mov.l @r15+,r14
 
-! --- validateAddressCopy_float_ADDRESS??  0x3EFEA-0x3F044  [ghidra-hand-xmap] ---
-validateAddressCopy_float_ADDRESS__:
+! --- fuel_pump_control_3EFEA  0x3EFEA-0x3F044  [ghidra-hand-xmap] ---
+fuel_pump_control_3EFEA:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov r4,r14
@@ -180065,8 +180065,8 @@ L_045e60:
 	rts
 	mov.l @r15+,r14
 
-! --- obdFaultRelated?  0x45E78-0x45EDA  [ghidra-hand-xmap] ---
-obdFaultRelated_:
+! --- sensor_o2_heater_control_45E78  0x45E78-0x45EDA  [ghidra-hand-xmap] ---
+sensor_o2_heater_control_45E78:
 L_045e78:
 	mov.l r14,@-r15
 	mov #0,r6
@@ -186585,8 +186585,8 @@ L_0487d8:
 	mul.l r0,r0
 	mov.l r0,@(504,gbr)
 
-! --- wankel_leading_trailing_split_487DC  0x487DC-0x48C12  [ida-ai] ---
-wankel_leading_trailing_split_487DC:
+! --- split_selector_state_ctrl_487DC  0x487DC-0x48C12  [ida-ai] ---
+split_selector_state_ctrl_487DC:
 	mov.l r14,@-r15
 	mov #0,r14
 	mov.w L_0488ea,r4
@@ -187217,8 +187217,8 @@ L_048c06:
 	rts
 	mov.l @r15+,r14
 
-! --- rotor_sync_timing_48C12  0x48C12-0x48C42  [ida-ai] ---
-rotor_sync_timing_48C12:
+! --- split_selector_decoder_48C12  0x48C12-0x48C42  [ida-ai] ---
+split_selector_decoder_48C12:
 	mov.w L_048c6a,r7
 	mov.w L_048c6c,r6
 	mov.w L_048c68,r3
@@ -190226,8 +190226,8 @@ L_049ecc:
 	mul.l r0,r0
 	mov.w @(298,gbr),r0
 
-! --- math_min_max_49ED0  0x49ED0-0x49EF2  [ida-ai] ---
-math_min_max_49ED0:
+! --- flag_setter_49ED0  0x49ED0-0x49EF2  [ida-ai] ---
+flag_setter_49ED0:
 	mov.w L_049ef2,r6
 	mov.w L_049ef4,r5
 	mov.w L_049ef6,r3
@@ -190256,8 +190256,8 @@ L_049ef8:
 	.word 0x0100
 	.word 0xffff
 
-! --- getSpeedLimitCal?  0x49EFC-0x49FB8  [ghidra-hand-xmap] ---
-getSpeedLimitCal_:
+! --- getSpeedLimitCal  0x49EFC-0x49FB8  [ghidra-hand-xmap] ---
+getSpeedLimitCal:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	mov.l r12,@-r15
@@ -193467,8 +193467,8 @@ L_04b358:
 	xor #7,r0
 	.word 0xffff
 
-! --- canTimerInit??  0x4B35C-0x4B364  [ghidra-hand-xmap] ---
-canTimerInit__:
+! --- init_clocks_4B35C  0x4B35C-0x4B364  [ghidra-hand-xmap] ---
+init_clocks_4B35C:
 	mov.l L_04b460,r2
 	mov #1,r3
 	rts
@@ -205722,8 +205722,8 @@ L_04ff40:
 L_04ff4a:
 	mov.l @r15+,r14
 
-! --- filterEvapSomething?  0x4FF4C-0x4FFD6  [ghidra-hand-xmap] ---
-filterEvapSomething_:
+! --- crank_sync_0x4FF4C  0x4FF4C-0x4FFD6  [ghidra-hand-xmap] ---
+crank_sync_0x4FF4C:
 	sts.l pr,@-r15
 	mov.w L_04ff82,r2
 	mov.b @r2,r0
@@ -206387,8 +206387,8 @@ base_timing_lookup_0x50352:
 	rts
 	fmov.s fr3,@r3
 
-! --- initLTFTStuff?  0x5035C-0x5037C  [ghidra-hand-xmap] ---
-initLTFTStuff_:
+! --- octane_rating_check_0x5035C  0x5035C-0x5037C  [ghidra-hand-xmap] ---
+octane_rating_check_0x5035C:
 	mov.w L_050396,r1
 	mov.w @r1,r2
 	mov.l L_0503c0,r3
@@ -215896,8 +215896,8 @@ bitfield_toggle_0x53DCC:
 	rts
 	fmov.s fr3,@r2
 
-! --- IATTimerOperation??  0x53DD6-0x53E1E  [ghidra-hand-xmap] ---
-IATTimerOperation__:
+! --- bit_count_0x53DD6  0x53DD6-0x53E1E  [ghidra-hand-xmap] ---
+bit_count_0x53DD6:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	sts.l pr,@-r15
@@ -218573,8 +218573,8 @@ L_054e1c:
 	mov.l L_054f50,r1
 	.word 0xffff
 
-! --- getTireSizeChecksumthing?  0x54E20-0x54E62  [ghidra-hand-xmap] ---
-getTireSizeChecksumthing_:
+! --- signal_filter_0x54E20  0x54E20-0x54E62  [ghidra-hand-xmap] ---
+signal_filter_0x54E20:
 	sts.l pr,@-r15
 	mov #1,r6
 	mov.w L_054ede,r4
@@ -219399,8 +219399,8 @@ L_0552fa:
 	rts
 	mov r4,r0
 
-! --- updateRAM??  0x552FE-0x5530C  [ghidra-hand-xmap] ---
-updateRAM__:
+! --- converter_0x552FE  0x552FE-0x5530C  [ghidra-hand-xmap] ---
+converter_0x552FE:
 	mov.b @r5,r3
 	add #1,r3
 	mov.b r3,@r5
@@ -219459,8 +219459,8 @@ L_055342:
 	rts
 	mov r4,r0
 
-! --- udsResponseRelated??  0x55362-0x55386  [ghidra-hand-xmap] ---
-udsResponseRelated__:
+! --- transformer_0x55362  0x55362-0x55386  [ghidra-hand-xmap] ---
+transformer_0x55362:
 	extu.b r4,r4
 	mov.l L_055410,r2
 	mov #0,r3
@@ -222521,8 +222521,8 @@ L_0566e6:
 matrix_mult_0x566EA:
 	mov #0,r4
 
-! --- runSubfunction??  0x566EC-0x56720  [ghidra-hand-xmap] ---
-runSubfunction__:
+! --- matrix_inv_0x566EC  0x566EC-0x56720  [ghidra-hand-xmap] ---
+matrix_inv_0x566EC:
 L_0566ec:
 	sts.l pr,@-r15
 	add #-4,r15
@@ -222778,8 +222778,8 @@ svd_decomp_0x56866:
 	rts
 	mov.b @(r0,r1),r0
 
-! --- least_square_0x5687A  0x5687A-0x56892  [ida-ai] ---
-least_square_0x5687A:
+! --- sentinel_equality_check_5687A  0x5687A-0x56892  [ida-ai] ---
+sentinel_equality_check_5687A:
 L_05687a:
 	extu.b r4,r4
 	mov.l L_056900,r2
@@ -222965,8 +222965,8 @@ decision_tree_0x5698A:
 	rts
 	mov.b @(r0,r1),r0
 
-! --- random_forest_0x5699A  0x5699A-0x56AC0  [ida-ai] ---
-random_forest_0x5699A:
+! --- security_access  0x5699A-0x56AC0  [ida-ai] ---
+security_access:
 L_05699a:
 	mov r4,r0
 L_05699c:
@@ -226895,8 +226895,8 @@ L_0583e0:
 	mov.l r0,@(r0,r0)
 	xor.b #93,@(r0,gbr)
 
-! --- CAN_TableLookup_583E4  0x583E4-0x58448  [ghidra-hand-xmap] ---
-CAN_TableLookup_583E4:
+! --- memory_match_accumulate_583E4  0x583E4-0x58448  [ghidra-hand-xmap] ---
+memory_match_accumulate_583E4:
 L_0583e4:
 	mov.l r14,@-r15
 	mov #0,r6
@@ -231905,8 +231905,8 @@ L_05a2e0:
 	mov.l r0,@(r0,r0)
 	mov.l @(r0,r12),r7
 
-! --- calcBatteryRelatedFaults??  0x5A2E4-0x5A374  [ghidra-hand-xmap] ---
-calcBatteryRelatedFaults__:
+! --- air_quality_0x5A2E4  0x5A2E4-0x5A374  [ghidra-hand-xmap] ---
+air_quality_0x5A2E4:
 	mov.w L_05a3d2,r3
 	mov #0,r7
 	mov.w L_05a3d4,r1
@@ -232282,8 +232282,8 @@ L_05a52c:
 	rts
 	nop
 
-! --- idleEnumRealted???  0x5A530-0x5A7BC  [ghidra-hand-xmap] ---
-idleEnumRealted___:
+! --- pollen_filter_0x5A530  0x5A530-0x5A7BC  [ghidra-hand-xmap] ---
+pollen_filter_0x5A530:
 L_05a530:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
@@ -242809,8 +242809,8 @@ L_05e7e2:
 	rts
 	nop
 
-! --- setDiagMode85Bool?  0x5E7F0-0x5E824  [ghidra-hand-xmap] ---
-setDiagMode85Bool_:
+! --- interrupt_state_update_5E7F0  0x5E7F0-0x5E824  [ghidra-hand-xmap] ---
+interrupt_state_update_5E7F0:
 	sts.l pr,@-r15
 	add #-4,r15
 	mov.l L_05e89c,r3
@@ -247366,8 +247366,8 @@ L_060650:
 	.word 0x0001
 	cmp/str r12,r1
 
-! --- checkIfDeviceControl?  0x60654-0x60670  [ghidra-hand-xmap] ---
-checkIfDeviceControl_:
+! --- obd_status_flags_60654  0x60654-0x60670  [ghidra-hand-xmap] ---
+obd_status_flags_60654:
 	mov.l L_060674,r2
 	mov #0,r4
 	mov.w L_060670,r1
@@ -247585,8 +247585,8 @@ L_060770:
 	bra L_06085c
 	mov #0,r6
 
-! --- updateFaultStatusTHUNKNoR6?  0x60778-0x60786  [ghidra-hand-xmap] ---
-updateFaultStatusTHUNKNoR6_:
+! --- bit_value_extract_60778  0x60778-0x60786  [ghidra-hand-xmap] ---
+bit_value_extract_60778:
 	extu.w r6,r3
 	tst r3,r3
 	bf/s L_060782
@@ -248562,8 +248562,8 @@ L_060db0:
 	mov.l r0,@(r0,r0)
 	.word 0x07c0
 
-! --- setFaultEvalState?  0x60DB4-0x60DEE  [ghidra-hand-xmap] ---
-setFaultEvalState_:
+! --- dtc_data_read_60DB4  0x60DB4-0x60DEE  [ghidra-hand-xmap] ---
+dtc_data_read_60DB4:
 	mov.w L_060e9a,r3
 	mov #1,r5
 	mov.b @r3,r0
@@ -264047,8 +264047,8 @@ L_067438:
 	.word 0x0000
 	.word 0x44e0
 
-! --- getFaultStatus??  0x6743C-0x67482  [ghidra-hand-xmap] ---
-getFaultStatus__:
+! --- obd_service_handler_6743C  0x6743C-0x67482  [ghidra-hand-xmap] ---
+obd_service_handler_6743C:
 	mov.l r14,@-r15
 	mov.l r13,@-r15
 	sts.l pr,@-r15
@@ -267103,8 +267103,8 @@ L_068854:
 	.word 0x0000
 	.word 0xffff
 
-! --- pack_for_OBD_response?  0x68858-0x688B4  [ghidra-hand-xmap] ---
-pack_for_OBD_response_:
+! --- obd_service_handler_68858  0x68858-0x688B4  [ghidra-hand-xmap] ---
+obd_service_handler_68858:
 	mov.l r14,@-r15
 	extu.b r4,r14
 	mov.w L_068940,r3

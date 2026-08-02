@@ -24,7 +24,7 @@
  *   - sfr_write_a16c (0xA0DC): [0xFFFFA16C] = 0
  *   - setSR_PARAM(0x2054): SR |= (0xE0<<0)  (set interrupt mask bits)
  *   - setRegister_REG_BIT_VAL(0x4BBC): bit 8 of SFR 0xF74E set
- *   - fpu_nop_stub (0x2064)
+ *   - loadStatusRegister_ADDR (0x2064)
  *   - sfr_init_dma_channels (0x4CF8)
  *   - task_context_switch(0) — starts the RTOS (tail-jumps to init_main
  *     @0x3E10, see init_main.c) — never returns
@@ -165,7 +165,7 @@ void secondary_boot_main(void)
         fn(0xF74E, 8, 1);
     }
 
-    /* fpu_nop_stub (0x2064) */
+    /* loadStatusRegister_ADDR (0x2064) */
     {
         void_fn_word fn = (void_fn_word)(uintptr_t)0x2064;
         fn(_sp);

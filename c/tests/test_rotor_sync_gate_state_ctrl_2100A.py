@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""test_leading_trailing_spark_control_2100A.py
+"""test_rotor_sync_gate_state_ctrl_2100A.py
 
 Differential test for ROM 0x2100A (60E1D400.bin) — lift
-c/leading_trailing_spark_control_2100A.c.
+c/rotor_sync_gate_state_ctrl_2100A.c.
 
 Runs the ACTUAL ROM bytes of 0x2100A (including the shared max helper
 @0x23E4) in tools/sh2emu.py over seeded RAM states (the oracle), and compares
@@ -22,7 +22,7 @@ Key semantic facts (see the lift header):
     The lead/trail split is therefore NOT here.
   * fr15 = 0.0 (fldi0 in the delay slot of 0x21090) on every path.
 
-Run: python3 c/tests/test_leading_trailing_spark_control_2100A.py [N]
+Run: python3 c/tests/test_rotor_sync_gate_state_ctrl_2100A.py [N]
      (N = random inputs per seed; default 100000 -> 500000 across 5 seeds)
 """
 import os, random, struct, sys
@@ -35,7 +35,7 @@ from sh2emu import SH2, ts
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ADDR = 0x2100A
 
-# ---- RAM map (see c/leading_trailing_spark_control_2100A.c header) ----
+# ---- RAM map (see c/rotor_sync_gate_state_ctrl_2100A.c header) ----
 AA10 = 0xFFFFAA10   # f32 coolant-temp word (fr4 input)
 C6B4 = 0xFFFFC6B4   # f32 (fr7 input, compared against CAL_1000)
 B1B2 = 0xFFFFB1B2   # u16 gate (r4, used unsigned)
@@ -72,10 +72,10 @@ def gb(ram, a):
 
 
 def model(ram, rom):
-    """Line-for-line mirror of leading_trailing_spark_control_2100A().
+    """Line-for-line mirror of rotor_sync_gate_state_ctrl_2100A().
 
     Returns a full RAM-effect dict (int keys -> byte values) so the caller can
-    diff it against the emulator's post-call RAM (like test_omp_task_0x1825E).
+    diff it against the emulator's post-call RAM (like test_omp_control_task_1825E).
     """
     m = dict(ram)
     fr4 = gf(m, AA10)                 # f32@AA10
@@ -226,9 +226,9 @@ def main():
     if total_fails:
         print('\n%d FAILURE(S)' % total_fails)
         sys.exit(1)
-    print('OK  0x2100A leading_trailing_spark_control  (%d random inputs across %d seeds)'
+    print('OK  0x2100A rotor_sync_gate_state_ctrl  (%d random inputs across %d seeds)'
           % (N * len(seeds), len(seeds)))
-    print('\nAll leading_trailing_spark_control_2100A tests passed.')
+    print('\nAll rotor_sync_gate_state_ctrl_2100A tests passed.')
     sys.exit(0)
 
 

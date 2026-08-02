@@ -110,7 +110,7 @@ extern uint16_t e2_flash_read(uint32_t flashaddr);   /* 0xBFCA SPI word read */
 
 /* --- 0x2054/0x2064 critical-section pair + 0x4BBC GPIO bit helper --- */
 void     saveSRMaskParam(uint32_t *store, uint32_t level);   /* 0x2054 */
-void     restoreSR(uint32_t saved);                          /* 0x2064 = ldc r4,sr */
+void     loadStatusRegister_ADDR(uint32_t saved);            /* 0x2064 = ldc r4,sr */
 void     reg16SetClear(volatile uint16_t *reg, uint16_t mask, uint8_t set); /* 0x4BBC */
 
 /* ---- Lifted functions ---- */
@@ -124,8 +124,8 @@ void     setImmoLight(uint8_t on);                                              
 void     ImmoBadStateSet(void);                                                  /* 0x365B8 */
 void     ImmoGoodStateSet(void);                                                 /* 0x36544 */
 void     ImmoStateReadyToDriveEngineOff(void);                                   /* 0x364D8 */
-void     message_queue_state_dispatcher_369B8(uint8_t cmd);                      /* 0x369B8 */
-#define  setImmoCANTXData(cmd)  message_queue_state_dispatcher_369B8((cmd))      /* 0x369B8 alias */
+void     setImmoCANTXData_369B8(uint8_t cmd);                                    /* 0x369B8 */
+#define  setImmoCANTXData(cmd)  setImmoCANTXData_369B8((cmd))                    /* 0x369B8 alias */
 void     ImmoGetCANData(void);                                                   /* 0x36870 */
 uint32_t Immo_Keygen_related_ADC(void);                                          /* 0x36AFC */
 void     ImmoUpdateRelated(void);                                                /* 0x37120 */
@@ -135,7 +135,7 @@ void     ImmoStateMachine_360E8(void);                                          
 void     ImmoGetSeed_3664E(void);                                                /* 0x3664E */
 uint32_t calculateImmoSeed(uint32_t r4, uint32_t r5, uint32_t r6);                 /* 0x3675C */
 void     ImmoKeyExpander_365D6(void);                                            /* 0x365D6 */
-uint8_t  sub_37000(uint8_t code);                                                /* 0x37000 */
+uint8_t  eeprom_commit_dispatcher_37000(uint8_t code);                           /* 0x37000 */
 uint32_t adc_read(uint32_t r4, uint32_t r5);                                     /* 0x3EDBC */
 uint32_t seed_mixer(uint32_t r4, uint32_t r5);                                   /* 0x366B8 */
 

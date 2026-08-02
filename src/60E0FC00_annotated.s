@@ -220862,8 +220862,8 @@ FUN_00055e62:
 	bra L_055ecc
 	mov.w @r3,r5
 
-! --- CAN_TableLookup_583E4  0x55E68-0x55ECC  [ghidra-hand] ---
-CAN_TableLookup_583E4:
+! --- memory_match_accumulate_583E4  0x55E68-0x55ECC  [ghidra-hand] ---
+memory_match_accumulate_583E4:
 L_055e68:
 	mov.l r14,@-r15
 	mov #0,r6

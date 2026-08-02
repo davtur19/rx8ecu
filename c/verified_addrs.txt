@@ -28,9 +28,10 @@
 ; 2026-07-31 session 5: radiator_fan_relay_write verified — active-low relay
 ; driver from status bit (test_radiator_fan_relay.py, exhaustive + 3000 random, 0 mismatches)
 0x259C0
-; 2026-07-31 session 6: aux_fan_control_task verified — boost filter + delta
-; control + error filter + float swap + pressure hysteresis flag transition
-; (test_aux_fan_control_task.py, 6000 tests, 0 mismatches)
+; 2026-07-31 session 6: pressure_delta_monitor_1AED2 verified (old name:
+; aux_fan_control_task) — boost filter + delta control + error filter + float
+; swap + pressure hysteresis flag transition
+; (test_pressure_delta_monitor_1AED2.py, 6000 tests, 0 mismatches)
 0x1AED2
 ; 2026-07-31 session 6: alternating_sensor_sm_08 verified — sensor state machine
 ; (test_alt_sensor_sm.py, 20000 tests, 0 mismatches)
@@ -101,7 +102,7 @@
 ; 0x18C6C, A968 -> omp_waveform_state_machine_18860, A96A -> 0x18C08,
 ; A96B -> 0x18C5C, A969 -> rotor_sync_position_detector), common tail (P807A
 ; write/read + A975 ramp + P8078 write), full epilogue
-; (test_omp_task_0x1825E.py, 150000 random inputs across 5 seeds, 0 mismatches)
+; (test_omp_control_task_1825E.py, 150000 random inputs across 5 seeds, 0 mismatches)
 0x1825E
 ; omp_rotor_overshoot_detector_18CC0 — RTOS companion task to omp_control_task_1825E
 ; (OS task table @0x18000: 0x1802C -> 0x18CC0): reads idle/off port 0x807A
@@ -111,12 +112,13 @@
 ; A994/A995 vs CAL39/CAL3A (test_omp_rotor_overshoot_detector_18CC0.py,
 ; 100000 random inputs across 5 seeds, 0 mismatches)
 0x18CC0
-; 2026-07-31 session 8 (Track A): math_min_max_49ED0 verified — flag-setter leaf
+; 2026-07-31 session 8 (Track A): flag_setter_49ED0 verified (old name:
+; math_min_max_49ED0) — flag-setter leaf
 ; reads word RAM16[0xFFFFF76C], tests bit 0x100, writes 0/1 flag byte to both
 ; 0xFFFFCD48 and 0xFFFFCD49, returns flag. NOTE: mov.w @(disp,PC) sign-extends,
 ; so the disassembler's short literals 0xCD49/0xCD48/0xF76C are really
-; 0xFFFFCD49/0xFFFFCD48/0xFFFFF76C (test_math_min_max_49ED0.py emulator,
-; 14 edge + 20000 random; test_math_min_max_49ED0.c host C, 20014 tests;
+; 0xFFFFCD49/0xFFFFCD48/0xFFFFF76C (test_flag_setter_49ED0.py emulator,
+; 14 edge + 20000 random; test_flag_setter_49ED0.c host C, 20014 tests;
 ; 0 mismatches, make c-test GREEN)
 0x49ED0
 

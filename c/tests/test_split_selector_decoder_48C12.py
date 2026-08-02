@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""test_rotor_sync_timing_48C12.py
+"""test_split_selector_decoder_48C12.py
 
 Differential test for ROM 0x48C12 (60E1D400.bin) — lift
-c/rotor_sync_timing_48C12.c.
+c/split_selector_decoder_48C12.c.
 
 Runs the ACTUAL ROM bytes of 0x48C12 in tools/sh2emu.py over seeded RAM states
 (the oracle) and compares the full post-call RAM overlay against a Python
 reference model that mirrors the C lift line-for-line.
 
 Semantics (see the lift header): pure 2-bit decoder of the split-state
-selector u8@0xFFFFCCD2 (from wankel_leading_trailing_split_487DC) into the
+selector u8@0xFFFFCCD2 (from split_selector_state_ctrl_487DC) into the
 output pair (u8@0xFFFFCCE2, u8@0xFFFFCCE3):
     0 -> (0,0), 1 -> (0,1), >=2 -> (1,0).
 The function writes nothing else (no stack use, no other RAM).
 
-Run: python3 c/tests/test_rotor_sync_timing_48C12.py [N]
+Run: python3 c/tests/test_split_selector_decoder_48C12.py [N]
      (N = random inputs per seed; default 100000 -> 500000 across 5 seeds)
 """
 import os, random, sys
@@ -27,7 +27,7 @@ from sh2emu import SH2
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ADDR = 0x48C12
 
-# ---- RAM addresses (see c/rotor_sync_timing_48C12.c header) ----
+# ---- RAM addresses (see c/split_selector_decoder_48C12.c header) ----
 CCD2 = 0xFFFFCCD2   # u8 state selector byte (input)
 CCE2 = 0xFFFFCCE2   # u8 output mode A ("leading")
 CCE3 = 0xFFFFCCE3   # u8 output mode B ("trailing")
@@ -38,7 +38,7 @@ SCRATCH = [0xFFFFCCE0, 0xFFFFCCE1, 0xFFFFCCE4, 0xFFFFCCD6, 0xFFFFB560,
 
 
 def model(ram, rom):
-    """Line-for-line mirror of rotor_sync_timing_48C12()."""
+    """Line-for-line mirror of split_selector_decoder_48C12()."""
     m = dict(ram)
     s = m.get(CCD2, 0)
     if s == 0:
@@ -108,9 +108,9 @@ def main():
     if total_fails:
         print('\n%d FAILURE(S)' % total_fails)
         sys.exit(1)
-    print('OK  0x48C12 rotor_sync_timing  (%d random inputs across %d seeds)'
+    print('OK  0x48C12 split_selector_decoder  (%d random inputs across %d seeds)'
           % (N * len(seeds), len(seeds)))
-    print('\nAll rotor_sync_timing_48C12 tests passed.')
+    print('\nAll split_selector_decoder_48C12 tests passed.')
     sys.exit(0)
 
 

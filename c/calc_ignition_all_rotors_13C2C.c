@@ -305,8 +305,8 @@ void calc_ignition_all_rotors_13C2C(void)
 /* ========================================================================
  * NOTES:
  *
- * 1. The function at 0x2068 (labeled "fpu_multiply_accumulate" in IDA) is
- *    actually a generic 1D table interpolator.  The descriptor at 0x6B68C
+ * 1. The function at 0x2068 (labeled "fpu_multiply_accumulate" in the old IDA
+ *    database, now 2DLookup) is actually a generic 1D table interpolator.  The descriptor at 0x6B68C
  *    defines a 5-point RPM -> ignition correction table with u8 cells,
  *    scale=0.5, offset=-64.  Effective values:
  *      RPM < 2000: clamped to -10.0°

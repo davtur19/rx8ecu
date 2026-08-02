@@ -250194,8 +250194,8 @@ L_05d308:
 	mul.l r0,r0
 	mov.l r5,@(52,r5)
 
-! --- CAN_TableLookup_583E4  0x5D30C-0x5D370  [ghidra-hand-xmap] ---
-CAN_TableLookup_583E4:
+! --- memory_match_accumulate_583E4  0x5D30C-0x5D370  [ghidra-hand-xmap] ---
+memory_match_accumulate_583E4:
 L_05d30c:
 	mov.l r14,@-r15
 	mov #0,r6
