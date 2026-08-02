@@ -1,5 +1,5 @@
 /*
- * CAN_TableLookup_583E4.c  —  RX-8 ECU memory scan and match accumulator
+ * memory_match_accumulate_583E4.c  —  RX-8 ECU memory scan and match accumulator
  *
  * Address: 0x0583E4  |  Size: 100 bytes
  *
@@ -23,7 +23,7 @@
  *   [3]:    filter/type byte
  *   [4..5]: (unknown / unused)
  *
- * Verified against ROM: c/tests/test_CAN_TableLookup_583E4.py
+ * Verified against ROM: c/tests/test_memory_match_accumulate_583E4.py
  */
 #include <stdint.h>
 
@@ -36,7 +36,7 @@ typedef struct {
 } __attribute__((packed)) ScanEntry;
 
 /* 0x0583E4 — scan table and accumulate matched entries */
-uint32_t CAN_TableLookup_583E4(uint32_t mask_in, uint8_t filter_val)
+uint32_t memory_match_accumulate_583E4(uint32_t mask_in, uint8_t filter_val)
 {
     const ScanEntry *table = (const ScanEntry *)0x0005FFEE;
     const uint32_t   count = 36;                 /* 0x24 entries */

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""test_wankel_leading_trailing_split_487DC.py
+"""test_split_selector_state_ctrl_487DC.py
 
 Differential test for ROM 0x487DC (60E1D400.bin) — lift
-c/wankel_leading_trailing_split_487DC.c.
+c/split_selector_state_ctrl_487DC.c.
 
 Runs the ACTUAL ROM bytes of 0x487DC — including the verified leaf 0x3ED3C
 (readValue_8bit_ADDRESS_VAL, and its 0x3F050 fault-flag side effect) — in
@@ -18,10 +18,10 @@ Key semantic facts (see the lift header):
     verified leaf 0x3ED3C on 7 redundant (value, ~value) byte pairs at
     0xFFFF8750/8764/8768/876C/8770/8778/8780.  On a bad pair the leaf returns
     0 AND writes the fault flag RAM8@0xFFFFC6AC = 1 (via 0x3F050).
-  * The next function rotor_sync_timing_48C12 decodes CCD2 into the output
+  * The next function split_selector_decoder_48C12 decodes CCD2 into the output
     pair (CCE2, CCE3): 0 -> (0,0), 1 -> (0,1), >=2 -> (1,0).
 
-Run: python3 c/tests/test_wankel_leading_trailing_split_487DC.py [N]
+Run: python3 c/tests/test_split_selector_state_ctrl_487DC.py [N]
      (N = random inputs per seed; default 100000 -> 500000 across 5 seeds)
 """
 import os, random, struct, sys
@@ -34,7 +34,7 @@ from sh2emu import SH2
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ADDR = 0x487DC
 
-# ---- RAM addresses (see c/wankel_leading_trailing_split_487DC.c header) ----
+# ---- RAM addresses (see c/split_selector_state_ctrl_487DC.c header) ----
 CCD2 = 0xFFFFCCD2   # u8 output selector byte
 C6AC = 0xFFFFC6AC   # u8 fault flag (set to 1 by 0x3ED3C on a bad pair)
 
@@ -79,7 +79,7 @@ def gb(ram, a):
 
 
 def model(ram, rom):
-    """Line-for-line mirror of wankel_leading_trailing_split_487DC().
+    """Line-for-line mirror of split_selector_state_ctrl_487DC().
 
     Returns a full RAM-effect dict (int keys -> byte values) so the caller can
     diff it against the emulator's post-call RAM (like the other lift tests).
@@ -226,9 +226,9 @@ def main():
     if total_fails:
         print('\n%d FAILURE(S)' % total_fails)
         sys.exit(1)
-    print('OK  0x487DC wankel_leading_trailing_split  (%d random inputs across %d seeds)'
+    print('OK  0x487DC split_selector_state_ctrl  (%d random inputs across %d seeds)'
           % (N * len(seeds), len(seeds)))
-    print('\nAll wankel_leading_trailing_split_487DC tests passed.')
+    print('\nAll split_selector_state_ctrl_487DC tests passed.')
     sys.exit(0)
 
 

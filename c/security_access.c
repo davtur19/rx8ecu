@@ -322,7 +322,7 @@ static uint8_t position_check(uint8_t level)
 }
 
 /* ===================================================================
- *  5.  seed_gen  (ROM 0x5699A  — "random_forest")
+ *  5.  seed_gen  (ROM 0x5699A  — old IDA label "random_forest")
  *
  *  Generates the 3-byte seed and writes it to 0xFFFFD211..3.
  *

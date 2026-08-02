@@ -29,7 +29,7 @@ void ImmoStateMachine_360E8(void)
         if (sub == 1) {
             ImmoBadStateSet();                   /* 0x365B8 */
             IMMO_RESP_BYTE = 0;                  /* 0xFFFFC294 */
-            message_queue_state_dispatcher_369B8(0x01);
+            setImmoCANTXData_369B8(0x01);
             IMMO_GOODSTATE_FLAG = 1;             /* 0xFFFFC29A */
         } else if (sub == 3) {
             IMMO_STATE_CODE = 0;                 /* 0xFFFFC28D */
@@ -47,7 +47,7 @@ void ImmoStateMachine_360E8(void)
             }
             IMMO_SEED_TIMER = 0x02EE;            /* 0xFFFFC286 */
             ImmoGetSeed_3664E();                 /* 0x3664E */
-            message_queue_state_dispatcher_369B8(0x07);
+            setImmoCANTXData_369B8(0x07);
             IMMO_STATE_CODE = 2;                 /* 0xFFFFC28D */
         }
     } else if (state == 3) {

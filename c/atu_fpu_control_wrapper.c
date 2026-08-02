@@ -20,12 +20,12 @@
  * Sub-functions called:
  *   setSR_PARAM    (0x2054): Modify SR with mask, save old SR to stack
  *   setRegister_REG_BIT_VAL (0x4BBC): Set/clear bit in memory-mapped register
- *   fpu_nop_stub   (0x2064): FPU synchronization (nop-like)
+ *   loadStatusRegister_ADDR (0x2064): raw SR write (ldc r4,sr)
  *
  * The sequence:
  *   old_sr = setSR_PARAM(stack_tmp, 0xE0)
  *   setRegister_REG_BIT_VAL(0xFFFFF74E, 0x100, 1)
- *   fpu_nop_stub(old_sr)
+ *   loadStatusRegister_ADDR(old_sr)
  * ==================================================================== */
 
 #include <stdint.h>
@@ -33,7 +33,7 @@
 /* Sub-function declarations */
 extern void setSR_PARAM(uint32_t *save_addr, uint16_t mask);
 extern void setRegister_REG_BIT_VAL(uint16_t *reg_addr, uint16_t bit_val, uint32_t size);
-extern void fpu_nop_stub(uint32_t old_sr);
+extern void loadStatusRegister_ADDR(uint32_t old_sr);
 
 void atu_fpu_control_wrapper(void)
 {
@@ -52,9 +52,8 @@ void atu_fpu_control_wrapper(void)
      * This likely enables a specific FPU feature or mode. */
     setRegister_REG_BIT_VAL((uint16_t *)0xFFFFF74E, 0x0100, 1);
 
-    /* Step 3: FPU synchronization barrier.
-     * fpu_nop_stub executes an FPU-related NOP to ensure all pending
-     * FPU operations complete before continuing.
-     * The argument is the old SR value before modification. */
-    fpu_nop_stub(old_sr);
+    /* Step 3: raw SR write (0x2064, formerly labelled fpu_nop_stub).
+     * Unconditionally writes the saved SR value back (ldc r4,sr).
+     * The argument is the old SR value saved in step 1. */
+    loadStatusRegister_ADDR(old_sr);
 }

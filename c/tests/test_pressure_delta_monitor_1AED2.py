@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Test aux_fan_control_task (0x1AED2) via SH-2E emulator.
+Test pressure_delta_monitor_1AED2 (0x1AED2) via SH-2E emulator.
 
 Function under test (60E1D400.bin):
-  aux_fan_control_task @0x1AED2 (48 bytes) - boost-pressure auxiliary fan
+  pressure_delta_monitor_1AED2 @0x1AED2 (48 bytes) - boost-pressure auxiliary fan
   task.  Wraps a chain of calculations in a getSR/setSR critical section:
 
     1. getSR(0x10)                       ; save SR, restore at the end
@@ -124,11 +124,11 @@ def main():
                 bad.append('%s emu=%d ref=%d' % (hex(c), got.get(c, 0), exp.get(c, 0)))
         if bad:
             fails += 1
-            print("  aux_fan_control_task FAIL:", bad[:4])
+            print("  pressure_delta_monitor_1AED2 FAIL:", bad[:4])
             if fails >= 5:
                 break
-    print(f"aux_fan_control_task: {tests} tests, {fails} failures")
-    print("AUX_FAN_CONTROL_TASK:", "PASS" if fails == 0 else "FAIL")
+    print(f"pressure_delta_monitor_1AED2: {tests} tests, {fails} failures")
+    print("PRESSURE_DELTA_MONITOR_1AED2:", "PASS" if fails == 0 else "FAIL")
     return 0 if fails == 0 else 1
 
 if __name__ == '__main__':

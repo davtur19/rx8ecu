@@ -1,5 +1,5 @@
 /*
- * sub_37000  —  RX-8 PCM @ ROM 0x37000 (60E1D400.bin)
+ * eeprom_commit_dispatcher_37000  —  RX-8 PCM @ ROM 0x37000 (60E1D400.bin)
  *
  * Dispatches an EEPROM commit request to the low-level writer 0x38B5C
  * (SPI EEPROM scheduler).  If the write-queue busy flag 0xFFFFC2D2 is set
@@ -21,7 +21,7 @@
 
 extern uint8_t eeprom_write_sched(uint16_t index, uint8_t len, uint8_t flag); /* 0x38B5C */
 
-uint8_t sub_37000(uint8_t code)
+uint8_t eeprom_commit_dispatcher_37000(uint8_t code)
 {
     uint8_t result = 1;
 

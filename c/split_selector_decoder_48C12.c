@@ -1,4 +1,4 @@
-/* rotor_sync_timing_48C12.c
+/* split_selector_decoder_48C12.c
  *
  * ROM: 60E1D400  |  Address: 0x48C12  |  Size: 0x30 bytes (48 B)
  *       0x48C12..0x48C40 code (rts @0x48C3E, delay-slot nop); literals shared
@@ -6,7 +6,7 @@
  *       VERIFIED vs ROM emulator (0 mismatches, 500000 random inputs).
  *
  * Decodes the gated split-selector byte u8@0xFFFFCCD2 (produced by
- * wankel_leading_trailing_split_487DC, stock 0..3) into a 2-bit output pair
+ * split_selector_state_ctrl_487DC, stock 0..3) into a 2-bit output pair
  * (u8@0xFFFFCCE2, u8@0xFFFFCCE3):
  *
  *       CCD2 == 0   -> CCE2 = 0, CCE3 = 0   (both modes off)
@@ -19,14 +19,14 @@
  * can_filter_apply_49216 (0x49216); CCE3 has no other direct literal consumer
  * in this ROM (searched all even-aligned 0xCCE3 words).  CCE2/CCE3 are in the
  * 0xFFFFCCEx spark-control status block (u8@0xFFFFCCE1 is read by
- * leading_trailing_spark_control_2100A).  This routine does NOT touch A734/A738.
+ * rotor_sync_gate_state_ctrl_2100A).  This routine does NOT touch A734/A738.
  *
  * Inputs  (RAM reads):  u8 @0xFFFFCCD2  (state selector, 0..3)
  * Outputs (RAM writes): u8 @0xFFFFCCE2  (mode-enable A / "leading")
  *                        u8 @0xFFFFCCE3  (mode-enable B / "trailing")
  *
  * Verified: 100000 random inputs x 5 seeds (500000 total) vs the ROM emulator,
- * 0 mismatches (c/tests/test_rotor_sync_timing_48C12.py).
+ * 0 mismatches (c/tests/test_split_selector_decoder_48C12.py).
  */
 #include <stdint.h>
 
@@ -34,7 +34,7 @@
 #define RAM_CCE2      (*(volatile uint8_t *)0xFFFFCCE2)   /* output mode A */
 #define RAM_CCE3      (*(volatile uint8_t *)0xFFFFCCE3)   /* output mode B */
 
-void rotor_sync_timing_48C12(void)
+void split_selector_decoder_48C12(void)
 {
     uint8_t s = RAM_CCD2;
 

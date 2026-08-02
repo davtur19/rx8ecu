@@ -1,10 +1,11 @@
-/* leading_trailing_spark_control_2100A.c
+/* rotor_sync_gate_state_ctrl_2100A.c
  *
  * ROM: 60E1D400  |  Address: 0x2100A  |  Size: 0x160 bytes (352 B)
  *       0x2100A..0x21168 code; literal pool 0x2116A..0x2118C (next
  *       function CLChangeoverEnrichment@0x21190).  VERIFIED vs ROM emulator.
  *
- * Gated "spark split" state controller (IDA: leading_trailing_spark_control).
+ * Gated "spark split" state controller — old IDA label was
+ * "leading_trailing_spark_control" (kept as an old-name note only).
  * Despite the IDA name, this routine does NOT compute a split angle and does
  * NOT touch the per-rotor timing words A734/A738 (those are written identically
  * by calc_ignition_all_rotors_13C2C; see its lift).  Instead it manages a pair
@@ -48,7 +49,7 @@
  * means fr7 > 1000.0, and "fcmp/gt fr4,fr6" means -43.0 > coolant.
  *
  * Verified: 100000 random inputs x 5 seeds (500000 total) vs the ROM emulator,
- * 0 mismatches (test_leading_trailing_spark_control_2100A.py).
+ * 0 mismatches (test_rotor_sync_gate_state_ctrl_2100A.py).
  */
 #include <stdint.h>
 
@@ -113,7 +114,7 @@ static void fc_block(uint16_t r4, uint8_t r5, uint8_t r6, uint8_t r7, float fr7)
     }
 }
 
-void leading_trailing_spark_control_2100A(void)
+void rotor_sync_gate_state_ctrl_2100A(void)
 {
     float   fr4 = RAM_COOLANT;            /* f32@0xFFFFAA10 */
     float   fr7 = RAM_C6B4;               /* f32@0xFFFFC6B4 */

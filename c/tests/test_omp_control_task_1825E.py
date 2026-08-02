@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""test_omp_task_0x1825E.py
+"""test_omp_control_task_1825E.py
 
 Differential test for the OMP (oil-metering-pump) RTOS task at ROM 0x1825E
-(lift: c/omp_task_0x1825E.c).  Runs the ROM task in the SH-2 emulator and
+(lift: c/omp_control_task_1825E.c).  Runs the ROM task in the SH-2 emulator and
 compares the full relevant RAM against a Python model.
 
 The task is the top of the stepper-motor control chain.  Flow (see the lift
@@ -21,7 +21,7 @@ Port accessors 0x3ED3C/0x3EE58 and fault-flag leaf 0x3F050 are modelled
 inline (complementary byte encoding, C6AC fault flag), matching
 test_omp_accessors.py.
 
-Run: python3 c/tests/test_omp_task_0x1825E.py [N]
+Run: python3 c/tests/test_omp_control_task_1825E.py [N]
      (N = random inputs per seed; default 30000 -> 150000 across 5 seeds)
 """
 import os, sys, random, struct
@@ -36,7 +36,7 @@ from test_rotor_sync_position_detector import model as rotor_model
 
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 
-# ---- RAM map (see c/omp_task_0x1825E.c header) ----
+# ---- RAM map (see c/omp_control_task_1825E.c header) ----
 A968 = 0xFFFFA968   # idle-state flag / dispatch gate (snapshotted at entry)
 A969 = 0xFFFFA969   # rotor-sync dispatch flag
 A96A = 0xFFFFA96A   # diag/rotor dispatch flag
@@ -361,7 +361,7 @@ def main():
         sys.exit(1)
     print('OK  0x1825E omp_control_task  (%d random inputs across %d seeds)'
           % (N * len(seeds), len(seeds)))
-    print('\nAll omp_task_0x1825E tests passed.')
+    print('\nAll omp_control_task_1825E tests passed.')
     sys.exit(0)
 
 

@@ -1,4 +1,4 @@
-/* math_min_max_49ED0.c
+/* flag_setter_49ED0.c
  *
  * ROM: 60E1D400  |  Address: 0x49ED0  |  Size: 34 bytes
  *
@@ -28,13 +28,13 @@
  * Semantics: v = (word@0xFFFFF76C & 0x100) ? 1 : 0;
  *            byte@0xFFFFCD48 = v; byte@0xFFFFCD49 = v; return v.
  *
- * Verified against ROM emulator: c/tests/test_math_min_max_49ED0.py
- * Host C companion:             c/tests/test_math_min_max_49ED0.c
+ * Verified against ROM emulator: c/tests/test_flag_setter_49ED0.py
+ * Host C companion:             c/tests/test_flag_setter_49ED0.c
  */
 #include <stdint.h>
 
 /* 0x49ED0 — set both flags from input word bit 0x100 */
-uint32_t math_min_max_49ED0(void)
+uint32_t flag_setter_49ED0(void)
 {
     uint32_t v = (*(volatile uint16_t *)0xFFFFF76C & 0x0100) ? 1 : 0;
     *(volatile uint8_t *)0xFFFFCD48 = (uint8_t)v;

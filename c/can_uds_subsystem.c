@@ -359,7 +359,7 @@ void CAN_EmitLaunchStatus(uint8_t launch_active)
     else
         launch_active = 0;
 
-    /* Transmit via CAN (uses CAN_TableLookup → CAN_WriteChannel) */
+    /* Transmit via CAN (uses memory_match_accumulate_583E4 → CAN_WriteChannel) */
     /* ... (implementation depends on CAN dispatch mechanism) */
 }
 

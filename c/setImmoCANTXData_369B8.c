@@ -1,6 +1,6 @@
 /*
- * message_queue_state_dispatcher_369B8  —  RX-8 PCM @ ROM 0x369B8 (60E1D400.bin)
- * (a.k.a. setImmoCANTXData)
+ * setImmoCANTXData_369B8  —  RX-8 PCM @ ROM 0x369B8 (60E1D400.bin)
+ * (old name: message_queue_state_dispatcher_369B8)
  *
  * Builds an 8-byte immobilizer CAN TX frame at 0xFFFFC238 and raises the
  * TX request flags.  The message id byte selects the payload layout
@@ -20,7 +20,7 @@
  */
 #include "eeprom_immo.h"
 
-void message_queue_state_dispatcher_369B8(uint8_t cmd)
+void setImmoCANTXData_369B8(uint8_t cmd)
 {
     volatile uint8_t *buf = IMMO_CAN_TX_BUF;   /* 0xFFFFC238, 8 bytes */
 

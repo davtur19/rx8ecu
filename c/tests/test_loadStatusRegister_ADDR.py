@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Verify fpu_nop_stub (0x2064) against the ACTUAL ROM bytes, run in the SH-2E
+Verify loadStatusRegister_ADDR (0x2064) against the ACTUAL ROM bytes, run in the SH-2E
 emulator with SR support (SRCPU subclass).
 
-fpu_nop_stub is an unconditional ldc r4,sr / rts — it writes r4 into the
+loadStatusRegister_ADDR is an unconditional ldc r4,sr / rts — it writes r4 into the
 Status Register with no side effects or conditionals.  Called from 78 sites.
 
 The SRCPU subclass (from test_setSR_getSR.py) adds stc sr,Rn / ldc Rn,SR
 support to the base emulator.
 
-Run from repo root:  python3 c/tests/test_fpu_nop_stub.py [N]
+Run from repo root:  python3 c/tests/test_loadStatusRegister_ADDR.py [N]
 """
 import os, sys, random
 
@@ -22,18 +22,18 @@ from test_setSR_getSR import SRCPU
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ENTRY = 0x2064
 
-def test_fpu_nop_stub(cpu, N):
-    """Verify fpu_nop_stub @0x2064 writes r4 to SR."""
+def test_loadStatusRegister_ADDR(cpu, N):
+    """Verify loadStatusRegister_ADDR @0x2064 writes r4 to SR."""
     for _ in range(N):
         # Random SR value (keep IPL in valid range, but any 32-bit value works)
         sr_val = random.randint(0, 0xFFFFFFFF)
         # Set CPU SR to something else first
         cpu.sr = 0x000000F0
-        # Call fpu_nop_stub with sr_val
+        # Call loadStatusRegister_ADDR with sr_val
         cpu.call(ENTRY, r4=sr_val)
         # Verify SR was written
         if cpu.sr != (sr_val & 0xFFFFFFFF):
-            return ("fpu_nop_stub", sr_val, cpu.sr)
+            return ("loadStatusRegister_ADDR", sr_val, cpu.sr)
     return None
 
 def main():
@@ -42,11 +42,11 @@ def main():
     fails = []
 
     cpu = SRCPU(rom)
-    err = test_fpu_nop_stub(cpu, N)
+    err = test_loadStatusRegister_ADDR(cpu, N)
     if err:
         fails.append(err)
     else:
-        print("OK  fpu_nop_stub @0x%04X  (%d random SR values)" % (ENTRY, N))
+        print("OK  loadStatusRegister_ADDR @0x%04X  (%d random SR values)" % (ENTRY, N))
 
     if fails:
         print("\n%d FAILURE(S):" % len(fails))

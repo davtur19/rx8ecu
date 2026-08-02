@@ -454,7 +454,7 @@ def test_ldc_sr():
 
 # ---------------------------------------------------------------------------
 # 14. GBR bit-ops: tst.b/and.b/xor.b/or.b #imm,@(r0,gbr) (0xCCxx-0xCFxx)
-#     used by calibration_apply_4B770 (0x4B784..0x4B79E) and omp_task_0x1825E
+#     used by calibration_apply_4B770 (0x4B784..0x4B79E) and omp_control_task_1825E
 #     (0x184A0); and/xor/or must NOT touch T.
 # ---------------------------------------------------------------------------
 def test_gbr_bitops():

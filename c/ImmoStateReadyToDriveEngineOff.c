@@ -44,7 +44,7 @@ void ImmoStateReadyToDriveEngineOff(void)
         if (IMMO_TIMER == 0) {
             ImmoBadStateSet();
             IMMO_STATE_CODE = 5;
-            message_queue_state_dispatcher_369B8(0xC8);
+            setImmoCANTXData_369B8(0xC8);
             IMMO_TIMER = 0x01F4;
         }
     }

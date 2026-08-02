@@ -233578,8 +233578,8 @@ L_056fe4:
 	mov.l r0,@(r0,r0)
 	mov.l @(372,gbr),r0
 
-! --- CAN_TableLookup_583E4  0x56FE8-0x5704C  [ghidra-hand-xmap] ---
-CAN_TableLookup_583E4:
+! --- memory_match_accumulate_583E4  0x56FE8-0x5704C  [ghidra-hand-xmap] ---
+memory_match_accumulate_583E4:
 L_056fe8:
 	mov.l r14,@-r15
 	mov #0,r6

@@ -1,7 +1,7 @@
 /*
  * addS32Saturate  —  RX-8 PCM saturating signed 32-bit add @ ROM 0x2304
  *
- * Function name in IDA: `fpu_compare_float` — WRONG. There is no FPU logic
+ * old IDA label `fpu_compare_float` — WRONG. There is no FPU logic
  * here at all; this is an integer helper built on the SH-2 `addv` (signed
  * overflow detect) instruction.  Confirmed by byte-level disassembly and by
  * matching against the emulated ROM over 200k random int32 pairs.

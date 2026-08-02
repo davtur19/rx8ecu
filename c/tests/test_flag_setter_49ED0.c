@@ -1,6 +1,6 @@
-/* test_math_min_max_49ED0.c
+/* test_flag_setter_49ED0.c
  *
- * Host C companion for math_min_max_49ED0 (0x49ED0).
+ * Host C companion for flag_setter_49ED0 (0x49ED0).
  *
  * The lift reads a 16-bit word at 0xFFFFF76C, tests bit 0x100 and writes
  * a 0/1 flag byte to both 0xFFFFCD48 and 0xFFFFCD49, returning the flag.
@@ -20,7 +20,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-extern uint32_t math_min_max_49ED0(void);
+extern uint32_t flag_setter_49ED0(void);
 
 #define IN_WORD 0xFFFFF76Cu   /* input word address  */
 #define OUT_A   0xFFFFCD48u   /* output byte A       */
@@ -53,14 +53,14 @@ int main(void)
     map_page(IN_WORD);
     map_page(OUT_A);   /* OUT_A and OUT_B share one page */
 
-    printf("=== math_min_max_49ED0 ===\n");
+    printf("=== flag_setter_49ED0 ===\n");
 
     const uint16_t edge[] = {0x0000, 0x0001, 0x00FF, 0x0100, 0x0101, 0x01FF,
                              0x02FF, 0x8000, 0x80FF, 0xFFFF, 0x7F00, 0xFEFF,
                              0xFF00, 0xFF01};
     for (size_t i = 0; i < sizeof(edge) / sizeof(edge[0]); i++) {
         set_word(edge[i]);
-        uint32_t got = math_min_max_49ED0();
+        uint32_t got = flag_setter_49ED0();
         uint8_t exp = (edge[i] & 0x0100) ? 1 : 0;
         tests++;
         if (got != exp ||
@@ -77,7 +77,7 @@ int main(void)
     for (int i = 0; i < 20000; i++) {
         uint16_t w = (uint16_t)(rand() & 0xFFFF);
         set_word(w);
-        uint32_t got = math_min_max_49ED0();
+        uint32_t got = flag_setter_49ED0();
         uint8_t exp = (w & 0x0100) ? 1 : 0;
         tests++;
         if (got != exp ||
