@@ -1,4 +1,4 @@
-# least_square_0x5687A @ 0x5687A
+# sentinel_equality_check_5687A @ 0x5687A
 
 **Address:** 0x5687A – 0x56892  (24 bytes)
 **ROM:** 60E1D400.bin
@@ -16,7 +16,7 @@ clamp / saturate operation for byte-sized parameters.
 ## Logic
 
 ```c
-uint8_t least_square_0x5687A(uint8_t input) {
+uint8_t sentinel_equality_check_5687A(uint8_t input) {
     uint8_t cal = *(uint8_t*)0xFFFFD20B;
     return (input < cal) ? input : cal;
 }
@@ -25,5 +25,5 @@ uint8_t least_square_0x5687A(uint8_t input) {
 ## Verification
 
 - [x] Disassembly confirmed against capstone + Ghidra
-- [x] C code written (`c/least_square_0x5687A.c`)
-- [x] Emulator test: `test_least_square_0x5687A.py` — all 256 input values × 5 calibration values + 500 random, all pass
+- [x] C code written (`c/sentinel_equality_check_5687A.c`)
+- [x] Emulator test: `test_sentinel_equality_check_5687A.py` — all 256 input values × 5 calibration values + 500 random, all pass

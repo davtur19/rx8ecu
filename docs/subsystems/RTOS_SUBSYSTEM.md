@@ -129,7 +129,7 @@ secondary_boot_main:
   bsr 0xA0DC      → sfr_write_a16c: [0xFFFFA16C] = 0
   jsr @(0xA0F8)   → setSR_PARAM (0x2054) — set SR interrupt mask (0xE0)
   jsr @(0xA0FC)   → setRegister_REG_BIT_VAL (0x4BBC) — bit 8 of SFR 0xF74E
-  jsr @(0xA100)   → fpu_nop_stub (0x2064)
+  jsr @(0xA100)   → loadStatusRegister_ADDR (0x2064)
   jsr @(0xA104)   → sfr_init_dma_channels (0x4CF8)
   jsr @(0xA108)   → task_context_switch (0x3AD8) — start RTOS
   bra 0xA06E      → infinite loop (idle)

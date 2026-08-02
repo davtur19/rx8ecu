@@ -878,7 +878,7 @@ void arbitrateFuelCut(void)
  * Outputs:
  *   - Ignition timing values at 0xFFFFA734/0xFFFFA738 (float) — written
  *     identically by calc_ignition_all_rotors_13C2C; lead/trail split applied
- *     later in leading_trailing_spark_control (0x2100A, unverified)
+ *     later in rotor_sync_gate_state_ctrl_2100A (0x2100A, formerly leading_trailing_spark_control, unverified)
  */
 
 void calc_fuel_injection_all_rotors(void)
@@ -923,7 +923,7 @@ void calc_fuel_injection_all_rotors(void)
     calc_fuel_pressure_load_compensation(...);         /* 0x13EE6 */
 
     /* Write outputs — both cells get the same value (no lead/trail split here;
-       that happens later in leading_trailing_spark_control 0x2100A, unverified) */
+       that happens later in rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified) */
     *(volatile float *)0xFFFFA734 = main_inj;  /* ignition timing values (A734/A738) */
     *(volatile float *)0xFFFFA738 = main_inj;
 }

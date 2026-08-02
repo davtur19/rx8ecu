@@ -36,7 +36,7 @@ injection quantity; and writes the result to per-rotor output registers.
 | 0xFFFF???? | u8 | Fuel cut mode flag |
 | 0xFFFF???? | u8 | Injection enable flag |
 | 0xFFFF???? | u8 | Rotor-specific injector flags |
-| 0xFFFFA734/0xFFFFA738 | float | Ignition timing values — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in leading_trailing_spark_control (0x2100A, unverified) |
+| 0xFFFFA734/0xFFFFA738 | float | Ignition timing values — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A, unverified) |
 
 ---
 
@@ -60,7 +60,7 @@ injection quantity; and writes the result to per-rotor output registers.
    - Dispatch via 0x13ED2, 0x13E6C, 0x13EE6
 6. **Store results** to 0xFFFFA734/0xFFFFA738 (ignition timing values, written
    identically; lead/trail split applied later in
-   leading_trailing_spark_control 0x2100A, unverified)
+   rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified)
 7. **Pop registers and return**
 
 ---
@@ -73,7 +73,7 @@ Both `calc_fuel_injection_all_rotors` and `calc_ignition_all_rotors_13C2C`:
 - Call the same three dispatch helpers (0x13ED2, 0x13E6C, 0x13EE6)
 - Write to the same output addresses (0xFFFFA734, 0xFFFFA738), which are
   written identically by calc_ignition_all_rotors_13C2C; the lead/trail split
-  is applied later in leading_trailing_spark_control (0x2100A, unverified)
+  is applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified)
 - Execute in the same scheduler tick (Phase 1 for ignition, Phase 2 for fuel)
 
 This suggests that the final output arbitration (pressure compensation, 

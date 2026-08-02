@@ -1,4 +1,4 @@
-# CAN_TableLookup_583E4 @ 0x583E4
+# memory_match_accumulate_583E4 @ 0x583E4
 
 _source: AI (Haiku) draft, unverified_
 
@@ -50,7 +50,7 @@ typedef struct {
   u8  value;        // +6: accumulated into sum
 } StructEntry;
 
-u8 CAN_TableLookup_583E4(u8 mask, u8 filter_val) {
+u8 memory_match_accumulate_583E4(u8 mask, u8 filter_val) {
   const StructEntry *array = (StructEntry *)0x0005DEBE;
   const u16 *ref_sig = (u16 *)0xD1C8;
   const u16 *bitmask = (u16 *)0xFFFFCFFE;

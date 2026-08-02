@@ -231,7 +231,7 @@ Verified C lift: `c/boot_entry.c`.
 0xA046  bsr 0xA0DC (r4=0)  ; sfr_write_a16c: [0xFFFFA16C] = 0
 0xA04C  jsr 0x2054 (r4=r15, r5=0xE0) ; setSR_PARAM — SR |= 0xE0 mask
 0xA054  jsr 0x4BBC (r4=0xF74E, r5=8, r6=1) ; setRegister_REG_BIT_VAL
-0xA05C  jsr 0x2064 (r4=r15) ; fpu_nop_stub
+0xA05C  jsr 0x2064 (r4=r15) ; loadStatusRegister_ADDR
 0xA062  jsr 0x4CF8         ; sfr_init_dma_channels
 0xA068  jsr 0x3AD8 (r4=0)  ; task_context_switch(0) — RTOS start!
 0xA06E  bra 0xA06E         ; infinite loop (idle)
