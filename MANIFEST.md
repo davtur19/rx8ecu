@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **1008 entries, 59.4M.** Regenerated 2026-08-02 for the
+in the working repository. **1009 entries, 59.4M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,13 +9,13 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 188.7K |
+| (root) | 11 | 257.4K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 6 | 893.1K |
 | c/ | 163 | 667.2K |
 | c/tests/ | 143 | 586.4K |
-| tools/ | 20 | 161.4K |
+| tools/ | 21 | 171.0K |
 | tools/tests/ | 2 | 37.0K |
 | docs/ | 223 | 1015.8K |
 | hardware/ | 1 | 2.0K |
@@ -24,7 +24,7 @@ see roms/ROMS.md).
 | .github/ | 5 | 16.0K |
 | reconstructed/experiments/match/ | 62 | 142.0K |
 | reconstructed/samples/ | 310 | 1.6M |
-| **Total** | **1008** | 59.4M |
+| **Total** | **1009** | 59.4M |
 
 ## External dependencies
 
@@ -72,7 +72,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `PLANS.md` | `00cb5180873f77914d5d36e73bc9d3592a84d47702e96f2cc73225352b54c0d0` | 9.4K | Master plan (single source of truth) |
 | `README.md` | `53eb2bf8fade651967e1abfbfdbfd718feba15eaaaaf5670085e33cb5aa7dadc` | 9.2K | Project README |
 | `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
-| `VERIFICATION.md` | `4e598d42d71d1900b4ed4e33e8cbcb0ca45e57e19beb9fc845060ddacfbafb2e` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
+| `VERIFICATION.md` | `3b98bf7d96d1cf2531e3d13d017daf8ad007574fb8ae87813a8ce5acaff4b1e5` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
 
 ## roms
 
@@ -443,6 +443,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
 | `tools/gen_badges.py` | `d2f94a51a86f0500edba4536949e3221ea4f86c92250a3b5088305859abdb9f1` | 13.0K | RE tool (see tools/README.md) |
+| `tools/gen_manifest.py` | `b4168e53728be22c7348d72bf105da192c8c605704ebdc83170dd9cc870cb25e` | 9.6K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/mapscan.py` | `9bdb9675ca4faba36443b7eeaaa68d4fb014dd0ff4f3a50c823f3be715a9ce6b` | 5.3K | RE tool (see tools/README.md) |
