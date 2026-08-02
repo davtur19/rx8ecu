@@ -1,0 +1,564 @@
+{
+  "generated_utc": "2026-08-02T23:53:56+00:00",
+  "harnesses_executed": 31,
+  "harness_results": [
+    {
+      "name": "fuzz_14funcs.py",
+      "exit": 0,
+      "time": 54.25,
+      "mismatch": 0,
+      "sig": "fuzz_14funcs: all 14 functions OK (0 mismatch, N<=100000 per function)"
+    },
+    {
+      "name": "fuzz_l2.py",
+      "exit": 0,
+      "time": 224.57,
+      "mismatch": 0,
+      "sig": "fuzz_l2: 0 mismatches over 370480 vectors \u2014 OK"
+    },
+    {
+      "name": "verify_10A88.py",
+      "exit": 0,
+      "time": 0.07,
+      "mismatch": 0,
+      "sig": "verify_10A88: calc_manifold_pressure_error_diff_10A88 OK (0 mismatch; 28 edge + 4000 random)"
+    },
+    {
+      "name": "verify_bitfield.py",
+      "exit": 0,
+      "time": 0.18,
+      "mismatch": 0,
+      "sig": "verify_bitfield: bitfield_extract_merge OK (0 mismatch; 40 edge + 256 sweep + 3000 random)"
+    },
+    {
+      "name": "verify_bytepack.py",
+      "exit": 0,
+      "time": 0.31,
+      "mismatch": 0,
+      "sig": "verify_bytepack: all OK (0 mismatch; r0 and RAM state match on both leaves)"
+    },
+    {
+      "name": "verify_checksum.py",
+      "exit": 0,
+      "time": 0.15,
+      "mismatch": 0,
+      "sig": "verify_checksum: all OK (0 mismatch; post-call RAM untouched on both sides)"
+    },
+    {
+      "name": "verify_complement_exhaustive.py",
+      "exit": 0,
+      "time": 1.66,
+      "mismatch": 0,
+      "sig": "verify_complement_exhaustive: complement_shift family exhaustive OK (0 mismatch)"
+    },
+    {
+      "name": "verify_cross_rom.py",
+      "exit": 0,
+      "time": 3.06,
+      "mismatch": 0,
+      "sig": "verify_cross_rom: 0 mismatch su tutte le ROM testate"
+    },
+    {
+      "name": "verify_datalookup.py",
+      "exit": 0,
+      "time": 0.16,
+      "mismatch": 0,
+      "sig": "verify_datalookup: rx8_data_lookup @0x2624 OK (0 mismatch)"
+    },
+    {
+      "name": "verify_delayloop.py",
+      "exit": 0,
+      "time": 35.64,
+      "mismatch": 0,
+      "sig": "OK  delay_loop_n8 @0x239C  signature=void f(uint16_t)  blob@0x4000  3000 random + 11 edge vectors  ROM==blob==host (all 0) (semantic-boundary+0 checks)"
+    },
+    {
+      "name": "verify_firstorder.py",
+      "exit": 0,
+      "time": 0.18,
+      "mismatch": 0,
+      "sig": "verify_firstorder: rx8_first_order_filter @0x23B0 ROM-vs-gcc3.4.6-blob OK (0 mismatch)"
+    },
+    {
+      "name": "verify_float_a.py",
+      "exit": 0,
+      "time": 0.14,
+      "mismatch": 0,
+      "sig": "verify_float_a: all float leaves OK (0 mismatch)"
+    },
+    {
+      "name": "verify_float_b.py",
+      "exit": 0,
+      "time": 0.35,
+      "mismatch": 0,
+      "sig": "verify_float_b: all float-family functions OK (0 mismatch)"
+    },
+    {
+      "name": "verify_float_fp16.py",
+      "exit": 0,
+      "time": 3.61,
+      "mismatch": 0,
+      "sig": "verify_float_fp16: fixedPointToFloat_16bit @0x24C0 OK (0 mismatch; ROM == gcc-3.4.6 blob == host C, bit-exact on fr0)"
+    },
+    {
+      "name": "verify_gcc346.py",
+      "exit": 0,
+      "time": 3.99,
+      "mismatch": 0,
+      "sig": "verify_gcc346: all active Lotto-1 functions OK (0 mismatch)"
+    },
+    {
+      "name": "verify_gcc346_fast.py",
+      "exit": 0,
+      "time": 2.02,
+      "mismatch": 0,
+      "sig": "verify_gcc346_fast: all active Lotto-1 functions OK (0 mismatch)"
+    },
+    {
+      "name": "verify_idxtable_all.py",
+      "exit": 0,
+      "time": 0.53,
+      "mismatch": 0,
+      "sig": "verify_idxtable_all: idx_table family @0x68780 (4 reconstructed + clear0/step3 discovered) 0 mismatch"
+    },
+    {
+      "name": "verify_immo_exhaustive.py",
+      "exit": 0,
+      "time": 285.0,
+      "mismatch": 0,
+      "sig": "OK: exhaustive sub-domain equivalent (0 mismatch)"
+    },
+    {
+      "name": "verify_interp16.py",
+      "exit": 0,
+      "time": 0.14,
+      "mismatch": 0,
+      "sig": "verify_interp16: ROM @0x26D0 vs gcc-3.4.6 blob @0x4000 (entry 0x4000), 3000 vectors, 0 mismatches \u2014 OK"
+    },
+    {
+      "name": "verify_interp8.py",
+      "exit": 0,
+      "time": 0.12,
+      "mismatch": 0,
+      "sig": "verify_interp8: ROM @0x26B0 vs gcc-3.4.6 blob @0x4000 (entry 0x4000), 3000 vectors, 0 mismatches \u2014 OK"
+    },
+    {
+      "name": "verify_interp_f32.py",
+      "exit": 0,
+      "time": 0.11,
+      "mismatch": 0,
+      "sig": "verify_interp_f32: ROM @0x2678 vs gcc-3.4.6 blob @0x4000 (entry 0x4000), 3000 vectors, 0 mismatches \u2014 OK"
+    },
+    {
+      "name": "verify_interp_s16.py",
+      "exit": 0,
+      "time": 0.15,
+      "mismatch": 0,
+      "sig": "verify_interp_s16: ROM @0x2690 vs gcc-3.4.6 blob @0x4000 (entry 0x4000), 3000 vectors, 0 mismatches \u2014 OK"
+    },
+    {
+      "name": "verify_interp_s8.py",
+      "exit": 0,
+      "time": 0.12,
+      "mismatch": 0,
+      "sig": "verify_interp_s8: ROM @0x26F4 vs gcc-3.4.6 blob @0x4000 (entry 0x4000), 3000 vectors, 0 mismatches \u2014 OK"
+    },
+    {
+      "name": "verify_invert8.py",
+      "exit": 0,
+      "time": 0.13,
+      "mismatch": 0,
+      "sig": "verify_invert8: all OK (0 mismatch; post-call RAM untouched on both sides)"
+    },
+    {
+      "name": "verify_mathprims.py",
+      "exit": 0,
+      "time": 0.37,
+      "mismatch": 0,
+      "sig": "verify_mathprims: rx8_math_primitives_2490 family OK (0 mismatch, era-ROM blob == ROM bytes)"
+    },
+    {
+      "name": "verify_memcpy.py",
+      "exit": 0,
+      "time": 0.73,
+      "mismatch": 0,
+      "sig": "verify_memcpy: all OK (0 mismatch; post-call RAM identical on both sides, dst copied exactly, no overrun, src/guards untouched)"
+    },
+    {
+      "name": "verify_mod32.py",
+      "exit": 0,
+      "time": 0.77,
+      "mismatch": 0,
+      "sig": "verify_mod32: rx8_mod32_signed @0x4144 OK (0 mismatch; ROM == gcc-3.4.6 blob == host oracle)"
+    },
+    {
+      "name": "verify_q4740.py",
+      "exit": 0,
+      "time": 0.46,
+      "mismatch": 0,
+      "sig": "OK  verify_q4740  bit-exact Python model == emulated ROM @0x4740  (3000 random + 32 edge)"
+    },
+    {
+      "name": "verify_saturates2.py",
+      "exit": 0,
+      "time": 0.59,
+      "mismatch": 0,
+      "sig": "verify_saturates2: all saturate/clamp/min/max functions OK (0 mismatch)"
+    },
+    {
+      "name": "verify_setregbit.py",
+      "exit": 0,
+      "time": 0.18,
+      "mismatch": 0,
+      "sig": "verify_setregbit: all OK (0 mismatch; ROM==blob==expected semantics; post-call RAM touched only at the cell)"
+    },
+    {
+      "name": "verify_shifts2.py",
+      "exit": 0,
+      "time": 0.07,
+      "mismatch": 0,
+      "sig": "verify_shifts2: all new shift-family functions OK (0 mismatch)"
+    }
+  ],
+  "total_functions": 48,
+  "total_vectors": 551536,
+  "total_mismatch": 0,
+  "routines": [
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_add_s32_saturate",
+      "addr": 8964,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_immo_seed_mixer",
+      "addr": 222904,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_add16bit_saturate",
+      "addr": 9312,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_add_saturate_8bit",
+      "addr": 9336,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_multiply32_saturating",
+      "addr": 8988,
+      "n": 20000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_complement_shift_u16",
+      "addr": 9264,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_complement_shift_u32",
+      "addr": 9280,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_index_table_clear",
+      "addr": 427904,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_index_table_step",
+      "addr": 427932,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_index_table_step2",
+      "addr": 427976,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_index_table_dec",
+      "addr": 428020,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_div32_signed",
+      "addr": 16360,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_div32_unsigned",
+      "addr": 16540,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_shift_left_logical",
+      "addr": 17160,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_shift_right_arithmetic",
+      "addr": 17352,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_shift_right_logical",
+      "addr": 17632,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_14funcs.py",
+      "name": "rx8_shift_right_8",
+      "addr": 18042,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_invert_and_return_8bit",
+      "addr": 8260,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_delay_loop_n8",
+      "addr": 9116,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_mod32_signed",
+      "addr": 16708,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_set_register_reg_bit_val",
+      "addr": 19388,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_interpolate_u16_table",
+      "addr": 9936,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "fuzz_l2.py",
+      "name": "rx8_data_lookup",
+      "addr": 9764,
+      "n": 50000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_10A88.py",
+      "name": "calc_manifold_pressure_error_diff_10A88",
+      "addr": 68232,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_bitfield.py",
+      "name": "rx8_bitfield_extract_merge",
+      "addr": 18632,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_bytepack.py",
+      "name": "rx8_bytepack8",
+      "addr": 348926,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_bytepack.py",
+      "name": "rx8_bytepack16",
+      "addr": 348940,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_checksum.py",
+      "name": "rx8_checksum_complement_add",
+      "addr": 8244,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_complement_exhaustive.py",
+      "name": "rx8_complement_shift_u8",
+      "addr": 9248,
+      "n": 65536,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_firstorder.py",
+      "name": "rx8_first_order_filter",
+      "addr": 9136,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_a.py",
+      "name": "rx8_min_value",
+      "addr": 9204,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_a.py",
+      "name": "rx8_saturate",
+      "addr": 9220,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_b.py",
+      "name": "rx8_saturate_low",
+      "addr": 9188,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_b.py",
+      "name": "rx8_subtract_absolute",
+      "addr": 9180,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_b.py",
+      "name": "rx8_float_to_int",
+      "addr": 9424,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_float_fp16.py",
+      "name": "rx8_fixed_point_to_float_16bit",
+      "addr": 9408,
+      "n": 20000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_idxtable_all.py",
+      "name": "rx8_index_table_clear0_wrapper",
+      "addr": 427892,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_idxtable_all.py",
+      "name": "rx8_index_table_step3",
+      "addr": 428064,
+      "n": 5000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_interp8.py",
+      "name": "rx8_interpolate_u8_table",
+      "addr": 9904,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_interp_f32.py",
+      "name": "rx8_interpolate_f32_table",
+      "addr": 9848,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_interp_s16.py",
+      "name": "rx8_interpolate_s16_table",
+      "addr": 9872,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_interp_s8.py",
+      "name": "rx8_interpolate_s8_table",
+      "addr": 9972,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_mathprims.py",
+      "name": "rx8_float_to_fixed_16bit",
+      "addr": 9360,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_mathprims.py",
+      "name": "rx8_fixed_point_to_float_8bit",
+      "addr": 9472,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_mathprims.py",
+      "name": "rx8_fixed_point_scaling",
+      "addr": 9488,
+      "n": 4000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_memcpy.py",
+      "name": "rx8_memcpy_bytewise",
+      "addr": 17072,
+      "n": 3000,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_q4740.py",
+      "name": "verify_q4740.py",
+      "addr": null,
+      "n": 0,
+      "mismatch": 0
+    },
+    {
+      "file": "verify_saturates2.py",
+      "name": "rx8_math_min_max_49ed0",
+      "addr": 302800,
+      "n": 4000,
+      "mismatch": 0
+    }
+  ]
+}

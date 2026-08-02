@@ -22,7 +22,11 @@ def s32(x): x &= MASK; return x - (1 << 32) if x & 0x80000000 else x
 def s16(x): x &= 0xFFFF; return x - (1 << 16) if x & 0x8000 else x
 def s8(x):  x &= 0xFF;   return x - (1 << 8) if x & 0x80 else x
 def ts(x):  # round a Python float to IEEE-754 single precision
-    return struct.unpack('>f', struct.pack('>f', x))[0]
+    try:
+        return struct.unpack('>f', struct.pack('>f', x))[0]
+    except OverflowError:
+        # IEEE-754 round-to-nearest: double overflow -> single-precision +/-Inf
+        return float('inf') if x > 0 else float('-inf')
 def f2bits(v): return struct.unpack('>I', struct.pack('>f', ts(v)))[0]
 def bits2f(b): return struct.unpack('>f', struct.pack('>I', b & MASK))[0]
 
@@ -267,7 +271,7 @@ class SH2:
             if nib == 0xC:                                          # cmp/str Rm,Rn
                 x = r[m] ^ r[n]; y = (x - 0x01010101) & MASK; y &= (~x) & MASK
                 self.T = 1 if (y & 0x80808080) else 0; return
-            if nib == 0xD: r[n] = ((r[n] << 16) | (r[m] >> 16)) & MASK; return  # xtrct
+            if nib == 0xD: r[n] = ((r[m] << 16) | (r[n] >> 16)) & MASK; return  # xtrct
             if nib == 0x7:                                          # div0s Rm,Rn
                 self._Q = (r[n] >> 31) & 1; self._M = (r[m] >> 31) & 1
                 self.T = self._Q ^ self._M; return
@@ -351,7 +355,17 @@ class SH2:
                 if m == 0x0: f[n] = bits2f(self.fpul); return       # fsts FPUL,FRn
                 if m == 0x1: self.fpul = f2bits(f[n]); return       # flds FRn,FPUL
                 if m == 0x2: f[n] = ts(float(s32(self.fpul))); return  # float FPUL,FRn
-                if m == 0x3: self.fpul = int(f[n]) & MASK; return   # ftrc FRn,FPUL (trunc)
+                if m == 0x3:                                        # ftrc FRn,FPUL (trunc)
+                    v = f[n]
+                    if v != v:                      # NaN -> undefined; SH-2 hardware gives 0x80000000
+                        self.fpul = 0x80000000
+                    elif v >= 2147483648.0:         # positive overflow -> saturate
+                        self.fpul = 0x7FFFFFFF
+                    elif v < -2147483648.0:         # negative overflow -> saturate
+                        self.fpul = 0x80000000
+                    else:
+                        self.fpul = int(v) & MASK
+                    return
                 if m == 0x4: f[n] = -f[n]; return                   # fneg
                 if m == 0x5: f[n] = abs(f[n]); return               # fabs
                 if m == 0x6: f[n] = ts(f[n] ** 0.5); return         # fsqrt

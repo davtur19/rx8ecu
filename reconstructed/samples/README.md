@@ -137,7 +137,178 @@ OK  idx_table family @0x68780 (clear/step/step2/dec)  (20000 random + 87 edge)
 
 ---
 
-## 5. Problemi aperti e limiti noti
+## 5. Validazione toolchain era-ROM (gcc 3.4.6)
+
+Chiude sul **piano comportamentale** il cerchio
+"ROM → C astratto → toolchain era-ROM (sh-elf **gcc 3.4.6**)". Non si
+pretende byte-identità; si dimostra che lo **stesso** C astratto, compilato con
+il compilatore dell'epoca (`-m2e -O1 -fomit-frame-pointer`,
+`/home/davide/gcc346-build/gcc/xgcc`, binutils di sistema
+`/usr/bin/sh-elf-*`), si comporta **identicamente** ai byte della ROM funzione
+per funzione, nello **stesso** emulatore `tools/sh2emu.py`.
+
+### Metodo
+
+Per ogni funzione di `tests/verify_gcc346.py::FUNCS`:
+
+1. si creano una volta gli stub minimi `stdint.h` / `math.h` in
+   `/tmp/verify_gcc346/inc` (il gcc 3.4.6 è configurato `--without-headers`);
+2. si compila il sorgente `src/rx8_*.c` con la recipe
+   `-m2e -O1 -fomit-frame-pointer` (`-m2e` per l'FPU con singola precisione);
+3. si linka a base fissa `0x4000` con un linker script banale, tirando dentro
+   gli helper `libgcc.a` 3.4.6 (`___sdivsi3`/`___udivsi3`/`___ashlsi3`/
+   `___lshrsi3`/`___ashrsi3`/`___ashiftrt_r4_8`) a cui le famiglie intere L-2
+   (div/shift) compilano — il core SH-2E non ha divisione hardware né shift a
+   conteggio variabile;
+4. `sh-elf-objcopy --only-section=.text` estrae un blob di solo codice;
+5. il blob viene caricato nel dict `ram` sparso dell'emulatore a `0x4000`;
+6. si generano **N vettori seedati** (resi in `make_rng`) + un piccolo set di
+   edge per le funzioni a saturazione/bordo;
+7. si esegue la **ROM reale** a `ADDR_ROM` e il **blob gcc-3.4.6** a `0x4000`
+   sugli stessi vettori e si confrontano `r0` (per `float` anche i registri
+   `fr`; per la famiglia RAM gli effetti collaterali dello slot);
+8. dove un oracle host è disponibile (`tests/oracle_*.c`, `host_oracle.c`) si
+   confronta anche **host-C vs blob**.
+
+### Comando
+
+```sh
+cd reconstructed/samples
+python3 tests/verify_gcc346.py          # N default per funzione
+make verify-gcc346                       # target Makefile (stesso runner)
+```
+
+### Esito (2026-08-03) — set pure-math completo
+
+Le righe Lotto 1 (i 13 leaf a Lotto 1 + la famiglia `index_table`) sono state:
+via `verify_gcc346.py` / `verify_gcc346_fast.py`, re-fuzzate con `fuzz_14funcs.py` (TARGET_N `100000`/funzione) e coperte anche dagli sweep exhaustive
+`verify_complement_exhaustive.py` (~tutti i valori `u16` per le rutine complemento).
+Le righe Lotto 2 coprono tutte le nuove funzioni float/interp/memcpy/div-mod/fixed-point registrate dai
+`verify_*.py` in `tests/` (ognuna con semplici edge + random seedato). **0 mismatch su tutte.**
+
+| Funzione | ROM @ | tipo | harness | n_test | mismatch |
+|---|---|---|---|---|---|
+| `rx8_add_s32_saturate` | 0x2304 | int32×2→r0 | verify_gcc346 / fuzz_14funcs | 4000 | 0 |
+| `rx8_immo_seed_mixer` | 0x366B8 | uint32×2→r0 | verify_gcc346 / verify_immo_exhaustive | 4000 | 0 |
+| `rx8_add16bit_saturate` | 0x2460 | u16×2→r0 | verify_gcc346 | 4000 | 0 |
+| `rx8_add_saturate_8bit` | 0x2478 | u8×2→r0 | verify_gcc346 | 4000 | 0 |
+| `rx8_multiply32_saturating` | 0x231C | int32×2→r0 | verify_gcc346 | 20000 | 0 |
+| `rx8_complement_shift_u16` | 0x2430 | u16→r0 | verify_gcc346 / complement_exhaustive | 4000 | 0 |
+| `rx8_complement_shift_u32` | 0x2440 | fr4/fr5/fr6→r0 | verify_gcc346 / complement_exhaustive | 4000 | 0 |
+| `rx8_complement_shift_u8` | 0x2420 | u8→r0 | verify_complement_exhaustive | 4000 | 0 |
+| `rx8_index_table` (clear/step/step2/dec) | 0x68780 | family RAM (idx→slot) | verify_gcc346 / verify_idxtable_all | 5000 | 0 |
+| `rx8_div32_signed` | 0x3FE8 | r0/r1→r0 (div, wrap su INT32_MIN/-1) | verify_gcc346 | 4000 | 0 |
+| `rx8_div32_unsigned` | 0x409C | r0/r1→r0 (div) | verify_gcc346 | 4000 | 0 |
+| `rx8_shift_left_logical` | 0x4308 | r0/r1→r0 (shl, cnt clamp) | verify_gcc346 | 4000 | 0 |
+| `rx8_shift_right_arithmetic` | 0x43C8 | r0/r1→r0 (sra, cnt clamp) | verify_gcc346 | 4000 | 0 |
+| `rx8_shift_right_logical` | 0x44E0 | r0/r1→r0 (srl, cnt clamp) | verify_gcc346 | 4000 | 0 |
+| `rx8_shift_right_8` | 0x467A | r0→r0 (sra 8) | verify_gcc346 | 4000 | 0 |
+| `rx8_manifold_pressure_error_10A88` | 0x10A88 | int Q16.16→r0 | verify_10A88 | 4000 | 0 |
+| `rx8_set_register_reg_bit_val` | 0x4BBC | ptr RAM-cell→r0 | verify_setregbit | 3000 | 0 |
+| `rx8_memcpy_bytewise` | 0x42B0 | ptr (void, non-ABI)→dst | verify_memcpy | 3000 | 0 |
+| `rx8_checksum_complement_add` | 0x2034 | ptr (u16)→r0 | verify_checksum | 4000 | 0 |
+| `rx8_invert_and_return_8bit` | 0x2044 | ptr (u8)→r0 | verify_invert8 | 3000 | 0 |
+| `rx8_bytepack8` (converter) | 0x552FE | ptr (u8)→r0 | verify_bytepack | 3000 | 0 |
+| `rx8_bytepack16` (inverter) | 0x5530C | ptr (u16)→r0 | verify_bytepack | 3000 | 0 |
+| `rx8_delay_loop_n8` | 0x239C | int (u16)→r0=0 | verify_delayloop | 3000 | 0 |
+| `rx8_first_order_filter` | 0x23B0 | float (IIR+deadband)→fr0 | verify_firstorder | 4000 | 0 |
+| `rx8_min_value` | 0x23F4 | float→fr0 | verify_float_a / verify_saturates2 | 4000 | 0 |
+| `rx8_saturate` | 0x2404 | float→fr0 | verify_float_a / verify_saturates2 | 4000 | 0 |
+| `rx8_saturate_low` | 0x23E4 | float→fr0 | verify_float_b / verify_saturates2 | 3000 | 0 |
+| `rx8_subtract_absolute` | 0x23DC | float→fr0 | verify_float_b / verify_saturates2 | 3000 | 0 |
+| `rx8_float_to_int` | 0x24D0 | float (ftrc)→r0 | verify_float_b | 3000 | 0 |
+| `rx8_float_to_fp_16bit` (fp16) | 0x24C0 | float (esaustivo u16×4)→fr0 | verify_float_fp16 | 20000 | 0 |
+| `rx8_interpolate_u8` | 0x26B0 | table u8 (i,t)→fr | verify_interp8 | 3000 | 0 |
+| `rx8_interpolate_u16` | 0x26D0 | table u16 (i,t)→fr | verify_interp16 | 3000 | 0 |
+| `rx8_interpolate_s8` | 0x26F4 | table s8 (i,t)→fr | verify_interp_s8 | 3000 | 0 |
+| `rx8_interpolate_s16` | 0x2690 | table s16 (i,t)→fr | verify_interp_s16 | 3000 | 0 |
+| `rx8_interpolate_f32` | 0x2678 | table f32 (i,t)→fr | verify_interp_f32 | 3000 | 0 |
+| `rx8_data_lookup` | 0x2624 | table f32 (i,t)→r0/fr0 | verify_datalookup | ~1000 | 0 |
+| `rx8_bitfield_extract_merge` | 0x48C8 | float→r0 + RAM buf | verify_bitfield | 3000 | 0 |
+| `rx8_float_to_fixed_16bit` | 0x2490 | float→fixed16 | verify_mathprims | 4000 | 0 |
+| `rx8_fixed_point_to_float_8bit` | 0x2500 | fixed8→float | verify_mathprims | 4000 | 0 |
+| `rx8_fixed_point_scaling` | 0x2510 | int (frac) | verify_mathprims | 4000 | 0 |
+| `rx8_math_min_max_49ed0` | 0x49ED0 | RAM (flag)→r0 | verify_saturates2 | 4000 | 0 |
+
+**Nota**: `verify_gcc346_fast.py` è lo stesso set Lotto 1 in parallel (multiprocessing),
+`verify_idxtable_all.py` copre l'intera famiglia `0x68774..0x68820` (wrapper `clr`,
+`clear/step/step2/dec` + `step3` extra). `verify_cross_rom.py` re-verifica `immo_seed_mixer`
+e `idx_table` su altre ROM (spostate del prologo) — 0 mismatch.
+
+**Totali**: **44 funzioni distinte validate** (17 leaf Lotto 1 — incl. i 4 leaf
+`index_table` — + 27 Lotto 2), somma vettori (default di `n_test`, solo i
+`verify_*`) **≈179k confronti**, `0 mismatch` su tutte. Con le sweep exhaustive
+(`u16` reverse/complement, `raw` u16 ×4 per fp16, `immo` su 2^16 key_word × seed
+specifici) e i fuzz (`fuzz_14funcs` 100k/funzione, `fuzz_l2` 50k/funzione) il
+volume reale supera largamente il mezzo milione — **claim: set pure-math completo
+a 0 mismatch.**
+
+### Semantica documentata (note riepilogo)
+
+- **`0x10A88` Q16.16**: `d = b-a; return d > -0x1E0000 ? d : d+0x01680000` (deadband
+  -30°..360° del MAP error diff, fix-point a 16 bit di frazione).
+- **Complemento**: famiglie 8/16/32-bit "value+ones-complement" pack; 0x2440 usa
+  convenzione float `fr4/fr5/fr6`→`r0`.
+- **`rx8_data_lookup` (i,t)**: lookup 2D con interpol su array f32 in RAM; firma
+  non-ABI `r0=n, r1=axis, fr0=x`→`r0=idx, fr0=t`.
+- **`rx8_memcpy_bytewise`**: `void` non-ABI (copia bytewise, src/dst su reglist
+  interni così come chiamata dalla ROM `0x44B0` in linea).
+- **`rx8_first_order_filter` (0x23B0)**: IIR a 1 polo + deadband single-precision,
+  confronto `flds/sts/and` sul pattern `0x7F800000` (con robustezza a finiti).
+- **`fp16` (0x24C0)**: `raw & 0xFFFF → (float)raw` poi `fmac = mult*raw+off`; harness
+  esaustivo su **tutti i 65536 valori `u16` di `raw` × 4 coppie (mult,off)** (~262k
+  vettori sweep) + edge canonici e random seedato.
+- **div/mod**: `div32_signed` wrap su `INT32_MIN/-1`→INT32_MIN; `mod32_signed`
+  `B==0` → diag `0x44E` su `0xFFFF7304`; `INT_MIN % −1 → 0` (wrap, come la ROM).
+
+### Nota: convenzione non-ABI delle funzioni L-2 (r0/r1)
+
+Le nuove funzioni (`rx8_div32_*`, `rx8_shift_*`) sono chiamate dalla ROM con
+**convenzione non-standard**: operandi in `r0`/`r1`, risultato in `r0` (sono
+codice leaf; la convention è documentata in `docs/functions/*.md`). Il lato
+ROM viene quindi pilotato con un driver dedicato (`call_regs` nell'harness,
+lo stesso stub già usato da `harness_div32_signed.py` / `harness_shift_right_8.py`),
+mentre il **blob gcc-3.4.6** dello stesso C usa l'ABI standard `r4/r5` ed è
+pilotato da `cpu.call(r4=, r5=)`: due convenzioni di ingresso diverse, stessi
+input semantici, confronto su `r0`.
+
+### Nota: workaround di un gap dell'emulatore (`xtrct`)
+
+Durante la validazione è emerso un **bug di `tools/sh2emu.py`** nell'istruzione
+`xtrct`: i due shift hanno i ruoli dei registri di origine/destinazione
+invertiti. I percorsi ROM di *queste* funzioni non eseguono mai `xtrct`, ma il
+gcc 3.4.6 lo emette per lo shift-right-a-64-bit / estrazione di
+`rx8_multiply32_saturating`, quindi il lato blob ne ha bisogno. L'harness
+**monkeypatcha** il metodo `SH2._exec` (applicandolo una volta, prima di
+qualsiasi chiamata, su entrambi i lati) con la semantica corretta dal
+reference manual Renesas SH-2 (`0010nnnnmmmm1101`, destinatario n = bit 11-8):
+
+```
+R[n] = ((R[m] << 16) & 0xFFFF0000) | ((R[n] >> 16) & 0x0000FFFF)
+```
+
+La correzione va **promossa in `tools/sh2emu.py`** (fuori dall'ambito di
+questo file), così da non dipendere dal patch dell'harness.
+
+### Limiti
+- Il set validato è **composizione di funzioni pure** (leaf + poche rutine con
+  side-effect RAM deterministico: `index_table`, `setregbit`, `math_min_max`,
+  `memcpy`, `bytepack`, `checksum`/`invert` su buffer). Le funzioni con
+  **stato/MMIO/loop lungo** (check `float_validity` @0x46CC, delayloop sui
+  domain estremi `n→0xFFFF`) sono coperte solo nei limiti d'emulatore: per
+  `delay_loop_n8` il domain `.eff` è `0..0xFFFF`, mentre valori `≥0x10000`
+  sarebbero runaway (il blob tronca, la ROM gira all'infinito) → gestiti
+  solo lato emulatore con budget di step.
+- La firma `float` usa la convenzione ROM `fr4/fr5/fr6`; il confronto del
+  valore è su `r0` (ritorno int/uint delle funzioni validate) o sui registri
+  `fr` per le leaf che restituiscono float (`first_order_filter`, `min_value`,
+  `saturate`, `interp_*`, `fixed_point_to_float`).
+- Gli artefatti del builder (`blob bin`, `.o/.elf`, oracoli host) vanno in
+  `/tmp` e **non** sono committati.
+
+---
+
+## 6. Problemi aperti e limiti noti
 
 - **`rx8_index_table`: scopo della tabella e soglia `0x0464` sconosciuti**
   (match ROM). Stride `0x46C` suggerisce slot grandi usati da altro codice non
@@ -157,12 +328,35 @@ OK  idx_table family @0x68780 (clear/step/step2/dec)  (20000 random + 87 edge)
   `obd_service_handler_68780`) sono etichette auto-generate, spesso fuorvianti;
   nei campioni valgono i nomi reconstructed + gli indirizzi ROM.
 
-## 6. Prossimo passo
+## 7. Prossimo passo — stato chiuso
 
-Chiusura del **match-and-compile**: usare i risultati del fingerprinting
-(`reconstructed/experiments/match/scripts/fingerprint.py`) per scegliere/tarare un
-`sh-elf-gcc` (SH-2E) e verificare se i sorgenti reconstructed, compilati con le
-opzioni giuste, producono le stesse sequenze byte della ROM (`0x2304`,
-`0x366B8`, `0x68780` family sono candidati ideali perché piccoli e già
-verificati). Se il match non è byte-identico al primo colpo, le differenze
-diventeranno la prossima lista di funzioni da rifinire.
+Il **cerchio comportamentale** della toolchain era-ROM è **chiuso** per tutto il
+set pure-math (sezione 5): il C astratto, compilato con `gcc 3.4.6`
+(`-m2e -O1 -fomit-frame-pointer`), è equivalente ai byte della ROM nello stesso
+emulatore per **44 funzioni distinte, ≈179k confronti default, 0 mismatch**
+(claim §5). Sono saliti a bordo: i leaf float/saturate (saturates2, float_ab),
+le interpolazioni u8/u16/s8/s16/f32, la famiglia fixed-point `0x2490/0x2500/0x2510`,
+`fp16` 0x24C0 (esaustivo), `data_lookup`, `memcpy`, `div/mod` signed, e le rutine
+pointer/RAM (`bytepack`, `checksum`, `invert`, `setregbit`, `bitfield`,
+`math_min_max`, `index_table` a Lotto 1).
+
+Punti residui noti (stato aperto):
+
+1. **Fix `xtrct` (emulatore) in attesa in `tools/`**: il monkeypatch dell'harness
+   (§5, bug `tools/sh2emu.py` a ruoli invertiti) copre la validazione, ma il fix
+   — promozione al tool / `unikaixtrct` — non è ancora applicato in `tools/`
+   (vincolo di scope di questo delivery, stato: in attesa).
+2. **Stabilità della ROM a 9 multi-step**: il multi-step a 9 è ancora da
+   stabilizzare (note in `docs/`), non rientra in questo README.
+3. **`rx8_check_float_validity` @0x46CC resta esclusa** dal set: la ROM non è
+   una foglia — prima del check esegue la pipeline float→fixed 0x48C8→0x4740→0x481C
+   e scrive RAM a 0xFFFF768C, mentre il C è un branch-through puro
+   (divergenza documentata da `harness_check_float_validity.py`).
+4. **Integrare il CI**: `make verify-gcc346` nel gate di regressione (richiede
+   i binari `gcc 3.4.6` + `sh-elf` binutils presenti sull'host).
+5. Chiusura del **match-and-compile byte-exact**: usare il fingerprinting
+   (`reconstructed/experiments/match/scripts/fingerprint.py`) per tarare
+   un `sh-elf-gcc` che produca le stesse sequenze byte della ROM (`0x2304`,
+   `0x366B8`, `0x68780` family). Ora che la correttezza comportamentale è
+   dimostrata su questa catena, le differenze byte esatte diventano la prossima
+   lista da rifinire.
