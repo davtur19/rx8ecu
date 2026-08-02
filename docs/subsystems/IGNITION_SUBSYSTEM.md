@@ -672,6 +672,8 @@ If conditions not met (cold start, overrun, knock), both plugs fire at the same 
 
 **Confidence: medium** — conditions identified, exact table computation needs more analysis.
 
+> **NOTA (verificata, provenienza emulatore):** Split site `0x19220` (`calc_spark_lead_trail_split_19220`, chiamato da `engineControlCalculateTiming` @0x14584 dispatch 0x147D0): A9A0=leading, A9AC=trailing (selector @0xBCEF: 1/3→byte 0x6ED98/0x6ED99 costante=126 *0.5-50; 2→ThreeD(desc 0x69F14 TrailingA); 0→ThreeD(desc 0x69EF8 TrailingB)), minSplit=ThreeD(desc 0x69F30 MinSplit, load, RPM); A9A8=max(A9A0,A9AC); A9A4=A9A8+minSplit; A9C0=(lead>trail)?0:1. NOTA: alcuni doc vecchi chiamano "dwell" il desc 0x69F30 (MinSplit) — il nome corretto è MinSplit (verificato emulatore), dwell va ancora identificato.
+
 ---
 
 ### 4.15 `load_based_spark_mapper` (0x1BA2C) — Load-Dependent Advance
