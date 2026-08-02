@@ -643,7 +643,7 @@ addr,end,name,source,flag
 0x0190A6,0x019102,engine_load_estimator,ida-ai,
 0x01913C,0x019190,air_fuel_ratio_feedback_calc,ida-ai,
 0x019190,0x0191E2,air_charge_calc_0x19190,ida-ai,
-0x019220,0x01940E,air_temp_comp_multivar_calc,ida-ai,
+0x019220,0x01940E,calc_spark_lead_trail_split_19220,c-lift,
 0x019420,0x019450,system_state_clear_all,ida-ai,
 0x019450,0x019480,system_state_clear_dup,ida-ai,
 0x019480,0x0197B8,exhaust_oxygen_control_19480,ida-ai,

@@ -126,13 +126,15 @@ Below is the complete descriptor catalog, grouped by functional region:
 | 0x698D0 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6E1D4 | Ignition 1 |
 | 0x698EC | 2D | 4×3 | f32 | — | — | 0x6E358 | Ignition Leading 5 |
 | 0x69900 | 2D | 4×3 | f32 | — | — | 0x6E3A4 | Ignition Minimum Maybe |
-| 0x69C60 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6EEEC | Ignition Trailing B |
-| 0x69C7C | 2D | 20×18 | u8 | 0.5 | -50 | 0x6F0EC | Ignition Trailing A |
-| 0x69C98 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6F2EC | Ignition Min Split |
+| 0x69EF8 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6EEEC | Ignition Trailing B |
+| 0x69F14 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6F0EC | Ignition Trailing A |
+| 0x69F30 | 2D | 20×18 | u8 | 0.5 | -50 | 0x6F2EC | Ignition Min Split |
 | 0x69CB4 | 2D | 19×11 | f32 | — | — | 0x6F4CC | Ignition 3 |
 | 0x69CC8 | 1D | 12 | u8 | 0.5 | -50 | 0x6F78C | Ignition 4 |
 | 0x69CF0 | 1D | 12 | u8 | 0.5 | -50 | 0x6F7D0 | Ignition 6 |
 | 0x69BF28 | 2D | 9×9 | f32 | — | — | 0x7CB20 | Ignition Dwell Time_ |
+
+> **Nota (verificata):** Descriptori verificati via emulatore da `calc_spark_lead_trail_split_0x19220` (0 mismatch/500k): TrailingB=desc 0x69EF8, TrailingA=desc 0x69F14, MinSplit=desc 0x69F30; i desc riferiti nel passato 0x69C60/0x69C7C/0x69C98 non sono usati da 0x19220 (verificare eventuali altri riferimenti).
 
 ### 3.2 Fuel System Descriptors (0x69E2C–0x6A580)
 
@@ -527,9 +529,9 @@ All **MEDIUM confidence** from the 50-table analysis report.
 | 0x6E1D4 | Ignition 1 (Trailing) | 0x698D0 | Alt trailing map |
 | 0x6D948 | Ignition Leading Base - Safe Mode | 0x69844 | Safe mode leading |
 | 0x6DFD4 | Ignition 0 - Safe Mode | 0x698B4 | Safe mode trailing |
-| 0x6EEEC | **Ignition Trailing B** | 0x69C60 | Secondary trailing |
-| 0x6F0EC | **Ignition Trailing A** | 0x69C7C | Primary trailing |
-| 0x6F2EC | **Ignition Min Split** | 0x69C98 | Min trailing/leading split |
+| 0x6EEEC | **Ignition Trailing B** | 0x69EF8 | Secondary trailing |
+| 0x6F0EC | **Ignition Trailing A** | 0x69F14 | Primary trailing |
+| 0x6F2EC | **Ignition Min Split** | 0x69F30 | Min trailing/leading split |
 
 #### Small Ignition Tables
 | Address | Name | Dims | Descriptor |
