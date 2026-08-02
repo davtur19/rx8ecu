@@ -5,10 +5,10 @@ complete view of the assembly: every function, who calls it, and its subsystem.
 
 ## Coverage
 
-- **3459 functions** total in the symbol table (code region fully segmented).
-- **931 hand-named by equinox** (reliable) + 2528 Ghidra-auto (`FUN_*`, generic).
-- **6953 call edges** resolved (758 bsr-direct, 6195 pooled `jsr` targets).
-- **171/931 equinox functions documented** in `docs/functions/` (18%).
+- **2789 functions** total in the symbol table (code region fully segmented).
+- **0 hand-named by equinox** (reliable) + 2789 Ghidra-auto (`FUN_*`, generic).
+- **5040 call edges** resolved (520 bsr-direct, 4520 pooled `jsr` targets).
+- **0/0 equinox functions documented** in `docs/functions/` (0%).
 - Edge list: `symbols/callgraph.csv`.
 
 ## Core primitives — most-called functions (hubs)
@@ -17,48 +17,39 @@ These are called from the most places, so naming/verifying them explains the mos
 
 | callers | addr | name | source |
 |--:|---|---|---|
-| 189 | 0x3934 | setSR | ghidra-hand |
-| 188 | 0x3920 | getSR | ghidra-hand |
-| 174 | 0x2460 | add16bitSaturate_ADD1_ADD2 | ghidra-hand |
-| 153 | 0x2068 | 2DLookup | ghidra-hand |
-| 145 | 0x3E1F8 | updateMemoryAtAddress_8bit_ADDR_VAL | ghidra-hand |
-| 129 | 0x3E0DC | readValue_8bit_ADDRESS_VAL | ghidra-hand |
-| 92 | 0x3E1AA | readValue_float_DEFAULTVAL_ADDRESS | ghidra-hand |
-| 81 | 0x2054 | setSR_PARAM | ghidra-hand |
-| 78 | 0x2064 | loadStatusRegister_ADDR | ghidra-hand |
-| 78 | 0x652F0 | getFaultStatus?? | ghidra-hand |
-| 75 | 0x23E4 | saturateLow_SIGNAL_LOWERBOUND | ghidra-hand |
-| 74 | 0x2404 | saturate_SIGNAL_LOWER_UPPER | ghidra-hand |
-| 72 | 0x2478 | addSaturate8Bit | ghidra-hand |
-| 70 | 0x23B0 | firstOrderFilter_SIG_SIGPREV_MIN_FF | ghidra-hand |
-| 69 | 0x3E11C | readValue_16bit_ADDRESS_VAL | ghidra-hand |
-| 69 | 0x5E644 | updateFaultStatusTHUNK | ghidra-hand |
-| 65 | 0x2440 | isNotZero_wDivideByZero_Protect | ghidra-hand |
-| 64 | 0x2490 | floatToFP_16bit_NUMBER_SCALAR_OFFSET | ghidra-hand |
-| 63 | 0x3E258 | updateMemoryAtAddress_float_VAL_ADDR | ghidra-hand |
-| 61 | 0x24C0 | fixedPointToFloat_16bit_MULT_OFF_SIG | ghidra-hand |
-| 59 | 0x20DC | 3dLookup | ghidra-hand |
-| 56 | 0x23F4 | minValue | ghidra-hand |
-| 56 | 0x66A14 | setupForUdsResponse | ghidra-hand |
-| 49 | 0x3E29E | validateAddressCopy_8bit_ADDRESS?? | ghidra-hand |
-| 41 | 0x24D0 | floatToInt_SIGNAL_MULT_OFFSET | ghidra-hand |
-| 41 | 0x2500 | fixedPointToFloat_8bit_MULT_OFF_SIG | ghidra-hand |
-| 39 | 0x4BBC | setRegister_REG_BIT_VAL | ghidra-hand |
-| 38 | 0x20C4 | 2DLookup_FP_16bit | ghidra-hand |
-| 38 | 0x52A12 | udsResponseRelated?? | ghidra-hand |
-| 38 | 0x52A5A | udsErrorResponse | ghidra-hand |
+| 167 | 0x2460 | add16bitSaturate_ADD1_ADD2 | ghidra-hand-xmap |
+| 166 | 0x3934 | setSR | ghidra-hand-xmap |
+| 165 | 0x3920 | getSR | ghidra-hand-xmap |
+| 147 | 0x2068 | 2DLookup | ida-ai |
+| 127 | 0x3EE58 | updateMemoryAtAddress_8bit_ADDR_VAL | ghidra-hand-xmap |
+| 121 | 0x3ED3C | readValue_8bit_ADDRESS_VAL | ghidra-hand-xmap |
+| 82 | 0x3EE0A | timing_correction_3EE0A | ida-ai |
+| 77 | 0x6743C | obd_service_handler_6743C | ghidra-hand-xmap |
+| 74 | 0x23E4 | fpu_mul_float | ida-ai |
+| 68 | 0x2054 | setSR_PARAM | ghidra-hand-xmap |
+| 67 | 0x2064 | loadStatusRegister_ADDR | ida-ai |
+| 64 | 0x2404 | fpu_compare_and_select | ida-ai |
+| 64 | 0x2478 | addSaturate8Bit | ghidra-hand-xmap |
+| 63 | 0x23B0 | firstOrderFilter | ida-ai |
+| 58 | 0x23F4 | fpu_sqrt_float | ida-ai |
+| 57 | 0x20DC | 3dLookup | ghidra-hand-xmap |
+| 57 | 0x2440 | complement_shift_u32 | ida-ai |
+| 56 | 0x3EEB8 | cold_start_enrichment_3EEB8 | ida-ai |
+| 49 | 0x24C0 | interp_linear_u16_to_float | ida-ai |
+| 41 | 0x68B60 | fuel_ignition_write_handler_68B60 | ida-ai |
+| 38 | 0x3EEFE | accel_tps_comp_3EEFE | ghidra-hand-xmap |
+| 34 | 0x23DC | fpu_neg_float | ida-ai |
+| 33 | 0x20C4 | fpu_sub_float | ida-ai |
+| 31 | 0x2490 | axis_lookup_float_to_index | ida-ai |
+| 29 | 0x2420 | complement_shift_u8 | ghidra-hand-xmap |
+| 29 | 0x24D0 | axis_lookup_float_to_index_v2 | ida-ai |
+| 29 | 0x4BBC | setRegister_REG_BIT_VAL | ghidra-hand-xmap |
+| 26 | 0x3ED0C | sensor_range_check_3ED0C | ida-ai |
+| 20 | 0x2430 | complement_shift_u16 | ida-ai |
+| 17 | 0x9668 | osTaskScheduler | ghidra-hand-xmap |
 
 ## Subsystems (over equinox's hand names)
 
-- **fuel/injection** — 93 functions
-- **ignition/spark** — 59 functions
-- **air/throttle** — 59 functions
-- **sensors/adc** — 113 functions
-- **idle/oil/emiss** — 25 functions
-- **CAN/comm/UDS** — 149 functions
-- **math/lookup** — 94 functions
-- **sched/init/sys** — 61 functions
-- **other/unclassified** — 278 functions
 
 _Grouping is keyword-based on equinox's labels; a starting index, not ground truth._
 
