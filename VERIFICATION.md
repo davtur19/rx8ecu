@@ -107,14 +107,14 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 | Suite | Command (from repo root) | Result |
 |---|---|---|
 | Host C behavior-equivalence suites | `make c-test` | **26/26 pass** (exit 0; e.g. req_queue 20,512 tests, DTC row-update 22,560 tests, all 0 failures) |
-| Python per-function suites | `for t in c/tests/test_*.py; do python3 "$t"; done` | **115/115 pass** (115 Python suites total: 112 `test_*.py` in `c/tests/` + 2 in `tools/tests/` + `verify_emu.py`; re-run 2026-08-01) |
+| Python per-function suites | `for t in c/tests/test_*.py; do python3 "$t"; done` | **118/118 pass** (118 Python suites total: 115 `test_*.py` in `c/tests/` + 2 in `tools/tests/` + `verify_emu.py`; re-run 2026-08-02) |
 | Emulator cross-check (C lift vs ROM bytes) | `python3 c/tests/verify_emu.py` | **5/5 OK** — add16bitSaturate@0x2460, addSaturate8Bit@0x2478, addS32Saturate@0x2304, seed_mixer@0x366B8, calculateImmoSeed@0x3675C (100k random each) |
 | Disassembler family regression | `python3 tools/tests/test_decode_families.py` | **38,008 checks, 0 failures** (incl. GNU-as 2.46 bulk round-trip on 60E1D400 + 60E0FC00) |
-| Emulator family regression | `python3 tools/tests/test_emulator_families.py` | **73 checks, 0 failures** |
+| Emulator family regression | `python3 tools/tests/test_emulator_families.py` | **83 checks, 0 failures** |
 
 ## 4. Track A / C lifts
 
-- **49 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-01:
+- **107 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-02:
   49 address lines, 288 address tokens) — functions proven
   behavior-equivalent against the emulated ROM (many over 20k–60k+ random
   inputs; the math-primitive cluster and memory accessors over 30k, lookup/
@@ -122,7 +122,7 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 - **Coverage honesty caveat:** ~3.9% of the "covered" words are data markers
   `0x0004`–`0x0007` that decode as instructions (`0x0007` `mul.l r0,r0` ×2427);
   real code coverage is ≈88–91%.
-- **149 C lifts** in `c/*.c` covering: lookup/interp primitives (2D/3D, u8/u16,
+- **160 C lifts** in `c/*.c` covering: lookup/interp primitives (2D/3D, u8/u16,
   FP), the scalar-math cluster (0x2044–0x2510), redundant RAM accessors
   (8/16/32-bit + float, self-heal), RTOS scheduler/context switch, immobilizer/
   SecurityAccess, DTC/OBD handlers, sensors (coolant, IAT, MAP, knock, VSS,
@@ -138,8 +138,8 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 | Calibration table descriptors | `symbols/cal_tables.csv` | 1,210 tables (1,209 land in-ROM) |
 | Call graph edges | `symbols/callgraph.csv` | 6,953 resolved (758 bsr-direct, 6,195 pooled jsr) |
 | Subsystem + overview docs | `docs/subsystems/*.md` | 15 files |
-| Function docs | `docs/functions/*.md` | 193 files |
-| Knowledge / notes (FINDINGS, KNOWLEDGE, RESUME, BOOT_RECOVERY, CONNECTOR_PINOUT, DUMP_ALL, ECU, HARDWARE, CAN_PROTOCOL) | `docs/notes/*.md` | 9 files |
+| Function docs | `docs/functions/*.md` | 194 files |
+| Knowledge / notes (FINDINGS, KNOWLEDGE, RESUME, BOOT_RECOVERY, CONNECTOR_PINOUT, DUMP_ALL, ECU, HARDWARE, CAN_PROTOCOL, COOLING_FANS, LAUNCH_CONTROL_CHECKSUM_GUARD) | `docs/notes/*.md` | 11 files |
 | Hardware notes | `hardware/HARDWARE_NOTES.md` | 1 file |
 
 ## 6. ROM inventory hashes (also in roms/ROMS.md)
