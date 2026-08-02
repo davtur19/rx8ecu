@@ -2,8 +2,8 @@
 <!-- BADGES:START -->
 ![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
 ![Code window](https://img.shields.io/badge/Code%20window-93.6%25%20SH--2%20lift-green)
-![C reimplemented](https://img.shields.io/badge/C%20reimplemented-160%20functions-blue)
-![Emulator-verified](https://img.shields.io/badge/Emulator--verified-107%2F160%20%2867%25%29-yellowgreen)
+![C reimplemented](https://img.shields.io/badge/C%20reimplemented-161%20functions-blue)
+![Emulator-verified](https://img.shields.io/badge/Emulator--verified-107%2F161%20%2866%25%29-yellowgreen)
 ![Calibration tables](https://img.shields.io/badge/Calibration%20tables-1210-blue)
 ![Call graph](https://img.shields.io/badge/Call%20graph-6953%20edges-blue)
 ![Functions mapped](https://img.shields.io/badge/Functions%20mapped-3459-blue)
