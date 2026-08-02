@@ -345,7 +345,7 @@ def test_arith():
     check(cpu.r[4] == 0x80000000 and cpu.T == 1, "negc 0x80000000 -> wrong")
 
     cpu = sub([0x240D, 0x000B], regs={0: 0x12345678, 4: 0xAABBCCDD})
-    check(cpu.r[4] == 0xCCDD1234, "xtrct wrong: 0x%08X" % cpu.r[4])
+    check(cpu.r[4] == 0x5678AABB, "xtrct wrong: 0x%08X" % cpu.r[4])
 
     cpu = sub([0x340E, 0x000B], regs={0: 1, 4: 0xFFFFFFFF})
     check(cpu.r[4] == 0 and cpu.T == 1, "addc carry wrong")

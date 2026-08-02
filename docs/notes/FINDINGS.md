@@ -157,7 +157,7 @@
 - `task_full_context_save` (0x3BF4) — C code written, assembly simulation pending
 
 ### bitfield_extract_merge @ 0x48C8 (60E1D400; identical code in 60E0FC00)
-- frexp-style float decomposition: x = sig * 2^e, sig in [1,2); single caller is checkFloatValidity @0x46CC (call site 0x46D8), which feeds both output words into mul16_signed_saturated @0x4740 as stack args.
+- frexp-style float decomposition: x = sig * 2^e, sig in [1,2); single caller is checkFloatValidity @0x46CC (call site 0x46D8), which feeds both output words into the fixed-point sqrt/normaliser @0x4740 as stack args (the old "mul16_signed_saturated" / "q15 saturating mul" labels on 0x4740 are WRONG — see the 0x4740 entry below).
 - Calling convention: float arg in FR4; result pointer at [r15] pushed by caller in the jsr delay slot (`mov.l r15,@-r15`); writes out[0]=exponent word, out[1]=significand word.
 - out[0]: bit31 = sign (except NaN), low16 = signed exponent; 0x8001 sentinel for 0.0, 0x7FFF saturated for Inf/NaN.
 - out[1]: 24-bit significand << 8 (bit31 = implicit leading 1); 0xFFFFFFFF for NaN, 0 for zero/Inf.
@@ -458,3 +458,97 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   (count-up), not below it. (2) host test seeding must use host-endian
   *(volatile uint16_t*) writes to match the lift, not big-endian byte writes.
   Both caught by the emulator-first workflow.
+
+## fuelingInit @ 0x753C reconstructed + Track-A verified (2026-08-02)
+- New reconstructed sample `reconstructed/samples/src/rx8_fueling_init.c`
+  (deliverables: `tests/oracle_fueling_init.c`, `tests/harness_fueling_init.py`).
+  Verified host-C == emulated ROM for 20000 random + 87 edge vectors, all 49
+  side-effect cells (11 MTU + 38 RAM) bit-exact (`python3 harness_fueling_init.py`).
+- Call chain (all callees run inside the emulated call, tail-call included):
+  0x753C -> bsr 0x076DC crank_timer_hw_reset; bsr 0x07748 crank_vars_init
+  (+ its 0x07B7C leaf); bsr 0x07C00 crank_mode_write; bsr 0x07BA8
+  crank_state_bytes_clear; bsr 0x07C30 crankSensorInit (tail `bra 0x0768C r4=0`
+  when 0xFFFF9F96==1 — never reachable on this path, fuelingInit zeroes the flag
+  first); bsr 0x07ED8 crank_flags_enable; bsr 0x07FB4 crank_counters_reset;
+  tail `bra 0x0808E` crank_output_update (ends in rts). 0x0768C ends in
+  `jmp @u32@0x0000DB60` (mode-function pointer) — the harness never seeds
+  (0xFFFF9FC0==1 AND 0xFFFF9FA3!=2 AND 0xFFFF9F96==1) so the emulator cannot
+  run away through it.
+- ROM constants pinned by harness check_cal (0x0006CF64 u32=0x000FA000,
+  0x0006CF68 u8=0x00, u8@0x0000DA4D=0x00, f32@0x000080FC=10.0f); the two low
+  pages (<mmap_min_addr) are pinned, never dereferenced on the host.
+- Gotcha confirmed: `mov #0xFF,r1` is SIGN-EXTENDED on the SH-2, so the
+  `mov.l r1,@0xFFFF9FB0` at 0x7760 stores 0xFFFFFFFF (not 0x000000FF).
+  My first reconstruction used 0xFFu and the harness caught it — emulator-first
+  workflow worked as intended.
+
+## canSetup @ 0xDC8C reconstructed + Track-A verified (2026-08-02)
+- New reconstructed sample `reconstructed/samples/src/rx8_can_setup.c`
+  (deliverables: `tests/oracle_can_setup.c`, `tests/harness_can_setup.py`).
+  Verified host-C == emulated ROM for 20000 random + 65 edge vectors on the
+  three caller cells (retry counter @0xFFFFA40E, error flags @0xFFFFA410/
+  @0xFFFFA411), 0 mismatches (`python3 harness_can_setup.py`).
+- Caller logic (full disasm 0xDC8C..0xDD2B): resets byte@0xFFFFA40E=0; loop
+  `while counter < 2`: base0 = (byte@0xB5A4==1)?0x4EA60:0x4EB60;
+  CANControllerSetup(0,base0,0x10); canMessageSetup(0,base0,0x10);
+  CANControllerSetup(1,0x4EC60,6); canMessageSetup(1,0x4EC60,6);
+  err=(e0|e1)&0xFF; if err!=0 counter++ (stored), else break. Exit: if
+  counter>=2 byte@0xFFFFA410=1; byte@0xFFFFA411=0 ALWAYS (r1=0 in both paths).
+- Callee facts: CANControllerSetup @0x9878 (writes on-chip MMIO 0xFFFFE400..
+  0xFFFFE6FF, incl. cells canMessageSetup later checks, e.g. E402=0x803E,
+  E404/E414 mailbox-derived); canMessageSetup @0x2B320 reads ALL its MMIO via
+  the sign-extended HIGH aliases 0xFFFFE4xx/0xFFFFE6xx (NOT 0xE4xx) — the
+  harness must seed the high-alias page; canMessageSetup ALWAYS clobbers r6 to
+  1 (unconditional `mov #0x01,r6` in the delay slot of the rts of the first
+  branch @0x2B34E), so its return r7 is 1 on failure.
+- KEY INVARIANT: canMessageSetup's verification never agrees with the config
+  CANControllerSetup derives from the same mailboxes, so the ROM's canSetup
+  ALWAYS ends (2,1,0) — verified 1500/1500 diverse seeds + full edge sweep.
+  The oracle models the two callees as no-op / always-fail stubs (documented
+  in the C header, discrepancy 5); the success path is unreachable under any
+  harness-seedable state.
+- The config byte address 0x0000B5A4 lies below mmap_min_addr (0x10000), so it
+  is passed to the host model as a `config` parameter (same precedent as
+  rx8_task_flag_run_c's 0x4B10 fn-pointer parameter).
+
+## interp-s8 leaf @ 0x26F4 reconstructed + three-arm verified (2026-08-03)
+- New SINT8-cell interpolation leaf reconstructed (proposed
+  `samples/src/rx8_interpolate_s8_table.c`, embedded in the new test
+  `tests/verify_interp_s8.py`, written to /tmp only — nothing committed to
+  src/ by the test). ROM @0x26F4 (28 B / 14 instr, pure leaf), the s8 sibling
+  of u8 @0x26B0 / u16 @0x26D0 / s16 @0x2690; TwoDLookup type tag 12.
+- Disasm: `add r0,r1; fldi0 fr2; mov.b @r1+,r0; fcmp/eq fr0,fr2; lds r0,fpul;
+  bt/s rts; float fpul,fr2 (delay); mov.b @r1,r0; lds; float fpul,fr1;
+  fsub fr2,fr1; fmac fr0,fr1,fr2; rts/nop`. Signedness vs u8: NO `extu.b`
+  after `mov.b` (sign-extending byte load) and NO `shll` (byte stride), so
+  -128..-1 cells convert to negative floats. Return convention identical to
+  siblings: ROM r0=i/r1=cells/fr0=t -> fr2 (fr0 preserved for the 2-D
+  callers); gcc-ABI blob r4/r5/fr4 -> fr0.
+- Only real s8 map in 60E1D400.bin: desc@0x6A328, values@0x70C70 ("Table 3D
+  - 27_", 7 cells, all positive 0x10/0x27) — used plus synthetic -128/127/0
+  pattern tables.
+- Verified `python3 tests/verify_interp_s8.py` (and 20000-vector stress):
+  ROM fr2 == gcc-3.4.6 blob fr0 == pure-Python single-rounding oracle,
+  bit-exact, 3000+ vectors, 0 mismatches; fr0_kept asserted per vector.
+  Runs green under `tests/run_all_verify.py` too.
+
+## 0x4740 — sqrt fixed-point (label "q15 saturating mul" errato) (2026-08-03)
+- The disassembler label "q15 saturating mul" on 0x4740 is WRONG: 0x4740 is a
+  fixed-point square-root / normaliser helper, the middle stage of the
+  soft-float chain `frexp @0x48C8 -> 0x4740 -> ldexp @0x481C`, with sole
+  caller `checkFloatValidity @0x46CC`.
+- Stack convention (non-ABI, stack-passed, 2 x 32-bit result buffer):
+  [r15+0]=out ptr, [r15+4]=a0, [r15+8]=a1; writes result[0]=low word and
+  result[1]=high word via the ptr at [r15].
+- Semantics (verified instruction-for-instruction bit-exact against the
+  emulated ROM, 0 mismatches on ~70k vectors): 29-iteration restoring
+  square-root loop on a1 (pre-shift selected by bit0 of a0), 2-bit remainder
+  phase, sticky round-up (r1|=1 if remainder != 0). The closed-form sqrt()
+  matches only ~37% of vectors — the instruction-level semantics is the
+  correct reference, not the algebraic one.
+- Saturation paths: bit31(a0) set -> (0x00007FFF, 0xFFFFFFFF);
+  sext16(a0)>=0x7FFF -> (0x00007FFF, a1!=0 ? 0xFFFFFFFF : 0x00000000);
+  sext16(a0)<=-0x7FFF -> (0x80008001, 0x00000000); main path low word =
+  (sext16(a0)>>1) & 0xFFFF.
+- Harness: `reconstructed/samples/tests/verify_q4740.py` (emulated ROM vs
+  bit-exact Python model, exit 0).

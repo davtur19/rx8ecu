@@ -1,0 +1,40 @@
+# -----------------------------------------------------------------------------
+# fix_xtrct.patch — tools/sh2emu.py: correct XTRCT Rm,Rn register roles.
+#
+# Bug:  tools/sh2emu.py decodes XTRCT Rm,Rn (0010nnnnmmmm1101, n=dest bits
+#       11-8, m=src bits 7-4) but implemented the two 16-bit shifts with the
+#       register roles swapped:
+#           r[n] = (r[n] << 16) | (r[m] >> 16)          <-- WRONG
+#       instead of the Renesas-defined:
+#           r[n] = (r[m] << 16) | (r[n] >> 16)
+#       (XTRCT extracts the middle 32 bits of the coupled 64-bit pair
+#        {Rm:Rn}; SH-2E Software Manual Rev. 2.00 §7.2.68, operation:
+#        temp=(R[m]<<16)&0xFFFF0000; R[n]=(R[n]>>16)&0x0000FFFF; R[n]|=temp).
+#
+# Verified against:
+#   - Renesas SH-2E Software Manual Rev. 2.00, 7.2.68 XTRCT (example:
+#     R0=H'01234567 R1=H'89ABCDEF -> R1=H'456789AB)
+#   - gcc 3.4.6 config/sh/sh.md patterns "xtrct_left"/"xtrct_right"
+#     ("xtrct %1,%0" = (op1<<16) | (op0>>16), op0 == dest)
+#   - the monkeypatch in reconstructed/samples/tests/verify_gcc346.py
+#
+# Apply from the repo root:
+#     patch -p1 < reconstructed/samples/tests/fix_xtrct.patch
+#     # or: git apply reconstructed/samples/tests/fix_xtrct.patch
+#
+# NOTE for the tools/ session: tools/tests/test_emulator_families.py:347-348
+# currently asserts the BUGGY result (0xCCDD1234) and must be updated to
+# 0x5678AABB together with this fix, or `make test` will fail.
+# -----------------------------------------------------------------------------
+diff --git a/tools/sh2emu.py b/tools/sh2emu.py
+--- a/tools/sh2emu.py
++++ b/tools/sh2emu.py
+@@ -267,5 +267,5 @@
+             if nib == 0xC:                                          # cmp/str Rm,Rn
+                 x = r[m] ^ r[n]; y = (x - 0x01010101) & MASK; y &= (~x) & MASK
+                 self.T = 1 if (y & 0x80808080) else 0; return
+-            if nib == 0xD: r[n] = ((r[n] << 16) | (r[m] >> 16)) & MASK; return  # xtrct
++            if nib == 0xD: r[n] = ((r[m] << 16) | (r[n] >> 16)) & MASK; return  # xtrct
+             if nib == 0x7:                                          # div0s Rm,Rn
+                 self._Q = (r[n] >> 31) & 1; self._M = (r[m] >> 31) & 1
+                 self.T = self._Q ^ self._M; return
