@@ -18,7 +18,7 @@ BUILD   := /tmp/opencode/rx8-reconstructed-build
 SRCS := src/rx8_s32_saturate.c src/rx8_immo_seed_mixer.c src/rx8_index_table.c
 OBJS := $(SRCS:src/%.c=$(BUILD)/%.o)
 
-.PHONY: all build test verify clean
+.PHONY: all build test verify verify-gcc346 clean
 
 all: build
 
@@ -38,6 +38,13 @@ test verify: $(BUILD)/host_oracle
 	$(PYTHON) tests/harness_add_s32.py
 	$(PYTHON) tests/harness_seed_mixer.py
 	$(PYTHON) tests/harness_idx_table.py
+
+# Era-ROM toolchain validation: rebuild the reconstructed sources with the
+# archived sh-elf gcc 3.4.6 (-m2e -O1 -fomit-frame-pointer), link the blob at
+# 0x4000 and run ROM-bytes vs gcc-3.4.6-blob in the same emulator (see
+# tests/verify_gcc346.py).  Optional N overrides the per-function vector count.
+verify-gcc346:
+	$(PYTHON) tests/verify_gcc346.py
 
 clean:
 	rm -rf $(BUILD)
