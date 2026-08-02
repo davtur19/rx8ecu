@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **1070 entries, 60.1M.** Regenerated 2026-08-02 for the
+in the working repository. **1072 entries, 60.1M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,22 +9,22 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 256.8K |
+| (root) | 11 | 268.3K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 6 | 893.4K |
 | c/ | 164 | 675.0K |
-| c/tests/ | 144 | 594.6K |
+| c/tests/ | 146 | 607.5K |
 | tools/ | 21 | 171.0K |
 | tools/tests/ | 2 | 37.0K |
-| docs/ | 222 | 1014.8K |
+| docs/ | 222 | 1015.7K |
 | hardware/ | 1 | 2.0K |
 | web/ | 11 | 872.0K |
 | analysis/ | 31 | 9.2M |
 | .github/ | 5 | 16.0K |
 | reconstructed/experiments/match/ | 62 | 142.0K |
 | reconstructed/samples/ | 370 | 2.2M |
-| **Total** | **1070** | 60.1M |
+| **Total** | **1072** | 60.1M |
 
 ## External dependencies
 
@@ -112,8 +112,8 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/symbols_60E0FC00.csv` | `a1d0ceea0cae79bfe42ec890d492d02383605decaf1c9ea5a47758516f592bd5` | 156.8K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_ida.csv` | `3c35db4d19987c945e16df7729c926e3a2696b387b700691bf73985ac2732673` | 140.4K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `448143de22a3f978d22a3fd62195ea3ed820eba6de8dce162928294ef0163b6f` | 142.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `be273edc53051230dbab96bdf1880ea1b343e6491821207f2aab6fb7e97f0120` | 140.4K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `6c6b02df15e7750aacc82c8511aa33269ab4fc3c850ad25912343b29558b2483` | 142.0K | Function symbol table (per-ROM) |
 
 ## c
 
@@ -342,6 +342,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_dtc_debounce_monitor_43760.py` | `bc0e818d3978519385ad2931304e76ed158183d8630e2b174f00e55e06c60602` | 6.0K | Python per-function behavior-equivalence test |
 | `c/tests/test_dtc_handler_610FA.py` | `c5a2cef0c037a4d0df1854fa2adc2dbd4fc2b17b2ae588e56de67f796f506974` | 3.9K | Python per-function behavior-equivalence test |
 | `c/tests/test_dtc_handler_61550.py` | `d98667cbf3bf2ea5034ac307d251c85d53c9f3bc03811b588583e30af9916f81` | 4.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_eeprom_commit_dispatcher_37000.py` | `2547705ed02d686f88a6d2ef607c9a5da7fc4ea993bbad8caa1947ac6ecc0a62` | 6.2K | Tracked file |
 | `c/tests/test_enableDisableCruiseControl.py` | `59db7e7dec7f9877cbd266c667a92db07fbbc703f014ebe7b7fd1de90a6b71f2` | 1.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_flag_setter_49ED0.c` | `a0331aca2cfc4260d8647800299c6b5a7db55c4c9e4088f25687d75d685470f8` | 3.2K | Tracked file |
 | `c/tests/test_flag_setter_49ED0.py` | `4feae0c2e6eea39283b56aded6b1d5416d029e3e04690774b8e038a647354c43` | 2.4K | Tracked file |
@@ -410,6 +411,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_security_access.py` | `8ec7fd87ec82a3dd722d37bf214ea09901ee1d4432cfcc6a426a19c8e9dde62d` | 24.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_sentinel_equality_check_5687A.py` | `b8b2098c0df50cb5443b7dece3a9308bc4e4dfece2b3f621bd414076e3439518` | 2.0K | Tracked file |
 | `c/tests/test_setAlternatorWarningLight.py` | `574567bfad9bcf196af11aeba9f6bf72ecf95b07975cc3c0dab6d45be256c6d5` | 1.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_setImmoCANTXData_369B8.py` | `c90ccadf696f89975baeeba7d51aad7ae572121268dccf66136460747156dbae` | 6.7K | Tracked file |
 | `c/tests/test_setRegister_REG_BIT_VAL.py` | `8f85bea3c8e621feb3327f9f9cfd003c1dae4a4ab290f235c54f7d1885e29d27` | 2.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_setSR_getSR.py` | `f9202e1fa8db4bde87f9848a740ac4083e9ba859f3995ae0a5c3e942d1b51707` | 10.1K | Python per-function behavior-equivalence test |
 | `c/tests/test_shift_left_logical_r0.py` | `0ac0bdd174f41ed52d4acc2c85569a355f49efcdee183df259c7cb01587b9c99` | 3.2K | Python per-function behavior-equivalence test |
@@ -679,12 +681,12 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/notes/RESUME.md` | `32ace9f4bfd8a90dd82cee761ee637ba3662ab9f374d04385f4ce01db40a94c1` | 739B | Project knowledge / session notes |
 | `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `016ab6600c1ccaf7010723637411c4667f408ccdf5f458af9a5a589ca1992a7e` | 47.6K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `55816ec71b7304dac859e1a961daf3b2ad6fe5c0a7a5a83838cdce057ff1522b` | 13.4K | Subsystem / overview documentation |
-| `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `754b959499add7a7cb8a4e9fffff2cb8757b19ae4019fdc7074e775995332fcd` | 48.7K | Subsystem / overview documentation |
+| `docs/subsystems/CALIBRATION_TABLES_CROSS_REFERENCE.md` | `6d82cc7029a8500192b7ed42a9200216259f2f4c88520362b6c795205c7b9a55` | 49.0K | Subsystem / overview documentation |
 | `docs/subsystems/CAN_UDS_SUBSYSTEM.md` | `3002dce7cedd8d058419be037bc01b8bfe4f4ed753c82ef098285f30c30ea664` | 44.3K | Subsystem / overview documentation |
 | `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
 | `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `6639c7037baf21c68edbed25e6c2ab6cce061f2efcc3b9fdea09e0d220d38ae8` | 50.2K | Subsystem / overview documentation |
 | `docs/subsystems/IDA_NAMES.md` | `5a642eff09cb561624a67f9f8ab2fb6a638a033b2821bb0c8319e6fe1de06124` | 3.2K | Subsystem / overview documentation |
-| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `b17312a4a78fca8973501a033e0df685030cf1e67975409b1751bb77a4facbed` | 46.5K | Subsystem / overview documentation |
+| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `e2bc8150235440ee889e909a3d0ddc9ed8ebb0444686ff9c40e9f3db621db899` | 47.1K | Subsystem / overview documentation |
 | `docs/subsystems/MAPS.md` | `e4c035a3991b1e5d191c732659d3c1915419c31f4c30cef6b392a45d4c4794e5` | 37.9K | Subsystem / overview documentation |
 | `docs/subsystems/O2_LAMBDA_SUBSYSTEM.md` | `6c6aaa644ed4781226fb63adad90b7ce20853bcf7834d7b7c6471a8ad3fa03b1` | 31.5K | Subsystem / overview documentation |
 | `docs/subsystems/OBD_SUBSYSTEM.md` | `61fda3060e2485c84b8a8a9ba09646a5b2c039b36a4438ae4621f8532dd8137a` | 17.1K | Subsystem / overview documentation |
