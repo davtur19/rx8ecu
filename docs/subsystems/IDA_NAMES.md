@@ -38,8 +38,8 @@ vocabularies. By inspection:
   (0x2054, integer status-register write) → IDA `fpu_load_zero`; `3dLookup` (0x20DC, a table
   lookup **verified** 10000/10000) → IDA `fpu_div_float`. Both wrong; equinox + our verification win.
   But this is rare: only 2 of 132 overlaps and 4 of 381 fills are `fpu_*`.
-- **IDA sometimes gives a sharper lead where equinox was unsure**: `engineSomethingConditonCheckAndSet?`
-  (0x4144) → IDA `div32_signed_modulo`; `setRegisters` (0x4D2E) → IDA `atu_timer_full_init` (ATU =
+- **IDA sometimes gives a sharper lead where equinox was unsure**: `mod32_signed`
+  (0x4144, formerly IDA `engineSomethingConditonCheckAndSet?`) → IDA `div32_signed_modulo`; `setRegisters` (0x4D2E) → IDA `atu_timer_full_init` (ATU =
   Advanced Timer Unit). Worth following up when we reverse those.
 
 ## Confidence order (unchanged)

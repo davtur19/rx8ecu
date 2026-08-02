@@ -184,7 +184,7 @@ call 0x13E6C  ; calc_fuel_pump_control_output(fr15)
   [0xFFFFA744] = result  ; trailing edge ignition timing
 call 0x13EE6  ; calc_fuel_pressure_load_compensation
   + output to 0xFFFFA734/0xFFFFA738 (ignition timing values, written identically;
-    lead/trail split applied later in leading_trailing_spark_control 0x2100A, unverified)
+    lead/trail split applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified)
 [0xFFFFA75C] = r14      ; save byte flag back
 ```
 
@@ -211,7 +211,7 @@ The function writes final timing values to:
 - 0xFFFFA744: Main ignition advance (float, degrees BTDC)
 - 0xFFFFA734/0xFFFFA738: Ignition timing values (float, degrees BTDC) — written
   identically by this function; the lead/trail split is applied later in
-  leading_trailing_spark_control (0x2100A, not yet emulated)
+  rotor_sync_gate_state_ctrl_2100A (0x2100A, not yet emulated)
 
 ---
 
@@ -237,7 +237,7 @@ engineControlCalculateTiming (0x14584)
 
 ## Verification Notes
 
-- The 1D lookup function at 0x2068 (labeled `fpu_multiply_accumulate` in IDA) is actually a **general 1D table interpolation** with configurable cell type and optional scale/offset. Its signature is:
+- The 1D lookup function at 0x2068 (formerly labeled `fpu_multiply_accumulate` in IDA, now `2DLookup`) is actually a **general 1D table interpolation** with configurable cell type and optional scale/offset. Its signature is:
   - r4 = table descriptor pointer
   - fr4 = X input
   - returns fr0 = interpolated value

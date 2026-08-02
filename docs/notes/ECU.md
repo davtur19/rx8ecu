@@ -57,7 +57,7 @@ NOPs out `LC_ValidateChecksum17`, fixes checksum.
 | `0x35BBC` | `LC_GateWrapper` |
 | `0x4BBC`  | `BitSetClear_Helper` |
 | `0x57BE8` | `CAN_EmitLaunchStatus` |
-| `0x583E4` | `CAN_TableLookup` |
+| `0x583E4` | `memory_match_accumulate_583E4` |
 | `0x5846A` | `CAN_WriteChannel` |
 
 ## RAM Labels

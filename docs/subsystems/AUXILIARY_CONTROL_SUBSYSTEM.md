@@ -633,7 +633,7 @@ stepper motor OMP that varies the oil delivery rate based on:
 Address:  0x1825E  Size: 374 bytes (to 0x18552)
 Source:   ghidra-hand-xmap
 Called from: main_engine_cycle_10ms
-Lift:     c/omp_task_0x1825E.c — emulator-verified (150000+ random inputs, 0 mismatches)
+Lift:     c/omp_control_task_1825E.c — emulator-verified (150000+ random inputs, 0 mismatches)
 ```
 
 **Decompiled logic:**
@@ -734,7 +734,7 @@ void omp_control_task_1825E(void) {
 ```
 
 > **Verification note (2026-08-01):** this function is now lifted as
-> `c/omp_task_0x1825E.c` and emulator-verified (150000+ random inputs across 5
+> `c/omp_control_task_1825E.c` and emulator-verified (150000+ random inputs across 5
 > seeds, 0 mismatches). The pseudo-sketch above matches the verified lift; the
 > internal task leaves 0x18C6C / 0x18C5C / 0x18C08 run natively in the emulator
 > (effects inlined in the lift, not separately lifted as C). Cal bytes: CAL35

@@ -143,7 +143,7 @@ Post-init CAN message configuration:
 | `can_disable_mailbox_int` | 0xCC84 | Disable mailbox interrupt |
 | `can_get_rx_pending_flags` | 0xD0C0 | Read RX pending flags (MPR) |
 | `can_get_tx_acknowledge_flags` | 0xD112 | Read TX acknowledge flags (MTACKR) |
-| `can_clear_tx_acknowledge` | 0xD144 | Clear TX acknowledge flags |
+| `baro_sensor_value` | 0xD144 | Barometric sensor value (formerly `can_clear_tx_acknowledge`) |
 | `can_mailbox_read_data` | 0xCFD4 | Read raw data from mailbox |
 | `can_mailbox_extract_msg_data` | 0xCFF6 | Extract and format message from buffer |
 | `can_pack_tx_msg_copy` | 0xCEF4 | Copy message data into TX mailbox |

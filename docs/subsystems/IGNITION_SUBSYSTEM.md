@@ -99,7 +99,7 @@ engineControlTASK (0x11E94)
         │     ├── spark_timing_boundary_limiter (0x162E4)
         │     ├── spark_advance_limiter_19BCA (0x19BCA)
         │     ├── calc_base_ignition_timing_11A9C (0x11A9C)
-        │     ├── leading_trailing_spark_control_2100A (0x2100A)
+        │     ├── rotor_sync_gate_state_ctrl_2100A (0x2100A)
         │     └── acCompressorLeadingTimingRetard (0x22334)
         └── [Output chain]
               ├── setupCoilOutputs (0xC98A)
@@ -118,7 +118,7 @@ engineControlTASK (0x11E94)
   spark_advance_calc_main → RPM/Load table interpolation
   load_based_spark_mapper → load-dependent advance curve
   calc_base_ignition_timing → 3D table (RPM × Load)
-  leading_trailing_spark_control → compute split angle
+  rotor_sync_gate_state_ctrl_2100A → compute split angle
   
   [Boundary Layer]
   spark_timing_boundary_limiter → clamp to min/max
@@ -227,7 +227,7 @@ calc_fuel_pressure_load_compensation()  → 0xFFFFA734/0xFFFFA738 (ignition timi
 | Address | Description |
 |---------|-------------|
 | 0xFFFFA744 | Main ignition advance (float, °BTDC) |
-| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; the lead/trail split is NOT applied in wankel_leading_trailing_split_487DC either (VERIFIED 2026-08-01, emulator 500k inputs 0 mismatches: it is a gated state selector -> u8@0xFFFFCCD2 decoded by rotor_sync_timing_48C12; 0x2100A is a cold/validity state controller). **SPLIT ANSWER 2026-08-02:** A734/A738 are also written identically (f32, same value) by calc_fuel_injection_all_rotors (0x13D3C); exhaustive ROM literal scan shows NO function writes them differently — readers are write_knock_detected_flag (0x128C4, reads A734), write_rotor_A_knock_flag (0x128FE, reads A738), updateKnockMaxRAM (0x13B90, reads A734). Lead/trail differentiation NOT FOUND in the analyzed functions; **open item**. |
+| 0xFFFFA734/0xFFFFA738 | Ignition timing values (float, °BTDC) — written identically by calc_ignition_all_rotors_13C2C; the lead/trail split is NOT applied in split_selector_state_ctrl_487DC either (VERIFIED 2026-08-01, emulator 500k inputs 0 mismatches: it is a gated state selector -> u8@0xFFFFCCD2 decoded by split_selector_decoder_48C12; 0x2100A is a cold/validity state controller). **SPLIT ANSWER 2026-08-02:** A734/A738 are also written identically (f32, same value) by calc_fuel_injection_all_rotors (0x13D3C); exhaustive ROM literal scan shows NO function writes them differently — readers are write_knock_detected_flag (0x128C4, reads A734), write_rotor_A_knock_flag (0x128FE, reads A738), updateKnockMaxRAM (0x13B90, reads A734). Lead/trail differentiation NOT FOUND in the analyzed functions; **open item**. |
 | 0xFFFFA75C | Knock control active flag (saved back) |
 
 **Confidence: high** — all control paths fully traced.
@@ -648,11 +648,11 @@ bool coil_charge_enabled_query(void) {
 
 ---
 
-### 4.14 `leading_trailing_spark_control_2100A` (0x2100A) — Split Angle Control
+### 4.14 `rotor_sync_gate_state_ctrl_2100A` (0x2100A) — Split Angle Control
 
 **Size:** 352 bytes (0x2100A–0x2116A)
 
-> STATUS 2026-08-01: Lifted and VERIFIED against the ROM emulator (500,000 random inputs, 0 mismatches; see c/leading_trailing_spark_control_2100A.c and c/tests/test_leading_trailing_spark_control_2100A.py). Despite the IDA name, this function does NOT compute a split angle and does NOT touch A734/A738. It manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as max(state − 0.0667, 0.0), or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, and the shared max helper @0x23E4. A734 == A738 in practice (written identically by calc_ignition_all_rotors_13C2C). The actual lead/trail split is NOT implemented here; see wankel_leading_trailing_split_487DC for further analysis.
+> STATUS 2026-08-01: Lifted and VERIFIED against the ROM emulator (500,000 random inputs, 0 mismatches; see c/rotor_sync_gate_state_ctrl_2100A.c and c/tests/test_rotor_sync_gate_state_ctrl_2100A.py). Despite the IDA name, this function does NOT compute a split angle and does NOT touch A734/A738. It manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as max(state − 0.0667, 0.0), or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, and the shared max helper @0x23E4. A734 == A738 in practice (written identically by calc_ignition_all_rotors_13C2C). The actual lead/trail split is NOT implemented here; see split_selector_state_ctrl_487DC for further analysis.
 
 Determines whether leading-trailing spark split is applied. Checks:
 1. **Engine running** — RPM above threshold
@@ -1248,7 +1248,7 @@ skip_knock:
 | 0x01BA2C | load_based_spark_mapper | 360 B | MED | Calculation |
 | 0x016BE8 | spark_advance_calc_0x16BE8 | 162 B | LOW | Calculation |
 | 0x0148A8 | calc_spark_advance_offset_map | 102 B | LOW | Calculation |
-| 0x02100A | leading_trailing_spark_control_2100A | 352 B | MED | Split |
+| 0x02100A | rotor_sync_gate_state_ctrl_2100A | 352 B | MED | Split |
 | 0x022334 | acCompressorLeadingTimingRetard | 194 B | MED | Correction |
 | 0x022434 | acCompressorTrailingTimingRetard | 194 B | MED | Correction |
 | 0x0162E4 | spark_timing_boundary_limiter | 386 B | MED | Boundary |
@@ -1289,6 +1289,6 @@ skip_knock:
 1. **Precise table addresses** — The cal_tables.csv addresses may be from a different ROM version ([REDACTED]). Need to verify against 60E1D400 binary.
 2. **Coil fire helper (0xAA74)** — The function that actually triggers the coil output needs separate analysis. It may be a PWM duty cycle write or a compare register update.
 3. **Ion sense detection** — Some Mazda ECUs detect misfire via ion sense on the spark plug. The `spark_plug_monitor_0x50A54` function may be related but is in a separate code region.
-4. **Split angle computation** — The precise formula for leading-trailing split is not fully verified. The `leading_trailing_spark_control_2100A` function needs deeper analysis for the exact lookup.
+4. **Split angle computation** — The precise formula for leading-trailing split is not fully verified. The `rotor_sync_gate_state_ctrl_2100A` function needs deeper analysis for the exact lookup.
 5. **DSC interaction** — The torque reduction from the EBCM goes through the `dscRelatedTiming` function (0x19220) but the exact CAN message format isn't analyzed.
 6. **Check engine light** — The `ignition_fault_monitor_458F4` function needs analysis for DTC trigger conditions.

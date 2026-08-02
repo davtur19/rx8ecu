@@ -32,7 +32,7 @@
 |----------|---------|--------|----------|
 | `dtc_data_read_60F58` | 0x60F58 | Emulator | 500 random |
 | `shift_right_8_r0` | 0x467A | Emulator | 1K+12 edge |
-| `least_square_0x5687A` | 0x5687A | Emulator | 1.3K+256 edge |
+| `sentinel_equality_check_5687A` (formerly `least_square_0x5687A`) | 0x5687A | Emulator | 1.3K+256 edge |
 | `task_flag_run_C` | 0x35EE | Emulator | 20+ edge |
 | `memcpy_bytewise_unroll4` | 0x42B0 | Emulator | 500+18 edge |
 | `div32_signed` | 0x3FE8 | C host | 100K+26 edge |
@@ -52,7 +52,7 @@
 | `calc_fan1_control` | 0x303A6 | 12400 random |
 | `cooling_fan_control` | 0x17DCC | 15400 random |
 | `radiator_fan_relay_write` | 0x259C0 | exhaustive+3000 |
-| `aux_fan_control_task` | 0x1AED2 | 6000 random |
+| `pressure_delta_monitor_1AED2` (formerly `aux_fan_control_task`) | 0x1AED2 | 6000 random |
 | `alternating_sensor_sm_08` | 0x5D3E8 | 20000 random |
 | `ssvControl` | 0x225C8 | 12000 random |
 | `vis_intake_control` | 0x23718 | 10000 random |
@@ -110,7 +110,7 @@
   `f[n] > f[m]`), so disassembly `fcmp/gt fr4,fr6` = "5250 > boost". The
   FINDINGS note "fcmp/gt Fm,Fn compares Fm > Fn" is misleading — trust the
   emulator code.
-- `aux_fan_control_task` (0x1AED2): boost filter RAM[C008] (0.7, eps 1e-5,
+- `pressure_delta_monitor_1AED2` (0x1AED2, formerly `aux_fan_control_task`): boost filter RAM[C008] (0.7, eps 1e-5,
   firstOrderFilter @0x32F42) -> delta control RAM[BD3C]=(C008-BD40)*15.625
   (@0x2DD6E) -> error filter RAM[BD38] (0.5, 1e-5, @0x2DD88) -> fixed 6-copy
   float swap (@0x344FE) -> pressure hysteresis on RAM[B5B8] (>=7000 flag1,
@@ -137,8 +137,8 @@
 
 ## Remaining Analysis Targets
 - `omp_control_task_1825E` (0x1825E) — OMP/waveform control task (756 B) —
-  **LIFTED + emulator-verified** (`c/omp_task_0x1825E.c`,
-  `test_omp_task_0x1825E.py`, 150000+ inputs, 0 mismatches). Call
+  **LIFTED + emulator-verified** (`c/omp_control_task_1825E.c` (formerly `c/omp_task_0x1825E.c`),
+  `test_omp_control_task_1825E.py`, 150000+ inputs, 0 mismatches). Call
   chain mapped (session 6): 0x1825E -> {0x3EE58*, 0x3ED3C, 0x2478
   (addSaturate8Bit), 0x18860 (omp_waveform_state_machine_18860), 0x189EE
   (rotor_sync_position_detector), 0x18C08 (omp_diag_rotor_18C08),
@@ -210,7 +210,7 @@
 - **secondary_boot_main (0xA038)**: peripheral_init_chain_A (0x4C80: 0x5292,
   [0xED18]=0xFF, ubc_breakpoint_config_init 0x4DF6, ...), secondary_peripheral_initializer
   (0xD7B0), sfr_write_a16c (0xA0DC: [0xFFFFA16C]=0), setSR_PARAM (0x2054, 0xE0 mask),
-  setRegister_REG_BIT_VAL (0x4BBC: 0xF74E bit8), fpu_nop_stub (0x2064),
+  setRegister_REG_BIT_VAL (0x4BBC: 0xF74E bit8), loadStatusRegister_ADDR (0x2064, formerly fpu_nop_stub),
   sfr_init_dma_channels (0x4CF8), task_context_switch (0x3AD8, r4=0), idle loop.
 - **task_context_switch (0x3AD8)**: valid if task_id < [0x4B00] (task count byte=1);
   saves SR/PR + SP -> [0xFFFF72D8]; SR=[0x4B04]=0xB0; SP=[0x4938]=0xFFFF719C;
@@ -374,11 +374,11 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   (2 chars/word), outside the window. Classifier now requires a >=12-byte
   printable span, so random 4-char fragments (e.g. "OROb") are not strings.
 
-## Track A session 8: math_min_max_49ED0 verified + mov.w sign-extension correction
+## Track A session 8: flag_setter_49ED0 (formerly math_min_max_49ED0) verified + mov.w sign-extension correction
 
-- **math_min_max_49ED0 (0x49ED0, 34B)** verified against ROM bytes in the SH-2E
-  emulator (test_math_min_max_49ED0.py, 14 edge + 20000 random, 0 mismatches)
-  and on the host as a C lift (test_math_min_max_49ED0.c, 20014 tests, 0
+- **flag_setter_49ED0 (0x49ED0, 34B, formerly math_min_max_49ED0)** verified against ROM bytes in the SH-2E
+  emulator (test_flag_setter_49ED0.py, 14 edge + 20000 random, 0 mismatches)
+  and on the host as a C lift (test_flag_setter_49ED0.c, 20014 tests, 0
   mismatches). Semantics: `v = (RAM16[0xFFFFF76C] & 0x100) ? 1 : 0;`
   `byte@0xFFFFCD48 = v; byte@0xFFFFCD49 = v; return v` (return flag in r0).
   `make c-test` stays GREEN (7 suites).
@@ -388,7 +388,7 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   addresses are 0xFFFFCD49 / 0xFFFFF76C etc. So 0xCD4C, 0xD2C4, 0xD2C5,
   0xCE00/01 etc. are actually 0xFFFFCD4C, 0xFFFFD2C4, 0xFFFFD2C5,
   0xFFFFCE00/01 — all above mmap_min_addr=0x10000 and therefore host-mmap-able
-  (proven: test_calc_manifold... mmaps 0xFFFFA5D4; test_math_min_max_49ED0.c
+  (proven: test_calc_manifold... mmaps 0xFFFFA5D4; test_flag_setter_49ED0.c
   mmaps 0xFFFFF76C/0xFFFFCD48). The earlier "below mmap_min_addr, must use
   structural tests only" blocker for this family is WRONG — host-C mmap
   companions are possible for all of them.

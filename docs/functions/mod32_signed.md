@@ -2,7 +2,7 @@
 
 **Address:** 0x4144 – 0x4202  (190 bytes)
 **ROM:** 60E1D400.bin
-**Source label:** ghidra-hand-xmap (`engineSomethingConditonCheckAndSet?`)
+**Source label:** ghidra-hand-xmap (formerly `engineSomethingConditonCheckAndSet?`)
 **Track-A verification:** C host test (100K random + 22 edge cases)
 
 ---
