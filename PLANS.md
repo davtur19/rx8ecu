@@ -152,8 +152,13 @@ make c-emu                    # Track A emulator cross-checks
    taps `0x909028` hardcoded in the ROM at 0x56C1E-0x56C38) with a per-level init
    table @0x5FAC5 (3 bytes/level). ROM-verified vector: seed `0x45820A` /
    `"MazdA"` / level 1 → **0xA07258** (legacy vector 0x3B15E1 was wrong).
-   Remaining: UDS subfunction→level mapping, `seed_gen` (@0x5699A) internals for
-   level≠3, `key_validate` middle-byte source.
+   ✓ rimanenza CHIUSA (docs/notes/UDS_SECURITY_MAPPING.md, 2026-08-03): SID 0x27 →
+   handler 0x584A0 (tabella 0x5F57C), solo livello 1 (subfunc 0x01/0x02, parità
+   seleziona op); seed_gen 0x5699A level≠3 = entropia counter 0xFFFFF430 +
+   XOR-mix (55 AA 55 se stato==4, fallback FF FF FF dopo 16 retry); key_validate
+   0x56928 tabella 0x5FAA2, b1 = b0 duplicato = SECURITY_STATE_2 @0xFFFFD20C,
+   b2 = position_check; LFSR (init per-level @0x5FAC5, taps 0x909028) solo nella
+   key transform 0x56ADA.
 
 ## Workflow rules (from AGENTS.md)
 
