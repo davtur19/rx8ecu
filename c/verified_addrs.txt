@@ -248,3 +248,18 @@
 ; x scale pool @0x0D498 = 5/65536 -> float store @0xFFFFA3E4. 100000 random + 10 targeted
 ; inputs each, 0 mismatches (exit 0).
 0x55F64 0xD478
+; 2026-08-03 batch getters3/can_packers/o2_core
+; test_obd_pid_getters3.py: getEngineLoadOBD @0x55D9A (flags + fcmp chain),
+; getIATOBD @0x55E18 (dual-sensor pick + 0x2440/0x24D0), getCommandedLambdaOBD
+; @0x55F7A (fmac chain). 20k vectors, 0 mismatches.
+0x55D9A 0x55E18 0x55F7A
+; test_can_packers.py: can240TX_pack @0x4C888, can250TX_pack @0x4C984,
+; can41TXPack @0x39348, can650TX_getAndPack @0x2C806, can201TX_getAndPack @0x29B4C,
+; CANRX216TimeoutCount @0x299DA, can620TX_getAndPack @0x33A36 (7 verified; TODO
+; skeletons EXCLUDED: can203TX @0x29D24, can251TX @0x2AAB6, dispatcher 0x11540)
+0x4C888 0x4C984 0x39348 0x2C806 0x29B4C 0x299DA 0x33A36
+; test_o2_lambda_more.py: 0x12B54/0x1412A/0x1418C/0x141B8 already in the
+; 2026-08-03 auto-regeneration block (dedup); new: calc_engine_temp_fuel_trim
+; @0x1437C and getRearO2FilteredValue @0x1E794 (real entry — 0x1E812 is DATA in
+; its literal pool). 9.3k vectors, 0 mismatches.
+0x1437C 0x1E794

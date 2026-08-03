@@ -34,6 +34,8 @@
 #define SENSOR_FLAGS            (*(volatile uint8_t  *)0xFFFFAE97UL)
 #define SENSOR_STATUS           (*(volatile uint8_t  *)0xFFFFAD9CUL)
 #define SENSOR_STATUS_2         (*(volatile uint8_t  *)0xFFFFAE96UL)
+#define SENSOR_THROTTLE         (*(volatile float    *)0xFFFFAA88UL)  /* @0x55F64 */
+#define LAMBDA_RAW_WORD         (*(volatile uint16_t *)0xFFFFADD4UL)  /* @0x55F7A */
 
 /* OBD CAN TX buffers */
 #define OBD_TX_BUF_240          (*(volatile uint8_t  *)0xFFFFCEACUL)
@@ -45,8 +47,15 @@
 
 #define FLOAT_ROUND_CONST       0.5f        /* @ 0x24FC */
 #define UI8_MAX_CLAMP           0x00FFU     /* @ 0x24F8 */
+#define UI16_MAX_CLAMP          0xFFFFU     /* @ 0x24BC */
 #define PERCENT_SCALE           100.0f      /* @ 0x55F34 */
 #define IAT_SCALE               0.39215684f /* @ 0x55F38 — converts °C to OBD A */
+#define IAT_NEAR_ZERO_BAND      1e-5f       /* @ 0x55F2C — dual-sensor validity band */
+#define LAMBDA_V2V_SCALE        5.0f/65536.0f /* @ 0x560A8 — u16 A/D -> volts */
+#define LAMBDA_GAIN             20.0f       /* @ 0x560B0 */
+#define LAMBDA_SCALE            0.39215684f /* @ 0x560B4 — lambda -> OBD A */
+#define THROTTLE_SCALE          0.01f       /* @ 0x560A0 — throttle % scale */
+#define ENGINE_LOAD_LIMIT       35.0f       /* @ 0x00070138 — load threshold */
 #define TEMP_OFFSET_MINUS_40    -40.0f      /* @ 0x55F44 — °C offset */
 #define NEG_100                 -100.0f     /* @ 0x55F48 */
 #define FUEL_TRIM_ROUND         0.78125f    /* @ 0x55F4C */
@@ -136,62 +145,53 @@ static uint16_t readU16WithComplement(volatile uint16_t *addr,
 /* =================================================================
  * getEngineLoadOBD  (original @ 0x55D9A)
  *
- * Reads engine load sensor (float in %) from RAM and converts to
- * OBD-scaled uint16.  Checks sensor validity flags before reading.
+ * Reads engine load sensor (float in %) from RAM plus three flag bytes.
+ * NO floatToInt call — the disasm returns one of five flag/status
+ * values (0x01/0x02/0x04/0x08/0x10), verified bit-exact against the
+ * ROM by test_obd_pid_getters3.py:
  *
- * SH-2E disassembly highlights:
- *   0x55D9A: mov.w 0x55ddc,r3    ; r3 = 0xAA10 (engine load RAM addr)
- *   0x55D9C: mov.w 0x55dde,r4    ; r4 = 0xAE97 (sensor flags addr)
- *   0x55DA0: mov.b @r4,r0        ; read sensor flags
- *   ... sensor validity checks ...
- *   0x55E12: rts
+ *   flags @0xFFFFAE97 == 1   -> status @0xFFFFAD9C == 0 ? 0x10 : 0x02
+ *   status2 @0xFFFFAE96 == 0 -> 0x04
+ *   load f32 @0xFFFFAA10 < 35.0f (@0x00070138) -> 0x01, else 0x08
  *
- * Returns: engine load in % (0..100)
  * ================================================================= */
 static uint16_t getEngineLoadOBD(void)
 {
-    /* Sensor validity check — if flags indicate fault, return 0 */
-    if ((SENSOR_FLAGS & 0x01) == 0)
-        return 0;
+    uint8_t flags  = SENSOR_FLAGS;    /* 0xFFFFAE97 */
+    uint8_t status = SENSOR_STATUS;   /* 0xFFFFAD9C */
+    uint8_t status2 = SENSOR_STATUS_2;/* 0xFFFFAE96 */
 
-    /* Read engine load float and convert to OBD percentage */
-    return floatToOBDBounded(SENSOR_ENGINE_LOAD, 1.0f, 0.0f, 100);
+    if ((flags & 0xFF) == 1)
+        return ((status & 0xFF) == 0) ? 0x10 : 0x02;
+    if ((status2 & 0xFF) == 0)
+        return 0x04;
+
+    return (SENSOR_ENGINE_LOAD < ENGINE_LOAD_LIMIT) ? 0x01 : 0x08;
 }
 
 
 /* =================================================================
  * getIATOBD  (original @ 0x55E18)
  *
- * Reads intake air temperature from primary (and secondary) sensors,
- * converts to OBD-scaled value (A = °C + 40, clamped 0..255).
+ * Dual-sensor pick (verified bit-exact vs ROM by test_obd_pid_getters3.py).
+ *   A = f32 @0xFFFFC12C,  B = f32 @0xFFFFC130
+ *   helper @0x2440: |B| <= DELTA(1e-5f @0x55F2C) -> invalid -> return 0xFF
+ *   else  floatToOBDBounded(A*100.0f / B, scale=0.39215684f @0x55F38,
+ *                           offset=0.0f, clamp 0xFF)
  *
- * SH-2E disassembly highlights:
- *   0x55E18: mov.w 0x55f18,r3    ; r3 = 0xC12C (IAT1 addr)
- *   0x55E1C: mov.w 0x55f1a,r1    ; r1 = 0xC130 (IAT2 addr)
- *   0x55E20: fldi0 fr6
- *   0x55E22: mov.l 0x55f30,r2    ; r2 = 0x2440 (helper func)
- *   ... complex FPU: loads IAT1, multiplies by tiny gain,
- *       compares with IAT2, picks valid value, then converts
- *
- * Returns: IAT in OBD A-units (°C + 40, 0..255)
+ * Returns: IAT in OBD A-units (0..255; 255 = no valid secondary sensor)
  * ================================================================= */
 static uint16_t getIATOBD(void)
 {
-    float iat1 = SENSOR_IAT_PRIMARY;
-    float iat2 = SENSOR_IAT_SECONDARY;
-    float iat_val;
+    float iatA = SENSOR_IAT_PRIMARY;    /* 0xFFFFC12C */
+    float iatB = SENSOR_IAT_SECONDARY;  /* 0xFFFFC130 */
 
-    /* Sanity check — if primary is implausible, use secondary */
-    if (iat1 > -40.0f && iat1 < 215.0f)
-        iat_val = iat1;
-    else if (iat2 > -40.0f && iat2 < 215.0f)
-        iat_val = iat2;
-    else
-        return 0;   /* No valid sensor reading */
+    /* 0x2440 returns 0 when |B| <= 1e-5  => no valid sensor reading */
+    if (iatB >= -IAT_NEAR_ZERO_BAND && iatB <= IAT_NEAR_ZERO_BAND)
+        return UI8_MAX_CLAMP;
 
-    /* Convert: OBD A = (°C + 40) / 0.39215684 + 0.5 → clamped 0..255
-     * This matches the standard OBD formula temp = A - 40 */
-    return floatToOBDBounded(iat_val, IAT_SCALE, TEMP_OFFSET_MINUS_40, UI8_MAX_CLAMP);
+    return floatToOBDBounded((iatA * PERCENT_SCALE) / iatB,
+                             IAT_SCALE, 0.0f, UI8_MAX_CLAMP);
 }
 
 
@@ -348,55 +348,38 @@ static uint16_t getMAFOBD(void)
 
 
 /* =================================================================
- * getTimingAdvanceOBD  (original @ 0x55E66 shared path)
+ * getTimingAdvanceOBD  (address unresolved — DO NOT use 0xFFFF9F70)
  *
- * Reads timing advance from sensor RAM and converts to OBD scale.
- * OBD standard: timing = A / 2 degrees (A = deg * 2).
- *
- * Returns: timing advance in 0.5° increments (0..255)
+ * 0x55E66 is getMAFOBD (verified by test_obd_pid_getters.py: float
+ * cell @0xFFFF9F70, offset -40.0f @0x55F44, scale 1.0f, 0xFF clamp) —
+ * it is NOT a shared timing path.  No confirmed timing-advance cell
+ * address is known yet, so this lift stays a documented placeholder.
  * ================================================================= */
 static uint16_t getTimingAdvanceOBD(void)
 {
-    /* The MAF sensor address (0xFFFF9F70) is also the timing
-     * advance in the assembly — both are accessed through the
-     * same path depending on PID context. */
-    float timing = SENSOR_MAF; /* FIXME: may be different addr for timing */
-
-    /* Timing advance in degrees → OBD A = deg * 2 + offset
-     * with some sensor-specific correction */
-    return floatToOBDBounded(timing, 0.5f, NEG_100, UI8_MAX_CLAMP);
+    /* Timing advance in degrees -> OBD A = deg * 2 + offset
+     * (address and calibration unresolved; not 0xFFFF9F70). */
+    return 0;
 }
 
 
 /* =================================================================
  * getCommandedLambdaOBD  (original @ 0x55F7A)
  *
- * Reads commanded AFR, converts to lambda (equivalence ratio).
- * OBD PID 0x14: λ = A / 10000.
+ * Two-stage FPU chain (verified bit-exact vs ROM by
+ * test_obd_pid_getters3.py):
+ *   raw = u16 A/D @0xFFFFADD4
+ *   v1  = (float)raw * (5/65536) @0x560A8       (helper 0x24C0 fmac)
+ *   v2  = v1 * 20.0f @0x560B0
+ *   return floatToOBDBounded(v2, scale=0.39215684f @0x560B4,
+ *                            offset=0.0f, clamp 0xFF)
  *
- * SH-2E disassembly:
- *   0x55F7A: fmov fr15,@-r15
- *   0x55F7C: mova 0x560a8,r0     ; constant addr
- *   0x55F80: fldi0 fr15
- *   0x55F84: mov.l 0x560ac,r2    ; helper func
- *   ... multi-stage FPU multiply chain ...
- *   0x55F9A: fmul fr3,fr4
- *   0x55F9E: jsr @r3             ; conversion
- *   0x55FA4: fmov @r15+,fr15
- *
- * Returns: lambda * 10000 (uint16)
+ * Returns: commanded lambda OBD byte (0..255)
  * ================================================================= */
 static uint16_t getCommandedLambdaOBD(void)
 {
-    /* Lambda calculation from commanded AFR:
-     *   lambda = commanded_AFR / 14.7  (stoichiometric for gasoline)
-     *   OBD A = lambda * 10000
-     *
-     * The assembly shows multiple FMUL operations with constants
-     * at 0x560A8, 0x560AC, 0x560B0, 0x560B4, 0x560B8.
-     * These represent the stoichiometric ratio and scaling factors.
-     */
-    return floatToOBDBounded(1.0f, 1.0f, 0.0f, 0xFFFFU); /* Placeholder */
+    float v1 = (float)(uint16_t)LAMBDA_RAW_WORD * LAMBDA_V2V_SCALE;
+    return floatToOBDBounded(v1 * LAMBDA_GAIN, LAMBDA_SCALE, 0.0f, UI8_MAX_CLAMP);
 }
 
 
@@ -407,18 +390,20 @@ static uint16_t getCommandedLambdaOBD(void)
  *
  * SH-2E disassembly:
  *   0x55F66: fldi0 fr6           ; offset = 0
- *   0x55F6A: mov.w 0x56088,r3    ; throttle sensor addr
- *   0x55F6C: mov.l 0x560a4,r2    ; conversion func
+ *   0x55F6A: mov.w 0x56088,r3    ; r3 = 0xAA88 (throttle float cell)
+ *   0x55F6C: mov.l 0x560a4,r2    ; conv @0x2490 (0xFFFF clamp)
  *   0x55F70: fmov @r3,fr4        ; fr4 = throttle position
  *   0x55F72: jsr @r2             ; call conversion
- *   0x55F74: fmov @r0,fr5        ; fr5 = scale constant
+ *   0x55F74: fmov @r0,fr5        ; fr5 = scale pool @0x560A0 = 0.01f
  *
- * Returns: throttle position % (0..100)
+ * Verified bit-exact by test_obd_pid_getters2.py:
+ *   clamp((v - 0.0f)/0.01f + 0.5, 0, 0xFFFF)
+ *
+ * Returns: throttle position in 0.01% units (0..65535)
  * ================================================================= */
 static uint16_t getThrottleOBD(void)
 {
-    /* FIXME: resolve throttle sensor RAM address */
-    return 0;
+    return floatToOBDBounded(SENSOR_THROTTLE, THROTTLE_SCALE, 0.0f, UI16_MAX_CLAMP);
 }
 
 

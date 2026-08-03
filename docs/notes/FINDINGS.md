@@ -633,3 +633,29 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   -100); STFT = floatToInt(v, 0.5, -64); LTFT = floatToInt(v, 1.0, -40).
 - Note: STFT formula matches the lift ((stft+64)*2); LTFT uses offset -40
   (floatToInt +0.5 rounding, NOT the lift's "different calibration" guess).
+- CAN TX pack differential test: `c/tests/test_can_packers.py` runs the real
+  ROM in the SH-2E emulator against independent Python models. Verified
+  bit-exact (5000 random + directed, all green): can240TX_pack @0x4C888 and
+  can250TX_pack @0x4C984 (straight 8-byte copies); can41TXPack @0x39348 (gate
+  @0xFFFFC241==1 -> copy C238..23F->C518, else r0=gate value, no TX);
+  can650TX_getAndPack @0x2C806 and can620TX_getAndPack @0x33A36 and
+  CANRX216TimeoutCount @0x299DA (div-counter packers); can201TX_getAndPack
+  @0x29B4C (flag @C656 !=0 -> 0xFF, else floatToInt(float@AA18, 1.0, -40.0)).
+- div-counter semantics (can650/can620/canRX216): counter word += 1, then
+  `mov.w @..,r2; extu.w r2,r2; cmp/ge #N,r3` — extu.w zero-extends, so the
+  compare is UNSIGNED over the full 16-bit range: ANY count >= N triggers
+  (0x8000..0xFFFF DO trigger; they are not negative). Thresholds: can650 #0x0C,
+  can620 #0x19, CANRX216 #0x19. Trigger resets the counter to 0.
+- can620TX_getAndPack @0x33A36 pack chain (0x33A8E): priority-decode byte
+  @0xFFFFCD4E (0x40->0, 0x20->1, 0x80->2, else 3) << 4 -> byte @0xFFFFC05C;
+  priority-decode byte @0xFFFFCD4C (0x80->1, 0x10->2, 0x20->3, 0x08->4,
+  0x02->5, 0x04->6, else 7) -> byte @0xFFFFC05B; send @0x33A68 writes frame
+  C054..C05A with C058=C05C, C05A=C05B (bytes C054-57, C059 zeroed).
+- Table-address gotcha: the CAN TX table rows (e.g. 029B52 for can201, 029DC2
+  for can203) point one instruction PAST the prologue; the real entries are the
+  bsr targets (0x29B4C, 0x29D24). Tests must call the real entry, not the table
+  address (calling the table address skips the prologue and the epilogue pops
+  garbage).
+- Pre-existing (unrelated) failure: `c/tests/test_o2_lambda_more.py` (untracked)
+  raises AttributeError ('tuple' object has no attribute 'pop') in run_suite —
+  not caused by the CAN pack work.
