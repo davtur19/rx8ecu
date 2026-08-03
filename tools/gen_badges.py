@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen_badges.py — regenerate the auto-updating README progress badges.
 
-Pure-Python 3 (stdlib only: subprocess, hashlib, re, urllib, pathlib).
+Pure-Python 3 (stdlib only: csv, subprocess, hashlib, re, urllib, pathlib).
 Run from the repo root:
 
     python3 tools/gen_badges.py            # default: derive, fall back on failure
@@ -9,7 +9,7 @@ Run from the repo root:
 
 Computes reverse-engineering progress metrics from live repo data
 (tracked C lifts via `git ls-files`, unique emulator-verified addresses
-from c/verified_addrs.txt, symbol-table sizes, ...) and rewrites the badge
+from c/verified_addrs.txt, catalog/table CSVs, ...) and rewrites the badge
 block in README.md between the `<!-- BADGES:START -->` / `<!-- BADGES:END -->`
 markers.  No metric is hardcoded:
 
@@ -19,9 +19,13 @@ markers.  No metric is hardcoded:
     --quick and tools/tests/test_emulator_families.py) are run and their
     "<N> checks" line parsed; the constants are only fallbacks when a suite
     cannot be run, and `--derive-checks` makes that a hard error.
+  * Functions mapped — real estimate from symbols/CATALOG_MASTER.csv (rows
+    whose flag does not contain 'NOISE'; noise-region rows are mis-decodes,
+    not functions), falling back to the legacy symbols/symbols_60E0FC00.csv
+    size if the master catalog is missing.
   * Everything else (ROM count, C lifts, verified addresses, calibration
-    tables, call-graph edges, functions mapped) is derived from `git ls-files`
-    / the shipped CSV files.
+    tables, table defs, call-graph edges) is derived from `git ls-files` /
+    the shipped CSV files.
 
 Also updates the `README.md` row (sha256 + byte size) in MANIFEST.md so the
 file inventory stays in sync.
@@ -30,6 +34,7 @@ Deterministic: no timestamps; running twice yields an identical README.md
 (the badge URLs only change when the underlying data changes).
 """
 
+import csv
 import hashlib
 import re
 import subprocess
@@ -194,6 +199,43 @@ def line_count_minus_one(relpath):
     return max(0, len(lines) - 1)
 
 
+def catalog_master_functions():
+    """Real function-estimate from the master catalog.
+
+    Counts the data rows of symbols/CATALOG_MASTER.csv whose `flag` column
+    does NOT contain 'NOISE' — noise-region rows are mis-decodes, not real
+    functions (expected 50,676 of 56,952).  If the master catalog is missing,
+    falls back to the legacy single-ROM symbol-table size
+    (line_count_minus_one("symbols/symbols_60E0FC00.csv")).
+    """
+    catalog = ROOT / "symbols" / "CATALOG_MASTER.csv"
+    if not catalog.exists():
+        print(f"WARNING: {catalog.name} missing; falling back to "
+              f"symbols/symbols_60E0FC00.csv", file=sys.stderr)
+        return line_count_minus_one("symbols/symbols_60E0FC00.csv")
+    with catalog.open(encoding="utf-8", newline="") as f:
+        rows = csv.DictReader(f)
+        return sum(1 for r in rows if "NOISE" not in (r.get("flag") or ""))
+
+
+def romraider_table_defs():
+    """Table-definition count from symbols/romraider_rx8_tables.csv.
+
+    Returns (count, rom_count): the number of data rows (lines minus header,
+    expected 37,121) and the number of distinct rom_code values (expected 13).
+    Returns None when the file is missing, in which case the badge is skipped.
+    """
+    path = ROOT / "symbols" / "romraider_rx8_tables.csv"
+    if not path.exists():
+        print(f"WARNING: {path.name} missing; skipping Table defs badge",
+              file=sys.stderr)
+        return None
+    with path.open(encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    roms = len({r.get("rom_code") for r in rows})
+    return len(rows), roms
+
+
 def unique_verified():
     """Unique hex addresses in c/verified_addrs.txt (address lines only)."""
     addrs = set()
@@ -230,27 +272,25 @@ def build_badge_block(strict=False):
     verified = unique_verified()
     tables = line_count_minus_one("symbols/cal_tables.csv")
     edges = line_count_minus_one("symbols/callgraph.csv")
-    funcs = line_count_minus_one("symbols/symbols_60E0FC00.csv")
+    funcs = catalog_master_functions()
+    table_defs = romraider_table_defs()  # (count, rom_count) or None
     checks_disasm, checks_emu = regression_checks(strict=strict)
     asm_coverage = derive_asm_coverage()
-
-    verified_pct = round(100 * verified / lifts) if lifts else 0
 
     badges = [
         ("ROMs byte-exact", shields_url("ROMs byte-exact", f"{roms}/{roms}", "brightgreen")),
         ("Code window", shields_url("Code window", f"{asm_coverage}% SH-2 lift", "green")),
         ("C reimplemented", shields_url("C reimplemented", f"{lifts} functions", "blue")),
-        (
-            "Emulator-verified",
-            shields_url(
-                "Emulator-verified",
-                f"{verified}/{lifts} ({verified_pct}%)",
-                "yellowgreen",
-            ),
-        ),
+        ("Emulator-verified", shields_url("Emulator-verified", f"{verified} addresses", "yellowgreen")),
         ("Calibration tables", shields_url("Calibration tables", f"{tables}", "blue")),
+    ]
+    if table_defs is not None:
+        badges.append(
+            ("Table defs", shields_url("Table defs", f"{table_defs[0]} ({table_defs[1]} ROMs)", "blue"))
+        )
+    badges += [
         ("Call graph", shields_url("Call graph", f"{edges} edges", "blue")),
-        ("Functions mapped", shields_url("Functions mapped", f"{funcs}", "blue")),
+        ("Functions mapped", shields_url("Functions mapped", f"{funcs:,}", "blue")),
         (
             "Regression checks",
             shields_url(
@@ -269,7 +309,6 @@ def build_badge_block(strict=False):
         "roms": roms,
         "lifts": lifts,
         "verified": verified,
-        "verified_pct": verified_pct,
         "tables": tables,
         "edges": edges,
         "funcs": funcs,
@@ -277,6 +316,9 @@ def build_badge_block(strict=False):
         "regression_checks_disasm": checks_disasm,
         "regression_checks_emu": checks_emu,
     }
+    if table_defs is not None:
+        metrics["table_defs"] = table_defs[0]
+        metrics["table_defs_roms"] = table_defs[1]
     return metrics, "\n".join(lines) + "\n"
 
 
