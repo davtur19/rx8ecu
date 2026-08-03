@@ -38,10 +38,13 @@
 #define E2_WORK_INDEX29      (*(volatile uint8_t  *)0xFFFFC2F1) /* EEPROM[0x1D] */
 #define E2_WORK_INDEX30      (*(volatile uint8_t  *)0xFFFFC2F2) /* EEPROM[0x1E] */
 
-/* CAN/communication shadow bytes used as E2 working copies */
-#define CAN_SHADOW_C243      (*(volatile uint8_t *)0x0000C243)  /* EEPROM[0x0E] */
-#define CAN_SHADOW_C242      (*(volatile uint8_t *)0x0000C242)  /* EEPROM[0x10] */
-#define CAN_SHADOW_C244      (*(volatile uint8_t *)0x0000C244)  /* EEPROM[0x12] */
+/* CAN/communication shadow bytes used as E2 working copies
+ * NOTE: loaded via `mov.w <lit>,Rn` (sign-extended 16-bit literal), so the
+ * effective addresses are 0xFFFFC243/C242/C244, NOT 0x0000C243.  Verified
+ * against the emulated ROM in tests/test_checkImmoStatus_371E4.py. */
+#define CAN_SHADOW_C243      (*(volatile uint8_t *)0xFFFFC243)  /* EEPROM[0x0E] */
+#define CAN_SHADOW_C242      (*(volatile uint8_t *)0xFFFFC242)  /* EEPROM[0x10] */
+#define CAN_SHADOW_C244      (*(volatile uint8_t *)0xFFFFC244)  /* EEPROM[0x12] */
 
 /* ---- Immobilizer state ---- */
 #define IMMO_CAN_TX_BUF      ((volatile uint8_t *)0xFFFFC238)   /* 8-byte TX frame */
@@ -85,19 +88,24 @@
 #define E2_WQ_INIT_DONE      (*(volatile uint8_t *)0xFFFFC2D5)
 #define E2_WQ_ARMED          (*(volatile uint8_t *)0xFFFFC2D6)
 #define E2_WQ_BUSY           (*(volatile uint8_t *)0xFFFFC2D7)
-#define E2_WRITE_COMPLETE    (*(volatile uint8_t *)0x0000C2F8)  /* E2 write-done flag */
+/* E2 write-done flag.  Also loaded via `mov.w <lit>,Rn` (sign-extended):
+ * effective address 0xFFFFC2F8.  See tests/test_ImmoUpdateRelated_37120.py. */
+#define E2_WRITE_COMPLETE    (*(volatile uint8_t *)0xFFFFC2F8)
 
-/* CAN RX mailbox (mode byte + payload) */
-#define CAN_RX_MODE          (*(volatile uint8_t *)0x0000C529)
-#define CAN_RX_B1            (*(volatile uint8_t *)0x0000C52A)
-#define CAN_RX_B2            (*(volatile uint8_t *)0x0000C52B)
-#define CAN_RX_B3            (*(volatile uint8_t *)0x0000C52C)
-#define CAN_RX_B4            (*(volatile uint8_t *)0x0000C52D)
-#define CAN_RX_STATUS        (*(volatile uint8_t *)0x0000C52F)
+/* CAN RX mailbox (mode byte + payload).  Loaded via `mov.w <lit>,Rn` which
+ * SIGN-EXTENDS the 16-bit literal: 0xC52x -> 0xFFFFC52x.  Verified in
+ * tests/test_ImmoGetCANData_36870.py (emulator experiment: mode placed at
+ * 0xFFFFC529 with 0x0000C529 set differently is the one that is consumed). */
+#define CAN_RX_MODE          (*(volatile uint8_t *)0xFFFFC529)
+#define CAN_RX_B1            (*(volatile uint8_t *)0xFFFFC52A)
+#define CAN_RX_B2            (*(volatile uint8_t *)0xFFFFC52B)
+#define CAN_RX_B3            (*(volatile uint8_t *)0xFFFFC52C)
+#define CAN_RX_B4            (*(volatile uint8_t *)0xFFFFC52D)
+#define CAN_RX_STATUS        (*(volatile uint8_t *)0xFFFFC52F)
 
-/* TX request registers */
-#define CAN_TX_REQ           (*(volatile uint8_t *)0x0000C241)
-#define CAN_TX_DATA          (*(volatile uint8_t *)0x0000C240)
+/* TX request registers (mov.w sign-extended: 0xC241 -> 0xFFFFC241) */
+#define CAN_TX_REQ           (*(volatile uint8_t *)0xFFFFC241)
+#define CAN_TX_DATA          (*(volatile uint8_t *)0xFFFFC240)
 
 /* Immobilizer lamp register (GPIO) */
 #define IMMO_LAMP_REG        (*(volatile uint16_t *)0xF754)

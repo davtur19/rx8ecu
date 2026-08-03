@@ -19,9 +19,10 @@
  *     result code 0.
  *   - no match: send CAN id 0x09 again (stay on the same slot).
  *
- * any other state: state = 5, countdown 0xFFFFC27E (1..0x7FFF only) --
- *   when it hits 0: ImmoBadStateSet(), 0xFFFFC294 = 0, send CAN id 0x01,
- *   0xFFFFC29A = 1.
+ * any other state: state = 5, countdown 0xFFFFC27E (decrements for ANY
+ *   nonzero value — the ROM does mov.w (sign-ext) / extu.w (zero-ext) then
+ *   cmp/pl, so 0x8000..0xFFFF also decrement) — when it hits 0:
+ *   ImmoBadStateSet(), 0xFFFFC294 = 0, send CAN id 0x01, 0xFFFFC29A = 1.
  */
 #include "eeprom_immo.h"
 
@@ -75,7 +76,7 @@ void ImmoWaitForKey_35F92(void)
         *state = 5;
         {
             uint16_t cnt = *(volatile uint16_t *)0xFFFFC27E;
-            if ((int16_t)cnt > 0)              /* 0x360B4 cmp/pl */
+            if (cnt != 0)                /* 0x360B2-0x360B6: extu.w + cmp/pl */
                 *(volatile uint16_t *)0xFFFFC27E = (uint16_t)(cnt - 1);
         }
         if (*(volatile uint16_t *)0xFFFFC27E == 0) {

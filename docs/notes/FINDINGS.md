@@ -577,3 +577,29 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   (sext16(a0)>>1) & 0xFFFF.
 - Harness: `reconstructed/samples/tests/verify_q4740.py` (emulated ROM vs
   bit-exact Python model, exit 0).
+
+## engineControlCalculateTiming @0x14584 — dispatch wrapper verified (2026-08-03)
+- Pure task-dispatch skeleton, 414 B, zero branches: 68 calls in fixed ROM
+  order from the literal pool 0x14784..0x14888 (66 unique targets; getSR
+  @0x3920 and setSR @0x3934 are each called TWICE — 0x3920 after the barrier
+  at 0x145CC, 0x3934 as the TAIL jmp at 0x1471E whose delay slot
+  `lds.l @r15+,pr` returns straight to the wrapper's caller).
+- Phase 1: getSR(16) -> incomplete_stack_save_r14_r13(0x14B04, stores SR at
+  [r15]) -> 8 subsystems (0x121F0..0x17DCC). Barrier: setSR(saved SR), then
+  getSR(16) again (re-saved SR stored at [r15]). Phase 2: 55 subsystems
+  (0x1379C..0x4D0E8). Tail: pop r4=[r15], jmp setSR(saved_sr).
+- The lift `c/engineControlCalculateTiming.c` call order matches the ROM
+  order exactly (phase 2 = 55 subsystems, NOT "56" as the lift comment says).
+- Verified bit-exact: `c/tests/test_engineControlCalculateTiming_14584.py`
+  (emulated ROM wrapper + 66 trace-append stubs vs pure-Python model AND
+  vs the compiled C lift with equivalent C stubs), 15140 inputs / 5 seeds,
+  0 mismatches. Pins r0/r1, the full 102-byte span 0xFFFFD12F..0xFFFFD194
+  (length cell @0xFFFFD130 + 68-entry trace @0xFFFFD140), and tail-call
+  invariants (r15 -> 0xFFFFDF00, PR word -> 0xEEEE0000).
+- Stub-mechanics gotcha (repo first): 34-byte single-block stubs (0x11A34
+  pattern) OVERLAP for adjacent callees — getSR @0x3920 and setSR @0x3934 are
+  only 0x14 apart. Two-level stubs used instead: a 10/12-byte trampoline at
+  the callee's ROM address (`mov.l @(1,PC),r2; jmp @r2; nop; [pad]; .long body`
+  — pool lands at ((a+4)&~3)+4, which needs 2 pad bytes for a%4==0 targets
+  and 0 for a%4==2) + a 36-byte shared body per slot in scratch RAM
+  @0xFFFFD400+ (same trace semantics as 0x11A34).
