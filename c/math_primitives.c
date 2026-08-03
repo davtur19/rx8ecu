@@ -138,11 +138,22 @@ int32_t multiply32Bit_saturating(int32_t a, int32_t b)
  * the ROM's `extu.w`):
  *     result = a + (int)trunc((b - a) * (1 - frac/256.0))
  * frac==0 -> b exactly; frac==256 -> a exactly (typical use: frac counts 0..255 as a ramp/
- * fade progresses from the new value b back toward the old value a, or vice versa).        */
+ * fade progresses from the new value b back toward the old value a, or vice versa).
+ * The (b-a)*(1-frac/256) product is converted by the ROM's ftrc, which SATURATES on int32
+ * overflow (the emulated SH-2E ftrc in tools/sh2emu.py: +overflow -> INT32_MAX,
+ * -overflow/NaN -> INT32_MIN, else truncate toward zero) — a bare C cast would wrap or,
+ * on x86, saturate to INT32_MIN for +overflow, so the saturation must be explicit.         */
 int32_t fixedPointScaling(int32_t a, int32_t b, uint16_t frac)
 {
     float t    = 1.0f - (float)frac * (1.0f / 256.0f);
     float diff = (float)b - (float)a;
-    int32_t d  = (int32_t)(diff * t);    /* ftrc: truncate toward zero */
+    float prod = diff * t;
+    int32_t d;
+    if (prod >= 2147483648.0f)        /* ftrc +overflow: saturate */
+        d = INT32_MAX;
+    else if (prod < -2147483648.0f)   /* ftrc -overflow: saturate */
+        d = INT32_MIN;
+    else
+        d = (int32_t)prod;            /* ftrc in range: trunc toward zero */
     return a + d;
 }
