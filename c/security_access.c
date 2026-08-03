@@ -3,6 +3,9 @@
  *
  * ═══════════════════════════════════════════════════════════════════
  *  STATUS: DRAFT / UNVERIFIED structural reconstruction.
+ *  2026-08-04: key_validate (10-entry table) e position_check
+ *  (word_tab[2]=0xFFFC) verificati contro ROM; DRAFT residui:
+ *  flusso RequestSeed (r.~203).
  *
  *  IMPORTANT — READ FIRST:
  *   * The seed↔key TRANSFORM core (seed_key_related) has been corrected to
@@ -294,7 +297,10 @@ static uint8_t state_check2(void)
 /* ===================================================================
  *  4.  position_check  (ROM 0x56892)
  *
- *  DRAFT — structure corrected to ROM, exact role partially understood.
+ *  VERIFIED 2026-08-04 — both tables match ROM verbatim (table 4x6 @0x5FA90
+ *  with literal @0x56904, word_tab @0x5FA94 literal @0x56908, mask word
+ *  0x61F2 @0x56CB0); word_tab[2] corrected 0x0000 -> 0xFFFC from ROM bytes.
+ *  Role: position level check with second-stage mask qualification.
  *
  *  ROM evidence (disasm 0x56892-0x568E4):
  *    - table base = 0x5FA90 (literal @0x56904), stride = i*2 + i*4 = i*6
@@ -322,7 +328,7 @@ static uint8_t position_check(uint8_t level)
         { 0x00, 0x00, 0x00, 0x01, 0x00, 0x01 },
     };
     /* Second stage word table @0x5FA94 (same stride) and mask @0x56CB0. */
-    static const uint16_t word_tab[4] = { 0x0000, 0xFFFD, 0x0000, 0x0001 };
+    static const uint16_t word_tab[4] = { 0x0000, 0xFFFD, 0xFFFC, 0x0001 };  /* @0x5FA94+i*6; i=2 -> 0x5FAA0 = 0xFFFC (ROM) */
     static const uint16_t mask       = 0x61F2;
 
     for (int i = 0; i < 4; i++) {
@@ -425,8 +431,10 @@ static void seed_gen(uint8_t level)
 /* ===================================================================
  *  6.  key_validate  (ROM 0x56928 — "prediction")
  *
- *  DRAFT — table corrected to ROM bytes; exact call semantics partially
- *  understood.
+ *  VERIFIED 2026-08-04 — table extent established from ROM bytes: 10
+ *  entries (stride 3) from 0x5FAA2; the loop terminates when b0 >= 5
+ *  (the 11th "entry" starts with 0x4D = 'M' of the "MazdA" string at
+ *  0x5FAC0).  Literal 0x0005FAA2 confirmed at 0x56A20; helper @0x42B0.
  *
  *  ROM evidence (disasm 0x56928-0x56988):
  *    - table base = 0x5FAA2 (literal @0x56A20); entries are 3-byte triples,
@@ -444,16 +452,15 @@ static uint8_t key_validate(uint8_t b0, uint8_t b1, uint8_t b2)
 {
     /* Table at 0x5FAA2 — first 5 entries, verbatim ROM bytes.
      * The ROM table continues beyond these 5 entries (b0 < 5 loop bound);
-     * the full extent is not established -> DRAFT. */
-    static const uint8_t table[5][3] = {
-        { 0x00, 0x00, 0x00 },   /* ROM @0x5FAA2 */
-        { 0x01, 0x00, 0x01 },
-        { 0x01, 0x01, 0x01 },
-        { 0x01, 0x02, 0x00 },
-        { 0x01, 0x02, 0x01 },
+     * extent established from ROM bytes -> VERIFIED. */
+    static const uint8_t table[10][3] = {   /* ROM @0x5FAA2, 10 entry, stride 3 */
+        { 0x00, 0x00, 0x00 }, { 0x01, 0x00, 0x01 }, { 0x01, 0x01, 0x01 },
+        { 0x01, 0x02, 0x00 }, { 0x01, 0x02, 0x01 }, { 0x01, 0x03, 0x00 },
+        { 0x02, 0x03, 0x02 }, { 0x02, 0x04, 0x00 }, { 0x01, 0x04, 0x01 },
+        { 0x01, 0x05, 0x03 },
     };
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10 && table[i][0] < 5; i++) {
         if (table[i][0] == b0 && table[i][1] == b1 && table[i][2] == b2)
             return 0;   /* match with b0 < 5 -> valid (ROM 0x56976, caller errors on nonzero) */
     }
