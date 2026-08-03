@@ -152,9 +152,32 @@
 - `calc_secondary_o2_trim` (0x1321C) — secondary sensor trim
 - `calc_lambda_feedback_pid` (0x11A34) — serial sub‑call chain (14+ functions)
 - `calc_fuel_trim_correction_map` (0x136F0), `calc_fuel_trims_adaptive` (0x117B4)
-- `consistencyCheck` (0x3A28) — C code written, emulator test pending
-- `atu_fpu_control_wrapper` (0x70AC) — C code written, integration test pending
-- `task_full_context_save` (0x3BF4) — C code written, assembly simulation pending
+- `consistencyCheck` (0x3A28) — **LIFTED + differential-verified** (C lift
+  `c/consistencyCheck.c`; `c/tests/test_consistency_check_3A28.py`, 5000 x 5
+  seeds = 25000 random inputs, 0 mismatches, exit 0). Signature confirmed from
+  disasm: r4 = exception control block, r5 = exc-number byte (sign-extended);
+  table = u32@(ctrl+0x20), entry = table + s8(exc)*8, buf = u32@(entry+4);
+  path A (c0==c1): buf[0]=0xFFFF, flags byte @(0xFFFF72E0+(s8(exc)>>3)) &= ROM
+  mask @0x3D50; path B (c0!=c1): buf[0]=entry[0] if c0==entry[1] else c0+1,
+  on match writes u16 error code @(ctrl+6) from 0xFFFF7234[buf0]. Return 1 when
+  exc matches ctrl[0] after handler call (0x3C80), else 0.
+- `atu_fpu_control_wrapper` (0x70AC) — **LIFT + differential-verified** (`c/atu_fpu_control_wrapper.c`;
+  `c/tests/test_atu_fpu_control_wrapper_70AC.py`, 5000 x 5 = 25000 random inputs,
+  0 mismatches, exit 0). Signature/no args (sub-call chain runs real ROM: 0x2054
+  setSR_PARAM -> SR=max(SR&0xF0,0xE0) & save SR&0xF0; 0x4BBC bit OR 0x0100 into
+  u16@0xFFFFF74E; 0x2064 loadStatusRegister_ADDR restores SR = save). Net:
+  RAM16[0xFFFFF74E] |= 0x0100, SR_out = SR_in & 0xF0, r15/pr balanced.
+- `task_full_context_save` (0x3BF4) — **context-save write path bit-exact traced**
+  (assembly-first lift; `c/tests/test_task_full_context_save_3BF4.py`, 500 x 5 =
+  2500 random tasks, 0 mismatches, exit 0). Prologue saves to @-r15 (start SP
+  0xFFFFDF00) in order: R5->0xFFFFDEFC, PR->0xFFFFDEF8, pad(alloc,no-write)
+  ->0xFFFFDEF4, R8->0xFFFFDEF0, R9->0xFFFFDEEC, R10->0xFFFFDEE8, R11->0xFFFFDEE4,
+  R12->0xFFFFDEE0, GBR->0xFFFFDEDC, R13->0xFFFFDED8, MACH->0xFFFFDED4,
+  R14->0xFFFFDED0, MACL->0xFFFFDECC (non-FPU saved_sp). If task->type==4:
+  FR12->0xFFFFDEC8, FR13->0xFFFFDEC4, FR14->0xFFFFDEC0, FR15->0xFFFFDEBC (FPU
+  saved_sp). Then two non-stack RAM writes: *status_ptr(=u32@(desc+4)) = 4 and
+  tcb[0x0C] = saved_sp; bra 0x3C68 (schedule tail patched to rts;nop, same as
+  os_context_switch 0x3DB0 test). PR on stack = entry PR (SENT).
 
 ### bitfield_extract_merge @ 0x48C8 (60E1D400; identical code in 60E0FC00)
 - frexp-style float decomposition: x = sig * 2^e, sig in [1,2); single caller is checkFloatValidity @0x46CC (call site 0x46D8), which feeds both output words into the fixed-point sqrt/normaliser @0x4740 as stack args (the old "mul16_signed_saturated" / "q15 saturating mul" labels on 0x4740 are WRONG — see the 0x4740 entry below).
@@ -448,8 +471,10 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   untestable; seeding the kernel struct at 0xFFFF72B0 (word@0x04 == word@0x06)
   makes 0x3DB0 take its early-exit path (bt to 0x3DF0), so the full ROM path
   setSR(0) -> flag!=1 -> jmp 0x3DB0 -> early exit executes in-emulator and ends
-  with SR=0, r0=0. The 0x3BF4 context-switch write path is still NOT traced
-  (it restores r15 from a RAM pointer — OS machinery). getSR (0x3920) and
+  with SR=0, r0=0. The 0x3BF4 context-save write path is now bit-exact traced
+  (see the 0x3BF4 entry above: 13/17 @-r15 pushes + status + TCB saved-SP write,
+  verified 500 x 5 tasks, 0 mismatches; it restores r15 from a RAM pointer — OS
+  machinery, out of scope). getSR (0x3920) and
   setSR_PARAM (0x2054) also verified (20000 random each). SR accessors are
   emulator-only (no host C test: the lift's SR is a private file-scoped var).
 - **Fixes during verification**: (1) my initial step model had the comparison

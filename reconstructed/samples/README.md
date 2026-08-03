@@ -342,10 +342,11 @@ pointer/RAM (`bytepack`, `checksum`, `invert`, `setregbit`, `bitfield`,
 
 Punti residui noti (stato aperto):
 
-1. **Fix `xtrct` (emulatore) in attesa in `tools/`**: il monkeypatch dell'harness
-   (§5, bug `tools/sh2emu.py` a ruoli invertiti) copre la validazione, ma il fix
-   — promozione al tool / `unikaixtrct` — non è ancora applicato in `tools/`
-   (vincolo di scope di questo delivery, stato: in attesa).
+1. **Fix `xtrct` (emulatore) APPLICATO (commit `099bf8b`)**: il bug a ruoli
+   invertiti in `tools/sh2emu.py` è corretto (`R[n] = (R[m]<<16) | (R[n]>>16)`),
+   con `tools/tests/test_emulator_families.py:348` aggiornato (83 checks, 0
+   failure). I monkeypatch `xtrct` rimasti sugli harness sono ridondanti ma
+   innocui.
 2. **Stabilità della ROM a 9 multi-step**: il multi-step a 9 è ancora da
    stabilizzare (note in `docs/`), non rientra in questo README.
 3. **`rx8_check_float_validity` @0x46CC resta esclusa** dal set: la ROM non è
