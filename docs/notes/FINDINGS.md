@@ -148,10 +148,10 @@
   0x35EE/0x3BF4}. * = verified this session. Reads RAM cluster A968..A98B +
   9ECD bit2 + CD06 + 78E35/36/37; writes ports 0xFFFF8078/807A/807C via
   complementary-encoded helpers (0x3EE58/0x3EE68: v = (b<<8)|~b).
-- `exhaust_oxygen_control_19480` (0x19480) — heater/sensor state machine
-- `calc_secondary_o2_trim` (0x1321C) — secondary sensor trim
-- `calc_lambda_feedback_pid` (0x11A34) — serial sub‑call chain (14+ functions)
-- `calc_fuel_trim_correction_map` (0x136F0), `calc_fuel_trims_adaptive` (0x117B4)
+- `exhaust_oxygen_control_19480` (0x19480) — heater/sensor state machine — **✓ verified** (`c/tests/test_exhaust_oxygen_control_19480.py`, commit 14b0388, 0 mismatch).
+- `calc_secondary_o2_trim` (0x1321C) — secondary sensor trim — **✓ verified** (`c/tests/test_calc_secondary_o2_trim_1321C.py`, commit e8192e7, 0 mismatch).
+- `calc_lambda_feedback_pid` (0x11A34) — serial sub‑call chain (14+ functions) — **✓ verified** (`c/tests/test_calc_lambda_feedback_pid_11A34.py`, commit e8192e7, 0 mismatch).
+- `calc_fuel_trim_correction_map` (0x136F0), `calc_fuel_trims_adaptive` (0x117B4) — **✓ verified** (`c/tests/test_calc_fuel_trim_corr_map_136F0.py`, commit e8192e7; `c/tests/test_calc_fuel_trims_adaptive_117B4.py`, commit 14b0388).
 - `consistencyCheck` (0x3A28) — **LIFTED + differential-verified** (C lift
   `c/consistencyCheck.c`; `c/tests/test_consistency_check_3A28.py`, 5000 x 5
   seeds = 25000 random inputs, 0 mismatches, exit 0). Signature confirmed from
@@ -178,6 +178,21 @@
   saved_sp). Then two non-stack RAM writes: *status_ptr(=u32@(desc+4)) = 4 and
   tcb[0x0C] = saved_sp; bra 0x3C68 (schedule tail patched to rts;nop, same as
   os_context_switch 0x3DB0 test). PR on stack = entry PR (SENT).
+- **0x11540 = main dispatch TABLE (not a function)** — 0x11540 is a list of
+  24 big-endian function pointers (first entries 0x2F418,0x1A832,0x1A840,
+  0x5AA5C,0x5AADE,...); the disassembler misreads the table as code. Table and
+  pointed-to functions pinned in `c/tests/test_can_packers.py` (commit a7fc6d5,
+  3013 vectors, 0 mismatch). Row chiusa come data (see addr_cov2.tsv).
+- **SH-2 delay-slot idiom (OBD CAN-TX builders)** — the `mov.b/w r0,@Rdisp`
+  that follows each `jsr` executes BEFORE the call, so every store captures the
+  PREVIOUS getter's return value. This explains the exact 8-byte buffer layout of
+  `getOBDCANTXVars1` @0x4C8C2 (0xFFFFCEAC: [0]=getEngineLoadOBD,[1]=0 stb 0x55E14,
+  [2]=IAT,[3]=MAF,[4]=RPM,[5]=SPEED,[6]=0,[7]=0) and `getOBDCANTXVars2` @0x4C9C0
+  (0xFFFFCEC0: [0]=0,[1]=0,[2]=STFT,[3]=LTFT,[4:6]=throttle u16 BE,
+  [6]=getCommandedLambdaOBD,[7]=sub_55FA6). Verified bit-exact in
+  `c/tests/test_obd_vars_vector.py` (commit f7f6424); the earlier
+  getOBDCANTXVars1/2 C lift (c/obd_pid_handlers.c) mis-wrote both the layout and
+  the vars2 base (0xFFFFCEB4 → 0xFFFFCEC0) — fixed 2026-08-03.
 
 ### bitfield_extract_merge @ 0x48C8 (60E1D400; identical code in 60E0FC00)
 - frexp-style float decomposition: x = sig * 2^e, sig in [1,2); single caller is checkFloatValidity @0x46CC (call site 0x46D8), which feeds both output words into the fixed-point sqrt/normaliser @0x4740 as stack args (the old "mul16_signed_saturated" / "q15 saturating mul" labels on 0x4740 are WRONG — see the 0x4740 entry below).

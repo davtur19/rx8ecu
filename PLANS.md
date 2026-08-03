@@ -38,7 +38,7 @@ one at a time, and the baseline always rebuilds.
   tens of thousands of randomized RAM states; the C model must match every state.
 - Recorded in `c/verified_addrs.txt`; documented in `docs/notes/FINDINGS.md` +
   `docs/functions/`.
-- Host-compile test suite in `c/tests/` (100 Python + 21 C standalone
+- Host-compile test suite in `c/tests/` (194 Python + 26 C standalone
   suites); emulator cross-check: `make c-emu` (`c/tests/verify_emu.py`).
 
 ### Track B — byte-exact ROM rebuild (`tools/rom_rebuild.py`, `Makefile`, `tools/verify_all.sh`)
@@ -68,14 +68,15 @@ one at a time, and the baseline always rebuilds.
   source. Instruction-lift coverage in the code window `0x800..0x60000` is
   **93.46–93.8%** per ROM (60E1D400 93.63%, 60E0FC00 93.56%, 60E1C500 93.48%,
   60E32000 93.80%), remainder is byte-exact `.word` data.
-- **Track A: 97 verified addresses** (`c/verified_addrs.txt`) and **149 C
+- **Track A: 97 verified addresses** (`c/verified_addrs.txt`) and **177 C
   lifts** (`c/*.c`): math/lookup primitives, RTOS (scheduler/context switch),
   security & immobilizer, PID dispatch, DTC/fault handling, sensors, boot, OMP
   chain (all 0 mismatches over 20k-60k inputs each).
-- **Test suite: 100/100 Python suites green + `make c-test` 21/21** (was
-  "84 PASS / 2 FAIL across 86"; the old harness failures were fixed, and
-   `test_security_access.py` now imports `tools/mazda_security.py` instead of the
-   legacy `security/` directory (moved to private storage), so it runs in a fresh copy of the repo).
+- **Test suite: 194 Python suites green + `make c-test` 26/26** (was
+  "100/100 + 21/21"; before that "84 PASS / 2 FAIL across 86"; the old harness
+  failures were fixed, and `test_security_access.py` now imports
+  `tools/mazda_security.py` instead of the legacy `security/` directory (moved
+  to private storage), so it runs in a fresh copy of the repo).
 - **Emulator cross-check:** 5/5 OK (100k random inputs each): add16bitSaturate
   @0x2460, addSaturate8Bit @0x2478, addS32Saturate @0x2304, seed_mixer @0x366B8,
   calculateImmoSeed @0x3675C.
@@ -127,25 +128,27 @@ make c-emu                    # Track A emulator cross-checks
 - **All shipped stock ROMs byte-exact (verified)**: `tools/verify_all.sh` +
   `make verify-all` enforce this from a clean clone (this hardening pass).
 - **Track A completion**: verify remaining named functions down the callgraph
-  (≥ 2 callers first); finish OBD/UDS service handlers.
+  (≥ 2 callers first). OBD/UDS service handlers sono **COMPLETI** (item 1
+  sotto); i residui Track A (security_access DRAFT, exhaust windows) sono in
+  **Next** sotto.
 - **Release packaging**: clean-room reproduction kit — README quickstart, pinned
   toolchain fetch, bulk verifier, no hidden environment magic (this pass).
+- **BOOT-mode debug**: item hardware-only (pratica su CN400 jig + FDT
+  handshake) — **non eseguibile in questo ambiente software**, resta aperto.
 
 ## Open items
 
-1. **Track A — remaining function verification**: OBD/UDS service handlers —
-   0x64258 (c/obd_dtc_row_update_0x64258.c) and 0x64418
-   (c/obd_dtc_row_update_0x64418.c) lifted and emulator-verified (host C
-   22048/22560 tests + 20000 random each, 0 mismatches); 0x62ABC, 0x648B4,
-   0x63312, 0x632D6, 0x63834, 0x63B46 — ✓ verified emulator+host-C, 0 mismatch
-   (commit e8192e7); OMP task 0x1825E
-   (`c/omp_control_task_1825E.c`, formerly `c/omp_task_0x1825E.c`) and companion 0x18CC0
-   (`c/omp_rotor_overshoot_detector_18CC0.c`) are lifted and emulator-verified;
-   work down the callgraph (≥2 callers next).
+1. ~~**Track A — remaining function verification**: OBD/UDS service handlers~~ **COMPLETO 2026-08-03** — tutti ✓ verified (emulator + host-C, 0 mismatch):
+   - OBD/UDS service handlers: **0x64258** (`c/obd_dtc_row_update_0x64258.c`, 22048 host tests), **0x64418** (`c/obd_dtc_row_update_0x64418.c`, 22560 host tests), **0x62ABC**, **0x648B4**, **0x63312**, **0x632D6**, **0x63834**, **0x63B46** — ✓ verified emulator+host-C, 0 mismatch (commit e8192e7).
+   - **FreezeFrame 0x467D0** e **UDSMode01 0x66258** — ✓ verified (dedicato `c/tests/test_obd_freezeframe_uds01.py`, commit f7f6424).
+   - **OBD PID**: i 9 getter `obd_pid` — 0x4C8C2/0x4C9C0 (getOBDCANTXVars1/2, buffer 8-byte 0xFFFFCEAC/0xFFFFCEC0, pipeline delay-slot, `test_obd_vars_vector.py`), 0x55D9A/0x55E18/0x55F7A (`test_obd_pid_getters3.py`), 0x55E66/0x55E7C/0x55EA2/0x55EEA/0x55F02 (`test_obd_pid_getters.py`), 0x55F64 (`test_obd_pid_getters2.py`) + **Vector 0x670B4** (bitmap 0x5F6D8, `test_obd_vars_vector.py`) — tutti ✓ verified.
+   - **can_uds** (`c/can_uds_subsystem.c`): tutti i 12 packer/dispatcher coperti via `c/tests/test_can_packers.py` (commit a7fc6d5, 3013 vectors, 0 mismatch — incl. can203TX 0x29D24, can251TX 0x2AAB6, dispatcher 0x2D402/0x33942 con catena pinnata); **0x11540 = dispatch TABLE** (24 fptr BE), non funzione (chiusa come data).
+   - Work down the callgraph (≥2 callers next) → vedi sezione **Next**.
 2. **Hardware BOOT-mode debug**: practice ECU (live [REDACTED]) never entered Renesas
    BOOT mode via CN400 jig; FDT Error 15024; needs an active RESET pulse (not just
    power-on) — trace CN430/RST-OPEN, find RESET pin, get FDT handshake
-   (`docs/notes/BOOT_RECOVERY.md`).
+   (`docs/notes/BOOT_RECOVERY.md`). **Hardware-only** (ECU + jig CN400 + FDT
+   handshake): non eseguibile in questo ambiente software, resta aperto.
 3. ~~**LFSR security mismatch**~~ **RESOLVED 2026-08-01** (commit `a84eaba`,
    emulator-verified against `SeedKeyRelated` @0x56ADA): the stock SecurityAccess
    LFSR **is** the ECOMcat/Craig-Smith 24-bit Galois algorithm (init `0xC541A9`,
@@ -159,6 +162,19 @@ make c-emu                    # Track A emulator cross-checks
    0x56928 tabella 0x5FAA2, b1 = b0 duplicato = SECURITY_STATE_2 @0xFFFFD20C,
    b2 = position_check; LFSR (init per-level @0x5FAC5, taps 0x909028) solo nella
    key transform 0x56ADA.
+
+## Next (Track A residual leaves, post item-1 COMPLETO)
+
+- **`c/security_access.c` — STATUS: DRAFT / UNVERIFIED** structural
+  reconstruction: LFSR core (#2 della seed/key) allineato alla ROM, ma ci sono
+  discrepanze documentate vs ROM da NON correggere finché non confermate
+  (`docs/notes/UDS_SECURITY_MAPPING.md`, §"Discrepanze C c/security_access.c vs
+  ROM"); obiettivo: portarlo a differential-verified con l'emulatore.
+- **Exhaust windows / residui exhaust-O2 restanti**: verificate
+  `exhaust_oxygen_control_19480` e le 6 leaf O2/lambda (item 1); restano le
+  foglie exhaust del callgraph (es. `exhaust_control` @0x43F56, citato da
+  `c/engineControlCalculateTiming.c`) con ≥2 callers da verificare a scalare
+  dalla cima della catena.
 
 ## Workflow rules (from AGENTS.md)
 

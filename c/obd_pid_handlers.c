@@ -36,10 +36,11 @@
 #define SENSOR_STATUS_2         (*(volatile uint8_t  *)0xFFFFAE96UL)
 #define SENSOR_THROTTLE         (*(volatile float    *)0xFFFFAA88UL)  /* @0x55F64 */
 #define LAMBDA_RAW_WORD         (*(volatile uint16_t *)0xFFFFADD4UL)  /* @0x55F7A */
+#define O2_SENSOR_STATUS        (*(volatile uint8_t  *)0xFFFFA9E4UL)  /* @0x55FA6 */
 
-/* OBD CAN TX buffers */
-#define OBD_TX_BUF_240          (*(volatile uint8_t  *)0xFFFFCEACUL)
-#define OBD_TX_BUF_250          (*(volatile uint8_t  *)0xFFFFCEB4UL)
+/* OBD CAN TX buffers (8 bytes each, from test_obd_vars_vector.py) */
+#define OBD_TX_BUF_240          (*(volatile uint8_t  *)0xFFFFCEACUL)  /* getOBDCANTXVars1 */
+#define OBD_TX_BUF_250          (*(volatile uint8_t  *)0xFFFFCEC0UL)  /* getOBDCANTXVars2 (NOT 0xFFFFCEB4) */
 
 /* -----------------------------------------------------------------
  * Shared conversion constants (from literal pools)
@@ -410,86 +411,89 @@ static uint16_t getThrottleOBD(void)
 /* =================================================================
  * getOBDCANTXVars1  (original @ 0x4C8C2)
  *
- * Collects up to 8 bytes of OBD data and writes to the CAN TX
- * buffer for CAN ID 0x240.
+ * Writes the 8-byte OBD CAN-TX buffer @0xFFFFCEAC-0xFFFFCEB3
+ * (CAN ID 0x240 payload).
  *
- * Calls:
- *   - getEngineLoadOBD  @ 0x55D9A
- *   - getIATOBD         @ 0x55E18
- *   - getMAFOBD         @ 0x55E66
- *   - getRPMOBD         @ 0x55E7C
- *   - getSpeedOBD       @ 0x55EA2
+ * EVIDENCE — delay-slot pipeline (c/tests/test_obd_vars_vector.py,
+ * header comment): on the SH-2, the `mov.b r0,@Rdisp` that follows
+ * each `jsr` executes BEFORE the call, so every store captures the
+ * PREVIOUS getter's return value.  The ROM chain is:
  *
- * Writes to 0xFFFFCEAC-0xFFFFCEB3 (8 bytes).
+ *   jsr @getEngineLoadOBD      (0x55D9A, first call, result stays in r0)
+ *   r3 = 0x55E14 (return-0 stub); jsr / mov.b r0,@0xFFFFCEAC
+ *   r3 = 0x55E18 (getIATOBD);      jsr / mov.b r0,@0xFFFFCEAD
+ *   r3 = 0x55E66 (getMAFOBD);      jsr / mov.b r0,@0xFFFFCEAE
+ *   r3 = 0x55E7C (getRPMOBD);      jsr / mov.b r0,@0xFFFFCEAF
+ *   r3 = 0x55EA2 (getSpeedOBD);    jsr / mov.b r0,@0xFFFFCEB0
+ *   mov.b r0,@0xFFFFCEB1      (r0 still holds getSpeedOBD result)
+ *   mov.b r4=0,@0xFFFFCEB2 / mov.b r4=0,@0xFFFFCEB3
+ *
+ * Buffer layout (verified bit-exact by test_obd_vars_vector.py):
+ *   [0]=getEngineLoadOBD() [1]=0 (stub 0x55E14)
+ *   [2]=getIATOBD()        [3]=getMAFOBD()
+ *   [4]=getRPMOBD()        [5]=getSpeedOBD()
+ *   [6]=0                  [7]=0
  * ================================================================= */
 void getOBDCANTXVars1(void)
 {
-    volatile uint8_t *buf = &OBD_TX_BUF_240;
-    uint16_t val;
+    volatile uint8_t *buf = &OBD_TX_BUF_240;   /* 0xFFFFCEAC */
 
-    val = getEngineLoadOBD();
-    buf[0] = (uint8_t)(val >> 8);
-    buf[1] = (uint8_t)(val & 0xFF);
-
-    val = getIATOBD();
-    buf[2] = (uint8_t)(val >> 8);
-    buf[3] = (uint8_t)(val & 0xFF);
-
-    val = getMAFOBD();
-    buf[4] = (uint8_t)(val >> 8);
-    buf[5] = (uint8_t)(val & 0xFF);
-
-    val = getRPMOBD();
-    buf[6] = (uint8_t)(val >> 8);
-    buf[7] = (uint8_t)(val & 0xFF);
-
-    /* Note: Speed goes into getOBDCANTXVars2 per the assembly */
+    buf[0] = (uint8_t)getEngineLoadOBD();      /* 0x55D9A result */
+    buf[1] = 0;                                /* sub_55E14 return-0 stub */
+    buf[2] = (uint8_t)getIATOBD();             /* 0x55E18 */
+    buf[3] = (uint8_t)getMAFOBD();             /* 0x55E66 */
+    buf[4] = (uint8_t)getRPMOBD();             /* 0x55E7C */
+    buf[5] = (uint8_t)getSpeedOBD();           /* 0x55EA2 */
+    buf[6] = 0;
+    buf[7] = 0;
 }
 
 
 /* =================================================================
  * getOBDCANTXVars2  (original @ 0x4C9C0)
  *
- * Collects up to 20 bytes of OBD data for CAN ID 0x250.
+ * Writes the 8-byte OBD CAN-TX buffer @0xFFFFCEC0-0xFFFFCEC7
+ * (CAN ID 0x250 payload).
  *
- * Calls:
- *   - getSTFTOBD         @ 0x55EEA
- *   - getLTFTOBD         @ 0x55F02
- *   - getThrottleOBD     @ 0x55F64
- *   - getCommandedLambdaOBD @ 0x55F7A
- *   - getSpeedOBD        @ 0x55EA2
- *   - (others TBD)
+ * EVIDENCE — same delay-slot pipeline as getOBDCANTXVars1
+ * (c/tests/test_obd_vars_vector.py, header comment): each store runs
+ * in the delay slot of the PREVIOUS jsr and thus captures the previous
+ * call's r0:
  *
- * Writes to 0xFFFFCEB4-0xFFFFCEC7 (20 bytes).
+ *   mov.b r4=0,@0xFFFFCEC0
+ *   r1 = 0x55EEA (getSTFTOBD); jsr / mov.b r4=0,@0xFFFFCEC1  (discarded)
+ *   r2 = 0x55F02 (getLTFTOBD); jsr / mov.b r0,@0xFFFFCEC2   = getSTFTOBD()
+ *   r3 = 0x55F64 (getThrottleOBD);  jsr / mov.b r0,@0xFFFFCEC3 = getLTFTOBD()
+ *   r3 = 0x55F7A (getCommandedLambdaOBD); jsr / mov.w r0,@0xFFFFCEC4
+ *                                            (u16 BE) = getThrottleOBD()
+ *   r3 = 0x55FA6 (O2 status);  jsr / mov.b r0,@0xFFFFCEC6  = getCommandedLambdaOBD()
+ *   rts / mov.b r0,@0xFFFFCEC7                                 = sub_55FA6()
+ *
+ * Buffer layout (verified bit-exact by test_obd_vars_vector.py):
+ *   [0]=0  [1]=0
+ *   [2]=getSTFTOBD()        [3]=getLTFTOBD()
+ *   [4:6]=getThrottleOBD() u16 BE
+ *   [6]=getCommandedLambdaOBD()   [7]=sub_55FA6()
+ * sub_55FA6 @0x55FA6: RAM[0xFFFFA9E4] == 1 -> 1, else 4.
+ *
+ * NOTE: buffer base is 0xFFFFCEC0, NOT 0xFFFFCEB4 (earlier lift
+ * mis-read the address — vars1 owns 0xFFFFCEAC-0xFFFFCEB3, vars2 owns
+ * 0xFFFFCEC0-0xFFFFCEC7; 8 bytes each, no overlap).
  * ================================================================= */
 void getOBDCANTXVars2(void)
 {
-    volatile uint8_t *buf = &OBD_TX_BUF_250;
-    uint16_t val;
+    volatile uint8_t *buf = &OBD_TX_BUF_250;   /* 0xFFFFCEC0 */
+    uint16_t t;
 
-    val = getSTFTOBD();
-    buf[0] = (uint8_t)val;
-
-    val = getLTFTOBD();
-    buf[1] = (uint8_t)val;
-
-    val = 0; /* Oxygen sensor voltage (bank 1, sensor 1) — TBD */
-    buf[2] = (uint8_t)val;
-
-    val = 0; /* Oxygen sensor voltage (bank 1, sensor 2) — TBD */
-    buf[3] = (uint8_t)val;
-
-    val = getCommandedLambdaOBD();
-    buf[4] = (uint8_t)(val >> 8);
-    buf[5] = (uint8_t)(val & 0xFF);
-
-    val = getThrottleOBD();
-    buf[6] = (uint8_t)(val >> 8);
-    buf[7] = (uint8_t)(val & 0xFF);
-
-    /* Speed and remaining bytes */
-    val = getSpeedOBD();
-    buf[8] = (uint8_t)val;
+    buf[0] = 0;
+    buf[1] = 0;                                /* STFT result discarded */
+    buf[2] = (uint8_t)getSTFTOBD();            /* stored in LTFT delay slot */
+    buf[3] = (uint8_t)getLTFTOBD();            /* stored in throttle delay slot */
+    t = getThrottleOBD();
+    buf[4] = (uint8_t)(t >> 8);                /* u16 BE in lambda delay slot */
+    buf[5] = (uint8_t)(t & 0xFF);
+    buf[6] = (uint8_t)getCommandedLambdaOBD(); /* stored in sub_55FA6 delay slot */
+    buf[7] = ((O2_SENSOR_STATUS & 0xFF) == 1) ? 1 : 4;  /* sub_55FA6 */
 }
 
 
