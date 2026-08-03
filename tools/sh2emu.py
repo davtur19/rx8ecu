@@ -55,7 +55,7 @@ class SH2:
         b = struct.pack('>f', ts(v))
         for i in range(4): self._wb(a + i, b[i])
 
-    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0):
+    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None):
         self.ram = dict(ram or {})
         self.r = [0] * 16
         self.r[4], self.r[5], self.r[6], self.r[7] = r4 & MASK, r5 & MASK, r6 & MASK, r7 & MASK
@@ -63,6 +63,16 @@ class SH2:
         self.fr = [0.0] * 16
         for k, v in (fr or {}).items(): self.fr[k] = ts(v)
         self.pr = self.SENT; self.T = 0; self.macl = 0; self.mach = 0; self.gbr = 0; self.sr = sr & MASK
+        for k, v in (regs or {}).items():      # additive: arbitrary register/SR override
+            if isinstance(k, int) or (isinstance(k, str) and k.isdigit()):
+                self.r[int(k)] = v & MASK
+            elif k == 'pr': self.pr = v & MASK
+            elif k == 'gbr': self.gbr = v & MASK
+            elif k == 'macl': self.macl = v & MASK
+            elif k == 'mach': self.mach = v & MASK
+            elif k == 'sr': self.sr = v & MASK
+            elif isinstance(k, str) and k[0] == 'r' and k[1:].isdigit():
+                self.r[int(k[1:])] = v & MASK
         self.vbr = 0; self.ssr = 0; self.spc = 0
         self.fpul = 0; self.fpscr = 0
         # division flags (SR bits 3/2); T bit mirrored in self.T
