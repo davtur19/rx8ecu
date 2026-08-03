@@ -242,3 +242,9 @@
 ; test_obd_pid_getters.py; each reads a float sensor cell and clamps 0..255 via
 ; floatToInt @0x24D0 — 20000 random + 10 targeted inputs each, 0 mismatches)
 0x55E66 0x55E7C 0x55EA2 0x55EEA 0x55F02
+; 2026-08-03 test_obd_pid_getters2
+; getThrottleOBD @0x55F64: float cell @0xFFFFAA88 -> conv @0x2490 (0xFFFF clamp),
+; scale pool @0x560A0 = 0.01f, offset 0. getRearO2Voltage @0x0D478: u16 A/D @0xFFFF9EF2
+; x scale pool @0x0D498 = 5/65536 -> float store @0xFFFFA3E4. 100000 random + 10 targeted
+; inputs each, 0 mismatches (exit 0).
+0x55F64 0xD478
