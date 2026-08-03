@@ -123,11 +123,64 @@
  *   is pulsed when A9DD leaves 0.  A9DC/A9DF are the debounce and warmup
  *   counters (both saturating-add based).
  *
- * TODO (dedotto, da validare): the physical meaning of the three windowed
- * floats (B5B8/AA10/ADBC) and of the A9D5..A9D8 output flags (heater vs
- * circuit), the mode-channel mapping (0/12 vs 6/18), and the intended
- * re-pulse behaviour of the debounce counter.  Structure and constants are
- * byte-faithful to the ROM; tests are pending (next task).
+ * VERIFIED SEMANTICS of the three windowed floats (all three are read every
+ * call, ANDed into ONE sensor-plausibility gate -- there is no per-window
+ * action; the window selects between the "window-ok" drive path and the
+ * clear-output path):
+ *
+ *   Window 1  f@0xFFFFB5B8 (fr5):  in [0,1200)      ROM 0x6F6E4/0x6F6E8
+ *     Cell identity: CERTAIN.  0xFFFFB5B8 is the repo-wide f32 engine-speed
+ *     cell (labelled RPM_Float_B5B8 in docs/notes/ECU.md; read as engine RPM
+ *     by many verified lifts: calc_rotor_sync_idle_gate_B, calc_spark_advance_
+ *     0x1237C, air_charge_calc_0x19190, calc_ignition_all_rotors_13C2C,
+ *     engine_load_estimator_0x190A6, calc_adaptive_fuel_trim, can_uds_subsystem).
+ *     (Note: o2_lambda_subsystem.c labels the same cell "O2 voltage dup", so
+ *     the cell is a reused scratch float; in THIS O2-context gate the upper
+ *     bound 1200 fits either "1200 rpm" or "1200 mV" scale.)
+ *     Physical meaning: INFERRED -- plausibility bound on the engine-speed /
+ *     O2-voltage reading; the window-ok drive path only runs while the value
+ *     is in the plausible low range (engine speed below ~1200 rpm, i.e. the
+ *     low-flow regime where the O2 sensor needs heater/sensor control, or an
+ *     in-range narrow-band O2 voltage of < 1.2 V).
+ *
+ *   Window 2  f@0xFFFFAA10 (fr6):  in [-40,120)     ROM 0x6F6EC/0x6F6F0
+ *     Cell identity + physical meaning: CERTAIN.  0xFFFFAA10 is read as a
+ *     temperature (coolant / charge / fan / OMP coolant) in several lifts
+ *     (ssvControl, calc_fan1_control, omp_waveform_state_machine_18860,
+ *     rotor_sync_gate_state_ctrl_2100A, air_charge_calc_0x19190) and the
+ *     bounds -40..120 exactly match the classic automotive coolant-temperature
+ *     validity range in deg C.  This is the coolant/charge-temperature
+ *     plausibility window: the sensor/heater drive is only authorised while
+ *     the temperature is plausible (engine neither frozen nor overheated).
+ *
+ *   Window 3  f@0xFFFFADBC (fr4):  in [0,125)       ROM 0x6F6F4/0x6F6F8
+ *     Cell identity: NOT DOCUMENTED anywhere else in this repo (no other lift
+ *     or doc references 0xFFFFADBC).  Physical meaning: INFERRED -- a third
+ *     plausibility-scaled analog input; the magnitude [0,125) is consistent
+ *     with a temperature in deg C or a load/percentage scale.  Only the
+ *     bounds + the fact that it participates in the ANDed gate are verified.
+ *
+ * VERIFIED semantics of the A9D5..A9D8 output flags: they are four per-channel
+ * drive flags, not plain heater vs circuit bits.  They are consumed by
+ * spark_output_enable_fault_mask_0x10DC8 (verified lift), which folds them into
+ * the A5D8 output bitmask as A9D7->bit0, A9D5->bit1, A9D8->bit2, A9D6->bit3 --
+ * i.e. they enable/disable four per-channel output bits.  The mode-channel
+ * mapping is verified: mode {0,12} (sensor channel 0) drives the A9D5/A9D7
+ * pair, mode {6,18} (sensor channel 1) drives the A9D6/A9D8 pair; the two
+ * flags per channel are most plausibly two heater-drive sub-outputs per sensor
+ * (INFERRED -- the physical wiring beyond the A5D8 bitmask is not recovered).
+ *
+ * VERIFIED debounce/level-transition behaviour: on an input level change the
+ * full pattern (mask 0x0F = all four flags) is issued on the first call, then
+ * while the debounce counter runs the flags are cleared, and when the counter
+ * reaches its ramp-table limit (ROM 0x6F670, idx-1 -> 1..64 ramp; idx==0 ->
+ * 0x6F66F = 255) it resets to 0 and the pattern re-issues on the next armed
+ * call -- a re-pulse with a level-dependent hold time (short for low input
+ * levels, ~160+ counts for the high-level branch).  In this stock ROM all
+ * drive masks (0x6F6A4/0x6F6A5/0x6F6A7) are 0 and CAL_SENS_MODE = 0, so both
+ * the window-ok and map-mode paths only CLEAR the mode-matched flag pair; the
+ * net observable behaviour is the A9DD state word (0/1/2/5), the one-shot
+ * A9D9 notify and the debounce/counter bytes -- all bit-exact vs the ROM.
  */
 #include <stdint.h>
 #include <math.h>
