@@ -263,3 +263,6 @@
 ; @0x1437C and getRearO2FilteredValue @0x1E794 (real entry — 0x1E812 is DATA in
 ; its literal pool). 9.3k vectors, 0 mismatches.
 0x1437C 0x1E794
+
+; 2026-08-03 batch can_packers2/maf
+0x29D24 0x2AAB6 0x2D402 0x33942
