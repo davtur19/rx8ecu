@@ -53,18 +53,18 @@ with `make -C web/explorer serve`.
   decode-gap families capstone misses: FPU, fpul/fpscr, `mov.l @(disp,Rm)`) and
   `tools/sh2emu.py` (integer + single-precision FPU), the oracle every C lift is
   proven against.
-- **160 C lifts** — most behavior-equivalent reimplementations (lookup/interp
+- **177 C lifts** — most behavior-equivalent reimplementations (lookup/interp
   primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
   DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
   *actual ROM bytes* running on the emulator over tens of thousands of
-  randomized inputs each (107 emulator-verified addresses); the few reconstruction-tier
+  randomized inputs each (266 emulator-verified addresses); the few reconstruction-tier
   files (structural, not emulator-verified) are labeled as such in-tree.
 - **193 function docs + 15 subsystem docs** (`docs/functions/`,
   `docs/subsystems/`).
 - **1,210 calibration tables** (`symbols/cal_tables.csv`), **6,953 resolved
   call-graph edges**, **18 jump tables identified** (60E1D400 baseline,
   `analysis/data_regions_60E1D400.csv`).
-- **Host test suites**: 115 Python per-function suites, 26 C suites,
+- **Host test suites**: 194 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
   disassembler/emulator family regressions (38,008 + 83 checks).
 
@@ -89,7 +89,7 @@ Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 160 verified C lifts, `eeprom_immo.h`, host test suites (115 py + 26 c), `verified_addrs.txt` |
+| `c/` | 177 verified C lifts, `eeprom_immo.h`, host test suites (194 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | `symbols/` | Kept symbol-table CSVs (60E0FC00 plain/ghidra, 60E1D400 ida/merged), `cal_tables.csv` (1,210 tables), `callgraph.csv` |
 | `analysis/` | Code-window data-region classification for the 60E1D400 baseline |

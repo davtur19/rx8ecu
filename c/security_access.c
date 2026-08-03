@@ -157,16 +157,30 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
 {
     uint8_t  seed[3];
     uint8_t  resp_data[4];
-    uint8_t  state;
+    uint8_t  state1;   /* SECURITY_STATE_1 — key_validate b0 (ROM 0x58538) */
+    uint8_t  state;    /* SECURITY_STATE_2 — key_validate b1 / unlock arg */
 
-    /* --- NRC 0x11 check: is diagnostic mode active? ---
-     * DRAFT: the old code guessed "if state_check1() != 0 -> return NRC_GR".
-     * The ROM's exact guard conditions at the entry of 0x584A0 are not
-     * confirmed; keep the check but flag it as unverified. */
-    if (state_check1() != 0) {
-        uds_error_response(SID_SECURITY_ACCESS, NRC_GR);
-        return;
-    }
+    /* --- State reads at ROM handler 0x584A0 entry (CONFIRMED 2026-08-03) ---
+     * The ROM unconditionally calls state_check1() @0x584CC and state_check2()
+     * @0x584D2.  The old DRAFT guess "if state_check1() != 0 -> NRC_GR (0x11)"
+     * is WRONG — there is NO such guard:
+     *   * disasm 0x584A0-0x58640: the only NRC literals emitted are
+     *     {0x31, 0x12, 0x35, 0x22}.  NRC 0x11 (GR) never appears in the
+     *     handler (mov #0x11,r5 is absent).
+     *   * state_check1() @0x56866 just returns byte @0xFFFFD20B
+     *     (SECURITY_STATE_1); its result is saved to the caller frame by the
+     *     delay-slot `mov.b r0,@(0x08,r15)` @0x584D6, then consumed as the
+     *     FIRST argument of the key_validate() call @0x58538-0x58540
+     *     (RequestSeed path).  It gates nothing by itself.
+     *   - state_check2() @0x568E6 returns byte @0xFFFFD20C (SECURITY_STATE_2),
+     *     kept in r10 (@0x584DA) and used as key_validate() b1 + unlock() arg.
+     *   - sh2emu probe over many {state1, state2, payload, subfunc} inputs:
+     *     uds_error_response @0x553AA is reached only with r5 (NRC) in
+     *     {0x31, 0x12, 0x35, 0x22}, never 0x11, for every SECURITY_STATE_1.
+     * The two reads are kept (the ROM makes them) but they do NOT return
+     * NRC_GR. */
+    state1 = state_check1();
+    state  = state_check2();
 
     /* --- Validate message length --- */
     uint16_t msg_len = (msg[0] << 8) | msg[1];
@@ -182,7 +196,6 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
     }
 
     /* --- Subfunction dispatch --- */
-    state = state_check2();
 
     if (subfunc == SF_REQUEST_SEED) {
         /* ---- Subfunction 0x01: RequestSeed ---- */
@@ -207,12 +220,15 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
             return;
         }
 
-        /* State/position cross-check — ROM 0x58538 calls key_validate with
-         * three byte values (state byte, r10 value, position_check result)
-         * and rejects with NRC 0x31 on a nonzero return.  The source of the
-         * middle byte (ROM r10, a result of the helper called at 0x584D4)
-         * is not confirmed, so this wiring is DRAFT: */
-        if (key_validate(state, subfunc, chk) != 0) {
+        /* State/position cross-check — ROM 0x58538-0x58540 calls
+         * key_validate(b0,b1,b2) where
+         *   b0 = [r15+8] = state_check1()  = SECURITY_STATE_1 (disasm 0x58538
+         *        mov.b @(0x08,r15),r0; state_check1 result stored @0x584D6)
+         *   b1 = r10      = state_check2() = SECURITY_STATE_2 (mov r0,r10 @0x584DA)
+         *   b2 = r12      = position_check() result (mov r12,r6 @0x5853A)
+         * and rejects with NRC 0x31 on a nonzero return.  The old C wiring
+         * (state, subfunc, chk) is corrected to (state1, state, chk). */
+        if (key_validate(state1, state, chk) != 0) {
             uds_error_response(SID_SECURITY_ACCESS, 0x31);
             return;
         }
