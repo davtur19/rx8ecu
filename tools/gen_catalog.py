@@ -41,25 +41,38 @@ MASTER_CSV = os.path.join(SYMBOLS_DIR, "CATALOG_MASTER.csv")
 STATUS_MD = os.path.join(SYMBOLS_DIR, "CATALOG_STATUS.md")
 NAMES_STATUS_MD = os.path.join(SYMBOLS_DIR, "NAMES_STATUS.md")
 
+EQUINOX_FILE = os.path.join(SYMBOLS_DIR, "equinox311_60E0FC00_named.csv")
+EQUINOX_BANK = "60E0FC00"
+
 # --- dedup precision sources (per (bank, addr)) ------------------------------
 # Priorita' crescente: le righe piu' autorevoli vincono il dedup per (bank,addr).
-# I nomi 'merged2' / 'merged' / 'ida' ecc. identificano il FILE sorgente,
-# non solo la colonna `source` (in "ida-ai"/"ghidra-hand" etc. dentro lo stesso
-# file la bandiera importa). LIFT_ONLY e' sempre in cima (bindary autoritativi).
-_FILE_TIER = {
-    # file basename -> tier (piu' alto vince)
-    "merged2": 7,   # 60E0FC00_merged2.csv: gidra-auto+hand + ida-ai-xmp in un unico file
-    "merged": 6,    # 60E1D400_merged.csv: fuso
-}
+# LIFT_ONLY e' sempre in cima (boundary autoritativi). Ordine (alto->basso):
+#   LIFT_ONLY > c-lift > equinox311-clean(USER_DEFINED) > ghidra-hand-xmap/ghidra-hand
+#   > equinox311-clean(DEFAULT/heuristic) > equinox311-uncertain > ida-ai-xmap
+#   > ghidra-auto > ida-ai > derived.
+# ida-ai-xmap sta SOPRA ghidra-auto: ghidra-auto produce solo nomi generici
+# (FUN_xxx) e non porta valore; i nomi ida-ai-xmap (campagna 099bf8b, "+372
+# nomi") sono DUBIOUS ma significativi e vanno ripristinati come winner.
+# Il tier del FILE (merged2/merged vs base) e' un BONUS piccolo (tie-break per
+# la stessa source): non deve ribaltare l'ordine per-source sopra.
 _SRC_TIER = {
-    "lift": 9,          # LIFT_ONLY / orphans
-    "c-lift": 8,
-    "ghidra-hand": 5,
-    "ghidra-hand-xmap": 5,
-    "ghidra-auto": 4,
-    "ida-ai": 3,
-    "ida-ai-xmap": 2,
+    "lift": 10,         # LIFT_ONLY / orphans (flag LIFT_ONLY -> 1000 in source_priority)
+    "c-lift": 9,
+    "ghidra-hand": 7,
+    "ghidra-hand-xmap": 7,
+    "ida-ai-xmap": 4,   # DUBIOUS ma significativi; SOPRA ghidra-auto (solo FUN_xxx)
+    "ghidra-auto": 3,
+    "ida-ai": 2,
     "derived": 1,
+}
+_EQX_TIER = {           # equinox311: tier dal kind (vedi load_equinox_rows)
+    "clean-userdef": 8,     # eqx_clean (senza '?') e source USER_DEFINED
+    "clean-heur": 6,        # eqx_clean con source DEFAULT/heuristic
+    "uncertain": 5,         # eqx_uncertain (con '?')
+}
+_FILE_BONUS = {         # file basename -> bonus (piccolo, solo tie-break)
+    "merged2": 2,       # 60E0FC00_merged2.csv: ghidra-auto+hand + ida-ai-xmap
+    "merged": 1,        # 60E1D400_merged.csv: fuso
 }
 
 
@@ -67,13 +80,18 @@ def source_priority(rec):
     """Priorita' di una riga per il dedup (ritorna un int, piu' alto vince)."""
     if rec["flag"] == "LIFT_ONLY":
         return 1000
+    kind = rec.get("_eqx_kind")
+    if kind:
+        tier = _EQX_TIER[kind]
+    else:
+        tier = _SRC_TIER.get(rec["source"], 0)
     fname = rec["_file"] or ""
-    # un file 'merged'/*'merged2'/*: vince sui base per lo stesso addr
-    for key, tier in _FILE_TIER.items():
+    bonus = 0
+    for key, b in _FILE_BONUS.items():
         if key in fname:
-            base = tier * 100
-            return base + _SRC_TIER.get(rec["source"], 0)
-    return _SRC_TIER.get(rec["source"], 0)  # single-row banks / base csv
+            bonus = b
+            break
+    return tier * 100 + bonus  # single-row banks / base csv
 
 
 MAX_ADDR = 0x70000   # addrs > 0x70000 (RAM 0xFFFFxxxx / padding) are not lift addrs
@@ -88,6 +106,52 @@ def is_generic(name):
     if not name:
         return True
     return bool(GENERIC_RE.match(name))
+
+
+# --- nomi DEBOLI (per la regola speciale equinox311 vs ghidra-hand) ----------
+_WEAK_RE = re.compile(r"^(task\d+|func\d+|LongFunc|calledLots|reset_ZERO|sub_\w+)$")
+
+
+def is_weak_name(name):
+    """Nome debole (placeholder / incerto): match regex o contiene '?'."""
+    name = (name or "").strip()
+    if not name:
+        return True
+    if "?" in name:
+        return True
+    return bool(_WEAK_RE.match(name))
+
+
+def _eff_name(rec):
+    return (rec.get("lift_name") or rec.get("src_name") or "").strip()
+
+
+def _is_eqx_clean(rec):
+    return rec.get("_eqx_kind") in ("clean-userdef", "clean-heur")
+
+
+def _is_ghidra_hand(rec):
+    return rec.get("source") in ("ghidra-hand", "ghidra-hand-xmap")
+
+
+def _beats(pa, ra, pb, rb):
+    """True se ra vince su rb per (bank,addr) — priorita' + regola speciale.
+
+    REGOLA SPECIALE: equinox311-clean batte ghidra-hand(-xmap) il cui nome e'
+    DEBOLE (regex o '?'); in tal caso l'equinox vince anche a parita'/svantaggio
+    di priorita'. Altrimenti vince la priorita' piu' alta (o resta il primo)."""
+    if _is_eqx_clean(ra) and _is_ghidra_hand(rb) and is_weak_name(_eff_name(rb)):
+        return True
+    if _is_eqx_clean(rb) and _is_ghidra_hand(ra) and is_weak_name(_eff_name(ra)):
+        return False
+    return pa > pb
+
+
+def _lost_tag(rec):
+    """Tag da mettere in also_sources quando questa riga perde il dedup."""
+    if rec.get("_eqx_kind"):
+        return "equinox311:%s" % (rec.get("src_name") or "")
+    return rec.get("source") or ""
 
 
 def sanitize_addr(val):
@@ -298,6 +362,50 @@ def load_csv_rows():
                 rec["_bank"] = bank
                 rec["_file"] = os.path.basename(path)
                 rows.append(rec)
+    rows.extend(load_equinox_rows())
+    return rows
+
+
+def load_equinox_rows():
+    """Carica symbols/equinox311_60E0FC00_named.csv come sorgente della bank
+    60E0FC00 (colonne addr,name,source,flag; source = USER_DEFINED o DEFAULT).
+
+    FILTRO: addr > 0x0 e < 0x70000 (esclude 0xffffff e lo zero). eqx_clean =
+    nome senza '?'/'??'; eqx_uncertain = con '?'. Le righe diventano
+    source='equinox311' con flag:
+      - clean USER_DEFINED          -> GHIDRA-EQX
+      - clean DEFAULT/heuristic     -> GHIDRA-EQX-HEUR
+      - uncertain (con '?')         -> GHIDRA-EQX-UNCERTAIN
+    Il kind e' salvato in `_eqx_kind` per la priorita' di voto.
+    """
+    rows = []
+    if not os.path.exists(EQUINOX_FILE):
+        return rows
+    with open(EQUINOX_FILE, encoding="utf-8", errors="replace", newline="") as fh:
+        for rec in csv.DictReader(fh):
+            try:
+                addr = int((rec.get("addr") or "").strip(), 16)
+            except ValueError:
+                continue
+            if addr <= 0 or addr >= MAX_ADDR:
+                continue
+            name = (rec.get("name") or "").strip()
+            src = (rec.get("source") or "").strip()
+            if "?" in name:
+                kind, flag = "uncertain", "GHIDRA-EQX-UNCERTAIN"
+            elif src == "USER_DEFINED":
+                kind, flag = "clean-userdef", "GHIDRA-EQX"
+            else:
+                kind, flag = "clean-heur", "GHIDRA-EQX-HEUR"
+            rows.append({
+                "addr": "0x%06x" % addr,
+                "name": name,
+                "source": "equinox311",
+                "flag": flag,
+                "_bank": EQUINOX_BANK,
+                "_file": os.path.basename(EQUINOX_FILE),
+                "_eqx_kind": kind,
+            })
     return rows
 
 
@@ -341,11 +449,14 @@ def build_records(rows, lift_index, verified):
             addr = int(addr_str, 16)
         except ValueError:
             addr = -1
+        # addr CANONICO lowercase: i CSV base usano 0x%06X (uppercase), il file
+        # equinox 0x%06x (lowercase) — normalizzo per far collidere il dedup.
+        addr_canon = ("0x%06x" % addr) if addr >= 0 else addr_str
         src = (rec.get("name") or "").strip()
         lift_name = lift_index.get(addr, "")
         out.append({
             "bank": bank,
-            "addr": addr_str,
+            "addr": addr_canon,
             "end": (rec.get("end") or "").strip(),
             "src_name": src,
             "source": (rec.get("source") or "").strip(),
@@ -353,24 +464,31 @@ def build_records(rows, lift_index, verified):
             "lift_name": lift_name,
             "verified": "YES" if addr in verified else "",
             "_file": rec.get("_file") or "",
+            "_eqx_kind": rec.get("_eqx_kind") or "",
         })
         input_count.setdefault((bank, rec["_file"]), 0)
         input_count[(bank, rec["_file"])] += 1
-        per_bank.setdefault(bank, 0)
-        per_bank[bank] += 1
+    # per_bank counts (cumulative raw rows, incl. variants)
+    for (b, _), n in input_count.items():
+        per_bank[b] = per_bank.get(b, 0) + n
     return out, per_bank, input_count
 
 
 def dedup_records(records):
-    """Dedup per (bank, addr): tieni UNA riga (source_priority piu' alta).
+    """Dedup per (bank, addr): tieni UNA riga (regola di voto: priorita' piu'
+    alta, con la REGOLA SPECIALE equinox311-clean vs ghidra-hand-debole).
 
     Il vincitore conserva `src_name`/`source`/`flag`/... della propria riga; la
-    colonna `also_sources` elenca i source PERSI (delle righe scartate) separati
-    da '|'. Ritorna (deduped, examples) — examples: 3+ coppie (bank, addr,
-    winner_source, lost_sources) per il report."""
+    colonna `also_sources` elenca le sorgenti Perse (per le righe equinox311:
+    'equinox311:<nome>') separate da '|'. Ritorna (deduped, examples,
+    eqx_adopted) — examples: 3+ coppie (bank, addr, winner_source,
+    lost_sources) per il report; eqx_adopted: [(bank, addr, old_name,
+    new_name)] per i nomi equinox che HANNO VINTO il dedup (regola speciale o
+    priorita')."""
     best = {}    # key -> [prio, rec]
-    lost = {}    # key -> set(soorre)
+    lost = {}    # key -> set(tag)
     order = []
+    eqx_adopted = []
     for rec in records:
         key = (rec["bank"], rec["addr"])
         prio = source_priority(rec)
@@ -380,11 +498,14 @@ def dedup_records(records):
             order.append(key)
         else:
             cur_prio, cur_rec = best[key]
-            if prio > cur_prio:
-                lost[key].add(cur_rec["source"])
+            if _beats(prio, rec, cur_prio, cur_rec):
+                lost[key].add(_lost_tag(cur_rec))
                 best[key] = [prio, rec]
+                if rec.get("_eqx_kind"):
+                    eqx_adopted.append((rec["bank"], rec["addr"],
+                                        _eff_name(cur_rec), _eff_name(rec)))
             else:
-                lost[key].add(rec["source"])
+                lost[key].add(_lost_tag(rec))
 
     out = []
     for key in order:
@@ -399,7 +520,49 @@ def dedup_records(records):
         s = sorted(x for x in lost[key] if x)
         if s:
             examples.append((key[0], key[1], rec["source"], "|".join(s)))
-    return out, examples
+    return out, examples, eqx_adopted
+
+
+def is_noise_span(rec):
+    """True se (end - addr) e' un valore intero valido e <= 4 (rumore di
+    segmentazione: puntatori pooled / boundary falsi nelle banche derivate)."""
+    if not rec.get("end"):
+        return False
+    try:
+        a = int(rec["addr"], 16)
+        e = int(rec["end"], 16)
+    except ValueError:
+        return False
+    return 0 <= (e - a) <= 4
+
+
+def apply_noise_flags(records):
+    """Dopo il dedup: per le righe with source=='derived' (e non LIFT_ONLY, non
+    nominate) con span (end-addr)<=4 imposta flag 'NOISE' (senza cancellare la
+    riga; se la flag esiste gia' vi si AGGIUNGE 'NOISE' con separatore '|').
+
+    Ritorna (records_modificati, noise_counts per bank, noise_examples,
+    kept_spread) dove noise_examples = [(bank,addr,end,name), ...] (le righe
+    NOISE) e kept_spanned = righe derived span>4 CORRETTAMENTE tenute.
+    """
+    noise_counts = {}
+    noise_examples = []
+    kept_spanned = []
+    for rec in records:
+        if rec["source"] != "derived" or rec["flag"] == "LIFT_ONLY":
+            continue
+        # escludi le righe NOMINATE (nome autorevole significativo)
+        eff = rec["lift_name"] if rec["lift_name"] else rec["src_name"]
+        if not is_generic(eff):
+            continue
+        if is_noise_span(rec):
+            rec["flag"] = (rec["flag"] + "|" if rec["flag"] else "") + "NOISE"
+            noise_counts[rec["bank"]] = noise_counts.get(rec["bank"], 0) + 1
+            noise_examples.append((rec["addr"], rec["end"],
+                                   rec["src_name"] or rec["lift_name"]))
+        else:
+            kept_spanned.append(rec)
+    return records, noise_counts, noise_examples, kept_spanned
 
 
 def bank_note(bank):
@@ -440,7 +603,9 @@ def aggregate(records):
     return agg
 
 
-def write_status(agg, input_count, raw_per_bank, orphan_records=None):
+def write_status(agg, input_count, raw_per_bank, orphan_records=None,
+                 noise_counts=None):
+    noise_counts = noise_counts or {}
     def file_of(bank_file):
         return ", ".join(sorted(f for (b, f) in input_count if b == bank_file))
     lines = []
@@ -474,6 +639,25 @@ def write_status(agg, input_count, raw_per_bank, orphan_records=None):
                      f"START di riga in alcun CSV, adottati come entry del catalogo "
                      f"(`source=lift`, `flag=LIFT_ONLY`; di cui {nv} VERIFIED). "
                      f"Attribuzione bank via range CSV, fallback 60E1D400.")
+
+    if noise_counts:
+        lines.append("")
+        lines.append("## NOISE (span<=4, derived only)\n")
+        lines.append("Righe `source=derived` (banche derivate over-segmentate), non "
+                     "LIFT_ONLY, non nominate, con span `(end - addr) <= 4` byte — "
+                     "quasi certamente rumore di segmentazione (puntatori pooled / "
+                     "boundary falsi). La riga NON e' cancellata: `flag` riceve "
+                     "`NOISE` (aggiunto con `|` se gia' presente).\n")
+        lines.append("| bank | unique | noise | real-estimate (unique - noise) |")
+        lines.append("|-----:|-------:|------:|-------------------------------:|")
+        for bank in sorted(noise_counts):
+            u = agg.get(bank, {}).get("total", 0)
+            n = noise_counts.get(bank, 0)
+            lines.append(f"| {bank} | {u} | {n} | {u - n} |")
+        tot_u = sum(g.get("total", 0) for g in agg.values())
+        tot_n = sum(noise_counts.values())
+        lines.append(f"| **TOT** | **{tot_u}** | **{tot_n}** | **{tot_u - tot_n}** |")
+        lines.append("")
     lines.append("\n")
     with open(STATUS_MD, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines))
@@ -617,13 +801,17 @@ def main():
         raw_per_bank[bank] = raw_per_bank.get(bank, 0) + 1
 
     # ---- DEDUP per (bank, addr) -------------------------------------------
-    deduped, examples = dedup_records(out)
+    deduped, examples, eqx_adopted = dedup_records(out)
     out = deduped
+
+    # ---- NOISE flag: derived, span<=4 (after dedup) -----------------------
+    out, noise_counts, noise_examples, kept_spanned = apply_noise_flags(out)
 
     write_master(out)
 
     agg = aggregate(out)
-    write_status(agg, input_count, raw_per_bank, orphan_records)
+    write_status(agg, input_count, raw_per_bank, orphan_records,
+                 noise_counts)
 
     append_names_status(agg, input_count, lift_index, orphans, out, raw_per_bank)
     append_names_status_v2b(orphan_records)
@@ -641,6 +829,56 @@ def main():
               % (bank, g.get("total", 0), g.get("named", 0), g.get("anon", 0),
                  g.get("lift_named", 0), g.get("verified_lift", 0),
                  raw_per_bank.get(bank, 0), bank_note(bank)))
+
+    # ---- NOISE report (derived, span<=4) ----------------------------------
+    print("\n  NOISE (span<=4, derived only): count per bank + real estimate")
+    print("   bank        unique   noise   real-estimate (unique - noise)")
+    for bank in sorted(raw_per_bank):
+        u = agg.get(bank, {}).get("total", 0)
+        n = noise_counts.get(bank, 0)
+        print("   %-10s %7d %7d %7d" % (bank, u, n, u - n))
+    print("   TOT        %7d %7d" % (sum(g.get("total", 0) for g in agg.values()),
+                                     sum(noise_counts.values())))
+
+    print("\n  3 esempi righe NOISE (addr, end, name):")
+    for addr, end, name in noise_examples[:3]:
+        print("     %s %s %s" % (addr, end, name))
+
+    print("  3 esempi funzioni derived CORRETTAMENTE tenute (span>4):")
+    shown = 0
+    for rec in kept_spanned:
+        try:
+            a = int(rec["addr"], 16)
+            e = int(rec["end"], 16)
+        except ValueError:
+            continue
+        if (e - a) > 4:
+            eff = rec["lift_name"] if rec["lift_name"] else rec["src_name"]
+            print("     %s %s span=0x%X %s" % (rec["addr"], rec["end"], e - a, eff))
+            shown += 1
+            if shown >= 3:
+                break
+
+    # ---- equinox311 adoption report (bank 60E0FC00) ------------------------
+    eqx_wins = [r for r in out if r["source"] == "equinox311"]
+    eqx_clean_wins = [r for r in eqx_wins if r["flag"] in ("GHIDRA-EQX", "GHIDRA-EQX-HEUR")]
+    eqx_unc_wins = [r for r in eqx_wins if r["flag"] == "GHIDRA-EQX-UNCERTAIN"]
+    # conflitti ghidra-hand mantenuti: vincitore ghidra-hand, equinox in also_sources
+    gh_conflicts = [r for r in out if r["bank"] == EQUINOX_BANK
+                    and r["source"] in ("ghidra-hand", "ghidra-hand-xmap")
+                    and "equinox311:" in r.get("also_sources", "")]
+    print("\n  equinox311 adoption (bank 60E0FC00):")
+    print("    adopted (winner source=equinox311): %d  clean=%d  uncertain=%d"
+          % (len(eqx_wins), len(eqx_clean_wins), len(eqx_unc_wins)))
+    print("    ghidra-hand conflicts KEPT (ghidra-hand vince, equinox in also_sources): %d"
+          % len(gh_conflicts))
+    print("    8 esempi nomi equinox ADOTTATI (addr, old, new):")
+    for bank, addr, old, new in eqx_adopted[:8]:
+        print("       %s %-28s -> %s" % (addr, old, new))
+    print("    5 esempi conflitti ghidra-hand mantenuti (addr, ghidra-hand, equinox in also_sources):")
+    for r in gh_conflicts[:5]:
+        eqx_tag = [t for t in r["also_sources"].split("|") if t.startswith("equinox311:")]
+        print("       %s %-28s also=%s" % (r["addr"], r["src_name"], "|".join(eqx_tag)))
 
     print("  orphan lift addrs:", len(orphans))
     for r in orphan_records:
