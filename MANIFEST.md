@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **1260 entries, 63.8M.** Regenerated 2026-08-02 for the
+in the working repository. **1261 entries, 63.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,12 +9,12 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 268.9K |
+| (root) | 11 | 297.1K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 15 | 3.0M |
-| c/ | 180 | 780.4K |
-| c/tests/ | 210 | 990.5K |
+| c/ | 180 | 781.9K |
+| c/tests/ | 211 | 997.2K |
 | tools/ | 21 | 172.3K |
 | tools/tests/ | 2 | 37.0K |
 | docs/ | 223 | 1.0M |
@@ -24,7 +24,7 @@ see roms/ROMS.md).
 | .github/ | 5 | 16.0K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **1260** | 63.8M |
+| **Total** | **1261** | 63.9M |
 
 ## External dependencies
 
@@ -70,7 +70,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `d4a3a6a3c2e7be21bc55a5fe490d13d13f20a2f6ebee25aab0ab1724e118ff22` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `ae3967fa9a888bd32108208a4949514b17ab9c843b015e4b4bf2b0b46f5ed874` | 9.8K | Master plan (single source of truth) |
-| `README.md` | `502facf10b750f885e0832e8a9534a61bfc063f678ab69012afc3c2cf0c24cec` | 9.2K | Project README |
+| `README.md` | `bc855e6b358dae72c21b813c0f28b8b572d46146f588bd9eb72d71b017c69918` | 9.2K | Project README |
 | `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `3b98bf7d96d1cf2531e3d13d017daf8ad007574fb8ae87813a8ce5acaff4b1e5` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -274,7 +274,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/revLimitFuelCutInit.c` | `c2dec9f1642048d238f76fd048cdb5d09f5e7c2b5a0f2eea5aa656b7ceb275df` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/rotor_sync_gate_state_ctrl_2100A.c` | `777934a51455d3a96617361946d5fae18e23b55d2ebd5d956d74182540a9d002` | 7.5K | Tracked file |
 | `c/rotor_sync_position_detector.c` | `6e336c56db4fe7fa60bc9663f81076ddef0d568d7a51727dcd1a3a5246ca73aa` | 5.6K | Verified C lift (behavior-equivalent, emulator-proven) |
-| `c/security_access.c` | `5aefda7ff72ca01f609489df4282003ff0785ca11d072a087a52e653455b95a8` | 23.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/security_access.c` | `dcd1cd48a99e2b6f7fd3ce6dd858af914217cf06769776481471508a4ef29510` | 25.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/seed_mixer.c` | `bf6c0551da52b3c54a1261aac2e0237788178be02b8a6e8d49caa5e14ec41f86` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/sensor_check_float_bounds_adjust.c` | `73f31aa8f7135098f3e5a70881c4430964ffaf2449c9d3d6d5d3fe679321e771` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/sentinel_equality_check_5687A.c` | `2c571c5b703e1b06f923c35656f442c654b5bbb8376e3d6593cacaec798679d9` | 1.4K | Tracked file |
@@ -486,6 +486,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_rotor_sync_position_detector.py` | `8c1485a66c304f3095221cca21af21183b313bc751cace19ea8bf97f5a857858` | 6.7K | Python per-function behavior-equivalence test |
 | `c/tests/test_secondary_boot_main_A038.py` | `fdb2a36bc16230e379aa5d062978230642b73467b65aa4cc48db1ce5a5767504` | 7.5K | Tracked file |
 | `c/tests/test_security_access.py` | `8ec7fd87ec82a3dd722d37bf214ea09901ee1d4432cfcc6a426a19c8e9dde62d` | 24.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_seed_gen_5699A.py` | `b708b7759b70101f36842981f6e3047c957b56b491da43589dbd22bbb52cb1f8` | 6.7K | Tracked file |
 | `c/tests/test_seed_mixer_366B8.py` | `af3b36fa8a3cb64051ceaa31cf9c7696b2fa5118138dafa315b64a3c45262606` | 3.3K | Tracked file |
 | `c/tests/test_sensorADCRead_68A8.py` | `a321cb82334cdc334805b95fa31dee1c7622dc4e1c8080681b6a6850cf2b37a1` | 2.4K | Tracked file |
 | `c/tests/test_sensor_check_float_bounds_adjust_E0DE.py` | `d88117d3d75346c9facaf799060d347a28d81cb4feb23db207d65b776d6909a7` | 3.4K | Tracked file |

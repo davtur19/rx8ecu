@@ -603,3 +603,33 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   — pool lands at ((a+4)&~3)+4, which needs 2 pad bytes for a%4==0 targets
   and 0 for a%4==2) + a 36-byte shared body per slot in scratch RAM
   @0xFFFFD400+ (same trace semantics as 0x11A34).
+- Verified bit-exact: `c/tests/test_reset_handler_4E0.py` (reset_handler @0x4E0,
+  real ROM bytes in emulator; real resetWatchdog @0x572 runs, hw-init leaves
+  0x170/0x41C/0x3D4 + 0x08F6 + checkWatchdog @0x5B0 are trace-append stubs,
+  boot stub @0x40 captures r4=rv). 960 targeted + 15000 random, 0 mismatches.
+- reset_handler semantics (confirmed by trace + differential): r14=1 default
+  ("recovered"); cold path checks [0xFFFFDFFC]==0x5AA5A55A then checkWatchdog;
+  recovery walk reads [0x7FFFC] and [[0x7FFFC]] (0xFFFFFFFF either level ->
+  retry checkWatchdog), then rv=[0x1000] unless 0xFFFFFFFF -> [0x7FFF8];
+  warm path (cold_start!=0) writes reason -> 0xFFFFDFA8 and calls 0x08F6;
+  every finish writes MAGIC -> 0xFFFFDFFC then jsr @0x40 with r4=rv
+  (rv=0x06C8 default). Magic matches AND wdt!=0 with [0x1000]==0xFFFFFFFF is
+  an infinite retry loop in ROM (test enumeration avoids it).
+- Stub gotcha (repo second): the reset handler's literal pool lives at
+  0x586..0x59A, so resetWatchdog @0x572..0x585 must NOT be stubbed — a 34-byte
+  stub there clobbers pool words the handler loads (mov.w 0x586,r2 etc).
+  Real watchdog writes word 0x5A1F -> 0xFFFFEC12 and 0xA53C -> 0xFFFFEC10
+  (0xEC12/0xEC10 sign-extend via mov.w PC-relative).
+- Verified bit-exact: `c/tests/test_obd_pid_getters.py` — the five OBD mode-01
+  PID getters @0x55E66 (getMAFOBD), 0x55E7C (getRPMOBD), 0x55EA2 (getSpeedOBD),
+  0x55EEA (getSTFTOBD), 0x55F02 (getLTFTOBD) all reduce to one pattern: read a
+  single-precision float from a RAM sensor cell (16-bit sign-extended or 32-bit
+  literal pointer) and clamp via floatToInt @0x24D0 to 0..255. 20000 random +
+  10 targeted inputs, 0 mismatches.
+- Lift-correction (MAF): c/obd_pid_handlers.c claims getMAFOBD @0x55E66 does
+  `maf*100, clamp 0xFFFF` — the ROM actually does floatToInt(v, 1.0, -40.0)
+  (scale=1.0, offset=-40.0, 0xFF clamp), identical math to getLTFTOBD @0x55F02.
+  RPM = floatToInt((v-1)*100, 0.78125, -100); Speed = floatToInt(v*100, 0.78125,
+  -100); STFT = floatToInt(v, 0.5, -64); LTFT = floatToInt(v, 1.0, -40).
+- Note: STFT formula matches the lift ((stft+64)*2); LTFT uses offset -40
+  (floatToInt +0.5 rounding, NOT the lift's "different calibration" guess).
