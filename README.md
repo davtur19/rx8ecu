@@ -3,10 +3,11 @@
 ![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
 ![Code window](https://img.shields.io/badge/Code%20window-93.6%25%20SH--2%20lift-green)
 ![C reimplemented](https://img.shields.io/badge/C%20reimplemented-177%20functions-blue)
-![Emulator-verified](https://img.shields.io/badge/Emulator--verified-266%2F177%20%28150%25%29-yellowgreen)
+![Emulator-verified](https://img.shields.io/badge/Emulator--verified-266%20addresses-yellowgreen)
 ![Calibration tables](https://img.shields.io/badge/Calibration%20tables-1210-blue)
 ![Call graph](https://img.shields.io/badge/Call%20graph-6953%20edges-blue)
-![Functions mapped](https://img.shields.io/badge/Functions%20mapped-3459-blue)
+![Table defs](https://img.shields.io/badge/Table%20defs-37121%20%2813%20ROMs%29-blue)
+![Functions mapped](https://img.shields.io/badge/Functions%20mapped-50%2C676-blue)
 ![Regression checks](https://img.shields.io/badge/Regression%20checks-38008%2B83%20%E2%9C%93-green)
 <!-- BADGES:END -->
 *Reverse-engineering progress — coverage is round-trip over the code window 0x800–0x60000 (true-code ≈ 88–91%, see VERIFICATION.md §2); C reimplementations are verified against the actual ROM bytes on a custom SH-2E emulator.*
@@ -63,10 +64,11 @@ with `make -C web/explorer serve`.
   `docs/subsystems/`).
 - **1,210 calibration tables** (`symbols/cal_tables.csv`), **6,953 resolved
   call-graph edges**, **18 jump tables identified** (60E1D400 baseline,
-  `analysis/data_regions_60E1D400.csv`).
-- **Host test suites**: 194 Python per-function suites, 26 C suites,
+  `analysis/data_regions_60E1D400.csv`). Plus **37,121 ROMRaider/GROM table definitions across 13 ROM codes** (symbols/romraider_rx8_tables.csv, addr range includes boot-block region).
+- **Host test suites**: 193 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
   disassembler/emulator family regressions (38,008 + 83 checks).
+- **Master symbol catalog** — 56,952-row deduped catalog across all 9 ROMs (symbols/CATALOG_MASTER.csv): 6,439 named functions, real-function estimate ~50,676 after NOISE filtering (derived span<=4 rows), 5 LIFT_ONLY boundaries; status tables in symbols/CATALOG_STATUS.md, NAMES_STATUS.md, TABLES_STATUS.md.
 
 ## Quickstart
 
@@ -91,7 +93,7 @@ Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
 | `c/` | 177 verified C lifts, `eeprom_immo.h`, host test suites (194 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
-| `symbols/` | Kept symbol-table CSVs (60E0FC00 plain/ghidra, 60E1D400 ida/merged), `cal_tables.csv` (1,210 tables), `callgraph.csv` |
+| symbols/ | Per-ROM symbol CSVs (all 9 banks; equinox311 named + connor-xmap), CATALOG_MASTER.csv (56,952 rows), CATALOG_STATUS.md / NAMES_STATUS.md / TABLES_STATUS.md, cal_tables.csv (1,210 tables), romraider_rx8_tables.csv (37,121 defs / 13 ROM codes), callgraph.csv |
 | `analysis/` | Code-window data-region classification for the 60E1D400 baseline |
 | `docs/subsystems/` | 15 docs: subsystem docs + overview, boot sequence, IDA names, maps |
 | `docs/functions/` | 193 per-function documentation |
@@ -137,15 +139,15 @@ Full credit and thanks:
 - **equinox311** — the original RX-8 PCM reverse-engineering effort and its public
   repository: https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering
   (community `Stock_ROMs/` collection — the 9 public ROMs here were verified
-  byte-identical to it — and **931 hand-annotated Ghidra function names**
-  cross-mapped into `symbols/` and `src/*_annotated.s`).
+  byte-identical to it — and the **Ghidra project archives (4 snapshots 2025–2026)**: 887 hand-annotated function names adopted for 60E0FC00 (1,518 named in the catalog)).
 - **equinox92** — same person; author of the "Open Source S1 RX-8 ECU RE, Data
   Logging & Tuning" guide (rx8club.com, 2025-01-12) used for ROM-variant mapping,
   hardware identification, and the ignition/fueling strategy.
+- **rx8-ecu-dump (connor)** — bootloader & variant-ROM analysis (https://github.com/ConnorRigby/rx8-ecu-dump): bootloader.bin and EU N3K1EU000 (HW ID 60E1A500) analysis; 32 boot/init function names (can_init, main_init, timer_init, ...) cross-mapped to all 9 banks via content-signature xmap (100 catalog rows, source connor-xmap).
 - **RX8Man / equinox311 RX8Defs** — the rx8defs XML definition files behind
   `symbols/cal_tables.csv` (1,210 tables): the "RX8 Man - RX8 ECU Definitions"
   project (https://github.com/Rx8Man/Rx8Man), mirrored via
-  https://github.com/equinox311/RX8Defs.
+  https://github.com/equinox311/RX8Defs. Additional ROMRaider/GROM definition sets (GROM_RomRaider, fork_jfoster_RX8Defs) feed symbols/romraider_rx8_tables.csv (37,121 table/scalar defs across 13 ROM codes).
 - **capstone** (SH-2 disassembly) — BSD-3-Clause; **GNU binutils** (sh-elf) —
   GPL-3.0-or-later; **Ghidra / IDA** — analysis tools.
 
