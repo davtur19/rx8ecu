@@ -9,7 +9,11 @@
  * the literal pool).  Codes with no case fall through and do nothing.
  *
  *   0x01 -> E2[0x0A] = work_0A (1B)
- *   0x02 -> E2[0x02] = pairing (8B)     0x0B -> E2[0x02] = pairing (8B)
+ *   0x02 -> E2[0x02] = pairing (8B)
+ *   0x0B -> E2[0x02] = pairing (8B)  +  E2[0x0A] = work_0A (1B)
+ *          (verified 0x36ED4 jsr write(0x02,..,8) then FALL-THROUGH into
+ *           0x36ED8 write(0x0A,..,1); unlike 0x02 which bra-skip the second
+ *           write.  Corrected from the original single-write listing.)
  *   0x03 -> E2[0x00] = work_00 (1B)
  *   0x04 -> E2[0x0C] = work_0C, E2[0x0E] = C243, E2[0x10] = C242
  *   0x05 -> E2[0x12] = C244,  E2[0x13] = work_13
@@ -43,8 +47,11 @@ void updateE2RAMBasedOnInput(uint8_t code)
         writeToE2RAMArea(0x0A, (const uint8_t *)&E2_WORK_INDEX10, 1);
         break;
     case 0x02:
+        writeToE2RAMArea(0x02, (const uint8_t *)&E2_WORK_INDEX2, 8);
+        break;
     case 0x0B:
         writeToE2RAMArea(0x02, (const uint8_t *)&E2_WORK_INDEX2, 8);
+        writeToE2RAMArea(0x0A, (const uint8_t *)&E2_WORK_INDEX10, 1);
         break;
     case 0x03:
         writeToE2RAMArea(0x00, (const uint8_t *)&E2_WORK_INDEX0, 1);
