@@ -326,49 +326,84 @@ static uint8_t position_check(uint8_t level)
  *
  *  Generates the 3-byte seed and writes it to 0xFFFFD211..3.
  *
- *  ROM evidence (disasm 0x5699A-0x56ABE):
+ *  ROM evidence (disasm 0x5699A-0x56ABE), VERIFIED 2026-08-03 against the
+ *  ROM via tools/sh2emu.py — c/tests/test_seed_gen_5699A.py, 0 mismatches
+ *  over >= 5000 randomized cases + directed retry-loop cases (levels 0..5,
+ *  sentinel @0xFFFFD20B == 4 and != 4).  Semantics per
+ *  docs/notes/UDS_SECURITY_MAPPING.md §2:
  *    - level == 3 (the path the RequestSeed handler actually uses):
  *      r13 = r12 = r14 = word @0x56A14 = 0x00FF, then the write-back at
  *      0x56A8C: call 0x3920(0x10); write [0xFFFFD214]=level, [0xFFFFD211]
  *      =0xFF, [0xFFFFD212]=0xFF, [0xFFFFD213]=0xFF; call 0x3934(ret).
  *      => the seed produced by the RequestSeed fast path is FF FF FF.
- *    - level != 3: reads a 32-bit value @0xFFF430 (literal 0x56A16), stores
- *      4 bytes, calls 0x5687A(4) (state check), then runs a byte-shift loop
- *      (0x56A42-0x56A8A) with counters 0x55/0x10 — entropy collection.
- *      This path is only partially traced -> DRAFT.
+ *    - level != 3 (entropy path, 0x569C4-0x56A8A):
+ *      read 32-bit free-running counter @0xFFFFF430 (mov.l @r2,r6), copy to
+ *      4 little-endian stack bytes b0..b3 (shlr8 x3); bsr 0x5687A(r4=4)
+ *      returns 0 iff byte @0xFFFFD20B == 4.  state == 4 -> fixed seed
+ *      55 AA 55 (r14=0x55, r12=0xAA, r13=0x55); state != 4 -> XOR-mix
+ *      r14=b2^b0, r12=b1^b0, r13=b3^b0.  Retry loop 0x56A42-0x56A8A,
+ *      max 0x10 (16): all-0/all-FF seeds are re-collected; after 16 retries
+ *      the seed falls back to FF FF FF.  Common write-back at 0x56A8C.
  *  The old level-3 "return immediately" stub and the fabricated 64-iteration
  *  LFSR loop have been replaced by the ROM evidence above.
  * =================================================================== */
 
 static void seed_gen(uint8_t level)
 {
+    uint8_t r14, r12, r13;
+
     /* --- Level-3 fast path (ROM 0x569B6-0x569C2, 0x56A8C-0x56ABE) --- */
     if (level == 3) {
-        /* DRAFT: the ROM calls two helpers around the RAM writes:
-         *   jsr 0x3920 (r4 = 0x10)   -> return value stored
-         *   jsr 0x3934 (r4 = ret)    -> finalize
-         * Their exact roles are not confirmed; the RAM writes below are. */
-        *(uint8_t *)0xFFFFD214 = level;   /* ROM 0x56A9A (mov.b r0,@r3) */
-        *(uint8_t *)0xFFFFD211 = 0xFF;    /* ROM 0x56A9C (r14 = 0x00FF) */
-        *(uint8_t *)0xFFFFD212 = 0xFF;    /* ROM 0x56AA2 (r12 = 0x00FF) */
-        *(uint8_t *)0xFFFFD213 = 0xFF;    /* ROM 0x56AA4 (r13 = 0x00FF) */
-        return;
+        /* ROM calls two helpers around the RAM writes:
+         *   jsr 0x3920 (r4 = 0x10)   -> getSR, return value kept at [r15+4]
+         *   jsr 0x3934 (r4 = ret)    -> setSR (finalize)
+         * They manage the SH-2 status register; the RAM writes below are the
+         * observable seed/level outputs. */
+        r14 = r12 = r13 = 0xFF;
+    } else {
+        /* --- level != 3: entropy path (ROM 0x569C4-0x56A8A) --- */
+        uint8_t state = *(volatile uint8_t *)0xFFFFD20BUL;
+        int     retry = 0;
+
+        for (;;) {
+            /* 1. counter @0xFFFFF430 as 4 little-endian bytes (ROM 0x569E6-
+             *    0x569FC).  Volatile re-read: on the real ECU the counter
+             *    free-runs between retries; in the emulator it is static. */
+            uint32_t counter = *(volatile uint32_t *)0xFFFFF430UL;
+            uint8_t  b0 = (uint8_t)(counter & 0xFF);
+            uint8_t  b1 = (uint8_t)((counter >> 8) & 0xFF);
+            uint8_t  b2 = (uint8_t)((counter >> 16) & 0xFF);
+            uint8_t  b3 = (uint8_t)((counter >> 24) & 0xFF);
+
+            /* 2. bsr 0x5687A(r4=4): 0 iff state sentinel == 4.
+             * 3. state == 4 -> fixed 55 AA 55, else XOR-mix (0x56A0C-0x56A40). */
+            if (state == 4) {
+                r14 = 0x55; r12 = 0xAA; r13 = 0x55;
+            } else {
+                r14 = b2 ^ b0;
+                r12 = b1 ^ b0;
+                r13 = b3 ^ b0;
+            }
+
+            /* 4. Retry loop (0x56A42-0x56A8A): count at [r15], max 0x10;
+             *    after 16 retries (17th recompute) force FF FF FF. */
+            retry++;
+            if (retry > 16) {
+                r14 = r12 = r13 = 0xFF;   /* fallback */
+                break;
+            }
+            if ((r14 == 0 && r12 == 0 && r13 == 0) ||
+                (r14 == 0xFF && r12 == 0xFF && r13 == 0xFF))
+                continue;                  /* retry: jump back to counter read */
+            break;
+        }
     }
 
-    /* --- level != 3: entropy-collection path (DRAFT, partially traced) ---
-     * ROM 0x569E6: r6 = *(uint32_t*)0xFFF430  (32-bit free-running counter)
-     * ROM 0x569F0-0x569FC: store 4 bytes of r6 (shifted right by 8 each
-     *   iteration) into a stack buffer.
-     * ROM 0x56A00: bsr 0x5687A with r4 = 4 (state_check1-like helper).
-     * ROM 0x56A42-0x56A8A: byte-shift loop with counters r10=0x55/r11=0x10
-     *   and retry when the shifted-out bytes are all zero.
-     * The exact byte-shift / feedback equations of this path are NOT fully
-     * established; do not rely on this code for seed generation.
-     */
-    volatile uint32_t *entropy_ptr = (volatile uint32_t *)0xFFFFF430UL;
-    (void)entropy_ptr;
-    (void)level;   /* DRAFT: incomplete — see comment above */
-    return;
+    /* --- Common write-back (ROM 0x56A8C-0x56ABE) --- */
+    *(uint8_t *)0xFFFFD214 = level;   /* ROM 0x56A9A (mov.b r0,@r3) */
+    *(uint8_t *)0xFFFFD211 = r14;     /* ROM 0x56A9C (mov.b r14,@r2) */
+    *(uint8_t *)0xFFFFD212 = r12;     /* ROM 0x56AA2 (mov.b r12,@r1) */
+    *(uint8_t *)0xFFFFD213 = r13;     /* ROM 0x56AA4 (mov.b r13,@r3) */
 }
 
 /* ===================================================================
