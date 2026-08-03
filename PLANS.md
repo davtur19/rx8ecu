@@ -137,8 +137,8 @@ make c-emu                    # Track A emulator cross-checks
    0x64258 (c/obd_dtc_row_update_0x64258.c) and 0x64418
    (c/obd_dtc_row_update_0x64418.c) lifted and emulator-verified (host C
    22048/22560 tests + 20000 random each, 0 mismatches); 0x62ABC, 0x648B4,
-   0x63312, 0x632D6, 0x63834, 0x63B46 — lifts + side-effect tests exist in
-   c/ + c/tests/ (untracked), full verification pending; OMP task 0x1825E
+   0x63312, 0x632D6, 0x63834, 0x63B46 — ✓ verified emulator+host-C, 0 mismatch
+   (commit e8192e7); OMP task 0x1825E
    (`c/omp_control_task_1825E.c`, formerly `c/omp_task_0x1825E.c`) and companion 0x18CC0
    (`c/omp_rotor_overshoot_detector_18CC0.c`) are lifted and emulator-verified;
    work down the callgraph (≥2 callers next).
