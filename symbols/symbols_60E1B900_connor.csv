@@ -1,0 +1,13 @@
+addr,end,name,source,flag
+0x0004E0,0x000572,main_init,connor-xmap,CONNOR-XMAP
+0x000572,0x0005B0,timer_init,connor-xmap,CONNOR-XMAP
+0x0008CC,0x0008F6,bus_control_init,connor-xmap,CONNOR-XMAP
+0x0008F6,0x0009C0,gpio_init,connor-xmap,CONNOR-XMAP
+0x000ACE,0x000AE8,can_copy_frame,connor-xmap,CONNOR-XMAP
+0x001572,0x0015CC,uds_decode_frame_sf,connor-xmap,CONNOR-XMAP
+0x0015CC,0x001648,uds_decode_frame_ff,connor-xmap,CONNOR-XMAP
+0x001648,0x001678,uds_send_fc,connor-xmap,CONNOR-XMAP
+0x001678,0x0016EE,uds_decode_frame_cf,connor-xmap,CONNOR-XMAP
+0x004CF8,0x004D36,interrupt_priority_reset,connor-xmap,CONNOR-XMAP
+0x00803E,0x00808E,INT_ATU101_CMI10B,connor-xmap,CONNOR-XMAP
+0x00D58E,0x00D650,checksum_calculate,connor-xmap,CONNOR-XMAP

@@ -63,15 +63,15 @@ Collega i nomi lift autorevoli (`c/*.c`, `c/tests/test_*.py`) ai CSV: ogni riga 
 
 | bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note | Δ nominate |
 |-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|----------:|
-| 60E0E500 | symbols_60E0E500.csv | 7305 | 7305 | 310 | 6995 | 50 | 49 | derivata over-segmentata | +33 |
-| 60E0E700 | symbols_60E0E700.csv | 7306 | 7306 | 313 | 6993 | 53 | 52 | derivata over-segmentata | +36 |
-| 60E0FB00 | symbols_60E0FB00.csv | 7197 | 7197 | 339 | 6858 | 56 | 55 | derivata over-segmentata | +39 |
-| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9005 | 3490 | 1518 | 1972 | 53 | 52 | canonico affidabile (equiname) | +8 |
-| 60E15120 | symbols_60E15120.csv | 7473 | 7473 | 288 | 7185 | 49 | 48 | derivata over-segmentata | +33 |
-| 60E1B900 | symbols_60E1B900.csv | 7173 | 7173 | 330 | 6843 | 63 | 61 | derivata over-segmentata | +35 |
-| 60E1C500 | symbols_60E1C500.csv | 7315 | 7315 | 316 | 6999 | 73 | 71 | derivata over-segmentata | +41 |
-| 60E1D400 | symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5583 | 2794 | 2753 | 41 | 175 | 171 | canonico affidabile (IDA-ai) | +1 |
-| 60E32000 | symbols_60E32000.csv | 6899 | 6899 | 272 | 6627 | 49 | 48 | derivata over-segmentata | +33 |
+| 60E0E500 | symbols_60E0E500.csv<br/>symbols_60E0E500_connor.csv | 7312 | 7305 | 310 | 6995 | 50 | 49 | derivata over-segmentata | +33 |
+| 60E0E700 | symbols_60E0E700.csv<br/>symbols_60E0E700_connor.csv | 7313 | 7306 | 313 | 6993 | 53 | 52 | derivata over-segmentata | +36 |
+| 60E0FB00 | symbols_60E0FB00.csv<br/>symbols_60E0FB00_connor.csv | 7203 | 7197 | 339 | 6858 | 56 | 55 | derivata over-segmentata | +39 |
+| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9018 | 3490 | 1518 | 1972 | 53 | 52 | canonico affidabile (equiname) | +8 |
+| 60E15120 | symbols_60E15120.csv<br/>symbols_60E15120_connor.csv | 7480 | 7473 | 288 | 7185 | 49 | 48 | derivata over-segmentata | +33 |
+| 60E1B900 | symbols_60E1B900.csv<br/>symbols_60E1B900_connor.csv | 7185 | 7173 | 330 | 6843 | 63 | 61 | derivata over-segmentata | +35 |
+| 60E1C500 | symbols_60E1C500.csv<br/>symbols_60E1C500_connor.csv | 7327 | 7315 | 316 | 6999 | 73 | 71 | derivata over-segmentata | +41 |
+| 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5607 | 2794 | 2753 | 41 | 175 | 171 | canonico affidabile (IDA-ai) | +1 |
+| 60E32000 | symbols_60E32000.csv<br/>symbols_60E32000_connor.csv | 6911 | 6899 | 272 | 6627 | 49 | 48 | derivata over-segmentata | +33 |
 
 Dedup: `rows (incl. variants)` (cumulativo varianti) vs `total (unique)` (post-dedup) — la differenza e' il numero di righe ridondanti eliminate. `also_sources` nel CSV elenca i source persi.
 

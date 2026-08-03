@@ -1,0 +1,7 @@
+addr,end,name,source,flag
+0x0004E0,0x000572,main_init,connor-xmap,CONNOR-XMAP
+0x000572,0x0005B0,timer_init,connor-xmap,CONNOR-XMAP
+0x0008CC,0x0008F6,bus_control_init,connor-xmap,CONNOR-XMAP
+0x0008F6,0x0009C0,gpio_init,connor-xmap,CONNOR-XMAP
+0x001624,0x001654,uds_send_fc,connor-xmap,CONNOR-XMAP
+0x004CF0,0x004D2E,interrupt_priority_reset,connor-xmap,CONNOR-XMAP

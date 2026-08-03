@@ -3,6 +3,7 @@
  *
  * ═══════════════════════════════════════════════════════════════════
  *  STATUS: DRAFT / UNVERIFIED structural reconstruction.
+ * Address: 0x584A0
  *  2026-08-04: key_validate (10-entry table) e position_check
  *  (word_tab[2]=0xFFFC) verificati contro ROM; DRAFT residui:
  *  flusso RequestSeed (r.~203).
