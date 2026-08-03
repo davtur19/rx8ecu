@@ -1,0 +1,14 @@
+addr,end,name,source,flag
+0x00031C,0x0003B0,timer_reset,connor-xmap,CONNOR-XMAP
+0x0004E0,0x000572,main_init,connor-xmap,CONNOR-XMAP
+0x000572,0x0005B0,timer_init,connor-xmap,CONNOR-XMAP
+0x0008B4,0x0008B8,Illegal_instr,connor-xmap,CONNOR-XMAP
+0x0008B8,0x0008CC,Manual_Reset,connor-xmap,CONNOR-XMAP
+0x0008CC,0x0008F6,bus_control_init,connor-xmap,CONNOR-XMAP
+0x0011FA,0x00125C,uds_reply,connor-xmap,CONNOR-XMAP
+0x001624,0x001654,uds_send_fc,connor-xmap,CONNOR-XMAP
+0x0017F0,0x001858,uds_handle_diagnostic_session_control,connor-xmap,CONNOR-XMAP
+0x001C04,0x001D30,uds_handle_transfer_data,connor-xmap,CONNOR-XMAP
+0x001E94,0x001EB2,can_reset,connor-xmap,CONNOR-XMAP
+0x004CF0,0x004D2E,interrupt_priority_reset,connor-xmap,CONNOR-XMAP
+0x00D2F6,0x00D398,checksum_calculate,connor-xmap,CONNOR-XMAP
