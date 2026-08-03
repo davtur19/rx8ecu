@@ -133,7 +133,7 @@ static uint8_t  state_check2(void);
 static uint8_t  position_check(uint8_t level);
 static void     seed_gen(uint8_t level);
 static uint8_t  key_validate(uint8_t b0, uint8_t b1, uint8_t b2);
-static void     data_copy(uint8_t dst[3]);
+static uint8_t  data_copy(uint8_t dst[3]);
 static uint8_t  seed_key_related(uint8_t level, const uint8_t seed[3],
                                  const uint8_t key[3]);
 static void     unlock(uint8_t level);
@@ -160,9 +160,9 @@ extern void     uds_positive_response(uint8_t sid, const uint8_t *data,
 void security_access_handler(const uint8_t *msg, uint8_t subfunc)
 {
     uint8_t  seed[3];
-    uint8_t  resp_data[4];
+    uint8_t  resp_data[5];   /* 0x67 + subfunc + 3 seed bytes (ROM resp builder 0x5864A, r6=3) */
     uint8_t  state1;   /* SECURITY_STATE_1 — key_validate b0 (ROM 0x58538) */
-    uint8_t  state;    /* SECURITY_STATE_2 — key_validate b1 / unlock arg */
+    uint8_t  state;    /* SECURITY_STATE_2 — key_validate b1 (state arg of the old unlock() guess) */
 
     /* --- State reads at ROM handler 0x584A0 entry (CONFIRMED 2026-08-03) ---
      * The ROM unconditionally calls state_check1() @0x584CC and state_check2()
@@ -193,9 +193,12 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
         return;
     }
 
-    /* --- Validate subfunction --- */
+    /* --- Validate subfunction ---
+     * ROM 0x584EC-0x584F8: the subfunction byte read via 0x68BC0 (=[r15]) is
+     * tested with tst r5,r5 @0x584F0; == 0 -> NRC 0x31 (mov #0x31,r5 @0x584F8),
+     * NOT 0x12.  (0x12 is used by the ROM only for the length checks.) */
     if (subfunc == 0) {
-        uds_error_response(SID_SECURITY_ACCESS, NRC_ROR);
+        uds_error_response(SID_SECURITY_ACCESS, 0x31);
         return;
     }
 
@@ -216,11 +219,13 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
         /* Generate the 3-byte seed using LFSR level 3 */
         seed_gen(3);
 
-        /* Validate the generated level via position_check */
+        /* Validate the generated level via position_check.
+         * ROM 0x58530-0x58534: extu.b(r12); cmp/eq #0x03,r0; bt/s 0x5857E;
+         * the ==3 (not-found) sentinel -> NRC 0x31 @0x5857E (mov #0x31,r5). */
         uint8_t chk = position_check(subfunc);
         if (chk == 3) {
             /* Level validation failed */
-            uds_error_response(SID_SECURITY_ACCESS, NRC_ROR);
+            uds_error_response(SID_SECURITY_ACCESS, 0x31);
             return;
         }
 
@@ -245,19 +250,36 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
     } else if (subfunc == SF_SEND_KEY) {
         /* ---- Subfunction 0x04: SendKey ---- */
 
-        /* Retrieve the cached seed data */
-        data_copy(seed);
+        /* ROM 0x58592-0x58596: FIRST instruction of the SendKey path is
+         * `mov r4,r0; cmp/eq #0x04,r0; bf/s 0x58610` — the message length
+         * must be exactly 4 (subfunction + 3 key bytes), else NRC 0x12
+         * @0x58610.  This check happens BEFORE the 3 key bytes are read
+         * (0x68BC0 @0x585C0-0x585CC). */
+        if (msg_len != 4) {
+            uds_error_response(SID_SECURITY_ACCESS, NRC_ROR);
+            return;
+        }
 
-        /* Re-generate seed to compute expected key */
+        /* Retrieve the cached seed data.  ROM data_copy @0x56AC0 also returns
+         * the seed LEVEL byte (delay-slot @0x56AD8 `mov.b @r2,r0`, r2 =
+         * 0xFFFFD214, literal @0x56B5C); the handler keeps it in r12
+         * (0x585A0 `mov r0,r12`) and passes it as the level to
+         * seed_key_related (0x585D4/0x585D6 `mov r12,r4`) and to unlock
+         * (0x585E2/0x585E4 `mov r12,r4`). */
+        uint8_t level = data_copy(seed);
+
+        /* Re-generate seed to compute expected key (ROM 0x585A2/0x585A4:
+         * jsr @0x5699A with r4 = 3 — a side-effect finalization; the key is
+         * computed from the PRE-copy seed buffer, as here). */
         seed_gen(3);
 
         /* Compare user-provided key against expected key.
          * NOTE: seed_key_related returns 0 on match (ROM convention). */
-        uint8_t match = seed_key_related(4, seed, &msg[4]);
+        uint8_t match = seed_key_related(level, seed, &msg[4]);
 
         if (match == 0) {
             /* Key matches — grant access */
-            unlock(state);
+            unlock(level);
             uint8_t ok_resp[2] = { 0x67, subfunc };
             uds_positive_response(SID_SECURITY_ACCESS, ok_resp, 2);
         } else {
@@ -475,11 +497,16 @@ static uint8_t key_validate(uint8_t b0, uint8_t b1, uint8_t b2)
  *  the provided output buffer.
  * =================================================================== */
 
-static void data_copy(uint8_t dst[3])
+static uint8_t data_copy(uint8_t dst[3])
 {
     dst[0] = *(uint8_t *)0xFFFFD211;
     dst[1] = *(uint8_t *)0xFFFFD212;
     dst[2] = *(uint8_t *)0xFFFFD213;
+    /* ROM 0x56AC0-0x56AD8: the rts delay-slot @0x56AD8 (`mov.b @r2,r0`, r2 =
+     * 0xFFFFD214 loaded @0x56ACC, literal pool @0x56B5C) returns the seed
+     * LEVEL byte stored by seed_gen.  The handler keeps it in r12 (0x585A0)
+     * and passes it as the level to seed_key_related / unlock. */
+    return *(uint8_t *)0xFFFFD214;
 }
 
 /* ===================================================================
