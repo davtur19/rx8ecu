@@ -11,10 +11,12 @@
  * adc_c = *(u16*)0xFFFF9F00 (base 0xFFFF9EE4 + 0x1C).  ret = adc_read(0xFFFF869C, 0).
  *
  * The two `cmp/ge` guards in the original (0x36B3E, 0x36B72) are compiled
- * from a conditional that is ALWAYS false (the ~complement of a 16-bit
- * value is negative, the compare operand is 0..0xFFFF), so the guarded
- * increment blocks always execute.  They are kept here verbatim so the
- * emulator trace matches the ROM exactly.
+ * from a conditional that is NEVER true: `cmp/ge` is a 32-bit SIGNED compare
+ * and the left operand is the 32-bit complement of a 16-bit value (high word
+ * 0xFFFF, i.e. negative) while the right operand is 0..0xFFFF (non-negative),
+ * so T is always 0 and the `bt` (skip) is never taken — the guarded
+ * increment blocks always execute.  They are modeled unconditionally here
+ * (verified by differential test test_Immo_Keygen_related_ADC_36AFC.py).
  *
  * Return value: r0 at the end = ((ret>>16) & 0xFFFF) + (int16)*w288 + adc_b
  * (computed before *w288 is overwritten at 0x36B64).
@@ -25,7 +27,7 @@ uint32_t Immo_Keygen_related_ADC(void)
 {
     uint16_t adc_a = *(volatile uint16_t *)0xFFFF9F1C;   /* r13 */
     uint16_t adc_b = *(volatile uint16_t *)0xFFFF9F1E;   /* r14 */
-    uint16_t adc_c = *(volatile uint16_t *)0xFFFF9EF2;   /* r12 */
+    uint16_t adc_c = *(volatile uint16_t *)0xFFFF9F00;   /* r12 = 0xFFFF9EE4 + 0x1C */
     uint32_t ret   = adc_read(0xFFFF869C, 0);            /* r7 */
     volatile uint16_t *w288 = (volatile uint16_t *)0xFFFFC288;
     volatile uint16_t *w28A = (volatile uint16_t *)0xFFFFC28A;
@@ -35,25 +37,20 @@ uint32_t Immo_Keygen_related_ADC(void)
     /* 0x36B1E..0x36B30: *cnt = (ret & 0xFFFF) + adc_a + *cnt (byte) */
     *cnt = (uint8_t)((uint16_t)ret + adc_a + *cnt);
 
-    /* 0x36B32..0x36B5A: guard `~*w288 >= (ret>>16)` is never true */
-    if (~(uint32_t)(uint16_t)*w288 >= ((ret >> 16) & 0xFFFF)) {
-        /* bt 0x36B5C: skipped */
-    } else {
-        if ((uint16_t)*w28A == 0xFFFF)
-            *cnt = (uint8_t)(*cnt + 1);
-        *w28A = (uint16_t)(*w28A + 1);
-    }
+    /* 0x36B32..0x36B5A: cmp/ge (32-bit signed) on ~(u16)*w288 (always
+     * negative) vs (ret>>16)&0xFFFF (always >= 0) is NEVER true, so the
+     * increment block ALWAYS runs (verified against the emulator). */
+    if ((uint16_t)*w28A == 0xFFFF)
+        *cnt = (uint8_t)(*cnt + 1);
+    *w28A = (uint16_t)(*w28A + 1);
 
-    /* 0x36B5C..0x36B64 */
-    retval = ((ret >> 16) & 0xFFFF) + (int16_t)*w288 + adc_b;
+    /* 0x36B5C..0x36B64: adc_b is added SIGN-extended (mov.w @(0x3A,r4),r14) */
+    retval = ((ret >> 16) & 0xFFFF) + (int16_t)*w288 + (int16_t)adc_b;
     *w288 = (uint16_t)retval;
 
-    /* 0x36B66..0x36B7C: guard `~*w28A >= ((ret & 0x00FFFF00)>>8)` never true */
-    if (~(uint32_t)(uint16_t)*w28A >= ((ret & 0x00FFFF00) >> 8)) {
-        /* bt 0x36B7E: skipped */
-    } else {
-        *cnt = (uint8_t)(*cnt + 1);
-    }
+    /* 0x36B66..0x36B7C: same guard shape on ~(u16)*w28A — never true, the
+     * increment ALWAYS runs. */
+    *cnt = (uint8_t)(*cnt + 1);
 
     /* 0x36B7E..0x36B88: *w28A += ((ret&0x00FFFF00)>>8) + *w28A + adc_c */
     {

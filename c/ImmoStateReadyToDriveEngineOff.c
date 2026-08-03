@@ -38,7 +38,7 @@ void ImmoStateReadyToDriveEngineOff(void)
         *state = 5;
         {
             uint16_t cnt = IMMO_TIMER;
-            if ((int16_t)cnt > 0)                  /* cmp/pl on extu.w value */
+            if (cnt != 0)                /* 0x360B2-0x360B6: extu.w + cmp/pl */
                 IMMO_TIMER = (uint16_t)(cnt - 1);  /* r2 + 0xFFFF == r2 - 1 */
         }
         if (IMMO_TIMER == 0) {
