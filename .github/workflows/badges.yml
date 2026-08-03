@@ -36,6 +36,16 @@ jobs:
       # on this host, gen_badges.py falls back to its constants.
       - name: Regenerate README badges
         run: python3 tools/gen_badges.py
+      - name: Guard - banner must not regress
+        run: |
+          python3 - <<'EOF'
+          import pathlib
+          b = pathlib.Path("README.md").read_text()
+          bad = [p for p in ["266%2F177", "%28150%25%29", "Functions%20mapped-3459"] if p in b]
+          if bad:
+              raise SystemExit("BADGE REGRESSION: %s in README.md" % bad)
+          print("banner guard OK")
+          EOF
       - name: Commit and push if changed
         env:
           GITHUB_TOKEN: ${{ github.token }}
