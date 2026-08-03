@@ -9,9 +9,9 @@
  * timer (0xFFFFC27C = 0x01F4) and falls into the main state machine
  * (ImmoStateMachine_360E8, 0x360E8).
  *
- * Otherwise: forces state = 5, decrements the countdown 0xFFFFC282 (only
- * while it is in 1..0x7FFF, i.e. positive as signed 16-bit), and when it
- * reaches 0: ImmoBadStateSet(), result code 5, sends CAN message 0xC8 via
+ * Otherwise: forces state = 5, decrements the countdown 0xFFFFC282 (while
+ * it is nonzero — cmp/pl after extu.w, so true for ANY value != 0), and
+ * when it reaches 0: ImmoBadStateSet(), result code 5, sends CAN message 0xC8 via
  * the TX dispatcher (0x369B8), and resets the countdown to 500.
  *
  * Original listing (verified) — see 0x364DE..0x36542.

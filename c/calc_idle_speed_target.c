@@ -39,6 +39,7 @@
 
 /* External helpers */
 extern float sensor_range_check_3ED0C(float a, float b);
+extern float fpu_mul_float(float a, float b);       /* 0x23E4, verified in test */
 /* sensor_range_check @ 0x3ED0C: validates and normalizes sensor readings.
  *   if b == 0: return range constant (positive or negative based on a)
  *   else: return a / b
@@ -142,16 +143,17 @@ store_target:
             /* Load increment value from calibration table */
             uint8_t inc_val = *(const uint8_t *)0x00072BBB;
             RAM_TARGET_INC_FLAG = inc_val;  /* write to 0xFFFFA68F */
+        } else if (state_flag_b == 1 && rotor_b == 0) {
+            /* CORRECTED (verified 0x1300C bf/s -> falls to 0x13010): the B branch
+             * mirrors the A branch — state_flag_b==1 AND rotor_b==0 also stores
+             * the calibration byte.  The original lift had `rotor_b != 0`, which
+             * the disassembly does not support. */
+            uint8_t inc_val = *(const uint8_t *)0x00072BBB;
+            RAM_TARGET_INC_FLAG = inc_val;
         } else {
-            /* Check alternative path */
-            if (state_flag_b == 1 && rotor_b != 0) {
-                /* Continue with existing inc_flag */
-            } else {
-                /* Normal path */
-                if (inc_flag > 0) {
-                    /* Increment the idle target counter */
-                    RAM_TARGET_INC_FLAG = inc_flag + 0xFF;  /* effectively decrement by 1 */
-                }
+            /* Normal path: decrement the idle target counter (saturating at 0) */
+            if (inc_flag > 0) {
+                RAM_TARGET_INC_FLAG = inc_flag - 1;  /* add #0xFF == -1 */
             }
         }
     }
@@ -161,18 +163,15 @@ store_target:
         uint8_t count = RAM_TARGET_INC_FLAG;  /* 0xFFFFA68F */
         
         if (count > 0) {
-            /* Apply adaptive learning:
-             *   new_adaptive = adaptive * idle_target
-             *   (via fpu_mul_float @ 0x23E4, which selects min/max of two floats)
+            /* Apply adaptive learning (verified 0x13036..0x13040):
+             *   new_adaptive = fpu_mul_float(0x23E4, fr4=adaptive, fr5=target)
+             * The helper 0x23E4 is a real ROM FPU routine (replayed in the test
+             * harness via a second emulator instance); it computes fr0 from the
+             * two float args and the result is stored back to RAM_ADAPTIVE.
              */
             float idle_tgt  = RAM_IDLE_SPEED_TARGET;   /* 0xFFFFA678 */
             float adaptive  = RAM_IDLE_SPEED_ADAPTIVE;  /* 0xFFFFA680 */
-            
-            /* fpu_mul_float @ 0x23E4: selects max(idle_tgt, adaptive)
-             * Actually this function returns min of the two args */
-            float learned = adaptive;  /* placeholder for the multiply */
-            
-            RAM_IDLE_SPEED_ADAPTIVE = learned;  /* store adaptive result */
+            RAM_IDLE_SPEED_ADAPTIVE = fpu_mul_float(adaptive, idle_tgt);
         } else {
             /* Check if adaptive value needs to be zeroed */
             float val1 = *(volatile float *)0xFFFFA670;  /* 0xA670 */

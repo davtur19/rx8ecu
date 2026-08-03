@@ -8,7 +8,7 @@
  * (0xFFFFC2DC | 0xFFFFC2E0) are used as a fallback.
  *
  * ADC inputs (verified): adc_a = *(u16*)0xFFFF9F1C, adc_b = *(u16*)0xFFFF9F1E,
- * adc_c = *(u16*)0xFFFF9EF2.  ret = adc_read(0xFFFF869C, 0).
+ * adc_c = *(u16*)0xFFFF9F00 (base 0xFFFF9EE4 + 0x1C).  ret = adc_read(0xFFFF869C, 0).
  *
  * The two `cmp/ge` guards in the original (0x36B3E, 0x36B72) are compiled
  * from a conditional that is ALWAYS false (the ~complement of a 16-bit
