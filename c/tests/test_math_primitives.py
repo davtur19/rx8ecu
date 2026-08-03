@@ -73,7 +73,10 @@ def fixedPointScaling(a, b, frac):
     w    = ts(0.00390625 * ts(float(frac & 0xFFFF)))     # frac/256, ROM constant is exact
     t    = ts(1.0 - w)
     diff = ts(ts(float(b)) - ts(float(a)))
-    d    = int(ts(diff * t))          # ftrc: trunc toward zero
+    v    = ts(diff * t)
+    if v >= 2147483648.0:    d = 0x7FFFFFFF   # ftrc +overflow saturates
+    elif v < -2147483648.0:  d = 0x80000000   # ftrc -overflow saturates
+    else:                    d = int(v)       # ftrc: trunc toward zero
     return s32((a + d) & 0xFFFFFFFF)
 
 def rf():
