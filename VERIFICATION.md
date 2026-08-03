@@ -107,27 +107,32 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 | Suite | Command (from repo root) | Result |
 |---|---|---|
 | Host C behavior-equivalence suites | `make c-test` | **26/26 pass** (exit 0; e.g. req_queue 20,512 tests, DTC row-update 22,560 tests, all 0 failures) |
-| Python per-function suites | `for t in c/tests/test_*.py; do python3 "$t"; done` | **118/118 pass** (118 Python suites total: 115 `test_*.py` in `c/tests/` + 2 in `tools/tests/` + `verify_emu.py`; re-run 2026-08-02) |
+| Python per-function suites | `for t in c/tests/test_*.py; do python3 "$t"; done` | **194/194 pass** (194 Python suites total in `c/tests/`: 192 `test_*.py` + `verify_emu.py` + `smoke_dtc_functions.py`; re-run 2026-08-03, 0 failures — the historically BLOCKED `test_sensorADCRead_68A8.py` was unblocked by the emulator MMIO hook `c1e49b6` and now passes, so the whole suite is green) |
 | Emulator cross-check (C lift vs ROM bytes) | `python3 c/tests/verify_emu.py` | **5/5 OK** — add16bitSaturate@0x2460, addSaturate8Bit@0x2478, addS32Saturate@0x2304, seed_mixer@0x366B8, calculateImmoSeed@0x3675C (100k random each) |
 | Disassembler family regression | `python3 tools/tests/test_decode_families.py` | **38,008 checks, 0 failures** (incl. GNU-as 2.46 bulk round-trip on 60E1D400 + 60E0FC00) |
 | Emulator family regression | `python3 tools/tests/test_emulator_families.py` | **83 checks, 0 failures** |
 
 ## 4. Track A / C lifts
 
-- **107 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-02:
-  49 address lines, 288 address tokens) — functions proven
+- **266 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-03:
+  266 unique address tokens across the address lines) — functions proven
   behavior-equivalent against the emulated ROM (many over 20k–60k+ random
   inputs; the math-primitive cluster and memory accessors over 30k, lookup/
   interp leaves over 10k–40k, incl. inf/NaN edges).
 - **Coverage honesty caveat:** ~3.9% of the "covered" words are data markers
   `0x0004`–`0x0007` that decode as instructions (`0x0007` `mul.l r0,r0` ×2427);
   real code coverage is ≈88–91%.
-- **160 C lifts** in `c/*.c` covering: lookup/interp primitives (2D/3D, u8/u16,
+- **177 C lifts** in `c/*.c` covering: lookup/interp primitives (2D/3D, u8/u16,
   FP), the scalar-math cluster (0x2044–0x2510), redundant RAM accessors
   (8/16/32-bit + float, self-heal), RTOS scheduler/context switch, immobilizer/
   SecurityAccess, DTC/OBD handlers, sensors (coolant, IAT, MAP, knock, VSS,
   battery, throttle), PID controllers, fueling/ignition/OMP chain, CAN/UDS,
   boot/reset.
+- **Recent verification batches (reference commits)** — OBD vars/vector
+  `test_obd_vars_vector.py` f7f6424, OBD vars-lift fix (getOBDCANTXVars1/2)
+  c0fa7e3, CAN packers + MAF sensor-limits fix a7fc6d5, OBD getters + CAN/O2
+  batch 14dcbf3, seed_gen 91193ac, emulator MMIO hook (unblocks sensorADCRead)
+  c1e49b6, badges/README catalog regeneration 6994add.
 
 ## 5. Analysis / symbols / docs
 

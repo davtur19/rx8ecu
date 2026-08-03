@@ -68,7 +68,7 @@ one at a time, and the baseline always rebuilds.
   source. Instruction-lift coverage in the code window `0x800..0x60000` is
   **93.46–93.8%** per ROM (60E1D400 93.63%, 60E0FC00 93.56%, 60E1C500 93.48%,
   60E32000 93.80%), remainder is byte-exact `.word` data.
-- **Track A: 97 verified addresses** (`c/verified_addrs.txt`) and **177 C
+- **Track A: 266 verified addresses** (`c/verified_addrs.txt`) and **177 C
   lifts** (`c/*.c`): math/lookup primitives, RTOS (scheduler/context switch),
   security & immobilizer, PID dispatch, DTC/fault handling, sensors, boot, OMP
   chain (all 0 mismatches over 20k-60k inputs each).
@@ -117,7 +117,7 @@ make c-emu                    # Track A emulator cross-checks
   valid; 9 shipped publicly, `[REDACTED]` kept private.
 - Symbol/name transfer across ROMs (`tools/xmap_names.py`), annotated sources
   (`tools/organize_src.py`, `make src`).
-- Track A verification harness: emulator + 100-suite test harness, 97 verified
+- Track A verification harness: emulator + 194-suite test harness, 266 verified
   functions, subsystem docs.
 - **Decode-coverage sprint (DONE)**: instruction-lift coverage raised from
   ~84.6% to **93.46–93.8%** in-window (~93.6% average) by decoding the SH-2E
