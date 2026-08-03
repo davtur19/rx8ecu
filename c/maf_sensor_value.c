@@ -41,18 +41,25 @@ void getMAFSensorValue(void)
 
     *MAF_VALUE_ADDR = maf_flow;
 
-    /* Bounds checking */
-    /* Note: exact upper/lower threshold addresses need verification */
-    uint16_t upper_limit = *(uint16_t*)0x006D402;  /* TODO: verify address */
-    uint16_t lower_limit = *(uint16_t*)0x006D404;  /* TODO: verify address */
+    /* Bounds checking — raw-ADC plausibility limits, VERIFIED by disasm of
+     * 0x745C (literal pool): mov.l 0x074C8,r1 -> u16@0x6CF02 (upper = 0xFAE1
+     * = 64225) and mov.l 0x074CC,r0 -> u16@0x6CF04 (lower = 0x0AC0 = 2752),
+     * both read with mov.w / extu.w then cmp/ge against the raw ADC.
+     * (The old 0x6D402/0x6D404 were wrong — that region is a float literal
+     * pool: 0x6D402=0x0000, 0x6D404=0x3F80.)  Status mapping per the disasm
+     * (T=raw>=thr): raw>=upper -> 1 (high), raw>=lower -> 0 (normal),
+     * else -> 2 (low).  Pinned by test_getMAFSensorValue_745C.py and
+     * test_maf_limits.py (differential vs sh2emu, 0 mismatches). */
+    uint16_t upper_limit = *(uint16_t*)0x006CF02;
+    uint16_t lower_limit = *(uint16_t*)0x006CF04;
 
     uint8_t status;
-    if (maf_adc_raw > upper_limit) {
+    if (maf_adc_raw >= upper_limit) {
         status = 1;  /* Over-range high */
     } else if (maf_adc_raw >= lower_limit) {
-        status = 2;  /* Over-range low */
-    } else {
         status = 0;  /* Normal range */
+    } else {
+        status = 2;  /* Over-range low */
     }
 
     *MAF_STATUS_ADDR = status;
