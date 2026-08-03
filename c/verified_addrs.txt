@@ -266,3 +266,6 @@
 
 ; 2026-08-03 batch can_packers2/maf
 0x29D24 0x2AAB6 0x2D402 0x33942
+
+; 2026-08-03 batch obd_vars/freezeframe_uds01
+0x4C8C2 0x4C9C0 0x670B4 0x467D0 0x66258

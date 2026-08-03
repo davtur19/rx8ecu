@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **1268 entries, 64.0M.** Regenerated 2026-08-02 for the
+in the working repository. **1270 entries, 64.0M.** Regenerated 2026-08-02 for the
 9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
 see roms/ROMS.md).
 
@@ -9,12 +9,12 @@ see roms/ROMS.md).
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 297.6K |
+| (root) | 11 | 298.1K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 15 | 3.0M |
-| c/ | 180 | 785.4K |
-| c/tests/ | 218 | 1.1M |
+| c/ | 180 | 785.5K |
+| c/tests/ | 220 | 1.1M |
 | tools/ | 21 | 172.7K |
 | tools/tests/ | 2 | 37.0K |
 | docs/ | 223 | 1.0M |
@@ -24,7 +24,7 @@ see roms/ROMS.md).
 | .github/ | 5 | 16.0K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **1268** | 64.0M |
+| **Total** | **1270** | 64.0M |
 
 ## External dependencies
 
@@ -70,7 +70,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `d4a3a6a3c2e7be21bc55a5fe490d13d13f20a2f6ebee25aab0ab1724e118ff22` | 5.6K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `ae3967fa9a888bd32108208a4949514b17ab9c843b015e4b4bf2b0b46f5ed874` | 9.8K | Master plan (single source of truth) |
-| `README.md` | `791c651df2a8ff32e70b3588bc3f3797ccd1078bfa4a7d2bd22268cdd14eb411` | 9.2K | Project README |
+| `README.md` | `0db11c4ab7171940804d82ace1edea3db3f8f12f6a25a3868a5b361c76864ba8` | 9.2K | Project README |
 | `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `3b98bf7d96d1cf2531e3d13d017daf8ad007574fb8ae87813a8ce5acaff4b1e5` | 10.1K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -302,7 +302,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/throttle_position_sensor.c` | `2ffa3c218a91536929f2f7a52a34a3173f8b7f22e7acfc278708c34ab17dfe05` | 6.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/updateE2RAMBasedOnInput.c` | `a32f8af00398ecbc22a54f0c7b0a22d2cb05eb34f267a3fd2377a6bf32cd2b0d` | 6.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/vehicle_speed_sensor.c` | `aa7dc9697a545d1423febb11e4546c630a30e7f4f1f2e68f9a35ce589be45cf1` | 5.5K | Verified C lift (behavior-equivalent, emulator-proven) |
-| `c/verified_addrs.txt` | `364d45965119ebc0fcf9e814f4fb63ea1a1095e9a79b55c59bb6ab018d1de93e` | 15.9K | Verified-address ledger (C lifts proven against emulated ROM) |
+| `c/verified_addrs.txt` | `73d43e3f13c3a34403da2c770873fab0e47ed9e39b67ff7b3f45cd1dd450b089` | 16.0K | Verified-address ledger (C lifts proven against emulated ROM) |
 | `c/vfad_control_35BBC.c` | `55785deeca85baa930739a07c7e98638d0468d2c87c0e930ea65d387320c9ddd` | 2.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/vis_intake_control.c` | `8adb19bb71f837dad6ca572af015e32ff1190f62e49c80174ec62215432c3095` | 4.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/warning_light_0x5AADE.c` | `af4b45c9a16aaf56d50a067a03e43e7eb475ed5c12acd50609dcb9def7a6f827` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -457,6 +457,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_obd_dtc_row_update_0x64418.py` | `f9da558bbdbe111afb41a506fff9f8d7d995592d731587027ad49951ca0cf5f8` | 2.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_obd_dtc_row_update_0x64490.c` | `4e38cd87554bf870a8ee6274f51854012efa2544776df3a43d489f7eedde84c5` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/tests/test_obd_dtc_row_update_0x64490.py` | `6d87f9db5067565d7abe207a28673a8834e938612f7c96671f8f618efa9ac05d` | 2.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_freezeframe_uds01.py` | `889724918fad4e17d225a82bee86ca0ebe3f08b4dbe2b544a7891280699a3288` | 9.8K | Tracked file |
 | `c/tests/test_obd_pid_getters.py` | `5ba483af51f293b76b5f2b612bc6927b16f4d9c201f8625c395dc6a4b57f76e1` | 3.7K | Tracked file |
 | `c/tests/test_obd_pid_getters2.py` | `7f0df96ba6cdd05b4aec89277668c3145396162e0c05b73b7d7e7f2beccceee2` | 5.2K | Tracked file |
 | `c/tests/test_obd_pid_getters3.py` | `0f2ebbc5b48740dcf5953ae36c6a994782a2d538269317c64e894b888897a4d2` | 11.5K | Tracked file |
@@ -470,6 +471,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `c/tests/test_obd_service_handler_63B46.py` | `8e2e444c7389f0c159ef0ec83f1a062af8673b209bc4889bd9f5e85bb4845ba7` | 2.8K | Python per-function behavior-equivalence test |
 | `c/tests/test_obd_service_handler_648B4.c` | `7ade23bb482a6958cd7574aa1d77f672fdeb28b5963a7522446afbae42f14ab4` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/tests/test_obd_service_handler_648B4.py` | `6fe229f96568dde215b68a041814d139368d8b7a392c302c879213f06f3ab0b0` | 2.9K | Python per-function behavior-equivalence test |
+| `c/tests/test_obd_vars_vector.py` | `9a824fda9857e6b29d4e14adbba3bbef6422a79b5b18413526a8e5acc91d8d0f` | 15.9K | Tracked file |
 | `c/tests/test_omp_accessors.py` | `e9eb93e8b8c276a5ca62869ced12caeec7b05f09dced876bb8f4574c5b1a533e` | 5.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_omp_control_task_1825E.py` | `b56e523b50bc0997c9724da7be31d297ede14e86e50ab76bec811d76f5c938a5` | 12.8K | Tracked file |
 | `c/tests/test_omp_rotor_overshoot_detector_18CC0.py` | `fa9b094b6a34b686d50d7fabeb083fad0378be731fa3617cd8b3e4852c2e4da4` | 8.1K | Python per-function behavior-equivalence test |
