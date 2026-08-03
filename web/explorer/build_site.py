@@ -313,6 +313,37 @@ def sym_category(name):
     return SYM_OTHER
 
 
+def load_categories():
+    """Loads symbols/FUNCTION_CATEGORIES.csv into lookups keyed by `name`
+    (primary) and by `addr` (fallback). Returns (by_name, by_addr); both are None
+    when the CSV is missing. Each value is a tuple (category, signal, confidence).
+    This lets the build prefer the offline classifier's category over the regex
+    SYM_RULES fallback, and exposes the signal + confidence so the frontend can
+    flag low-confidence "graph" rows as tentative."""
+    p = os.path.join(SYM, "FUNCTION_CATEGORIES.csv")
+    if not os.path.exists(p):
+        return None, None
+    by_name, by_addr = {}, {}
+    for r in csv.DictReader(open(p, encoding="utf-8", errors="replace")):
+        name = (r.get("name") or "").strip()
+        if not name:
+            continue
+        cat = (r.get("category") or "").strip()
+        signal = (r.get("signal") or "").strip()
+        try:
+            conf = float(r.get("confidence") or 0)
+        except (TypeError, ValueError):
+            conf = 0.0
+        row = (cat, signal, conf)
+        by_name[name] = row
+        try:
+            a = int(r.get("addr"), 16)
+            by_addr[a] = row
+        except (TypeError, ValueError):
+            pass
+    return by_name, by_addr
+
+
 TBL_RULES = [
     (r"fuel|inject|inj|fuelling|lambda|o2|afr|trim", "Fuel & Lambda"),
     (r"ign|ignition|dwell|spark|knock", "Ignition & Knock"),
@@ -733,6 +764,7 @@ def build_dataset():
     docs, doc_exact, doc_norm, doc_addr = load_docs()
     subsystems = load_subsystems()
     edges = load_edges()
+    cat_by_name, cat_by_addr = load_categories()
     d = load_rom(ROM_CAL)
     by_vp, by_axp, by_ayp = build_descriptor_index(d) if d else ({}, {}, {})
     rows = list(csv.DictReader(open(os.path.join(SYM, "cal_tables.csv"),
@@ -770,6 +802,9 @@ def build_dataset():
     # Every symbol that matches a doc gets "d": 1 and "di": index into docs[].
     # Matching: (1) exact filename, (2) normalized name without the _hex suffix,
     #           (3) address extracted from the doc header.
+    # Category: FUNCTION_CATEGORIES.csv (if present) wins over the regex rules;
+    # "cs" carries the classifier signal and "ct" flags low-confidence graph rows
+    # as tentative (both "" when the CSV is missing / the symbol is unmatched).
     symbols = []
     for a in order:
         e = by_addr[a]
@@ -779,10 +814,26 @@ def build_dataset():
             di = doc_norm.get(norm_doc_name(name))
         if di is None:
             di = doc_addr.get(a)
+        cat_csv = None
+        if cat_by_name is not None:
+            cat_csv = cat_by_name.get(name)
+            if cat_csv is None:
+                cat_csv = cat_by_addr.get(a)
+        if cat_csv is not None:
+            csv_cat, csv_signal, csv_conf = cat_csv
+            if csv_cat:
+                category = csv_cat
+            else:
+                category = sym_category(name)
+            cs = csv_signal
+            ct = "tentative" if csv_signal == "graph" and csv_conf < 1.0 else "confirmed"
+        else:
+            category = sym_category(name)
+            cs, ct = "", ""
         symbols.append({
             "a": e["a"], "e": e["end"] or e["a"], "n": name,
             "s": e["src"], "r": e["rom"], "d": 1 if di is not None else 0,
-            "c": sym_category(name),
+            "c": category, "cs": cs, "ct": ct,
         })
         if di is not None:
             symbols[-1]["di"] = di
@@ -800,12 +851,12 @@ def build_dataset():
             # placeholder symbol (only if the addr is not present)
             si = len(symbols)
             symbols.append({"a": ca, "e": ca, "n": "FUN_%06x" % ca, "s": "callgraph", "r": 0,
-                            "d": 0, "c": sym_category("FUN")})
+                            "d": 0, "c": sym_category("FUN"), "cs": "", "ct": ""})
             idx[ca] = si
         if di is None:
             di = len(symbols)
             symbols.append({"a": ka, "e": ka, "n": "FUN_%06x" % ka, "s": "callgraph", "r": 0,
-                            "d": 0, "c": sym_category("FUN")})
+                            "d": 0, "c": sym_category("FUN"), "cs": "", "ct": ""})
             idx[ka] = di
         edge_out.append([si, di, kind])
 
