@@ -36,10 +36,14 @@ class SH2:
         self.rom = rom
         self._romlen = len(rom)
         self.SENT = 0xEEEE0000
+        self._mmio = None   # optional MMIO mock (see SH2.call) — additive, off by default
 
     # ---- memory (ROM base + sparse RAM overlay) ----
     def _rb(self, a):
         a &= MASK
+        mmio = self._mmio
+        if mmio is not None and a in mmio:
+            return mmio[a]              # MMIO mock (0xFFFFF8xx etc.) wins over RAM/ROM
         v = self.ram.get(a)          # single dict probe (values are always ints)
         if v is not None: return v
         return self.rom[a] if a < self._romlen else 0
@@ -55,8 +59,9 @@ class SH2:
         b = struct.pack('>f', ts(v))
         for i in range(4): self._wb(a + i, b[i])
 
-    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None):
+    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None, mmio=None):
         self.ram = dict(ram or {})
+        self._mmio = mmio                # additive MMIO mock: {addr: byte} — None = disabled
         self.r = [0] * 16
         self.r[4], self.r[5], self.r[6], self.r[7] = r4 & MASK, r5 & MASK, r6 & MASK, r7 & MASK
         self.r[15] = 0xFFFFDF00
