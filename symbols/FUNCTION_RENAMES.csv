@@ -150,8 +150,8 @@
 60E0FC00,0x567A,FUN_0000567a,pwm_sensor_drive_ch0,0.6,"Ref'd from interpolate_charTable; state struct at 0xFFFF9F38 ch0, control reg 0xF480 mask 0x7FBF, PWM/timer regs 0xF4C4/0xF4CB, enable byte @(0x08)==1, calls setSR_PARAM/loadStatusRegister_ADDR"
 60E0FC00,0x1DC2A,FUN_0001dc2a,fuel_rpm_baro_correction,0.5,"Called from fueling task 0x21AF8 (revLimitFuelCutInit/getFuelInectorLatencyCals); 2DLookup_FP_8bit 0x6803C/0x68048 + 3dLookup 0x681D8/0x681F4 on RPM 0xFFFFB594, baro 0xA9FC vs cal 0x6FCB4, enables 0xAE85/0xAE83/0xAD88, out 0xB07A/0xB058"
 60E0FC00,0x2D60E,FUN_0002d60e,cruise_control_state_timer_a,0.7,"Called by cruiseControlMain?? (0x2EB40); cruise state/timer pair A on 0xFFFFBD09/BD0C/BD0E/BD14, 0xFFFFAD7C input, 0x177 timeout compare, addSaturate8Bit/add16bitSaturate counters"
-60E1D400,0x121F0,calc_combustion_efficiency_metric,calc_combustion_efficiency_metric,0.9,already descriptive human name preserved
-60E1D400,0x1237C,calc_combustion_load_factor,calc_combustion_load_factor,0.9,already descriptive human name preserved
+60E1D400,0x121F0,calc_combustion_efficiency_metric,calc_spark_advance,0.9,already descriptive human name preserved
+60E1D400,0x1237C,calc_combustion_load_factor,calc_spark_advance,0.9,already descriptive human name preserved
 60E0FC00,0x35BFC,calculateImmoSeed,calculateImmoSeed,0.9,already descriptive human name preserved
 60E1D400,0x3675C,calculateImmoSeed,calculateImmoSeed_a,0.9,already descriptive human name preserved
 60E1D400,0x2DDF6,closed_loop_correction_2DDF6,fuel_correction_2ddf6,0.3,closed_loop_correction_2DDF6
