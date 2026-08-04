@@ -65,7 +65,7 @@ endif
 # would self-reference and expand empty.
 export PATH := $(if $(TC),$(TC):$(ENV_PATH),$(ENV_PATH))
 
-.PHONY: build all verify verify-all src c-test c-emu test test-fast catalog classify badges clean
+.PHONY: build all verify verify-all cert src c-test c-emu test test-fast catalog classify badges clean
 
 # Default target: rebuild the stock ROM (documented `make` behavior).
 build: $(BUILD)/out.bin
@@ -78,6 +78,21 @@ verify: $(BUILD)/out.bin
 
 verify-all:
 	./tools/verify_all.sh
+
+# make cert — formal certification (verify_formal.py) of ALL 9 stock ROMs.
+# One line per ROM; the loop exits 1 on the first ROM that fails (exit != 0),
+# so `make cert` is a hard gate. Total runtime ~31 s (measured 2026-08-04),
+# well under the 8-minute CI budget; CI runs the same battery via the
+# formal-cert job in .github/workflows/ci.yml.
+CERT_ROMS := 60E0E500 60E0E700_N3YLEE 60E0FB00 60E0FC00 60E15120_N3J1E \
+             60E1B900 60E1C500_N3J6EB 60E1D400 60E32000_N3M5E
+cert:
+	@set -e; for r in $(CERT_ROMS); do \
+	  echo "== formal-cert $$r =="; \
+	  python3 tools/verify_formal.py --rom roms/stock/$$r.bin \
+	    --asm src/$${r}_annotated.s \
+	    --declared analysis/coverage/declared_$${r}.csv || exit 1; \
+	done; echo "cert: all 9 ROMs CERTIFIED"
 
 # --- annotated source (regenerate into src/) ---
 # xmap: transfer equinox (60E0FC00 hand) names across ROMs by content signature.

@@ -85,8 +85,10 @@ try:
 except Exception:
     HAVE_CAPSTONE = False
 
-ROM_CSV = 'analysis/data_regions_60E1D400.csv'
-UNCOV_CSV = 'analysis/coverage/uncovered_60E1D400.csv'
+# Per-ROM runtime configuration. Derived from the ROM id (asm basename), NOT
+# hardcoded: every ROM gets its own declared config + uncovered CSV.
+ROM_CSV = None          # declared config path (data regions + traps), set in main()
+UNCOV_CSV = None        # analysis/coverage/uncovered_<romid>.csv, set in main()
 VERIFIED = 'c/verified_addrs.txt'
 
 # SH-2 branch/call mnemonics capstone reports with an ABSOLUTE static target.
@@ -99,39 +101,68 @@ PCREL = {'mov.l', 'mov.w', 'mova'}
 # Uncovered-data categories that are NOT a config/padding whitelist (suspicious).
 SUSPECT_DATA = ('unknown', 'unref')
 
-# --- v3: DECLARED TRAP / TABLE regions -------------------------------------
-# DECLARED_TRAP[target_addr] = (source_addr, reason). A branch whose statically
-# resolvable target is a DECLARED_TRAP slot is treated as a resolved, intentional
-# branch to an unimplemented/filler handler slot (0x0000 / 0xFFFF), NOT a
-# CFG violation. These are dispatch/handler-vector slots reached by bt/s/bra/bsr
-# that point at blank filler words in otherwise-declared padding/literal regions.
-#   (a) 0x5F85A  bt/s -> 0x5F7CE   handler dispatch into zero-filler (padding 0x5F788..)
-#   (b) 0x6B996  bra  -> 0x6C652   dispatch table -> unused 0xFFFF slot
-#   (c) 0x6BC0E  bra  -> 0x6CBF2   dispatch table -> unused 0xFFFF slot
-#   (d) 0x6BE26  bsr  -> 0x6C35A   handler call vector -> unused 0xFFFF slot
-#   (e) 0x6BE2A  bsr  -> 0x6C39E   handler call vector -> unused 0xFFFF slot
-#   (f) 0x6BE6A  bsr  -> 0x6C7AE   handler call vector -> unused 0xFFFF slot
-DECLARED_TRAP = {
-    0x5F7CE: 0x5F85A,  # zero-filler trap slot (0x5F788..0x5F7D8 [padding])
-    0x5F7D2: 0x5F84E,  # dead sibling bt/s into same zero-filler
-    0x5F7A6: 0x5F852,  # dead sibling bt/s into same zero-filler
-    0x5F7BA: 0x5F856,  # dead sibling bt/s into same zero-filler
-    0x6C652: 0x6B996,  # 0xFFFF filler slot
-    0x6CBF2: 0x6BC0E,  # 0xFFFF filler slot
-    0x6C35A: 0x6BE26,  # 0xFFFF filler slot
-    0x6C39E: 0x6BE2A,  # 0xFFFF filler slot
-    0x6C7AE: 0x6BE6A,  # 0xFFFF filler slot
-}
+# --- v3: DECLARED TRAP / TABLE regions (per-ROM) -----------------------------
+# The declared regions live in a per-ROM config CSV passed via --declared
+# (default analysis/coverage/declared_<romid>.csv). Rows:
+#   kind  start end  class       src    motivo
+#   data  s     e    literal_pool/padding/cal_table/jump_table/... (P4 whitelist)
+#   trap  t     t    (empty)     src    reason   (intentional branch to filler)
+# A branch whose statically resolvable target is a `trap` slot is treated as a
+# resolved, intentional branch to an unimplemented/filler handler slot
+# (0x0000/0xFFFF), NOT a CFG violation (P3).
+# Baseline (60E1D400) traps: 0x5F85A bt/s->0x5F7CE zero-filler; 0x6B996 bra->
+# 0x6C652, 0x6BC0E bra->0x6CBF2 0xFFFF slots; 0x6BE26/0x6BE2A/0x6BE6A bsr->
+# 0x6C35A/0x6C39E/0x6C7AE handler vectors; dead siblings 0x5F7D2/0x5F7A6/0x5F7BA.
+DECLARED_TRAP = {}      # target_addr -> (source_addr, reason) loaded per-ROM
+
+
+def load_declared(path):
+    """Load a per-ROM declared config CSV -> (traps, data_regions).
+
+    traps: {target_addr: (source_addr, reason)}   (kind='trap', start==end==target)
+    data_regions: [(start, end, class)]            (kind='data', P4 whitelist)
+    An empty config (missing file or header-only) is a valid empty config.
+    """
+    traps = {}
+    data_regions = []
+    if not os.path.exists(path):
+        return traps, data_regions
+    with open(path) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            c = line.split(',')
+            if len(c) < 3 or c[0].strip() == 'kind':
+                continue
+            kind = c[0].strip()
+            try:
+                s = int(c[1].strip(), 16 if c[1].strip().lower().startswith('0x') else 10)
+                e = int(c[2].strip(), 16 if c[2].strip().lower().startswith('0x') else 10)
+            except Exception:
+                continue
+            if kind == 'trap':
+                src = 0
+                try:
+                    src = int(c[4].strip(), 16 if c[4].strip().lower().startswith('0x') else 10)
+                except Exception:
+                    src = 0
+                motivo = c[5].strip().strip('"') if len(c) > 5 else ''
+                traps[s] = (src, motivo)
+            else:
+                cls = c[3].strip().lower() if len(c) > 3 else ''
+                data_regions.append((s, e, cls))
+    return traps, data_regions
 
 # P4 rule (v3, documented): a data word is "referenced-by-declaration" and is NOT
 # a VIOLATION when it lies inside a declared TABLE / CALDATA / PADDING / literal-
-# pool region, i.e. any row of analysis/data_regions_60E1D400.csv (class
-# cal_table / literal_pool / padding / jump_table / unknown_data / string) or a
-# non-suspect `[padding]`/`[xxx]` marker in the .s. The declared region list lives
-# in analysis/data_regions_60E1D400.csv (verifiable at a glance):
+# pool region, i.e. any `data` row of the per-ROM declared config
+# (analysis/coverage/declared_<romid>.csv, class cal_table / literal_pool /
+# padding / jump_table / unknown_data / string) or a non-suspect
+# `[padding]`/`[xxx]` marker in the .s. The declared region list is verifiable
+# at a glance in analysis/coverage/declared_<romid>.csv (baseline example:
 #   - 393216..524288  (0x60000-0x7FFFF) cal_table contiguous calibration band
 #   - 524288..526708  (0x80000-0x80970) cal_table extension words beyond image
-#   - ~300 literal_pool rows covering the residual un-referenced word pools.
+#   - ~300 literal_pool rows covering the residual un-referenced word pools).
 # P5 skips a gap whose uncovered-CSV category is declared data (literal_pool /
 # padding / jump_table / pool) -- a live branch into declared data is a trap
 # dispatch, not missing code.
@@ -284,8 +315,23 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--rom', default='roms/stock/60E1D400.bin')
     ap.add_argument('--asm', default='src/60E1D400_annotated.s')
+    ap.add_argument('--declared', default=None,
+                    help='per-ROM declared config CSV (data regions + traps). '
+                         'Default: analysis/coverage/declared_<romid>.csv; an '
+                         'empty/missing config is a valid empty config.')
     ap.add_argument('--v2', action='store_true', help='v2 corrected SH-2 semantics')
     a = ap.parse_args()
+
+    # ---- per-ROM configuration (PASSO 1: no more hardcoded baseline) ----
+    romid = os.path.basename(a.asm)
+    for suf in ('_annotated.s', '.s', '.asm'):
+        if romid.endswith(suf):
+            romid = romid[: -len(suf)]
+            break
+    global ROM_CSV, UNCOV_CSV, DECLARED_TRAP
+    ROM_CSV = a.declared or os.path.join('analysis/coverage', 'declared_%s.csv' % romid)
+    UNCOV_CSV = os.path.join('analysis/coverage', 'uncovered_%s.csv' % romid)
+    DECLARED_TRAP, data_regions = load_declared(ROM_CSV)
 
     d = open(a.rom, 'rb').read()
     N = len(d)
@@ -340,7 +386,7 @@ def main():
         results['P4'] = ('FAIL', 1, [('', '', 'capstone unavailable')], 'capstone unavailable')
         results['P5'] = ('FAIL', 1, [('', '', 'capstone unavailable')], 'capstone unavailable')
         results['P4_dead'] = ('FLAG', 0, [], 'no decode')
-        _cert(results, len(instr_starts), 0, 0, 0, 0)
+        _cert(results, len(instr_starts), 0, 0, 0, 0, romid)
         sys.exit(1)
 
     md = make_cs()
@@ -384,16 +430,9 @@ def main():
 
     # (b) jump tables: 32-bit absolute entries; >filesize -> OFFLOAD heuristic.
     jt_rows = []
-    if os.path.exists(ROM_CSV):
-        with open(ROM_CSV) as f:
-            next(f, None)
-            for line in f:
-                c = line.split(',')
-                if len(c) > 3 and 'jump_table' in c[3]:
-                    try:
-                        jt_rows.append((int(c[0]), int(c[1])))
-                    except Exception:
-                        pass
+    for s, e, cls in data_regions:
+        if 'jump_table' in cls:
+            jt_rows.append((s, e))
     jt_resolved = set()
     jt_viol = []      # (base, raw_value)
     for s, e in jt_rows:
@@ -425,6 +464,9 @@ def main():
                                          jt_resolved, resolved_branch_tgt, raw_branch_tgt)
 
     live_p3 = [v for v in p3_viol if v[0] in reached]
+    if os.environ.get('VERIFY_DUMP_P3'):
+        for a, m, t in live_p3:
+            print('DUMPP3 |%s|0x%X|%s|0x%X|' % (romid, a, m, t), flush=True)
     dead_p3 = [v for v in p3_viol if v[0] not in reached]
     live_jt = jt_viol  # unresolved jump-table entries (source table > filesize
     #                     heuristic did not resolve -> report as violations)
@@ -475,7 +517,7 @@ def main():
     for a, b in padding:
         for x in range(a, b):
             decl_regions.add(x)
-    for s, e in read_region_csv(ROM_CSV, dec=True):
+    for s, e, _cls in data_regions:
         for x in range(s, e):
             decl_regions.add(x)
     # uncovered-CSV data categories that represent declared data (pool/table/
@@ -500,6 +542,10 @@ def main():
 
     data_viol = [w for w in sorted(data_words)
                  if not (w in pcrel_ref or w in ptr_vals or w in decl_regions)]
+    if os.environ.get('VERIFY_DUMP_P4'):
+        with open('/tmp/unref_%s.txt' % romid, 'w') as _f:
+            for w in data_viol:
+                _f.write('0x%X\n' % w)
 
     results['P4_dead'] = ('FLAG', len(dead),
                           ['FLAG dead: %s' % hx(x) for x in dead[:20]],
@@ -518,14 +564,16 @@ def main():
                          'dead=%d unref_data=%d pcrel=%d' % (code_dead, len(data_viol), len(pcrel_ref)))
     print('P4 XREF:', results['P4'][0], results['P4'][3], '(dead code %d)' % code_dead)
     _nrows = 0
-    if os.path.exists(ROM_CSV):
-        for line in open(ROM_CSV):
-            c = line.split(',')
-            if len(c) > 3 and c[3].strip() in ('cal_table', 'literal_pool'):
-                _nrows += 1
-    print('P4 declared-table regions (v3): data_regions_60E1D400.csv cal_table '
-          '0x60000-0x7FFFF + 0x80000-0x80970 + %d literal_pool/cluster rows; '
-          'DECLARED_TRAP slots=%d' % (_nrows, len(DECLARED_TRAP)))
+    _cal = []
+    for s, e, cls in data_regions:
+        if cls in ('cal_table', 'literal_pool'):
+            _nrows += 1
+        if cls == 'cal_table':
+            _cal.append('%s-%s' % (hx(s), hx(e)))
+    print('P4 declared-table regions (v3): %s %d data rows (cal_table=%s, '
+          'literal_pool/cluster=%d), traps=%d' %
+          (os.path.basename(ROM_CSV), len(data_regions), '+'.join(_cal),
+           _nrows, len(DECLARED_TRAP)))
 
     # ---------------- P5 GAP-AUDIT (v2) ----------------
     def run_ok(start):
@@ -597,7 +645,7 @@ def main():
                          'CODE-HIDDEN gaps=%d dangling_dead=%d' % (len(code_hidden), dangling))
     print('P5 GAP-AUDIT:', results['P5'][0], results['P5'][3])
 
-    _cert(results, len(instr_starts), p3_total, len(data_viol), len(code_hidden), len(dead))
+    _cert(results, len(instr_starts), p3_total, len(data_viol), len(code_hidden), len(dead), romid)
 
 
 def compute_reachability(d, N, nodes, instr_starts, declared, jt_resolved,
@@ -662,9 +710,9 @@ def compute_reachability(d, N, nodes, instr_starts, declared, jt_resolved,
     return reached, dead
 
 
-def _cert(results, total_instr, p3_total, p4_data, p5_gaps, dead_count):
+def _cert(results, total_instr, p3_total, p4_data, p5_gaps, dead_count, romid='60E1D400'):
     print()
-    print('CERTIFICATE 60E1D400 v3')
+    print('CERTIFICATE %s v3' % romid)
     for k in ('P1', 'P2', 'P3', 'P4', 'P5'):
         st, n, _, detail = results.get(k, ('SKIP', 0, [], ''))
         print('  %s: %s (%d) %s' % (k, st, n, detail))

@@ -204,3 +204,43 @@ jobs:
             echo "::error::catalog drift: run 'make catalog classify' and commit the refresh"
             exit 1
           fi
+
+  # ---------------------------------------------------------------------------
+  # formal-cert: formal certification (tools/verify_formal.py) for ALL 9 stock
+  # ROMs against their per-ROM declared configs (analysis/coverage/declared_*.csv).
+  #
+  # Measured total runtime on the dev box is ~31 s (2026-08-04) — well under
+  # the 8-minute budget — so the job is activated on push/PR that touches the
+  # verifier, its declared configs, or the annotated sources, and FAILS the
+  # workflow if any ROM is not CERTIFIED (P3 LIVE / P4 unref / P5 LIVE != 0).
+  # This is the `make cert` battery, mirrored as a hard CI gate.
+  # ---------------------------------------------------------------------------
+  formal-cert:
+    name: Formal cert (9 ROMs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python deps (capstone)
+        run: python3 -m pip install --break-system-packages -r .github/requirements.txt
+
+      - name: Changed formal-cert-relevant paths
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            formal:
+              - 'src/**'
+              - 'tools/verify_formal.py'
+              - 'analysis/coverage/**'
+
+      - name: Formal cert — all 9 ROMs (make cert)
+        if: steps.changes.outputs.formal == 'true'
+        run: make cert

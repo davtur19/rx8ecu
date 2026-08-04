@@ -289595,145 +289595,152 @@ L_06cdf6:
 	.word 0xd24f
 	.word 0x2e2b
 L_06ce06:
-	.word 0x60e3
-	.word 0x4f26
-	.word 0x6df6
-	.word 0x000b
-	.word 0x6ef6
+	mov r14,r0
+	lds.l @r15+,pr
+	mov.l @r15+,r13
+	rts
+	mov.l @r15+,r14
 L_06ce10:
-	.word 0x000b
-	.word 0xe000
+	rts
+	mov #0,r0
 L_06ce14:
-	.word 0x2fe6
-	.word 0xe600
-	.word 0xd04a
-	.word 0x6e4d
-	.word 0x2fd6
-	.word 0x6563
-	.word 0x2fc6
-	.word 0x6d63
-	.word 0x2fb6
-	.word 0x4e08
-	.word 0x2fa6
-	.word 0x6b63
-	.word 0x2f96
-	.word 0xea01
-	.word 0x2f86
-	.word 0xe832
-	.word 0xd944
-	.word 0x4f22
-	.word 0x0eee
-	.word 0x6c93
-	.word 0xa015
-	.word 0x7c01
+	mov.l r14,@-r15
+	mov #0,r6
+	mov.l 0x6cf44,r0
+	extu.w r4,r14
+	mov.l r13,@-r15
+	mov r6,r5
+	mov.l r12,@-r15
+	mov r6,r13
+	mov.l r11,@-r15
+	shll2 r14
+	mov.l r10,@-r15
+	mov r6,r11
+	mov.l r9,@-r15
+	mov #1,r10
+	mov.l r8,@-r15
+	mov #50,r8
+	mov.l 0x6cf48,r9
+	sts.l pr,@-r15
+	mov.l @(r0,r14),r14
+	mov r9,r12
+	bra L_06ce6a
+	add #1,r12
 L_06ce40:
-	.word 0x62dd
-	.word 0x3287
-	.word 0x8d16
-	.word 0x0009
-	.word 0x63e1
-	.word 0x633d
-	.word 0x3390
-	.word 0x8d04
-	.word 0x0009
-	.word 0xd23e
-	.word 0x420b
-	.word 0x64e1
-	.word 0x6503
-	.word 0x605c
-	.word 0x8801
-	.word 0x8f02
-	.word 0x0009
-	.word 0xa007
-	.word 0x6ba3
-	.word 0x7e02
-	.word 0x7d01
-	.word 0x63e1
-	.word 0x633d
-	.word 0x33c0
-	.word 0x8fe6
-	.word 0x0009
-	.word 0x4f26
-	.word 0x60b3
-	.word 0x68f6
-	.word 0x69f6
-	.word 0x6af6
-	.word 0x6bf6
-	.word 0x6cf6
-	.word 0x6df6
-	.word 0x000b
-	.word 0x6ef6
+	extu.w r13,r2
+	cmp/gt r8,r2
+	bt/s L_06ce74
+	nop
+	mov.w @r14,r3
+	extu.w r3,r3
+	cmp/eq r9,r3
+	bt/s L_06ce5a
+	nop
+	mov.l 0x6cf4c,r2
+	jsr @r2
+	mov.w @r14,r4
+	mov r0,r5
+L_06ce5a:
+	extu.b r5,r0
+	cmp/eq #1,r0
+	bf/s L_06ce66
+	nop
+	bra L_06ce74
+	mov r10,r11
+L_06ce66:
+	add #2,r14
+	add #1,r13
+L_06ce6a:
+	mov.w @r14,r3
+	extu.w r3,r3
+	cmp/eq r12,r3
+	bf/s L_06ce40
+	nop
+L_06ce74:
+	lds.l @r15+,pr
+	mov r11,r0
+	mov.l @r15+,r8
+	mov.l @r15+,r9
+	mov.l @r15+,r10
+	mov.l @r15+,r11
+	mov.l @r15+,r12
+	mov.l @r15+,r13
+	rts
+	mov.l @r15+,r14
 L_06ce88:
-	.word 0xd031
-	.word 0x644d
-	.word 0x4400
-	.word 0x044d
-	.word 0xd030
-	.word 0x644d
-	.word 0x4400
-	.word 0x044c
-	.word 0x644c
-	.word 0x2448
-	.word 0x8d01
-	.word 0xe500
-	.word 0xe501
-	.word 0x000b
-	.word 0x6053
+	mov.l 0x6cf50,r0
+	extu.w r4,r4
+	shll r4
+	mov.w @(r0,r4),r4
+	mov.l 0x6cf54,r0
+	extu.w r4,r4
+	shll r4
+	mov.b @(r0,r4),r4
+	extu.b r4,r4
+	tst r4,r4
+	bt/s L_06cea2
+	mov #0,r5
+	mov #1,r5
+L_06cea2:
+	rts
+	mov r5,r0
 L_06cea6:
-	.word 0x2fe6
-	.word 0x4f22
-	.word 0xd32b
-	.word 0x430b
-	.word 0xee00
-	.word 0x640c
-	.word 0x2448
-	.word 0x8f01
-	.word 0x0009
-	.word 0xee01
-	.word 0x60e3
-	.word 0x4f26
-	.word 0x000b
-	.word 0x6ef6
+	mov.l r14,@-r15
+	sts.l pr,@-r15
+	mov.l 0x6cf58,r3
+	jsr @r3
+	mov #0,r14
+	extu.b r0,r4
+	tst r4,r4
+	bf/s L_06ceba
+	nop
+	mov #1,r14
+L_06ceba:
+	mov r14,r0
+	lds.l @r15+,pr
+	rts
+	mov.l @r15+,r14
 L_06cec2:
-	.word 0x2fe6
-	.word 0x2fd6
-	.word 0xed00
-	.word 0xd325
-	.word 0x6ed3
-	.word 0x2fc6
-	.word 0xec02
-	.word 0x2fb6
-	.word 0xeb01
-	.word 0x2fa6
-	.word 0x2f96
-	.word 0x4f22
-	.word 0x694d
-	.word 0xda1f
-	.word 0x4900
-	.word 0x393c
-	.word 0x4a0b
-	.word 0x64e3
-	.word 0x6403
-	.word 0x60e3
-	.word 0x039c
-	.word 0x2349
-	.word 0x643c
-	.word 0x2448
-	.word 0x8d01
-	.word 0x7e01
-	.word 0x6bd3
-	.word 0x3ec3
-	.word 0x8ff2
-	.word 0x0009
-	.word 0x60b3
-	.word 0x4f26
-	.word 0x69f6
-	.word 0x6af6
-	.word 0x6bf6
-	.word 0x6cf6
-	.word 0x6df6
-	.word 0x000b
-	.word 0x6ef6
+	mov.l r14,@-r15
+	mov.l r13,@-r15
+	mov #0,r13
+	mov.l 0x6cf60,r3
+	mov r13,r14
+	mov.l r12,@-r15
+	mov #2,r12
+	mov.l r11,@-r15
+	mov #1,r11
+	mov.l r10,@-r15
+	mov.l r9,@-r15
+	sts.l pr,@-r15
+	extu.w r4,r9
+	mov.l 0x6cf5c,r10
+	shll r9
+	add r3,r9
+	jsr @r10
+	mov r14,r4
+	mov r0,r4
+	mov r14,r0
+	mov.b @(r0,r9),r3
+	and r4,r3
+	extu.b r3,r4
+	tst r4,r4
+	bt/s 0x6cef8
+	add #1,r14
+	mov r13,r11
+	cmp/ge r12,r14
+	bf/s 0x6cee2
+	nop
+	mov r11,r0
+	lds.l @r15+,pr
+	mov.l @r15+,r9
+	mov.l @r15+,r10
+	mov.l @r15+,r11
+	mov.l @r15+,r12
+	mov.l @r15+,r13
+	rts
+	mov.l @r15+,r14
+146 total lines for 0x6ce06 0x6cf10
 L_06cf10:
 	.word 0xffff
 	.word 0xd9bc

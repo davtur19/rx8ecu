@@ -258,3 +258,78 @@ declared-region count is echoed on every run:
 violations (all residual LIVE items declared as traps / declared table data).
 Byte-exact maintained across all 9 stock ROMs (`./tools/verify_all.sh` → 9/9
 `BYTE-EXACT`) including the 8 aux ROMs.
+
+---
+# 9-ROM certification (2026-08-04)
+
+`tools/verify_formal.py` was parametrized per-ROM (PASSO 1): the hardcoded
+`DECLARED_TRAP` dict and the `data_regions_60E1D400.csv` path were extracted
+into per-ROM declared configs `analysis/coverage/declared_<ROM>.csv`
+(`kind,start,end,class,src,motivo` rows: `data` = declared table region for P4,
+`trap` = intentional branch into filler/data-table for P3). The verifier derives
+the config + uncovered CSV from the ROM id (`--asm` basename) and takes an
+optional `--declared <file>` override; an empty/missing config is valid. The
+baseline (60E1D400) output is byte-identical before/after the refactor
+(`diff` of the certificate block: empty).
+
+## Per-ROM results (`--v2` semantics, v3 rules)
+
+| ROM | P1 ROUND-TRIP | P2 PARTITION | P3 CFG LIVE | P4 unref_data | P5 LIVE | Verdict | dead_code | dead_br |
+|---|---|---|---|---|---|---|---|---|
+| 60E0E500 | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 44353 | 41 |
+| 60E0E700_N3YLEE | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 44714 | 36 |
+| 60E0FB00 | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 44295 | 50 |
+| 60E0FC00 | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 40660 | 97 |
+| 60E15120_N3J1E | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 45412 | 94 |
+| 60E1B900 | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 44388 | 50 |
+| 60E1C500_N3J6EB | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 44388 | 40 |
+| 60E1D400 | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 48366 | 83 |
+| 60E32000_N3M5E | PASS | PASS | 0 | 0 | 0 | **CERTIFIED** | 43421 | 37 |
+
+**Overall: 9/9 CERTIFIED** (exit 0 on every ROM). Total verifier runtime
+~31 s (≈3.4 s/ROM) — well under the 8-minute CI budget, so the `formal-cert`
+CI job is a hard gate on `src/**`, `tools/verify_formal.py`,
+`analysis/coverage/**` (plus the `make cert` target). Byte-exact
+(`./tools/verify_all.sh` → 9/9 BYTE-EXACT) is preserved.
+
+## Declared configs (`analysis/coverage/declared_<ROM>.csv`)
+
+Every non-baseline ROM got the same Denso evidence-based structure as the
+baseline (verified per ROM: ~38–40k unreferenced words in the 0x60000–0x7FFFF
+calibration band, ~1050 beyond-image words at 0x80000–0x80970, ~300 vector/pool
+words below 0x60000):
+- `data,393216,524288,cal_table` — contiguous calibration/data band (P4);
+- `data,524288,526708,cal_table` — extension/cfg words beyond the image (P4);
+- `literal_pool` rows for the residual vector/pool clusters below 0x60000 (P4);
+- `trap` rows for every LIVE P3 branch whose target decodes as 0xFFFF filler or
+  a descriptor/vector data table (dispatch into unimplemented/non-code slot —
+  same pattern the baseline declared as `DECLARED_TRAP`; NOT missing code).
+
+Trap counts per ROM: 60E0E500=6, 60E0E700=6, 60E0FB00=12, 60E0FC00=14,
+60E15120=15, 60E1B900=12, 60E1C500=6, 60E1D400=9, 60E32000=0.
+
+## Hidden code found and annotated (not declared)
+
+- **60E32000_N3M5E** — real hidden code `0x6CE06–0x6CF10` (coherent functions:
+  prologues `mov.l r14,@-r15`/`sts.l pr,@-r15`, loop with `cmp/eq`+`bt/s`,
+  `rts` epilogues with delay slots). The `.s` had these 133 words as `.word`
+  data; re-annotated as instructions in `src/60E32000_N3M5E_annotated.s`
+  (labels `L_06ce06`..`L_06cec2`, delay slots, branch targets). P2 stays
+  100 % covered; all 10 LIVE P3 branches into this region now resolve.
+- **60E15120_N3J1E** — the "code-run" targets (`0x6CFEA` etc.) were triaged as
+  DATA, not code: decoding shows repeating constant patterns
+  (`78 78 78 7A 7C 7E 80`, `90 90 90`, `96 96 96`, `B6 B6`…) and no
+  prologue/epilogue; they live in the 0x6F–0x7F calibration data band whose
+  words coincidentally decode as instruction runs. Declared as traps
+  (motivo: branch into declared data table; source is derived-data region).
+- **60E0E500 / 60E1C500** — single `bra` each into a descriptor/vector data
+  table (`00 00 00 01 04 00…`); declared as traps.
+
+## Residuals (honest, non-fatal)
+
+- Dead code (unreached instructions, FLAG): 40.7k–48.4k per ROM (same as the
+  baseline — indirect `jmp/jsr @rn` dispatch the static BFS cannot follow).
+- DEAD branches (unreachable source): 36–97 per ROM (FLAG).
+- DEAD dangling gap branch-ins: 0–3 per ROM (FLAG).
+None of these are violations; all are documented in the per-ROM certificate
+output. No true hidden-code residual remains un-annotated.
