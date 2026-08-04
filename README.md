@@ -1,4 +1,8 @@
 # Mazda RX-8 PCM Reverse Engineering
+
+> ⚠️ **AI-Assisted Reverse Engineering — Feasibility Experiment**
+> This repository is an experiment to assess whether AI can assist in reverse-engineering the Mazda RX-8 ECU firmware at scale. Much of the content — especially the per-function docs in `docs/functions/` and parts of the abstract C under `c/` — is AI-generated and tagged `AI (Haiku) draft, unverified`. Treat everything not backed by an explicit verification marker (see `VERIFICATION.md`, `c/verified_addrs.txt`, the `c/tests/` suites) as **unverified hypothesis to be independently confirmed**, not as ground truth. The annotated assembly in `src/` reassembles to the stock ROMs **byte-identically (9/9)** and is the most reliable artifact; the C abstraction and the docs are progressively-validated building blocks.
+
 <!-- BADGES:START -->
 ![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
 ![Code window](https://img.shields.io/badge/Code%20window-93.6%25%20SH--2%20lift-green)
@@ -54,11 +58,11 @@ with `make -C web/explorer serve`.
   decode-gap families capstone misses: FPU, fpul/fpscr, `mov.l @(disp,Rm)`) and
   `tools/sh2emu.py` (integer + single-precision FPU), the oracle every C lift is
   proven against.
-- **177 C lifts** — most behavior-equivalent reimplementations (lookup/interp
+- **184 C lifts** — most behavior-equivalent reimplementations (lookup/interp
   primitives, scalar math, RTOS scheduler, immobilizer / SecurityAccess,
   DTC/OBD, sensors, PID, fueling/ignition/OMP chain, boot) proven against the
   *actual ROM bytes* running on the emulator over tens of thousands of
-  randomized inputs each (266 emulator-verified addresses); the few reconstruction-tier
+  randomized inputs each (270 emulator-verified addresses); the few reconstruction-tier
   files (structural, not emulator-verified) are labeled as such in-tree.
 - **193 function docs + 15 subsystem docs** (`docs/functions/`,
   `docs/subsystems/`).
@@ -91,7 +95,7 @@ Complete file inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 177 verified C lifts, `eeprom_immo.h`, host test suites (194 py + 26 c), `verified_addrs.txt` |
+| `c/` | 184 verified C lifts, `eeprom_immo.h`, host test suites (194 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | symbols/ | Per-ROM symbol CSVs (all 9 banks; equinox311 named + connor-xmap), CATALOG_MASTER.csv (56,952 rows), CATALOG_STATUS.md / NAMES_STATUS.md / TABLES_STATUS.md, cal_tables.csv (1,210 tables), romraider_rx8_tables.csv (37,121 defs / 13 ROM codes), callgraph.csv |
 | `analysis/` | Code-window data-region classification for the 60E1D400 baseline |
