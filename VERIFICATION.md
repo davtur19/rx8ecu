@@ -12,7 +12,7 @@ this public repo. All byte-exact rebuild claims for the shipped tree are
 **9/9**. The modified ([REDACTED]/[REDACTED]) images are also private and not
 shipped.
 
-## 1. Byte-exact rebuild — 9/9 public stock ROMs (+ [REDACTED] verified privately)
+## 1. Byte-exact rebuild — 9/9 public stock ROMs
 
 `make verify-all` (drives `tools/verify_all.sh` → `tools/rom_rebuild.py` for
 each ROM: capstone SH-2 + `disasm_sh2e.py` fallback → single `.s` →
