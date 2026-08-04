@@ -2,13 +2,16 @@
  * security_access.c — UDS Service 0x27 (SecurityAccess) handler
  *
  * ═══════════════════════════════════════════════════════════════════
- *  STATUS: VERIFIED core, one DRAFT sub-flow remaining.
+ *  STATUS: VERIFIED core; RequestSeed flow CONFIRMED 2026-08-04.
  * Address: 0x584A0
+ *  2026-08-04: RequestSeed sub-flow (r.191-255) CONFIRMED against ROM
+ *  (docs/notes/REQUEST_SEED_EVIDENCE.md) — incl. entry dispatch (only
+ *  subfunc==1 enters), msg_len==1 requirement, conditional seed path,
+ *  and the finding that SendKey (0x58592) is UNREACHABLE in 60E1D400.
  *  2026-08-04: key_validate (10-entry table @0x5FAA2) e position_check
  *  (word_tab[2]=0xFFFC) verificati contro ROM; seed_gen VERIFIED
  *  2026-08-03 (test_seed_gen_5699A.py, 0 mismatch); lfsr/seed_key_related
- *  VERIFIED 2026-07-31.  L'UNICO DRAFT residuo è il flusso RequestSeed
- *  (r.~203-248).
+ *  VERIFIED 2026-07-31.
  *
  *  IMPORTANT — READ FIRST:
  *   * The seed↔key TRANSFORM core (seed_key_related) has been corrected to
@@ -16,16 +19,22 @@
  *     evidence block in seed_key_related).  For stock ECUs, use
  *     tools/mazda_security.py (ECOMcat) — it is bit-equivalent to the ROM
  *     at level 1 and reproduces all ROM-emulated reference vectors.
- *   * The surrounding UDS handler FLOW (dispatch, subfunctions, seed
- *     generation, state checks, tables) is mostly confirmed against the
- *     ROM: key_validate, position_check, seed_gen and the state checks
- *     are VERIFIED (see each block below).  The ONLY unconfirmed part is
- *     the RequestSeed sub-flow (r.~203-248), a structural mapping of the
- *     ROM not yet confirmed in detail.  Parts marked "DRAFT" below must
- *     not be trusted.
+ *   * The UDS handler FLOW is confirmed against the ROM: key_validate,
+ *     position_check, seed_gen, the state checks and the RequestSeed
+ *     sub-flow are VERIFIED (see each block below and
+ *     docs/notes/REQUEST_SEED_EVIDENCE.md).  Documented discrepancies
+ *     (logic untouched, comments only): r4 = msg_len (not a pointer),
+ *     ROM requires msg_len==1 for RequestSeed, the seed bytes are written
+ *     conditionally (state2==chk -> {0,0,0}), and the SendKey body
+ *     (0x58592-0x58610) is UNREACHABLE in this ROM build — the entry
+ *     dispatch routes only subfunc==1 into the handler; subfunc!=1 falls
+ *     to 0x5862C (subfunc==0 -> resp, else silent no-response).  See
+ *     "SendKey" note below; reconciliation open.
  *   * This file must NOT be used to answer real security-access requests
- *     on a stock ECU until that RequestSeed DRAFT flow is confirmed
- *     against the ROM (and, ideally, real captures).
+ *     on a stock ECU until the flow is validated against the ROM end-to-end
+ *     and, ideally, real captures (the RequestSeed flow is now ROM-CONFIRMED
+ *     2026-08-04, but real-ECU capture validation is still open; SendKey is
+ *     unreachable in 60E1D400 and needs reconciliation).
  *   * docs/notes/UDS_SECURITY_MAPPING.md tracks the security-access open
  *     items (subfunction→level mapping, seed_gen internals, key_validate
  *     middle byte); the stock-LFSR core itself was solved 2026-07-31 —
@@ -151,9 +160,15 @@ extern void     uds_positive_response(uint8_t sid, const uint8_t *data,
 /* ===================================================================
  *  1.  Main SecurityAccess handler  (ROM 0x584A0)
  *
- *  Called from udsHandler dispatch with:
- *    r4 = pointer to incoming UDS message buffer
+ *  Called from udsHandler dispatch (dispatcher 0x697E8-0x69840, CONFIRMED) with:
+ *    r4 = message length (16-bit payload length EXCLUDING the SID byte;
+ *         RequestSeed = 1, SendKey = 4)
  *    r5 = subfunction byte
+ *  [REQSEED-EVIDENCE 2026-08-04] The first parameter of the C signature models
+ *  this length — the ROM does NOT pass a buffer pointer.  Payload bytes are read
+ *  via the UDS stack helper 0x68BC0 (call @0x584C8, r6=1 -> subfunction byte into
+ *  [r15]; SendKey reads 3 key bytes @0x585C0 with r6=3).  The C reconstruction's
+ *  msg_len = (msg[0]<<8)|msg[1] is semantically equivalent.
  *
  *  The message buffer format (Ghidra UDS frame):
  *    offset 0:    length (2 bytes big-endian)
@@ -212,23 +227,41 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
     if (subfunc == SF_REQUEST_SEED) {
         /* ---- Subfunction 0x01: RequestSeed ---- */
 
-        /* DRAFT — the ONLY remaining unverified sub-flow in this file
-         * (see header STATUS; ~lines 203-248).  The old "absolute-value
-         * trick" (abs_sub) and the "level must be 1" guard were guesses;
-         * the outer subfunc check above already guarantees 0x01 here.
-         * The remaining flow is a structural mapping of ROM 0x584A0,
-         * not confirmed in detail. */
+        /* [REQSEED-EVIDENCE] CONFIRMED 2026-08-04 against ROM 60E1D400
+         * (see docs/notes/REQUEST_SEED_EVIDENCE.md).  Entry dispatch
+         * 0x584B6-0x584BE (cmp/eq #0x01; bt/s 0x584C2) routes ONLY
+         * subfunc==1 into this flow.  The old "absolute-value trick"
+         * (abs_sub @0x584FE-0x58516) is REAL but vestigial: abs(1)&1==1
+         * always resolves to RequestSeed, and there is NO "level must be
+         * 1" guard (the ==1 check at 0x5851A-0x5851E is on msg_len, see
+         * note below).  Documented discrepancies (logic untouched):
+         *   (a) ROM requires msg_len == 1 here (0x5851A-0x5851E ->
+         *       NRC 0x12 @0x58588); the C code only rejects msg_len == 0.
+         *   (b) the seed bytes are written CONDITIONALLY at 0x5854C-0x58566:
+         *       state2 == chk -> {0,0,0}; else -> seed_gen(chk) then
+         *       data_copy(r13).  The C data_copy() below is unconditional.
+         *   (c) the state reads above happen only in this branch in the
+         *       ROM; the C code runs them for every subfunction (benign). */
 
-        /* Level 1: set up response length + generate seed */
+        /* [REQSEED-EVIDENCE] The response frame [0x67, subfunc, 3 seed
+         * bytes] is built by the ROM resp builder 0x5864A (mov #103,r3
+         * = 0x67 @0x5864A; r6=3 copies) — the C code inlines it into
+         * resp_data[].
+         * seed_gen(3) == ROM 0x58522-0x58524 (jsr @0x5699A; delay-slot
+         * mov #0x03,r4).  NOTE: in the ROM this first generation is a
+         * side-effect finalization — when a seed is actually sent, the
+         * ROM re-generates with seed_gen(chk) @0x5855E (see below). */
         resp_data[0] = 0x67;           /* SID | 0x40 = 0x67 */
         resp_data[1] = subfunc;        /* echo subfunction */
 
-        /* Generate the 3-byte seed using LFSR level 3 */
+        /* Generate the 3-byte seed using LFSR level 3 (ROM 0x58522) */
         seed_gen(3);
 
         /* Validate the generated level via position_check.
-         * ROM 0x58530-0x58534: extu.b(r12); cmp/eq #0x03,r0; bt/s 0x5857E;
-         * the ==3 (not-found) sentinel -> NRC 0x31 @0x5857E (mov #0x31,r5). */
+         * [REQSEED-EVIDENCE] CONFIRMED: ROM 0x58526-0x5852A calls
+         * 0x56892 with r4 = subfunc byte; 0x58530-0x58534: extu.b(r12);
+         * cmp/eq #0x03,r0; bt/s 0x5857E; the ==3 (not-found) sentinel ->
+         * NRC 0x31 @0x5857E (mov #0x31,r5). */
         uint8_t chk = position_check(subfunc);
         if (chk == 3) {
             /* Level validation failed */
@@ -236,26 +269,46 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
             return;
         }
 
-        /* State/position cross-check — ROM 0x58538-0x58540 calls
-         * key_validate(b0,b1,b2) where
+        /* State/position cross-check — [REQSEED-EVIDENCE] CONFIRMED:
+         * ROM 0x58538-0x58540 calls key_validate(b0,b1,b2) where
          *   b0 = [r15+8] = state_check1()  = SECURITY_STATE_1 (disasm 0x58538
          *        mov.b @(0x08,r15),r0; state_check1 result stored @0x584D6)
          *   b1 = r10      = state_check2() = SECURITY_STATE_2 (mov r0,r10 @0x584DA)
          *   b2 = r12      = position_check() result (mov r12,r6 @0x5853A)
-         * and rejects with NRC 0x31 on a nonzero return.  The old C wiring
+         * and rejects with NRC 0x31 on a nonzero return (@0x58544-0x58548
+         * extu.b r0,r4; tst r4,r4; bf/s 0x58574).  The old C wiring
          * (state, subfunc, chk) is corrected to (state1, state, chk). */
         if (key_validate(state1, state, chk) != 0) {
             uds_error_response(SID_SECURITY_ACCESS, 0x31);
             return;
         }
 
-        /* Copy generated seed to response buffer */
+        /* [REQSEED-EVIDENCE] ROM 0x5854C-0x58566 does this CONDITIONALLY:
+         *   state2 == chk (cmp/eq r9,r10 @0x5854E) -> zero-fill the 3 seed
+         *   bytes (mov #0,r0; mov.b r0,@(0x02/0x01/0x00,r13) @0x58554-0x5855C);
+         *   else -> seed_gen(chk) (jsr @0x5699A @0x5855E, delay mov r12,r4)
+         *   then data_copy(r13) (jsr @0x56AC0 @0x58562, delay mov r13,r4).
+         * The C data_copy() below is unconditional and copies the level-3
+         * seed (discrepancy (b), documented above). */
         data_copy(&resp_data[2]);
 
+        /* ROM 0x58568-0x5856E: mov #0x03,r6; mov r13,r5; bsr 0x5864A with
+         * r4 = subfunc -> builds [0x67, subfunc, 3 bytes] and sends via
+         * 0x68B60 (len 5). */
         uds_positive_response(SID_SECURITY_ACCESS, resp_data, 5);
 
     } else if (subfunc == SF_SEND_KEY) {
         /* ---- Subfunction 0x04: SendKey ---- */
+
+        /* [REQSEED-EVIDENCE] FLAG 2026-08-04: in ROM 60E1D400 the SendKey
+         * body (0x58592-0x58610) is UNREACHABLE via normal dispatch: entry
+         * 0x584B6-0x584BE routes only subfunc==1 into the handler, and the
+         * ONLY branch to 0x58592 is the abs-trick even-branch bf/s @0x58516,
+         * which can never be taken (subfunc==1 is odd).  Subfunctions != 1
+         * fall to 0x5862C (tst r4,r4: subfunc==0 -> resp via 0x55386;
+         * subfunc!=0 -> NO response, silent).  The flow below was marked
+         * VERIFIED by earlier sessions; this finding needs reconciliation
+         * (see docs/notes/REQUEST_SEED_EVIDENCE.md, discrepancy (e)). */
 
         /* ROM 0x58592-0x58596: FIRST instruction of the SendKey path is
          * `mov r4,r0; cmp/eq #0x04,r0; bf/s 0x58610` — the message length
@@ -295,7 +348,11 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
         }
 
     } else {
-        /* Unsupported subfunction */
+        /* Unsupported subfunction
+         * [REQSEED-EVIDENCE] NOTE: the ROM 0x5862C path for subfunc!=0
+         * sends NO response at all (silent); for subfunc==0 it replies via
+         * 0x55386.  The NRC_ROR below models the ISO/expected behaviour and
+         * is unreachable in the C dispatch for the documented subfunctions. */
         uds_error_response(SID_SECURITY_ACCESS, NRC_ROR);
     }
 }

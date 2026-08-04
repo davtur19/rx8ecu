@@ -35,16 +35,17 @@ udsHandler (0x697E8)
             │    ├─ key_validate @ 0x56928       — pre-computes expected key, search table @ 0x5FAA2
             │    └─ data_copy @ 0x56AC0          — copies seed from RAM @ 0xFFFFD211
             │
-            ├─ subfunc 0x04 (SendKey)
-            │    ├─ data_copy @ 0x56AC0          — retrieve cached seed
-            │    ├─ seed_gen @ 0x5699A           — re-generate seed (same level)
-            │    ├─ seed_key_related @ 0x56ADA   — LFSR key validation (64 rounds)
-            │    │    ├─ byte_shift_core         — 8-byte shift with carry propagation
-            │    │    ├─ lfsr_state_update        — 3-byte LFSR XOR with taps
-            │    │    └─ nibble_swap_output       — final key byte permutation
-            │    └─ unlock @ 0x56720             — grant access on match
-            │
-            └─ subfunc unsupported → NRC 0x12 (RequestOutOfRange)
+             ├─ subfunc 0x04 (SendKey)  ⚠ UNREACHABLE in 60E1D400 (2026-08-04)
+             │    ├─ data_copy @ 0x56AC0          — retrieve cached seed
+             │    ├─ seed_gen @ 0x5699A           — re-generate seed (same level)
+             │    ├─ seed_key_related @ 0x56ADA   — LFSR key validation (64 rounds)
+             │    │    ├─ byte_shift_core         — 8-byte shift with carry propagation
+             │    │    ├─ lfsr_state_update        — 3-byte LFSR XOR with taps
+             │    │    └─ nibble_swap_output       — final key byte permutation
+             │    └─ unlock @ 0x56720             — grant access on match
+             │
+             └─ subfunc != 1 → 0x5862C: subfunc==0 → resp via 0x55386;
+                subfunc!=0 → NO response (silent)   [not NRC 0x12]
 ```
 
 ---
@@ -183,18 +184,37 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 ### Subfunction 0x01 — RequestSeed
 
-1. Read `SECURITY_STATE_1` (0xFFFFD20B) — if non-zero, security is already
-   unlocked → NRC 0x11 (GeneralReject)
-2. Validate message length > 0
-3. Validate subfunction ≠ 0
-4. Check `SECURITY_STATE_2` (0xFFFFD20C) == 1
-5. Generate 3-byte seed via `seed_gen(3)`
-6. Validate seed level via `position_check(subfunction)`
-7. Pre-compute expected key via `key_validate(level, seed, result)`
-8. Copy seed to response buffer via `data_copy`
-9. Send positive response: `[0x67, 0x01, seed0, seed1, seed2]`
+> CONFIRMED 2026-08-04 — see `docs/notes/REQUEST_SEED_EVIDENCE.md` for the
+> row-by-row ROM evidence.  Corrections to the previous (DRAFT) description:
+
+1. Read `SECURITY_STATE_1` (0xFFFFD20B, state_check1 @0x56866) and
+   `SECURITY_STATE_2` (0xFFFFD20C, state_check2 @0x568E6) — reads only, **no** NRC
+   gate (no NRC 0x11 anywhere in the handler; the previous "already unlocked →
+   0x11" claim was wrong)
+2. Validate message length: `msg_len == 0` → NRC 0x12; `msg_len != 1` → NRC 0x12
+   (length is the payload length excluding the SID byte; passed in r4, not a pointer)
+3. Validate subfunction ≠ 0 → NRC 0x31 (not 0x12)
+4. Dispatch: only `subfunc == 0x01` enters this flow (entry `0x584B6`-`0x584BE`);
+   the abs-trick at 0x584FE-0x58516 is present but vestigial for subfunc 0x01
+5. Generate 3-byte seed via `seed_gen(3)` (ROM 0x58522) — side-effect finalization
+6. Validate seed level via `position_check(subfunction)` (0x56892);
+   sentinel `chk == 3` → NRC 0x31
+7. Cross-check via `key_validate(state1, state2, chk)` (0x56928);
+   non-zero result → NRC 0x31
+8. Seed bytes written conditionally: `state2 == chk` → `{0,0,0}`; else
+   `seed_gen(chk)` + `data_copy` (0x56AC0) into the response seed slot
+9. Send positive response via resp builder 0x5864A: `[0x67, 0x01, seed0, seed1, seed2]`
 
 ### Subfunction 0x04 — SendKey
+
+> FLAG 2026-08-04: **unreachable in 60E1D400** — the entry dispatch routes only
+> `subfunc == 0x01` into the handler; the SendKey body at 0x58592-0x58610 is only
+> reachable via the abs-trick even-branch (`bf/s 0x58592` @0x58516), which can never
+> be taken.  Subfunctions != 1 fall to 0x5862C: `subfunc==0` → response via 0x55386,
+> `subfunc!=0` → no response (silent).  The flow below is kept for reference
+> (shared-codebase remnant) and needs reconciliation.  (Evidence: `docs/notes/
+> REQUEST_SEED_EVIDENCE.md`, discrepancy (e); whole-ROM branch scan shows exactly
+> one incoming reference to 0x58592.)
 
 1. Retrieve cached seed via `data_copy`
 2. Re-generate seed via `seed_gen(3)`
@@ -204,17 +224,21 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 ### Negative Response Codes (NRC)
 
-| NRC  | Meaning                        | Condition                        |
-|------|--------------------------------|----------------------------------|
-| 0x11 | GeneralReject                  | Security already unlocked        |
-| 0x12 | RequestOutOfRange              | Bad subfunction, zero length     |
-| 0x33 | SecurityAccessDenied           | Wrong diagnostic session         |
-| 0x35 | InvalidKey                     | Computed key ≠ user key          |
-| 0x36 | ExceededNumberOfAttempts       | Too many failed attempts (*)     |
-| 0x37 | RequiredTimeDelayNotExpired    | Anti-hammering timer active (*)  |
+NRCs actually emitted by the handler body 0x584A0-0x58648 (whole-body literal scan):
+**{0x12, 0x31, 0x22, 0x35}** — 0x11/0x33/0x36/0x37 are **not** emitted by this
+handler (0x11 was previously claimed for "already unlocked" — wrong; the state reads
+do not gate anything).
 
-(*) Not yet confirmed in this ROM; present in ISO 14229 specification and may
-exist in other ROM variants.
+| NRC  | Meaning                        | Condition                                   |
+|------|--------------------------------|---------------------------------------------|
+| 0x12 | RequestOutOfRange              | msg_len == 0 or msg_len != 1 (RequestSeed) / msg_len != 4 (SendKey body) |
+| 0x31 | RequestOutOfRange              | subfunc == 0, position_check sentinel (chk==3), key_validate != 0 |
+| 0x22 | ConditionsNotCorrect           | SendKey body: seed level == 3, level mismatch |
+| 0x35 | InvalidKey                     | SendKey body: computed key ≠ user key       |
+| 0x11 | GeneralReject                  | NOT used by this handler (ISO-14229 spec only) |
+| 0x33 | SecurityAccessDenied           | NOT used by this handler (ISO-14229 spec only) |
+| 0x36 | ExceededNumberOfAttempts       | NOT used by this handler (ISO-14229 spec only) |
+| 0x37 | RequiredTimeDelayNotExpired    | NOT used by this handler (ISO-14229 spec only) |
 
 ---
 
@@ -249,9 +273,10 @@ The SecurityAccess handler uses these RAM locations for state:
 | key_validate            | Verified   | 2026-08-04 — 10-entry table @0x5FAA2; commit `b483523` |
 | seed_key_related/lfsr   | Verified   | 2026-07-31 — 12/12 keys + 400 random seeds |
 | mazda_security.py       | Confirmed  | `tools/mazda_security.py` — bit-equivalent to ROM at level 1 |
-| C reconstruction        | Draft (1)  | Core VERIFIED; the ONLY remaining Draft is the **RequestSeed flow** in `c/security_access.c` (~lines 203-248) |
+| RequestSeed flow        | Confirmed  | 2026-08-04 — `docs/notes/REQUEST_SEED_EVIDENCE.md` (row-by-row; entry dispatch, msg_len==1, conditional seed path) |
+| C reconstruction        | Confirmed  | Core VERIFIED + RequestSeed CONFIRMED 2026-08-04; only open item: SendKey reachability (see below) |
 
-**Open questions (core RESOLVED; only RequestSeed flow open):**
+**Open questions (core RESOLVED; one open item):**
 1. ~~**UDS subfunction→level mapping**~~ **RESOLVED** — `seed_gen` is always
    called with a fixed level 3; the controlling level is the `position_check`
    table index derived from the RequestSeed payload byte (see
@@ -265,11 +290,11 @@ The SecurityAccess handler uses these RAM locations for state:
    calls `key_validate(state1, state, chk)` (see `c/security_access.c`
    ~lines 232-240; commits `8e259f8`, `b483523`).
 
-**Open item (the ONLY remaining DRAFT):** the **RequestSeed sub-flow** — the exact
-ordering of `seed_gen(3)` / `position_check` / `key_validate` / `data_copy` calls
-and argument order in the RequestSeed path of `security_access_handler`
-(`c/security_access.c` ~lines 203-248) is a structural mapping of ROM `0x584A0`
-**not yet confirmed in detail**.
+**Open item (the ONLY remaining):** **SendKey reachability in 60E1D400** — the
+SendKey body at 0x58592-0x58610 appears to be **dead code** (entry dispatch routes
+only `subfunc==1`; the only branch to 0x58592 is the unreachable abs-trick
+even-branch).  Needs reconciliation with the earlier "VERIFIED" SendKey work and
+with other ROM variants.  See `docs/notes/REQUEST_SEED_EVIDENCE.md` discrepancy (e).
 
 ---
 
