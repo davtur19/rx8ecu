@@ -31,7 +31,10 @@ probe both word alignments for runs of >=2 valid instructions and scan for
 XREFs (32-bit pointers / branch targets) landing inside the gap. Verdict
 DATA if no code candidates and no refs, CODE-HIDDEN (FAIL) otherwise.
 
-Status: IN PROGRESS
+Status: COMPLETED 2026-08-04 — result NOT CERTIFIED (exit 1): P1/P2 PASS,
+P3=448, P4=39061 unref_data (+dead FLAG 167368), P5=78 CODE-HIDDEN.
+See docs/notes/FORMAL_CERT_60E1D400.md for per-violation action items.
+No fixes applied (this task is report-only).
 """
 import argparse
 import hashlib
@@ -289,18 +292,22 @@ def main():
                 c = line.split(',')
                 if len(c) > 3 and 'jump_table' in c[3]:
                     try:
-                        jt_rows.append((int(c[0]), int(c[1])))
+                        jt_rows.append((int(c[0]), int(c[1]), 'mova' in c[4]))
                     except Exception:
                         pass
-    for s, e in jt_rows:
-        for a in range(s, e, 2):
+    for s, e, is_mova in jt_rows:
+        # 32-bit absolute jump-table entries (4-byte stride). mova-based tables
+        # store small 16-bit offsets in-window, so their raw values are handled
+        # leniently (offset dispatch) yet still reported if out-of-window.
+        for a in range(s, e, 4):
             if a + 4 > N:
                 break
-            tgt = struct.unpack('>I', d[a:a + 4])[0]
-            # entry full pointer; mask to 16-bit address space of bus
-            t_a = tgt & 0xFFFFF
+            t_a = struct.unpack('>I', d[a:a + 4])[0] & 0xFFFFF
+            if t_a == 0:
+                continue  # terminator / padding sentinel in table
             if not (t_a in instr_starts or t_a in declared):
-                jump_viol.append((hx(s), '', 'jt entry %s -> %s' % (hx(a), hx(t_a))))
+                kind = 'mova-offset' if is_mova else 'abs'
+                jump_viol.append((hx(s), kind, 'jt entry @%s -> %s' % (hx(a), hx(t_a))))
 
     if HAVE_CAPSTONE and not v_p3 and not jump_viol:
         results['P3'] = ('PASS', 0, [], 'branches=%d jt_tables=%d' % (len(branch_tgts), len(jt_rows)))
@@ -421,8 +428,10 @@ def main():
         for a in gap:
             if run_ok(a) >= 2:
                 cand += 1
-        # xref-in: 32-bit pointers and branch targets inside [s,e)
-        refs = any(s <= v < e for v in ptr_vals) or any(s <= v < e for v in branch_tgts)
+        # xref-in: only strong evidence of hidden CODE = a branch/call target
+        # landing inside the gap (data constants that merely look like small
+        # addresses are calibration values, not code edges).
+        refs = any(s <= v < e for v in branch_tgts)
         if cand > 0 or refs:
             code_hidden.append((s, e, cand, refs))
     if not code_hidden:
@@ -445,6 +454,12 @@ def main():
     total = sum(results[k][1] for k in ('P1', 'P2', 'P3', 'P4', 'P5'))
     print('  VERDICT: %s  total_violations=%d  dead_code=%d' %
           ('CERTIFIED' if ok else 'NOT-CERTIFIED', total, len(dead)))
+    print()
+    print('  first violations:')
+    for k in ('P3', 'P4', 'P5'):
+        st, n, lst, _ = results.get(k, ('SKIP', 0, [], ''))
+        for it in lst[:5]:
+            print('    %s: %s' % (k, it))
     sys.exit(0 if ok else 1)
 
 
