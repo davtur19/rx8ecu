@@ -197,6 +197,7 @@ reflash tool, and two forum threads:
 - URL: https://github.com/rnd-ash/rx8-reverse-engineering/wiki (pages: Home, "Instrument cluster", "RX8 CANBUS", "powertrain control module"; wiki repo `rnd-ash/rx8-reverse-engineering.wiki`)
 - Type: ISO-TP trace documentation of live KWP2000-over-CAN bench sessions (OpenVehicleDiag), 2006 S1 RX-8 (231 PS).
 - Content: ICM (0x720→0x728): `0x720 | 27 01` → `0x728 | 67 01 46 4E 7F` — **3-byte seed**; SecurityAccess **only in session 0x87** (0x81 = default); Mazda NRC quirk: `0x22` (ConditionsNotCorrect) used instead of `0x80` for service-not-supported-in-session. PCM diagnostic IDs confirmed: 0x7E0/0x7E8.
+- Cross-validated 2026-08-04 (CROSS_VALIDATION_SEEDKEY.md): seed `0x464E7F` → **expected key `0xFAFDD8`** — identical from our VERIFIED transform and the ConnorRigby community implementation (both agree on every seed). Adds an expected SendKey case for a future PCM capture: `27 01` → `67 01 46 4E 7F` → `27 02 FA FD D8` → `67 02`. (Observed on ICM 0x720/0x728; PCM 0x7E0/0x7E8 expected same transform — same ROM family.)
 - Reuse: seed reply = `[0x67, subfunc, 3 bytes]`, exactly as REQUEST_SEED_EVIDENCE predicts for the PCM (TC-1/TC-9 pass criteria). Session-0x87 gating matches 7.2 and the plan's run-mode-vs-programming-session caveat. ICM not PCM, but same platform diag stack.
 - Status: accessible (public wiki; cloned OK 2026-08-04).
 
