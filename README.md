@@ -68,7 +68,7 @@ with `make -C web/explorer serve`.
 - **Host test suites**: 193 Python per-function suites, 26 C suites,
   emulator cross-checks (5 functions × 100k random inputs), and SH-2E
   disassembler/emulator family regressions (38,008 + 83 checks).
-- **Master symbol catalog** — 56,952-row deduped catalog across all 9 ROMs (symbols/CATALOG_MASTER.csv): 6,439 named functions, real-function estimate ~50,676 after NOISE filtering (derived span<=4 rows), 5 LIFT_ONLY boundaries; status tables in symbols/CATALOG_STATUS.md, NAMES_STATUS.md, TABLES_STATUS.md.
+- **Master symbol catalog** — 56,952-row deduped catalog across all 9 ROMs (symbols/CATALOG_MASTER.csv): 6,439 named functions, real-function estimate ~50,676 after NOISE filtering (derived span<=4 rows), 5 LIFT_ONLY boundaries; status tables in symbols/CATALOG_STATUS.md, NAMES_STATUS.md, TABLES_STATUS.md. Plus 6,082 functions classified by category (symbols/FUNCTION_CATEGORIES.csv, hybrid name/cal-table/callgraph classifier) — consumed by the explorer dashboard.
 
 ## Quickstart
 
