@@ -276,9 +276,9 @@ class SH2:
             if nib == 0x0: self.wr(r[n], 1, r[m]); return          # mov.b Rm,@Rn
             if nib == 0x1: self.wr(r[n], 2, r[m]); return
             if nib == 0x2: self.wr(r[n], 4, r[m]); return
-            if nib == 0x4: r[n] = (r[n] - 1) & MASK; self.wr(r[n], 1, r[m]); return  # @-Rn
-            if nib == 0x5: r[n] = (r[n] - 2) & MASK; self.wr(r[n], 2, r[m]); return
-            if nib == 0x6: r[n] = (r[n] - 4) & MASK; self.wr(r[n], 4, r[m]); return
+            if nib == 0x4: v = r[m]; r[n] = (r[n] - 1) & MASK; self.wr(r[n], 1, v); return  # @-Rn
+            if nib == 0x5: v = r[m]; r[n] = (r[n] - 2) & MASK; self.wr(r[n], 2, v); return
+            if nib == 0x6: v = r[m]; r[n] = (r[n] - 4) & MASK; self.wr(r[n], 4, v); return
             if nib == 0x8: self.T = 1 if (r[n] & r[m]) == 0 else 0; return  # tst
             if nib == 0x9: r[n] &= r[m]; return                    # and
             if nib == 0xA: r[n] ^= r[m]; return                    # xor

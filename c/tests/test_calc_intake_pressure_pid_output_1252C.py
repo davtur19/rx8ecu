@@ -5,7 +5,7 @@ Test calc_intake_pressure_pid_output_1252C (0x1252C) via SH-2E emulator.
 Model (verified against disassembly):
   r1 = complement_shift_u32(target, 0.0, 1e-5)   # 1 if |target| > 1e-5
   r2 = complement_shift_u32(error,  0.0, 1e-5)   # 1 if |error|  > 1e-5
-  if (cl_active==1 && r1==0 && rpm>2000 && idle_flag==1):  corr = -5.0
+  if (cl_active==1 && r1==0 && rpm<2000 && idle_flag==1):  corr = -5.0
   elif (fuel_cut==0 && lambda>0 && (cal_en==0 || r2==0)):  corr = RAM[A9A8]
   else:                                                  corr = RAM[A640]
   RAM[A63C] = clamp(corr, RAM[A658], 65.0)

@@ -572,26 +572,74 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   bit-exact, 3000+ vectors, 0 mismatches; fr0_kept asserted per vector.
   Runs green under `tests/run_all_verify.py` too.
 
-## 0x4740 — sqrt fixed-point (label "q15 saturating mul" errato) (2026-08-03)
-- The disassembler label "q15 saturating mul" on 0x4740 is WRONG: 0x4740 is a
-  fixed-point square-root / normaliser helper, the middle stage of the
-  soft-float chain `frexp @0x48C8 -> 0x4740 -> ldexp @0x481C`, with sole
-  caller `checkFloatValidity @0x46CC`.
+## 0x4740 — fixed-point SQUARE ROOT (working name "div_4740" is a misnomer) (2026-08-03, refined 2026-08-04)
+- The disassembler label "q15 saturating mul" on 0x4740 is WRONG, and so is the
+  working name "div_4740" / "sh2_div_4740": 0x4740 is a fixed-point restoring
+  SQUARE ROOT, the middle stage of the soft-float chain
+  `frexp @0x48C8 -> sqrt @0x4740 -> ldexp @0x481C`, with sole caller
+  `checkFloatValidity @0x46CC`.
 - Stack convention (non-ABI, stack-passed, 2 x 32-bit result buffer):
   [r15+0]=out ptr, [r15+4]=a0, [r15+8]=a1; writes result[0]=low word and
   result[1]=high word via the ptr at [r15].
-- Semantics (verified instruction-for-instruction bit-exact against the
-  emulated ROM, 0 mismatches on ~70k vectors): 29-iteration restoring
-  square-root loop on a1 (pre-shift selected by bit0 of a0), 2-bit remainder
-  phase, sticky round-up (r1|=1 if remainder != 0). The closed-form sqrt()
-  matches only ~37% of vectors — the instruction-level semantics is the
-  correct reference, not the algebraic one.
+- CLOSED FORM (confirmed 2026-08-04, main path, 49932/49932 random inputs,
+  worst error 1 ulp = rounding mode):
+  `r1 = round(sqrt(a1 << (31 + (a0 & 1))))`, `r3 = (sext16(a0) >> 1) & 0xFFFF`.
+  The LSB of a0 selects a 1-bit pre-shift that normalizes the radicand.
+- Loop signature (verified instruction-for-instruction bit-exact against the
+  emulated ROM, 0 mismatches on 100k+ vectors incl. all early-exit edges):
+  29-iteration restoring loop with the trial divisor r0 growing one bit per
+  iteration (`rotcl r0` with T=1 -> r0=(r0<<1)|1, +1 on each successful
+  subtract), 2-bit-at-a-time radicand shift (shll/rotcl pairs on r2:r5),
+  root bits accumulated in r1 via rotcl, final restore phase + sticky
+  round-up (r1|=1 if remainder != 0).
+- BUG FIX (2026-08-04): an earlier Python model (`ref_helpers.py` outside the
+  repo) left the SH-2 T flag unset across loop iterations — the loop-top
+  `rotcl r0` @0x476C consumes the T set by `cmp/pl r6` @0x4788
+  (T=(r6>0)); with T stale, the model diverged from the ROM. Fixed at that
+  site; the corrected model matches the emulator on 200k+ div + 200k ldexp +
+  289 edge vectors, 0 mismatches.
 - Saturation paths: bit31(a0) set -> (0x00007FFF, 0xFFFFFFFF);
   sext16(a0)>=0x7FFF -> (0x00007FFF, a1!=0 ? 0xFFFFFFFF : 0x00000000);
   sext16(a0)<=-0x7FFF -> (0x80008001, 0x00000000); main path low word =
   (sext16(a0)>>1) & 0xFFFF.
 - Harness: `reconstructed/samples/tests/verify_q4740.py` (emulated ROM vs
-  bit-exact Python model, exit 0).
+  bit-exact Python model, exit 0) and Track-A `c/div_4740.c` +
+  `c/tests/test_div_4740.py` (C lift vs emulated ROM, 100156 inputs,
+  0 mismatches) — registered in `c/verified_addrs.txt`.
+
+## EMULATOR BUG FIX: `mov rX,@-rX` pre-decrement stores (2026-08-04)
+- The SH-2 `mov.b/w/l Rm,@-Rn` family in `tools/sh2emu.py` decremented Rn
+  BEFORE storing Rm, so when Rm == Rn (e.g. `mov.l r15,@-r15` @0x46DA) it
+  wrote the DECREMENTED register value instead of the ORIGINAL.  Real SH-2
+  hardware stores the pre-decrement source value: `mov.l r15,@-r15` pushes
+  the current frame pointer (0xFFFFDEE4), not SP-4.
+- Fixed by capturing `v = r[m]` before `r[n] -= n` (3 lines).  The bug
+  silently corrupted the stack-passed argument pointer into frexp @0x48C8
+  from checkFloatValidity @0x46CC: frexp's result pointer read 0xFFFFDEE0
+  instead of 0xFFFFDEE4, shifting the whole sqrt/ldexp pipeline one word and
+  making 0x46CC return NaN for every input.
+- After the fix the full soft-float chain computes sqrt(x):
+  checkFloatValidity(4.0)=2.0, (9.0)=3.0, (0.25)=0.5, (2.0)=1.4142135 —
+  confirming 0x46CC is a SQUARE ROOT (frexp 0x48C8 -> sqrt 0x4740 -> ldexp
+  0x481C) that also flags Inf/NaN inputs by writing a fault code (0x044D
+  NaN / 0x044C Inf) to byte 0xFFFF768C.
+- Regression: full suite 203/203 passed (1910s), `make test` green.
+
+## 0x481C — ldexp-style float reconstruction (2026-08-04)
+- Third stage of the `frexp 0x48C8 -> sqrt 0x4740 -> ldexp 0x481C` chain,
+  sole caller `checkFloatValidity @0x46CC` (call site 0x46EE).
+- Stack convention: [r15]=arg1 (exponent word), [r15+4]=arg2 (mantissa word);
+  returns float bits in r0 (also copied to fr0 by `mov.l r0,@-r15 ; rts ;
+  fmov.s @r15+,fr0` @0x488E).
+- Semantics (verified bit-exact vs emulated ROM, 100120 inputs incl. edge
+  cases, 0 mismatches): exp = sext16(arg1); if exp>=0x7FFF -> saturation
+  (arg2==0 ? (0xFF,0) : (0xFF,0x100)); else exp += 0x7F (bias 127 inline);
+  exp>=0xFF -> (0xFF,0); exp<=0 -> (0,0); else reconstruct
+  r0 = (arg2<<1)>>8 | (exp+0x7F)<<24 | bit31(arg2)<<31 via the shll/shlr/rotcr
+  chain at 0x4880.  The 0x483C-0x487E block is UNREACHABLE from 0x481C
+  (0x4836 bt 0x4880 and 0x4838 bra 0x489C jump over it) — separate entry.
+- Track-A: `c/ldexp_481C.c` + `c/tests/test_ldexp_481C.py` (C lift vs emulated
+  ROM, 100120 inputs, 0 mismatches) — registered in `c/verified_addrs.txt`.
 
 ## engineControlCalculateTiming @0x14584 — dispatch wrapper verified (2026-08-03)
 - Pure task-dispatch skeleton, 414 B, zero branches: 68 calls in fixed ROM

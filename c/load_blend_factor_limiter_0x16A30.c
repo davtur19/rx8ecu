@@ -20,7 +20,7 @@
  *      desc 0x69EC0: 2-D, 9x3, u8 cells, axis_x temp -40..100 (0x6ED48),
  *        axis_y -20..20 (0x6ED6C), values 0x6ED78, scale 0.01, offset 0.
  *      (both maps model coolant temp on x and the "blend" split on the second
- *       axis; cells 0x02..0x34, so blend lands in 0.02..0.52 degC units.)
+ *       axis; cells 0x02..0x22, so blend lands in 0.02..0.34 degC units.)
  *   2. Limiter step (0x16A56..0x16A72):
  *        if (blend < RAM[0xFFFFA8D8] + 20.0f)   -> RAM[0xFFFFA8D4] = blend
  *        RAM[0xFFFFA8D8] = RAM[0xFFFFA8D4]       (always, rts delay slot)

@@ -153,6 +153,15 @@ assembled SH bytes match the expected math over 30k+ random inputs each.
   copies on the valid path). Returns 0=intact, 1=corrupted. Verified vs emulated ROM, 25000+
   inputs (valid1/valid2/invalid checksum-pair modes, incl. scrub/no-scrub RAM side effect), 0
   mismatches. Test: `c/tests/test_mem_accessors.py`.
+- **output_spark2_0x8E20** (0x8E20, 60E1D400.bin; CSV/xmap "outputSpark2") — the TRAIL-spark
+  per-channel output driver, twin of `output_spark_0x8DE6` (lead, outputSpark1). Wraps the call in
+  getSR(16)/setSR, then GATES the whole write+arm on the channel enable byte ch[4]==2 (a trail event
+  only fires on a channel the lead side already armed): `*(f32*)ch = value`, ch[6]=0, and calls the
+  shared arming helper 0x91FE (ignitonSomethingCalc; the 60E0FC00 instance is 0x91C6). Differs from
+  the lead sibling: unconditional vs gated write, clears ch[6] (fired) instead of arming ch[5]/ch[4].
+  The dispatcher (0x10F84/0x10FF0, site 0x11050) computes the fr4 value from the split block
+  A9A0/A9A4/A9A8/A9AC. Verified vs emulated ROM: 500000 random inputs (5 seeds), 0 mismatches.
+  Test: `c/tests/test_output_spark2_0x8E20.py`.
 
 ## Next
 
