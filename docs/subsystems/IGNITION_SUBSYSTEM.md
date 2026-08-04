@@ -840,7 +840,7 @@ The dwell (coil charge time) is computed from:
 2. **Engine RPM** — higher RPM = shorter available time window
 3. **Coil energy target** — 30-50 mJ typical for Renesis coils
 
-### 6.2 `getIgnitionDwellTime` (0x9490)
+### 6.2 `getIgnitionDwellTime` (0x94C8)
 
 ```
 dwell_time = ThreeDLookup(table_dwell, rpm, battery_voltage)   // dwell desc 0x6C1C0, dati 0x7CB20 (NON 0x69F30, che è MinSplit)

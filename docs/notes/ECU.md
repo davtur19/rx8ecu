@@ -96,7 +96,7 @@ are proprietary — not visible via standard OBD2. See `docs/notes/CAN_PROTOCOL.
 ## Open Investigation Items
 
 1. **Boot initializer for `0xFFFFC37E`**: which function copies EEPROM → RAM at that offset? Not found.
-2. **LC_HookClampEntry caller**: confirmed = `FUN_0x8F62` (ETB control loop). Its zeroed output = throttle clamp.
+2. **`0x8F62` = `ignitionDwellOutputInit`** (verified: ignition-dwell chain; tail-calls `getIgnitionDwellTime`@0x94C8). Dwell PWM init.
 3. **0x7FFF4 second checksum**: algorithm unknown. Not verified at ECU runtime — low priority.
 4. **Live-ECU full function map**: CAN table located, most functions unnamed.
 5. **Modified stock functions outside cave**: `0x1038`, `0x109C`, `0x121F0`, `0x1237C` — semantic roles not fully confirmed.

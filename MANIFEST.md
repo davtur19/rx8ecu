@@ -1,20 +1,20 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **1312 entries, 70.4M.** Regenerated 2026-08-02 for the
+in the working repository. **1312 entries, 70.5M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 307.1K |
+| (root) | 11 | 306.9K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 31 | 9.1M |
 | c/ | 188 | 868.8K |
 | c/tests/ | 229 | 1.1M |
-| tools/ | 25 | 270.3K |
+| tools/ | 25 | 274.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 227 | 1.1M |
 | hardware/ | 1 | 2.0K |
@@ -23,7 +23,7 @@ in the working repository. **1312 entries, 70.4M.** Regenerated 2026-08-02 for t
 | .github/ | 5 | 18.6K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **1312** | 70.4M |
+| **Total** | **1312** | 70.5M |
 
 ## External dependencies
 
@@ -593,7 +593,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/run_tests_parallel.py` | `c63d357fc7283b6a4d7e95ca1401c5983b2132a065a792d4480f1155722dcb7d` | 5.1K | Parallel test runner (pytest, all suites) |
 | `tools/sh2emu.py` | `a2d8062620aa707d5c99480052625f0837271e0fa8dcf17fd796b9d79f4c5d3d` | 29.2K | RE tool (see tools/README.md) |
 | `tools/verify_all.sh` | `532ae54090d86461560542a95a19b9ed3f16654e84ccf0f0dc60531df0f5f53d` | 4.1K | RE tool script (see tools/README.md) |
-| `tools/verify_formal.py` | `49a7f6bd9a5037d220fe6db033946934a9629fc6ca9d43f542ad7b831c19685d` | 23.9K | Tracked file |
+| `tools/verify_formal.py` | `e324d57c209e98b7182872fa06b2d6eb2e2d2b674650e03fe0a7f0bf64a11a70` | 28.6K | Tracked file |
 | `tools/xmap_names.py` | `ee1bb9ec6bf9dc33695be8527fb4454a291732ae307a8d1ec696b0f77ce358a2` | 5.6K | RE tool (see tools/README.md) |
 
 ## tools/tests
@@ -811,8 +811,8 @@ or the toolchain install (git-ignored; re-create with
 | `docs/notes/DUMP_ALL.md` | `a874d526cfb00e97c9a8817c1d4496795097d70c9571c36ba47a381fafcf8c6d` | 7.1K | Project knowledge / session notes |
 | `docs/notes/ECU.md` | `b43b74e9b7d5f93d1903fc9b036337301001135c43c8b6113e92b894ec30a66a` | 4.5K | Project knowledge / session notes |
 | `docs/notes/ECU_CAPTURE_PLAN.md` | `a1ea0c1347a7adca0b67728d95400be8bc5678fee586ae81937eb58a4cd8a714` | 21.1K | Project knowledge / session notes |
-| `docs/notes/FINDINGS.md` | `e8f839b58c9584266ad91b039aa0e72ded1f207c2e3e3852c7a6128a32654f4a` | 50.2K | Project knowledge / session notes |
-| `docs/notes/FORMAL_CERT_60E1D400.md` | `e02e3c199de479191e8fd317e8bb3316619f96f63ea839c2d9edcb8cd96e25fd` | 9.7K | Project knowledge / session notes |
+| `docs/notes/FINDINGS.md` | `d8648b13fe5aa1ee57865785ea55615a9abb66ac79c3fcf23a5f1570d6437624` | 49.6K | Project knowledge / session notes |
+| `docs/notes/FORMAL_CERT_60E1D400.md` | `dd774d105242b6e34e4efac92edf6f2dce641b44fd532926c4538c506acc7363` | 13.4K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
 | `docs/notes/KNOWLEDGE.md` | `f2b8a781d963895313d733f2514fd5576764702bb05050b54970e8e803a05d40` | 3.7K | Project knowledge / session notes |
 | `docs/notes/LAUNCH_CONTROL_CHECKSUM_GUARD.md` | `0bb6b8ff997ceba2483a322ee25ce08344205bee7086146332377f8a1b6de5c8` | 7.4K | Project knowledge / session notes |
@@ -827,7 +827,7 @@ or the toolchain install (git-ignored; re-create with
 | `docs/subsystems/FAULT_DIAGNOSTICS_SUBSYSTEM.md` | `7dc827aa131d5636eb9d86e213546de52fb3f5b25c1395e6f474ee644682001f` | 52.1K | Subsystem / overview documentation |
 | `docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md` | `4b07ddfd6d3c516259c420a3cc2e562dcbfbd8099ad20c0a0ac5e5b4ad271ce4` | 50.1K | Subsystem / overview documentation |
 | `docs/subsystems/IDA_NAMES.md` | `5a642eff09cb561624a67f9f8ab2fb6a638a033b2821bb0c8319e6fe1de06124` | 3.2K | Subsystem / overview documentation |
-| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `db6f26fc96c0caef6c9612a91465d4c086eeccaab3ad9ac58824d6dcdceca5fe` | 47.0K | Subsystem / overview documentation |
+| `docs/subsystems/IGNITION_SUBSYSTEM.md` | `7f9632a9bf9850a4a2e523382c26bfce93cf9a79ae0eb1ef627fd7d89d369324` | 47.2K | Subsystem / overview documentation |
 | `docs/subsystems/MAPS.md` | `a09c155ca8c1356027b28f1a20b0db74d2e54686c9bd50a0d7642afecfda09ea` | 37.6K | Subsystem / overview documentation |
 | `docs/subsystems/O2_LAMBDA_SUBSYSTEM.md` | `6c6aaa644ed4781226fb63adad90b7ce20853bcf7834d7b7c6471a8ad3fa03b1` | 31.5K | Subsystem / overview documentation |
 | `docs/subsystems/OBD_SUBSYSTEM.md` | `61fda3060e2485c84b8a8a9ba09646a5b2c039b36a4438ae4621f8532dd8137a` | 17.1K | Subsystem / overview documentation |
@@ -883,7 +883,7 @@ or the toolchain install (git-ignored; re-create with
 | `analysis/coverage/uncovered_60E32000_N3M5E.csv` | `8484e53b04b4770fe9620f74adcbabd3ac736e0908dd07d2979f4d2720ef143b` | 436.2K | Coverage analysis of annotated sources (per-ROM gap lists) |
 | `analysis/coverage/uncovered_60E32000_N3M5E.txt` | `2150432813810a004616a94090e01e0eb5b304c51693533076669cec0ff63471` | 372.5K | Coverage analysis of annotated sources (per-ROM gap lists) |
 | `analysis/cruise/REPORT.md` | `cd71a6aceb6d2bb66a971f748bc19e5d0ccb38cf7c66c1ba10697c3d90d62b37` | 13.4K | Analysis report (function identification) |
-| `analysis/data_regions_60E1D400.csv` | `a7bd907e6bfa13b8b185728feb00686600e3807725f0a82b844721d982dbf6f9` | 82.8K | Code-window data-region classification |
+| `analysis/data_regions_60E1D400.csv` | `1fdc2a3960369000ffe91991a420688cd8c7927fa1a77cc3b57678fbb9442a55` | 107.6K | Code-window data-region classification |
 | `analysis/data_regions_60E1D400.md` | `9971865b26123e014c1f0f25e59321d68357a792becdc531024dfe1b16aa2a33` | 5.5K | Code-window data-region classification |
 | `analysis/romdiff/README.md` | `cb65695a9aed7b86ba8b680478801b81a17c4a409ecf9a62a5049d979b237f61` | 1.7K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
 | `analysis/romdiff/REPORT.md` | `5fe312e770db8ea5fea26466987ee25b1c9058819b3c7ecd91665f2152c5d6bc` | 10.6K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |

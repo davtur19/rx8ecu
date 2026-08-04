@@ -47758,8 +47758,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1D400,0x011e94,0x011EE2,engineControlTASK,ghidra-hand-xmap,,,,ida-ai,RTOS
 60E1D400,0x011eea,0x011F1A,calc_fuel_pump_pwm_output,ida-ai,,,,ida-ai,Fuel & Lambda
 60E1D400,0x0121cc,0x0121DA,check_vtc_lock_state,ida-ai,,,,ida-ai,Other / Unclassified
-60E1D400,0x0121f0,0x012304,calc_combustion_efficiency_metric,ida-ai,,,,ida-ai,Other / Unclassified
-60E1D400,0x01237c,0x012490,calc_combustion_load_factor,ida-ai,,calc_spark_advance,YES,ida-ai,Other / Unclassified
+60E1D400,0x0121f0,0x012304,calc_spark_advance,ida-ai,,,,ida-ai,Other / Unclassified
+60E1D400,0x01237c,0x012490,calc_spark_advance,ida-ai,,calc_spark_advance,YES,ida-ai,Other / Unclassified
 60E1D400,0x012508,0x01251A,read_intake_pressure_target_const_12508,ida-ai,,,,ida-ai,Sensors
 60E1D400,0x01251a,0x01252C,read_intake_pressure_target_alt_1251A,ida-ai,,,,ida-ai,Sensors
 60E1D400,0x01252c,0x0125DA,calc_intake_pressure_pid_output_1252C,ida-ai,,calc_intake_pressure_pid_output,YES,ida-ai,Sensors
@@ -49242,7 +49242,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1D400,0x0506e6,0x05071C,inj_timing_offset_0x506E6,ida-ai,,,,ida-ai,Fuel & Lambda
 60E1D400,0x05071c,0x05075C,dwell_time_calc_0x5071C,ida-ai,,,,ida-ai,Ignition & Knock
 60E1D400,0x0508d8,0x0509EA,coil_control_0x508D8,ida-ai,,,,ida-ai,Oil Metering
-60E1D400,0x050a54,0x050AEC,spark_plug_monitor_0x50A54,ida-ai,,coil_correction_write,YES,ida-ai,Ignition & Knock
+60E1D400,0x050a54,0x050AEC,coil_correction_write_0x50A54,ida-ai,,coil_correction_write,YES,ida-ai,Ignition & Knock
 60E1D400,0x050aec,0x050C8C,diag_enable_check_0x50AEC,ida-ai,,,,ida-ai,Faults & DTC
 60E1D400,0x050c8c,0x050D44,fault_code_logger_0x50C8C,ida-ai,,,,ida-ai,Faults & DTC
 60E1D400,0x050d44,0x050EF8,obd_monitor_status_0x50D44,ida-ai,,,,ida-ai,OBD / UDS
@@ -49498,7 +49498,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1D400,0x058ba4,0x058BCC,trochoid_surface_0x58BA4,ida-ai,,,,ida-ai,Other / Unclassified
 60E1D400,0x058be8,0x058C1E,exhaust_port_0x58BE8,ida-ai,,,,ida-ai,Other / Unclassified
 60E1D400,0x058c38,0x058C4A,intake_port_0x58C38,ida-ai,,,YES,ida-ai,Sensors
-60E1D400,0x058c4a,0x058C92,spark_plug_lead_0x58C4A,ida-ai,,dual_cellbank_selector,YES,ida-ai,Ignition & Knock
+60E1D400,0x058c4a,0x058C92,dual_cellbank_selector_0x58C4A,ida-ai,,dual_cellbank_selector,YES,ida-ai,Ignition & Knock
 60E1D400,0x058c92,0x058C98,output_shaft_0x58C92,ida-ai,,,,ida-ai,Other / Unclassified
 60E1D400,0x058c98,0x058C9E,eccentric_shaft_0x58C98,ida-ai,,,YES,ida-ai,Other / Unclassified
 60E1D400,0x058c9e,0x058CEE,oil_circulation_0x58C9E,ida-ai,,,YES,ida-ai,Oil Metering

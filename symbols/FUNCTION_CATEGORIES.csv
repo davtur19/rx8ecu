@@ -1149,14 +1149,14 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x12192,getInitalLeadingTrailingAdvance?,Ignition & Knock,1.000,name
 60E0FC00,0x121A4,calculateDSCLeadingTimingDerate?,Ignition & Knock,1.000,name
 60E1D400,0x121CC,diag_check_121cc,Other / Unclassified,0.000,none
-60E1D400,0x121F0,calc_combustion_efficiency_metric,Other / Unclassified,0.000,none
+60E1D400,0x121F0,calc_spark_advance,Other / Unclassified,0.000,none
 60E0FC00,0x12236,modifyTiming,Ignition & Knock,1.000,name
 60E0FC00,0x12294,calculateDSCTrailingTimingDerate?,Ignition & Knock,1.000,name
 60E0FC00,0x12326,modifyTrailingTiming,Ignition & Knock,1.000,name
 60E0FC00,0x12342,calculateLeadingTimingDerateCompensated,Ignition & Knock,1.000,name
 60E0FC00,0x12352,calculateTrailingTimingDerateCompensated,Ignition & Knock,1.000,name
 60E0FC00,0x12362,calculateLeadingTimingBaseFinal,Ignition & Knock,1.000,name
-60E1D400,0x1237C,calc_combustion_load_factor,Other / Unclassified,0.000,none
+60E1D400,0x1237C,calc_spark_advance,Other / Unclassified,0.000,none
 60E0FC00,0x12456,calculateTrailingTimingBaseFinal,Ignition & Knock,1.000,name
 60E1D400,0x12508,read_intake_pressure_target_const_12508,Sensors,1.000,name
 60E1D400,0x1251A,read_intake_pressure_target_alt_1251A,Sensors,1.000,name
@@ -4242,7 +4242,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x50864,FUN_00050864,Faults & DTC,1.000,graph
 60E0FC00,0x508C0,FUN_000508c0,Math / FPU,0.850,cal
 60E1D400,0x508D8,coil_control_0x508D8,Oil Metering,1.000,name
-60E1D400,0x50A54,spark_plug_monitor_0x50A54,Ignition & Knock,1.000,name
+60E1D400,0x50A54,coil_correction_write_0x50A54,Ignition & Knock,1.000,name
 60E1D400,0x50AEC,diag_enable_check_0x50AEC,Faults & DTC,1.000,name
 60E0FC00,0x50B56,FUN_00050b56,Faults & DTC,1.000,graph
 60E0FC00,0x50BB0,FUN_00050bb0,Faults & DTC,1.000,graph
@@ -5026,7 +5026,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x58BAC,FUN_00058bac,Memory & CRC,1.000,graph
 60E1D400,0x58BE8,exhaust_port_0x58BE8,Other / Unclassified,0.000,none
 60E1D400,0x58C38,intake_port_0x58C38,Sensors,1.000,name
-60E1D400,0x58C4A,spark_plug_lead_0x58C4A,Ignition & Knock,1.000,name
+60E1D400,0x58C4A,dual_cellbank_selector_0x58C4A,Ignition & Knock,1.000,name
 60E1D400,0x58C92,output_shaft_0x58C92,Other / Unclassified,0.000,none
 60E1D400,0x58C98,eccentric_shaft_0x58C98,Other / Unclassified,0.000,none
 60E1D400,0x58C9E,oil_circulation_0x58C9E,Oil Metering,1.000,name
