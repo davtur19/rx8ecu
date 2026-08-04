@@ -1,6 +1,6 @@
 # ECU Capture Plan — UDS 0x27 handler (60E1D400 baseline)
 
-Status: **PLAN (not executed)** · date 2026-08-04
+Status: **PLAN (not executed)** · date 2026-08-04 · external captures reviewed: 6 references found (see §7)
 
 References:
 - `docs/notes/REQUEST_SEED_EVIDENCE.md` — RequestSeed row-by-row ROM evidence (CONFIRMED 2026-08-04)
@@ -183,6 +183,71 @@ The capture is "validated" when **all** of:
 - **Session/security state**: 0x27 security state (SECURITY_STATE_2 @ `0xFFFFD20C`)
   can be mutated by a RequestSeed (discr b). Run TC-9 (repeats) last, or repower
   between classes, so an early RequestSeed cannot bias later silent-case results.
+
+## 7. Existing external captures / references
+
+Reviewed 2026-08-04 (web access confirmed: curl + GitHub REST API + indexed web search;
+DuckDuckGo HTML was bot-gated, `api.github.com/search/code` needs auth → not used).
+**No public raw CAN capture files (.asc/.blf/.csv/candump .log) of PCM 0x27 exchanges were
+found.** What exists and is verifiable — one live 0x27 trace (ICM, same diag stack), one
+working seed-key ROM-dump implementation, public byte-identical stock ROMs, a binary
+reflash tool, and two forum threads:
+
+### 7.1 Live 0x27 exchange (bench RX-8 ICM) — rnd-ash wiki
+- URL: https://github.com/rnd-ash/rx8-reverse-engineering/wiki (pages: Home, "Instrument cluster", "RX8 CANBUS", "powertrain control module"; wiki repo `rnd-ash/rx8-reverse-engineering.wiki`)
+- Type: ISO-TP trace documentation of live KWP2000-over-CAN bench sessions (OpenVehicleDiag), 2006 S1 RX-8 (231 PS).
+- Content: ICM (0x720→0x728): `0x720 | 27 01` → `0x728 | 67 01 46 4E 7F` — **3-byte seed**; SecurityAccess **only in session 0x87** (0x81 = default); Mazda NRC quirk: `0x22` (ConditionsNotCorrect) used instead of `0x80` for service-not-supported-in-session. PCM diagnostic IDs confirmed: 0x7E0/0x7E8.
+- Reuse: seed reply = `[0x67, subfunc, 3 bytes]`, exactly as REQUEST_SEED_EVIDENCE predicts for the PCM (TC-1/TC-9 pass criteria). Session-0x87 gating matches 7.2 and the plan's run-mode-vs-programming-session caveat. ICM not PCM, but same platform diag stack.
+- Status: accessible (public wiki; cloned OK 2026-08-04).
+
+### 7.2 Working seed-key ROM-dump implementation — ConnorRigby/rx8-ecu-dump
+- URL: https://github.com/ConnorRigby/rx8-ecu-dump (`src/UDS.*`, `src/librx8.cpp/.h`, `src/main.cpp`)
+- Type: C++ J2534 (Tactrix) tool implementing the full RX-8 PCM diagnostic flow; 500 kbit CAN.
+- Content: sessions `10 81`/`10 85`; SecurityAccess `27 01` → seed (`SEED_LENGTH=3`, asserts `length == SEED_LENGTH+1`); key = 24-bit LFSR, secret `MAZDA_KEY_SECRET {0x4d,0x61,0x7a,0x64,0x41}` ("MazdA"), state `0xc541a9`; SendKey `27 02 <k0 k1 k2>` expects positive `67 02`; then `0x34` RequestDownload / `0x36` TransferData; bootloader-mode entry for flash writes. NRC map (UDS.cpp): `0x22` cond-not-correct, `0x35` invalid-key, `0x36` exceeded-attempts.
+- Reuse: cross-validates (i) the 3-byte seed in `67 01`, (ii) NRC semantics of the plan's ROM-only literals {0x12, 0x31, 0x22, 0x35}, (iii) the working SendKey subfunc is **0x02, not 0x04** — consistent with the verdict that subfunc 0x04 → silence in the run-mode handler. Caveat: the tool's working path runs in a diag/programming session (0x81/0x85 + bootloader), i.e. **outside** the normal run-mode handler this plan targets — a useful boundary confirmation, and a reason to keep TC-5..8/10 run-mode-only.
+- Status: accessible (source). No license file — reference only, do not copy code into this repo.
+
+### 7.3 Public stock ROM dumps (incl. byte-identical baseline) — equinox311/Mazda_RX8_PCM_ReverseEngineering
+- URL: https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering
+- Type: GitHub repo: `Stock_ROMs/` (9 ROMs incl. `60E1D400.bin`), `Data_binaries/` (`60E0FC00.bin`, `RX8_93c56_ECU_IC420_Read.bin`, `ram_capture.bin`, `se3p_ecm_eeprom.bin`), `Ghidra_Archives/` (.gar).
+- Verified 2026-08-04: external `Stock_ROMs/60E1D400.bin` is **byte-identical** to our baseline — md5 `5e4236d29b7c05820240fa076dffdd40`, 524288 B. `ram_capture.bin` is a live RAM capture (the "output" of a security-access session).
+- Reuse: our baseline ROM is publicly shared and untouched; `ram_capture.bin` / EEPROM dumps can be diffed against a future live capture for validation.
+- Status: accessible; no license stated.
+
+### 7.4 Community reflash tool (binary) — Rx8Man
+- URL: https://github.com/Rx8Man/Rx8Man/releases (v1.21 2026-05-28; v1.20, 1.05, 1.04)
+- Type: closed-source Windows read/reflash tool via Tactrix J2534.
+- Content: per 7.5, carries the default "MazdA" security key + mazdaEdit key; reads/writes engine ROM over CAN. No source, no published logs.
+- Reuse: independent confirmation that stock RX-8 flash read/write goes through SecurityAccess 0x27 with a pre-shared key; could act as a cross-tool comparison for our TC NRC/silence observations, but its wire flow is not inspectable.
+- Status: releases downloadable.
+
+### 7.5 rx8club — Open Source S1 RX-8 ECU RE, Data Logging & Tuning (guide thread)
+- URL: https://www.rx8club.com/series-i-engine-tuning-forum-63/open-source-s1-rx-8-ecu-reverse-engineering-data-logging-tuning-users-guide-276137/ (2025-01-12)
+- Type: forum guide; Cloudflare-gated — content verified via indexed snippets (not direct fetch).
+- Content: ROM read/write via Tactrix + RX8Man; supported ROMs list incl. **60E1D400 — N3J1EM 6 Port MT**; BOOT mode via Renesas FDT; RomRaider CAN logger setup (`.csv` logs); security-key discussion (default "MazdA" key; mazdaEdit/VersaTuner keys absent from RX8Man); ELM327/OBDLink are not true J2534.
+- Reuse: corroborates the bench + Tactrix route, the 60E1D400 target, and the security-key model for the flow our plan validates; no raw 0x27 frames in the indexed content.
+- Status: readable via search engine.
+
+### 7.6 rx8club — ECU Technical exploration (thread)
+- URL: https://www.rx8club.com/new-member-forum-197/ecu-technical-exploration-272570/ (2021-03)
+- Type: forum thread; Cloudflare-gated — verified via indexed snippets.
+- Content: OBD-II/CAN/UDS primer with raw CAN frames on 0x7E0/0x7E8 (VIN request `7E0#02 09 02 …`); bench-ECU ROM dump via the Renesas AUD interface; FDT SCI header (CN400); explicitly notes the "authentication process for gaining access to the ECU and perform a dump"; OBD-II pins 6/14.
+- Reuse: confirms the bench-dump routes and 0x7E0/0x7E8 convention; its dump route is AUD/FDT (not UDS), so no 0x27 frames there either.
+- Status: readable via search engine.
+
+### 7.7 Supplementary tooling / defs / negative results
+- `stratomancer/rx8-s1-canbus` (2026-04) — Python KWP2000/ISO-TP monitor for RX-8 S1 on 0x7E0/0x7E8 (Vgate vLinker FS); PID tables; no 0x27 handling.
+- `equinox311/RX8Defs` (RomRaider `rx8_defs.xml`, `logger_rx8_defs.xml`; logger emits `.csv`) and `Rx8Man/RX8Defs` (ECUFlash XML) — table/logger definitions only.
+- `equinox311/RX8_vehicle_CAN_Logs` — **empty placeholder** (created 2022-05-14, zero files): community intent to share vehicle CAN logs exists, nothing uploaded — a gap our capture run could fill.
+- Signal-level CAN databases (not diagnostic): `majbthrd/MazdaCANbus` `rx8.kcd`, `topolittle/RX8-CAN-BUS`, `Antipixel/RX8-Dash`, Racelogic "Mazda RX-8 2003-2012" vehicle CAN DB (OBD-II pins 6/14).
+- Commercial ECU-file shops (ECULinks, c4ip.ru, e85.eu, chiptuning-files-service.com) list 60E0FC00 / 60E1D400 (Denso EGI 279700-3303, SH7055) — paid/torrent access, no captures.
+
+### 7.8 How to reuse these for validation
+- **NRC semantics**: 7.2's NRC map (0x22 cond-not-correct, 0x35 invalid-key, 0x36 exceeded-attempts) pins down what our ROM-only literals {0x12, 0x31, 0x22, 0x35} mean on the wire; per §5, any 0x02/0x04 reply carrying 0x22/0x35 would disprove the dead-code verdict — same FAIL signal as the plan.
+- **Seed format**: 7.1 and 7.2 both confirm `67 01` + exactly 3 bytes → TC-1/TC-9 pass criteria align.
+- **Session gating**: 7.1 (ICM) and 7.2 (PCM) both require session 0x87 (extended) for SecurityAccess; our TC set is run-mode-only, so expected "silence" (TC-5..8/10) is consistent only if the ECU stays in run mode — if a session change to 0x87 happens, behavior may differ (extra validation opportunity, **[TBD]**).
+
+Search log (2026-08-04): DuckDuckGo HTML (partial, bot-gated), GitHub repo-search API, indexed web search — query classes: "RX-8 ECU 0x27 seed key capture/log", "Mazda RX-8 diagnostic CAN log UDS/KWP2000 seed key", "rx8ecu", "RX-8 PCM seed key reverse engineering / Renesis", Mazda "security access" 0x27 CAN log 7E0/7E8, "60E1D400"/"60E0FC00", GitHub repo search `rx8`, `rx8 can`, `rx8 capture`. GitHub code search skipped (requires auth token not exposed here).
 
 ## References
 
