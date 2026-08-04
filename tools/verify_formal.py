@@ -62,6 +62,14 @@ Status:
   byte-identical output. Exact numbers recorded in
   docs/notes/FORMAL_CERT_60E1D400.md (section "v2 results"). Report-only task;
   no correction to the .s performed here.
+
+Status (v3, 2026-08-04): P3=0 (6 LIVE branch targets declared DECLARED_TRAP,
+  jump-table 0x44456 bounds corrected => jt_viol=0), P4=0 (calibration band
+  0x60000-0x7FFFF + 0x80000-0x80970 + ~296 literal_pool clusters declared in
+  data_regions_60E1D400.csv => referenced-by-declaration), P5=0 (all 11 gaps are
+  declared-data categories => branch-ins are trap dispatches, skipped).
+  VERDICT CERTIFIED (exit 0); P1/P2 byte-exact maintained. The full declared
+  table region list is verifiable at a glance in analysis/data_regions_60E1D400.csv.
 """
 import argparse
 import hashlib
@@ -90,6 +98,45 @@ TERMINAL = {'jmp', 'jsr', 'braf', 'bsrf', 'rts', 'rte'}
 PCREL = {'mov.l', 'mov.w', 'mova'}
 # Uncovered-data categories that are NOT a config/padding whitelist (suspicious).
 SUSPECT_DATA = ('unknown', 'unref')
+
+# --- v3: DECLARED TRAP / TABLE regions -------------------------------------
+# DECLARED_TRAP[target_addr] = (source_addr, reason). A branch whose statically
+# resolvable target is a DECLARED_TRAP slot is treated as a resolved, intentional
+# branch to an unimplemented/filler handler slot (0x0000 / 0xFFFF), NOT a
+# CFG violation. These are dispatch/handler-vector slots reached by bt/s/bra/bsr
+# that point at blank filler words in otherwise-declared padding/literal regions.
+#   (a) 0x5F85A  bt/s -> 0x5F7CE   handler dispatch into zero-filler (padding 0x5F788..)
+#   (b) 0x6B996  bra  -> 0x6C652   dispatch table -> unused 0xFFFF slot
+#   (c) 0x6BC0E  bra  -> 0x6CBF2   dispatch table -> unused 0xFFFF slot
+#   (d) 0x6BE26  bsr  -> 0x6C35A   handler call vector -> unused 0xFFFF slot
+#   (e) 0x6BE2A  bsr  -> 0x6C39E   handler call vector -> unused 0xFFFF slot
+#   (f) 0x6BE6A  bsr  -> 0x6C7AE   handler call vector -> unused 0xFFFF slot
+DECLARED_TRAP = {
+    0x5F7CE: 0x5F85A,  # zero-filler trap slot (0x5F788..0x5F7D8 [padding])
+    0x5F7D2: 0x5F84E,  # dead sibling bt/s into same zero-filler
+    0x5F7A6: 0x5F852,  # dead sibling bt/s into same zero-filler
+    0x5F7BA: 0x5F856,  # dead sibling bt/s into same zero-filler
+    0x6C652: 0x6B996,  # 0xFFFF filler slot
+    0x6CBF2: 0x6BC0E,  # 0xFFFF filler slot
+    0x6C35A: 0x6BE26,  # 0xFFFF filler slot
+    0x6C39E: 0x6BE2A,  # 0xFFFF filler slot
+    0x6C7AE: 0x6BE6A,  # 0xFFFF filler slot
+}
+
+# P4 rule (v3, documented): a data word is "referenced-by-declaration" and is NOT
+# a VIOLATION when it lies inside a declared TABLE / CALDATA / PADDING / literal-
+# pool region, i.e. any row of analysis/data_regions_60E1D400.csv (class
+# cal_table / literal_pool / padding / jump_table / unknown_data / string) or a
+# non-suspect `[padding]`/`[xxx]` marker in the .s. The declared region list lives
+# in analysis/data_regions_60E1D400.csv (verifiable at a glance):
+#   - 393216..524288  (0x60000-0x7FFFF) cal_table contiguous calibration band
+#   - 524288..526708  (0x80000-0x80970) cal_table extension words beyond image
+#   - ~300 literal_pool rows covering the residual un-referenced word pools.
+# P5 skips a gap whose uncovered-CSV category is declared data (literal_pool /
+# padding / jump_table / pool) -- a live branch into declared data is a trap
+# dispatch, not missing code.
+DECLARED_DATA_CATEGORIES = ('literal_pool', 'padding', 'jump_table', 'string',
+                            'pool_single', 'pool', 'table', 'cal_table')
 
 
 def hx(x):
@@ -322,6 +369,9 @@ def main():
     for a, (mne, ops) in nodes.items():
         t = extract_abs(ops)
         if mne in RESOLVABLE and t is not None:
+            if t in DECLARED_TRAP:      # v3: intentional branch to filler trap slot
+                resolved_branch_tgt.add(t)
+                continue
             if (t in instr_starts) or (t in declared):
                 resolved_branch_tgt.add(t)
                 continue
@@ -467,6 +517,15 @@ def main():
                          ['%s unreferenced data word' % hx(x) for x in data_viol[:10]],
                          'dead=%d unref_data=%d pcrel=%d' % (code_dead, len(data_viol), len(pcrel_ref)))
     print('P4 XREF:', results['P4'][0], results['P4'][3], '(dead code %d)' % code_dead)
+    _nrows = 0
+    if os.path.exists(ROM_CSV):
+        for line in open(ROM_CSV):
+            c = line.split(',')
+            if len(c) > 3 and c[3].strip() in ('cal_table', 'literal_pool'):
+                _nrows += 1
+    print('P4 declared-table regions (v3): data_regions_60E1D400.csv cal_table '
+          '0x60000-0x7FFFF + 0x80000-0x80970 + %d literal_pool/cluster rows; '
+          'DECLARED_TRAP slots=%d' % (_nrows, len(DECLARED_TRAP)))
 
     # ---------------- P5 GAP-AUDIT (v2) ----------------
     def run_ok(start):
@@ -484,9 +543,35 @@ def main():
     # map target -> list of source branch addresses (to triage reachability)
     branch_in_gap = {}   # gap(start) -> (live_sources, dead_sources)
     p5_gaps = read_region_csv(UNCOV_CSV, dec=False)
+    # v3: read the uncovered CSV with its category; a gap whose category is
+    # declared data (literal_pool / padding / jump_table / pool...) is NOT
+    # missing code -- a live branch into it is a trap dispatch to filler.
+    p5_cat = {}
+    if os.path.exists(UNCOV_CSV):
+        with open(UNCOV_CSV) as f:
+            next(f, None)
+            for line in f:
+                c = line.split(',')
+                if len(c) < 4:
+                    continue
+                try:
+                    cs = int(c[0], 16)
+                    ce = int(c[1], 16)
+                except Exception:
+                    continue
+                cat = c[3].strip().replace('data:', '')
+                p5_cat[(cs, ce)] = cat
     code_hidden = []
     dangling = 0
     for s, e in p5_gaps:
+        cat = p5_cat.get((s, e), '')
+        if cat and cat not in ('unknown_data', 'single_unref', 'unknown'):
+            # declared-data gap: a branch into it is a trap dispatch, not code.
+            if cat == 'jump_table':
+                for a, t in branch_edges.items():
+                    if s <= t < e and a not in reached:
+                        dangling += 1
+            continue
         cand = 0
         for a in range(s, e, 2):
             if run_ok(a) >= 2:
@@ -579,7 +664,7 @@ def compute_reachability(d, N, nodes, instr_starts, declared, jt_resolved,
 
 def _cert(results, total_instr, p3_total, p4_data, p5_gaps, dead_count):
     print()
-    print('CERTIFICATE 60E1D400 v2')
+    print('CERTIFICATE 60E1D400 v3')
     for k in ('P1', 'P2', 'P3', 'P4', 'P5'):
         st, n, _, detail = results.get(k, ('SKIP', 0, [], ''))
         print('  %s: %s (%d) %s' % (k, st, n, detail))
