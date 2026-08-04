@@ -28,13 +28,16 @@
  *     conditionally (state2==chk -> {0,0,0}), and the SendKey body
  *     (0x58592-0x58610) is UNREACHABLE in this ROM build — the entry
  *     dispatch routes only subfunc==1 into the handler; subfunc!=1 falls
- *     to 0x5862C (subfunc==0 -> resp, else silent no-response).  See
- *     "SendKey" note below; reconciliation open.
+ *     to 0x5862C (subfunc==0 -> resp, else silent no-response).
+ *     2026-08-04 reconciliation (docs/notes/SENDKEY_RECONCILIATION.md):
+ *     the SendKey body is dead code in ALL 9 public stock ROMs (see
+ *     "SendKey" note below); verdict (b) — no removal, kept as the
+ *     ROM-accurate reconstruction of the shared-codebase remnant.
  *   * This file must NOT be used to answer real security-access requests
  *     on a stock ECU until the flow is validated against the ROM end-to-end
  *     and, ideally, real captures (the RequestSeed flow is now ROM-CONFIRMED
  *     2026-08-04, but real-ECU capture validation is still open; SendKey is
- *     unreachable in 60E1D400 and needs reconciliation).
+ *     dead code in all 9 public stock ROMs — see SENDKEY_RECONCILIATION.md).
  *   * docs/notes/UDS_SECURITY_MAPPING.md tracks the security-access open
  *     items (subfunction→level mapping, seed_gen internals, key_validate
  *     middle byte); the stock-LFSR core itself was solved 2026-07-31 —
@@ -300,15 +303,33 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
     } else if (subfunc == SF_SEND_KEY) {
         /* ---- Subfunction 0x04: SendKey ---- */
 
-        /* [REQSEED-EVIDENCE] FLAG 2026-08-04: in ROM 60E1D400 the SendKey
-         * body (0x58592-0x58610) is UNREACHABLE via normal dispatch: entry
-         * 0x584B6-0x584BE routes only subfunc==1 into the handler, and the
-         * ONLY branch to 0x58592 is the abs-trick even-branch bf/s @0x58516,
-         * which can never be taken (subfunc==1 is odd).  Subfunctions != 1
-         * fall to 0x5862C (tst r4,r4: subfunc==0 -> resp via 0x55386;
-         * subfunc!=0 -> NO response, silent).  The flow below was marked
-         * VERIFIED by earlier sessions; this finding needs reconciliation
-         * (see docs/notes/REQUEST_SEED_EVIDENCE.md, discrepancy (e)). */
+        /* [SENDKEY-RECONCILIATION 2026-08-04] RESOLVED — verdict (b):
+         * this branch is DEAD CODE in ALL 9 public stock ROMs (60E1D400
+         * baseline + 8 aux; independent whole-ROM branch scan, see
+         * docs/notes/SENDKEY_RECONCILIATION.md).  In every image the SendKey
+         * body (60E1D400: 0x58592-0x58610; different VA per ROM) is present
+         * with IDENTICAL structure (same 8-byte signature: mov r4,r0;
+         * cmp/eq #0x04,r0; bf/s ...; nop) but is UNREACHABLE:
+         *   - entry dispatch (60E1D400 0x584B6-0x584BE) routes only
+         *     subfunc==1 into the handler body; subfunc!=1 falls to the
+         *     else path (tst r4,r4: subfunc==0 -> resp via 0x55386;
+         *     subfunc!=0 -> NO response, silent) in every image;
+         *   - the ONLY incoming branch to the block in every image is the
+         *     abs-trick even-branch bf/s (60E1D400 @0x58516; e.g. @0x5711A
+         *     in 60E0E700, @0x55FAA in 60E0FB00/60E0FC00, @0x57186 in
+         *     60E1C500, @0x56EC2 in 60E0E500, @0x57ADA in 60E15120,
+         *     @0x56242 in 60E1B900, @0x5D456 in 60E32000), which can never
+         *     be taken (subfunc==1 is odd -> subfunc&1==1 -> bf/s not
+         *     taken).  No indirect refs (literal pools / jump tables) to the
+         *     block in any image.
+         * The earlier "VERIFIED" SendKey work (fd56201: SeedKeyRelated
+         * @0x56ADA transform; 31bb0ac: flow aligned to the ROM body
+         * msg_len==4 gate @0x58592, data_copy->level, seed_key_related,
+         * unlock) verified the ALGORITHM/FLOW against the ROM body, not the
+         * REACHABILITY of that body from the UDS dispatch.  The code below
+         * is intentionally KEPT (no removal) as the ROM-accurate
+         * reconstruction of a shared-codebase remnant.  Previous flag:
+         * docs/notes/REQUEST_SEED_EVIDENCE.md discrepancy (e). */
 
         /* ROM 0x58592-0x58596: FIRST instruction of the SendKey path is
          * `mov r4,r0; cmp/eq #0x04,r0; bf/s 0x58610` — the message length
