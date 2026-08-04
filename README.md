@@ -44,9 +44,8 @@ with `make -C web/explorer serve`.
 - **Byte-exact rebuild pipeline** — every stock ROM is disassembled (capstone
   SH-2 + a custom `disasm_sh2e.py` fallback), emitted as ONE reassemblable GNU-as
   source file, assembled/linked with `sh-elf` binutils, and compared to the source
-  image with `sha256sum`. **10 stock ROMs verified byte-identical (9 shipped
-  publicly here; the 10th — the project owner's personal live-ECU dump
-  `[REDACTED]` — and all modified images are intentionally kept private).**
+  image with `sha256sum`. **9 stock ROMs verified byte-identical and shipped
+  publicly here.**
 - **Annotated assembly** — 9 per-ROM annotated `.s` sources lifting **93.46–93.8%**
   of the code window (0x800..0x60000) to real SH-2 instructions (remainder is
   byte-exact `.word` data: literal pools, jump tables, calibration, padding).

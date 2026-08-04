@@ -70,8 +70,8 @@
 #define RX8_STATUS_SSV_ACTIVE   0x0080u   /* swirl control valve engaged
                                              (ssvControl @0x225C8).
                                              Source: FINDINGS.md */
-#define RX8_STATUS_VFAD_OPEN    0x0400u   /* VFAD solenoid open (stock); the
-                                             [REDACTED] mod reads this bit as
+#define RX8_STATUS_VFAD_OPEN    0x0400u   /* VFAD solenoid open (stock); a tuned
+                                             mod reads this bit as
                                              "launch active" via CAN_EmitLaunch
                                              Status @0x57BE8.
                                              Source: FINDINGS.md + ECU.md */
@@ -97,7 +97,7 @@
 #define RX8_E2_DATA_BASE        0xFFFFC2FEu   /* 256 B primary  (value,...) */
 #define RX8_E2_COMPLEMENT_BASE  0xFFFFC3FEu   /* 256 B complement (~value) */
 #define RX8_E2_LC_CHECKSUM_WINDOW 0xFFFFC37Eu/* 17 B, signed byte sum == -23
-                                                ([REDACTED] lockout check;
+                                                (tuned lockout check;
                                                  boot fill-function still
                                                  unknown — ECU.md/KNOWLEDGE.md) */
 

@@ -52,9 +52,9 @@ Expect a pile of DTCs for all the missing sensors/actuators — harmless for a r
 Not tried yet. This single test picks the whole strategy:
 
 ```bash
-# tool is private, not shipped in the public repo — `tools/uds/[REDACTED].py`
+# tool is private, not shipped in the public repo (no public equivalent);
 # will NOT resolve in a public clone; run it from the private checkout instead
-py -3.11-32 tools/uds/[REDACTED].py roms/stock/<new_dump_name>.bin
+py -3.11-32 tools/uds/<dump_tool>.py roms/stock/<new_dump_name>.bin
 ```
 
 Watch the first log lines:
@@ -119,7 +119,6 @@ before assuming it's not memory. Not urgent, just flagged since its function was
 
 - Saved IC420 EEPROM read (in private storage) — prior IC420 read, undated relative to this ECU/session.
 - `se3p_ecm_eeprom.bin` (in private storage) — community reference, not this ECU.
-- `[REDACTED]` — checksum-verified stock ROM for this exact variant (**private —
-  not shipped in the repo**), and **not necessarily what's currently in this
+- the matching stock ROM for this exact variant (**private, not shipped in the repo**), and **not necessarily what's currently in this
   physical ECU** if it's been tuned/modified — that's exactly what Step 0's live
   dump (or BOOT-mode read) will tell you.

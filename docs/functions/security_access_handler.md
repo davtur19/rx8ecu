@@ -94,14 +94,11 @@ secret+11     3     LFSR tap bits    (3 bytes, byte[2]=MSB → 24-bit)
 | 60E0E700_N3YLEE| 0x05E6B8      | `MazdA`  | Stock                       |
 | 60E0FB00       | 0x05D90C      | `MazdA`  | Stock                       |
 | 60E0FC00       | 0x05D90C      | `MazdA`  | Stock, equinox's RE target  |
-| [REDACTED]  | 0x05F828      | `MazdA`  | Stock (EU 6-port MT; private ROM, not shipped)        |
 | 60E15120_N3J1E | 0x05F084      | `MazdA`  | Stock                       |
 | 60E1B900       | 0x05DBA4      | `MazdA`  | Stock                       |
 | 60E1C500_N3J6EB| 0x05E730      | `MazdA`  | Stock                       |
 | **60E1D400**   | **0x05FAC0**  | `MazdA`  | **This ROM**                |
 | 60E32000_N3M5E | 0x065134      | `MazdA`  | Structurally distinct       |
-| [REDACTED]     | varies        | vendor-family secret (removed) | Aftermarket tune            |
-| [REDACTED]     | varies        | `[REDACTED]`  | Aftermarket tune            |
 
 ### LFSR Parameter Values (ROM 60E1D400)
 

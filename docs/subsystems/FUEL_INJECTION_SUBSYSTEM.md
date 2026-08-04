@@ -1,7 +1,7 @@
 # Fuel Injection Control Subsystem — RX-8 PCM (60E1D400)
 
 **ROM:** 60E1D400 (N3J1EM, 6-Port MT, 2004–08)  
-**Cross-reference:** 60E0FC00 (USDM), [REDACTED] (EUDM)  
+**Cross-reference:** 60E0FC00 (USDM), 60E1D400 (baseline)  
 **Functions:** ~93 fuel/injection-related functions  
 **Last updated:** 2026-07-31
 
@@ -91,7 +91,7 @@ OpenLoop = max(OpenLoopTarget, TipInTarget * TipInBaroCorr) * CoolantTempCorr
 
 The base fuel mass is derived from **Fuelling** calibration maps (1D and 2D tables indexed by load and RPM). There are multiple fuel tables selected by operating mode:
 
-| Table | Address ([REDACTED]) | Type | Description |
+| Table | Address (60E1D400) | Type | Description |
 |-------|----------------|------|-------------|
 | Fuelling - Safe Mode | 0x71CD0 | 1D ×9 | Default/safe lambda target |
 | Fuelling 0 | 0x71CE0 | 1D ×? | Normal operating fuel map |
@@ -242,7 +242,7 @@ float computeFinalPulseWidth(void) {
 
 The RX-8 uses two-stage injection (primary + secondary injectors per rotor):
 
-| Parameter | Address ([REDACTED]) | Units |
+| Parameter | Address (60E1D400) | Units |
 |-----------|----------------|-------|
 | Primary Injector Size | 0x0783A0 | cc/min (or g/sec) |
 | Secondary Injector Size | 0x0783A8 | cc/min |
@@ -257,7 +257,7 @@ The stock RX-8 injectors are:
 Injector latency (dead time) is the time required for the injector to open after the solenoid is energized. It varies with battery voltage.
 
 **Calibration tables:**
-| Table | Address ([REDACTED]) | Type | Description |
+| Table | Address (60E1D400) | Type | Description |
 |-------|----------------|------|-------------|
 | Injector Latency Primary | 0x780F4 | 2D 17×9 | Primary injector dead time vs. voltage |
 | Injector Latency Secondary | 0x77F58 | 2D 17×9 | Secondary injector dead time vs. voltage |
@@ -496,7 +496,7 @@ The fuel pump speed is modulated via PWM for noise reduction and pressure regula
 
 ### 8.1 Fueling Target Tables (Open Loop)
 
-| Address ([REDACTED]) | Name | Dimensions | Type | Scale | Description |
+| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
 |----------------|------|------------|------|-------|-------------|
 | 0x71CD0 | Fuelling - Safe Mode | 1D ×9 | u8 | 0.007812 | Default lambda when in safe mode |
 | 0x71D00 | Fuelling 1 | 1D ×7 | u8 | 0.007812 | Light load fueling |
@@ -514,14 +514,14 @@ The fuel pump speed is modulated via PWM for noise reduction and pressure regula
 
 ### 8.2 Adaptive Trim Tables
 
-| Address ([REDACTED]) | Name | Dimensions | Type | Scale | Description |
+| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
 |----------------|------|------------|------|-------|-------------|
 | 0x72CAC | Table 2D - 106_ | 1D ×9 | u8 | 0.25 / -32 offset | Primary adaptive trim |
 | 0x72CDC | Table 2D - 107_ | 1D ×9 | u8 | 0.25 / -32 offset | Secondary adaptive trim |
 
 ### 8.3 Injector Calibration
 
-| Address ([REDACTED]) | Name | Dimensions | Type | Scale | Description |
+| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
 |----------------|------|------------|------|-------|-------------|
 | 0x0783A0 | Primary Injector Size | Scalar | u32 | — | Flow rate cc/min |
 | 0x0783A8 | Secondary Injector Size | Scalar | u32 | — | Flow rate cc/min |
@@ -532,7 +532,7 @@ The fuel pump speed is modulated via PWM for noise reduction and pressure regula
 
 ### 8.4 Warm-up / Enrichment Tables
 
-| Address ([REDACTED]) | Name | Description |
+| Address (60E1D400) | Name | Description |
 |----------------|------|-------------|
 | 0x72C20 | Table 2D - 104_ | Temperature correction A |
 | 0x72C50 | Table 2D - 105_ | Temperature correction B |
@@ -541,7 +541,7 @@ The fuel pump speed is modulated via PWM for noise reduction and pressure regula
 
 ### 8.5 Lambda / AFR Related
 
-| Address ([REDACTED]) | Name | Description |
+| Address (60E1D400) | Name | Description |
 |----------------|------|-------------|
 | 0x6FD74 | Lambda Sensor Scaling | O2 sensor linearization |
 | 0x7AF48 | Injection Angle Related AFR Input | AFR for injection timing |
@@ -549,7 +549,7 @@ The fuel pump speed is modulated via PWM for noise reduction and pressure regula
 
 ### 8.6 Rev Limit / Fuel Cut
 
-| Address ([REDACTED]) | Name | Description |
+| Address (60E1D400) | Name | Description |
 |----------------|------|-------------|
 | 0x6D54C | Rev Limit | Hard RPM limit |
 | 0x6D544 | Cold Rev Limit | Cold engine RPM limit |
@@ -1108,11 +1108,11 @@ New fuel-specific tests should be added as `test_fuel_injector_pulse_calc.py`, `
 ### 11.4 Calibration Table Verification
 
 Cross-reference all calibration table addresses between:
-1. `symbols/cal_tables.csv` (naming follows RX8Defs XML conventions; original XML not redistributed; [REDACTED] ROM)
-2. MAP scan output (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`; substitute the private `[REDACTED]` locally if scanning that variant)
+1. `symbols/cal_tables.csv` (naming follows RX8Defs XML conventions; original XML not redistributed)
+2. MAP scan output (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`)
 3. Actual ROM bytes at the target address
 
-Note: Addresses differ between ROM variants ([REDACTED] vs 60E1D400) — verify before assuming equivalence.
+Note: Addresses may differ between ROM variants — verify before assuming equivalence.
 
 ---
 

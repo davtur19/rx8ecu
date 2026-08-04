@@ -2,20 +2,19 @@
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
 in the working repository. **1313 entries, 70.2M.** Regenerated 2026-08-02 for the
-9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
-see roms/ROMS.md).
+9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 303.6K |
+| (root) | 11 | 309.2K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.7M |
 | symbols/ | 30 | 8.8M |
 | c/ | 188 | 868.8K |
 | c/tests/ | 229 | 1.1M |
-| tools/ | 25 | 264.2K |
+| tools/ | 25 | 270.7K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 229 | 1.1M |
 | hardware/ | 1 | 2.0K |
@@ -37,9 +36,9 @@ The repo is self-contained except for:
 | sh-elf binutils | 2.46 | SHIPPED at `tools/toolchain/usr/bin`; re-install via `./tools/get_toolchain.sh` |
 | cc (host C compiler) | any | only for `make c-test` (host-side tests) |
 
-No other runtime dependencies. The repo does NOT ship: the 10th stock ROM ([REDACTED]),
-modified/tuned images, Ghidra/IDA projects (`.gar`, `.i64`), [REDACTED]/[REDACTED]
-binaries, the toolchain source, or the toolchain install (git-ignored; re-create with
+No other runtime dependencies. The repo does NOT ship tuned/private ROM images,
+Ghidra/IDA project files (`.gar`, `.i64`), other binaries, the toolchain source,
+or the toolchain install (git-ignored; re-create with
 `./tools/get_toolchain.sh`).
 
 ## Notes on adapted files
@@ -72,7 +71,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `PLANS.md` | `f8cf5b46daf077abdb4e71b10c64a490c28a0620082bdcfb323dd053f4d6a411` | 11.7K | Master plan (single source of truth) |
 | `README.md` | `413b6ab3d753f8c44930b9e2921b82af93fb677927bbc0c6ad5222d681838bab` | 10.9K | Project README |
 | `REPLICATION.md` | `297ed322e7c61a9cf50896b3591b42dc6d159973afb4faa9832fdf5aaf1055dc` | 10.1K | Fresh-clone reproduction guide |
-| `VERIFICATION.md` | `6e26401963325c91d565139e429a2eb7f67000566e08aaac1e0e8c6a1db2d510` | 10.7K | Evidence: byte-exact table, coverage, test results, hashes |
+| `VERIFICATION.md` | `c95b89a12edf078b63ce53d4faec03d0d8c209d3221e7af238f7e00d6b9bc08e` | 10.6K | Evidence: byte-exact table, coverage, test results, hashes |
 
 ## roms
 
@@ -593,7 +592,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `tools/run_tests_parallel.py` | `c63d357fc7283b6a4d7e95ca1401c5983b2132a065a792d4480f1155722dcb7d` | 5.1K | Parallel test runner (pytest, all suites) |
 | `tools/sh2emu.py` | `a2d8062620aa707d5c99480052625f0837271e0fa8dcf17fd796b9d79f4c5d3d` | 29.2K | RE tool (see tools/README.md) |
 | `tools/verify_all.sh` | `d264410fe557754c812cc5fa89b3671743f7e8312e886482080a6cd4a79d77b3` | 4.1K | RE tool script (see tools/README.md) |
-| `tools/verify_formal.py` | `32304d75a57727a8639b829dd88099c302aa74f463e2f54d4a6f6eb76419e2c6` | 17.5K | Tracked file |
+| `tools/verify_formal.py` | `49a7f6bd9a5037d220fe6db033946934a9629fc6ca9d43f542ad7b831c19685d` | 23.9K | Tracked file |
 | `tools/xmap_names.py` | `9bb65fe324af3d665b562c0b3c8684655529671398bfed1ad7cbc99d22c30e03` | 5.6K | RE tool (see tools/README.md) |
 
 ## tools/tests
@@ -814,7 +813,7 @@ binaries, the toolchain source, or the toolchain install (git-ignored; re-create
 | `docs/notes/ECU.md` | `f360222d74db6f5c4e3c140d063da6560baa9d59af7949cc6607d5b4b8de0cd7` | 4.6K | Project knowledge / session notes |
 | `docs/notes/ECU_CAPTURE_PLAN.md` | `e6d8a4ad24e680ecdcb0c55fccc2ad52b661033645da51816c343289676d0a15` | 21.1K | Project knowledge / session notes |
 | `docs/notes/FINDINGS.md` | `dc8c58fe103a8d43678251c658638de922920e985c8b9a19417c2034d872355c` | 50.2K | Project knowledge / session notes |
-| `docs/notes/FORMAL_CERT_60E1D400.md` | `9c6e7b15b641dd902299627ad6b38c8ae448e8bba551353590bc0924647db260` | 4.4K | Project knowledge / session notes |
+| `docs/notes/FORMAL_CERT_60E1D400.md` | `e02e3c199de479191e8fd317e8bb3316619f96f63ea839c2d9edcb8cd96e25fd` | 9.7K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `0e35f965f143839b8e022a728ecd5cf244358a22b0075f8cb2f3d80dc99febd7` | 7.6K | Project knowledge / session notes |
 | `docs/notes/KNOWLEDGE.md` | `9b3a10ce1f1e53f2b5b2d0f6be7e4d56495f55d0f9402e9defad8ccf8f2969e5` | 3.9K | Project knowledge / session notes |
 | `docs/notes/LAUNCH_CONTROL_CHECKSUM_GUARD.md` | `a428cbdd11829eb5363f95024fbb63028e890db253537edbae41da523244eff1` | 7.5K | Project knowledge / session notes |

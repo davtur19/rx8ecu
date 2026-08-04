@@ -5,12 +5,8 @@ this repository to byte-perfect (1:1, sha256-verified) copies of all 9 shipped
 stock firmware ROMs, plus the reverse-engineering deliverables (annotated
 assembly, verified C lifts, docs, analysis).
 
-The project dataset originally covered **10 stock ROMs**; the 10th
-(`[REDACTED]` — the project owner's personal live-ECU dump) is verified
-byte-exact but **kept private** and not shipped here. This guide covers the 9
-public images (the same procedure applies to any stock ROM, including the
-private one, which was verified identically before exclusion — see
-[VERIFICATION.md](VERIFICATION.md)).
+This guide covers the 9 sold public stock ROM images; the byte-exact procedure
+applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
 
 Everything is self-contained. The only external pieces are Python 3, the
 `capstone` pip package, and the sh-elf binutils toolchain — which is **not
@@ -172,7 +168,7 @@ Expected: `OK — checksum corretto` (the Denso additive checksum descriptor at
 
 Modified (tuned) images are intentionally NOT shipped with this public repo
 (they are kept private); for such images a non-OK result would be expected
-behavior, not a failure — an [REDACTED] tune legitimately bypasses the Denso
+behavior, not a failure — a tuned image legitimately bypasses the Denso
 checksum, so `denso_ck.py` reports `ERRATO` and exits 1.
 
 ---

@@ -33,8 +33,8 @@ Classification bands are anchored on the RE baseline 60E1D400:
   tail       0x7DAFF-0x7FFFF  (checksum descriptor @0x7FB80 + trailing words)
 
 Exact known-table classification uses symbols/cal_tables.csv (1210 addrs,
-extracted from the private [REDACTED] ROM).  Those addresses are only valid for
-ROMs sharing the [REDACTED]/60E1D400 table layout; other families relocate the
+extracted from the 60E1D400 ROM).  Those addresses are only valid for
+ROMs sharing the 60E1D400 table layout; other families relocate the
 table block (cal_start measured per ROM: J-line 0x6CEE0, Z-line 0x6D300,
 N3M5E ~0x715C0).
 """
@@ -400,7 +400,7 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A(f'  - `padding` 0x{code_end:05X}-0x{cal_lo-1:05X}  baseline 0xFF filler gap(s)')
     A(f'  - `cal_data` 0x{cal_lo:05X}-0x{CAL_HI:05X}  calibration tables region')
     A(f'  - `tail`    0x{CAL_HI:05X}-0x7FFFF  checksum descriptor @0x7FB80 + trailing')
-    A('- Known-table hits use `symbols/cal_tables.csv` (1210 addrs, private [REDACTED] '
+    A('- Known-table hits use `symbols/cal_tables.csv` (1210 addrs, 60E1D400 '
       'layout). Valid only for J-line builds; other families relocate the table block.')
     A('- All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), '
       'so headers are aligned; divergence accumulates through the body.')
@@ -488,7 +488,7 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A('## 5. Calibration-table differences')
     A('')
     A(f'{len(cal_rows)} rows / {len(set(r["addr"] for r in cal_rows))} distinct known-table '
-      'addresses ([REDACTED] map) differ vs baseline. Full u16 values + signed deltas in '
+      'addresses (60E1D400 map) differ vs baseline. Full u16 values + signed deltas in '
       '`cal_table_diffs_baseline.csv`. Per pair:')
     A('')
     A('| pair | total addrs | value diffs | equal | FF artifact | max|delta| |')
@@ -575,7 +575,7 @@ Python 3.8+, no third-party packages.
 ## Inputs (read-only)
 
 - `roms/stock/*.bin` — 9 stock 512 KB SH-2E ROMs
-- `symbols/cal_tables.csv` — 1210 calibration-table addresses ([REDACTED] layout)
+- `symbols/cal_tables.csv` — 1210 calibration-table addresses (60E1D400 layout)
 
 ## Outputs
 
@@ -597,7 +597,7 @@ Python 3.8+, no third-party packages.
 
 ## Classification bands (anchored to baseline 60E1D400)
 
-See REPORT.md. Exact known-table matching uses the [REDACTED] address map from
+See REPORT.md. Exact known-table matching uses the 60E1D400 address map from
 `cal_tables.csv`; Z-line (cal_lo 0x6D300) and N3M5E (~0x715C0) builds relocate
 their table block, so `cal_table` hits are exact only for J-line-layout ROMs.
 

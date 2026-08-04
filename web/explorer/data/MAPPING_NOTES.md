@@ -18,7 +18,7 @@ big-endian) using `symbols/cal_tables.csv` (1210 entries) as the master list.
 
 - **There is no per-ROM column** in the symbol CSVs.
 - `symbols/cal_tables.csv`: columns `src,name,address`; `src` is always
-  `[REDACTED]` (private dump), but the addresses match 1:1 the baseline
+  `60E1D400` (the RE baseline), whose addresses match 1:1 the baseline
   `60E1D400` (already verified by the project: 499/499 descriptors).
 - The function symbols are split **by file name**, not by column:
   - `symbols_60E1D400_ida.csv` / `symbols_60E1D400_merged.csv` → context **60E1D400**

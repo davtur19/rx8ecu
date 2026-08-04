@@ -1,21 +1,15 @@
-# Calibration map catalog — [REDACTED] (user's ECU)
+# Calibration map catalog — J-line variant (60E1D400-based)
 
-> **WARNING:** the descriptor addresses below reference a **private ROM variant**
-> (J-line shift +0x298); on the shipped `60E1D400.bin` apply a **+0x298** shift
+> **WARNING:** the descriptor addresses below reference a **J-line ROM variant**
+> (shift +0x298 from 60E1D400); on the shipped `60E1D400.bin` apply a **+0x298** shift
 > (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264).
 > Always verify with `tools/mapscan.py`.
-
-> **NOTE:** `[REDACTED]` is the owner's **private** live-ECU image and is
-> **not shipped** in this public repo. The commands below reference a local copy
-> only; on a fresh clone there is no `[REDACTED]` unless the
-> owner places one there. The 9 shipped stock ROMs are in `roms/stock/` (see
-> `roms/ROMS.md`).
 
 Auto-extracted by `tools/mapscan.py` using the reverse-engineered TwoDLookup/ThreeDLookup
 descriptor format (emulator-verified). Naming follows RX8Defs conventions
 (original RomRaider XML not redistributed in this repo). Dump any map in physical units with:
 ```
-python tools/mapscan.py [REDACTED] --dump 0x<descAddr>
+python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<descAddr>
 ```
 
 > **cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence`.
@@ -26,7 +20,7 @@ python tools/mapscan.py [REDACTED] --dump 0x<descAddr>
 > `scale`/`offset`/`units` are **unverified** (blank) unless declared by a verified source; `confidence`: high=1072, low=138.
 
 ```
-[REDACTED]: 499 map descriptors (119 2D, 380 1D); naming follows RX8Defs conventions
+J-line variant: 499 map descriptors (119 2D, 380 1D); naming follows RX8Defs conventions
 
 addr     kind  dims    type  scale     offset    values    name(RX8Defs)
 0x6969C 1D   16      u8   2         0         0x6CFE4  Table 2D - 0_
@@ -109,7 +103,7 @@ addr     kind  dims    type  scale     offset    values    name(RX8Defs)
 0x69E20 1D   5       u8   0.003906  0         0x6FAB0  Table 2D - 58_
 0x69E34 1D   5       f32  4.592e-40 6.41e-40  0x6FACC  Table 2D - 292 Check DataType
 0x69E40 1D   5       f32  4.408e-39 6.411e-40 0x6FAF4  Table 2D - 293 Check DataType
-0x69E4C 1D   48      f32  7.347e-40 6.417e-40 0x6FBD8  MAF Scaling (**base ROM: [REDACTED]**; 60E1D400 descriptor is @0x6A0E4)
+0x69E4C 1D   48      f32  7.347e-40 6.417e-40 0x6FBD8  MAF Scaling (60E1D400 descriptor is @0x6A0E4)
 0x69E58 1D   8       f32  7.347e-40 6.418e-40 0x6FCF8  Table 2D - 295 Check DataType
 0x69E64 1D   8       f32  3.673e-40 6.418e-40 0x6FD20  Table 2D - 296 Check DataType
 0x69E70 1D   4       f32  1.01e-39  6.419e-40 0x6FD38  Injector Barometric Pressure Compensation

@@ -8,21 +8,21 @@ confirmed CN400 pinout (`docs/notes/HARDWARE.md`).
 
 ## 1. ROM file to flash
 
-**`[REDACTED]`** — recommended. **Private ROM: this dump is the owner's
-personal live-ECU image and is intentionally NOT shipped in the public repo** —
-it exists only locally (`[REDACTED]` on the owner's machine).
+**Recommended**: use the stock ROM for the 2004 **EU 6-Port MT** J-line variant
+(matching this ECU); the owner's live-ECU dump is private and not shipped in
+the public repo.
 Evidence:
 
 | Check | Result |
 |---|---|
-| ROM-ID → variant | `[REDACTED]` = 2004 **EU 6-Port MT**, explicitly flagged "this car" in `docs/notes/FINDINGS.md` and `CREDITS.md` |
+| ROM-ID → variant | 2004 **EU 6-Port MT** (J-line; the owner's ECU) |
 | Matches board identity | N3J1-18-881L / Denso 279700-3313 (per `docs/notes/KNOWLEDGE.md`) |
 | File size | 524288 bytes = exactly 512 KB (correct for SH7055 internal flash) |
 | Checksum (`tools/denso_ck.py`) | Sum `0xA1BE79C2` + diff → `0xB8E72B98` = stored value. **OK — valid.** |
 
 If you want to instead restore *whatever was actually in the ECU before it bricked* rather than
-generic `[REDACTED]`, that's only possible if a full ROM dump was taken beforehand — check if one
-exists before assuming stock. Otherwise `[REDACTED]` is the correct stock baseline for this car.
+generic stock image, that's only possible if a full ROM dump was taken beforehand — check if one
+exists before assuming stock. Otherwise use the matching stock ROM for this car.
 
 EEPROM is untouched by a ROM-only flash, and a saved EEPROM dump of it already
 exists (kept in private storage, not shipped) — no need to re-read it first, but don't overwrite it.
@@ -77,7 +77,7 @@ applying any voltage** — don't trust the silkscreen alone on first contact.
      re-create the workspace choosing **Generic BOOT Device** instead.
 2. Select the COM port for whichever adapter is doing TX/RX.
 3. Connection type: **BOOT mode**.
-4. Add `[REDACTED]` (private, local copy — not shipped) as the download file.
+4. Add the matching stock ROM (local copy) as the download file.
 5. Power sequence: MD1 low + WDT running **before** power-up, then power the ECU (battery, ignition,
    ground per RX-8 wiring) — MD1 must be sampled low at reset for BOOT mode to latch.
 6. FDT → Connect. If it doesn't sync, check the WDT square wave is actually running first (MCU
@@ -91,7 +91,7 @@ applying any voltage** — don't trust the silkscreen alone on first contact.
 
 - [ ] Multimeter-confirm CN400 pin identity before connecting anything live.
 - [ ] EEPROM backup exists (saved dump in private storage) — confirmed, don't need a new one.
-- [ ] ROM file size = 524288 bytes and checksum OK — confirmed for `[REDACTED]`
-      (private ROM, not shipped in the repo).
+- [ ] ROM file size = 524288 bytes and checksum OK — confirmed for the matching stock ROM
+      (the owner's live dump is private and not shipped in the repo).
 - [ ] WDT square wave running before ECU power-up, not after.
 - [ ] Don't interrupt power or the serial link mid-download.

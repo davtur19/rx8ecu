@@ -289792,9 +289792,9 @@ L_06cf3c:
 	.word 0x6063
 	.word 0x7ff4
 	.word 0x644c
-! cal[REDACTED]: Barometric Pressure Sensor Max ADC Count  @0x6CF6C
+! cal60E1D400: Barometric Pressure Sensor Max ADC Count  @0x6CF6C
 	.word 0x2f52
-! cal[REDACTED]: Barometric Pressure Sensor Min ADC Count  @0x6CF6E
+! cal60E1D400: Barometric Pressure Sensor Min ADC Count  @0x6CF6E
 	.word 0x2448
 	.word 0x81f2
 	.word 0x6073
@@ -289822,7 +289822,7 @@ L_06cf3c:
 	.word 0x8f11
 	.word 0x6e63
 	.word 0xe000
-! cal[REDACTED]: Y  @0x6CFA4
+! cal60E1D400: Y  @0x6CFA4
 	.word 0x305c
 	.word 0x67ed
 	.word 0xd539
@@ -289855,7 +289855,7 @@ L_06cf3c:
 	.word 0x6343
 	.word 0x2fa6
 	.word 0xeb00
-! cal[REDACTED]: Table 2D - 0_  @0x6CFE4
+! cal60E1D400: Table 2D - 0_  @0x6CFE4
 	.word 0x2f96
 	.word 0x7301
 	.word 0x2f86
@@ -289864,7 +289864,7 @@ L_06cf3c:
 	.word 0xe801
 	.word 0x7fe4
 	.word 0x6ab3
-! cal[REDACTED]: Y  @0x6CFF4
+! cal60E1D400: Y  @0x6CFF4
 	.word 0x80f4
 	.word 0x6943
 	.word 0x1f32
@@ -289897,7 +289897,7 @@ L_06cf3c:
 	.word 0xd31c
 	.word 0x430b
 	.word 0xe408
-! cal[REDACTED]: Table 2D - 1_  @0x6D034
+! cal60E1D400: Table 2D - 1_  @0x6D034
 	.word 0x2e02
 	.word 0xe505
 	.word 0x52f2
@@ -289906,7 +289906,7 @@ L_06cf3c:
 	.word 0x52f3
 	.word 0x84e1
 	.word 0x2200
-! cal[REDACTED]: Y  @0x6D044
+! cal60E1D400: Y  @0x6D044
 	.word 0x53f4
 	.word 0x84e2
 	.word 0x2300
@@ -289939,7 +289939,7 @@ L_06cf3c:
 	.word 0x68f6
 	.word 0x69f6
 	.word 0x6af6
-! cal[REDACTED]: Table 2D - 2_  @0x6D084
+! cal60E1D400: Table 2D - 2_  @0x6D084
 	.word 0x6bf6
 	.word 0x6cf6
 	.word 0x6df6
@@ -289993,7 +289993,7 @@ L_06d0c4:
 	.word 0x6503
 	.word 0xa011
 	.word 0x353c
-! cal[REDACTED]: Y  @0x6D0EC
+! cal60E1D400: Y  @0x6D0EC
 	.word 0x6140
 	.word 0x63e0
 	.word 0x3130
@@ -290014,14 +290014,14 @@ L_06d0c4:
 	.word 0x6263
 	.word 0x4208
 	.word 0x4200
-! cal[REDACTED]: Table 2D - 3_  @0x6D114
+! cal60E1D400: Table 2D - 3_  @0x6D114
 	.word 0x329c
 	.word 0x6320
 	.word 0x633c
 	.word 0x3370
 	.word 0x8fe6
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6D120
+! cal60E1D400: Y  @0x6D120
 	.word 0x60b3
 	.word 0x7f08
 	.word 0x4f26
@@ -290034,12 +290034,12 @@ L_06d0c4:
 	.word 0x6ef6
 	.word 0x00ff
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 4_  @0x6D138
+! cal60E1D400: Table 2D - 4_  @0x6D138
 	.word 0x0006
 	.word 0xc990
 	.word 0x0006
 	.word 0x50c4
-! cal[REDACTED]: Y  @0x6D140
+! cal60E1D400: Y  @0x6D140
 	.word 0xffff
 	.word 0xd9c0
 	.word 0x0000
@@ -290052,12 +290052,12 @@ L_06d0c4:
 	.word 0x2448
 	.word 0x8f06
 	.word 0x81f2
-! cal[REDACTED]: Table 2D - 288 Check DataType  @0x6D158
+! cal60E1D400: Table 2D - 288 Check DataType  @0x6D158
 	.word 0x85f2
 	.word 0x6503
 	.word 0xb009
 	.word 0x64f2
-! cal[REDACTED]: Y  @0x6D160
+! cal60E1D400: Y  @0x6D160
 	.word 0xa003
 	.word 0x0009
 	.word 0x64f2
@@ -290070,12 +290070,12 @@ L_06d0c4:
 	.word 0xe301
 	.word 0x2fe6
 	.word 0xe010
-! cal[REDACTED]: Table 2D - 289 Check DataType  @0x6D178
+! cal60E1D400: Table 2D - 289 Check DataType  @0x6D178
 	.word 0x2fd6
 	.word 0xe600
 	.word 0x2fc6
 	.word 0x364c
-! cal[REDACTED]: Y  @0x6D180
+! cal60E1D400: Y  @0x6D180
 	.word 0x2fb6
 	.word 0x6d63
 	.word 0xd442
@@ -290088,12 +290088,12 @@ L_06d0c4:
 	.word 0x6943
 	.word 0x4f22
 	.word 0x6293
-! cal[REDACTED]: Table 2D - 290 Check DataType  @0x6D198
+! cal60E1D400: Table 2D - 290 Check DataType  @0x6D198
 	.word 0x7fe8
 	.word 0x7202
 	.word 0x0f34
 	.word 0x6193
-! cal[REDACTED]: Y  @0x6D1A0
+! cal60E1D400: Y  @0x6D1A0
 	.word 0x6343
 	.word 0x7301
 	.word 0x2f32
@@ -290126,7 +290126,7 @@ L_06d0c4:
 	.word 0x62f2
 	.word 0x63e0
 	.word 0x2230
-! cal[REDACTED]: Idle Related  @0x6D1E0
+! cal60E1D400: Idle Related  @0x6D1E0
 	.word 0x52f1
 	.word 0x84e1
 	.word 0x2200
@@ -290143,7 +290143,7 @@ L_06d0c4:
 	.word 0x0fb4
 	.word 0x7a01
 	.word 0x7d01
-! cal[REDACTED]: X  @0x6D200
+! cal60E1D400: X  @0x6D200
 	.word 0x3a83
 	.word 0x8fda
 	.word 0x7c01
@@ -290156,7 +290156,7 @@ L_06d0c4:
 	.word 0x6af6
 	.word 0x6bf6
 	.word 0x6cf6
-! cal[REDACTED]: Y  @0x6D218
+! cal60E1D400: Y  @0x6D218
 	.word 0x6df6
 	.word 0x000b
 	.word 0x6ef6
@@ -290169,7 +290169,7 @@ L_06d0c4:
 	.word 0x2fb6
 	.word 0x4f22
 	.word 0xeb01
-! cal[REDACTED]: Table 3D - 103_  @0x6D230
+! cal60E1D400: Table 3D - 103_  @0x6D230
 	.word 0x7ffc
 	.word 0x430b
 	.word 0xe406
@@ -290188,7 +290188,7 @@ L_06d0c4:
 	.word 0x64e3
 	.word 0x6240
 	.word 0x63dc
-! cal[REDACTED]: X  @0x6D254
+! cal60E1D400: X  @0x6D254
 	.word 0x622c
 	.word 0x3230
 	.word 0x8f05
@@ -290221,7 +290221,7 @@ L_06d0c4:
 	.word 0x00ff
 	.word 0xffff
 	.word 0xd9c8
-! cal[REDACTED]: Y  @0x6D294
+! cal60E1D400: Y  @0x6D294
 	.word 0x0006
 	.word 0xc990
 	.word 0x0006
@@ -290234,7 +290234,7 @@ L_06d0c4:
 	.word 0xe01c
 	.word 0x2fd6
 	.word 0xed00
-! cal[REDACTED]: Table 3D - 0_  @0x6D2AC
+! cal60E1D400: Table 3D - 0_  @0x6D2AC
 	.word 0x2fc6
 	.word 0x6c53
 	.word 0x2fb6
@@ -290283,7 +290283,7 @@ L_06d0c4:
 	.word 0x53f8
 	.word 0x62b0
 	.word 0x2320
-! cal[REDACTED]: X  @0x6D30C
+! cal60E1D400: X  @0x6D30C
 	.word 0x53f9
 	.word 0x84b1
 	.word 0x2300
@@ -290316,7 +290316,7 @@ L_06d0c4:
 	.word 0x53c4
 	.word 0x430b
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6D34C
+! cal60E1D400: Y  @0x6D34C
 	.word 0x2e01
 	.word 0x52f1
 	.word 0x63e0
@@ -290329,7 +290329,7 @@ L_06d0c4:
 	.word 0x22d0
 	.word 0x53f4
 	.word 0x23d0
-! cal[REDACTED]: Table 3D - 1_  @0x6D364
+! cal60E1D400: Table 3D - 1_  @0x6D364
 	.word 0x29d0
 	.word 0x63f2
 	.word 0x23d0
@@ -290378,7 +290378,7 @@ L_06d0c4:
 	.word 0xee00
 	.word 0x2fc6
 	.word 0x6d43
-! cal[REDACTED]: X  @0x6D3C4
+! cal60E1D400: X  @0x6D3C4
 	.word 0x2fb6
 	.word 0xe348
 	.word 0x4f22
@@ -290411,7 +290411,7 @@ L_06d0c4:
 	.word 0x2448
 	.word 0x8d01
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6D404
+! cal60E1D400: Y  @0x6D404
 	.word 0xee01
 	.word 0x62ec
 	.word 0x2228
@@ -290424,7 +290424,7 @@ L_06d0c4:
 	.word 0xe408
 	.word 0xd251
 	.word 0x66d3
-! cal[REDACTED]: Table 3D - 2_  @0x6D41C
+! cal60E1D400: Table 3D - 2_  @0x6D41C
 	.word 0xd54c
 	.word 0xe301
 	.word 0x2231
@@ -290473,7 +290473,7 @@ L_06d0c4:
 	.word 0x0009
 	.word 0x2fe6
 	.word 0x604c
-! cal[REDACTED]: X  @0x6D47C
+! cal60E1D400: X  @0x6D47C
 	.word 0x4f22
 	.word 0x8800
 	.word 0x7fec
@@ -290506,7 +290506,7 @@ L_06d0c4:
 	.word 0x1531
 	.word 0x1572
 	.word 0xd32b
-! cal[REDACTED]: Y  @0x6D4BC
+! cal60E1D400: Y  @0x6D4BC
 	.word 0x430b
 	.word 0x1523
 	.word 0xa007
@@ -290519,7 +290519,7 @@ L_06d0c4:
 	.word 0x430b
 	.word 0xe408
 	.word 0x7f14
-! cal[REDACTED]: Table 3D - 3_  @0x6D4D4
+! cal60E1D400: Table 3D - 3_  @0x6D4D4
 	.word 0x4f26
 	.word 0x000b
 	.word 0x6ef6
@@ -290572,17 +290572,17 @@ L_06d0c4:
 	.word 0x6063
 	.word 0x8801
 	.word 0x8f02
-! cal[REDACTED]: Cold Rev Limit Threshold  @0x6D53C
+! cal60E1D400: Cold Rev Limit Threshold  @0x6D53C
 	.word 0xe512
 	.word 0xa001
 	.word 0xe602
 	.word 0xe601
-! cal[REDACTED]: Cold Rev Limit  @0x6D544
+! cal60E1D400: Cold Rev Limit  @0x6D544
 	.word 0x4e0b
 	.word 0xe408
 	.word 0x4f26
 	.word 0x000b
-! cal[REDACTED]: Rev Limit  @0x6D54C
+! cal60E1D400: Rev Limit  @0x6D54C
 	.word 0x6ef6
 	.word 0xffff
 	.word 0xffff
@@ -290611,7 +290611,7 @@ L_06d0c4:
 	.word 0x6d43
 	.word 0x2fb6
 	.word 0xe346
-! cal[REDACTED]: Y  @0x6D584
+! cal60E1D400: Y  @0x6D584
 	.word 0x4f22
 	.word 0x7ff8
 	.word 0x80f4
@@ -290624,12 +290624,12 @@ L_06d0c4:
 	.word 0x0009
 	.word 0xa013
 	.word 0xee01
-! cal[REDACTED]: Ignition Maybe Idle Base  @0x6D59C
+! cal60E1D400: Ignition Maybe Idle Base  @0x6D59C
 	.word 0xdb4d
 	.word 0x66d3
 	.word 0xd24d
 	.word 0x65b3
-! cal[REDACTED]: Y  @0x6D5A4
+! cal60E1D400: Y  @0x6D5A4
 	.word 0x420b
 	.word 0xe406
 	.word 0xd34c
@@ -290648,14 +290648,14 @@ L_06d0c4:
 	.word 0x62ec
 	.word 0x2228
 	.word 0x8f12
-! cal[REDACTED]: Ignition Temp Correction?  @0x6D5C8
+! cal60E1D400: Ignition Temp Correction?  @0x6D5C8
 	.word 0x0009
 	.word 0xe601
 	.word 0xd244
 	.word 0x65f3
 	.word 0x420b
 	.word 0xe406
-! cal[REDACTED]: Y  @0x6D5D4
+! cal60E1D400: Y  @0x6D5D4
 	.word 0xd243
 	.word 0x66d3
 	.word 0xd53e
@@ -290668,12 +290668,12 @@ L_06d0c4:
 	.word 0x2448
 	.word 0x8d01
 	.word 0x0009
-! cal[REDACTED]: Ignition 2  @0x6D5EC
+! cal60E1D400: Ignition 2  @0x6D5EC
 	.word 0xee02
 	.word 0x84f4
 	.word 0x6503
 	.word 0xb037
-! cal[REDACTED]: Y  @0x6D5F4
+! cal60E1D400: Y  @0x6D5F4
 	.word 0x64e3
 	.word 0x7f08
 	.word 0x4f26
@@ -290692,14 +290692,14 @@ L_06d0c4:
 	.word 0x430b
 	.word 0xe406
 	.word 0xd433
-! cal[REDACTED]: Ignition Leading 0  @0x6D618
+! cal60E1D400: Ignition Leading 0  @0x6D618
 	.word 0x63f1
 	.word 0x6241
 	.word 0x323c
 	.word 0x2421
 	.word 0x7f08
 	.word 0x4f26
-! cal[REDACTED]: X  @0x6D624
+! cal60E1D400: X  @0x6D624
 	.word 0x000b
 	.word 0x0009
 	.word 0x664d
@@ -290720,7 +290720,7 @@ L_06d0c4:
 	.word 0xe700
 	.word 0xd328
 	.word 0x430b
-! cal[REDACTED]: Y  @0x6D64C
+! cal60E1D400: Y  @0x6D64C
 	.word 0x0009
 	.word 0xa006
 	.word 0x6703
@@ -290735,7 +290735,7 @@ L_06d0c4:
 	.word 0x6073
 	.word 0x2fe6
 	.word 0x604c
-! cal[REDACTED]: Ignition Timing Lead  @0x6D668
+! cal60E1D400: Ignition Timing Lead  @0x6D668
 	.word 0x4f22
 	.word 0x8800
 	.word 0xde20
@@ -290772,7 +290772,7 @@ L_06d0c4:
 	.word 0xe512
 	.word 0xa001
 	.word 0xe602
-! cal[REDACTED]: X  @0x6D6B0
+! cal60E1D400: X  @0x6D6B0
 	.word 0xe601
 	.word 0x4e0b
 	.word 0xe406
@@ -290813,7 +290813,7 @@ L_06d0c4:
 	.word 0x2fd6
 	.word 0x2fb6
 	.word 0x2fa6
-! cal[REDACTED]: Y  @0x6D700
+! cal60E1D400: Y  @0x6D700
 	.word 0x2f96
 	.word 0x2f86
 	.word 0x4f22
@@ -290850,7 +290850,7 @@ L_06d0c4:
 	.word 0x4e00
 	.word 0x6230
 	.word 0x2228
-! cal[REDACTED]: Ignition Leading 1  @0x6D748
+! cal60E1D400: Ignition Leading 1  @0x6D748
 	.word 0x8f05
 	.word 0x3e8c
 	.word 0xd138
@@ -291031,7 +291031,7 @@ L_06d0c4:
 	.word 0x8d05
 	.word 0x0009
 	.word 0x4c0b
-! cal[REDACTED]: X  @0x6D8B0
+! cal60E1D400: X  @0x6D8B0
 	.word 0x64e3
 	.word 0x2d02
 	.word 0xa004
@@ -291072,7 +291072,7 @@ L_06d0c4:
 	.word 0x4108
 	.word 0x4100
 	.word 0x315c
-! cal[REDACTED]: Y  @0x6D900
+! cal60E1D400: Y  @0x6D900
 	.word 0x622d
 	.word 0x6323
 	.word 0x4208
@@ -291109,7 +291109,7 @@ L_06d0c4:
 	.word 0xe027
 	.word 0x0354
 	.word 0x000b
-! cal[REDACTED]: Ignition Leading Base - Safe Mode  @0x6D948
+! cal60E1D400: Ignition Leading Base - Safe Mode  @0x6D948
 	.word 0x7f04
 	.word 0xd30b
 	.word 0xd010
@@ -291290,7 +291290,7 @@ L_06d0c4:
 	.word 0xec01
 	.word 0x6163
 	.word 0x6363
-! cal[REDACTED]: X  @0x6DAB0
+! cal60E1D400: X  @0x6DAB0
 	.word 0x4108
 	.word 0x313c
 	.word 0x4108
@@ -291331,7 +291331,7 @@ L_06d0c4:
 	.word 0xf537
 	.word 0x844c
 	.word 0x805c
-! cal[REDACTED]: Y  @0x6DB00
+! cal60E1D400: Y  @0x6DB00
 	.word 0xa004
 	.word 0x6ce3
 	.word 0x7601
@@ -291368,7 +291368,7 @@ L_06d0c4:
 	.word 0xf537
 	.word 0x844c
 	.word 0x000b
-! cal[REDACTED]: Ignition Leading Base  @0x6DB48
+! cal60E1D400: Ignition Leading Base  @0x6DB48
 	.word 0x2200
 	.word 0x2fe6
 	.word 0x2fd6
@@ -291549,7 +291549,7 @@ L_06d0c4:
 	.word 0x9008
 	.word 0xffff
 	.word 0x8ef0
-! cal[REDACTED]: X  @0x6DCB0
+! cal60E1D400: X  @0x6DCB0
 	.word 0x0000
 	.word 0xffff
 	.word 0x2fe6
@@ -291570,7 +291570,7 @@ L_06d0c4:
 	.word 0xd434
 	.word 0xd332
 	.word 0x430b
-! cal[REDACTED]: Y  @0x6DCD8
+! cal60E1D400: Y  @0x6DCD8
 	.word 0x0009
 	.word 0x600d
 	.word 0x2008
@@ -291585,7 +291585,7 @@ L_06d0c4:
 	.word 0xa024
 	.word 0x6473
 	.word 0x6e43
-! cal[REDACTED]: Ignition Leading 4  @0x6DCF4
+! cal60E1D400: Ignition Leading 4  @0x6DCF4
 	.word 0x6343
 	.word 0x4e08
 	.word 0x3e3c
@@ -291622,7 +291622,7 @@ L_06d0c4:
 	.word 0x6573
 	.word 0x7401
 	.word 0x3493
-! cal[REDACTED]: X  @0x6DD3C
+! cal60E1D400: X  @0x6DD3C
 	.word 0x8fd9
 	.word 0x0009
 	.word 0x4f26
@@ -291663,7 +291663,7 @@ L_06d0c4:
 	.word 0x740a
 	.word 0x3412
 	.word 0x8ff5
-! cal[REDACTED]: Y  @0x6DD8C
+! cal60E1D400: Y  @0x6DD8C
 	.word 0x0009
 	.word 0x7f04
 	.word 0x4f26
@@ -291700,7 +291700,7 @@ L_06d0c4:
 	.word 0xe902
 	.word 0xdc42
 	.word 0x6eb3
-! cal[REDACTED]: Ignition  @0x6DDD4
+! cal60E1D400: Ignition  @0x6DDD4
 	.word 0xdd42
 	.word 0x2f86
 	.word 0x4f22
@@ -291881,7 +291881,7 @@ L_06d0c4:
 	.word 0x000b
 	.word 0x6073
 	.word 0xd339
-! cal[REDACTED]: X  @0x6DF3C
+! cal60E1D400: X  @0x6DF3C
 	.word 0xd039
 	.word 0x6531
 	.word 0x655d
@@ -291922,7 +291922,7 @@ L_06d0c4:
 	.word 0x8572
 	.word 0xa004
 	.word 0x6703
-! cal[REDACTED]: Y  @0x6DF8C
+! cal60E1D400: Y  @0x6DF8C
 	.word 0x7501
 	.word 0x3503
 	.word 0x8fe1
@@ -291959,7 +291959,7 @@ L_06d0c4:
 	.word 0x6321
 	.word 0x633d
 	.word 0x3350
-! cal[REDACTED]: Ignition 0 - Safe Mode  @0x6DFD4
+! cal60E1D400: Ignition 0 - Safe Mode  @0x6DFD4
 	.word 0x8d09
 	.word 0x0009
 	.word 0x6753
@@ -292140,7 +292140,7 @@ L_06d0c4:
 	.word 0xe000
 	.word 0x85e2
 	.word 0x7001
-! cal[REDACTED]: X  @0x6E13C
+! cal60E1D400: X  @0x6E13C
 	.word 0x81e1
 	.word 0x4f16
 	.word 0x000b
@@ -292181,7 +292181,7 @@ L_06d0c4:
 	.word 0x2310
 	.word 0x63e1
 	.word 0x7301
-! cal[REDACTED]: Y  @0x6E18C
+! cal60E1D400: Y  @0x6E18C
 	.word 0x2e31
 	.word 0x62e1
 	.word 0x622d
@@ -292218,7 +292218,7 @@ L_06d0c4:
 	.word 0x7ffc
 	.word 0x2fd2
 	.word 0x0e1a
-! cal[REDACTED]: Ignition 1  @0x6E1D4
+! cal60E1D400: Ignition 1  @0x6E1D4
 	.word 0x4b15
 	.word 0x8f27
 	.word 0x3e2c
@@ -292399,7 +292399,7 @@ L_06d0c4:
 	.word 0x2e51
 	.word 0x2eb1
 	.word 0xe300
-! cal[REDACTED]: X  @0x6E33C
+! cal60E1D400: X  @0x6E33C
 	.word 0xd206
 	.word 0xe107
 	.word 0x80e4
@@ -292408,14 +292408,14 @@ L_06d0c4:
 	.word 0x80e6
 	.word 0x2230
 	.word 0x8f15
-! cal[REDACTED]: Y  @0x6E34C
+! cal60E1D400: Y  @0x6E34C
 	.word 0x0009
 	.word 0xa014
 	.word 0xe410
 	.word 0x00ff
 	.word 0x0fff
 	.word 0xffff
-! cal[REDACTED]: Ignition Leading 5  @0x6E358
+! cal60E1D400: Ignition Leading 5  @0x6E358
 	.word 0xffff
 	.word 0xde82
 	.word 0xffff
@@ -292440,7 +292440,7 @@ L_06d0c4:
 	.word 0x430b
 	.word 0x6403
 	.word 0xa005
-! cal[REDACTED]: X  @0x6E388
+! cal60E1D400: X  @0x6E388
 	.word 0x0009
 	.word 0xb59f
 	.word 0x64d3
@@ -292449,14 +292449,14 @@ L_06d0c4:
 	.word 0x2e00
 	.word 0xd240
 	.word 0x420b
-! cal[REDACTED]: Y  @0x6E398
+! cal60E1D400: Y  @0x6E398
 	.word 0xe401
 	.word 0xe400
 	.word 0xd33e
 	.word 0x7f04
 	.word 0x4f26
 	.word 0x6bf6
-! cal[REDACTED]: Ignition Minimum Maybe  @0x6E3A4
+! cal60E1D400: Ignition Minimum Maybe  @0x6E3A4
 	.word 0x6cf6
 	.word 0x6df6
 	.word 0x432b
@@ -292547,14 +292547,14 @@ L_06d0c4:
 	.word 0x0009
 	.word 0x000b
 	.word 0x0009
-! cal[REDACTED]: X  @0x6E458
+! cal60E1D400: X  @0x6E458
 	.word 0x2fe6
 	.word 0xe701
 	.word 0xd014
 	.word 0xee00
 	.word 0x2fd6
 	.word 0x4f22
-! cal[REDACTED]: Y  @0x6E464
+! cal60E1D400: Y  @0x6E464
 	.word 0xdd13
 	.word 0x63e3
 	.word 0x4300
@@ -292563,7 +292563,7 @@ L_06d0c4:
 	.word 0x634c
 	.word 0x3230
 	.word 0x8f04
-! cal[REDACTED]: Table 3D - 106_  @0x6E474
+! cal60E1D400: Table 3D - 106_  @0x6E474
 	.word 0x0009
 	.word 0x4d0b
 	.word 0x64e3
@@ -292588,7 +292588,7 @@ L_06d0c4:
 	.word 0xde82
 	.word 0xffff
 	.word 0xde83
-! cal[REDACTED]: Y  @0x6E4A4
+! cal60E1D400: Y  @0x6E4A4
 	.word 0xffff
 	.word 0xde64
 	.word 0xffff
@@ -292601,14 +292601,14 @@ L_06d0c4:
 	.word 0xe150
 	.word 0x2fe6
 	.word 0xe701
-! cal[REDACTED]: Table 2D - 10_  @0x6E4BC
+! cal60E1D400: Table 2D - 10_  @0x6E4BC
 	.word 0xd044
 	.word 0xee00
 	.word 0x2fd6
 	.word 0x4f22
 	.word 0xdd43
 	.word 0x63e3
-! cal[REDACTED]: Y  @0x6E4C8
+! cal60E1D400: Y  @0x6E4C8
 	.word 0x4300
 	.word 0x023c
 	.word 0x622c
@@ -292621,14 +292621,14 @@ L_06d0c4:
 	.word 0xa004
 	.word 0x0009
 	.word 0x7e01
-! cal[REDACTED]: Table 2D - 11_  @0x6E4E0
+! cal60E1D400: Table 2D - 11_  @0x6E4E0
 	.word 0x3e73
 	.word 0x8ff0
 	.word 0x0009
 	.word 0x4f26
 	.word 0x6df6
 	.word 0x000b
-! cal[REDACTED]: Y  @0x6E4EC
+! cal60E1D400: Y  @0x6E4EC
 	.word 0x6ef6
 	.word 0xe501
 	.word 0x2fe6
@@ -292641,14 +292641,14 @@ L_06d0c4:
 	.word 0x4300
 	.word 0x336c
 	.word 0x6230
-! cal[REDACTED]: Table 2D - 12_  @0x6E504
+! cal60E1D400: Table 2D - 12_  @0x6E504
 	.word 0x622c
 	.word 0x634c
 	.word 0x3230
 	.word 0x8f04
 	.word 0x0009
 	.word 0x4d0b
-! cal[REDACTED]: Y  @0x6E510
+! cal60E1D400: Y  @0x6E510
 	.word 0x64e3
 	.word 0xa004
 	.word 0x0009
@@ -292661,14 +292661,14 @@ L_06d0c4:
 	.word 0x000b
 	.word 0x6ef6
 	.word 0x4f22
-! cal[REDACTED]: Table 2D - 13_  @0x6E528
+! cal60E1D400: Table 2D - 13_  @0x6E528
 	.word 0xd42c
 	.word 0x6040
 	.word 0x600c
 	.word 0xc840
 	.word 0x8d20
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6E534
+! cal60E1D400: Y  @0x6E534
 	.word 0x6040
 	.word 0xe201
 	.word 0xd329
@@ -292681,14 +292681,14 @@ L_06d0c4:
 	.word 0xe203
 	.word 0xd426
 	.word 0x2420
-! cal[REDACTED]: Table 2D - 14_  @0x6E54C
+! cal60E1D400: Table 2D - 14_  @0x6E54C
 	.word 0x8041
 	.word 0xd226
 	.word 0x6020
 	.word 0x8042
 	.word 0xe078
 	.word 0x8043
-! cal[REDACTED]: Y  @0x6E558
+! cal60E1D400: Y  @0x6E558
 	.word 0xe000
 	.word 0x8044
 	.word 0x8045
@@ -292701,14 +292701,14 @@ L_06d0c4:
 	.word 0xe47f
 	.word 0xd421
 	.word 0xd222
-! cal[REDACTED]: Table 2D - 15_  @0x6E570
+! cal60E1D400: Table 2D - 15_  @0x6E570
 	.word 0x422b
 	.word 0x4f26
 	.word 0x4f26
 	.word 0x000b
 	.word 0x0009
 	.word 0x4f22
-! cal[REDACTED]: Y  @0x6E57C
+! cal60E1D400: Y  @0x6E57C
 	.word 0xd31f
 	.word 0x430b
 	.word 0x0009
@@ -292741,7 +292741,7 @@ L_06d0c4:
 	.word 0xe100
 	.word 0x2210
 	.word 0xb343
-! cal[REDACTED]: Table 2D - 16_  @0x6E5BC
+! cal60E1D400: Table 2D - 16_  @0x6E5BC
 	.word 0x0009
 	.word 0xd313
 	.word 0xd213
@@ -292882,7 +292882,7 @@ L_06d0c4:
 	.word 0xe500
 	.word 0x2451
 	.word 0x6053
-! cal[REDACTED]: Y  @0x6E6D4
+! cal60E1D400: Y  @0x6E6D4
 	.word 0x8141
 	.word 0x9024
 	.word 0x8044
@@ -292897,12 +292897,12 @@ L_06d0c4:
 	.word 0xe400
 	.word 0xd516
 	.word 0x6043
-! cal[REDACTED]: Table 2D - 17_  @0x6E6F0
+! cal60E1D400: Table 2D - 17_  @0x6E6F0
 	.word 0x2340
 	.word 0x2541
 	.word 0x8151
 	.word 0x9014
-! cal[REDACTED]: Y  @0x6E6F8
+! cal60E1D400: Y  @0x6E6F8
 	.word 0x8054
 	.word 0x6043
 	.word 0x8055
@@ -292917,12 +292917,12 @@ L_06d0c4:
 	.word 0xc9f0
 	.word 0x6403
 	.word 0x634c
-! cal[REDACTED]: Table 2D - 18_  @0x6E714
+! cal60E1D400: Table 2D - 18_  @0x6E714
 	.word 0x3353
 	.word 0x8f01
 	.word 0x0009
 	.word 0x6453
-! cal[REDACTED]: Y  @0x6E71C
+! cal60E1D400: Y  @0x6E71C
 	.word 0x000b
 	.word 0x6043
 	.word 0x0090
@@ -292937,12 +292937,12 @@ L_06d0c4:
 	.word 0xef8c
 	.word 0xffff
 	.word 0xde83
-! cal[REDACTED]: Table 2D - 19_  @0x6E738
+! cal60E1D400: Table 2D - 19_  @0x6E738
 	.word 0xffff
 	.word 0xde6c
 	.word 0x0006
 	.word 0xf0aa
-! cal[REDACTED]: Y  @0x6E740
+! cal60E1D400: Y  @0x6E740
 	.word 0x0000
 	.word 0x3934
 	.word 0xffff
@@ -292957,12 +292957,12 @@ L_06d0c4:
 	.word 0xde77
 	.word 0xffff
 	.word 0xde68
-! cal[REDACTED]: Table 2D - 20_  @0x6E75C
+! cal60E1D400: Table 2D - 20_  @0x6E75C
 	.word 0xffff
 	.word 0xde54
 	.word 0x2fe6
 	.word 0x654c
-! cal[REDACTED]: Y  @0x6E764
+! cal60E1D400: Y  @0x6E764
 	.word 0x4f22
 	.word 0x2558
 	.word 0x8f0a
@@ -292977,12 +292977,12 @@ L_06d0c4:
 	.word 0x0009
 	.word 0xa030
 	.word 0x6e03
-! cal[REDACTED]: Table 2D - 21_  @0x6E780
+! cal60E1D400: Table 2D - 21_  @0x6E780
 	.word 0x6053
 	.word 0x8810
 	.word 0x8f0a
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6E788
+! cal60E1D400: Y  @0x6E788
 	.word 0xb15d
 	.word 0x0009
 	.word 0x640c
@@ -292997,12 +292997,12 @@ L_06d0c4:
 	.word 0x8f13
 	.word 0x0009
 	.word 0xb15d
-! cal[REDACTED]: Table 2D - 22_  @0x6E7A4
+! cal60E1D400: Table 2D - 22_  @0x6E7A4
 	.word 0x0009
 	.word 0x640c
 	.word 0x2448
 	.word 0x8f19
-! cal[REDACTED]: Y  @0x6E7AC
+! cal60E1D400: Y  @0x6E7AC
 	.word 0x0009
 	.word 0xb0d1
 	.word 0x0009
@@ -293041,7 +293041,7 @@ L_06d0c4:
 	.word 0x84e6
 	.word 0xb32f
 	.word 0x6403
-! cal[REDACTED]: Table 2D - 23_  @0x6E7F8
+! cal60E1D400: Table 2D - 23_  @0x6E7F8
 	.word 0xd21b
 	.word 0xe528
 	.word 0x420b
@@ -293062,7 +293062,7 @@ L_06d0c4:
 	.word 0x63f2
 	.word 0x3320
 	.word 0x8f02
-! cal[REDACTED]: Y  @0x6E820
+! cal60E1D400: Y  @0x6E820
 	.word 0x7408
 	.word 0xa002
 	.word 0x2462
@@ -293085,7 +293085,7 @@ L_06d0c4:
 	.word 0x420b
 	.word 0x6403
 	.word 0xe500
-! cal[REDACTED]: Table 2D - 24_  @0x6E84C
+! cal60E1D400: Table 2D - 24_  @0x6E84C
 	.word 0xd30a
 	.word 0x56f1
 	.word 0x430b
@@ -293098,7 +293098,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xffff
 	.word 0xde72
-! cal[REDACTED]: Y  @0x6E864
+! cal60E1D400: Y  @0x6E864
 	.word 0x0006
 	.word 0xef8c
 	.word 0x0006
@@ -293113,7 +293113,7 @@ L_06d0c4:
 	.word 0x9660
 	.word 0x2fe6
 	.word 0xe307
-! cal[REDACTED]: Idle Target  @0x6E880
+! cal60E1D400: Idle Target  @0x6E880
 	.word 0xd044
 	.word 0x2fd6
 	.word 0x2fc6
@@ -293122,7 +293122,7 @@ L_06d0c4:
 	.word 0x6000
 	.word 0x600c
 	.word 0x2d09
-! cal[REDACTED]: Y  @0x6E890
+! cal60E1D400: Y  @0x6E890
 	.word 0x65dd
 	.word 0x3537
 	.word 0x8d17
@@ -293147,7 +293147,7 @@ L_06d0c4:
 	.word 0x60c0
 	.word 0x80e4
 	.word 0x84e6
-! cal[REDACTED]: Idle Target 0  @0x6E8C0
+! cal60E1D400: Idle Target 0  @0x6E8C0
 	.word 0x430b
 	.word 0x6403
 	.word 0xe400
@@ -293160,7 +293160,7 @@ L_06d0c4:
 	.word 0x2fe6
 	.word 0x2fd6
 	.word 0xed0f
-! cal[REDACTED]: Y  @0x6E8D8
+! cal60E1D400: Y  @0x6E8D8
 	.word 0x9359
 	.word 0x2fc6
 	.word 0x4f22
@@ -293185,7 +293185,7 @@ L_06d0c4:
 	.word 0x6040
 	.word 0xcb04
 	.word 0xbeef
-! cal[REDACTED]: Idle Target 1  @0x6E908
+! cal60E1D400: Idle Target 1  @0x6E908
 	.word 0x2400
 	.word 0xde24
 	.word 0xdc26
@@ -293198,7 +293198,7 @@ L_06d0c4:
 	.word 0xe002
 	.word 0x80e5
 	.word 0x2ed1
-! cal[REDACTED]: Y  @0x6E920
+! cal60E1D400: Y  @0x6E920
 	.word 0x60c0
 	.word 0x80e4
 	.word 0xe006
@@ -293223,7 +293223,7 @@ L_06d0c4:
 	.word 0x4f26
 	.word 0x6cf6
 	.word 0x6df6
-! cal[REDACTED]: Idle Target 2  @0x6E950
+! cal60E1D400: Idle Target 2  @0x6E950
 	.word 0x000b
 	.word 0x6ef6
 	.word 0x2fe6
@@ -293236,7 +293236,7 @@ L_06d0c4:
 	.word 0xde0e
 	.word 0x85e1
 	.word 0x7007
-! cal[REDACTED]: Y  @0x6E968
+! cal60E1D400: Y  @0x6E968
 	.word 0x81e1
 	.word 0x84e8
 	.word 0x430b
@@ -293261,7 +293261,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xffff
 	.word 0xde54
-! cal[REDACTED]: Idle Target 3  @0x6E998
+! cal60E1D400: Idle Target 3  @0x6E998
 	.word 0xffff
 	.word 0xde81
 	.word 0xffff
@@ -293274,7 +293274,7 @@ L_06d0c4:
 	.word 0xde56
 	.word 0x0006
 	.word 0xeefa
-! cal[REDACTED]: Y  @0x6E9B0
+! cal60E1D400: Y  @0x6E9B0
 	.word 0x0006
 	.word 0xf0b0
 	.word 0x0006
@@ -293289,7 +293289,7 @@ L_06d0c4:
 	.word 0x60d0
 	.word 0xde8d
 	.word 0xc90f
-! cal[REDACTED]: Idle Target 4  @0x6E9CC
+! cal60E1D400: Idle Target 4  @0x6E9CC
 	.word 0xdc8d
 	.word 0x6403
 	.word 0x654c
@@ -293298,7 +293298,7 @@ L_06d0c4:
 	.word 0x2e40
 	.word 0xd28b
 	.word 0x420b
-! cal[REDACTED]: Y  @0x6E9DC
+! cal60E1D400: Y  @0x6E9DC
 	.word 0xe404
 	.word 0xe000
 	.word 0xd38a
@@ -293313,7 +293313,7 @@ L_06d0c4:
 	.word 0x84e2
 	.word 0x4f26
 	.word 0x650c
-! cal[REDACTED]: Idle Target 5  @0x6E9F8
+! cal60E1D400: Idle Target 5  @0x6E9F8
 	.word 0x6cf6
 	.word 0x6df6
 	.word 0x432b
@@ -293322,7 +293322,7 @@ L_06d0c4:
 	.word 0x8801
 	.word 0x8f0d
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6EA08
+! cal60E1D400: Y  @0x6EA08
 	.word 0xd27f
 	.word 0x420b
 	.word 0xe404
@@ -293337,7 +293337,7 @@ L_06d0c4:
 	.word 0x432b
 	.word 0x6ef6
 	.word 0x4f26
-! cal[REDACTED]: Idle Target 6  @0x6EA24
+! cal60E1D400: Idle Target 6  @0x6EA24
 	.word 0x6cf6
 	.word 0x6df6
 	.word 0x000b
@@ -293346,7 +293346,7 @@ L_06d0c4:
 	.word 0x6530
 	.word 0x665c
 	.word 0x2668
-! cal[REDACTED]: Y  @0x6EA34
+! cal60E1D400: Y  @0x6EA34
 	.word 0x8d04
 	.word 0xe401
 	.word 0xe104
@@ -293361,7 +293361,7 @@ L_06d0c4:
 	.word 0x665c
 	.word 0x2668
 	.word 0x8d04
-! cal[REDACTED]: Idle Target 7  @0x6EA50
+! cal60E1D400: Idle Target 7  @0x6EA50
 	.word 0xe401
 	.word 0xe104
 	.word 0x2168
@@ -293370,7 +293370,7 @@ L_06d0c4:
 	.word 0xe400
 	.word 0x000b
 	.word 0x6043
-! cal[REDACTED]: X  @0x6EA60
+! cal60E1D400: X  @0x6EA60
 	.word 0xd46c
 	.word 0x8445
 	.word 0x600c
@@ -293385,14 +293385,14 @@ L_06d0c4:
 	.word 0x657c
 	.word 0x600c
 	.word 0x3050
-! cal[REDACTED]: Y  @0x6EA7C
+! cal60E1D400: Y  @0x6EA7C
 	.word 0x8f0a
 	.word 0x0009
 	.word 0xe20f
 	.word 0x3523
 	.word 0x8f02
 	.word 0xe700
-! cal[REDACTED]: Table 3D - 12_  @0x6EA88
+! cal60E1D400: Table 3D - 12_  @0x6EA88
 	.word 0xa002
 	.word 0x6073
 	.word 0x8447
@@ -293431,7 +293431,7 @@ L_06d0c4:
 	.word 0xa00f
 	.word 0x0009
 	.word 0x8820
-! cal[REDACTED]: Y  @0x6EAD4
+! cal60E1D400: Y  @0x6EAD4
 	.word 0x8f05
 	.word 0x0009
 	.word 0xe220
@@ -293450,14 +293450,14 @@ L_06d0c4:
 	.word 0xd24c
 	.word 0x422b
 	.word 0x4f26
-! cal[REDACTED]: Table 2D - 34_  @0x6EAF8
+! cal60E1D400: Table 2D - 34_  @0x6EAF8
 	.word 0x4f22
 	.word 0xe607
 	.word 0xd54b
 	.word 0xd347
 	.word 0xd049
 	.word 0x6200
-! cal[REDACTED]: Y  @0x6EB04
+! cal60E1D400: Y  @0x6EB04
 	.word 0x6130
 	.word 0x212b
 	.word 0x2310
@@ -293476,14 +293476,14 @@ L_06d0c4:
 	.word 0x4f22
 	.word 0xdd3d
 	.word 0xde37
-! cal[REDACTED]: Table 2D - 35_  @0x6EB28
+! cal60E1D400: Table 2D - 35_  @0x6EB28
 	.word 0x61d0
 	.word 0x65d3
 	.word 0x63e1
 	.word 0x7502
 	.word 0x633d
 	.word 0x4319
-! cal[REDACTED]: Y  @0x6EB34
+! cal60E1D400: Y  @0x6EB34
 	.word 0x213b
 	.word 0x2d10
 	.word 0x84e1
@@ -293502,14 +293502,14 @@ L_06d0c4:
 	.word 0x4f26
 	.word 0x6df6
 	.word 0x432b
-! cal[REDACTED]: Table 2D - 36_  @0x6EB58
+! cal60E1D400: Table 2D - 36_  @0x6EB58
 	.word 0x6ef6
 	.word 0xe607
 	.word 0xd533
 	.word 0x2fe6
 	.word 0x4f22
 	.word 0xde28
-! cal[REDACTED]: Y  @0x6EB64
+! cal60E1D400: Y  @0x6EB64
 	.word 0xd32d
 	.word 0x84e7
 	.word 0x6230
@@ -293528,14 +293528,14 @@ L_06d0c4:
 	.word 0xa002
 	.word 0xe000
 	.word 0x84e7
-! cal[REDACTED]: Table 2D - 37_  @0x6EB88
+! cal60E1D400: Table 2D - 37_  @0x6EB88
 	.word 0x7001
 	.word 0xe530
 	.word 0xd31f
 	.word 0xe404
 	.word 0x80e7
 	.word 0xe00a
-! cal[REDACTED]: Y  @0x6EB94
+! cal60E1D400: Y  @0x6EB94
 	.word 0x80e5
 	.word 0x4f26
 	.word 0x432b
@@ -293546,12 +293546,12 @@ L_06d0c4:
 	.word 0x6603
 	.word 0xd724
 	.word 0x656c
-! cal[REDACTED]: Table 2D - 38_  @0x6EBA8
+! cal60E1D400: Table 2D - 38_  @0x6EBA8
 	.word 0x6053
 	.word 0x8801
 	.word 0x8f03
 	.word 0xe400
-! cal[REDACTED]: Y  @0x6EBB0
+! cal60E1D400: Y  @0x6EBB0
 	.word 0xe301
 	.word 0xa001
 	.word 0x2730
@@ -293564,12 +293564,12 @@ L_06d0c4:
 	.word 0x6230
 	.word 0x622c
 	.word 0x4211
-! cal[REDACTED]: Table 2D - 39_  @0x6EBC8
+! cal60E1D400: Table 2D - 39_  @0x6EBC8
 	.word 0x8f02
 	.word 0x0009
 	.word 0xad4e
 	.word 0x4f26
-! cal[REDACTED]: Y  @0x6EBD0
+! cal60E1D400: Y  @0x6EBD0
 	.word 0xd512
 	.word 0x6043
 	.word 0xd21a
@@ -293598,7 +293598,7 @@ L_06d0c4:
 	.word 0xde7c
 	.word 0xffff
 	.word 0xde68
-! cal[REDACTED]: Table 2D - 40_  @0x6EC08
+! cal60E1D400: Table 2D - 40_  @0x6EC08
 	.word 0x0006
 	.word 0xef8c
 	.word 0x0006
@@ -293621,7 +293621,7 @@ L_06d0c4:
 	.word 0xde5d
 	.word 0xffff
 	.word 0xde6e
-! cal[REDACTED]: Y  @0x6EC34
+! cal60E1D400: Y  @0x6EC34
 	.word 0x0006
 	.word 0xe1ac
 	.word 0xffff
@@ -293630,12 +293630,12 @@ L_06d0c4:
 	.word 0xde7b
 	.word 0xffff
 	.word 0xde77
-! cal[REDACTED]: Table 2D - 41_  @0x6EC44
+! cal60E1D400: Table 2D - 41_  @0x6EC44
 	.word 0x4f22
 	.word 0xd33f
 	.word 0xb140
 	.word 0x6430
-! cal[REDACTED]: Y  @0x6EC4C
+! cal60E1D400: Y  @0x6EC4C
 	.word 0xd23e
 	.word 0xe100
 	.word 0xd43e
@@ -293654,7 +293654,7 @@ L_06d0c4:
 	.word 0x6030
 	.word 0x600c
 	.word 0x8801
-! cal[REDACTED]: Table 2D - 42_  @0x6EC70
+! cal60E1D400: Table 2D - 42_  @0x6EC70
 	.word 0x8f0a
 	.word 0x0009
 	.word 0x9565
@@ -293665,7 +293665,7 @@ L_06d0c4:
 	.word 0x6040
 	.word 0xc9ef
 	.word 0x2400
-! cal[REDACTED]: Y  @0x6EC84
+! cal60E1D400: Y  @0x6EC84
 	.word 0xa008
 	.word 0xe47f
 	.word 0x4e0b
@@ -293684,7 +293684,7 @@ L_06d0c4:
 	.word 0x4f22
 	.word 0xde2a
 	.word 0x4e0b
-! cal[REDACTED]: Table 2D - 43_  @0x6ECA8
+! cal60E1D400: Table 2D - 43_  @0x6ECA8
 	.word 0xe404
 	.word 0x4e0b
 	.word 0xe401
@@ -293695,7 +293695,7 @@ L_06d0c4:
 	.word 0xd42b
 	.word 0x8541
 	.word 0x7006
-! cal[REDACTED]: Y  @0x6ECBC
+! cal60E1D400: Y  @0x6ECBC
 	.word 0x8141
 	.word 0xe007
 	.word 0x8045
@@ -293714,7 +293714,7 @@ L_06d0c4:
 	.word 0x84e8
 	.word 0x430b
 	.word 0x6403
-! cal[REDACTED]: Table 2D - 44_  @0x6ECE0
+! cal60E1D400: Table 2D - 44_  @0x6ECE0
 	.word 0x80e8
 	.word 0x85e1
 	.word 0x7007
@@ -293725,7 +293725,7 @@ L_06d0c4:
 	.word 0x8d20
 	.word 0x0009
 	.word 0xd31e
-! cal[REDACTED]: Y  @0x6ECF4
+! cal60E1D400: Y  @0x6ECF4
 	.word 0x6430
 	.word 0x644c
 	.word 0x2448
@@ -293736,7 +293736,7 @@ L_06d0c4:
 	.word 0x611c
 	.word 0x3143
 	.word 0x8d0a
-! cal[REDACTED]: Table 2D - 45_  @0x6ED08
+! cal60E1D400: Table 2D - 45_  @0x6ED08
 	.word 0x0009
 	.word 0xe009
 	.word 0xd319
@@ -293745,7 +293745,7 @@ L_06d0c4:
 	.word 0x80e5
 	.word 0x6530
 	.word 0x655c
-! cal[REDACTED]: Y  @0x6ED18
+! cal60E1D400: Y  @0x6ED18
 	.word 0x4f26
 	.word 0x422b
 	.word 0x6ef6
@@ -293764,14 +293764,14 @@ L_06d0c4:
 	.word 0x84e4
 	.word 0x4f26
 	.word 0x6403
-! cal[REDACTED]: Table 2D - 46_  @0x6ED3C
+! cal60E1D400: Table 2D - 46_  @0x6ED3C
 	.word 0xd308
 	.word 0x432b
 	.word 0x6ef6
 	.word 0x0f96
 	.word 0xffff
 	.word 0xde6e
-! cal[REDACTED]: X  @0x6ED48
+! cal60E1D400: X  @0x6ED48
 	.word 0xffff
 	.word 0xde6d
 	.word 0xffff
@@ -293790,14 +293790,14 @@ L_06d0c4:
 	.word 0xde68
 	.word 0x0000
 	.word 0x2478
-! cal[REDACTED]: Y  @0x6ED6C
+! cal60E1D400: Y  @0x6ED6C
 	.word 0xffff
 	.word 0xde7d
 	.word 0xffff
 	.word 0xde70
 	.word 0xffff
 	.word 0xde7e
-! cal[REDACTED]: Table 3D - 13_  @0x6ED78
+! cal60E1D400: Table 3D - 13_  @0x6ED78
 	.word 0x2fe6
 	.word 0x4f22
 	.word 0xd348
@@ -293820,7 +293820,7 @@ L_06d0c4:
 	.word 0xe505
 	.word 0x80e5
 	.word 0xa006
-! cal[REDACTED]: X  @0x6EDA4
+! cal60E1D400: X  @0x6EDA4
 	.word 0xe406
 	.word 0xe000
 	.word 0x9577
@@ -293845,7 +293845,7 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x307c
 	.word 0x8401
-! cal[REDACTED]: Y  @0x6EDD4
+! cal60E1D400: Y  @0x6EDD4
 	.word 0x600c
 	.word 0x8804
 	.word 0x8f03
@@ -293862,7 +293862,7 @@ L_06d0c4:
 	.word 0x0009
 	.word 0x606c
 	.word 0x8801
-! cal[REDACTED]: Table 3D - 14_  @0x6EDF4
+! cal60E1D400: Table 3D - 14_  @0x6EDF4
 	.word 0x8f02
 	.word 0x0009
 	.word 0x6e43
@@ -293911,7 +293911,7 @@ L_06d0c4:
 	.word 0x363c
 	.word 0x2650
 	.word 0x422b
-! cal[REDACTED]: X  @0x6EE54
+! cal60E1D400: X  @0x6EE54
 	.word 0x8061
 	.word 0xe140
 	.word 0xd019
@@ -293952,7 +293952,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x0006
 	.word 0xef8c
-! cal[REDACTED]: Y  @0x6EEA4
+! cal60E1D400: Y  @0x6EEA4
 	.word 0xffff
 	.word 0xde72
 	.word 0x0000
@@ -293989,7 +293989,7 @@ L_06d0c4:
 	.word 0x6743
 	.word 0x771c
 	.word 0x2452
-! cal[REDACTED]: Ignition Trailing B  @0x6EEEC
+! cal60E1D400: Ignition Trailing B  @0x6EEEC
 	.word 0x2650
 	.word 0x7404
 	.word 0x3472
@@ -294170,7 +294170,7 @@ L_06d0c4:
 	.word 0xe602
 	.word 0xe522
 	.word 0xb08e
-! cal[REDACTED]: X  @0x6F054
+! cal60E1D400: X  @0x6F054
 	.word 0x64e3
 	.word 0xa011
 	.word 0x0009
@@ -294211,7 +294211,7 @@ L_06d0c4:
 	.word 0xd30b
 	.word 0x432b
 	.word 0x0009
-! cal[REDACTED]: Y  @0x6F0A4
+! cal60E1D400: Y  @0x6F0A4
 	.word 0xd30a
 	.word 0x432b
 	.word 0x0009
@@ -294248,7 +294248,7 @@ L_06d0c4:
 	.word 0x2fd6
 	.word 0x2fb6
 	.word 0x2fa6
-! cal[REDACTED]: Ignition Trailing A  @0x6F0EC
+! cal60E1D400: Ignition Trailing A  @0x6F0EC
 	.word 0x4f22
 	.word 0x7ff8
 	.word 0xd243
@@ -294429,7 +294429,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x6F254
+! cal60E1D400: X  @0x6F254
 	.word 0x0005
 	.word 0x0400
 	.word 0x0007
@@ -294470,7 +294470,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x1798
-! cal[REDACTED]: Y  @0x6F2A4
+! cal60E1D400: Y  @0x6F2A4
 	.word 0x0007
 	.word 0x17a8
 	.word 0x0004
@@ -294507,7 +294507,7 @@ L_06d0c4:
 	.word 0x1888
 	.word 0x0007
 	.word 0x189c
-! cal[REDACTED]: Ignition Min Split  @0x6F2EC
+! cal60E1D400: Ignition Min Split  @0x6F2EC
 	.word 0x0400
 	.word 0x0000
 	.word 0x41c8
@@ -294688,7 +294688,7 @@ L_06d0c4:
 	.word 0x126e
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x6F454
+! cal60E1D400: X  @0x6F454
 	.word 0x0002
 	.word 0x0800
 	.word 0x0007
@@ -294727,7 +294727,7 @@ L_06d0c4:
 	.word 0x1f74
 	.word 0x3a83
 	.word 0x126e
-! cal[REDACTED]: Y  @0x6F4A0
+! cal60E1D400: Y  @0x6F4A0
 	.word 0x0000
 	.word 0x0000
 	.word 0x0010
@@ -294750,7 +294750,7 @@ L_06d0c4:
 	.word 0x126e
 	.word 0xbf00
 	.word 0x0000
-! cal[REDACTED]: Ignition 3  @0x6F4CC
+! cal60E1D400: Ignition 3  @0x6F4CC
 	.word 0x0007
 	.word 0x0400
 	.word 0x0007
@@ -295079,7 +295079,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0005
 	.word 0x0400
-! cal[REDACTED]: Y  @0x6F75C
+! cal60E1D400: Y  @0x6F75C
 	.word 0x0007
 	.word 0x2abc
 	.word 0x0007
@@ -295104,20 +295104,20 @@ L_06d0c4:
 	.word 0x2b60
 	.word 0x0007
 	.word 0x2be0
-! cal[REDACTED]: Ignition 4  @0x6F78C
+! cal60E1D400: Ignition 4  @0x6F78C
 	.word 0x0005
 	.word 0x0400
 	.word 0x0007
 	.word 0x2d10
 	.word 0x0007
 	.word 0x2d24
-! cal[REDACTED]: Y  @0x6F798
+! cal60E1D400: Y  @0x6F798
 	.word 0x3b80
 	.word 0x0000
-! cal[REDACTED]: Ignition 5  @0x6F79C
+! cal60E1D400: Ignition 5  @0x6F79C
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F7A0
+! cal60E1D400: Y  @0x6F7A0
 	.word 0x0005
 	.word 0x0000
 	.word 0x0007
@@ -295142,94 +295142,94 @@ L_06d0c4:
 	.word 0x2f5c
 	.word 0x0007
 	.word 0x2f9c
-! cal[REDACTED]: Ignition 6  @0x6F7D0
+! cal60E1D400: Ignition 6  @0x6F7D0
 	.word 0x3a83
 	.word 0x126e
 	.word 0x0000
 	.word 0x0000
 	.word 0x0010
 	.word 0x0800
-! cal[REDACTED]: Y  @0x6F7DC
+! cal60E1D400: Y  @0x6F7DC
 	.word 0x0007
 	.word 0x2fbc
-! cal[REDACTED]: Ignition 7  @0x6F7E0
+! cal60E1D400: Ignition 7  @0x6F7E0
 	.word 0x0007
 	.word 0x2ffc
-! cal[REDACTED]: Y  @0x6F7E4
+! cal60E1D400: Y  @0x6F7E4
 	.word 0x3a83
 	.word 0x126e
-! cal[REDACTED]: Ignition 8  @0x6F7E8
+! cal60E1D400: Ignition 8  @0x6F7E8
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F7EC
+! cal60E1D400: Y  @0x6F7EC
 	.word 0x0010
 	.word 0x0800
-! cal[REDACTED]: Ignition 9  @0x6F7F0
+! cal60E1D400: Ignition 9  @0x6F7F0
 	.word 0x0007
 	.word 0x301c
-! cal[REDACTED]: Y  @0x6F7F4
+! cal60E1D400: Y  @0x6F7F4
 	.word 0x0007
 	.word 0x305c
-! cal[REDACTED]: Ignition 10  @0x6F7F8
+! cal60E1D400: Ignition 10  @0x6F7F8
 	.word 0x3a83
 	.word 0x126e
-! cal[REDACTED]: Y  @0x6F7FC
+! cal60E1D400: Y  @0x6F7FC
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Ignition 11  @0x6F800
+! cal60E1D400: Ignition 11  @0x6F800
 	.word 0x0010
 	.word 0x0800
-! cal[REDACTED]: Y  @0x6F804
+! cal60E1D400: Y  @0x6F804
 	.word 0x0007
 	.word 0x307c
-! cal[REDACTED]: Ignition 12  @0x6F808
+! cal60E1D400: Ignition 12  @0x6F808
 	.word 0x0007
 	.word 0x30bc
-! cal[REDACTED]: Y  @0x6F80C
+! cal60E1D400: Y  @0x6F80C
 	.word 0x3a83
 	.word 0x126e
-! cal[REDACTED]: Ignition 13  @0x6F810
+! cal60E1D400: Ignition 13  @0x6F810
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x6F814
+! cal60E1D400: X  @0x6F814
 	.word 0x0004
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F818
+! cal60E1D400: Y  @0x6F818
 	.word 0x0007
 	.word 0x30dc
-! cal[REDACTED]: Ignition 14  @0x6F81C
+! cal60E1D400: Ignition 14  @0x6F81C
 	.word 0x0007
 	.word 0x30ec
-! cal[REDACTED]: X  @0x6F820
+! cal60E1D400: X  @0x6F820
 	.word 0x000b
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F824
+! cal60E1D400: Y  @0x6F824
 	.word 0x0007
 	.word 0x30fc
-! cal[REDACTED]: Ignition 15  @0x6F828
+! cal60E1D400: Ignition 15  @0x6F828
 	.word 0x0007
 	.word 0x3128
-! cal[REDACTED]: X  @0x6F82C
+! cal60E1D400: X  @0x6F82C
 	.word 0x0010
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F830
+! cal60E1D400: Y  @0x6F830
 	.word 0x0007
 	.word 0x3238
-! cal[REDACTED]: Ignition 16  @0x6F834
+! cal60E1D400: Ignition 16  @0x6F834
 	.word 0x0007
 	.word 0x3278
-! cal[REDACTED]: X  @0x6F838
+! cal60E1D400: X  @0x6F838
 	.word 0x0006
 	.word 0x0400
-! cal[REDACTED]: Y  @0x6F83C
+! cal60E1D400: Y  @0x6F83C
 	.word 0x0007
 	.word 0x32c4
-! cal[REDACTED]: Ignition 17  @0x6F840
+! cal60E1D400: Ignition 17  @0x6F840
 	.word 0x0007
 	.word 0x32dc
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6F848
+! cal60E1D400: Y  @0x6F848
 	.word 0x0000
 	.word 0x0000
 	.word 0x0006
@@ -295254,7 +295254,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0008
 	.word 0x0800
-! cal[REDACTED]: Table 2D - 57_  @0x6F878
+! cal60E1D400: Table 2D - 57_  @0x6F878
 	.word 0x0007
 	.word 0x3338
 	.word 0x0007
@@ -295313,7 +295313,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x3558
-! cal[REDACTED]: Y  @0x6F8EC
+! cal60E1D400: Y  @0x6F8EC
 	.word 0x0007
 	.word 0x3574
 	.word 0x0004
@@ -295378,7 +295378,7 @@ L_06d0c4:
 	.word 0x38dc
 	.word 0x0007
 	.word 0x38f8
-! cal[REDACTED]: CLT Sensor Scaling  @0x6F96C
+! cal60E1D400: CLT Sensor Scaling  @0x6F96C
 	.word 0x38d1
 	.word 0xb717
 	.word 0xbf80
@@ -295531,7 +295531,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x38d1
 	.word 0xb717
-! cal[REDACTED]: Y  @0x6FA9C
+! cal60E1D400: Y  @0x6FA9C
 	.word 0xbf80
 	.word 0x0000
 	.word 0x000a
@@ -295542,12 +295542,12 @@ L_06d0c4:
 	.word 0x4080
 	.word 0x0007
 	.word 0x40b0
-! cal[REDACTED]: Table 2D - 58_  @0x6FAB0
+! cal60E1D400: Table 2D - 58_  @0x6FAB0
 	.word 0x0800
 	.word 0x0000
 	.word 0x38d1
 	.word 0xb717
-! cal[REDACTED]: Y  @0x6FAB8
+! cal60E1D400: Y  @0x6FAB8
 	.word 0xbf80
 	.word 0x0000
 	.word 0x000a
@@ -295558,7 +295558,7 @@ L_06d0c4:
 	.word 0x41c8
 	.word 0x0007
 	.word 0x41d0
-! cal[REDACTED]: Table 2D - 292 Check DataType  @0x6FACC
+! cal60E1D400: Table 2D - 292 Check DataType  @0x6FACC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0004
@@ -295569,7 +295569,7 @@ L_06d0c4:
 	.word 0x4230
 	.word 0x0007
 	.word 0x423c
-! cal[REDACTED]: Y  @0x6FAE0
+! cal60E1D400: Y  @0x6FAE0
 	.word 0x0000
 	.word 0x0000
 	.word 0x0006
@@ -295580,7 +295580,7 @@ L_06d0c4:
 	.word 0x4310
 	.word 0x3c00
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 293 Check DataType  @0x6FAF4
+! cal60E1D400: Table 2D - 293 Check DataType  @0x6FAF4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0006
@@ -295599,7 +295599,7 @@ L_06d0c4:
 	.word 0x4338
 	.word 0x0007
 	.word 0x4364
-! cal[REDACTED]: Y  @0x6FB18
+! cal60E1D400: Y  @0x6FB18
 	.word 0x3a83
 	.word 0x126e
 	.word 0x0000
@@ -295696,7 +295696,7 @@ L_06d0c4:
 	.word 0x45ac
 	.word 0x0004
 	.word 0x0800
-! cal[REDACTED]: MAF Scaling  @0x6FBD8
+! cal60E1D400: MAF Scaling  @0x6FBD8
 	.word 0x0007
 	.word 0x45b4
 	.word 0x0007
@@ -295825,7 +295825,7 @@ L_06d0c4:
 	.word 0x4948
 	.word 0x0003
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6FCD8
+! cal60E1D400: Y  @0x6FCD8
 	.word 0x0007
 	.word 0x4950
 	.word 0x0007
@@ -295842,12 +295842,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3b80
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 295 Check DataType  @0x6FCF8
+! cal60E1D400: Table 2D - 295 Check DataType  @0x6FCF8
 	.word 0x0000
 	.word 0x0000
 	.word 0x0011
 	.word 0x0011
-! cal[REDACTED]: Y  @0x6FD00
+! cal60E1D400: Y  @0x6FD00
 	.word 0x0007
 	.word 0x49d8
 	.word 0x0007
@@ -295864,12 +295864,12 @@ L_06d0c4:
 	.word 0x0005
 	.word 0x0007
 	.word 0x4b84
-! cal[REDACTED]: Table 2D - 296 Check DataType  @0x6FD20
+! cal60E1D400: Table 2D - 296 Check DataType  @0x6FD20
 	.word 0x0007
 	.word 0x4ba8
 	.word 0x0007
 	.word 0x4bbc
-! cal[REDACTED]: Y  @0x6FD28
+! cal60E1D400: Y  @0x6FD28
 	.word 0x0400
 	.word 0x0000
 	.word 0x3b80
@@ -295878,7 +295878,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0011
 	.word 0x0011
-! cal[REDACTED]: Injector Barometric Pressure Compensation  @0x6FD38
+! cal60E1D400: Injector Barometric Pressure Compensation  @0x6FD38
 	.word 0x0007
 	.word 0x4bec
 	.word 0x0007
@@ -295887,7 +295887,7 @@ L_06d0c4:
 	.word 0x4c74
 	.word 0x0400
 	.word 0x0000
-! cal[REDACTED]: Y  @0x6FD48
+! cal60E1D400: Y  @0x6FD48
 	.word 0x3b80
 	.word 0x0000
 	.word 0x0000
@@ -295910,7 +295910,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0009
 	.word 0x0400
-! cal[REDACTED]: Lambda Sensor Scaling  @0x6FD74
+! cal60E1D400: Lambda Sensor Scaling  @0x6FD74
 	.word 0x0007
 	.word 0x4ef0
 	.word 0x0007
@@ -295933,7 +295933,7 @@ L_06d0c4:
 	.word 0x0400
 	.word 0x0007
 	.word 0x4f44
-! cal[REDACTED]: Y  @0x6FDA0
+! cal60E1D400: Y  @0x6FDA0
 	.word 0x0007
 	.word 0x4f60
 	.word 0x3e80
@@ -295966,7 +295966,7 @@ L_06d0c4:
 	.word 0x4fcc
 	.word 0x0007
 	.word 0x4fe8
-! cal[REDACTED]: Table 2D - 299 Check DataType  @0x6FDE0
+! cal60E1D400: Table 2D - 299 Check DataType  @0x6FDE0
 	.word 0x3f00
 	.word 0x0000
 	.word 0xc220
@@ -295999,7 +295999,7 @@ L_06d0c4:
 	.word 0x5064
 	.word 0x3a83
 	.word 0x126e
-! cal[REDACTED]: Y  @0x6FE20
+! cal60E1D400: Y  @0x6FE20
 	.word 0x0000
 	.word 0x0000
 	.word 0x0006
@@ -296032,7 +296032,7 @@ L_06d0c4:
 	.word 0x51bc
 	.word 0x0800
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 300 Check DataType  @0x6FE60
+! cal60E1D400: Table 2D - 300 Check DataType  @0x6FE60
 	.word 0x3b48
 	.word 0x0000
 	.word 0x0000
@@ -296077,7 +296077,7 @@ L_06d0c4:
 	.word 0x5808
 	.word 0x0007
 	.word 0x5824
-! cal[REDACTED]: Y  @0x6FEB8
+! cal60E1D400: Y  @0x6FEB8
 	.word 0x0007
 	.word 0x5830
 	.word 0x0400
@@ -296100,7 +296100,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 59_  @0x6FEE4
+! cal60E1D400: Table 2D - 59_  @0x6FEE4
 	.word 0x0010
 	.word 0x000e
 	.word 0x0007
@@ -296199,7 +296199,7 @@ L_06d0c4:
 	.word 0x0006
 	.word 0x0007
 	.word 0x5ccc
-! cal[REDACTED]: Y  @0x6FFA8
+! cal60E1D400: Y  @0x6FFA8
 	.word 0x0007
 	.word 0x5cf8
 	.word 0x0007
@@ -296232,7 +296232,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0006
 	.word 0x0400
-! cal[REDACTED]: IAT Sensor Scaling  @0x6FFE8
+! cal60E1D400: IAT Sensor Scaling  @0x6FFE8
 	.word 0x0007
 	.word 0x5db8
 	.word 0x0007
@@ -296291,7 +296291,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0011
 	.word 0x0012
-! cal[REDACTED]: Y  @0x7005C
+! cal60E1D400: Y  @0x7005C
 	.word 0x0007
 	.word 0x63fc
 	.word 0x0007
@@ -296312,14 +296312,14 @@ L_06d0c4:
 	.word 0x6730
 	.word 0x0007
 	.word 0x6778
-! cal[REDACTED]: Table 2D - 60_  @0x70084
+! cal60E1D400: Table 2D - 60_  @0x70084
 	.word 0x0800
 	.word 0x0000
 	.word 0x3b48
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70090
+! cal60E1D400: Y  @0x70090
 	.word 0x0007
 	.word 0x0800
 	.word 0x0007
@@ -296336,12 +296336,12 @@ L_06d0c4:
 	.word 0x6a48
 	.word 0x0007
 	.word 0x6a84
-! cal[REDACTED]: Table 2D - 61_  @0x700B0
+! cal60E1D400: Table 2D - 61_  @0x700B0
 	.word 0x3c23
 	.word 0xd70a
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x700B8
+! cal60E1D400: Y  @0x700B8
 	.word 0x0009
 	.word 0x0800
 	.word 0x0007
@@ -296362,14 +296362,14 @@ L_06d0c4:
 	.word 0x126e
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 62_  @0x700E0
+! cal60E1D400: Table 2D - 62_  @0x700E0
 	.word 0x0004
 	.word 0x0000
 	.word 0x0007
 	.word 0x6b14
 	.word 0x0007
 	.word 0x6b24
-! cal[REDACTED]: Y  @0x700EC
+! cal60E1D400: Y  @0x700EC
 	.word 0x0007
 	.word 0x0400
 	.word 0x0007
@@ -296388,7 +296388,7 @@ L_06d0c4:
 	.word 0x6cec
 	.word 0x3c23
 	.word 0xd70a
-! cal[REDACTED]: Table 2D - 63_  @0x70110
+! cal60E1D400: Table 2D - 63_  @0x70110
 	.word 0x0000
 	.word 0x0000
 	.word 0x000b
@@ -296501,7 +296501,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x701F0
+! cal60E1D400: Y  @0x701F0
 	.word 0x000d
 	.word 0x0800
 	.word 0x0007
@@ -296534,7 +296534,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3800
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 64_  @0x70230
+! cal60E1D400: Table 2D - 64_  @0x70230
 	.word 0xbf80
 	.word 0x0000
 	.word 0x0004
@@ -296543,7 +296543,7 @@ L_06d0c4:
 	.word 0x767c
 	.word 0x0007
 	.word 0x768c
-! cal[REDACTED]: Y  @0x70240
+! cal60E1D400: Y  @0x70240
 	.word 0x0007
 	.word 0x7698
 	.word 0x0800
@@ -296562,24 +296562,24 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 65_  @0x70264
+! cal60E1D400: Table 2D - 65_  @0x70264
 	.word 0x0009
 	.word 0x0800
 	.word 0x0007
 	.word 0x7720
 	.word 0x0007
 	.word 0x7744
-! cal[REDACTED]: Y  @0x70270
+! cal60E1D400: Y  @0x70270
 	.word 0x3c00
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
 	.word 0x0005
 	.word 0x0800
-! cal[REDACTED]: Table 2D - 66_  @0x7027C
+! cal60E1D400: Table 2D - 66_  @0x7027C
 	.word 0x0007
 	.word 0x7758
-! cal[REDACTED]: Y  @0x70280
+! cal60E1D400: Y  @0x70280
 	.word 0x0007
 	.word 0x776c
 	.word 0x3c00
@@ -296598,14 +296598,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3efa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 67_  @0x702A4
+! cal60E1D400: Table 2D - 67_  @0x702A4
 	.word 0xc248
 	.word 0x0000
 	.word 0x000f
 	.word 0x0011
 	.word 0x0007
 	.word 0x78f8
-! cal[REDACTED]: Y  @0x702B0
+! cal60E1D400: Y  @0x702B0
 	.word 0x0007
 	.word 0x7934
 	.word 0x0007
@@ -296620,12 +296620,12 @@ L_06d0c4:
 	.word 0x0011
 	.word 0x0007
 	.word 0x7b78
-! cal[REDACTED]: Table 2D - 302 Check DataType  @0x702CC
+! cal60E1D400: Table 2D - 302 Check DataType  @0x702CC
 	.word 0x0007
 	.word 0x7bb4
 	.word 0x0007
 	.word 0x7bf8
-! cal[REDACTED]: Y  @0x702D4
+! cal60E1D400: Y  @0x702D4
 	.word 0x0800
 	.word 0x0000
 	.word 0x3c00
@@ -296640,12 +296640,12 @@ L_06d0c4:
 	.word 0x7e18
 	.word 0x0007
 	.word 0x7e64
-! cal[REDACTED]: Table 2D - 303 Check DataType  @0x702F0
+! cal60E1D400: Table 2D - 303 Check DataType  @0x702F0
 	.word 0x0800
 	.word 0x0000
 	.word 0x3c00
 	.word 0x0000
-! cal[REDACTED]: Y  @0x702F8
+! cal60E1D400: Y  @0x702F8
 	.word 0x0000
 	.word 0x0000
 	.word 0x0005
@@ -296676,7 +296676,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x80a0
-! cal[REDACTED]: Table 2D - 68_  @0x70334
+! cal60E1D400: Table 2D - 68_  @0x70334
 	.word 0x0007
 	.word 0x8104
 	.word 0x0019
@@ -296685,7 +296685,7 @@ L_06d0c4:
 	.word 0x8168
 	.word 0x0007
 	.word 0x81cc
-! cal[REDACTED]: Y  @0x70344
+! cal60E1D400: Y  @0x70344
 	.word 0x0019
 	.word 0x0000
 	.word 0x0007
@@ -296716,7 +296716,7 @@ L_06d0c4:
 	.word 0x8548
 	.word 0x0007
 	.word 0x85a8
-! cal[REDACTED]: Table 2D - 304 Check DataType  @0x70380
+! cal60E1D400: Table 2D - 304 Check DataType  @0x70380
 	.word 0x0018
 	.word 0x0000
 	.word 0x0007
@@ -296733,7 +296733,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x8788
-! cal[REDACTED]: Y  @0x703A0
+! cal60E1D400: Y  @0x703A0
 	.word 0x0007
 	.word 0x87e8
 	.word 0x0008
@@ -296748,7 +296748,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0008
 	.word 0x0005
-! cal[REDACTED]: Table 2D - 69_  @0x703BC
+! cal60E1D400: Table 2D - 69_  @0x703BC
 	.word 0x0007
 	.word 0x891c
 	.word 0x0007
@@ -296757,7 +296757,7 @@ L_06d0c4:
 	.word 0x8950
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x703CC
+! cal60E1D400: Y  @0x703CC
 	.word 0x0008
 	.word 0x0005
 	.word 0x0007
@@ -296770,14 +296770,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0004
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 305 Check DataType  @0x703E4
+! cal60E1D400: Table 2D - 305 Check DataType  @0x703E4
 	.word 0x0007
 	.word 0x8b40
 	.word 0x0007
 	.word 0x8b50
 	.word 0x0007
 	.word 0x0800
-! cal[REDACTED]: Y  @0x703F0
+! cal60E1D400: Y  @0x703F0
 	.word 0x0007
 	.word 0x8be8
 	.word 0x0007
@@ -296796,7 +296796,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 306 Check DataType  @0x70414
+! cal60E1D400: Table 2D - 306 Check DataType  @0x70414
 	.word 0x0007
 	.word 0x0003
 	.word 0x0007
@@ -296807,7 +296807,7 @@ L_06d0c4:
 	.word 0x8c78
 	.word 0x0400
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70428
+! cal60E1D400: Y  @0x70428
 	.word 0x3b80
 	.word 0x0000
 	.word 0x3f40
@@ -296840,7 +296840,7 @@ L_06d0c4:
 	.word 0x8d58
 	.word 0x0007
 	.word 0x8da8
-! cal[REDACTED]: Table 2D - 307 Check DataType  @0x70468
+! cal60E1D400: Table 2D - 307 Check DataType  @0x70468
 	.word 0x0800
 	.word 0x0000
 	.word 0x3b80
@@ -296857,7 +296857,7 @@ L_06d0c4:
 	.word 0x90b8
 	.word 0x0800
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70488
+! cal60E1D400: Y  @0x70488
 	.word 0x3f80
 	.word 0x0000
 	.word 0x0000
@@ -296920,7 +296920,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x9438
-! cal[REDACTED]: Table 2D - 308 Check DataType  @0x70504
+! cal60E1D400: Table 2D - 308 Check DataType  @0x70504
 	.word 0x0007
 	.word 0x9444
 	.word 0x000c
@@ -296983,7 +296983,7 @@ L_06d0c4:
 	.word 0x95f8
 	.word 0x0005
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70580
+! cal60E1D400: Y  @0x70580
 	.word 0x0007
 	.word 0x95fc
 	.word 0x0007
@@ -297046,7 +297046,7 @@ L_06d0c4:
 	.word 0x9734
 	.word 0x0007
 	.word 0x9784
-! cal[REDACTED]: Table 2D - 309 Check DataType  @0x705FC
+! cal60E1D400: Table 2D - 309 Check DataType  @0x705FC
 	.word 0x0800
 	.word 0x0000
 	.word 0x3780
@@ -297109,7 +297109,7 @@ L_06d0c4:
 	.word 0x9b18
 	.word 0x0007
 	.word 0x9b3c
-! cal[REDACTED]: Y  @0x70678
+! cal60E1D400: Y  @0x70678
 	.word 0x3c23
 	.word 0xd70a
 	.word 0x0000
@@ -297172,7 +297172,7 @@ L_06d0c4:
 	.word 0x9e14
 	.word 0x0007
 	.word 0x9e38
-! cal[REDACTED]: Table 2D - 310 Check DataType  @0x706F4
+! cal60E1D400: Table 2D - 310 Check DataType  @0x706F4
 	.word 0x0009
 	.word 0x0800
 	.word 0x0007
@@ -297235,7 +297235,7 @@ L_06d0c4:
 	.word 0x126e
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70770
+! cal60E1D400: Y  @0x70770
 	.word 0x0006
 	.word 0x0000
 	.word 0x0007
@@ -297298,7 +297298,7 @@ L_06d0c4:
 	.word 0xa3f8
 	.word 0x3c80
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 311 Check DataType  @0x707EC
+! cal60E1D400: Table 2D - 311 Check DataType  @0x707EC
 	.word 0x0000
 	.word 0x0000
 	.word 0x000d
@@ -297361,7 +297361,7 @@ L_06d0c4:
 	.word 0xa540
 	.word 0x3727
 	.word 0xc5ac
-! cal[REDACTED]: X  @0x70868
+! cal60E1D400: X  @0x70868
 	.word 0x0000
 	.word 0x0000
 	.word 0x0007
@@ -297378,7 +297378,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70888
+! cal60E1D400: Y  @0x70888
 	.word 0x000e
 	.word 0x0005
 	.word 0x0007
@@ -297395,7 +297395,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0006
 	.word 0x0400
-! cal[REDACTED]: Table 3D - 22_  @0x708A8
+! cal60E1D400: Table 3D - 22_  @0x708A8
 	.word 0x0007
 	.word 0xa68c
 	.word 0x0007
@@ -297428,7 +297428,7 @@ L_06d0c4:
 	.word 0x0400
 	.word 0x0007
 	.word 0xa72c
-! cal[REDACTED]: X  @0x708E8
+! cal60E1D400: X  @0x708E8
 	.word 0x0007
 	.word 0xa75c
 	.word 0x3f80
@@ -297453,14 +297453,14 @@ L_06d0c4:
 	.word 0xa7bc
 	.word 0x3a80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70918
+! cal60E1D400: Y  @0x70918
 	.word 0x0000
 	.word 0x0000
 	.word 0x0005
 	.word 0x0400
 	.word 0x0007
 	.word 0xa850
-! cal[REDACTED]: Table 3D - 23_  @0x70924
+! cal60E1D400: Table 3D - 23_  @0x70924
 	.word 0x0007
 	.word 0xa864
 	.word 0x3f00
@@ -297479,7 +297479,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0005
 	.word 0x0400
-! cal[REDACTED]: X  @0x70948
+! cal60E1D400: X  @0x70948
 	.word 0x0007
 	.word 0xa880
 	.word 0x0007
@@ -297506,7 +297506,7 @@ L_06d0c4:
 	.word 0xa8e0
 	.word 0x3d4c
 	.word 0xcccc
-! cal[REDACTED]: Y  @0x7097C
+! cal60E1D400: Y  @0x7097C
 	.word 0x0000
 	.word 0x0000
 	.word 0x0004
@@ -297521,7 +297521,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x000e
 	.word 0x0800
-! cal[REDACTED]: Table 3D - 24_  @0x70998
+! cal60E1D400: Table 3D - 24_  @0x70998
 	.word 0x0007
 	.word 0xa900
 	.word 0x0007
@@ -297614,7 +297614,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0006
 	.word 0x0800
-! cal[REDACTED]: X  @0x70A50
+! cal60E1D400: X  @0x70A50
 	.word 0x0007
 	.word 0xaba0
 	.word 0x0007
@@ -297641,7 +297641,7 @@ L_06d0c4:
 	.word 0xac50
 	.word 0x3727
 	.word 0xc5ac
-! cal[REDACTED]: Y  @0x70A84
+! cal60E1D400: Y  @0x70A84
 	.word 0x0000
 	.word 0x0000
 	.word 0x0005
@@ -297656,7 +297656,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3a00
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 25_  @0x70AA0
+! cal60E1D400: Table 3D - 25_  @0x70AA0
 	.word 0x0000
 	.word 0x0000
 	.word 0x0005
@@ -297749,7 +297749,7 @@ L_06d0c4:
 	.word 0x0800
 	.word 0x0007
 	.word 0xaf50
-! cal[REDACTED]: X  @0x70B58
+! cal60E1D400: X  @0x70B58
 	.word 0x0007
 	.word 0xaf74
 	.word 0x35cc
@@ -297766,7 +297766,7 @@ L_06d0c4:
 	.word 0xcccc
 	.word 0xbd4c
 	.word 0xcccc
-! cal[REDACTED]: Y  @0x70B78
+! cal60E1D400: Y  @0x70B78
 	.word 0x003a
 	.word 0x0400
 	.word 0x0007
@@ -297785,7 +297785,7 @@ L_06d0c4:
 	.word 0xb1e8
 	.word 0x000e
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 26_  @0x70B9C
+! cal60E1D400: Table 3D - 26_  @0x70B9C
 	.word 0x0007
 	.word 0xb204
 	.word 0x0007
@@ -297858,7 +297858,7 @@ L_06d0c4:
 	.word 0xb444
 	.word 0x3b80
 	.word 0x0000
-! cal[REDACTED]: X  @0x70C2C
+! cal60E1D400: X  @0x70C2C
 	.word 0x0000
 	.word 0x0000
 	.word 0x0008
@@ -297875,7 +297875,7 @@ L_06d0c4:
 	.word 0x0800
 	.word 0x0007
 	.word 0xb480
-! cal[REDACTED]: Y  @0x70C4C
+! cal60E1D400: Y  @0x70C4C
 	.word 0x0007
 	.word 0xb4ac
 	.word 0x3dc8
@@ -297894,7 +297894,7 @@ L_06d0c4:
 	.word 0xb500
 	.word 0x0007
 	.word 0xb538
-! cal[REDACTED]: Table 3D - 27_  @0x70C70
+! cal60E1D400: Table 3D - 27_  @0x70C70
 	.word 0x3800
 	.word 0x0000
 	.word 0x0000
@@ -297967,7 +297967,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x70D00
+! cal60E1D400: X  @0x70D00
 	.word 0x0010
 	.word 0x0800
 	.word 0x0007
@@ -297984,7 +297984,7 @@ L_06d0c4:
 	.word 0xd924
 	.word 0x0007
 	.word 0xd948
-! cal[REDACTED]: Y  @0x70D20
+! cal60E1D400: Y  @0x70D20
 	.word 0x364c
 	.word 0xcccc
 	.word 0x0000
@@ -298003,7 +298003,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0xd994
-! cal[REDACTED]: Table 3D - 28_  @0x70D44
+! cal60E1D400: Table 3D - 28_  @0x70D44
 	.word 0x0007
 	.word 0xd9ac
 	.word 0x0009
@@ -298076,7 +298076,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0x0800
-! cal[REDACTED]: X  @0x70DD4
+! cal60E1D400: X  @0x70DD4
 	.word 0x0007
 	.word 0xb748
 	.word 0x0007
@@ -298101,7 +298101,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x70E04
+! cal60E1D400: Y  @0x70E04
 	.word 0x0003
 	.word 0x0400
 	.word 0x0007
@@ -298134,7 +298134,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0004
 	.word 0x0400
-! cal[REDACTED]: Table 3D - 29_  @0x70E44
+! cal60E1D400: Table 3D - 29_  @0x70E44
 	.word 0x0007
 	.word 0xb8f8
 	.word 0x0007
@@ -298327,7 +298327,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc248
 	.word 0x0000
-! cal[REDACTED]: X  @0x70FC4
+! cal60E1D400: X  @0x70FC4
 	.word 0x000a
 	.word 0x0400
 	.word 0x0007
@@ -298352,7 +298352,7 @@ L_06d0c4:
 	.word 0x0400
 	.word 0x0007
 	.word 0xc1d8
-! cal[REDACTED]: Y  @0x70FF4
+! cal60E1D400: Y  @0x70FF4
 	.word 0x0007
 	.word 0xc204
 	.word 0x3f00
@@ -298385,7 +298385,7 @@ L_06d0c4:
 	.word 0xc25c
 	.word 0x0007
 	.word 0xc284
-! cal[REDACTED]: Table 3D - 30_  @0x71034
+! cal60E1D400: Table 3D - 30_  @0x71034
 	.word 0x3980
 	.word 0x0000
 	.word 0x0000
@@ -298578,7 +298578,7 @@ L_06d0c4:
 	.word 0xccf0
 	.word 0x0007
 	.word 0xcd00
-! cal[REDACTED]: X  @0x711B4
+! cal60E1D400: X  @0x711B4
 	.word 0x0004
 	.word 0x0000
 	.word 0x0007
@@ -298605,7 +298605,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0007
 	.word 0xce48
-! cal[REDACTED]: Y  @0x711E8
+! cal60E1D400: Y  @0x711E8
 	.word 0x0007
 	.word 0xce4c
 	.word 0x0005
@@ -298620,7 +298620,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0005
 	.word 0x0800
-! cal[REDACTED]: Table 3D - 31_  @0x71204
+! cal60E1D400: Table 3D - 31_  @0x71204
 	.word 0x0007
 	.word 0xcea8
 	.word 0x0007
@@ -298713,7 +298713,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3b80
 	.word 0x0000
-! cal[REDACTED]: X  @0x712BC
+! cal60E1D400: X  @0x712BC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0009
@@ -298740,7 +298740,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc2c8
 	.word 0x0000
-! cal[REDACTED]: Y  @0x712F0
+! cal60E1D400: Y  @0x712F0
 	.word 0x0018
 	.word 0x0001
 	.word 0x0007
@@ -298755,7 +298755,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 32_  @0x7130C
+! cal60E1D400: Table 3D - 32_  @0x7130C
 	.word 0x0009
 	.word 0x0009
 	.word 0x0007
@@ -298848,7 +298848,7 @@ L_06d0c4:
 	.word 0xdd68
 	.word 0x3900
 	.word 0x0000
-! cal[REDACTED]: X  @0x713C4
+! cal60E1D400: X  @0x713C4
 	.word 0x0000
 	.word 0x0000
 	.word 0x000e
@@ -298869,7 +298869,7 @@ L_06d0c4:
 	.word 0xde10
 	.word 0x3900
 	.word 0x0000
-! cal[REDACTED]: Y  @0x713EC
+! cal60E1D400: Y  @0x713EC
 	.word 0x0000
 	.word 0x0000
 	.word 0x000e
@@ -298884,7 +298884,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x000e
 	.word 0x0800
-! cal[REDACTED]: Table 3D - 108_  @0x71408
+! cal60E1D400: Table 3D - 108_  @0x71408
 	.word 0x0007
 	.word 0xde80
 	.word 0x0007
@@ -299079,7 +299079,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
-! cal[REDACTED]: Y  @0x7158C
+! cal60E1D400: Y  @0x7158C
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
@@ -299104,14 +299104,14 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 70_  @0x715BC
+! cal60E1D400: Table 2D - 70_  @0x715BC
 	.word 0xffff
 	.word 0xffff
 	.word 0x5046
 	.word 0x5f4a
 	.word 0x3630
 	.word 0x455f
-! cal[REDACTED]: Y  @0x715C8
+! cal60E1D400: Y  @0x715C8
 	.word 0x3036
 	.word 0x4d59
 	.word 0x5f35
@@ -299136,14 +299136,14 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 71_  @0x715F8
+! cal60E1D400: Table 2D - 71_  @0x715F8
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
 	.word 0xffff
 	.word 0x01ff
 	.word 0xfae1
-! cal[REDACTED]: Y  @0x71604
+! cal60E1D400: Y  @0x71604
 	.word 0x0ac0
 	.word 0xffff
 	.word 0x3e80
@@ -299168,14 +299168,14 @@ L_06d0c4:
 	.word 0x0010
 	.word 0x002d
 	.word 0x0005
-! cal[REDACTED]: Table 2D - 72_  @0x71634
+! cal60E1D400: Table 2D - 72_  @0x71634
 	.word 0x000e
 	.word 0x0414
 	.word 0x4182
 	.word 0x0000
 	.word 0xf5c2
 	.word 0xf5c2
-! cal[REDACTED]: Y  @0x71640
+! cal60E1D400: Y  @0x71640
 	.word 0x11eb
 	.word 0x11eb
 	.word 0x03ff
@@ -299194,14 +299194,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 73_  @0x71664
+! cal60E1D400: Table 2D - 73_  @0x71664
 	.word 0x000f
 	.word 0xa000
 	.word 0x00ff
 	.word 0x0000
 	.word 0xf5c2
 	.word 0x0a3d
-! cal[REDACTED]: Y  @0x71670
+! cal60E1D400: Y  @0x71670
 	.word 0x0100
 	.word 0xf5c2
 	.word 0xf5c2
@@ -299220,14 +299220,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x437a
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 74_  @0x71694
+! cal60E1D400: Table 2D - 74_  @0x71694
 	.word 0x43fa
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x716A0
+! cal60E1D400: Y  @0x716A0
 	.word 0x4110
 	.word 0x0000
 	.word 0x457a
@@ -299246,14 +299246,14 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x457a
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 75_  @0x716C4
+! cal60E1D400: Table 2D - 75_  @0x716C4
 	.word 0x4589
 	.word 0x8000
 	.word 0x4596
 	.word 0x0000
 	.word 0x45a2
 	.word 0x8000
-! cal[REDACTED]: Y  @0x716D0
+! cal60E1D400: Y  @0x716D0
 	.word 0x45af
 	.word 0x0000
 	.word 0x3c3c
@@ -299272,14 +299272,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3c3c
 	.word 0x281e
-! cal[REDACTED]: Table 2D - 76_  @0x716F4
+! cal60E1D400: Table 2D - 76_  @0x716F4
 	.word 0x1eff
 	.word 0xffff
 	.word 0x0000
 	.word 0x0058
 	.word 0x005e
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71700
+! cal60E1D400: Y  @0x71700
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -299298,14 +299298,14 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x461c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 77_  @0x71724
+! cal60E1D400: Table 2D - 77_  @0x71724
 	.word 0x461c
 	.word 0x4000
 	.word 0x4396
 	.word 0x0000
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71730
+! cal60E1D400: Y  @0x71730
 	.word 0x0000
 	.word 0x0000
 	.word 0x3c75
@@ -299324,14 +299324,14 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x4494
 	.word 0xc000
-! cal[REDACTED]: Table 2D - 78_  @0x71754
+! cal60E1D400: Table 2D - 78_  @0x71754
 	.word 0x4496
 	.word 0x0000
 	.word 0x45da
 	.word 0x7000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Y  @0x71760
+! cal60E1D400: Y  @0x71760
 	.word 0x45fa
 	.word 0x0000
 	.word 0x460c
@@ -299350,7 +299350,7 @@ L_06d0c4:
 	.word 0x5000
 	.word 0x2c2c
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 312 Check DataType  @0x71784
+! cal60E1D400: Table 2D - 312 Check DataType  @0x71784
 	.word 0x44bb
 	.word 0x8000
 	.word 0x44fa
@@ -299361,7 +299361,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x1919
 	.word 0x1900
-! cal[REDACTED]: Y  @0x71798
+! cal60E1D400: Y  @0x71798
 	.word 0x44bb
 	.word 0x8000
 	.word 0x44fa
@@ -299380,7 +299380,7 @@ L_06d0c4:
 	.word 0xf000
 	.word 0x459c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 79_  @0x717BC
+! cal60E1D400: Table 2D - 79_  @0x717BC
 	.word 0x0c0c
 	.word 0x0c00
 	.word 0xc1f0
@@ -299391,7 +299391,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x717D0
+! cal60E1D400: Y  @0x717D0
 	.word 0x4120
 	.word 0x0000
 	.word 0x41a0
@@ -299410,7 +299410,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x09c4
 	.word 0x09c4
-! cal[REDACTED]: Table 2D - 80_  @0x717F4
+! cal60E1D400: Table 2D - 80_  @0x717F4
 	.word 0x0960
 	.word 0x0834
 	.word 0x0834
@@ -299421,7 +299421,7 @@ L_06d0c4:
 	.word 0x06a4
 	.word 0x0578
 	.word 0x0578
-! cal[REDACTED]: Y  @0x71808
+! cal60E1D400: Y  @0x71808
 	.word 0x449c
 	.word 0x4000
 	.word 0x44bb
@@ -299438,7 +299438,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 81_  @0x71828
+! cal60E1D400: Table 2D - 81_  @0x71828
 	.word 0x4040
 	.word 0x0000
 	.word 0x4080
@@ -299447,7 +299447,7 @@ L_06d0c4:
 	.word 0x380f
 	.word 0x0f00
 	.word 0x4b38
-! cal[REDACTED]: Y  @0x71838
+! cal60E1D400: Y  @0x71838
 	.word 0x380f
 	.word 0x0f00
 	.word 0x3838
@@ -299472,7 +299472,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 82_  @0x71868
+! cal60E1D400: Table 2D - 82_  @0x71868
 	.word 0x4220
 	.word 0x0000
 	.word 0x4248
@@ -299485,7 +299485,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42b4
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71880
+! cal60E1D400: Y  @0x71880
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42dc
@@ -299510,7 +299510,7 @@ L_06d0c4:
 	.word 0x3434
 	.word 0x5656
 	.word 0x5652
-! cal[REDACTED]: Table 2D - 313 Check DataType  @0x718B0
+! cal60E1D400: Table 2D - 313 Check DataType  @0x718B0
 	.word 0x463e
 	.word 0x3d3a
 	.word 0x3636
@@ -299535,7 +299535,7 @@ L_06d0c4:
 	.word 0x2a2a
 	.word 0x5656
 	.word 0x5652
-! cal[REDACTED]: Y  @0x718E0
+! cal60E1D400: Y  @0x718E0
 	.word 0x463e
 	.word 0x3d3a
 	.word 0x3636
@@ -299560,7 +299560,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 314 Check DataType  @0x71910
+! cal60E1D400: Table 2D - 314 Check DataType  @0x71910
 	.word 0x40c0
 	.word 0x0000
 	.word 0x0505
@@ -299585,7 +299585,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71940
+! cal60E1D400: Y  @0x71940
 	.word 0x4000
 	.word 0x0000
 	.word 0x4040
@@ -299610,7 +299610,7 @@ L_06d0c4:
 	.word 0x0505
 	.word 0x3e3e
 	.word 0x007d
-! cal[REDACTED]: Table 2D - 315 Check DataType  @0x71970
+! cal60E1D400: Table 2D - 315 Check DataType  @0x71970
 	.word 0x08ff
 	.word 0x0113
 	.word 0x01c2
@@ -299723,7 +299723,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ea0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71A50
+! cal60E1D400: Y  @0x71A50
 	.word 0x3ec0
 	.word 0x0000
 	.word 0x3ee0
@@ -299744,14 +299744,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 83_  @0x71A78
+! cal60E1D400: Table 2D - 83_  @0x71A78
 	.word 0x6464
 	.word 0x6c71
 	.word 0x7575
 	.word 0x6964
 	.word 0x646c
 	.word 0x7175
-! cal[REDACTED]: Y  @0x71A84
+! cal60E1D400: Y  @0x71A84
 	.word 0x7569
 	.word 0x5b5b
 	.word 0x666c
@@ -299762,14 +299762,14 @@ L_06d0c4:
 	.word 0x6e69
 	.word 0x4c4c
 	.word 0x5a63
-! cal[REDACTED]: Table 2D - 316 Check DataType  @0x71A98
+! cal60E1D400: Table 2D - 316 Check DataType  @0x71A98
 	.word 0x666b
 	.word 0x6949
 	.word 0x4956
 	.word 0x5f63
 	.word 0x6a69
 	.word 0x4646
-! cal[REDACTED]: Y  @0x71AA4
+! cal60E1D400: Y  @0x71AA4
 	.word 0x525b
 	.word 0x6164
 	.word 0x69ff
@@ -299790,7 +299790,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f10
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 84_  @0x71ACC
+! cal60E1D400: Table 2D - 84_  @0x71ACC
 	.word 0x3f20
 	.word 0x0000
 	.word 0x3f30
@@ -299801,7 +299801,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f60
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71AE0
+! cal60E1D400: Y  @0x71AE0
 	.word 0x3f70
 	.word 0x0000
 	.word 0x443b
@@ -299822,7 +299822,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Table 2D - 85_  @0x71B08
+! cal60E1D400: Table 2D - 85_  @0x71B08
 	.word 0x459c
 	.word 0x4000
 	.word 0x45ab
@@ -299833,7 +299833,7 @@ L_06d0c4:
 	.word 0x2000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Y  @0x71B1C
+! cal60E1D400: Y  @0x71B1C
 	.word 0x45ea
 	.word 0x6000
 	.word 0x45fa
@@ -299854,7 +299854,7 @@ L_06d0c4:
 	.word 0x4e4e
 	.word 0xa0a0
 	.word 0x9a90
-! cal[REDACTED]: Table 2D - 317 Check DataType  @0x71B44
+! cal60E1D400: Table 2D - 317 Check DataType  @0x71B44
 	.word 0x8783
 	.word 0x7977
 	.word 0x6f68
@@ -299865,7 +299865,7 @@ L_06d0c4:
 	.word 0x918d
 	.word 0x897d
 	.word 0x776e
-! cal[REDACTED]: Y  @0x71B58
+! cal60E1D400: Y  @0x71B58
 	.word 0x6e6e
 	.word 0x6e6e
 	.word 0xb1b1
@@ -299878,14 +299878,14 @@ L_06d0c4:
 	.word 0xbcbc
 	.word 0xbcb2
 	.word 0xa8a1
-! cal[REDACTED]: Table 2D - 318 Check DataType  @0x71B70
+! cal60E1D400: Table 2D - 318 Check DataType  @0x71B70
 	.word 0x9994
 	.word 0x8e87
 	.word 0x7e78
 	.word 0x7474
 	.word 0xbcbc
 	.word 0xbcb3
-! cal[REDACTED]: Y  @0x71B7C
+! cal60E1D400: Y  @0x71B7C
 	.word 0xa9a1
 	.word 0x9a96
 	.word 0x8f8b
@@ -299898,7 +299898,7 @@ L_06d0c4:
 	.word 0x8e88
 	.word 0x8080
 	.word 0x8080
-! cal[REDACTED]: Table 2D - 319 Check DataType  @0x71B94
+! cal60E1D400: Table 2D - 319 Check DataType  @0x71B94
 	.word 0xb7b7
 	.word 0xb7b4
 	.word 0xb0a8
@@ -300039,7 +300039,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x443b
 	.word 0x8000
-! cal[REDACTED]: Y  @0x71CAC
+! cal60E1D400: Y  @0x71CAC
 	.word 0x447a
 	.word 0x0000
 	.word 0x44bb
@@ -300058,20 +300058,20 @@ L_06d0c4:
 	.word 0xa000
 	.word 0x459c
 	.word 0x4000
-! cal[REDACTED]: Fuelling - Safe Mode  @0x71CD0
+! cal60E1D400: Fuelling - Safe Mode  @0x71CD0
 	.word 0x45ab
 	.word 0xe000
 	.word 0x45bb
 	.word 0x8000
 	.word 0x45cb
 	.word 0x2000
-! cal[REDACTED]: Y  @0x71CDC
+! cal60E1D400: Y  @0x71CDC
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Fuelling 0  @0x71CE0
+! cal60E1D400: Fuelling 0  @0x71CE0
 	.word 0x45ea
 	.word 0x6000
-! cal[REDACTED]: Y  @0x71CE4
+! cal60E1D400: Y  @0x71CE4
 	.word 0x45fa
 	.word 0x0000
 	.word 0x7a7a
@@ -300086,12 +300086,12 @@ L_06d0c4:
 	.word 0x726e
 	.word 0x655a
 	.word 0x4e42
-! cal[REDACTED]: Fuelling 1  @0x71D00
+! cal60E1D400: Fuelling 1  @0x71D00
 	.word 0x3a3a
 	.word 0x3a3a
 	.word 0x9696
 	.word 0x9086
-! cal[REDACTED]: Y  @0x71D08
+! cal60E1D400: Y  @0x71D08
 	.word 0x7d73
 	.word 0x6563
 	.word 0x5752
@@ -300110,14 +300110,14 @@ L_06d0c4:
 	.word 0x8880
 	.word 0x7b70
 	.word 0x685e
-! cal[REDACTED]: Fuelling 2 - Safe Mode  @0x71D2C
+! cal60E1D400: Fuelling 2 - Safe Mode  @0x71D2C
 	.word 0x5653
 	.word 0xb2b2
 	.word 0xb2a8
 	.word 0x9e97
 	.word 0x8f86
 	.word 0x7e75
-! cal[REDACTED]: Y  @0x71D38
+! cal60E1D400: Y  @0x71D38
 	.word 0x6a5e
 	.word 0x5656
 	.word 0xb2b2
@@ -300136,14 +300136,14 @@ L_06d0c4:
 	.word 0x6262
 	.word 0xadad
 	.word 0xadaa
-! cal[REDACTED]: Fuelling 3  @0x71D5C
+! cal60E1D400: Fuelling 3  @0x71D5C
 	.word 0xa69e
 	.word 0x9692
 	.word 0x8d8a
 	.word 0x8674
 	.word 0x6a6a
 	.word 0xa8a8
-! cal[REDACTED]: Y  @0x71D68
+! cal60E1D400: Y  @0x71D68
 	.word 0xa8aa
 	.word 0xaca3
 	.word 0x9b96
@@ -300158,12 +300158,12 @@ L_06d0c4:
 	.word 0x938c
 	.word 0x8678
 	.word 0xa5a5
-! cal[REDACTED]: Fuelling 4  @0x71D84
+! cal60E1D400: Fuelling 4  @0x71D84
 	.word 0xa5a5
 	.word 0xa4a4
 	.word 0xa49f
 	.word 0x9996
-! cal[REDACTED]: Y  @0x71D8C
+! cal60E1D400: Y  @0x71D8C
 	.word 0x9384
 	.word 0x8478
 	.word 0xa3a3
@@ -300200,7 +300200,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Fuelling 5  @0x71DD4
+! cal60E1D400: Fuelling 5  @0x71DD4
 	.word 0x451c
 	.word 0x4000
 	.word 0x0000
@@ -300211,7 +300211,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71DE8
+! cal60E1D400: Y  @0x71DE8
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -300248,7 +300248,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Fuelling 6  @0x71E30
+! cal60E1D400: Fuelling 6  @0x71E30
 	.word 0x0000
 	.word 0x0000
 	.word 0xc170
@@ -300259,7 +300259,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1c8
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71E44
+! cal60E1D400: Y  @0x71E44
 	.word 0xc1c8
 	.word 0x0000
 	.word 0xc1c8
@@ -300296,7 +300296,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: Fuelling 7  @0x71E8C
+! cal60E1D400: Fuelling 7  @0x71E8C
 	.word 0xc1a0
 	.word 0x0000
 	.word 0x3f00
@@ -300307,7 +300307,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3d4c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x71EA0
+! cal60E1D400: Y  @0x71EA0
 	.word 0x3f80
 	.word 0x0000
 	.word 0xc1c8
@@ -300332,14 +300332,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 95_  @0x71ED0
+! cal60E1D400: Table 2D - 95_  @0x71ED0
 	.word 0x0000
 	.word 0x0000
 	.word 0x3f00
 	.word 0x0000
 	.word 0xc220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71EDC
+! cal60E1D400: Y  @0x71EDC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -300378,7 +300378,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc080
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 96_  @0x71F28
+! cal60E1D400: Table 2D - 96_  @0x71F28
 	.word 0xc080
 	.word 0x0000
 	.word 0xc080
@@ -300389,7 +300389,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0019
 	.word 0x0023
-! cal[REDACTED]: Y  @0x71F3C
+! cal60E1D400: Y  @0x71F3C
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4220
@@ -300426,7 +300426,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4448
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 97_  @0x71F84
+! cal60E1D400: Table 2D - 97_  @0x71F84
 	.word 0x4461
 	.word 0x0000
 	.word 0x447a
@@ -300437,13 +300437,13 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44af
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71F98
+! cal60E1D400: Y  @0x71F98
 	.word 0x44c8
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 98_  @0x71F9C
+! cal60E1D400: Table 2D - 98_  @0x71F9C
 	.word 0x44d4
 	.word 0x8000
-! cal[REDACTED]: Y  @0x71FA0
+! cal60E1D400: Y  @0x71FA0
 	.word 0x44d4
 	.word 0xa000
 	.word 0x44e1
@@ -300480,7 +300480,7 @@ L_06d0c4:
 	.word 0x001f
 	.word 0x001f
 	.word 0x000c
-! cal[REDACTED]: Table 2D - 99_  @0x71FE8
+! cal60E1D400: Table 2D - 99_  @0x71FE8
 	.word 0x005c
 	.word 0x001f
 	.word 0x493e
@@ -300491,13 +300491,13 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0001
 	.word 0x0000
-! cal[REDACTED]: Y  @0x71FFC
+! cal60E1D400: Y  @0x71FFC
 	.word 0x01f4
 	.word 0x0753
-! cal[REDACTED]: Table 2D - 100_  @0x72000
+! cal60E1D400: Table 2D - 100_  @0x72000
 	.word 0x0271
 	.word 0xffff
-! cal[REDACTED]: Y  @0x72004
+! cal60E1D400: Y  @0x72004
 	.word 0x4080
 	.word 0x0000
 	.word 0x3f80
@@ -300534,7 +300534,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4452
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 101_  @0x7204C
+! cal60E1D400: Table 2D - 101_  @0x7204C
 	.word 0x4452
 	.word 0x0000
 	.word 0x444a
@@ -300545,13 +300545,13 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e23
 	.word 0xd70a
-! cal[REDACTED]: Y  @0x72060
+! cal60E1D400: Y  @0x72060
 	.word 0x3ea3
 	.word 0xd70a
-! cal[REDACTED]: Table 2D - 102_  @0x72064
+! cal60E1D400: Table 2D - 102_  @0x72064
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72068
+! cal60E1D400: Y  @0x72068
 	.word 0x3fcc
 	.word 0xcccd
 	.word 0x3ea3
@@ -300566,12 +300566,12 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x444f
 	.word 0x8000
-! cal[REDACTED]: Fuelling 8  @0x72084
+! cal60E1D400: Fuelling 8  @0x72084
 	.word 0x444a
 	.word 0x8000
 	.word 0x444f
 	.word 0x8000
-! cal[REDACTED]: Y  @0x7208C
+! cal60E1D400: Y  @0x7208C
 	.word 0x444a
 	.word 0x8000
 	.word 0x444a
@@ -300596,7 +300596,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4445
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 320 Check DataType  @0x720BC
+! cal60E1D400: Table 2D - 320 Check DataType  @0x720BC
 	.word 0x444a
 	.word 0x8000
 	.word 0xc220
@@ -300609,13 +300609,13 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x720D4
+! cal60E1D400: Y  @0x720D4
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 321 Check DataType  @0x720D8
+! cal60E1D400: Table 2D - 321 Check DataType  @0x720D8
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x720DC
+! cal60E1D400: Y  @0x720DC
 	.word 0xafaf
 	.word 0xafbe
 	.word 0xbec8
@@ -300640,7 +300640,7 @@ L_06d0c4:
 	.word 0x64ff
 	.word 0xc220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 322 Check DataType  @0x7210C
+! cal60E1D400: Table 2D - 322 Check DataType  @0x7210C
 	.word 0xc1a0
 	.word 0x0000
 	.word 0x0000
@@ -300653,7 +300653,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72124
+! cal60E1D400: Y  @0x72124
 	.word 0xb6b6
 	.word 0xb4aa
 	.word 0x9980
@@ -300678,7 +300678,7 @@ L_06d0c4:
 	.word 0x32ff
 	.word 0xc316
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 323 Check DataType  @0x72154
+! cal60E1D400: Table 2D - 323 Check DataType  @0x72154
 	.word 0xc2c8
 	.word 0x0000
 	.word 0xc296
@@ -300691,7 +300691,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7216C
+! cal60E1D400: Y  @0x7216C
 	.word 0xc120
 	.word 0x0000
 	.word 0xc0a0
@@ -300706,7 +300706,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 324 Check DataType  @0x72188
+! cal60E1D400: Table 2D - 324 Check DataType  @0x72188
 	.word 0x4220
 	.word 0x0000
 	.word 0x4296
@@ -300715,7 +300715,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4316
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72198
+! cal60E1D400: Y  @0x72198
 	.word 0x4348
 	.word 0x0000
 	.word 0x8ccd
@@ -300730,7 +300730,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x8000
 	.word 0x7fdf
-! cal[REDACTED]: Table 2D - 325 Check DataType  @0x721B4
+! cal60E1D400: Table 2D - 325 Check DataType  @0x721B4
 	.word 0x7fae
 	.word 0x7f7d
 	.word 0x7f3b
@@ -300739,7 +300739,7 @@ L_06d0c4:
 	.word 0x7eb8
 	.word 0x7d71
 	.word 0xffff
-! cal[REDACTED]: Y  @0x721C4
+! cal60E1D400: Y  @0x721C4
 	.word 0xc348
 	.word 0x0000
 	.word 0xc2c8
@@ -300750,14 +300750,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 326 Check DataType  @0x721D8
+! cal60E1D400: Table 2D - 326 Check DataType  @0x721D8
 	.word 0x42c8
 	.word 0x0000
 	.word 0x4348
 	.word 0x0000
 	.word 0x0100
 	.word 0x0003
-! cal[REDACTED]: Y  @0x721E4
+! cal60E1D400: Y  @0x721E4
 	.word 0x0003
 	.word 0x0003
 	.word 0x0003
@@ -300772,7 +300772,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 327 Check DataType  @0x72200
+! cal60E1D400: Table 2D - 327 Check DataType  @0x72200
 	.word 0x4248
 	.word 0x0000
 	.word 0x42c8
@@ -300781,7 +300781,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0100
 	.word 0x0100
-! cal[REDACTED]: Y  @0x72210
+! cal60E1D400: Y  @0x72210
 	.word 0x0100
 	.word 0x0100
 	.word 0x0100
@@ -300796,7 +300796,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 328 Check DataType  @0x7222C
+! cal60E1D400: Table 2D - 328 Check DataType  @0x7222C
 	.word 0x4220
 	.word 0x0000
 	.word 0x4270
@@ -300805,7 +300805,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x06a4
 	.word 0x06a4
-! cal[REDACTED]: X  @0x7223C
+! cal60E1D400: X  @0x7223C
 	.word 0x0672
 	.word 0x05aa
 	.word 0x04b0
@@ -300830,7 +300830,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x420c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7226C
+! cal60E1D400: Y  @0x7226C
 	.word 0x4220
 	.word 0x0000
 	.word 0x4270
@@ -300847,7 +300847,7 @@ L_06d0c4:
 	.word 0x076c
 	.word 0x0640
 	.word 0x04b0
-! cal[REDACTED]: Fuelling 9 - Safe Mode  @0x7228C
+! cal60E1D400: Fuelling 9 - Safe Mode  @0x7228C
 	.word 0x03b6
 	.word 0x0320
 	.word 0xc1a0
@@ -300896,7 +300896,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0xffff
-! cal[REDACTED]: X  @0x722EC
+! cal60E1D400: X  @0x722EC
 	.word 0xc220
 	.word 0x0000
 	.word 0xc1a0
@@ -300939,7 +300939,7 @@ L_06d0c4:
 	.word 0x03e8
 	.word 0x03e8
 	.word 0x0384
-! cal[REDACTED]: Y  @0x72340
+! cal60E1D400: Y  @0x72340
 	.word 0x032a
 	.word 0xffff
 	.word 0xc220
@@ -300978,7 +300978,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3b34
 	.word 0x2d36
-! cal[REDACTED]: Fuelling 10 - Safe Mode  @0x7238C
+! cal60E1D400: Fuelling 10 - Safe Mode  @0x7238C
 	.word 0x2e27
 	.word 0x2923
 	.word 0x1dff
@@ -301179,25 +301179,25 @@ L_06d0c4:
 	.word 0x00a6
 	.word 0x0072
 	.word 0x002f
-! cal[REDACTED]: X  @0x7251C
+! cal60E1D400: X  @0x7251C
 	.word 0x0021
 	.word 0x0013
-! cal[REDACTED]: Y  @0x72520
+! cal60E1D400: Y  @0x72520
 	.word 0x0005
 	.word 0x0000
-! cal[REDACTED]: Fuelling 11  @0x72524
+! cal60E1D400: Fuelling 11  @0x72524
 	.word 0x00ff
 	.word 0xffff
-! cal[REDACTED]: X  @0x72528
+! cal60E1D400: X  @0x72528
 	.word 0x7e7e
 	.word 0x03ff
-! cal[REDACTED]: Y  @0x7252C
+! cal60E1D400: Y  @0x7252C
 	.word 0x001f
 	.word 0xffff
-! cal[REDACTED]: Fuelling 12  @0x72530
+! cal60E1D400: Fuelling 12  @0x72530
 	.word 0x409c
 	.word 0xcccd
-! cal[REDACTED]: X  @0x72534
+! cal60E1D400: X  @0x72534
 	.word 0x43c8
 	.word 0x0000
 	.word 0x457a
@@ -301222,7 +301222,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72564
+! cal60E1D400: Y  @0x72564
 	.word 0x450c
 	.word 0xa000
 	.word 0x451c
@@ -301239,7 +301239,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Fuelling 13 - Safe Mode  @0x72584
+! cal60E1D400: Fuelling 13 - Safe Mode  @0x72584
 	.word 0x42a0
 	.word 0x0000
 	.word 0xffff
@@ -301288,7 +301288,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f30
 	.word 0x0000
-! cal[REDACTED]: X  @0x725E4
+! cal60E1D400: X  @0x725E4
 	.word 0x3f40
 	.word 0x0000
 	.word 0x3f50
@@ -301331,7 +301331,7 @@ L_06d0c4:
 	.word 0x6000
 	.word 0x45fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72638
+! cal60E1D400: Y  @0x72638
 	.word 0x4141
 	.word 0x311e
 	.word 0x0e0f
@@ -301370,7 +301370,7 @@ L_06d0c4:
 	.word 0x5b5b
 	.word 0x5148
 	.word 0x4239
-! cal[REDACTED]: Fuelling 14 - Safe mode  @0x72684
+! cal60E1D400: Fuelling 14 - Safe mode  @0x72684
 	.word 0x3430
 	.word 0x2a27
 	.word 0x2521
@@ -301571,7 +301571,7 @@ L_06d0c4:
 	.word 0xb2b2
 	.word 0xb4b6
 	.word 0xada5
-! cal[REDACTED]: X  @0x72814
+! cal60E1D400: X  @0x72814
 	.word 0xa09b
 	.word 0x9a9a
 	.word 0x9394
@@ -301596,7 +301596,7 @@ L_06d0c4:
 	.word 0xa4a1
 	.word 0xa19b
 	.word 0xa09d
-! cal[REDACTED]: Y  @0x72844
+! cal60E1D400: Y  @0x72844
 	.word 0x9e9c
 	.word 0xafaf
 	.word 0xafaf
@@ -301613,7 +301613,7 @@ L_06d0c4:
 	.word 0x9897
 	.word 0x9da0
 	.word 0xa5a5
-! cal[REDACTED]: Fuelling 15  @0x72864
+! cal60E1D400: Fuelling 15  @0x72864
 	.word 0xa5a5
 	.word 0xa19e
 	.word 0x9e9d
@@ -301662,7 +301662,7 @@ L_06d0c4:
 	.word 0x001f
 	.word 0x001f
 	.word 0x001f
-! cal[REDACTED]: X  @0x728C4
+! cal60E1D400: X  @0x728C4
 	.word 0x001f
 	.word 0x001f
 	.word 0x001f
@@ -301705,7 +301705,7 @@ L_06d0c4:
 	.word 0x0019
 	.word 0x0019
 	.word 0x0019
-! cal[REDACTED]: Y  @0x72918
+! cal60E1D400: Y  @0x72918
 	.word 0x0019
 	.word 0x0019
 	.word 0x0102
@@ -301744,7 +301744,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Fuelling 16  @0x72964
+! cal60E1D400: Fuelling 16  @0x72964
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -301979,7 +301979,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42d2
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72B38
+! cal60E1D400: Y  @0x72B38
 	.word 0x4080
 	.word 0x0000
 	.word 0x4220
@@ -302002,7 +302002,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e65
 	.word 0x6042
-! cal[REDACTED]: Table 2D - 329 Check DataType  @0x72B64
+! cal60E1D400: Table 2D - 329 Check DataType  @0x72B64
 	.word 0x3e87
 	.word 0x2b02
 	.word 0x3e9d
@@ -302079,7 +302079,7 @@ L_06d0c4:
 	.word 0xc28f
 	.word 0x4299
 	.word 0xc28f
-! cal[REDACTED]: Y  @0x72BFC
+! cal60E1D400: Y  @0x72BFC
 	.word 0x428c
 	.word 0x0000
 	.word 0x4282
@@ -302098,14 +302098,14 @@ L_06d0c4:
 	.word 0x851f
 	.word 0x4211
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 104_  @0x72C20
+! cal60E1D400: Table 2D - 104_  @0x72C20
 	.word 0x4202
 	.word 0x0000
 	.word 0x41eb
 	.word 0x0a3d
 	.word 0x41cd
 	.word 0x0a3d
-! cal[REDACTED]: Y  @0x72C2C
+! cal60E1D400: Y  @0x72C2C
 	.word 0x41b4
 	.word 0x0000
 	.word 0x419b
@@ -302124,7 +302124,7 @@ L_06d0c4:
 	.word 0x51ec
 	.word 0xc0f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 105_  @0x72C50
+! cal60E1D400: Table 2D - 105_  @0x72C50
 	.word 0xc148
 	.word 0x0000
 	.word 0xc19b
@@ -302153,7 +302153,7 @@ L_06d0c4:
 	.word 0xe979
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72C88
+! cal60E1D400: Y  @0x72C88
 	.word 0x405f
 	.word 0x3b64
 	.word 0x00ff
@@ -302172,14 +302172,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xbe99
 	.word 0x999a
-! cal[REDACTED]: Table 2D - 106_  @0x72CAC
+! cal60E1D400: Table 2D - 106_  @0x72CAC
 	.word 0x40a0
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72CB8
+! cal60E1D400: Y  @0x72CB8
 	.word 0x40a0
 	.word 0x0000
 	.word 0x411a
@@ -302198,14 +302198,14 @@ L_06d0c4:
 	.word 0x126f
 	.word 0x3e99
 	.word 0x999a
-! cal[REDACTED]: Table 2D - 107_  @0x72CDC
+! cal60E1D400: Table 2D - 107_  @0x72CDC
 	.word 0x414b
 	.word 0x3333
 	.word 0x0000
 	.word 0x0000
 	.word 0x4158
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72CE8
+! cal60E1D400: Y  @0x72CE8
 	.word 0x42c8
 	.word 0x0000
 	.word 0x4170
@@ -302224,14 +302224,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4140
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 108_  @0x72D0C
+! cal60E1D400: Table 2D - 108_  @0x72D0C
 	.word 0x3fd9
 	.word 0x999a
 	.word 0xc1a0
 	.word 0x0000
 	.word 0xc120
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72D18
+! cal60E1D400: Y  @0x72D18
 	.word 0xc040
 	.word 0x0000
 	.word 0x0000
@@ -302250,7 +302250,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 109_  @0x72D3C
+! cal60E1D400: Table 2D - 109_  @0x72D3C
 	.word 0x41a0
 	.word 0x0000
 	.word 0x40a0
@@ -302281,7 +302281,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42c8
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72D78
+! cal60E1D400: Y  @0x72D78
 	.word 0x42c8
 	.word 0x0000
 	.word 0xf852
@@ -302326,7 +302326,7 @@ L_06d0c4:
 	.word 0x0c4a
 	.word 0x3fdc
 	.word 0x0831
-! cal[REDACTED]: Table 2D - 110_  @0x72DD0
+! cal60E1D400: Table 2D - 110_  @0x72DD0
 	.word 0x3fe6
 	.word 0x0419
 	.word 0x3ff0
@@ -302339,7 +302339,7 @@ L_06d0c4:
 	.word 0xf9db
 	.word 0x400c
 	.word 0x0831
-! cal[REDACTED]: Y  @0x72DE8
+! cal60E1D400: Y  @0x72DE8
 	.word 0x4011
 	.word 0x0625
 	.word 0x4016
@@ -302384,7 +302384,7 @@ L_06d0c4:
 	.word 0xbe77
 	.word 0x4092
 	.word 0x3d71
-! cal[REDACTED]: Table 2D - 111_  @0x72E40
+! cal60E1D400: Table 2D - 111_  @0x72E40
 	.word 0x4093
 	.word 0x7cee
 	.word 0x4094
@@ -302401,7 +302401,7 @@ L_06d0c4:
 	.word 0x44d0
 	.word 0x4081
 	.word 0xaee6
-! cal[REDACTED]: Y  @0x72E60
+! cal60E1D400: Y  @0x72E60
 	.word 0x408f
 	.word 0x0d84
 	.word 0x409d
@@ -302420,14 +302420,14 @@ L_06d0c4:
 	.word 0xc1be
 	.word 0x4122
 	.word 0x21ff
-! cal[REDACTED]: Table 2D - 112_  @0x72E84
+! cal60E1D400: Table 2D - 112_  @0x72E84
 	.word 0x413c
 	.word 0x3190
 	.word 0x4158
 	.word 0x57a8
 	.word 0x4177
 	.word 0x8c15
-! cal[REDACTED]: Y  @0x72E90
+! cal60E1D400: Y  @0x72E90
 	.word 0x418d
 	.word 0xbfb1
 	.word 0x41a1
@@ -302446,14 +302446,14 @@ L_06d0c4:
 	.word 0x1c78
 	.word 0x4235
 	.word 0x8fab
-! cal[REDACTED]: Table 2D - 113_  @0x72EB4
+! cal60E1D400: Table 2D - 113_  @0x72EB4
 	.word 0x4254
 	.word 0x29ad
 	.word 0x4276
 	.word 0x6ca5
 	.word 0x428e
 	.word 0x049c
-! cal[REDACTED]: Y  @0x72EC0
+! cal60E1D400: Y  @0x72EC0
 	.word 0x42a2
 	.word 0x6b92
 	.word 0x42b8
@@ -302468,7 +302468,7 @@ L_06d0c4:
 	.word 0x5027
 	.word 0x431f
 	.word 0xbd98
-! cal[REDACTED]: Table 2D - 114_  @0x72EDC
+! cal60E1D400: Table 2D - 114_  @0x72EDC
 	.word 0x4330
 	.word 0x3e7d
 	.word 0x4341
@@ -302477,7 +302477,7 @@ L_06d0c4:
 	.word 0xe3eb
 	.word 0x4369
 	.word 0x56c2
-! cal[REDACTED]: Y  @0x72EEC
+! cal60E1D400: Y  @0x72EEC
 	.word 0x437f
 	.word 0x2234
 	.word 0x438b
@@ -302492,7 +302492,7 @@ L_06d0c4:
 	.word 0x34d7
 	.word 0x43b1
 	.word 0xdc74
-! cal[REDACTED]: Table 2D - 115_  @0x72F08
+! cal60E1D400: Table 2D - 115_  @0x72F08
 	.word 0x43b6
 	.word 0x9b02
 	.word 0x3f80
@@ -302501,7 +302501,7 @@ L_06d0c4:
 	.word 0xbffc
 	.word 0x0013
 	.word 0xffff
-! cal[REDACTED]: Y  @0x72F18
+! cal60E1D400: Y  @0x72F18
 	.word 0x4020
 	.word 0x0000
 	.word 0x3f00
@@ -302516,7 +302516,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 116_  @0x72F34
+! cal60E1D400: Table 2D - 116_  @0x72F34
 	.word 0x3f80
 	.word 0x0000
 	.word 0x0000
@@ -302529,7 +302529,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x425c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72F4C
+! cal60E1D400: Y  @0x72F4C
 	.word 0x425c
 	.word 0x0000
 	.word 0x3f7d
@@ -302542,7 +302542,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 117_  @0x72F64
+! cal60E1D400: Table 2D - 117_  @0x72F64
 	.word 0x4120
 	.word 0x0000
 	.word 0x4170
@@ -302555,7 +302555,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x420c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x72F7C
+! cal60E1D400: Y  @0x72F7C
 	.word 0x4220
 	.word 0x0000
 	.word 0x4234
@@ -302594,7 +302594,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 118_  @0x72FC8
+! cal60E1D400: Table 2D - 118_  @0x72FC8
 	.word 0x4170
 	.word 0x0000
 	.word 0x41a0
@@ -302605,7 +302605,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x420c
 	.word 0x0000
-! cal[REDACTED]: X  @0x72FDC
+! cal60E1D400: X  @0x72FDC
 	.word 0x4220
 	.word 0x0000
 	.word 0x4234
@@ -302658,7 +302658,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4234
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73044
+! cal60E1D400: Y  @0x73044
 	.word 0x4248
 	.word 0x0000
 	.word 0x425c
@@ -302697,7 +302697,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Torque To Accel Position  @0x73090
+! cal60E1D400: Torque To Accel Position  @0x73090
 	.word 0x41c8
 	.word 0x0000
 	.word 0x41f0
@@ -303192,7 +303192,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x7346C
+! cal60E1D400: X  @0x7346C
 	.word 0x3fa3
 	.word 0xd70a
 	.word 0x4023
@@ -303221,7 +303221,7 @@ L_06d0c4:
 	.word 0xc28f
 	.word 0x4323
 	.word 0xd70a
-! cal[REDACTED]: Y  @0x734A4
+! cal60E1D400: Y  @0x734A4
 	.word 0x434c
 	.word 0xcccd
 	.word 0xa497
@@ -303262,7 +303262,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Throttle Position To Torque  @0x734F4
+! cal60E1D400: Throttle Position To Torque  @0x734F4
 	.word 0x4274
 	.word 0x0000
 	.word 0x42a0
@@ -303577,7 +303577,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73768
+! cal60E1D400: Y  @0x73768
 	.word 0x3c23
 	.word 0xd70a
 	.word 0x3ca3
@@ -303586,10 +303586,10 @@ L_06d0c4:
 	.word 0xc28f
 	.word 0x3d23
 	.word 0xd70a
-! cal[REDACTED]: Table 2D - 119_  @0x73778
+! cal60E1D400: Table 2D - 119_  @0x73778
 	.word 0x3d4c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x7377C
+! cal60E1D400: Y  @0x7377C
 	.word 0x3d75
 	.word 0xc28f
 	.word 0x3d8f
@@ -303622,7 +303622,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f20
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 120_  @0x737BC
+! cal60E1D400: Table 2D - 120_  @0x737BC
 	.word 0x3f30
 	.word 0x0000
 	.word 0x3f40
@@ -303639,7 +303639,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: X  @0x737DC
+! cal60E1D400: X  @0x737DC
 	.word 0x4080
 	.word 0x0000
 	.word 0xc350
@@ -303654,7 +303654,7 @@ L_06d0c4:
 	.word 0xb286
 	.word 0xb0c2
 	.word 0xaf02
-! cal[REDACTED]: Y  @0x737F8
+! cal60E1D400: Y  @0x737F8
 	.word 0xad48
 	.word 0xac44
 	.word 0xa1ea
@@ -303663,7 +303663,7 @@ L_06d0c4:
 	.word 0x862e
 	.word 0x7e2c
 	.word 0x768e
-! cal[REDACTED]: Table 3D - 43_  @0x73808
+! cal60E1D400: Table 3D - 43_  @0x73808
 	.word 0x6f54
 	.word 0x687e
 	.word 0x623e
@@ -303678,7 +303678,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x73824
+! cal60E1D400: X  @0x73824
 	.word 0x3c23
 	.word 0xd70a
 	.word 0x3ca3
@@ -303697,7 +303697,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x3db8
 	.word 0x51ec
-! cal[REDACTED]: Y  @0x73848
+! cal60E1D400: Y  @0x73848
 	.word 0x3dcc
 	.word 0xcccb
 	.word 0x3de1
@@ -303716,7 +303716,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ee0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 44_  @0x7386C
+! cal60E1D400: Table 3D - 44_  @0x7386C
 	.word 0x3f00
 	.word 0x0000
 	.word 0x3f10
@@ -303759,7 +303759,7 @@ L_06d0c4:
 	.word 0x9826
 	.word 0x8ef8
 	.word 0x862e
-! cal[REDACTED]: X  @0x738C0
+! cal60E1D400: X  @0x738C0
 	.word 0x7e2c
 	.word 0x768e
 	.word 0x6f54
@@ -303792,7 +303792,7 @@ L_06d0c4:
 	.word 0x2a30
 	.word 0x2a30
 	.word 0x2af8
-! cal[REDACTED]: Y  @0x73900
+! cal60E1D400: Y  @0x73900
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
@@ -303823,7 +303823,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4170
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 45_  @0x7393C
+! cal60E1D400: Table 3D - 45_  @0x7393C
 	.word 0x41a0
 	.word 0x0000
 	.word 0x41c8
@@ -304064,7 +304064,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x45af
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73B1C
+! cal60E1D400: Y  @0x73B1C
 	.word 0x130b
 	.word 0x0986
 	.word 0x0659
@@ -304107,7 +304107,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0133
 	.word 0x0240
-! cal[REDACTED]: Table 2D - 121_  @0x73B70
+! cal60E1D400: Table 2D - 121_  @0x73B70
 	.word 0x028d
 	.word 0x0300
 	.word 0x0300
@@ -304120,7 +304120,7 @@ L_06d0c4:
 	.word 0x0292
 	.word 0x0400
 	.word 0x0400
-! cal[REDACTED]: Y  @0x73B88
+! cal60E1D400: Y  @0x73B88
 	.word 0x0400
 	.word 0x0400
 	.word 0x0600
@@ -304147,7 +304147,7 @@ L_06d0c4:
 	.word 0x0252
 	.word 0x029c
 	.word 0x0480
-! cal[REDACTED]: Table 2D - 122_  @0x73BBC
+! cal60E1D400: Table 2D - 122_  @0x73BBC
 	.word 0x0500
 	.word 0x0580
 	.word 0x0600
@@ -304156,7 +304156,7 @@ L_06d0c4:
 	.word 0x0169
 	.word 0x0254
 	.word 0x02a1
-! cal[REDACTED]: Y  @0x73BCC
+! cal60E1D400: Y  @0x73BCC
 	.word 0x0480
 	.word 0x0500
 	.word 0x0580
@@ -304183,7 +304183,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 123_  @0x73C00
+! cal60E1D400: Table 2D - 123_  @0x73C00
 	.word 0x428c
 	.word 0x0000
 	.word 0x42a0
@@ -304202,7 +304202,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ec0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73C24
+! cal60E1D400: Y  @0x73C24
 	.word 0x3ee0
 	.word 0x0000
 	.word 0x3f00
@@ -304225,14 +304225,14 @@ L_06d0c4:
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
-! cal[REDACTED]: Table 2D - 124_  @0x73C50
+! cal60E1D400: Table 2D - 124_  @0x73C50
 	.word 0x2a1c
 	.word 0x2a26
 	.word 0x2a26
 	.word 0x292c
 	.word 0x28f0
 	.word 0x27f6
-! cal[REDACTED]: Y  @0x73C5C
+! cal60E1D400: Y  @0x73C5C
 	.word 0x276a
 	.word 0x2710
 	.word 0x29b8
@@ -304255,14 +304255,14 @@ L_06d0c4:
 	.word 0x27d8
 	.word 0x27d8
 	.word 0x27d8
-! cal[REDACTED]: Table 2D - 125_  @0x73C88
+! cal60E1D400: Table 2D - 125_  @0x73C88
 	.word 0x27ce
 	.word 0x27c4
 	.word 0x27b0
 	.word 0x27b0
 	.word 0x26e8
 	.word 0x26e8
-! cal[REDACTED]: Y  @0x73C94
+! cal60E1D400: Y  @0x73C94
 	.word 0x26e8
 	.word 0x26e8
 	.word 0x26de
@@ -304285,14 +304285,14 @@ L_06d0c4:
 	.word 0x2710
 	.word 0x2788
 	.word 0x2788
-! cal[REDACTED]: Table 2D - 126_  @0x73CC0
+! cal60E1D400: Table 2D - 126_  @0x73CC0
 	.word 0x41a0
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73CCC
+! cal60E1D400: Y  @0x73CCC
 	.word 0x4248
 	.word 0x0000
 	.word 0x4270
@@ -304307,7 +304307,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x3e19
 	.word 0x999a
-! cal[REDACTED]: Table 2D - 330 Check DataType  @0x73CE8
+! cal60E1D400: Table 2D - 330 Check DataType  @0x73CE8
 	.word 0x3e4c
 	.word 0xcccd
 	.word 0x3e80
@@ -304316,7 +304316,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ec0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73CF8
+! cal60E1D400: Y  @0x73CF8
 	.word 0x3ee0
 	.word 0x0000
 	.word 0x3f00
@@ -304341,7 +304341,7 @@ L_06d0c4:
 	.word 0x2af8
 	.word 0x2a30
 	.word 0x2a30
-! cal[REDACTED]: Table 2D - 127_  @0x73D28
+! cal60E1D400: Table 2D - 127_  @0x73D28
 	.word 0x2a30
 	.word 0x2a30
 	.word 0x2a30
@@ -304354,7 +304354,7 @@ L_06d0c4:
 	.word 0x283c
 	.word 0x283c
 	.word 0x283c
-! cal[REDACTED]: X  @0x73D40
+! cal60E1D400: X  @0x73D40
 	.word 0x283c
 	.word 0x283c
 	.word 0x2882
@@ -304365,7 +304365,7 @@ L_06d0c4:
 	.word 0x27c4
 	.word 0x27b0
 	.word 0x27b0
-! cal[REDACTED]: Y  @0x73D54
+! cal60E1D400: Y  @0x73D54
 	.word 0x27d8
 	.word 0x27d8
 	.word 0x27d8
@@ -304374,7 +304374,7 @@ L_06d0c4:
 	.word 0x27c4
 	.word 0x27b0
 	.word 0x27b0
-! cal[REDACTED]: Table 3D - 46_  @0x73D64
+! cal60E1D400: Table 3D - 46_  @0x73D64
 	.word 0x26e8
 	.word 0x26e8
 	.word 0x26e8
@@ -304405,7 +304405,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73DA0
+! cal60E1D400: Y  @0x73DA0
 	.word 0x4248
 	.word 0x0000
 	.word 0x4270
@@ -304416,12 +304416,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42aa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 128_  @0x73DB4
+! cal60E1D400: Table 2D - 128_  @0x73DB4
 	.word 0x3e05
 	.word 0x1eb8
 	.word 0x3e19
 	.word 0x999a
-! cal[REDACTED]: Y  @0x73DBC
+! cal60E1D400: Y  @0x73DBC
 	.word 0x3e40
 	.word 0x0000
 	.word 0x3e80
@@ -304432,12 +304432,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ee0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 129_  @0x73DD0
+! cal60E1D400: Table 2D - 129_  @0x73DD0
 	.word 0x3f00
 	.word 0x0000
 	.word 0x3f10
 	.word 0x0000
-! cal[REDACTED]: Y  @0x73DD8
+! cal60E1D400: Y  @0x73DD8
 	.word 0x2af8
 	.word 0x2af8
 	.word 0x2af8
@@ -304448,12 +304448,12 @@ L_06d0c4:
 	.word 0x2af8
 	.word 0x27d8
 	.word 0x27d8
-! cal[REDACTED]: Table 2D - 130_  @0x73DEC
+! cal60E1D400: Table 2D - 130_  @0x73DEC
 	.word 0x27d8
 	.word 0x27d8
 	.word 0x27d8
 	.word 0x272e
-! cal[REDACTED]: X  @0x73DF4
+! cal60E1D400: X  @0x73DF4
 	.word 0x2774
 	.word 0x2724
 	.word 0x2832
@@ -304476,7 +304476,7 @@ L_06d0c4:
 	.word 0x2648
 	.word 0x2648
 	.word 0x2661
-! cal[REDACTED]: Y  @0x73E20
+! cal60E1D400: Y  @0x73E20
 	.word 0x2661
 	.word 0x26ca
 	.word 0x26c5
@@ -304491,7 +304491,7 @@ L_06d0c4:
 	.word 0x26de
 	.word 0x25f8
 	.word 0x25cb
-! cal[REDACTED]: Table 3D - 47_  @0x73E3C
+! cal60E1D400: Table 3D - 47_  @0x73E3C
 	.word 0x267a
 	.word 0x2661
 	.word 0x267b
@@ -304532,7 +304532,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x457a
 	.word 0x0000
-! cal[REDACTED]: X  @0x73E8C
+! cal60E1D400: X  @0x73E8C
 	.word 0x458c
 	.word 0xa000
 	.word 0x459c
@@ -304545,7 +304545,7 @@ L_06d0c4:
 	.word 0x1eb8
 	.word 0x3e19
 	.word 0x999a
-! cal[REDACTED]: Y  @0x73EA4
+! cal60E1D400: Y  @0x73EA4
 	.word 0x3e40
 	.word 0x0000
 	.word 0x3e80
@@ -304558,7 +304558,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f00
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 48_  @0x73EBC
+! cal60E1D400: Table 3D - 48_  @0x73EBC
 	.word 0x3f10
 	.word 0x0000
 	.word 0x3f20
@@ -304577,7 +304577,7 @@ L_06d0c4:
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
-! cal[REDACTED]: X  @0x73EE0
+! cal60E1D400: X  @0x73EE0
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
@@ -304590,7 +304590,7 @@ L_06d0c4:
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
-! cal[REDACTED]: Y  @0x73EF8
+! cal60E1D400: Y  @0x73EF8
 	.word 0x2b2a
 	.word 0x2b2a
 	.word 0x2b2a
@@ -304605,7 +304605,7 @@ L_06d0c4:
 	.word 0x2710
 	.word 0x2756
 	.word 0x2756
-! cal[REDACTED]: Table 3D - 109_  @0x73F14
+! cal60E1D400: Table 3D - 109_  @0x73F14
 	.word 0x2756
 	.word 0x2710
 	.word 0x2710
@@ -304650,7 +304650,7 @@ L_06d0c4:
 	.word 0x26ac
 	.word 0x2774
 	.word 0x275a
-! cal[REDACTED]: Maximum Throttle Angle  @0x73F6C
+! cal60E1D400: Maximum Throttle Angle  @0x73F6C
 	.word 0x275a
 	.word 0x2742
 	.word 0x273d
@@ -304673,7 +304673,7 @@ L_06d0c4:
 	.word 0x26ac
 	.word 0x2328
 	.word 0x2328
-! cal[REDACTED]: Y  @0x73F98
+! cal60E1D400: Y  @0x73F98
 	.word 0x2774
 	.word 0x2774
 	.word 0x2742
@@ -304690,12 +304690,12 @@ L_06d0c4:
 	.word 0x2774
 	.word 0x276f
 	.word 0x2742
-! cal[REDACTED]: Table 2D - 131_  @0x73FB8
+! cal60E1D400: Table 2D - 131_  @0x73FB8
 	.word 0x2740
 	.word 0x2729
 	.word 0x26f2
 	.word 0x26de
-! cal[REDACTED]: Y  @0x73FC0
+! cal60E1D400: Y  @0x73FC0
 	.word 0x26f7
 	.word 0x26ac
 	.word 0x2328
@@ -304712,12 +304712,12 @@ L_06d0c4:
 	.word 0x26ac
 	.word 0x2328
 	.word 0x2328
-! cal[REDACTED]: Table 2D - 132_  @0x73FE0
+! cal60E1D400: Table 2D - 132_  @0x73FE0
 	.word 0x2742
 	.word 0x2742
 	.word 0x2742
 	.word 0x2710
-! cal[REDACTED]: Y  @0x73FE8
+! cal60E1D400: Y  @0x73FE8
 	.word 0x2710
 	.word 0x2710
 	.word 0x26de
@@ -304734,12 +304734,12 @@ L_06d0c4:
 	.word 0x26de
 	.word 0x26c5
 	.word 0x26ac
-! cal[REDACTED]: Table 2D - 133_  @0x74008
+! cal60E1D400: Table 2D - 133_  @0x74008
 	.word 0x26de
 	.word 0x26ac
 	.word 0x2328
 	.word 0x2328
-! cal[REDACTED]: Y  @0x74010
+! cal60E1D400: Y  @0x74010
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
@@ -304756,12 +304756,12 @@ L_06d0c4:
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
-! cal[REDACTED]: Table 2D - 134_  @0x74030
+! cal60E1D400: Table 2D - 134_  @0x74030
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
-! cal[REDACTED]: Y  @0x74038
+! cal60E1D400: Y  @0x74038
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
@@ -304776,12 +304776,12 @@ L_06d0c4:
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x26ac
-! cal[REDACTED]: Table 2D - 135_  @0x74054
+! cal60E1D400: Table 2D - 135_  @0x74054
 	.word 0x26ac
 	.word 0x26ac
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7405C
+! cal60E1D400: Y  @0x7405C
 	.word 0x447a
 	.word 0x0000
 	.word 0x449c
@@ -304796,12 +304796,12 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Table 2D - 136_  @0x74078
+! cal60E1D400: Table 2D - 136_  @0x74078
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Y  @0x74080
+! cal60E1D400: Y  @0x74080
 	.word 0x3e05
 	.word 0x1eb8
 	.word 0x3e19
@@ -304824,14 +304824,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f30
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 137_  @0x740AC
+! cal60E1D400: Table 2D - 137_  @0x740AC
 	.word 0x3f40
 	.word 0x0000
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
-! cal[REDACTED]: Y  @0x740B8
+! cal60E1D400: Y  @0x740B8
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
@@ -304854,14 +304854,14 @@ L_06d0c4:
 	.word 0x2726
 	.word 0x2727
 	.word 0x2709
-! cal[REDACTED]: Table 2D - 138_  @0x740E4
+! cal60E1D400: Table 2D - 138_  @0x740E4
 	.word 0x26d4
 	.word 0x26a0
 	.word 0x269e
 	.word 0x269e
 	.word 0x2710
 	.word 0x2701
-! cal[REDACTED]: Y  @0x740F0
+! cal60E1D400: Y  @0x740F0
 	.word 0x2701
 	.word 0x2720
 	.word 0x2713
@@ -304878,12 +304878,12 @@ L_06d0c4:
 	.word 0x26d2
 	.word 0x26d3
 	.word 0x2698
-! cal[REDACTED]: Table 2D - 139_  @0x74110
+! cal60E1D400: Table 2D - 139_  @0x74110
 	.word 0x2688
 	.word 0x2688
 	.word 0x2710
 	.word 0x26ff
-! cal[REDACTED]: Y  @0x74118
+! cal60E1D400: Y  @0x74118
 	.word 0x26ff
 	.word 0x271d
 	.word 0x26f9
@@ -304900,12 +304900,12 @@ L_06d0c4:
 	.word 0x26f4
 	.word 0x26e0
 	.word 0x26b6
-! cal[REDACTED]: Table 2D - 140_  @0x74138
+! cal60E1D400: Table 2D - 140_  @0x74138
 	.word 0x26bf
 	.word 0x26bf
 	.word 0x2710
 	.word 0x26b2
-! cal[REDACTED]: Y  @0x74140
+! cal60E1D400: Y  @0x74140
 	.word 0x26b2
 	.word 0x2762
 	.word 0x273d
@@ -304922,34 +304922,34 @@ L_06d0c4:
 	.word 0x2731
 	.word 0x2704
 	.word 0x26eb
-! cal[REDACTED]: Table 2D - 141_  @0x74160
+! cal60E1D400: Table 2D - 141_  @0x74160
 	.word 0x26b8
 	.word 0x26b8
 	.word 0x2710
 	.word 0x2758
-! cal[REDACTED]: Y  @0x74168
-	.word 0x2758
-	.word 0x2755
-	.word 0x2727
-	.word 0x26fa
-	.word 0x26dd
-	.word 0x26eb
-	.word 0x26b8
-	.word 0x26b8
-	.word 0x2710
-	.word 0x2758
+! cal60E1D400: Y  @0x74168
 	.word 0x2758
 	.word 0x2755
 	.word 0x2727
 	.word 0x26fa
 	.word 0x26dd
 	.word 0x26eb
-! cal[REDACTED]: Table 2D - 142_  @0x74188
+	.word 0x26b8
+	.word 0x26b8
+	.word 0x2710
+	.word 0x2758
+	.word 0x2758
+	.word 0x2755
+	.word 0x2727
+	.word 0x26fa
+	.word 0x26dd
+	.word 0x26eb
+! cal60E1D400: Table 2D - 142_  @0x74188
 	.word 0x26b8
 	.word 0x26b8
 	.word 0x2710
 	.word 0x2710
-! cal[REDACTED]: Y  @0x74190
+! cal60E1D400: Y  @0x74190
 	.word 0x2710
 	.word 0x2710
 	.word 0x2710
@@ -304964,12 +304964,12 @@ L_06d0c4:
 	.word 0x6000
 	.word 0x471c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 143_  @0x741AC
+! cal60E1D400: Table 2D - 143_  @0x741AC
 	.word 0x4743
 	.word 0x5000
 	.word 0x476a
 	.word 0x6000
-! cal[REDACTED]: X  @0x741B4
+! cal60E1D400: X  @0x741B4
 	.word 0x4776
 	.word 0x1800
 	.word 0x4776
@@ -305012,7 +305012,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x74208
+! cal60E1D400: Y  @0x74208
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -305049,7 +305049,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Accel Pedal to Throttle Position #1  @0x74250
+! cal60E1D400: Accel Pedal to Throttle Position #1  @0x74250
 	.word 0x3d8f
 	.word 0x5c28
 	.word 0x3d8f
@@ -305428,7 +305428,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x74544
+! cal60E1D400: X  @0x74544
 	.word 0x4348
 	.word 0x0000
 	.word 0x3f19
@@ -305471,7 +305471,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x1313
 	.word 0x2d1d
-! cal[REDACTED]: Y  @0x74598
+! cal60E1D400: Y  @0x74598
 	.word 0x1818
 	.word 0x4d4d
 	.word 0x44fa
@@ -305508,7 +305508,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0fa0
 	.word 0x0fa0
-! cal[REDACTED]: Accel Pedal to Throttle Position #2  @0x745E0
+! cal60E1D400: Accel Pedal to Throttle Position #2  @0x745E0
 	.word 0x0fa0
 	.word 0x0fa0
 	.word 0x01ff
@@ -305887,7 +305887,7 @@ L_06d0c4:
 	.word 0xa000
 	.word 0x459c
 	.word 0x4000
-! cal[REDACTED]: X  @0x748D4
+! cal60E1D400: X  @0x748D4
 	.word 0x45ab
 	.word 0xe000
 	.word 0x45bb
@@ -305930,7 +305930,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x0000
 	.word 0x005e
-! cal[REDACTED]: Y  @0x74928
+! cal60E1D400: Y  @0x74928
 	.word 0x005e
 	.word 0x007d
 	.word 0x00db
@@ -305967,7 +305967,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: Accel Pedal to Throttle Position #3  @0x74970
+! cal60E1D400: Accel Pedal to Throttle Position #3  @0x74970
 	.word 0x44bb
 	.word 0x8000
 	.word 0x44fa
@@ -306346,7 +306346,7 @@ L_06d0c4:
 	.word 0x2000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: X  @0x74C64
+! cal60E1D400: X  @0x74C64
 	.word 0x45ea
 	.word 0x6000
 	.word 0x45fa
@@ -306389,7 +306389,7 @@ L_06d0c4:
 	.word 0x1316
 	.word 0x1313
 	.word 0x1313
-! cal[REDACTED]: Y  @0x74CB8
+! cal60E1D400: Y  @0x74CB8
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -306426,7 +306426,7 @@ L_06d0c4:
 	.word 0x4141
 	.word 0x0e0e
 	.word 0x0e0e
-! cal[REDACTED]: Accel Pedal to Throttle Position #4  @0x74D00
+! cal60E1D400: Accel Pedal to Throttle Position #4  @0x74D00
 	.word 0x0f11
 	.word 0x0004
 	.word 0x090f
@@ -306835,7 +306835,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x427a
 	.word 0x0000
-! cal[REDACTED]: Y  @0x75030
+! cal60E1D400: Y  @0x75030
 	.word 0x429c
 	.word 0x4000
 	.word 0x42bb
@@ -306854,7 +306854,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41fa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 144_  @0x75054
+! cal60E1D400: Table 2D - 144_  @0x75054
 	.word 0x423b
 	.word 0x8000
 	.word 0x427a
@@ -306865,7 +306865,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x0000
 	.word 0x0154
-! cal[REDACTED]: Y  @0x75068
+! cal60E1D400: Y  @0x75068
 	.word 0x02da
 	.word 0x0492
 	.word 0x060e
@@ -306902,7 +306902,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x4400
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 145_  @0x750B0
+! cal60E1D400: Table 2D - 145_  @0x750B0
 	.word 0x3e80
 	.word 0x0000
 	.word 0x42c8
@@ -306921,7 +306921,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x750D4
+! cal60E1D400: Y  @0x750D4
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -306940,7 +306940,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x45cb
 	.word 0x2000
-! cal[REDACTED]: Table 2D - 146_  @0x750F8
+! cal60E1D400: Table 2D - 146_  @0x750F8
 	.word 0x45da
 	.word 0xc000
 	.word 0x45ea
@@ -306951,7 +306951,7 @@ L_06d0c4:
 	.word 0xd000
 	.word 0x460c
 	.word 0xa000
-! cal[REDACTED]: Y  @0x7510C
+! cal60E1D400: Y  @0x7510C
 	.word 0x1313
 	.word 0x1526
 	.word 0x2c37
@@ -306970,7 +306970,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 147_  @0x75130
+! cal60E1D400: Table 2D - 147_  @0x75130
 	.word 0x4220
 	.word 0x0000
 	.word 0x4248
@@ -306981,7 +306981,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x75144
+! cal60E1D400: Y  @0x75144
 	.word 0x42b4
 	.word 0x0000
 	.word 0x42c8
@@ -306992,7 +306992,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4302
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 331 Check DataType  @0x75158
+! cal60E1D400: Table 2D - 331 Check DataType  @0x75158
 	.word 0x430c
 	.word 0x0000
 	.word 0x4316
@@ -307175,7 +307175,7 @@ L_06d0c4:
 	.word 0x0a89
 	.word 0x0bbd
 	.word 0x0cdd
-! cal[REDACTED]: Y  @0x752C4
+! cal60E1D400: Y  @0x752C4
 	.word 0x0dfa
 	.word 0x0f1b
 	.word 0x1048
@@ -307190,12 +307190,12 @@ L_06d0c4:
 	.word 0x2c98
 	.word 0x6b85
 	.word 0x6b85
-! cal[REDACTED]: Table 2D - 148_  @0x752E0
+! cal60E1D400: Table 2D - 148_  @0x752E0
 	.word 0x6b85
 	.word 0x0852
 	.word 0x093e
 	.word 0x0ace
-! cal[REDACTED]: Y  @0x752E8
+! cal60E1D400: Y  @0x752E8
 	.word 0x0c2c
 	.word 0x0d64
 	.word 0x0e9b
@@ -307214,7 +307214,7 @@ L_06d0c4:
 	.word 0x3d88
 	.word 0x6b85
 	.word 0x6b85
-! cal[REDACTED]: Table 2D - 149_  @0x7530C
+! cal60E1D400: Table 2D - 149_  @0x7530C
 	.word 0x09b7
 	.word 0x0aaa
 	.word 0x0c7b
@@ -307225,7 +307225,7 @@ L_06d0c4:
 	.word 0x12c1
 	.word 0x13ee
 	.word 0x1518
-! cal[REDACTED]: Y  @0x75320
+! cal60E1D400: Y  @0x75320
 	.word 0x1646
 	.word 0x1797
 	.word 0x1934
@@ -307248,7 +307248,7 @@ L_06d0c4:
 	.word 0x15b2
 	.word 0x16e3
 	.word 0x184b
-! cal[REDACTED]: Table 2D - 150_  @0x7534C
+! cal60E1D400: Table 2D - 150_  @0x7534C
 	.word 0x19be
 	.word 0x1b36
 	.word 0x1cd0
@@ -307261,7 +307261,7 @@ L_06d0c4:
 	.word 0x6b85
 	.word 0x0c5a
 	.word 0x0d71
-! cal[REDACTED]: Y  @0x75364
+! cal60E1D400: Y  @0x75364
 	.word 0x0f5c
 	.word 0x10d2
 	.word 0x124b
@@ -307288,7 +307288,7 @@ L_06d0c4:
 	.word 0x13ac
 	.word 0x150b
 	.word 0x1666
-! cal[REDACTED]: Table 2D - 151_  @0x75398
+! cal60E1D400: Table 2D - 151_  @0x75398
 	.word 0x179e
 	.word 0x18b1
 	.word 0x19c4
@@ -307303,7 +307303,7 @@ L_06d0c4:
 	.word 0x350b
 	.word 0x3f42
 	.word 0x6b85
-! cal[REDACTED]: Y  @0x753B4
+! cal60E1D400: Y  @0x753B4
 	.word 0x0ecf
 	.word 0x0ff6
 	.word 0x11ff
@@ -307322,7 +307322,7 @@ L_06d0c4:
 	.word 0x2834
 	.word 0x2bc7
 	.word 0x30ce
-! cal[REDACTED]: Table 2D - 152_  @0x753D8
+! cal60E1D400: Table 2D - 152_  @0x753D8
 	.word 0x3810
 	.word 0x5958
 	.word 0x6b85
@@ -307333,7 +307333,7 @@ L_06d0c4:
 	.word 0x166a
 	.word 0x1797
 	.word 0x18e2
-! cal[REDACTED]: Y  @0x753EC
+! cal60E1D400: Y  @0x753EC
 	.word 0x1a2a
 	.word 0x1b99
 	.word 0x1d3c
@@ -307352,7 +307352,7 @@ L_06d0c4:
 	.word 0x145a
 	.word 0x1584
 	.word 0x16ab
-! cal[REDACTED]: Table 2D - 153_  @0x75410
+! cal60E1D400: Table 2D - 153_  @0x75410
 	.word 0x17f3
 	.word 0x1948
 	.word 0x1a99
@@ -307363,7 +307363,7 @@ L_06d0c4:
 	.word 0x2371
 	.word 0x25d3
 	.word 0x2897
-! cal[REDACTED]: Y  @0x75424
+! cal60E1D400: Y  @0x75424
 	.word 0x2bac
 	.word 0x2f45
 	.word 0x3471
@@ -307382,7 +307382,7 @@ L_06d0c4:
 	.word 0x1fbb
 	.word 0x21b4
 	.word 0x23e7
-! cal[REDACTED]: Table 2D - 154_  @0x75448
+! cal60E1D400: Table 2D - 154_  @0x75448
 	.word 0x264c
 	.word 0x2952
 	.word 0x2cb6
@@ -307393,7 +307393,7 @@ L_06d0c4:
 	.word 0x6b85
 	.word 0x6b85
 	.word 0x6b85
-! cal[REDACTED]: Y  @0x7545C
+! cal60E1D400: Y  @0x7545C
 	.word 0x15c6
 	.word 0x181d
 	.word 0x1962
@@ -307412,7 +307412,7 @@ L_06d0c4:
 	.word 0x3cf7
 	.word 0x4b1c
 	.word 0x6b85
-! cal[REDACTED]: Table 2D - 155_  @0x75480
+! cal60E1D400: Table 2D - 155_  @0x75480
 	.word 0x6b85
 	.word 0x6b85
 	.word 0x6b85
@@ -307423,7 +307423,7 @@ L_06d0c4:
 	.word 0x1e8e
 	.word 0x2017
 	.word 0x21a3
-! cal[REDACTED]: X  @0x75494
+! cal60E1D400: X  @0x75494
 	.word 0x234a
 	.word 0x251b
 	.word 0x2738
@@ -307446,7 +307446,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4140
 	.word 0x0000
-! cal[REDACTED]: Y  @0x754C0
+! cal60E1D400: Y  @0x754C0
 	.word 0x4170
 	.word 0x0000
 	.word 0x4190
@@ -307471,7 +307471,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x443b
 	.word 0x8000
-! cal[REDACTED]: Table 3D - 53_  @0x754F0
+! cal60E1D400: Table 3D - 53_  @0x754F0
 	.word 0x447a
 	.word 0x0000
 	.word 0x44bb
@@ -307554,7 +307554,7 @@ L_06d0c4:
 	.word 0xba26
 	.word 0xbfcd
 	.word 0xc466
-! cal[REDACTED]: Y  @0x75594
+! cal60E1D400: Y  @0x75594
 	.word 0xc4b3
 	.word 0xc533
 	.word 0xc5b3
@@ -307573,14 +307573,14 @@ L_06d0c4:
 	.word 0xcb4d
 	.word 0xcbb3
 	.word 0xcc1a
-! cal[REDACTED]: Table 2D - 156_  @0x755B8
+! cal60E1D400: Table 2D - 156_  @0x755B8
 	.word 0xcc8d
 	.word 0xccf3
 	.word 0xcd5a
 	.word 0xcdcd
 	.word 0x734d
 	.word 0x7780
-! cal[REDACTED]: X  @0x755C4
+! cal60E1D400: X  @0x755C4
 	.word 0x9b5a
 	.word 0xad0d
 	.word 0xbac0
@@ -307601,7 +307601,7 @@ L_06d0c4:
 	.word 0xc00d
 	.word 0xc773
 	.word 0xd35a
-! cal[REDACTED]: Y  @0x755EC
+! cal60E1D400: Y  @0x755EC
 	.word 0xd600
 	.word 0xd81a
 	.word 0xd8da
@@ -307636,7 +307636,7 @@ L_06d0c4:
 	.word 0xdc33
 	.word 0xdc8d
 	.word 0xdcf3
-! cal[REDACTED]: Table 3D - 54_  @0x75630
+! cal60E1D400: Table 3D - 54_  @0x75630
 	.word 0x6cc0
 	.word 0x7726
 	.word 0x818d
@@ -307807,7 +307807,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x4285
 	.word 0x0000
-! cal[REDACTED]: X  @0x75784
+! cal60E1D400: X  @0x75784
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -307828,7 +307828,7 @@ L_06d0c4:
 	.word 0x06ff
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x757AC
+! cal60E1D400: Y  @0x757AC
 	.word 0x40a0
 	.word 0x0000
 	.word 0x4120
@@ -307863,7 +307863,7 @@ L_06d0c4:
 	.word 0x00b4
 	.word 0x0122
 	.word 0x014a
-! cal[REDACTED]: Table 3D - 55_  @0x757F0
+! cal60E1D400: Table 3D - 55_  @0x757F0
 	.word 0x017c
 	.word 0x01a4
 	.word 0x01d1
@@ -308066,7 +308066,7 @@ L_06d0c4:
 	.word 0x0049
 	.word 0x0047
 	.word 0x0046
-! cal[REDACTED]: Y  @0x75984
+! cal60E1D400: Y  @0x75984
 	.word 0x0100
 	.word 0x0100
 	.word 0x00b9
@@ -308103,7 +308103,7 @@ L_06d0c4:
 	.word 0x0100
 	.word 0x0100
 	.word 0x00e6
-! cal[REDACTED]: Table 2D - 157_  @0x759CC
+! cal60E1D400: Table 2D - 157_  @0x759CC
 	.word 0x00c7
 	.word 0x00b1
 	.word 0x00a1
@@ -308156,7 +308156,7 @@ L_06d0c4:
 	.word 0x0100
 	.word 0x00f7
 	.word 0x00e6
-! cal[REDACTED]: Y  @0x75A34
+! cal60E1D400: Y  @0x75A34
 	.word 0x00da
 	.word 0x00d1
 	.word 0x00cb
@@ -308191,7 +308191,7 @@ L_06d0c4:
 	.word 0x0100
 	.word 0x0100
 	.word 0x0100
-! cal[REDACTED]: Table 2D - 332 Check DataType  @0x75A78
+! cal60E1D400: Table 2D - 332 Check DataType  @0x75A78
 	.word 0x00fa
 	.word 0x00f3
 	.word 0x00ee
@@ -308210,7 +308210,7 @@ L_06d0c4:
 	.word 0x0100
 	.word 0x0100
 	.word 0x0100
-! cal[REDACTED]: Y  @0x75A9C
+! cal60E1D400: Y  @0x75A9C
 	.word 0x0100
 	.word 0x0100
 	.word 0x00ff
@@ -308245,7 +308245,7 @@ L_06d0c4:
 	.word 0xfdf4
 	.word 0x40e5
 	.word 0xb2c0
-! cal[REDACTED]: Table 2D - 333 Check DataType  @0x75AE0
+! cal60E1D400: Table 2D - 333 Check DataType  @0x75AE0
 	.word 0x4104
 	.word 0x507d
 	.word 0x4116
@@ -308344,7 +308344,7 @@ L_06d0c4:
 	.word 0x008a
 	.word 0x007d
 	.word 0x006f
-! cal[REDACTED]: Y  @0x75BA4
+! cal60E1D400: Y  @0x75BA4
 	.word 0x0061
 	.word 0x0054
 	.word 0x0000
@@ -308357,12 +308357,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 334 Check DataType  @0x75BBC
+! cal60E1D400: Table 2D - 334 Check DataType  @0x75BBC
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Y  @0x75BC4
+! cal60E1D400: Y  @0x75BC4
 	.word 0x457a
 	.word 0x0000
 	.word 0x2710
@@ -308389,7 +308389,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4090
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 158_  @0x75BF8
+! cal60E1D400: Table 2D - 158_  @0x75BF8
 	.word 0x3e40
 	.word 0x0000
 	.word 0x3f40
@@ -308404,7 +308404,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x75C14
+! cal60E1D400: Y  @0x75C14
 	.word 0x64c8
 	.word 0xc8ff
 	.word 0x4140
@@ -308431,7 +308431,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 159_  @0x75C48
+! cal60E1D400: Table 2D - 159_  @0x75C48
 	.word 0x459c
 	.word 0x4000
 	.word 0x461c
@@ -308520,7 +308520,7 @@ L_06d0c4:
 	.word 0xc700
 	.word 0x472f
 	.word 0xc800
-! cal[REDACTED]: X  @0x75CF8
+! cal60E1D400: X  @0x75CF8
 	.word 0xc120
 	.word 0x0000
 	.word 0x0000
@@ -308531,7 +308531,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x75D0C
+! cal60E1D400: Y  @0x75D0C
 	.word 0x4248
 	.word 0x0000
 	.word 0x1414
@@ -308572,7 +308572,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x42a8
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 110_  @0x75D5C
+! cal60E1D400: Table 3D - 110_  @0x75D5C
 	.word 0x3dcc
 	.word 0xcccd
 	.word 0x4000
@@ -308623,7 +308623,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: X  @0x75DC0
+! cal60E1D400: X  @0x75DC0
 	.word 0x44bb
 	.word 0x8000
 	.word 0x44fa
@@ -308658,14 +308658,14 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x75E04
+! cal60E1D400: Y  @0x75E04
 	.word 0x453b
 	.word 0x8000
 	.word 0x459b
 	.word 0xf000
 	.word 0x459c
 	.word 0x4000
-! cal[REDACTED]: Table 3D - 56_  @0x75E10
+! cal60E1D400: Table 3D - 56_  @0x75E10
 	.word 0x45bb
 	.word 0x8000
 	.word 0x0404
@@ -308718,7 +308718,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4170
 	.word 0x0000
-! cal[REDACTED]: X  @0x75E78
+! cal60E1D400: X  @0x75E78
 	.word 0x41a0
 	.word 0x0000
 	.word 0x41c8
@@ -308753,14 +308753,14 @@ L_06d0c4:
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
-! cal[REDACTED]: Y  @0x75EBC
+! cal60E1D400: Y  @0x75EBC
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
-! cal[REDACTED]: Table 3D - 57_  @0x75EC8
+! cal60E1D400: Table 3D - 57_  @0x75EC8
 	.word 0x0021
 	.word 0x0021
 	.word 0x0021
@@ -308813,7 +308813,7 @@ L_06d0c4:
 	.word 0x026e
 	.word 0x026e
 	.word 0x026e
-! cal[REDACTED]: X  @0x75F30
+! cal60E1D400: X  @0x75F30
 	.word 0x0021
 	.word 0x020c
 	.word 0x020c
@@ -308848,14 +308848,14 @@ L_06d0c4:
 	.word 0x0979
 	.word 0x0979
 	.word 0x0979
-! cal[REDACTED]: Y  @0x75F74
+! cal60E1D400: Y  @0x75F74
 	.word 0x0021
 	.word 0x0b85
 	.word 0x0b85
 	.word 0x0b85
 	.word 0x0b85
 	.word 0x0b85
-! cal[REDACTED]: Table 3D - 58_  @0x75F80
+! cal60E1D400: Table 3D - 58_  @0x75F80
 	.word 0x0b85
 	.word 0x0c8b
 	.word 0x0d91
@@ -308910,7 +308910,7 @@ L_06d0c4:
 	.word 0x1ccd
 	.word 0x1ccd
 	.word 0x1ccd
-! cal[REDACTED]: Y  @0x75FEC
+! cal60E1D400: Y  @0x75FEC
 	.word 0x1ccd
 	.word 0x1ccd
 	.word 0x1ccd
@@ -308947,7 +308947,7 @@ L_06d0c4:
 	.word 0x28f6
 	.word 0x28f6
 	.word 0x28f6
-! cal[REDACTED]: Table 2D - 160_  @0x76034
+! cal60E1D400: Table 2D - 160_  @0x76034
 	.word 0x28f6
 	.word 0x28f6
 	.word 0x28f6
@@ -308966,7 +308966,7 @@ L_06d0c4:
 	.word 0x2f5c
 	.word 0x2f5c
 	.word 0x2f5c
-! cal[REDACTED]: Y  @0x76058
+! cal60E1D400: Y  @0x76058
 	.word 0x2f5c
 	.word 0x2f5c
 	.word 0x2f5c
@@ -308985,7 +308985,7 @@ L_06d0c4:
 	.word 0x3c29
 	.word 0x3c29
 	.word 0x3c29
-! cal[REDACTED]: Table 2D - 161_  @0x7607C
+! cal60E1D400: Table 2D - 161_  @0x7607C
 	.word 0x3c29
 	.word 0x3c29
 	.word 0x3c29
@@ -308996,7 +308996,7 @@ L_06d0c4:
 	.word 0x47ae
 	.word 0x47ae
 	.word 0x47ae
-! cal[REDACTED]: Y  @0x76090
+! cal60E1D400: Y  @0x76090
 	.word 0x47ae
 	.word 0x47ae
 	.word 0x47ae
@@ -309007,14 +309007,14 @@ L_06d0c4:
 	.word 0x47ae
 	.word 0x47ae
 	.word 0x47ae
-! cal[REDACTED]: Table 2D - 162_  @0x760A4
+! cal60E1D400: Table 2D - 162_  @0x760A4
 	.word 0x47ae
 	.word 0x6b85
 	.word 0x5333
 	.word 0x5333
 	.word 0x5333
 	.word 0x5333
-! cal[REDACTED]: X  @0x760B0
+! cal60E1D400: X  @0x760B0
 	.word 0x5333
 	.word 0x5333
 	.word 0x5333
@@ -309051,7 +309051,7 @@ L_06d0c4:
 	.word 0x6b85
 	.word 0x6b85
 	.word 0x6b85
-! cal[REDACTED]: Y  @0x760F8
+! cal60E1D400: Y  @0x760F8
 	.word 0x6b85
 	.word 0x6b85
 	.word 0x6b85
@@ -309090,7 +309090,7 @@ L_06d0c4:
 	.word 0xe000
 	.word 0x45bb
 	.word 0x8000
-! cal[REDACTED]: Table 3D - 59_  @0x76144
+! cal60E1D400: Table 3D - 59_  @0x76144
 	.word 0x45cb
 	.word 0x2000
 	.word 0x45da
@@ -309263,7 +309263,7 @@ L_06d0c4:
 	.word 0x15a2
 	.word 0x15a2
 	.word 0x15a2
-! cal[REDACTED]: X  @0x7629C
+! cal60E1D400: X  @0x7629C
 	.word 0x15a2
 	.word 0x15a2
 	.word 0x15a2
@@ -309300,7 +309300,7 @@ L_06d0c4:
 	.word 0x2148
 	.word 0x2148
 	.word 0x2148
-! cal[REDACTED]: Y  @0x762E4
+! cal60E1D400: Y  @0x762E4
 	.word 0x2148
 	.word 0x2148
 	.word 0x2148
@@ -309339,7 +309339,7 @@ L_06d0c4:
 	.word 0x2dd3
 	.word 0x2dd3
 	.word 0x2dd3
-! cal[REDACTED]: Table 3D - 60_  @0x76330
+! cal60E1D400: Table 3D - 60_  @0x76330
 	.word 0x0021
 	.word 0x33d7
 	.word 0x33d7
@@ -309682,7 +309682,7 @@ L_06d0c4:
 	.word 0x2312
 	.word 0x2312
 	.word 0x2312
-! cal[REDACTED]: X  @0x765DC
+! cal60E1D400: X  @0x765DC
 	.word 0x0021
 	.word 0x28b4
 	.word 0x28b4
@@ -309719,7 +309719,7 @@ L_06d0c4:
 	.word 0x2e35
 	.word 0x0021
 	.word 0x33d7
-! cal[REDACTED]: Y  @0x76624
+! cal60E1D400: Y  @0x76624
 	.word 0x33d7
 	.word 0x33d7
 	.word 0x33d7
@@ -309758,7 +309758,7 @@ L_06d0c4:
 	.word 0x4a1d
 	.word 0x4a1d
 	.word 0x4a1d
-! cal[REDACTED]: Table 3D - 61_  @0x76670
+! cal60E1D400: Table 3D - 61_  @0x76670
 	.word 0x4a1d
 	.word 0x4a1d
 	.word 0x4a1d
@@ -310101,7 +310101,7 @@ L_06d0c4:
 	.word 0x328f
 	.word 0x328f
 	.word 0x328f
-! cal[REDACTED]: X  @0x7691C
+! cal60E1D400: X  @0x7691C
 	.word 0x32b0
 	.word 0x32f2
 	.word 0x3312
@@ -310118,7 +310118,7 @@ L_06d0c4:
 	.word 0x3efa
 	.word 0x3efa
 	.word 0x3efa
-! cal[REDACTED]: Y  @0x7693C
+! cal60E1D400: Y  @0x7693C
 	.word 0x3efa
 	.word 0x3efa
 	.word 0x3efa
@@ -310157,7 +310157,7 @@ L_06d0c4:
 	.word 0x553f
 	.word 0x553f
 	.word 0x553f
-! cal[REDACTED]: Table 3D - 62_  @0x76988
+! cal60E1D400: Table 3D - 62_  @0x76988
 	.word 0x553f
 	.word 0x553f
 	.word 0x553f
@@ -310310,7 +310310,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: X  @0x76AB8
+! cal60E1D400: X  @0x76AB8
 	.word 0x4270
 	.word 0x0000
 	.word 0x42a0
@@ -310321,14 +310321,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0387
 	.word 0x03a7
-! cal[REDACTED]: Y  @0x76ACC
+! cal60E1D400: Y  @0x76ACC
 	.word 0x03c5
 	.word 0x03e1
 	.word 0x03fc
 	.word 0x0415
 	.word 0x042d
 	.word 0x0443
-! cal[REDACTED]: Table 3D - 63_  @0x76AD8
+! cal60E1D400: Table 3D - 63_  @0x76AD8
 	.word 0x0457
 	.word 0xffff
 	.word 0xc220
@@ -310361,7 +310361,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xc1f0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x76B18
+! cal60E1D400: Y  @0x76B18
 	.word 0xc1a0
 	.word 0x0000
 	.word 0xc120
@@ -310370,7 +310370,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x01f4
 	.word 0x0177
-! cal[REDACTED]: Table 2D - 163_  @0x76B28
+! cal60E1D400: Table 2D - 163_  @0x76B28
 	.word 0x0177
 	.word 0x0000
 	.word 0x00ff
@@ -310451,7 +310451,7 @@ L_06d0c4:
 	.word 0x6666
 	.word 0x408c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x76BC8
+! cal60E1D400: Y  @0x76BC8
 	.word 0x37a7
 	.word 0xc5ac
 	.word 0x4284
@@ -310502,7 +310502,7 @@ L_06d0c4:
 	.word 0xc985
 	.word 0x419c
 	.word 0x3f7d
-! cal[REDACTED]: Table 2D - 335 Check DataType  @0x76C2C
+! cal60E1D400: Table 2D - 335 Check DataType  @0x76C2C
 	.word 0x3f80
 	.word 0x0000
 	.word 0x0000
@@ -310553,7 +310553,7 @@ L_06d0c4:
 	.word 0x126e
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x76C90
+! cal60E1D400: Y  @0x76C90
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e4c
@@ -310604,7 +310604,7 @@ L_06d0c4:
 	.word 0x05d4
 	.word 0x05b5
 	.word 0x0596
-! cal[REDACTED]: Table 2D - 336 Check DataType  @0x76CF4
+! cal60E1D400: Table 2D - 336 Check DataType  @0x76CF4
 	.word 0x056e
 	.word 0x054f
 	.word 0x0538
@@ -310655,7 +310655,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3fa0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x76D58
+! cal60E1D400: Y  @0x76D58
 	.word 0x3fc8
 	.word 0x0000
 	.word 0x3ff0
@@ -310706,7 +310706,7 @@ L_06d0c4:
 	.word 0xe000
 	.word 0x453b
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 337 Check DataType  @0x76DBC
+! cal60E1D400: Table 2D - 337 Check DataType  @0x76DBC
 	.word 0x459c
 	.word 0x4000
 	.word 0x0000
@@ -310757,7 +310757,7 @@ L_06d0c4:
 	.word 0x1c18
 	.word 0x644b
 	.word 0x3f34
-! cal[REDACTED]: Y  @0x76E20
+! cal60E1D400: Y  @0x76E20
 	.word 0x3331
 	.word 0x2d24
 	.word 0x2322
@@ -310808,7 +310808,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 338 Check DataType  @0x76E84
+! cal60E1D400: Table 2D - 338 Check DataType  @0x76E84
 	.word 0x0000
 	.word 0x0000
 	.word 0x41cd
@@ -310859,7 +310859,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x76EE8
+! cal60E1D400: Y  @0x76EE8
 	.word 0x3f8c
 	.word 0xcccd
 	.word 0x4443
@@ -310910,7 +310910,7 @@ L_06d0c4:
 	.word 0x0bcd
 	.word 0x0b43
 	.word 0x15b8
-! cal[REDACTED]: Table 2D - 339 Check DataType  @0x76F4C
+! cal60E1D400: Table 2D - 339 Check DataType  @0x76F4C
 	.word 0x1ebb
 	.word 0x29da
 	.word 0x2ddc
@@ -310961,7 +310961,7 @@ L_06d0c4:
 	.word 0x04c3
 	.word 0x03df
 	.word 0x07b8
-! cal[REDACTED]: Y  @0x76FB0
+! cal60E1D400: Y  @0x76FB0
 	.word 0x0b1f
 	.word 0x0e36
 	.word 0x11da
@@ -311024,7 +311024,7 @@ L_06d0c4:
 	.word 0x069c
 	.word 0x0733
 	.word 0x0736
-! cal[REDACTED]: Table 2D - 340 Check DataType  @0x7702C
+! cal60E1D400: Table 2D - 340 Check DataType  @0x7702C
 	.word 0x076c
 	.word 0x07d4
 	.word 0x07b3
@@ -311087,7 +311087,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x770A8
+! cal60E1D400: Y  @0x770A8
 	.word 0x3f8c
 	.word 0xcccd
 	.word 0x4443
@@ -311150,7 +311150,7 @@ L_06d0c4:
 	.word 0x3100
 	.word 0x4400
 	.word 0x5700
-! cal[REDACTED]: Table 2D - 341 Check DataType  @0x77124
+! cal60E1D400: Table 2D - 341 Check DataType  @0x77124
 	.word 0x6a00
 	.word 0x6a00
 	.word 0x6a00
@@ -311213,7 +311213,7 @@ L_06d0c4:
 	.word 0x1f00
 	.word 0x2400
 	.word 0x2900
-! cal[REDACTED]: Y  @0x771A0
+! cal60E1D400: Y  @0x771A0
 	.word 0x2900
 	.word 0x2900
 	.word 0x0700
@@ -311276,7 +311276,7 @@ L_06d0c4:
 	.word 0x1500
 	.word 0x1700
 	.word 0x1700
-! cal[REDACTED]: Table 2D - 342 Check DataType  @0x7721C
+! cal60E1D400: Table 2D - 342 Check DataType  @0x7721C
 	.word 0x0e00
 	.word 0x0e00
 	.word 0x0e00
@@ -311339,7 +311339,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Y  @0x77298
+! cal60E1D400: Y  @0x77298
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
@@ -311402,7 +311402,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x3f78
 	.word 0x51ec
-! cal[REDACTED]: Table 2D - 343 Check DataType  @0x77314
+! cal60E1D400: Table 2D - 343 Check DataType  @0x77314
 	.word 0x3f86
 	.word 0x6666
 	.word 0x428c
@@ -311465,7 +311465,7 @@ L_06d0c4:
 	.word 0x0009
 	.word 0x000a
 	.word 0x000b
-! cal[REDACTED]: Y  @0x77390
+! cal60E1D400: Y  @0x77390
 	.word 0x000c
 	.word 0x000d
 	.word 0x000e
@@ -311528,7 +311528,7 @@ L_06d0c4:
 	.word 0xe000
 	.word 0x45bb
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 344 Check DataType  @0x7740C
+! cal60E1D400: Table 2D - 344 Check DataType  @0x7740C
 	.word 0x45cb
 	.word 0x2000
 	.word 0x45da
@@ -311591,7 +311591,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc0a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x77488
+! cal60E1D400: X  @0x77488
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -311610,7 +311610,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x774AC
+! cal60E1D400: Y  @0x774AC
 	.word 0xc120
 	.word 0x0000
 	.word 0x0000
@@ -311621,7 +311621,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0404
 	.word 0x0404
-! cal[REDACTED]: Table 3D - 111_  @0x774C0
+! cal60E1D400: Table 3D - 111_  @0x774C0
 	.word 0x0404
 	.word 0xffff
 	.word 0x4348
@@ -311712,7 +311712,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: X  @0x77574
+! cal60E1D400: X  @0x77574
 	.word 0x41b4
 	.word 0x0000
 	.word 0x0002
@@ -311733,7 +311733,7 @@ L_06d0c4:
 	.word 0x7b64
 	.word 0x428f
 	.word 0xc625
-! cal[REDACTED]: Y  @0x7759C
+! cal60E1D400: Y  @0x7759C
 	.word 0x4250
 	.word 0x0106
 	.word 0x4220
@@ -311744,7 +311744,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x8000
-! cal[REDACTED]: Table 3D - 112_  @0x775B0
+! cal60E1D400: Table 3D - 112_  @0x775B0
 	.word 0x3f00
 	.word 0x0000
 	.word 0x4040
@@ -311845,12 +311845,12 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x8000
 	.word 0x4ccd
-! cal[REDACTED]: X  @0x77678
+! cal60E1D400: X  @0x77678
 	.word 0x4ccd
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Y  @0x77680
+! cal60E1D400: Y  @0x77680
 	.word 0x457a
 	.word 0x0000
 	.word 0x459c
@@ -311861,7 +311861,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f40
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 113_  @0x77694
+! cal60E1D400: Table 3D - 113_  @0x77694
 	.word 0x3f60
 	.word 0x0000
 	.word 0x8000
@@ -311882,12 +311882,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: X  @0x776BC
+! cal60E1D400: X  @0x776BC
 	.word 0x44bb
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x776C4
+! cal60E1D400: Y  @0x776C4
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -311898,7 +311898,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Table 3D - 114_  @0x776D8
+! cal60E1D400: Table 3D - 114_  @0x776D8
 	.word 0x459c
 	.word 0x4000
 	.word 0x45ab
@@ -311919,7 +311919,7 @@ L_06d0c4:
 	.word 0xa000
 	.word 0x064d
 	.word 0x0b00
-! cal[REDACTED]: X  @0x77700
+! cal60E1D400: X  @0x77700
 	.word 0x0d66
 	.word 0x0eb3
 	.word 0x0fc0
@@ -311938,7 +311938,7 @@ L_06d0c4:
 	.word 0x2233
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x77724
+! cal60E1D400: Y  @0x77724
 	.word 0x4148
 	.word 0x0000
 	.word 0x41c8
@@ -311949,7 +311949,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x427a
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 115_  @0x77738
+! cal60E1D400: Table 3D - 115_  @0x77738
 	.word 0x4296
 	.word 0x0000
 	.word 0x42af
@@ -312040,7 +312040,7 @@ L_06d0c4:
 	.word 0x2000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: X  @0x777EC
+! cal60E1D400: X  @0x777EC
 	.word 0x45ea
 	.word 0x6000
 	.word 0x45fa
@@ -312051,7 +312051,7 @@ L_06d0c4:
 	.word 0x7a75
 	.word 0x716a
 	.word 0x6363
-! cal[REDACTED]: Y  @0x77800
+! cal60E1D400: Y  @0x77800
 	.word 0x6363
 	.word 0x6363
 	.word 0x6363
@@ -312062,7 +312062,7 @@ L_06d0c4:
 	.word 0x6961
 	.word 0x6161
 	.word 0x6161
-! cal[REDACTED]: Table 3D - 116_  @0x77814
+! cal60E1D400: Table 3D - 116_  @0x77814
 	.word 0x6161
 	.word 0xa197
 	.word 0x8d89
@@ -312171,19 +312171,19 @@ L_06d0c4:
 	.word 0x9b9f
 	.word 0xb4b4
 	.word 0xaca8
-! cal[REDACTED]: Y  @0x778EC
+! cal60E1D400: Y  @0x778EC
 	.word 0xa5a4
 	.word 0xa4a3
-! cal[REDACTED]: Table 2D - 164_  @0x778F0
+! cal60E1D400: Table 2D - 164_  @0x778F0
 	.word 0xa19c
 	.word 0x9c9b
-! cal[REDACTED]: Y  @0x778F4
+! cal60E1D400: Y  @0x778F4
 	.word 0x9b9b
 	.word 0x9fff
-! cal[REDACTED]: Table 2D - 165_  @0x778F8
+! cal60E1D400: Table 2D - 165_  @0x778F8
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x778FC
+! cal60E1D400: Y  @0x778FC
 	.word 0x3ea0
 	.word 0x0000
 	.word 0x3ec0
@@ -312202,7 +312202,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f50
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 345 Check DataType  @0x77920
+! cal60E1D400: Table 2D - 345 Check DataType  @0x77920
 	.word 0x3f60
 	.word 0x0000
 	.word 0x3f70
@@ -312279,7 +312279,7 @@ L_06d0c4:
 	.word 0x0118
 	.word 0x0091
 	.word 0x00bd
-! cal[REDACTED]: Y  @0x779B8
+! cal60E1D400: Y  @0x779B8
 	.word 0x00df
 	.word 0x00f5
 	.word 0x0100
@@ -312296,12 +312296,12 @@ L_06d0c4:
 	.word 0x0086
 	.word 0x00a6
 	.word 0x00c7
-! cal[REDACTED]: Table 2D - 166_  @0x779D8
+! cal60E1D400: Table 2D - 166_  @0x779D8
 	.word 0x00fd
 	.word 0x0134
 	.word 0x0199
 	.word 0x01e7
-! cal[REDACTED]: Y  @0x779E0
+! cal60E1D400: Y  @0x779E0
 	.word 0x01b8
 	.word 0x0188
 	.word 0x0163
@@ -312316,7 +312316,7 @@ L_06d0c4:
 	.word 0x0103
 	.word 0x0132
 	.word 0x01a6
-! cal[REDACTED]: Table 2D - 167_  @0x779FC
+! cal60E1D400: Table 2D - 167_  @0x779FC
 	.word 0x01f6
 	.word 0x0267
 	.word 0x029d
@@ -312325,7 +312325,7 @@ L_06d0c4:
 	.word 0x016a
 	.word 0x016a
 	.word 0x016a
-! cal[REDACTED]: Y  @0x77A0C
+! cal60E1D400: Y  @0x77A0C
 	.word 0x016a
 	.word 0x0069
 	.word 0x007f
@@ -312340,7 +312340,7 @@ L_06d0c4:
 	.word 0x0137
 	.word 0x0130
 	.word 0x0130
-! cal[REDACTED]: Table 2D - 168_  @0x77A28
+! cal60E1D400: Table 2D - 168_  @0x77A28
 	.word 0x0130
 	.word 0x0130
 	.word 0x006a
@@ -312355,7 +312355,7 @@ L_06d0c4:
 	.word 0x01c5
 	.word 0x01da
 	.word 0x0187
-! cal[REDACTED]: X  @0x77A44
+! cal60E1D400: X  @0x77A44
 	.word 0x0187
 	.word 0x0187
 	.word 0x0187
@@ -312378,7 +312378,7 @@ L_06d0c4:
 	.word 0x00b2
 	.word 0x00ad
 	.word 0x00fb
-! cal[REDACTED]: Y  @0x77A70
+! cal60E1D400: Y  @0x77A70
 	.word 0x0138
 	.word 0x0145
 	.word 0x014e
@@ -312401,7 +312401,7 @@ L_06d0c4:
 	.word 0x0154
 	.word 0x014d
 	.word 0x013e
-! cal[REDACTED]: Table 3D - 64_  @0x77A9C
+! cal60E1D400: Table 3D - 64_  @0x77A9C
 	.word 0x01bc
 	.word 0x0195
 	.word 0x0195
@@ -312464,27 +312464,27 @@ L_06d0c4:
 	.word 0x015c
 	.word 0x0125
 	.word 0x01b9
-! cal[REDACTED]: X  @0x77B18
+! cal60E1D400: X  @0x77B18
 	.word 0x01ca
 	.word 0x01ca
-! cal[REDACTED]: Y  @0x77B1C
+! cal60E1D400: Y  @0x77B1C
 	.word 0x0155
 	.word 0x0155
-! cal[REDACTED]: Table 3D - 65_  @0x77B20
+! cal60E1D400: Table 3D - 65_  @0x77B20
 	.word 0x00a0
 	.word 0x00cd
-! cal[REDACTED]: X  @0x77B24
+! cal60E1D400: X  @0x77B24
 	.word 0x00fd
 	.word 0x0125
-! cal[REDACTED]: Y  @0x77B28
+! cal60E1D400: Y  @0x77B28
 	.word 0x013b
 	.word 0x0142
-! cal[REDACTED]: Table 3D - 66_  @0x77B2C
+! cal60E1D400: Table 3D - 66_  @0x77B2C
 	.word 0x0138
 	.word 0x0173
 	.word 0x019c
 	.word 0x010a
-! cal[REDACTED]: Y  @0x77B34
+! cal60E1D400: Y  @0x77B34
 	.word 0x009a
 	.word 0x009d
 	.word 0x009d
@@ -312493,12 +312493,12 @@ L_06d0c4:
 	.word 0x014c
 	.word 0x0156
 	.word 0x0154
-! cal[REDACTED]: Table 2D - 169_  @0x77B44
+! cal60E1D400: Table 2D - 169_  @0x77B44
 	.word 0x0156
 	.word 0x0154
 	.word 0x016a
 	.word 0x0175
-! cal[REDACTED]: Y  @0x77B4C
+! cal60E1D400: Y  @0x77B4C
 	.word 0x0138
 	.word 0x017d
 	.word 0x01e1
@@ -312533,7 +312533,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ee0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 170_  @0x77B90
+! cal60E1D400: Table 2D - 170_  @0x77B90
 	.word 0x3f00
 	.word 0x0000
 	.word 0x3f10
@@ -312552,7 +312552,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: X  @0x77BB4
+! cal60E1D400: X  @0x77BB4
 	.word 0x443b
 	.word 0x8000
 	.word 0x447a
@@ -312587,7 +312587,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4604
 	.word 0xd000
-! cal[REDACTED]: Y  @0x77BF8
+! cal60E1D400: Y  @0x77BF8
 	.word 0x0000
 	.word 0x0000
 	.word 0x09cd
@@ -312628,7 +312628,7 @@ L_06d0c4:
 	.word 0x34a6
 	.word 0x3c26
 	.word 0x4480
-! cal[REDACTED]: Estimated Manifold Pressure  @0x77C48
+! cal60E1D400: Estimated Manifold Pressure  @0x77C48
 	.word 0x484d
 	.word 0x484d
 	.word 0x484d
@@ -312969,7 +312969,7 @@ L_06d0c4:
 	.word 0x19c0
 	.word 0x171a
 	.word 0x14a6
-! cal[REDACTED]: X  @0x77EF0
+! cal60E1D400: X  @0x77EF0
 	.word 0x1226
 	.word 0x110d
 	.word 0x25c0
@@ -313004,7 +313004,7 @@ L_06d0c4:
 	.word 0x1ef3
 	.word 0x1ba6
 	.word 0x1ae6
-! cal[REDACTED]: Y  @0x77F34
+! cal60E1D400: Y  @0x77F34
 	.word 0x3133
 	.word 0x2d1a
 	.word 0x2940
@@ -313023,7 +313023,7 @@ L_06d0c4:
 	.word 0x1f0d
 	.word 0x3840
 	.word 0x33a6
-! cal[REDACTED]: Injector Latency Secondary  @0x77F58
+! cal60E1D400: Injector Latency Secondary  @0x77F58
 	.word 0x2fda
 	.word 0x2c00
 	.word 0x289a
@@ -313178,7 +313178,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x7808C
+! cal60E1D400: X  @0x7808C
 	.word 0x42c8
 	.word 0x0000
 	.word 0x3f00
@@ -313213,7 +313213,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xbf00
 	.word 0x0000
-! cal[REDACTED]: Y  @0x780D0
+! cal60E1D400: Y  @0x780D0
 	.word 0x0000
 	.word 0x0000
 	.word 0x3f00
@@ -313232,7 +313232,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40c0
 	.word 0x0000
-! cal[REDACTED]: Injector Latency Primary  @0x780F4
+! cal60E1D400: Injector Latency Primary  @0x780F4
 	.word 0x40e0
 	.word 0x0000
 	.word 0x4100
@@ -313433,7 +313433,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40c0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78284
+! cal60E1D400: Y  @0x78284
 	.word 0x40e0
 	.word 0x0000
 	.word 0x4100
@@ -313446,12 +313446,12 @@ L_06d0c4:
 	.word 0x75c3
 	.word 0x4257
 	.word 0x6666
-! cal[REDACTED]: Table 2D - 171_  @0x7829C
+! cal60E1D400: Table 2D - 171_  @0x7829C
 	.word 0x423e
 	.word 0x3333
 	.word 0x4225
 	.word 0x0000
-! cal[REDACTED]: Y  @0x782A4
+! cal60E1D400: Y  @0x782A4
 	.word 0x420b
 	.word 0xcccd
 	.word 0x41e5
@@ -313462,38 +313462,38 @@ L_06d0c4:
 	.word 0x6666
 	.word 0x411c
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 172_  @0x782B8
+! cal60E1D400: Table 2D - 172_  @0x782B8
 	.word 0x40d3
 	.word 0x3333
 	.word 0x408c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x782C0
+! cal60E1D400: Y  @0x782C0
 	.word 0x400c
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 173_  @0x782C4
+! cal60E1D400: Table 2D - 173_  @0x782C4
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x782C8
+! cal60E1D400: Y  @0x782C8
 	.word 0xc00c
 	.word 0xcccd
 	.word 0xc08c
 	.word 0xcccd
 	.word 0xc0d3
 	.word 0x3333
-! cal[REDACTED]: Table 2D - 174_  @0x782D4
+! cal60E1D400: Table 2D - 174_  @0x782D4
 	.word 0xc11c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x782D8
+! cal60E1D400: Y  @0x782D8
 	.word 0xc180
 	.word 0x6666
 	.word 0xc1b2
 	.word 0xcccd
 	.word 0xc1e5
 	.word 0x3333
-! cal[REDACTED]: Table 2D - 346 Check DataType  @0x782E4
+! cal60E1D400: Table 2D - 346 Check DataType  @0x782E4
 	.word 0xc20b
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x782E8
+! cal60E1D400: Y  @0x782E8
 	.word 0xc225
 	.word 0x0000
 	.word 0xc23e
@@ -313518,7 +313518,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc040
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 175_  @0x78318
+! cal60E1D400: Table 2D - 175_  @0x78318
 	.word 0xc000
 	.word 0x0000
 	.word 0xbfc0
@@ -313531,7 +313531,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f00
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78330
+! cal60E1D400: Y  @0x78330
 	.word 0x3f80
 	.word 0x0000
 	.word 0x3fc0
@@ -313558,7 +313558,7 @@ L_06d0c4:
 	.word 0x75c3
 	.word 0x4257
 	.word 0x6666
-! cal[REDACTED]: Table 2D - 176_  @0x78364
+! cal60E1D400: Table 2D - 176_  @0x78364
 	.word 0x423e
 	.word 0x3333
 	.word 0x4225
@@ -313589,17 +313589,17 @@ L_06d0c4:
 	.word 0x3333
 	.word 0xc11c
 	.word 0x0000
-! cal[REDACTED]: Primary Injector Size  @0x783A0
+! cal60E1D400: Primary Injector Size  @0x783A0
 	.word 0xc180
 	.word 0x6666
 	.word 0xc1b2
 	.word 0xcccd
-! cal[REDACTED]: Secondary Injector Size  @0x783A8
+! cal60E1D400: Secondary Injector Size  @0x783A8
 	.word 0xc1e5
 	.word 0x3333
 	.word 0xc20b
 	.word 0xcccd
-! cal[REDACTED]: Secondary Injector Size #2  @0x783B0
+! cal60E1D400: Secondary Injector Size #2  @0x783B0
 	.word 0xc225
 	.word 0x0000
 	.word 0xc23e
@@ -313652,7 +313652,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40e0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78418
+! cal60E1D400: Y  @0x78418
 	.word 0x4100
 	.word 0x0000
 	.word 0x4110
@@ -313687,7 +313687,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc00c
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 177_  @0x7845C
+! cal60E1D400: Table 2D - 177_  @0x7845C
 	.word 0xc08c
 	.word 0xcccd
 	.word 0xc0d3
@@ -313698,7 +313698,7 @@ L_06d0c4:
 	.word 0x6666
 	.word 0xc1b2
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x78470
+! cal60E1D400: Y  @0x78470
 	.word 0xc1e5
 	.word 0x3333
 	.word 0xc20b
@@ -313715,12 +313715,12 @@ L_06d0c4:
 	.word 0x999a
 	.word 0xbf4c
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 178_  @0x78490
+! cal60E1D400: Table 2D - 178_  @0x78490
 	.word 0xbecc
 	.word 0xcccd
 	.word 0xbe4c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x78498
+! cal60E1D400: Y  @0x78498
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e4c
@@ -313739,34 +313739,34 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x3fcc
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 347 Check DataType  @0x784BC
+! cal60E1D400: Table 2D - 347 Check DataType  @0x784BC
 	.word 0x3fe6
 	.word 0x6666
 	.word 0x4000
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: Y  @0x784C8
+! cal60E1D400: Y  @0x784C8
 	.word 0x4080
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
 	.word 0x40c0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 348 Check DataType  @0x784D4
+! cal60E1D400: Table 2D - 348 Check DataType  @0x784D4
 	.word 0x40e0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x784D8
+! cal60E1D400: Y  @0x784D8
 	.word 0x4100
 	.word 0x0000
 	.word 0x4110
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 349 Check DataType  @0x784E4
+! cal60E1D400: Table 2D - 349 Check DataType  @0x784E4
 	.word 0x4180
 	.word 0x0000
-! cal[REDACTED]: Y  @0x784E8
+! cal60E1D400: Y  @0x784E8
 	.word 0x3e99
 	.word 0x999a
 	.word 0x3e99
@@ -313785,14 +313785,14 @@ L_06d0c4:
 	.word 0x6666
 	.word 0xbe80
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 350 Check DataType  @0x7850C
+! cal60E1D400: Table 2D - 350 Check DataType  @0x7850C
 	.word 0xbe8c
 	.word 0xcccd
 	.word 0xbe99
 	.word 0x999a
 	.word 0xbea6
 	.word 0x6666
-! cal[REDACTED]: Y  @0x78518
+! cal60E1D400: Y  @0x78518
 	.word 0xbeb3
 	.word 0x3333
 	.word 0xbec0
@@ -313811,14 +313811,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc080
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 179_  @0x7853C
+! cal60E1D400: Table 2D - 179_  @0x7853C
 	.word 0xc0c0
 	.word 0x0000
 	.word 0xc100
 	.word 0x0000
 	.word 0xc120
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78548
+! cal60E1D400: Y  @0x78548
 	.word 0xbf99
 	.word 0x999a
 	.word 0xbf4c
@@ -313837,14 +313837,14 @@ L_06d0c4:
 	.word 0x999a
 	.word 0x3f4c
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 180_  @0x7856C
+! cal60E1D400: Table 2D - 180_  @0x7856C
 	.word 0x3f80
 	.word 0x0000
 	.word 0x3f99
 	.word 0x999a
 	.word 0x3fb3
 	.word 0x3333
-! cal[REDACTED]: Y  @0x78578
+! cal60E1D400: Y  @0x78578
 	.word 0x3fcc
 	.word 0xcccd
 	.word 0x3fe6
@@ -313863,7 +313863,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4100
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 181_  @0x7859C
+! cal60E1D400: Table 2D - 181_  @0x7859C
 	.word 0x4110
 	.word 0x0000
 	.word 0x4120
@@ -313874,7 +313874,7 @@ L_06d0c4:
 	.word 0x999a
 	.word 0x3e99
 	.word 0x999a
-! cal[REDACTED]: Y  @0x785B0
+! cal60E1D400: Y  @0x785B0
 	.word 0x3e4c
 	.word 0xcccd
 	.word 0x38d1
@@ -313909,7 +313909,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0xbf80
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 182_  @0x785F4
+! cal60E1D400: Table 2D - 182_  @0x785F4
 	.word 0xc000
 	.word 0x0000
 	.word 0xc080
@@ -313928,7 +313928,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0xbe4c
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x78618
+! cal60E1D400: Y  @0x78618
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e4c
@@ -313947,7 +313947,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x3fcc
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 183_  @0x7863C
+! cal60E1D400: Table 2D - 183_  @0x7863C
 	.word 0x3fe6
 	.word 0x6666
 	.word 0x4000
@@ -313958,7 +313958,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x78650
+! cal60E1D400: X  @0x78650
 	.word 0x40c0
 	.word 0x0000
 	.word 0x40e0
@@ -313995,7 +313995,7 @@ L_06d0c4:
 	.word 0x999a
 	.word 0xbea6
 	.word 0x6666
-! cal[REDACTED]: Y  @0x78698
+! cal60E1D400: Y  @0x78698
 	.word 0xbeb3
 	.word 0x3333
 	.word 0xbec0
@@ -314036,7 +314036,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x3f19
 	.word 0x999a
-! cal[REDACTED]: Engine Load Compensation  @0x786E8
+! cal60E1D400: Engine Load Compensation  @0x786E8
 	.word 0x3f4c
 	.word 0xcccd
 	.word 0x3f80
@@ -314409,7 +314409,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x4189
 	.word 0x3333
-! cal[REDACTED]: Y  @0x789D0
+! cal60E1D400: Y  @0x789D0
 	.word 0xbf99
 	.word 0x999a
 	.word 0x4010
@@ -314434,14 +314434,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 184_  @0x78A00
+! cal60E1D400: Table 2D - 184_  @0x78A00
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
 	.word 0x430c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78A0C
+! cal60E1D400: Y  @0x78A0C
 	.word 0x4320
 	.word 0x0000
 	.word 0x4000
@@ -314460,14 +314460,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 185_  @0x78A30
+! cal60E1D400: Table 2D - 185_  @0x78A30
 	.word 0x4220
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78A3C
+! cal60E1D400: Y  @0x78A3C
 	.word 0x4220
 	.word 0x0000
 	.word 0x4220
@@ -314492,14 +314492,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 186_  @0x78A6C
+! cal60E1D400: Table 2D - 186_  @0x78A6C
 	.word 0x4270
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
 	.word 0x428c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78A78
+! cal60E1D400: Y  @0x78A78
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42a0
@@ -314518,14 +314518,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42b4
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 187_  @0x78A9C
+! cal60E1D400: Table 2D - 187_  @0x78A9C
 	.word 0x42b4
 	.word 0x0000
 	.word 0x42b4
 	.word 0x0000
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78AA8
+! cal60E1D400: Y  @0x78AA8
 	.word 0x4270
 	.word 0x0000
 	.word 0x428c
@@ -314550,14 +314550,14 @@ L_06d0c4:
 	.word 0x0005
 	.word 0x009c
 	.word 0x005e
-! cal[REDACTED]: Table 2D - 188_  @0x78AD8
+! cal60E1D400: Table 2D - 188_  @0x78AD8
 	.word 0x003e
 	.word 0x001f
 	.word 0x003e
 	.word 0x003e
 	.word 0x003e
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78AE4
+! cal60E1D400: Y  @0x78AE4
 	.word 0x003e
 	.word 0x0138
 	.word 0x4416
@@ -314576,14 +314576,14 @@ L_06d0c4:
 	.word 0x2e14
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 189_  @0x78B08
+! cal60E1D400: Table 2D - 189_  @0x78B08
 	.word 0x41a0
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78B14
+! cal60E1D400: Y  @0x78B14
 	.word 0x4100
 	.word 0x0000
 	.word 0x4100
@@ -314602,14 +314602,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4020
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 190_  @0x78B38
+! cal60E1D400: Table 2D - 190_  @0x78B38
 	.word 0x3ff8
 	.word 0x51ec
 	.word 0x3e14
 	.word 0x7ae1
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78B44
+! cal60E1D400: Y  @0x78B44
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4220
@@ -314628,14 +314628,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 191_  @0x78B68
+! cal60E1D400: Table 2D - 191_  @0x78B68
 	.word 0x42c2
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
 	.word 0x42ca
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78B74
+! cal60E1D400: Y  @0x78B74
 	.word 0x4040
 	.word 0x0000
 	.word 0x4220
@@ -314658,7 +314658,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ff8
 	.word 0x51ec
-! cal[REDACTED]: Table 2D - 192_  @0x78BA0
+! cal60E1D400: Table 2D - 192_  @0x78BA0
 	.word 0x3dcc
 	.word 0xcccb
 	.word 0x42a0
@@ -314671,7 +314671,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4348
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78BB8
+! cal60E1D400: Y  @0x78BB8
 	.word 0x40a0
 	.word 0x0000
 	.word 0x0010
@@ -314696,7 +314696,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4060
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 193_  @0x78BE8
+! cal60E1D400: Table 2D - 193_  @0x78BE8
 	.word 0x4138
 	.word 0xcccd
 	.word 0x413c
@@ -314747,7 +314747,7 @@ L_06d0c4:
 	.word 0xc28f
 	.word 0x3e75
 	.word 0xc28f
-! cal[REDACTED]: Y  @0x78C4C
+! cal60E1D400: Y  @0x78C4C
 	.word 0x3e75
 	.word 0xc28f
 	.word 0x4220
@@ -314762,18 +314762,18 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42c8
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 194_  @0x78C68
+! cal60E1D400: Table 2D - 194_  @0x78C68
 	.word 0x42dc
 	.word 0x0000
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78C70
+! cal60E1D400: Y  @0x78C70
 	.word 0x3e99
 	.word 0x999a
-! cal[REDACTED]: Table 2D - 195_  @0x78C74
+! cal60E1D400: Table 2D - 195_  @0x78C74
 	.word 0x3ea6
 	.word 0x6666
-! cal[REDACTED]: Y  @0x78C78
+! cal60E1D400: Y  @0x78C78
 	.word 0x4046
 	.word 0x4a4d
 	.word 0x5053
@@ -314788,7 +314788,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x41d8
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 351 Check DataType  @0x78C94
+! cal60E1D400: Table 2D - 351 Check DataType  @0x78C94
 	.word 0x4270
 	.word 0x0000
 	.word 0x42a0
@@ -314811,7 +314811,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Auxillary Valve Close  @0x78CC0
+! cal60E1D400: Auxillary Valve Close  @0x78CC0
 	.word 0x41a0
 	.word 0x0000
 	.word 0x41f0
@@ -314922,7 +314922,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f88
 	.word 0x0000
-! cal[REDACTED]: Y  @0x78D9C
+! cal60E1D400: Y  @0x78D9C
 	.word 0x3f90
 	.word 0x0000
 	.word 0x3f98
@@ -314941,7 +314941,7 @@ L_06d0c4:
 	.word 0x0b9a
 	.word 0x0d66
 	.word 0x0d80
-! cal[REDACTED]: Table 2D - 196_  @0x78DC0
+! cal60E1D400: Table 2D - 196_  @0x78DC0
 	.word 0x09cd
 	.word 0x089a
 	.word 0x089a
@@ -314952,7 +314952,7 @@ L_06d0c4:
 	.word 0x1500
 	.word 0x1433
 	.word 0x134d
-! cal[REDACTED]: Y  @0x78DD4
+! cal60E1D400: Y  @0x78DD4
 	.word 0x174d
 	.word 0x121a
 	.word 0x0f4d
@@ -314971,7 +314971,7 @@ L_06d0c4:
 	.word 0x1be6
 	.word 0x1a80
 	.word 0x1933
-! cal[REDACTED]: Table 2D - 197_  @0x78DF8
+! cal60E1D400: Table 2D - 197_  @0x78DF8
 	.word 0x1900
 	.word 0x17cd
 	.word 0x18b3
@@ -315086,7 +315086,7 @@ L_06d0c4:
 	.word 0x3e4d
 	.word 0x3fb3
 	.word 0x5ce6
-! cal[REDACTED]: Y  @0x78EDC
+! cal60E1D400: Y  @0x78EDC
 	.word 0x57cd
 	.word 0x544d
 	.word 0x4e9a
@@ -315105,14 +315105,14 @@ L_06d0c4:
 	.word 0x4700
 	.word 0x644d
 	.word 0x6033
-! cal[REDACTED]: Table 2D - 352 Check DataType  @0x78F00
+! cal60E1D400: Table 2D - 352 Check DataType  @0x78F00
 	.word 0x5ae6
 	.word 0x55e6
 	.word 0x5266
 	.word 0x4f1a
 	.word 0x4d80
 	.word 0x4e66
-! cal[REDACTED]: Y  @0x78F0C
+! cal60E1D400: Y  @0x78F0C
 	.word 0x4b00
 	.word 0x48e6
 	.word 0x484d
@@ -315125,12 +315125,12 @@ L_06d0c4:
 	.word 0x67b3
 	.word 0x64e6
 	.word 0x60b3
-! cal[REDACTED]: Table 2D - 353 Check DataType  @0x78F24
+! cal60E1D400: Table 2D - 353 Check DataType  @0x78F24
 	.word 0x5b9a
 	.word 0x58cd
 	.word 0x561a
 	.word 0x5433
-! cal[REDACTED]: Y  @0x78F2C
+! cal60E1D400: Y  @0x78F2C
 	.word 0x559a
 	.word 0x51e6
 	.word 0x4f33
@@ -315143,12 +315143,12 @@ L_06d0c4:
 	.word 0x51cd
 	.word 0x6966
 	.word 0x6733
-! cal[REDACTED]: Table 2D - 354 Check DataType  @0x78F44
+! cal60E1D400: Table 2D - 354 Check DataType  @0x78F44
 	.word 0x6680
 	.word 0x6066
 	.word 0x5e4d
 	.word 0x5bcd
-! cal[REDACTED]: Y  @0x78F4C
+! cal60E1D400: Y  @0x78F4C
 	.word 0x5c9a
 	.word 0x5bcd
 	.word 0x5780
@@ -315171,26 +315171,26 @@ L_06d0c4:
 	.word 0x5c66
 	.word 0x5a4d
 	.word 0x561a
-! cal[REDACTED]: Table 2D - 355 Check DataType  @0x78F78
+! cal60E1D400: Table 2D - 355 Check DataType  @0x78F78
 	.word 0x59cd
 	.word 0x5600
 	.word 0x57e6
 	.word 0x589a
 	.word 0x5933
 	.word 0x59cd
-! cal[REDACTED]: Y  @0x78F84
+! cal60E1D400: Y  @0x78F84
 	.word 0x6ab3
 	.word 0x6900
 	.word 0x6acd
 	.word 0x651a
 	.word 0x641a
 	.word 0x62cd
-! cal[REDACTED]: Table 2D - 198_  @0x78F90
+! cal60E1D400: Table 2D - 198_  @0x78F90
 	.word 0x65e6
 	.word 0x66b3
 	.word 0x6133
 	.word 0x5f80
-! cal[REDACTED]: Y  @0x78F98
+! cal60E1D400: Y  @0x78F98
 	.word 0x5c4d
 	.word 0x6000
 	.word 0x5c4d
@@ -315203,14 +315203,14 @@ L_06d0c4:
 	.word 0x6b9a
 	.word 0x661a
 	.word 0x6533
-! cal[REDACTED]: Table 2D - 356 Check DataType  @0x78FB0
+! cal60E1D400: Table 2D - 356 Check DataType  @0x78FB0
 	.word 0x63b3
 	.word 0x6766
 	.word 0x6900
 	.word 0x67cd
 	.word 0x651a
 	.word 0x61b3
-! cal[REDACTED]: Y  @0x78FBC
+! cal60E1D400: Y  @0x78FBC
 	.word 0x6466
 	.word 0x6166
 	.word 0x61b3
@@ -315223,7 +315223,7 @@ L_06d0c4:
 	.word 0x66b3
 	.word 0x65cd
 	.word 0x6433
-! cal[REDACTED]: Table 2D - 357 Check DataType  @0x78FD4
+! cal60E1D400: Table 2D - 357 Check DataType  @0x78FD4
 	.word 0x681a
 	.word 0x6a33
 	.word 0x6b1a
@@ -315236,7 +315236,7 @@ L_06d0c4:
 	.word 0x634d
 	.word 0x5c33
 	.word 0x6b00
-! cal[REDACTED]: Y  @0x78FEC
+! cal60E1D400: Y  @0x78FEC
 	.word 0x6980
 	.word 0x6c1a
 	.word 0x66e6
@@ -315249,7 +315249,7 @@ L_06d0c4:
 	.word 0x65cd
 	.word 0x67b3
 	.word 0x6533
-! cal[REDACTED]: Table 2D - 358 Check DataType  @0x79004
+! cal60E1D400: Table 2D - 358 Check DataType  @0x79004
 	.word 0x64e6
 	.word 0x6c80
 	.word 0x6400
@@ -315262,21 +315262,21 @@ L_06d0c4:
 	.word 0x649a
 	.word 0x689a
 	.word 0x6b1a
-! cal[REDACTED]: Y  @0x7901C
+! cal60E1D400: Y  @0x7901C
 	.word 0x6d9a
 	.word 0x6a00
 	.word 0x6680
 	.word 0x684d
 	.word 0x65cd
 	.word 0x6580
-! cal[REDACTED]: Table 2D - 359 Check DataType  @0x79028
+! cal60E1D400: Table 2D - 359 Check DataType  @0x79028
 	.word 0x6d9a
 	.word 0x644d
 	.word 0x5b1a
 	.word 0x6b1a
 	.word 0x6980
 	.word 0x6c33
-! cal[REDACTED]: X  @0x79034
+! cal60E1D400: X  @0x79034
 	.word 0x671a
 	.word 0x664d
 	.word 0x649a
@@ -315315,7 +315315,7 @@ L_06d0c4:
 	.word 0x4fd2
 	.word 0x428e
 	.word 0x7ce6
-! cal[REDACTED]: Y  @0x79080
+! cal60E1D400: Y  @0x79080
 	.word 0x429e
 	.word 0x51e2
 	.word 0x42ae
@@ -315350,7 +315350,7 @@ L_06d0c4:
 	.word 0x0c75
 	.word 0x0c7a
 	.word 0x0c80
-! cal[REDACTED]: Oil Metering By Load  @0x790C4
+! cal60E1D400: Oil Metering By Load  @0x790C4
 	.word 0x0c8c
 	.word 0x0c97
 	.word 0x0ca3
@@ -315513,7 +315513,7 @@ L_06d0c4:
 	.word 0xfbdd
 	.word 0x41fd
 	.word 0x4fd0
-! cal[REDACTED]: X  @0x79208
+! cal60E1D400: X  @0x79208
 	.word 0x421e
 	.word 0x51e4
 	.word 0x423d
@@ -315552,7 +315552,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4184
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79254
+! cal60E1D400: Y  @0x79254
 	.word 0x0ac0
 	.word 0x0add
 	.word 0x0af9
@@ -315561,7 +315561,7 @@ L_06d0c4:
 	.word 0x0b4e
 	.word 0x0b76
 	.word 0x0b9e
-! cal[REDACTED]: Oil Metering By Throttle  @0x79264
+! cal60E1D400: Oil Metering By Throttle  @0x79264
 	.word 0x0bc5
 	.word 0x0bed
 	.word 0x0c15
@@ -315600,7 +315600,7 @@ L_06d0c4:
 	.word 0x05d3
 	.word 0x05e5
 	.word 0x05f6
-! cal[REDACTED]: X  @0x792B0
+! cal60E1D400: X  @0x792B0
 	.word 0x0619
 	.word 0x063d
 	.word 0x0660
@@ -315613,7 +315613,7 @@ L_06d0c4:
 	.word 0x0447
 	.word 0x0451
 	.word 0x045e
-! cal[REDACTED]: Y  @0x792C8
+! cal60E1D400: Y  @0x792C8
 	.word 0x046b
 	.word 0x0478
 	.word 0x0485
@@ -315624,7 +315624,7 @@ L_06d0c4:
 	.word 0x04e7
 	.word 0x04ff
 	.word 0x0517
-! cal[REDACTED]: Table 3D - 119_  @0x792DC
+! cal60E1D400: Table 3D - 119_  @0x792DC
 	.word 0x0313
 	.word 0x031b
 	.word 0x0324
@@ -315649,7 +315649,7 @@ L_06d0c4:
 	.word 0x0294
 	.word 0x029b
 	.word 0x02a4
-! cal[REDACTED]: Y  @0x7930C
+! cal60E1D400: Y  @0x7930C
 	.word 0x02ad
 	.word 0x02b7
 	.word 0x02c0
@@ -315670,14 +315670,14 @@ L_06d0c4:
 	.word 0x0217
 	.word 0x0220
 	.word 0x0229
-! cal[REDACTED]: Table 2D - 199_  @0x79334
+! cal60E1D400: Table 2D - 199_  @0x79334
 	.word 0x0233
 	.word 0x023c
 	.word 0x0245
 	.word 0x024f
 	.word 0x0258
 	.word 0x0262
-! cal[REDACTED]: X  @0x79340
+! cal60E1D400: X  @0x79340
 	.word 0x026b
 	.word 0x017f
 	.word 0x0186
@@ -315710,14 +315710,14 @@ L_06d0c4:
 	.word 0x0162
 	.word 0x0170
 	.word 0x017f
-! cal[REDACTED]: Y  @0x79380
+! cal60E1D400: Y  @0x79380
 	.word 0x018d
 	.word 0x019b
 	.word 0x01a9
 	.word 0xffff
 	.word 0x4480
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 71_  @0x7938C
+! cal60E1D400: Table 3D - 71_  @0x7938C
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -315742,7 +315742,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc220
 	.word 0x0000
-! cal[REDACTED]: X  @0x793BC
+! cal60E1D400: X  @0x793BC
 	.word 0x3e4c
 	.word 0x0003
 	.word 0x3e4c
@@ -315753,7 +315753,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4b18
 	.word 0x9680
-! cal[REDACTED]: Y  @0x793D0
+! cal60E1D400: Y  @0x793D0
 	.word 0x3f00
 	.word 0x0000
 	.word 0x0000
@@ -315764,7 +315764,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 72_  @0x793E4
+! cal60E1D400: Table 3D - 72_  @0x793E4
 	.word 0x4270
 	.word 0x0000
 	.word 0x4285
@@ -315779,7 +315779,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x202e
 	.word 0x323e
-! cal[REDACTED]: X  @0x79400
+! cal60E1D400: X  @0x79400
 	.word 0x5180
 	.word 0xffff
 	.word 0x4282
@@ -315794,7 +315794,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4c80
 	.word 0x8080
-! cal[REDACTED]: Y  @0x7941C
+! cal60E1D400: Y  @0x7941C
 	.word 0x80ff
 	.word 0xffff
 	.word 0x4282
@@ -315807,7 +315807,7 @@ L_06d0c4:
 	.word 0x2e1f
 	.word 0x42c8
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 73_  @0x79434
+! cal60E1D400: Table 3D - 73_  @0x79434
 	.word 0x8000
 	.word 0x00ff
 	.word 0xc220
@@ -315838,7 +315838,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79470
+! cal60E1D400: Y  @0x79470
 	.word 0x428c
 	.word 0x0000
 	.word 0x42a0
@@ -315871,7 +315871,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 200_  @0x794B0
+! cal60E1D400: Table 2D - 200_  @0x794B0
 	.word 0x4220
 	.word 0x0000
 	.word 0x4248
@@ -315888,7 +315888,7 @@ L_06d0c4:
 	.word 0x32c8
 	.word 0x21d4
 	.word 0x1b1c
-! cal[REDACTED]: Y  @0x794D0
+! cal60E1D400: Y  @0x794D0
 	.word 0x15f4
 	.word 0x1130
 	.word 0x0dac
@@ -315921,7 +315921,7 @@ L_06d0c4:
 	.word 0xf70a
 	.word 0x4418
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 201_  @0x79510
+! cal60E1D400: Table 2D - 201_  @0x79510
 	.word 0x43ed
 	.word 0xf70a
 	.word 0x4418
@@ -315938,7 +315938,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x4316
 	.word 0x0000
-! cal[REDACTED]: X  @0x79530
+! cal60E1D400: X  @0x79530
 	.word 0x3ca3
 	.word 0xd70a
 	.word 0x3be5
@@ -315971,7 +315971,7 @@ L_06d0c4:
 	.word 0x5000
 	.word 0x3b80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79570
+! cal60E1D400: Y  @0x79570
 	.word 0x3d98
 	.word 0x0000
 	.word 0x3b80
@@ -315982,7 +315982,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Table 3D - 74_  @0x79584
+! cal60E1D400: Table 3D - 74_  @0x79584
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
@@ -316023,7 +316023,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x795D4
+! cal60E1D400: X  @0x795D4
 	.word 0x1e0f
 	.word 0x0f0f
 	.word 0x0f32
@@ -316056,7 +316056,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0505
 	.word 0x0203
-! cal[REDACTED]: Y  @0x79614
+! cal60E1D400: Y  @0x79614
 	.word 0x03ff
 	.word 0xffff
 	.word 0x0000
@@ -316067,7 +316067,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 75_  @0x79628
+! cal60E1D400: Table 3D - 75_  @0x79628
 	.word 0x429f
 	.word 0xcccd
 	.word 0x42a0
@@ -316142,7 +316142,7 @@ L_06d0c4:
 	.word 0xd000
 	.word 0xaf00
 	.word 0xaf00
-! cal[REDACTED]: Y  @0x796BC
+! cal60E1D400: Y  @0x796BC
 	.word 0x9600
 	.word 0x7d00
 	.word 0x6900
@@ -316165,14 +316165,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0bb8
 	.word 0x0bb8
-! cal[REDACTED]: Table 2D - 202_  @0x796E8
+! cal60E1D400: Table 2D - 202_  @0x796E8
 	.word 0x0bb8
 	.word 0x0000
 	.word 0x43fa
 	.word 0x0000
 	.word 0x443b
 	.word 0x8000
-! cal[REDACTED]: Y  @0x796F4
+! cal60E1D400: Y  @0x796F4
 	.word 0x447a
 	.word 0x0000
 	.word 0x44bb
@@ -316199,7 +316199,7 @@ L_06d0c4:
 	.word 0x2000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Table 2D - 203_  @0x79728
+! cal60E1D400: Table 2D - 203_  @0x79728
 	.word 0x45ea
 	.word 0x6000
 	.word 0x45fa
@@ -316236,7 +316236,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x3f68
 	.word 0xf5c3
-! cal[REDACTED]: Y  @0x79770
+! cal60E1D400: Y  @0x79770
 	.word 0x3f77
 	.word 0x0a3d
 	.word 0x3f7d
@@ -316253,12 +316253,12 @@ L_06d0c4:
 	.word 0x536e
 	.word 0x4b0d
 	.word 0x488d
-! cal[REDACTED]: Table 2D - 204_  @0x79790
+! cal60E1D400: Table 2D - 204_  @0x79790
 	.word 0x4e05
 	.word 0x4e42
 	.word 0x40fa
 	.word 0x4267
-! cal[REDACTED]: Y  @0x79798
+! cal60E1D400: Y  @0x79798
 	.word 0x3b6f
 	.word 0x3333
 	.word 0x49ba
@@ -316283,14 +316283,14 @@ L_06d0c4:
 	.word 0x4ccd
 	.word 0x4ac1
 	.word 0x4873
-! cal[REDACTED]: Table 2D - 205_  @0x797C8
+! cal60E1D400: Table 2D - 205_  @0x797C8
 	.word 0x4873
 	.word 0x445a
 	.word 0x5127
 	.word 0x5127
 	.word 0x4f98
 	.word 0x4460
-! cal[REDACTED]: Y  @0x797D4
+! cal60E1D400: Y  @0x797D4
 	.word 0x4392
 	.word 0x4567
 	.word 0x4aae
@@ -316323,7 +316323,7 @@ L_06d0c4:
 	.word 0x47f0
 	.word 0x43d7
 	.word 0x445a
-! cal[REDACTED]: Table 2D - 206_  @0x79814
+! cal60E1D400: Table 2D - 206_  @0x79814
 	.word 0x4f8d
 	.word 0x4f8d
 	.word 0x45b2
@@ -316396,7 +316396,7 @@ L_06d0c4:
 	.word 0x45a2
 	.word 0x46a8
 	.word 0x41cb
-! cal[REDACTED]: Y  @0x798A4
+! cal60E1D400: Y  @0x798A4
 	.word 0x598c
 	.word 0x598c
 	.word 0x49ee
@@ -316407,12 +316407,12 @@ L_06d0c4:
 	.word 0x43c3
 	.word 0x4ccd
 	.word 0x4666
-! cal[REDACTED]: Table 2D - 207_  @0x798B8
+! cal60E1D400: Table 2D - 207_  @0x798B8
 	.word 0x48f6
 	.word 0x449c
 	.word 0x428f
 	.word 0x4ed9
-! cal[REDACTED]: Y  @0x798C0
+! cal60E1D400: Y  @0x798C0
 	.word 0x449c
 	.word 0x41cb
 	.word 0x4148
@@ -316421,10 +316421,10 @@ L_06d0c4:
 	.word 0x598c
 	.word 0x49ee
 	.word 0x41e8
-! cal[REDACTED]: Table 2D - 208_  @0x798D0
+! cal60E1D400: Table 2D - 208_  @0x798D0
 	.word 0x3624
 	.word 0x36bc
-! cal[REDACTED]: Y  @0x798D4
+! cal60E1D400: Y  @0x798D4
 	.word 0x3a55
 	.word 0x408a
 	.word 0x4979
@@ -316435,12 +316435,12 @@ L_06d0c4:
 	.word 0x47ae
 	.word 0x4000
 	.word 0x3eb8
-! cal[REDACTED]: Table 2D - 209_  @0x798E8
+! cal60E1D400: Table 2D - 209_  @0x798E8
 	.word 0x3cee
 	.word 0x3b64
 	.word 0x598c
 	.word 0x598c
-! cal[REDACTED]: Y  @0x798F0
+! cal60E1D400: Y  @0x798F0
 	.word 0x49ee
 	.word 0x41e8
 	.word 0x3d22
@@ -316465,14 +316465,14 @@ L_06d0c4:
 	.word 0x3347
 	.word 0x321e
 	.word 0x4148
-! cal[REDACTED]: Table 2D - 210_  @0x79920
+! cal60E1D400: Table 2D - 210_  @0x79920
 	.word 0x45a2
 	.word 0x40c5
 	.word 0x4148
 	.word 0x4000
 	.word 0x3917
 	.word 0x3c29
-! cal[REDACTED]: Y  @0x7992C
+! cal60E1D400: Y  @0x7992C
 	.word 0x38d5
 	.word 0x399a
 	.word 0x3d71
@@ -316497,7 +316497,7 @@ L_06d0c4:
 	.word 0x370a
 	.word 0x598c
 	.word 0x598c
-! cal[REDACTED]: Table 2D - 211_  @0x7995C
+! cal60E1D400: Table 2D - 211_  @0x7995C
 	.word 0x49ee
 	.word 0x41e8
 	.word 0x3eb4
@@ -316516,7 +316516,7 @@ L_06d0c4:
 	.word 0x366d
 	.word 0x598c
 	.word 0x598c
-! cal[REDACTED]: Y  @0x79980
+! cal60E1D400: Y  @0x79980
 	.word 0x49ee
 	.word 0x41e8
 	.word 0x3eb4
@@ -316533,12 +316533,12 @@ L_06d0c4:
 	.word 0x36e4
 	.word 0x3a54
 	.word 0x359b
-! cal[REDACTED]: Table 2D - 212_  @0x799A0
+! cal60E1D400: Table 2D - 212_  @0x799A0
 	.word 0x598c
 	.word 0x598c
 	.word 0x49ee
 	.word 0x41e8
-! cal[REDACTED]: Y  @0x799A8
+! cal60E1D400: Y  @0x799A8
 	.word 0x3eb4
 	.word 0x3263
 	.word 0x3ae1
@@ -316547,12 +316547,12 @@ L_06d0c4:
 	.word 0x4309
 	.word 0x3c52
 	.word 0x3a78
-! cal[REDACTED]: Table 2D - 213_  @0x799B8
+! cal60E1D400: Table 2D - 213_  @0x799B8
 	.word 0x2cba
 	.word 0x327c
 	.word 0x3023
 	.word 0x34fd
-! cal[REDACTED]: Y  @0x799C0
+! cal60E1D400: Y  @0x799C0
 	.word 0x349c
 	.word 0x2aff
 	.word 0x598c
@@ -316581,7 +316581,7 @@ L_06d0c4:
 	.word 0x3263
 	.word 0x3ae1
 	.word 0x428f
-! cal[REDACTED]: Table 2D - 214_  @0x799F8
+! cal60E1D400: Table 2D - 214_  @0x799F8
 	.word 0x420c
 	.word 0x4053
 	.word 0x37ae
@@ -316596,15 +316596,15 @@ L_06d0c4:
 	.word 0x598c
 	.word 0x49ee
 	.word 0x41e8
-! cal[REDACTED]: Y  @0x79A14
+! cal60E1D400: Y  @0x79A14
 	.word 0x3eb4
 	.word 0x3263
 	.word 0x3ae1
 	.word 0x428f
-! cal[REDACTED]: Table 2D - 215_  @0x79A1C
+! cal60E1D400: Table 2D - 215_  @0x79A1C
 	.word 0x420c
 	.word 0x4002
-! cal[REDACTED]: X  @0x79A20
+! cal60E1D400: X  @0x79A20
 	.word 0x3724
 	.word 0x2dac
 	.word 0x1d8d
@@ -316617,7 +316617,7 @@ L_06d0c4:
 	.word 0x598c
 	.word 0x49ee
 	.word 0x41e8
-! cal[REDACTED]: Y  @0x79A38
+! cal60E1D400: Y  @0x79A38
 	.word 0x3eb4
 	.word 0x3263
 	.word 0x3ae1
@@ -316632,7 +316632,7 @@ L_06d0c4:
 	.word 0x245a
 	.word 0x20a9
 	.word 0x209d
-! cal[REDACTED]: Table 3D - 76_  @0x79A54
+! cal60E1D400: Table 3D - 76_  @0x79A54
 	.word 0x01ff
 	.word 0x03e8
 	.word 0x0008
@@ -316675,7 +316675,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42bc
 	.word 0x0000
-! cal[REDACTED]: X  @0x79AA8
+! cal60E1D400: X  @0x79AA8
 	.word 0x42ca
 	.word 0x0000
 	.word 0x6464
@@ -316684,7 +316684,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xc0a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79AB8
+! cal60E1D400: Y  @0x79AB8
 	.word 0x409f
 	.word 0xf7cf
 	.word 0x40a0
@@ -316699,7 +316699,7 @@ L_06d0c4:
 	.word 0x1e1e
 	.word 0x1e00
 	.word 0xffff
-! cal[REDACTED]: Table 3D - 77_  @0x79AD4
+! cal60E1D400: Table 3D - 77_  @0x79AD4
 	.word 0x409f
 	.word 0xf7cf
 	.word 0x40a0
@@ -316728,7 +316728,7 @@ L_06d0c4:
 	.word 0x999a
 	.word 0x3ec0
 	.word 0x0000
-! cal[REDACTED]: X  @0x79B0C
+! cal60E1D400: X  @0x79B0C
 	.word 0x3ee6
 	.word 0x6666
 	.word 0x0000
@@ -316745,7 +316745,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4140
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79B2C
+! cal60E1D400: Y  @0x79B2C
 	.word 0x4150
 	.word 0x0000
 	.word 0x4158
@@ -316760,7 +316760,7 @@ L_06d0c4:
 	.word 0x6669
 	.word 0x6cff
 	.word 0xffff
-! cal[REDACTED]: Table 3D - 78_  @0x79B48
+! cal60E1D400: Table 3D - 78_  @0x79B48
 	.word 0x0000
 	.word 0x0000
 	.word 0x40a0
@@ -316845,7 +316845,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79BF0
+! cal60E1D400: Y  @0x79BF0
 	.word 0x7878
 	.word 0x7878
 	.word 0xc120
@@ -316866,14 +316866,14 @@ L_06d0c4:
 	.word 0x04e2
 	.word 0x07ef
 	.word 0x088c
-! cal[REDACTED]: Table 2D - 216_  @0x79C18
+! cal60E1D400: Table 2D - 216_  @0x79C18
 	.word 0x0753
 	.word 0x03aa
 	.word 0x0000
 	.word 0xffff
 	.word 0x3259
 	.word 0x0032
-! cal[REDACTED]: Y  @0x79C24
+! cal60E1D400: Y  @0x79C24
 	.word 0x0032
 	.word 0x0060
 	.word 0x0032
@@ -316892,14 +316892,14 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 217_  @0x79C48
+! cal60E1D400: Table 2D - 217_  @0x79C48
 	.word 0x3ff0
 	.word 0xa3d7
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79C54
+! cal60E1D400: Y  @0x79C54
 	.word 0x453b
 	.word 0x8000
 	.word 0x4348
@@ -316916,12 +316916,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4148
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 218_  @0x79C74
+! cal60E1D400: Table 2D - 218_  @0x79C74
 	.word 0x4148
 	.word 0x0000
 	.word 0x3f33
 	.word 0x3333
-! cal[REDACTED]: Y  @0x79C7C
+! cal60E1D400: Y  @0x79C7C
 	.word 0x00ff
 	.word 0x0177
 	.word 0x003e
@@ -316950,7 +316950,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 219_  @0x79CB4
+! cal60E1D400: Table 2D - 219_  @0x79CB4
 	.word 0x3c93
 	.word 0x74bc
 	.word 0x4180
@@ -316965,7 +316965,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x4170
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79CD0
+! cal60E1D400: Y  @0x79CD0
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e3e
@@ -316994,7 +316994,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 220_  @0x79D08
+! cal60E1D400: Table 2D - 220_  @0x79D08
 	.word 0x0000
 	.word 0x0000
 	.word 0x41a0
@@ -317009,7 +317009,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79D24
+! cal60E1D400: Y  @0x79D24
 	.word 0x031b
 	.word 0x0361
 	.word 0x03a3
@@ -317038,7 +317038,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 221_  @0x79D5C
+! cal60E1D400: Table 2D - 221_  @0x79D5C
 	.word 0x09e4
 	.word 0x07e8
 	.word 0x0699
@@ -317053,7 +317053,7 @@ L_06d0c4:
 	.word 0x5e00
 	.word 0x0000
 	.word 0x00ff
-! cal[REDACTED]: X  @0x79D78
+! cal60E1D400: X  @0x79D78
 	.word 0x0104
 	.word 0x0316
 	.word 0x0600
@@ -317066,7 +317066,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x45ab
 	.word 0xe000
-! cal[REDACTED]: Y  @0x79D90
+! cal60E1D400: Y  @0x79D90
 	.word 0x41a0
 	.word 0x0000
 	.word 0x44fa
@@ -317081,7 +317081,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 79_  @0x79DAC
+! cal60E1D400: Table 3D - 79_  @0x79DAC
 	.word 0x3f4c
 	.word 0xcccd
 	.word 0x4317
@@ -317124,7 +317124,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x79E00
+! cal60E1D400: X  @0x79E00
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42f0
@@ -317135,7 +317135,7 @@ L_06d0c4:
 	.word 0x0d0d
 	.word 0x0dff
 	.word 0xffff
-! cal[REDACTED]: Y  @0x79E14
+! cal60E1D400: Y  @0x79E14
 	.word 0xc220
 	.word 0x0000
 	.word 0xc1a0
@@ -317150,7 +317150,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 80_  @0x79E30
+! cal60E1D400: Table 3D - 80_  @0x79E30
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42f0
@@ -317187,7 +317187,7 @@ L_06d0c4:
 	.word 0x0091
 	.word 0x0081
 	.word 0x007c
-! cal[REDACTED]: X  @0x79E78
+! cal60E1D400: X  @0x79E78
 	.word 0x0076
 	.word 0xffff
 	.word 0xc348
@@ -317200,7 +317200,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x79E90
+! cal60E1D400: Y  @0x79E90
 	.word 0xc220
 	.word 0x0000
 	.word 0xc1f0
@@ -317215,7 +317215,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 81_  @0x79EAC
+! cal60E1D400: Table 3D - 81_  @0x79EAC
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
@@ -317258,7 +317258,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: X  @0x79F00
+! cal60E1D400: X  @0x79F00
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -317269,7 +317269,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Y  @0x79F14
+! cal60E1D400: Y  @0x79F14
 	.word 0x459c
 	.word 0x4000
 	.word 0x45ab
@@ -317282,7 +317282,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x45ea
 	.word 0x6000
-! cal[REDACTED]: Table 3D - 82_  @0x79F2C
+! cal60E1D400: Table 3D - 82_  @0x79F2C
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42b4
@@ -317313,7 +317313,7 @@ L_06d0c4:
 	.word 0x2580
 	.word 0x2af8
 	.word 0x300c
-! cal[REDACTED]: X  @0x79F68
+! cal60E1D400: X  @0x79F68
 	.word 0x34bc
 	.word 0x3908
 	.word 0x3e80
@@ -317324,7 +317324,7 @@ L_06d0c4:
 	.word 0x0834
 	.word 0x0d48
 	.word 0x125c
-! cal[REDACTED]: Y  @0x79F7C
+! cal60E1D400: Y  @0x79F7C
 	.word 0x17d4
 	.word 0x1c84
 	.word 0x2134
@@ -317337,7 +317337,7 @@ L_06d0c4:
 	.word 0x413c
 	.word 0x46b4
 	.word 0xffff
-! cal[REDACTED]: Table 3D - 83_  @0x79F94
+! cal60E1D400: Table 3D - 83_  @0x79F94
 	.word 0x3200
 	.word 0x3c3c
 	.word 0x3c02
@@ -317412,7 +317412,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x3f66
 	.word 0x6666
-! cal[REDACTED]: Y  @0x7A028
+! cal60E1D400: Y  @0x7A028
 	.word 0x41f0
 	.word 0x0000
 	.word 0x3e23
@@ -317449,7 +317449,7 @@ L_06d0c4:
 	.word 0x1e0d
 	.word 0x0101
 	.word 0x0814
-! cal[REDACTED]: Table 2D - 222_  @0x7A070
+! cal60E1D400: Table 2D - 222_  @0x7A070
 	.word 0x1eff
 	.word 0xffff
 	.word 0x41f0
@@ -317468,7 +317468,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4260
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A094
+! cal60E1D400: Y  @0x7A094
 	.word 0x428c
 	.word 0x0000
 	.word 0x42a6
@@ -317485,7 +317485,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x03e9
 	.word 0x044c
-! cal[REDACTED]: Table 2D - 223_  @0x7A0B4
+! cal60E1D400: Table 2D - 223_  @0x7A0B4
 	.word 0x04b0
 	.word 0xffff
 	.word 0x41f0
@@ -317494,7 +317494,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A0C4
+! cal60E1D400: Y  @0x7A0C4
 	.word 0x425c
 	.word 0x0000
 	.word 0x428c
@@ -317511,7 +317511,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4110
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 224_  @0x7A0E4
+! cal60E1D400: Table 2D - 224_  @0x7A0E4
 	.word 0x4110
 	.word 0x020c
 	.word 0x4180
@@ -317520,7 +317520,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4100
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A0F4
+! cal60E1D400: Y  @0x7A0F4
 	.word 0x4509
 	.word 0x8000
 	.word 0x4509
@@ -317539,7 +317539,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x40a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 225_  @0x7A118
+! cal60E1D400: Table 2D - 225_  @0x7A118
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4270
@@ -317550,7 +317550,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x44e1
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A12C
+! cal60E1D400: Y  @0x7A12C
 	.word 0x442f
 	.word 0x0000
 	.word 0x4434
@@ -317569,7 +317569,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x457a
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 226_  @0x7A150
+! cal60E1D400: Table 2D - 226_  @0x7A150
 	.word 0x458c
 	.word 0xa000
 	.word 0x459c
@@ -317682,7 +317682,7 @@ L_06d0c4:
 	.word 0x172d
 	.word 0x2d2d
 	.word 0x0306
-! cal[REDACTED]: Y  @0x7A230
+! cal60E1D400: Y  @0x7A230
 	.word 0x0609
 	.word 0x0605
 	.word 0x0808
@@ -317799,7 +317799,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Knock Voltage To Magnitude  @0x7A318
+! cal60E1D400: Knock Voltage To Magnitude  @0x7A318
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
@@ -317830,7 +317830,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4282
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A354
+! cal60E1D400: Y  @0x7A354
 	.word 0x428c
 	.word 0x0000
 	.word 0x0000
@@ -317859,7 +317859,7 @@ L_06d0c4:
 	.word 0x1a1a
 	.word 0x1a22
 	.word 0x2d2d
-! cal[REDACTED]: Knock Related 1  @0x7A38C
+! cal60E1D400: Knock Related 1  @0x7A38C
 	.word 0x3034
 	.word 0x3739
 	.word 0x3cff
@@ -317874,7 +317874,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42aa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A3A8
+! cal60E1D400: Y  @0x7A3A8
 	.word 0x42b4
 	.word 0x0000
 	.word 0x42be
@@ -317903,7 +317903,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e00
 	.word 0x0000
-! cal[REDACTED]: Knock Related 2  @0x7A3E0
+! cal60E1D400: Knock Related 2  @0x7A3E0
 	.word 0x3e80
 	.word 0x0000
 	.word 0x3ec0
@@ -317918,19 +317918,19 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x4650
-! cal[REDACTED]: Y  @0x7A3FC
+! cal60E1D400: Y  @0x7A3FC
 	.word 0x5880
 	.word 0x80ff
-! cal[REDACTED]: Knock Related  @0x7A400
+! cal60E1D400: Knock Related  @0x7A400
 	.word 0xc220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A404
+! cal60E1D400: Y  @0x7A404
 	.word 0xc1f0
 	.word 0x0000
-! cal[REDACTED]: Knock Related 3  @0x7A408
+! cal60E1D400: Knock Related 3  @0x7A408
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x7A40C
+! cal60E1D400: X  @0x7A40C
 	.word 0xc120
 	.word 0x0000
 	.word 0x0000
@@ -317943,7 +317943,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A424
+! cal60E1D400: Y  @0x7A424
 	.word 0x4248
 	.word 0x0000
 	.word 0x4270
@@ -317966,7 +317966,7 @@ L_06d0c4:
 	.word 0x4137
 	.word 0x2318
 	.word 0x1208
-! cal[REDACTED]: Knock Rel #4  @0x7A450
+! cal60E1D400: Knock Rel #4  @0x7A450
 	.word 0x0604
 	.word 0x0201
 	.word 0x0000
@@ -318001,7 +318001,7 @@ L_06d0c4:
 	.word 0x0005
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: X  @0x7A494
+! cal60E1D400: X  @0x7A494
 	.word 0x0000
 	.word 0x0000
 	.word 0x00ff
@@ -318014,7 +318014,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44da
 	.word 0xc000
-! cal[REDACTED]: Y  @0x7A4AC
+! cal60E1D400: Y  @0x7A4AC
 	.word 0xc1a0
 	.word 0x0000
 	.word 0x0000
@@ -318037,7 +318037,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41d4
 	.word 0xcccd
-! cal[REDACTED]: Knock Rel #0  @0x7A4D8
+! cal60E1D400: Knock Rel #0  @0x7A4D8
 	.word 0x3f40
 	.word 0x0000
 	.word 0x4270
@@ -318086,7 +318086,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42b4
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A538
+! cal60E1D400: Y  @0x7A538
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42dc
@@ -318101,12 +318101,12 @@ L_06d0c4:
 	.word 0x005a
 	.word 0x0177
 	.word 0x0177
-! cal[REDACTED]: Table 2D - 228_  @0x7A554
+! cal60E1D400: Table 2D - 228_  @0x7A554
 	.word 0x0177
 	.word 0x0177
 	.word 0x01ae
 	.word 0x01e0
-! cal[REDACTED]: Y  @0x7A55C
+! cal60E1D400: Y  @0x7A55C
 	.word 0x0578
 	.word 0x0834
 	.word 0x4248
@@ -318131,7 +318131,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x428c
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 229_  @0x7A58C
+! cal60E1D400: Table 2D - 229_  @0x7A58C
 	.word 0x42a0
 	.word 0x0000
 	.word 0x0000
@@ -318144,7 +318144,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0d1a
 	.word 0x1a26
-! cal[REDACTED]: VDI Open  @0x7A5A4
+! cal60E1D400: VDI Open  @0x7A5A4
 	.word 0x2600
 	.word 0x000d
 	.word 0x1a2c
@@ -318191,7 +318191,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A600
+! cal60E1D400: Y  @0x7A600
 	.word 0x2640
 	.word 0x4340
 	.word 0x3d4d
@@ -318212,7 +318212,7 @@ L_06d0c4:
 	.word 0x2626
 	.word 0x292c
 	.word 0x2c2c
-! cal[REDACTED]: Airflow Or Load Related  @0x7A628
+! cal60E1D400: Airflow Or Load Related  @0x7A628
 	.word 0x5a5a
 	.word 0x2640
 	.word 0x4340
@@ -318223,7 +318223,7 @@ L_06d0c4:
 	.word 0x6c71
 	.word 0x2640
 	.word 0x4340
-! cal[REDACTED]: Y  @0x7A63C
+! cal60E1D400: Y  @0x7A63C
 	.word 0x3d4d
 	.word 0x2626
 	.word 0x292c
@@ -318240,7 +318240,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: MAF Related  @0x7A65C
+! cal60E1D400: MAF Related  @0x7A65C
 	.word 0x40a0
 	.word 0x0000
 	.word 0x0000
@@ -318249,7 +318249,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e99
 	.word 0x999a
-! cal[REDACTED]: Y  @0x7A66C
+! cal60E1D400: Y  @0x7A66C
 	.word 0x0000
 	.word 0x0000
 	.word 0x42c8
@@ -318272,7 +318272,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xbfcc
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 232_  @0x7A698
+! cal60E1D400: Table 2D - 232_  @0x7A698
 	.word 0xba90
 	.word 0x2de0
 	.word 0xba83
@@ -318285,7 +318285,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xc180
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A6B0
+! cal60E1D400: Y  @0x7A6B0
 	.word 0xc100
 	.word 0x0000
 	.word 0xc000
@@ -318308,7 +318308,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x32ff
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 233_  @0x7A6DC
+! cal60E1D400: Table 2D - 233_  @0x7A6DC
 	.word 0x3b23
 	.word 0xd70a
 	.word 0x3b30
@@ -318321,7 +318321,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A6F4
+! cal60E1D400: Y  @0x7A6F4
 	.word 0x4120
 	.word 0x0000
 	.word 0x4270
@@ -318344,7 +318344,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 234_  @0x7A720
+! cal60E1D400: Table 2D - 234_  @0x7A720
 	.word 0x42c8
 	.word 0x0000
 	.word 0x7d64
@@ -318357,7 +318357,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A738
+! cal60E1D400: Y  @0x7A738
 	.word 0x4120
 	.word 0x0000
 	.word 0x4170
@@ -318380,7 +318380,7 @@ L_06d0c4:
 	.word 0x3228
 	.word 0x2828
 	.word 0x1e14
-! cal[REDACTED]: Table 2D - 364 Check DataType  @0x7A764
+! cal60E1D400: Table 2D - 364 Check DataType  @0x7A764
 	.word 0x0a01
 	.word 0x0101
 	.word 0x0000
@@ -318393,7 +318393,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A77C
+! cal60E1D400: Y  @0x7A77C
 	.word 0x0000
 	.word 0x0000
 	.word 0x3dcc
@@ -318414,7 +318414,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f4c
 	.word 0xcccd
-! cal[REDACTED]: Table 2D - 365 Check DataType  @0x7A7A4
+! cal60E1D400: Table 2D - 365 Check DataType  @0x7A7A4
 	.word 0x3f53
 	.word 0x3333
 	.word 0x3f59
@@ -318433,7 +318433,7 @@ L_06d0c4:
 	.word 0x72ec
 	.word 0x7548
 	.word 0x767b
-! cal[REDACTED]: Y  @0x7A7C8
+! cal60E1D400: Y  @0x7A7C8
 	.word 0x70f6
 	.word 0x6600
 	.word 0x5fec
@@ -318454,14 +318454,14 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 254_  @0x7A7F0
+! cal60E1D400: Table 2D - 254_  @0x7A7F0
 	.word 0x3f00
 	.word 0x0000
 	.word 0x45da
 	.word 0xc000
 	.word 0x430c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A7FC
+! cal60E1D400: Y  @0x7A7FC
 	.word 0x4316
 	.word 0x0000
 	.word 0x4220
@@ -318470,10 +318470,10 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 255_  @0x7A80C
+! cal60E1D400: Table 2D - 255_  @0x7A80C
 	.word 0x458f
 	.word 0xc000
-! cal[REDACTED]: X  @0x7A810
+! cal60E1D400: X  @0x7A810
 	.word 0x3f00
 	.word 0x0000
 	.word 0x3f90
@@ -318486,7 +318486,7 @@ L_06d0c4:
 	.word 0x9724
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A828
+! cal60E1D400: Y  @0x7A828
 	.word 0x0000
 	.word 0x0000
 	.word 0x3f80
@@ -318495,7 +318495,7 @@ L_06d0c4:
 	.word 0x3333
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 86_  @0x7A838
+! cal60E1D400: Table 3D - 86_  @0x7A838
 	.word 0x3eb3
 	.word 0x3333
 	.word 0x4020
@@ -318556,7 +318556,7 @@ L_06d0c4:
 	.word 0x0001
 	.word 0x444b
 	.word 0x2000
-! cal[REDACTED]: Y  @0x7A8B0
+! cal60E1D400: Y  @0x7A8B0
 	.word 0x4180
 	.word 0x0000
 	.word 0x3f80
@@ -318571,7 +318571,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ec0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 375 Check DataType  @0x7A8CC
+! cal60E1D400: Table 2D - 375 Check DataType  @0x7A8CC
 	.word 0x3f00
 	.word 0x0000
 	.word 0x3f20
@@ -318580,7 +318580,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f60
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7A8DC
+! cal60E1D400: Y  @0x7A8DC
 	.word 0x3f80
 	.word 0x0000
 	.word 0x0014
@@ -318595,7 +318595,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 256_  @0x7A8F8
+! cal60E1D400: Table 2D - 256_  @0x7A8F8
 	.word 0x1d4c
 	.word 0x1d4c
 	.word 0x1d4c
@@ -318624,10 +318624,10 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xbd80
 	.word 0x0000
-! cal[REDACTED]: Barometric Pressure Sensor Min Voltage  @0x7A930
+! cal60E1D400: Barometric Pressure Sensor Min Voltage  @0x7A930
 	.word 0xbd00
 	.word 0x0000
-! cal[REDACTED]: Barometric Pressure Sensor Max Voltage  @0x7A934
+! cal60E1D400: Barometric Pressure Sensor Max Voltage  @0x7A934
 	.word 0x0000
 	.word 0x0000
 	.word 0x2710
@@ -318696,10 +318696,10 @@ L_06d0c4:
 	.word 0x04cd
 	.word 0x0400
 	.word 0x0400
-! cal[REDACTED]: Barometric Pressure Sensor Offset  @0x7A9BC
+! cal60E1D400: Barometric Pressure Sensor Offset  @0x7A9BC
 	.word 0x0300
 	.word 0x01f6
-! cal[REDACTED]: Barometric Pressure Sensor Slope  @0x7A9C0
+! cal60E1D400: Barometric Pressure Sensor Slope  @0x7A9C0
 	.word 0x01d2
 	.word 0x04cd
 	.word 0x0300
@@ -318710,7 +318710,7 @@ L_06d0c4:
 	.word 0x039a
 	.word 0x0200
 	.word 0x0200
-! cal[REDACTED]: Y  @0x7A9D4
+! cal60E1D400: Y  @0x7A9D4
 	.word 0x0180
 	.word 0x0166
 	.word 0x014d
@@ -318729,14 +318729,14 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x453b
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 257_  @0x7A9F8
+! cal60E1D400: Table 2D - 257_  @0x7A9F8
 	.word 0xc220
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AA04
+! cal60E1D400: Y  @0x7AA04
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4220
@@ -318755,7 +318755,7 @@ L_06d0c4:
 	.word 0x248f
 	.word 0x1133
 	.word 0x0c0a
-! cal[REDACTED]: Table 2D - 258_  @0x7AA28
+! cal60E1D400: Table 2D - 258_  @0x7AA28
 	.word 0x0c0a
 	.word 0x2266
 	.word 0x0b49
@@ -318794,7 +318794,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc1a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x7AA74
+! cal60E1D400: X  @0x7AA74
 	.word 0x0000
 	.word 0x0000
 	.word 0x41a0
@@ -318813,7 +318813,7 @@ L_06d0c4:
 	.word 0x0900
 	.word 0x0600
 	.word 0x0300
-! cal[REDACTED]: Y  @0x7AA98
+! cal60E1D400: Y  @0x7AA98
 	.word 0x1800
 	.word 0x1466
 	.word 0x10cd
@@ -318832,7 +318832,7 @@ L_06d0c4:
 	.word 0x019a
 	.word 0x0b00
 	.word 0x095a
-! cal[REDACTED]: Table 3D - 122_  @0x7AABC
+! cal60E1D400: Table 3D - 122_  @0x7AABC
 	.word 0x07b3
 	.word 0x060d
 	.word 0x0466
@@ -318875,7 +318875,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: X  @0x7AB10
+! cal60E1D400: X  @0x7AB10
 	.word 0xbc57
 	.word 0xf0ed
 	.word 0xc220
@@ -318894,7 +318894,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f00
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AB34
+! cal60E1D400: Y  @0x7AB34
 	.word 0x4120
 	.word 0x0000
 	.word 0x42f0
@@ -318913,7 +318913,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f20
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 123_  @0x7AB58
+! cal60E1D400: Table 3D - 123_  @0x7AB58
 	.word 0x3f40
 	.word 0x0000
 	.word 0x3f60
@@ -318996,7 +318996,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ed0
 	.word 0x0000
-! cal[REDACTED]: X  @0x7ABFC
+! cal60E1D400: X  @0x7ABFC
 	.word 0x0000
 	.word 0x00af
 	.word 0x015e
@@ -319015,7 +319015,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3d00
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AC20
+! cal60E1D400: Y  @0x7AC20
 	.word 0x3d80
 	.word 0x0000
 	.word 0x3dc0
@@ -319034,7 +319034,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ea0
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 87_  @0x7AC44
+! cal60E1D400: Table 3D - 87_  @0x7AC44
 	.word 0x3eb0
 	.word 0x0000
 	.word 0x3ec0
@@ -319117,7 +319117,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x7ACE8
+! cal60E1D400: X  @0x7ACE8
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
@@ -319136,7 +319136,7 @@ L_06d0c4:
 	.word 0x14e1
 	.word 0x0cba
 	.word 0x0c1f
-! cal[REDACTED]: Y  @0x7AD0C
+! cal60E1D400: Y  @0x7AD0C
 	.word 0x2354
 	.word 0x1ad5
 	.word 0x15dd
@@ -319155,7 +319155,7 @@ L_06d0c4:
 	.word 0x0d0e
 	.word 0x07c5
 	.word 0x070a
-! cal[REDACTED]: Table 3D - 88_  @0x7AD30
+! cal60E1D400: Table 3D - 88_  @0x7AD30
 	.word 0x059a
 	.word 0x04cd
 	.word 0x0600
@@ -319238,22 +319238,22 @@ L_06d0c4:
 	.word 0x1cf6
 	.word 0x1e00
 	.word 0x1052
-! cal[REDACTED]: X  @0x7ADD4
+! cal60E1D400: X  @0x7ADD4
 	.word 0x099a
 	.word 0x0800
-! cal[REDACTED]: Y  @0x7ADD8
+! cal60E1D400: Y  @0x7ADD8
 	.word 0x1400
 	.word 0x0d9a
-! cal[REDACTED]: Table 3D - 89_  @0x7ADDC
+! cal60E1D400: Table 3D - 89_  @0x7ADDC
 	.word 0x0800
 	.word 0x0800
-! cal[REDACTED]: X  @0x7ADE0
+! cal60E1D400: X  @0x7ADE0
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7ADE4
+! cal60E1D400: Y  @0x7ADE4
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Table 3D - 90_  @0x7ADE8
+! cal60E1D400: Table 3D - 90_  @0x7ADE8
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -319292,7 +319292,7 @@ L_06d0c4:
 	.word 0x00fe
 	.word 0x0001
 	.word 0xffff
-! cal[REDACTED]: Y  @0x7AE34
+! cal60E1D400: Y  @0x7AE34
 	.word 0x3f06
 	.word 0x6666
 	.word 0x3f80
@@ -319329,7 +319329,7 @@ L_06d0c4:
 	.word 0x126f
 	.word 0x3ca3
 	.word 0xd70a
-! cal[REDACTED]: Table 2D - 259_  @0x7AE7C
+! cal60E1D400: Table 2D - 259_  @0x7AE7C
 	.word 0x3c03
 	.word 0x126f
 	.word 0x3ca3
@@ -319340,16 +319340,16 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AE90
+! cal60E1D400: Y  @0x7AE90
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 376 Check DataType  @0x7AE94
+! cal60E1D400: Table 2D - 376 Check DataType  @0x7AE94
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AE98
+! cal60E1D400: Y  @0x7AE98
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 377 Check DataType  @0x7AE9C
+! cal60E1D400: Table 2D - 377 Check DataType  @0x7AE9C
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
@@ -319418,7 +319418,7 @@ L_06d0c4:
 	.word 0x674d
 	.word 0x4256
 	.word 0xe979
-! cal[REDACTED]: Y  @0x7AF24
+! cal60E1D400: Y  @0x7AF24
 	.word 0x4276
 	.word 0xe979
 	.word 0x428b
@@ -319437,14 +319437,14 @@ L_06d0c4:
 	.word 0x4e00
 	.word 0x5800
 	.word 0x6200
-! cal[REDACTED]: Injection Angle Related AFR Input  @0x7AF48
+! cal60E1D400: Injection Angle Related AFR Input  @0x7AF48
 	.word 0x6c00
 	.word 0x7600
 	.word 0x8000
 	.word 0x8a00
 	.word 0x447a
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7AF54
+! cal60E1D400: Y  @0x7AF54
 	.word 0x44fa
 	.word 0x0000
 	.word 0x453b
@@ -319461,12 +319461,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x460c
 	.word 0xa000
-! cal[REDACTED]: Unknown Lambda Input  @0x7AF74
+! cal60E1D400: Unknown Lambda Input  @0x7AF74
 	.word 0x6b85
 	.word 0x6b85
 	.word 0x7100
 	.word 0x6c02
-! cal[REDACTED]: Y  @0x7AF7C
+! cal60E1D400: Y  @0x7AF7C
 	.word 0x66fd
 	.word 0x61ff
 	.word 0x57fd
@@ -319483,12 +319483,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x459c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 262_  @0x7AF9C
+! cal60E1D400: Table 2D - 262_  @0x7AF9C
 	.word 0x45bb
 	.word 0x8000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Y  @0x7AFA4
+! cal60E1D400: Y  @0x7AFA4
 	.word 0x45fa
 	.word 0x0000
 	.word 0x460c
@@ -319539,7 +319539,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: AirFlow Inj Angle Related  @0x7B008
+! cal60E1D400: AirFlow Inj Angle Related  @0x7B008
 	.word 0x3da3
 	.word 0xd70a
 	.word 0x4100
@@ -319566,7 +319566,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B03C
+! cal60E1D400: Y  @0x7B03C
 	.word 0x3b83
 	.word 0x126f
 	.word 0x44fa
@@ -319583,7 +319583,7 @@ L_06d0c4:
 	.word 0x6666
 	.word 0x4020
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 264_  @0x7B05C
+! cal60E1D400: Table 2D - 264_  @0x7B05C
 	.word 0x0000
 	.word 0x0000
 	.word 0x4316
@@ -319592,7 +319592,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x45da
 	.word 0xc000
-! cal[REDACTED]: Y  @0x7B06C
+! cal60E1D400: Y  @0x7B06C
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42f0
@@ -319643,7 +319643,7 @@ L_06d0c4:
 	.word 0x0ded
 	.word 0x3d47
 	.word 0xe282
-! cal[REDACTED]: Table 2D - 265_  @0x7B0D0
+! cal60E1D400: Table 2D - 265_  @0x7B0D0
 	.word 0x3d52
 	.word 0x1ff3
 	.word 0x3d5b
@@ -319670,7 +319670,7 @@ L_06d0c4:
 	.word 0xf2e5
 	.word 0x3df0
 	.word 0x068e
-! cal[REDACTED]: Y  @0x7B104
+! cal60E1D400: Y  @0x7B104
 	.word 0x3e20
 	.word 0x0d1b
 	.word 0x3e47
@@ -319721,7 +319721,7 @@ L_06d0c4:
 	.word 0x00d2
 	.word 0x4020
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 266_  @0x7B168
+! cal60E1D400: Table 2D - 266_  @0x7B168
 	.word 0x4020
 	.word 0x0000
 	.word 0x4020
@@ -319748,7 +319748,7 @@ L_06d0c4:
 	.word 0xa0a5
 	.word 0xaab0
 	.word 0xb3b6
-! cal[REDACTED]: Y  @0x7B19C
+! cal60E1D400: Y  @0x7B19C
 	.word 0xbabd
 	.word 0xbfca
 	.word 0xd3da
@@ -319765,7 +319765,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 267_  @0x7B1BC
+! cal60E1D400: Table 2D - 267_  @0x7B1BC
 	.word 0x44fa
 	.word 0x0000
 	.word 0x451c
@@ -319774,7 +319774,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Y  @0x7B1CC
+! cal60E1D400: Y  @0x7B1CC
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
@@ -319803,7 +319803,7 @@ L_06d0c4:
 	.word 0x007a
 	.word 0x007a
 	.word 0x007a
-! cal[REDACTED]: Table 2D - 268_  @0x7B204
+! cal60E1D400: Table 2D - 268_  @0x7B204
 	.word 0x43fa
 	.word 0x0000
 	.word 0x447a
@@ -319818,7 +319818,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Y  @0x7B220
+! cal60E1D400: Y  @0x7B220
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
@@ -319835,7 +319835,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x00e0
 	.word 0x00e0
-! cal[REDACTED]: Table 2D - 269_  @0x7B240
+! cal60E1D400: Table 2D - 269_  @0x7B240
 	.word 0x00c0
 	.word 0x0100
 	.word 0x0100
@@ -319844,7 +319844,7 @@ L_06d0c4:
 	.word 0x0180
 	.word 0x01c0
 	.word 0x01e0
-! cal[REDACTED]: X  @0x7B250
+! cal60E1D400: X  @0x7B250
 	.word 0x0200
 	.word 0x0220
 	.word 0x0220
@@ -319881,7 +319881,7 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x453b
 	.word 0x8000
-! cal[REDACTED]: Y  @0x7B298
+! cal60E1D400: Y  @0x7B298
 	.word 0x455a
 	.word 0xc000
 	.word 0x457a
@@ -319898,7 +319898,7 @@ L_06d0c4:
 	.word 0x2c32
 	.word 0x3232
 	.word 0x3232
-! cal[REDACTED]: Injection Angle  @0x7B2B8
+! cal60E1D400: Injection Angle  @0x7B2B8
 	.word 0x2e2e
 	.word 0x2e2e
 	.word 0x2e2e
@@ -320093,7 +320093,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x457a
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B43C
+! cal60E1D400: Y  @0x7B43C
 	.word 0x458c
 	.word 0xa000
 	.word 0x459c
@@ -320114,14 +320114,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 271_  @0x7B464
+! cal60E1D400: Table 2D - 271_  @0x7B464
 	.word 0x4316
 	.word 0x0000
 	.word 0x4334
 	.word 0x0000
 	.word 0x4352
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B470
+! cal60E1D400: Y  @0x7B470
 	.word 0x0000
 	.word 0x005c
 	.word 0x00b8
@@ -320146,14 +320146,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 272_  @0x7B4A0
+! cal60E1D400: Table 2D - 272_  @0x7B4A0
 	.word 0x4270
 	.word 0x0000
 	.word 0x428c
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B4AC
+! cal60E1D400: Y  @0x7B4AC
 	.word 0x00de
 	.word 0x00b9
 	.word 0x0099
@@ -320176,14 +320176,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 273_  @0x7B4D8
+! cal60E1D400: Table 2D - 273_  @0x7B4D8
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B4E4
+! cal60E1D400: Y  @0x7B4E4
 	.word 0x4270
 	.word 0x0000
 	.word 0x428c
@@ -320206,14 +320206,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 274_  @0x7B510
+! cal60E1D400: Table 2D - 274_  @0x7B510
 	.word 0x41a0
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B51C
+! cal60E1D400: Y  @0x7B51C
 	.word 0x4248
 	.word 0x0000
 	.word 0x4270
@@ -320226,12 +320226,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42c8
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 275_  @0x7B534
+! cal60E1D400: Table 2D - 275_  @0x7B534
 	.word 0x42dc
 	.word 0x0000
 	.word 0x6394
 	.word 0x5927
-! cal[REDACTED]: Y  @0x7B53C
+! cal60E1D400: Y  @0x7B53C
 	.word 0x4f9f
 	.word 0x3b38
 	.word 0x224b
@@ -320244,11 +320244,11 @@ L_06d0c4:
 	.word 0x1336
 	.word 0x1336
 	.word 0x1336
-! cal[REDACTED]: Table 2D - 276_  @0x7B554
+! cal60E1D400: Table 2D - 276_  @0x7B554
 	.word 0x2727
 	.word 0x1fff
 	.word 0xff00
-! cal[REDACTED]: Table 2D - 270_  @0x7B55A
+! cal60E1D400: Table 2D - 270_  @0x7B55A
 	.word 0x17ff
 	.word 0x0040
 	.word 0x005e
@@ -320260,7 +320260,7 @@ L_06d0c4:
 	.word 0xfe5d
 	.word 0x3fb0
 	.word 0x8ce7
-! cal[REDACTED]: X  @0x7B570
+! cal60E1D400: X  @0x7B570
 	.word 0xbdf0
 	.word 0x4578
 	.word 0xbdf0
@@ -320275,7 +320275,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4454
 	.word 0x8000
-! cal[REDACTED]: Y  @0x7B58C
+! cal60E1D400: Y  @0x7B58C
 	.word 0x3e80
 	.word 0x0000
 	.word 0x44bb
@@ -320284,7 +320284,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Table 3D - 92_  @0x7B59C
+! cal60E1D400: Table 3D - 92_  @0x7B59C
 	.word 0x453b
 	.word 0x8000
 	.word 0x453b
@@ -320313,7 +320313,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4160
 	.word 0x0000
-! cal[REDACTED]: X  @0x7B5D4
+! cal60E1D400: X  @0x7B5D4
 	.word 0x4164
 	.word 0xcccd
 	.word 0x40bc
@@ -320328,7 +320328,7 @@ L_06d0c4:
 	.word 0xa3d7
 	.word 0x4202
 	.word 0x851f
-! cal[REDACTED]: Y  @0x7B5F0
+! cal60E1D400: Y  @0x7B5F0
 	.word 0x4214
 	.word 0x51ec
 	.word 0x4229
@@ -320337,7 +320337,7 @@ L_06d0c4:
 	.word 0xb852
 	.word 0x4253
 	.word 0x147b
-! cal[REDACTED]: Table 3D - 93_  @0x7B600
+! cal60E1D400: Table 3D - 93_  @0x7B600
 	.word 0x4263
 	.word 0x51ec
 	.word 0x426e
@@ -320366,7 +320366,7 @@ L_06d0c4:
 	.word 0x0ecd
 	.word 0x0f3e
 	.word 0x1000
-! cal[REDACTED]: X  @0x7B638
+! cal60E1D400: X  @0x7B638
 	.word 0x0c58
 	.word 0x0d35
 	.word 0x0e12
@@ -320381,7 +320381,7 @@ L_06d0c4:
 	.word 0x1000
 	.word 0x0c14
 	.word 0x0d08
-! cal[REDACTED]: Y  @0x7B654
+! cal60E1D400: Y  @0x7B654
 	.word 0x0dfb
 	.word 0x0ec1
 	.word 0x0f88
@@ -320390,7 +320390,7 @@ L_06d0c4:
 	.word 0x0cef
 	.word 0x0df0
 	.word 0x0ec9
-! cal[REDACTED]: Table 3D - 94_  @0x7B664
+! cal60E1D400: Table 3D - 94_  @0x7B664
 	.word 0x0fa3
 	.word 0x1000
 	.word 0x0be2
@@ -320419,7 +320419,7 @@ L_06d0c4:
 	.word 0x1000
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: X  @0x7B69C
+! cal60E1D400: X  @0x7B69C
 	.word 0x447a
 	.word 0x0000
 	.word 0x44bb
@@ -320434,7 +320434,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B6B8
+! cal60E1D400: Y  @0x7B6B8
 	.word 0x3ec0
 	.word 0x0000
 	.word 0x3f00
@@ -320443,7 +320443,7 @@ L_06d0c4:
 	.word 0x2948
 	.word 0x219a
 	.word 0x1e14
-! cal[REDACTED]: Table 3D - 95_  @0x7B6C8
+! cal60E1D400: Table 3D - 95_  @0x7B6C8
 	.word 0x1ccd
 	.word 0x1b33
 	.word 0x2800
@@ -320472,7 +320472,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: X  @0x7B700
+! cal60E1D400: X  @0x7B700
 	.word 0x3ecb
 	.word 0xfb16
 	.word 0x4070
@@ -320487,7 +320487,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x0125
 	.word 0x0168
-! cal[REDACTED]: Y  @0x7B71C
+! cal60E1D400: Y  @0x7B71C
 	.word 0x0000
 	.word 0xffff
 	.word 0xffff
@@ -320496,7 +320496,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc120
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 96_  @0x7B72C
+! cal60E1D400: Table 3D - 96_  @0x7B72C
 	.word 0x4396
 	.word 0x0000
 	.word 0x3f80
@@ -320525,7 +320525,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: X  @0x7B764
+! cal60E1D400: X  @0x7B764
 	.word 0x2332
 	.word 0x1b09
 	.word 0x12e0
@@ -320546,7 +320546,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc170
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B78C
+! cal60E1D400: Y  @0x7B78C
 	.word 0xc120
 	.word 0x0000
 	.word 0xc0a0
@@ -320563,7 +320563,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41c8
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 97_  @0x7B7AC
+! cal60E1D400: Table 3D - 97_  @0x7B7AC
 	.word 0x41f0
 	.word 0x0000
 	.word 0x19a2
@@ -320644,7 +320644,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x9c04
 	.word 0x1f4e
-! cal[REDACTED]: X  @0x7B84C
+! cal60E1D400: X  @0x7B84C
 	.word 0x3f23
 	.word 0xd70a
 	.word 0x409c
@@ -320665,7 +320665,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc348
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B874
+! cal60E1D400: Y  @0x7B874
 	.word 0x04e2
 	.word 0x00fa
 	.word 0x1f9c
@@ -320682,7 +320682,7 @@ L_06d0c4:
 	.word 0x999a
 	.word 0x3f80
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 98_  @0x7B894
+! cal60E1D400: Table 3D - 98_  @0x7B894
 	.word 0x3f80
 	.word 0x0000
 	.word 0x3f80
@@ -320763,7 +320763,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3d4c
 	.word 0xcccd
-! cal[REDACTED]: X  @0x7B934
+! cal60E1D400: X  @0x7B934
 	.word 0x3ed7
 	.word 0x0a3d
 	.word 0x3e19
@@ -320784,7 +320784,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ea0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7B95C
+! cal60E1D400: Y  @0x7B95C
 	.word 0x3ec0
 	.word 0x0000
 	.word 0x3ee6
@@ -320801,7 +320801,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 99_  @0x7B97C
+! cal60E1D400: Table 3D - 99_  @0x7B97C
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -320942,7 +320942,7 @@ L_06d0c4:
 	.word 0x999a
 	.word 0x3f20
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7BA94
+! cal60E1D400: Y  @0x7BA94
 	.word 0x43fa
 	.word 0x0000
 	.word 0x447a
@@ -320957,7 +320957,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x455a
 	.word 0xc000
-! cal[REDACTED]: Table 2D - 378 Check DataType  @0x7BAB0
+! cal60E1D400: Table 2D - 378 Check DataType  @0x7BAB0
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
@@ -320972,7 +320972,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7BACC
+! cal60E1D400: Y  @0x7BACC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -320983,7 +320983,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 379 Check DataType  @0x7BAE0
+! cal60E1D400: Table 2D - 379 Check DataType  @0x7BAE0
 	.word 0x0000
 	.word 0x0462
 	.word 0x05c7
@@ -320994,7 +320994,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0495
-! cal[REDACTED]: X  @0x7BAF4
+! cal60E1D400: X  @0x7BAF4
 	.word 0x06e0
 	.word 0x091c
 	.word 0x08d8
@@ -321013,7 +321013,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x04df
 	.word 0x0621
-! cal[REDACTED]: Y  @0x7BB18
+! cal60E1D400: Y  @0x7BB18
 	.word 0x0808
 	.word 0x0ab9
 	.word 0x0b17
@@ -321032,7 +321032,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x06d2
-! cal[REDACTED]: Table 3D - 124_  @0x7BB3C
+! cal60E1D400: Table 3D - 124_  @0x7BB3C
 	.word 0x0d6b
 	.word 0x0d3d
 	.word 0x0feb
@@ -321075,7 +321075,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: X  @0x7BB90
+! cal60E1D400: X  @0x7BB90
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -321094,7 +321094,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7BBB4
+! cal60E1D400: Y  @0x7BBB4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -321113,7 +321113,7 @@ L_06d0c4:
 	.word 0x080a
 	.word 0x094b
 	.word 0x09e2
-! cal[REDACTED]: Table 3D - 125_  @0x7BBD8
+! cal60E1D400: Table 3D - 125_  @0x7BBD8
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -321282,7 +321282,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: X  @0x7BD28
+! cal60E1D400: X  @0x7BD28
 	.word 0x4120
 	.word 0x0000
 	.word 0x43fa
@@ -321303,7 +321303,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4108
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7BD50
+! cal60E1D400: Y  @0x7BD50
 	.word 0x3f80
 	.word 0x0000
 	.word 0x3f80
@@ -321338,7 +321338,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Table 3D - 126_  @0x7BD94
+! cal60E1D400: Table 3D - 126_  @0x7BD94
 	.word 0x3ea0
 	.word 0x0000
 	.word 0x3ec0
@@ -321689,7 +321689,7 @@ L_06d0c4:
 	.word 0x0376
 	.word 0x0356
 	.word 0x0370
-! cal[REDACTED]: Y  @0x7C050
+! cal60E1D400: Y  @0x7C050
 	.word 0x038e
 	.word 0x03ae
 	.word 0x0208
@@ -321716,7 +321716,7 @@ L_06d0c4:
 	.word 0x02f9
 	.word 0x033a
 	.word 0x0348
-! cal[REDACTED]: Table 2D - 277_  @0x7C084
+! cal60E1D400: Table 2D - 277_  @0x7C084
 	.word 0x0357
 	.word 0x0377
 	.word 0x038b
@@ -321725,7 +321725,7 @@ L_06d0c4:
 	.word 0x0373
 	.word 0x037a
 	.word 0x037c
-! cal[REDACTED]: X  @0x7C094
+! cal60E1D400: X  @0x7C094
 	.word 0x037d
 	.word 0x0394
 	.word 0x020e
@@ -321746,7 +321746,7 @@ L_06d0c4:
 	.word 0x0381
 	.word 0x0392
 	.word 0x0201
-! cal[REDACTED]: Y  @0x7C0BC
+! cal60E1D400: Y  @0x7C0BC
 	.word 0x0256
 	.word 0x02d2
 	.word 0x0320
@@ -321763,7 +321763,7 @@ L_06d0c4:
 	.word 0x0385
 	.word 0x0386
 	.word 0x0390
-! cal[REDACTED]: Table 3D - 127_  @0x7C0DC
+! cal60E1D400: Table 3D - 127_  @0x7C0DC
 	.word 0x0201
 	.word 0x0256
 	.word 0x02d4
@@ -321848,7 +321848,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C184
+! cal60E1D400: Y  @0x7C184
 	.word 0x4020
 	.word 0x0000
 	.word 0x3f00
@@ -321873,7 +321873,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x5050
 	.word 0x4040
-! cal[REDACTED]: Load Limit A  @0x7C1B4
+! cal60E1D400: Load Limit A  @0x7C1B4
 	.word 0x3030
 	.word 0x2020
 	.word 0x1010
@@ -321898,7 +321898,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Y  @0x7C1E4
+! cal60E1D400: Y  @0x7C1E4
 	.word 0x44fa
 	.word 0x0000
 	.word 0x451c
@@ -321923,7 +321923,7 @@ L_06d0c4:
 	.word 0x00ff
 	.word 0x43fa
 	.word 0x0000
-! cal[REDACTED]: Load Limit B  @0x7C214
+! cal60E1D400: Load Limit B  @0x7C214
 	.word 0x447a
 	.word 0x0000
 	.word 0x44bb
@@ -322064,7 +322064,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x1388
 	.word 0x1388
-! cal[REDACTED]: Y  @0x7C32C
+! cal60E1D400: Y  @0x7C32C
 	.word 0x1388
 	.word 0x1388
 	.word 0x1388
@@ -322085,7 +322085,7 @@ L_06d0c4:
 	.word 0x0005
 	.word 0x0005
 	.word 0x000a
-! cal[REDACTED]: Load Limit C  @0x7C354
+! cal60E1D400: Load Limit C  @0x7C354
 	.word 0x001e
 	.word 0x001e
 	.word 0x000f
@@ -322134,7 +322134,7 @@ L_06d0c4:
 	.word 0x1388
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C3B4
+! cal60E1D400: Y  @0x7C3B4
 	.word 0x3f80
 	.word 0x0000
 	.word 0x4000
@@ -322143,12 +322143,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4080
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 382 Check DataType  @0x7C3C4
+! cal60E1D400: Table 2D - 382 Check DataType  @0x7C3C4
 	.word 0x40a0
 	.word 0x0000
 	.word 0x40c0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C3CC
+! cal60E1D400: Y  @0x7C3CC
 	.word 0x0000
 	.word 0x0000
 	.word 0x3f80
@@ -322157,12 +322157,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4040
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 383 Check DataType  @0x7C3DC
+! cal60E1D400: Table 2D - 383 Check DataType  @0x7C3DC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C3E4
+! cal60E1D400: Y  @0x7C3E4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -322171,7 +322171,7 @@ L_06d0c4:
 	.word 0x0014
 	.word 0x0014
 	.word 0x0014
-! cal[REDACTED]: Table 2D - 384 Check DataType  @0x7C3F4
+! cal60E1D400: Table 2D - 384 Check DataType  @0x7C3F4
 	.word 0x0014
 	.word 0x0014
 	.word 0x001e
@@ -322248,7 +322248,7 @@ L_06d0c4:
 	.word 0xa6eb
 	.word 0xa11a
 	.word 0x9c8d
-! cal[REDACTED]: Y  @0x7C48C
+! cal60E1D400: Y  @0x7C48C
 	.word 0x9905
 	.word 0x964b
 	.word 0x93fb
@@ -322269,14 +322269,14 @@ L_06d0c4:
 	.word 0x9e02
 	.word 0x9b47
 	.word 0x991d
-! cal[REDACTED]: Table 2D - 279_  @0x7C4B4
+! cal60E1D400: Table 2D - 279_  @0x7C4B4
 	.word 0xad24
 	.word 0xaeb8
 	.word 0xaba9
 	.word 0xa7da
 	.word 0xa443
 	.word 0xa12a
-! cal[REDACTED]: Y  @0x7C4C0
+! cal60E1D400: Y  @0x7C4C0
 	.word 0x9e5d
 	.word 0x9c17
 	.word 0xaaba
@@ -322297,14 +322297,14 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x453b
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 280_  @0x7C4E8
+! cal60E1D400: Table 2D - 280_  @0x7C4E8
 	.word 0x455a
 	.word 0xc000
 	.word 0x457a
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Y  @0x7C4F4
+! cal60E1D400: Y  @0x7C4F4
 	.word 0x3f80
 	.word 0x0000
 	.word 0x4000
@@ -322325,14 +322325,14 @@ L_06d0c4:
 	.word 0x1c6a
 	.word 0x1604
 	.word 0x11ec
-! cal[REDACTED]: Table 2D - 281_  @0x7C51C
+! cal60E1D400: Table 2D - 281_  @0x7C51C
 	.word 0x0f1b
 	.word 0x0d1f
 	.word 0x0b85
 	.word 0x0a4e
 	.word 0x2831
 	.word 0x1c6a
-! cal[REDACTED]: Y  @0x7C528
+! cal60E1D400: Y  @0x7C528
 	.word 0x1604
 	.word 0x11ec
 	.word 0x0f1b
@@ -322353,7 +322353,7 @@ L_06d0c4:
 	.word 0x2158
 	.word 0x1c6a
 	.word 0x18e5
-! cal[REDACTED]: Table 2D - 385 Check DataType  @0x7C550
+! cal60E1D400: Table 2D - 385 Check DataType  @0x7C550
 	.word 0x1604
 	.word 0x13d7
 	.word 0x4e20
@@ -322364,7 +322364,7 @@ L_06d0c4:
 	.word 0x1e56
 	.word 0x1ae1
 	.word 0x1852
-! cal[REDACTED]: Y  @0x7C564
+! cal60E1D400: Y  @0x7C564
 	.word 0x56b2
 	.word 0x43c7
 	.word 0x374c
@@ -322383,7 +322383,7 @@ L_06d0c4:
 	.word 0x20a4
 	.word 0x63ab
 	.word 0x5129
-! cal[REDACTED]: Table 2D - 386 Check DataType  @0x7C588
+! cal60E1D400: Table 2D - 386 Check DataType  @0x7C588
 	.word 0x43c7
 	.word 0x39fc
 	.word 0x328f
@@ -322440,7 +322440,7 @@ L_06d0c4:
 	.word 0xb614
 	.word 0x94a7
 	.word 0x9e1d
-! cal[REDACTED]: Y  @0x7C5F8
+! cal60E1D400: Y  @0x7C5F8
 	.word 0xa45c
 	.word 0xa8b6
 	.word 0xabe6
@@ -322459,7 +322459,7 @@ L_06d0c4:
 	.word 0x9237
 	.word 0x98f1
 	.word 0x9e1d
-! cal[REDACTED]: Table 2D - 387 Check DataType  @0x7C61C
+! cal60E1D400: Table 2D - 387 Check DataType  @0x7C61C
 	.word 0xa225
 	.word 0xa548
 	.word 0xa7f3
@@ -322496,7 +322496,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0x3fc0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C664
+! cal60E1D400: Y  @0x7C664
 	.word 0x3dcc
 	.word 0xcccd
 	.word 0x3f4c
@@ -322507,7 +322507,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42c8
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 388 Check DataType  @0x7C678
+! cal60E1D400: Table 2D - 388 Check DataType  @0x7C678
 	.word 0x0271
 	.word 0x0002
 	.word 0x80ff
@@ -322518,7 +322518,7 @@ L_06d0c4:
 	.word 0xf424
 	.word 0x009c
 	.word 0x0002
-! cal[REDACTED]: Y  @0x7C68C
+! cal60E1D400: Y  @0x7C68C
 	.word 0x03aa
 	.word 0xffff
 	.word 0x428c
@@ -322529,7 +322529,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3dcb
 	.word 0xfb16
-! cal[REDACTED]: Table 2D - 389 Check DataType  @0x7C6A0
+! cal60E1D400: Table 2D - 389 Check DataType  @0x7C6A0
 	.word 0x0000
 	.word 0x0000
 	.word 0x4248
@@ -322544,7 +322544,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ecc
 	.word 0xcccd
-! cal[REDACTED]: Y  @0x7C6BC
+! cal60E1D400: Y  @0x7C6BC
 	.word 0x447a
 	.word 0x0000
 	.word 0x3e80
@@ -322559,12 +322559,12 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e00
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 282_  @0x7C6D8
+! cal60E1D400: Table 2D - 282_  @0x7C6D8
 	.word 0x3e4c
 	.word 0xcccd
 	.word 0x3e80
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C6E0
+! cal60E1D400: Y  @0x7C6E0
 	.word 0x3ea0
 	.word 0x0000
 	.word 0x3ec0
@@ -322585,7 +322585,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: Table 2D - 283_  @0x7C708
+! cal60E1D400: Table 2D - 283_  @0x7C708
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
@@ -322594,7 +322594,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x458c
 	.word 0xa000
-! cal[REDACTED]: Y  @0x7C718
+! cal60E1D400: Y  @0x7C718
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -322607,12 +322607,12 @@ L_06d0c4:
 	.word 0x0080
 	.word 0x8080
 	.word 0x8080
-! cal[REDACTED]: Table 2D - 390 Check DataType  @0x7C730
+! cal60E1D400: Table 2D - 390 Check DataType  @0x7C730
 	.word 0x8080
 	.word 0x0000
 	.word 0x8080
 	.word 0x8080
-! cal[REDACTED]: Y  @0x7C738
+! cal60E1D400: Y  @0x7C738
 	.word 0x8080
 	.word 0x8000
 	.word 0x0080
@@ -322625,14 +322625,14 @@ L_06d0c4:
 	.word 0x8080
 	.word 0x0000
 	.word 0x0080
-! cal[REDACTED]: Table 2D - 284_  @0x7C750
+! cal60E1D400: Table 2D - 284_  @0x7C750
 	.word 0x8080
 	.word 0x8080
 	.word 0x8000
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7C75C
+! cal60E1D400: Y  @0x7C75C
 	.word 0x0000
 	.word 0x0000
 	.word 0x3e00
@@ -322651,7 +322651,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3f10
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 285_  @0x7C780
+! cal60E1D400: Table 2D - 285_  @0x7C780
 	.word 0x3f20
 	.word 0x0000
 	.word 0x447a
@@ -322662,7 +322662,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x451c
 	.word 0x4000
-! cal[REDACTED]: X  @0x7C794
+! cal60E1D400: X  @0x7C794
 	.word 0x453b
 	.word 0x8000
 	.word 0x455a
@@ -322681,7 +322681,7 @@ L_06d0c4:
 	.word 0x1114
 	.word 0x100d
 	.word 0x10ae
-! cal[REDACTED]: Y  @0x7C7B8
+! cal60E1D400: Y  @0x7C7B8
 	.word 0x10ae
 	.word 0x1200
 	.word 0x1145
@@ -322694,7 +322694,7 @@ L_06d0c4:
 	.word 0x11d2
 	.word 0x13cd
 	.word 0x110f
-! cal[REDACTED]: Table 3D - 100_  @0x7C7D0
+! cal60E1D400: Table 3D - 100_  @0x7C7D0
 	.word 0x10f3
 	.word 0x10d7
 	.word 0x1361
@@ -322723,7 +322723,7 @@ L_06d0c4:
 	.word 0x1924
 	.word 0x1273
 	.word 0x12e4
-! cal[REDACTED]: X  @0x7C808
+! cal60E1D400: X  @0x7C808
 	.word 0x11ac
 	.word 0x159f
 	.word 0x159f
@@ -322742,7 +322742,7 @@ L_06d0c4:
 	.word 0x16f3
 	.word 0x12b6
 	.word 0x1221
-! cal[REDACTED]: Y  @0x7C82C
+! cal60E1D400: Y  @0x7C82C
 	.word 0x128d
 	.word 0x142c
 	.word 0x142c
@@ -322755,7 +322755,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3e23
 	.word 0xd70a
-! cal[REDACTED]: Table 3D - 101_  @0x7C844
+! cal60E1D400: Table 3D - 101_  @0x7C844
 	.word 0x3e57
 	.word 0x0a3d
 	.word 0x3e80
@@ -322810,7 +322810,7 @@ L_06d0c4:
 	.word 0xd000
 	.word 0x2b9a
 	.word 0x2b9a
-! cal[REDACTED]: Y  @0x7C8B0
+! cal60E1D400: Y  @0x7C8B0
 	.word 0x2b9a
 	.word 0x5633
 	.word 0x71cd
@@ -322841,7 +322841,7 @@ L_06d0c4:
 	.word 0x8566
 	.word 0x14cd
 	.word 0x1b06
-! cal[REDACTED]: Table 2D - 286_  @0x7C8EC
+! cal60E1D400: Table 2D - 286_  @0x7C8EC
 	.word 0x2000
 	.word 0x3033
 	.word 0x40cd
@@ -322850,7 +322850,7 @@ L_06d0c4:
 	.word 0x7266
 	.word 0x7266
 	.word 0x7266
-! cal[REDACTED]: Y  @0x7C8FC
+! cal60E1D400: Y  @0x7C8FC
 	.word 0x1200
 	.word 0x158a
 	.word 0x1866
@@ -322869,14 +322869,14 @@ L_06d0c4:
 	.word 0x3800
 	.word 0x439a
 	.word 0x52cd
-! cal[REDACTED]: Table 2D - 287_  @0x7C920
+! cal60E1D400: Table 2D - 287_  @0x7C920
 	.word 0x52cd
 	.word 0x52cd
 	.word 0x0b00
 	.word 0x0ee4
 	.word 0x1200
 	.word 0x1d00
-! cal[REDACTED]: X  @0x7C92C
+! cal60E1D400: X  @0x7C92C
 	.word 0x2833
 	.word 0x3366
 	.word 0x3f66
@@ -322925,7 +322925,7 @@ L_06d0c4:
 	.word 0x2833
 	.word 0x0c00
 	.word 0x0c00
-! cal[REDACTED]: Y  @0x7C98C
+! cal60E1D400: Y  @0x7C98C
 	.word 0x0c00
 	.word 0x0f33
 	.word 0x13cd
@@ -322946,7 +322946,7 @@ L_06d0c4:
 	.word 0x2033
 	.word 0x0c00
 	.word 0x0c00
-! cal[REDACTED]: Table 3D - 102_  @0x7C9B4
+! cal60E1D400: Table 3D - 102_  @0x7C9B4
 	.word 0x0c00
 	.word 0x0c00
 	.word 0x139a
@@ -323093,7 +323093,7 @@ L_06d0c4:
 	.word 0x322e
 	.word 0x2114
 	.word 0x171a
-! cal[REDACTED]: X  @0x7CAD8
+! cal60E1D400: X  @0x7CAD8
 	.word 0x2e2e
 	.word 0x2e2e
 	.word 0x2121
@@ -323112,7 +323112,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4443
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7CAFC
+! cal60E1D400: Y  @0x7CAFC
 	.word 0x44fa
 	.word 0x0000
 	.word 0x451c
@@ -323131,7 +323131,7 @@ L_06d0c4:
 	.word 0xc000
 	.word 0x45ea
 	.word 0x6000
-! cal[REDACTED]: Ignition Dwell Time_  @0x7CB20
+! cal60E1D400: Ignition Dwell Time_  @0x7CB20
 	.word 0x45fa
 	.word 0x0000
 	.word 0x4604
@@ -323334,7 +323334,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4060
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7CCB4
+! cal60E1D400: Y  @0x7CCB4
 	.word 0x4060
 	.word 0x0000
 	.word 0x4060
@@ -323355,7 +323355,7 @@ L_06d0c4:
 	.word 0x0019
 	.word 0x0019
 	.word 0x0019
-! cal[REDACTED]: Table 2D - 391 Check DataType  @0x7CCDC
+! cal60E1D400: Table 2D - 391 Check DataType  @0x7CCDC
 	.word 0x0019
 	.word 0x00fa
 	.word 0x0019
@@ -323376,7 +323376,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x007d
 	.word 0x003f
-! cal[REDACTED]: Y  @0x7CD04
+! cal60E1D400: Y  @0x7CD04
 	.word 0x0026
 	.word 0x001f
 	.word 0x40c4
@@ -323397,7 +323397,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 392 Check DataType  @0x7CD2C
+! cal60E1D400: Table 2D - 392 Check DataType  @0x7CD2C
 	.word 0x0008
 	.word 0x0075
 	.word 0x0008
@@ -323418,7 +323418,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4348
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7CD54
+! cal60E1D400: Y  @0x7CD54
 	.word 0x411a
 	.word 0x0000
 	.word 0x41a3
@@ -323439,7 +323439,7 @@ L_06d0c4:
 	.word 0x0c4a
 	.word 0x1168
 	.word 0x154d
-! cal[REDACTED]: Table 2D - 393 Check DataType  @0x7CD7C
+! cal60E1D400: Table 2D - 393 Check DataType  @0x7CD7C
 	.word 0x00fa
 	.word 0x005e
 	.word 0x0045
@@ -323460,7 +323460,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7CDA4
+! cal60E1D400: Y  @0x7CDA4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -323481,7 +323481,7 @@ L_06d0c4:
 	.word 0xffff
 	.word 0xc220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 394 Check DataType  @0x7CDCC
+! cal60E1D400: Table 2D - 394 Check DataType  @0x7CDCC
 	.word 0xc1a0
 	.word 0x0000
 	.word 0x0000
@@ -323502,7 +323502,7 @@ L_06d0c4:
 	.word 0x30d4
 	.word 0x0005
 	.word 0x000a
-! cal[REDACTED]: Y  @0x7CDF4
+! cal60E1D400: Y  @0x7CDF4
 	.word 0x0060
 	.word 0xffff
 	.word 0x43fa
@@ -323523,7 +323523,7 @@ L_06d0c4:
 	.word 0x0020
 	.word 0xffff
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 395 Check DataType  @0x7CE1C
+! cal60E1D400: Table 2D - 395 Check DataType  @0x7CE1C
 	.word 0x43fa
 	.word 0x0000
 	.word 0x459c
@@ -323544,7 +323544,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x65a9
 	.word 0x6816
-! cal[REDACTED]: Y  @0x7CE44
+! cal60E1D400: Y  @0x7CE44
 	.word 0x65a9
 	.word 0x6816
 	.word 0x0000
@@ -323565,7 +323565,7 @@ L_06d0c4:
 	.word 0x0138
 	.word 0x01d5
 	.word 0xffff
-! cal[REDACTED]: Table 2D - 396 Check DataType  @0x7CE6C
+! cal60E1D400: Table 2D - 396 Check DataType  @0x7CE6C
 	.word 0x428c
 	.word 0x0000
 	.word 0x42f0
@@ -323586,7 +323586,7 @@ L_06d0c4:
 	.word 0x5000
 	.word 0x47c3
 	.word 0x5000
-! cal[REDACTED]: Y  @0x7CE94
+! cal60E1D400: Y  @0x7CE94
 	.word 0x4843
 	.word 0x5000
 	.word 0x48f4
@@ -323607,7 +323607,7 @@ L_06d0c4:
 	.word 0x5000
 	.word 0x48f4
 	.word 0x2400
-! cal[REDACTED]: Table 2D - 397 Check DataType  @0x7CEBC
+! cal60E1D400: Table 2D - 397 Check DataType  @0x7CEBC
 	.word 0x8147
 	.word 0x80a3
 	.word 0x7eb8
@@ -323628,7 +323628,7 @@ L_06d0c4:
 	.word 0xd70a
 	.word 0x3e38
 	.word 0x51ec
-! cal[REDACTED]: Y  @0x7CEE4
+! cal60E1D400: Y  @0x7CEE4
 	.word 0x3e4c
 	.word 0xcccd
 	.word 0x3e61
@@ -323649,7 +323649,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44fa
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 398 Check DataType  @0x7CF0C
+! cal60E1D400: Table 2D - 398 Check DataType  @0x7CF0C
 	.word 0x451c
 	.word 0x4000
 	.word 0x453b
@@ -323670,7 +323670,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ca3
 	.word 0xd70a
-! cal[REDACTED]: Y  @0x7CF34
+! cal60E1D400: Y  @0x7CF34
 	.word 0x4296
 	.word 0x0000
 	.word 0x42a0
@@ -323691,7 +323691,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0505
 	.word 0x0505
-! cal[REDACTED]: Table 2D - 399 Check DataType  @0x7CF5C
+! cal60E1D400: Table 2D - 399 Check DataType  @0x7CF5C
 	.word 0xc220
 	.word 0x0000
 	.word 0xc1a0
@@ -323712,7 +323712,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x1a1a
 	.word 0x264d
-! cal[REDACTED]: Y  @0x7CF84
+! cal60E1D400: Y  @0x7CF84
 	.word 0x4d5a
 	.word 0x9a9a
 	.word 0x66ff
@@ -323733,7 +323733,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x44fa
 	.word 0x2000
-! cal[REDACTED]: Table 2D - 400 Check DataType  @0x7CFAC
+! cal60E1D400: Table 2D - 400 Check DataType  @0x7CFAC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0100
@@ -323754,7 +323754,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7CFD4
+! cal60E1D400: Y  @0x7CFD4
 	.word 0x0100
 	.word 0x0100
 	.word 0x0100
@@ -323775,7 +323775,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 401 Check DataType  @0x7CFFC
+! cal60E1D400: Table 2D - 401 Check DataType  @0x7CFFC
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4220
@@ -323796,7 +323796,7 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Y  @0x7D024
+! cal60E1D400: Y  @0x7D024
 	.word 0x44da
 	.word 0xc000
 	.word 0x453b
@@ -323817,7 +323817,7 @@ L_06d0c4:
 	.word 0x4d4d
 	.word 0x4d4d
 	.word 0x4d1a
-! cal[REDACTED]: Table 2D - 402 Check DataType  @0x7D04C
+! cal60E1D400: Table 2D - 402 Check DataType  @0x7D04C
 	.word 0x265a
 	.word 0x5a5a
 	.word 0xb3b3
@@ -323838,7 +323838,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D074
+! cal60E1D400: Y  @0x7D074
 	.word 0x41a0
 	.word 0x0000
 	.word 0x4220
@@ -323859,7 +323859,7 @@ L_06d0c4:
 	.word 0x4000
 	.word 0x44bb
 	.word 0x8000
-! cal[REDACTED]: Table 2D - 403 Check DataType  @0x7D09C
+! cal60E1D400: Table 2D - 403 Check DataType  @0x7D09C
 	.word 0x44fa
 	.word 0x0000
 	.word 0x451c
@@ -323886,7 +323886,7 @@ L_06d0c4:
 	.word 0x265a
 	.word 0x5a5a
 	.word 0x5a5a
-! cal[REDACTED]: Y  @0x7D0D0
+! cal60E1D400: Y  @0x7D0D0
 	.word 0x5a1a
 	.word 0x1a26
 	.word 0x5a5a
@@ -323905,7 +323905,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x4099
 	.word 0x999a
-! cal[REDACTED]: Table 2D - 366 Check DataType  @0x7D0F4
+! cal60E1D400: Table 2D - 366 Check DataType  @0x7D0F4
 	.word 0x04ff
 	.word 0xffff
 	.word 0x403b
@@ -323916,7 +323916,7 @@ L_06d0c4:
 	.word 0x34cd
 	.word 0x80ff
 	.word 0xffff
-! cal[REDACTED]: X  @0x7D108
+! cal60E1D400: X  @0x7D108
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -323933,7 +323933,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4124
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D128
+! cal60E1D400: Y  @0x7D128
 	.word 0x4138
 	.word 0x0000
 	.word 0x414c
@@ -323954,7 +323954,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ec7
 	.word 0xae14
-! cal[REDACTED]: Table 3D - 120_  @0x7D150
+! cal60E1D400: Table 3D - 120_  @0x7D150
 	.word 0x3f47
 	.word 0xef9e
 	.word 0x3f95
@@ -323995,7 +323995,7 @@ L_06d0c4:
 	.word 0x8000
 	.word 0x42a9
 	.word 0x051f
-! cal[REDACTED]: X  @0x7D1A0
+! cal60E1D400: X  @0x7D1A0
 	.word 0x42b5
 	.word 0x8a3d
 	.word 0x42c2
@@ -324012,7 +324012,7 @@ L_06d0c4:
 	.word 0xb4d2
 	.word 0xeeff
 	.word 0xffff
-! cal[REDACTED]: Y  @0x7D1C0
+! cal60E1D400: Y  @0x7D1C0
 	.word 0xffff
 	.word 0xffff
 	.word 0x007d
@@ -324033,7 +324033,7 @@ L_06d0c4:
 	.word 0xe000
 	.word 0x4601
 	.word 0xb000
-! cal[REDACTED]: Table 3D - 121_  @0x7D1E8
+! cal60E1D400: Table 3D - 121_  @0x7D1E8
 	.word 0x4248
 	.word 0x0000
 	.word 0x3f59
@@ -324088,7 +324088,7 @@ L_06d0c4:
 	.word 0x01bd
 	.word 0x018b
 	.word 0x0698
-! cal[REDACTED]: Y  @0x7D254
+! cal60E1D400: Y  @0x7D254
 	.word 0x0534
 	.word 0x0490
 	.word 0x037a
@@ -324105,7 +324105,7 @@ L_06d0c4:
 	.word 0x0253
 	.word 0x01fe
 	.word 0x01bd
-! cal[REDACTED]: Table 2D - 235_  @0x7D274
+! cal60E1D400: Table 2D - 235_  @0x7D274
 	.word 0x018b
 	.word 0x0573
 	.word 0x0451
@@ -324142,7 +324142,7 @@ L_06d0c4:
 	.word 0x0253
 	.word 0x01fe
 	.word 0x01bd
-! cal[REDACTED]: Y  @0x7D2BC
+! cal60E1D400: Y  @0x7D2BC
 	.word 0x018b
 	.word 0x03aa
 	.word 0x034d
@@ -324161,7 +324161,7 @@ L_06d0c4:
 	.word 0x0230
 	.word 0x01fe
 	.word 0x01bd
-! cal[REDACTED]: Table 2D - 236_  @0x7D2E0
+! cal60E1D400: Table 2D - 236_  @0x7D2E0
 	.word 0x018b
 	.word 0xffff
 	.word 0x00ff
@@ -324172,7 +324172,7 @@ L_06d0c4:
 	.word 0x000f
 	.word 0x000a
 	.word 0xffff
-! cal[REDACTED]: Y  @0x7D2F4
+! cal60E1D400: Y  @0x7D2F4
 	.word 0x0000
 	.word 0xdbba
 	.word 0x0000
@@ -324191,7 +324191,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0xc120
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 237_  @0x7D318
+! cal60E1D400: Table 2D - 237_  @0x7D318
 	.word 0xc0a0
 	.word 0x0000
 	.word 0xc0a0
@@ -324202,7 +324202,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3ff0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D32C
+! cal60E1D400: Y  @0x7D32C
 	.word 0xc220
 	.word 0x0000
 	.word 0xc220
@@ -324221,7 +324221,7 @@ L_06d0c4:
 	.word 0xae14
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 238_  @0x7D350
+! cal60E1D400: Table 2D - 238_  @0x7D350
 	.word 0xffff
 	.word 0xffff
 	.word 0x1f1f
@@ -324232,7 +324232,7 @@ L_06d0c4:
 	.word 0x3e3e
 	.word 0x3e3e
 	.word 0x3e3e
-! cal[REDACTED]: Y  @0x7D364
+! cal60E1D400: Y  @0x7D364
 	.word 0x3e3e
 	.word 0x3e3e
 	.word 0x3e00
@@ -324251,7 +324251,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x3fc0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 239_  @0x7D388
+! cal60E1D400: Table 2D - 239_  @0x7D388
 	.word 0x3fc0
 	.word 0x0000
 	.word 0x3fc0
@@ -324262,7 +324262,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4396
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D39C
+! cal60E1D400: Y  @0x7D39C
 	.word 0x4396
 	.word 0x0000
 	.word 0x0000
@@ -324281,7 +324281,7 @@ L_06d0c4:
 	.word 0xcccd
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 240_  @0x7D3C0
+! cal60E1D400: Table 2D - 240_  @0x7D3C0
 	.word 0xc170
 	.word 0x0000
 	.word 0x4170
@@ -324292,7 +324292,7 @@ L_06d0c4:
 	.word 0x6666
 	.word 0x3fe6
 	.word 0x6666
-! cal[REDACTED]: Y  @0x7D3D4
+! cal60E1D400: Y  @0x7D3D4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324311,7 +324311,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 241_  @0x7D3F8
+! cal60E1D400: Table 2D - 241_  @0x7D3F8
 	.word 0x430c
 	.word 0x0000
 	.word 0x4320
@@ -324322,7 +324322,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D40C
+! cal60E1D400: Y  @0x7D40C
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324341,7 +324341,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 242_  @0x7D430
+! cal60E1D400: Table 2D - 242_  @0x7D430
 	.word 0x4270
 	.word 0x0000
 	.word 0x42a0
@@ -324352,7 +324352,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x430c
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D444
+! cal60E1D400: Y  @0x7D444
 	.word 0x4320
 	.word 0x0000
 	.word 0x4334
@@ -324371,7 +324371,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 243_  @0x7D468
+! cal60E1D400: Table 2D - 243_  @0x7D468
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324382,7 +324382,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D47C
+! cal60E1D400: Y  @0x7D47C
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42c8
@@ -324401,7 +324401,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 367 Check DataType  @0x7D4A0
+! cal60E1D400: Table 2D - 367 Check DataType  @0x7D4A0
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324412,7 +324412,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D4B4
+! cal60E1D400: Y  @0x7D4B4
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324431,7 +324431,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4320
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 368 Check DataType  @0x7D4D8
+! cal60E1D400: Table 2D - 368 Check DataType  @0x7D4D8
 	.word 0x4334
 	.word 0x0000
 	.word 0x4348
@@ -324442,7 +324442,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D4EC
+! cal60E1D400: Y  @0x7D4EC
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324475,7 +324475,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 244_  @0x7D52C
+! cal60E1D400: Table 2D - 244_  @0x7D52C
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324496,7 +324496,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D554
+! cal60E1D400: Y  @0x7D554
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
@@ -324515,14 +324515,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4270
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 245_  @0x7D578
+! cal60E1D400: Table 2D - 245_  @0x7D578
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42c8
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D584
+! cal60E1D400: Y  @0x7D584
 	.word 0x430c
 	.word 0x0000
 	.word 0x4320
@@ -324555,7 +324555,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 246_  @0x7D5C4
+! cal60E1D400: Table 2D - 246_  @0x7D5C4
 	.word 0x430c
 	.word 0x0000
 	.word 0x0000
@@ -324572,7 +324572,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D5E4
+! cal60E1D400: Y  @0x7D5E4
 	.word 0x0000
 	.word 0x0000
 	.word 0x4220
@@ -324591,7 +324591,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x0000
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 247_  @0x7D608
+! cal60E1D400: Table 2D - 247_  @0x7D608
 	.word 0x0000
 	.word 0x0000
 	.word 0x3ca3
@@ -324602,7 +324602,7 @@ L_06d0c4:
 	.word 0x0028
 	.word 0x4248
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D61C
+! cal60E1D400: Y  @0x7D61C
 	.word 0x4248
 	.word 0x0000
 	.word 0x0000
@@ -324621,7 +324621,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 248_  @0x7D640
+! cal60E1D400: Table 2D - 248_  @0x7D640
 	.word 0x3f7e
 	.word 0x002a
 	.word 0x5e02
@@ -324632,7 +324632,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D654
+! cal60E1D400: Y  @0x7D654
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
@@ -324651,7 +324651,7 @@ L_06d0c4:
 	.word 0x0f42
 	.word 0x0c35
 	.word 0x0a91
-! cal[REDACTED]: Table 2D - 369 Check DataType  @0x7D678
+! cal60E1D400: Table 2D - 369 Check DataType  @0x7D678
 	.word 0x0937
 	.word 0x0817
 	.word 0x0741
@@ -324662,7 +324662,7 @@ L_06d0c4:
 	.word 0x46ff
 	.word 0x0017
 	.word 0x004e
-! cal[REDACTED]: Y  @0x7D68C
+! cal60E1D400: Y  @0x7D68C
 	.word 0x001f
 	.word 0x0000
 	.word 0x0018
@@ -324681,7 +324681,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x413e
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 370 Check DataType  @0x7D6B0
+! cal60E1D400: Table 2D - 370 Check DataType  @0x7D6B0
 	.word 0x4148
 	.word 0x0000
 	.word 0x4152
@@ -324722,7 +324722,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D700
+! cal60E1D400: Y  @0x7D700
 	.word 0xc130
 	.word 0x0000
 	.word 0x00ff
@@ -324743,7 +324743,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41f0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 249_  @0x7D728
+! cal60E1D400: Table 2D - 249_  @0x7D728
 	.word 0x4220
 	.word 0x0000
 	.word 0x4248
@@ -324762,7 +324762,7 @@ L_06d0c4:
 	.word 0x2330
 	.word 0x2326
 	.word 0x22aa
-! cal[REDACTED]: Y  @0x7D74C
+! cal60E1D400: Y  @0x7D74C
 	.word 0x2079
 	.word 0x1c67
 	.word 0x17f0
@@ -324781,14 +324781,14 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x428c
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 371 Check DataType  @0x7D770
+! cal60E1D400: Table 2D - 371 Check DataType  @0x7D770
 	.word 0x42a0
 	.word 0x0000
 	.word 0x42b4
 	.word 0x0000
 	.word 0x2330
 	.word 0x2330
-! cal[REDACTED]: Y  @0x7D77C
+! cal60E1D400: Y  @0x7D77C
 	.word 0x2330
 	.word 0x2330
 	.word 0x2326
@@ -324805,7 +324805,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x4220
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 250_  @0x7D79C
+! cal60E1D400: Table 2D - 250_  @0x7D79C
 	.word 0x4248
 	.word 0x0000
 	.word 0x4270
@@ -324814,7 +324814,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x42a0
 	.word 0x0000
-! cal[REDACTED]: Y  @0x7D7AC
+! cal60E1D400: Y  @0x7D7AC
 	.word 0x42b4
 	.word 0x0000
 	.word 0x0a36
@@ -324831,7 +324831,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 251_  @0x7D7CC
+! cal60E1D400: Table 2D - 251_  @0x7D7CC
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220
@@ -324854,7 +324854,7 @@ L_06d0c4:
 	.word 0x0362
 	.word 0x02b1
 	.word 0x0240
-! cal[REDACTED]: Y  @0x7D7F8
+! cal60E1D400: Y  @0x7D7F8
 	.word 0x0224
 	.word 0xffff
 	.word 0x3b1b
@@ -324873,7 +324873,7 @@ L_06d0c4:
 	.word 0xfc8f
 	.word 0x3bd5
 	.word 0x51d7
-! cal[REDACTED]: Table 2D - 252_  @0x7D81C
+! cal60E1D400: Table 2D - 252_  @0x7D81C
 	.word 0x3be8
 	.word 0xa71e
 	.word 0x3bfb
@@ -324884,7 +324884,7 @@ L_06d0c4:
 	.word 0x7d6b
 	.word 0x3c1b
 	.word 0x280f
-! cal[REDACTED]: Y  @0x7D830
+! cal60E1D400: Y  @0x7D830
 	.word 0x3c24
 	.word 0xd2b3
 	.word 0x3c2e
@@ -324903,7 +324903,7 @@ L_06d0c4:
 	.word 0x8fa2
 	.word 0x9bbe
 	.word 0xa779
-! cal[REDACTED]: Table 2D - 253_  @0x7D854
+! cal60E1D400: Table 2D - 253_  @0x7D854
 	.word 0xb34f
 	.word 0xbf1b
 	.word 0xcb87
@@ -324922,7 +324922,7 @@ L_06d0c4:
 	.word 0xa8d6
 	.word 0x3b9b
 	.word 0x5200
-! cal[REDACTED]: Y  @0x7D878
+! cal60E1D400: Y  @0x7D878
 	.word 0x3bae
 	.word 0xa748
 	.word 0x3bc1
@@ -324941,7 +324941,7 @@ L_06d0c4:
 	.word 0x280f
 	.word 0x3c24
 	.word 0xd2b3
-! cal[REDACTED]: Table 2D - 372 Check DataType  @0x7D89C
+! cal60E1D400: Table 2D - 372 Check DataType  @0x7D89C
 	.word 0x3c2e
 	.word 0x7d56
 	.word 0x3c38
@@ -324960,7 +324960,7 @@ L_06d0c4:
 	.word 0xa779
 	.word 0xb34f
 	.word 0xbf1b
-! cal[REDACTED]: Y  @0x7D8C0
+! cal60E1D400: Y  @0x7D8C0
 	.word 0xcb87
 	.word 0xd828
 	.word 0x3b16
@@ -324979,7 +324979,7 @@ L_06d0c4:
 	.word 0x6a7f
 	.word 0x3bcf
 	.word 0x1801
-! cal[REDACTED]: Table 2D - 373 Check DataType  @0x7D8E4
+! cal60E1D400: Table 2D - 373 Check DataType  @0x7D8E4
 	.word 0x3be1
 	.word 0xc582
 	.word 0x3bf4
@@ -324998,7 +324998,7 @@ L_06d0c4:
 	.word 0x51ec
 	.word 0x708f
 	.word 0x72b4
-! cal[REDACTED]: Y  @0x7D908
+! cal60E1D400: Y  @0x7D908
 	.word 0x743d
 	.word 0x7610
 	.word 0x77e3
@@ -325017,7 +325017,7 @@ L_06d0c4:
 	.word 0x0000
 	.word 0x41a0
 	.word 0x0000
-! cal[REDACTED]: Table 2D - 374 Check DataType  @0x7D92C
+! cal60E1D400: Table 2D - 374 Check DataType  @0x7D92C
 	.word 0x41f0
 	.word 0x0000
 	.word 0x4220

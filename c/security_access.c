@@ -93,7 +93,7 @@
 
 /* The 5-byte shared secret — offset varies per ROM build.
  *   60E1D400: 0x5FAC0  60E0FC00: 0x5D90C
- *   Stock: "MazdA"   [REDACTED]: vendor-family secret (capture-verified, tuned ECU;
+ *   Stock: "MazdA"   tuned ECU: vendor-family secret (capture-verified, tuned ECU;
  *   literal removed for privacy — see local notes).
  */
 #define SECRET_ADDR         0x0005FAC0UL
@@ -618,7 +618,7 @@ static uint8_t data_copy(uint8_t dst[3])
  *  with sh2emu:
  *    - levels 1..4 x seeds {45820A, CBFED4, 123456} : 12/12 keys match
  *    - 400 random seeds (level 1)                   : 0 mismatches
- *    - 3/3 real-world [REDACTED] captures (vendor-family secret)
+ *    - 3/3 real-world tuned-ECU captures (vendor-family secret)
  *  Stock vector: seed 0x45820A / 'MazdA' / level 1 -> key 0xA07258.
  *  (The legacy vector 0x3B15E1 had no ROM support and was wrong.)
  *

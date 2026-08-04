@@ -59,7 +59,7 @@ Required:
   OBDX Pro VX-class dongle (AGENTS.md). Exact adapter model for the capture run:
   **[TBD]** — reuse whatever produced the existing dumps.
 - **Tester software**: the live-ECU tool is **private, not shipped** —
-  `tools/uds/[REDACTED].py` (32-bit Python) — run from the private checkout. This
+  `tools/uds/<dump_tool>.py` (32-bit Python) — run from the private checkout. This
   plan adds documentation only, no new tooling to this repo.
 - **Vehicle vs bench**: bench is the documented, preferred route (no car, no
   cluster; a plain UDS session needs only power + CAN — the cluster/wheel-sim rig
@@ -177,7 +177,7 @@ The capture is "validated" when **all** of:
   in the else-path response-SID constant (`#62`/0x3E vs `#39`/0x27) — per the
   reconciliation follow-up. A full family capture would need per-ROM passes (out
   of scope); one clean baseline capture confirms the verdict class for all 9.
-- **Private tooling**: the live tester (`tools/uds/[REDACTED].py`, OBDX Pro VX,
+- **Private tooling**: the live tester (`tools/uds/<dump_tool>.py`, OBDX Pro VX,
   32-bit Python) is private, not shipped — run the capture from the private
   checkout. This plan adds documentation only, no code.
 - **Session/security state**: 0x27 security state (SECURITY_STATE_2 @ `0xFFFFD20C`)

@@ -6,9 +6,8 @@ whole-ROM lift of `tools/rom_rebuild.py`. Every file below reassembles with
 `sh-elf-as -big` + `sh-elf-ld -Ttext=0x0` + `sh-elf-objcopy -O binary` to a
 byte-identical copy of the source ROM (`cmp` verified).
 
-The dataset also includes a 10th ROM — `[REDACTED]` (the project owner's
-personal live-ECU dump) — whose annotated source exists and is byte-exact
-rebuildable, but it is **kept private** and not shipped here (evidence in
+The public repo ships annotated sources for the 9 public stock ROMs listed
+below; they reassemble byte-identically to the shipped ROMs (evidence in
 [VERIFICATION.md](../VERIFICATION.md)).
 
 Coverage = words in the code window `0x800..0x60000` (195,584 words) that are
@@ -48,7 +47,6 @@ Notes:
   `tools/xmap_names.py` (60E0FC00 ghidra-hand names x-mapped by code signature
   onto derived function entries; 239–300 high-confidence transfers per ROM, rest
   `FUN_xxxxxx` [derived]) and are kept in private storage (not shipped); the
-  public repo ships the kept CSVs only. The private [REDACTED] source used
-  `symbols/[REDACTED]` (also not shipped).
+  public repo ships the kept CSVs only.
 - All ROMs share `symbols/cal_tables.csv` for `! cal[...]` comments (60E1D400
   addresses; 1,209 of 1,210 entries land in-ROM).

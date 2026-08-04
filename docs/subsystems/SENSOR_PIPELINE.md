@@ -1105,8 +1105,8 @@ The following C implementations exist for sensor pipeline functions:
    calculations use the values.
 
 8. **MAF table is 48-points (not 14):** The MAF scaling table at 0x6A0E4
-   (**base ROM: 60E1D400**; the descriptor lives at 0x69E4C in the [REDACTED]
-   variant — see `CALIBRATION_TABLES_CROSS_REFERENCE.md` / `MAPS.md`)
+   (**base ROM: 60E1D400**; the J-line variant descriptor lives at 0x69E4C —
+   see `CALIBRATION_TABLES_CROSS_REFERENCE.md` / `MAPS.md`)
    contains 48 breakpoints spanning 0.86V–4.69V → 1.95–365.2 g/s, providing
    fine resolution across the entire operating range.
 

@@ -17,15 +17,10 @@ Provenance: the community stock ROMs come from
 `60E32000`) were added from it to widen the dataset.
 
 > **What is (and is not) shipped.** This repo ships **9 public stock ROMs**
-> (the table below). The 10th dataset image — **`[REDACTED]`** (`[REDACTED]`,
-> the project owner's personal live-ECU dump, `SW-[REDACTED]`) — is **kept
-> private** and not shipped, as are all **modified/tuned images** ([REDACTED]
-> launch-control & [REDACTED], [REDACTED]-patched) and any IDA `.i64`/Ghidra `.gar`
-> project files. Every image listed here is stock factory firmware already in
-> public circulation; the private images were verified byte-exact before
-> exclusion (see [VERIFICATION.md](../VERIFICATION.md)).
->
-> No tuned-ROM rows are added here.
+> (the table below). No tuned-ROM rows are added here, and any IDA `.i64`/Ghidra
+> `.gar` project files are excluded. Every image listed here is stock factory
+> firmware already in public circulation and verified byte-exact
+> (see [VERIFICATION.md](../VERIFICATION.md)).
 
 ## Stock ROMs (9 shipped)
 
@@ -41,10 +36,10 @@ Provenance: the community stock ROMs come from
 | 60E1C500 | SW-N3J6EN000.HEX | N3J6EBMW.T50 | MazdA | 0x5E730 | OK | `b3b6e1e416` | community ref (file tagged `_N3J6EB`) |
 | 60E32000 | SW-N3M5EK000.HEX | N3M5E_SW.T01 | MazdA | 0x65134 | OK | `d5406459cc` | community ref (file tagged `_N3M5E`); **structurally distinct** — key ~0x65000 vs ~0x5Exxx elsewhere, task suffix `.T01` not `.T50` (likely a later/different-market build) |
 
-Full sha256 for every shipped image (and the private `[REDACTED]`): see
+Full sha256 for every shipped image: see
 [VERIFICATION.md](../VERIFICATION.md).
 
-**Defs coverage gaps** (per `[REDACTED]`):
+**Defs coverage gaps** (per `symbols/cal_tables.csv`):
 `60E0E500` and `60E32000` lack **public address-level defs** (RomRaider/EcuFlash
 table maps). `60E0E500` is likely address-compatible with its sibling `60E0E600`
 (same family — verify by diffing); `60E32000` has Ghidra labels (cjv0513) but no
@@ -62,26 +57,17 @@ Observations:
 - Market / spec per cal ID, **confirmed** from equinox92's guide: `60E0FC00` =
   US 6-Port MT (equinox's RE target); `60E0FB00` = US 6-Port MT; `60E1B900` =
   US 6-Port MT; `60E1D400` = N3J1EM 6-Port MT;
-  `60E1A300` = 2005 JDM 4-Port MT; `60E1A500` = JDM 4/6-Port. The private
-  `[REDACTED]` = 2004 **EU 6-Port MT** (the owner's car). All 04-09 (03-08 global)
+  `60E1A300` = 2005 JDM 4-Port MT; `60E1A500` = JDM 4/6-Port.
+  All 04-09 (03-08 global)
   S1 RX-8. `N3` prefix = RENESIS 13B. Editor/logger defs:
   [equinox311/RX8Defs](https://github.com/equinox311/RX8Defs).
 - **CPU = Renesas HD64F7055(S)** (SH7055, SH-2 core + single-precision FPU =
   SH-2E). Flash recovery via BOOT mode on header CN400 — see
   `docs/notes/FULL_ANALYSIS.md` / `docs/notes/BOOT_RECOVERY.md`.
 
-## Kept private (not shipped)
-
-| File | Base cal ID | SW module | Sec key | Size | Notes |
-|------|-------------|-----------|---------|------|-------|
-| `[REDACTED]` | [REDACTED] | [REDACTED] | MazdA | 512 KB | **Owner's personal live-ECU dump**; byte-exact verified pre-exclusion (see VERIFICATION.md). |
-| `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] tune of 60E1D400; launch-control cave @`0x6C7FE`, checksum bypassed (see `docs/notes/FULL_ANALYSIS.md`) |
-| `[REDACTED]` | 60E1D400 | [REDACTED] | [REDACTED] | 512 KB | [REDACTED] + finalized LC patch |
-| `[REDACTED]` | 60E1D400 | – | – | **525312 B** | [REDACTED]-saved: **prefixed with a 1024-byte (0x400) header** — the raw 512 KB image starts at file offset `0x400`, so cal ID/strings are shifted. Not a flat dump. |
-
-IDA project files (`*.i64`) and Ghidra archives (`*.gar`) are also excluded
-from the public repo (redundant with the RE deliverables here, and they carry
-project-local state).
+No tuned- or modified-ROM images are tracked in this repo. IDA project files
+(`*.i64`) and Ghidra archives (`*.gar`) are also excluded from the public repo
+(redundant with the RE deliverables here, and they carry project-local state).
 
 ## Naming note: filename suffix vs internal module
 
@@ -104,7 +90,7 @@ matches the internal `SW-*.HEX` calibration flashed on it:
 | Denso copyright | `Copr.DENSO2000S…` @ `0x2022` and `~0x6CE33` |
 | SW module `SW-*.HEX` | ASCII near `~0x6CE40` (search `SW-[0-9A-Z]+\.HEX`) |
 | Task module `N3*.T50` | ASCII near `~0x6CE00` (search `N3[0-9A-Z_]+\.T[0-9][0-9]`) |
-| Security key (5 bytes) | search for `MazdA` / `[REDACTED]`; offset varies per build (LFSR params follow the key) |
+| Security key (5 bytes) | search for `MazdA` (the factory SecurityAccess constant); offset varies per build (LFSR params follow the key) |
 | Denso checksum | descriptor @`0x7FB80` = `[lo:4][hi:4][diff:4]`; Σ BE32 over `[lo,hi]` + `diff` must equal `0x5AA5A55A`. Verify with `python3 tools/denso_ck.py <rom>` |
 | Reset vector | PC = BE32 @ `0x0` (all = `0x000008B8`), SP = BE32 @ `0x4` (`0xFFFFDFA0`) |
 

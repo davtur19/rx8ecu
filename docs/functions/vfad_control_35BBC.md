@@ -10,7 +10,7 @@ hysteresis command with hold-in-band, fed through the alternating-sensor state m
 > **Note on the old name:** this function was briefly mislabeled
 > `launch_status_bit0400` during the mod era. It is the **stock VFAD solenoid
 > control** (reads the VFAD open-threshold + hysteresis cal, sets F754 bit 0x0400);
-> stock firmware has **no launch control**. The [REDACTED] launch-control mod
+> stock firmware has **no launch control**. A tuned launch-control mod
 > repurposes F754 bit 0x0400 as its "launch active" flag, read by
 > `CAN_EmitLaunchStatus` (0x57BE8). See `docs/notes/FINDINGS.md`.
 

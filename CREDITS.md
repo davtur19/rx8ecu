@@ -44,8 +44,8 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
 ## RX8Man / equinox311 (rx8defs)
 
 - **The rx8defs XML definition files** — the calibration-table definitions behind
-  `symbols/cal_tables.csv` (1,210 tables, all for cal ID `[REDACTED]`):
-  - `[REDACTED]` + `ECUFlash/RX8BASE.xml` (ECUFlash format)
+  `symbols/cal_tables.csv` (1,210 tables):
+  - `ECUFlash/RX8BASE.xml` (ECUFlash format)
   - `RomRaider/rx8_defs.xml` + `logger_rx8_defs.xml` (RomRaider editor/logger format)
 
 - Provenance found in the local reference material (GitHub not reachable to
@@ -56,7 +56,7 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
     <https://www.buymeacoffee.com/RX8Man> (project: <https://github.com/Rx8Man/Rx8Man>).
   - This project's internal RE notes (not shipped in the public repo) record that
     `cal_tables.csv` was derived from **equinox311/RX8Defs**
-    (<https://github.com/equinox311/RX8Defs>), ECUFlash `[REDACTED]` (+ base),
+    (<https://github.com/equinox311/RX8Defs>), ECUFlash defs (+ base),
     and the equinox guide likewise points at `equinox311/RX8Defs` for the RomRaider
     editor/logger defs. The mirror in this project was therefore sourced from
     **equinox311's fork** of **RX8Man's** definitions.

@@ -104,7 +104,7 @@
   F754 bit 0x0400 (via 0x4BBC). 2026-08-01 audit: the interim
   "launch_status_bit0400" name was the mod-era misnomer — this IS the stock
   VFAD solenoid control (reads VFAD open-threshold + hysteresis cal, sets
-  F754 bit 0x400); stock has NO launch control, the [REDACTED] mod repurposes
+  F754 bit 0x400); stock has NO launch control, a tuned mod repurposes
   that bit.
 - fcmp/gt operand order: the emulator computes T = FRn > FRm (code
   `f[n] > f[m]`), so disassembly `fcmp/gt fr4,fr6` = "5250 > boost". The

@@ -6,8 +6,8 @@
 # binutils, code window 0x800..0x60000, everything else raw .word data (the
 # defaults of rom_rebuild.py) — then compares the rebuilt bytes to the source ROM.
 #
-# NOTE: the dataset originally had 10 stock ROMs; the 10th ([REDACTED], the
-# owner's personal live-ECU dump) is kept PRIVATE and is not shipped, so this
+# NOTE: this verifies the 9 public stock ROMs shipped in this repo
+# (the owner's personal live-ECU dump is kept PRIVATE and is not shipped, so this
 # verifier covers the 9 public images (the private image was verified
 # byte-exact before exclusion — see VERIFICATION.md).
 #

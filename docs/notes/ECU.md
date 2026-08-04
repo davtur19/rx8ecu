@@ -4,15 +4,15 @@ Active RE work. Non-discoverable facts: `KNOWLEDGE.md`. Confirmed discoveries: `
 
 ---
 
-## [REDACTED] LC Patch ([REDACTED] vs 60E1D400)
+## Launch-Control Patch
 
-**Code cave**: `0x6C7FE–0x6CBFA` — stock = all `0xFF`; [REDACTED] injected SH-2E code here.
+**Code cave**: `0x6C7FE–0x6CBFA` — stock = all `0xFF`; a tuned variant injects SH-2E code here.
 
 **Hook at `0x94C8`** (`LC_HookClampEntry`): 16 bytes changed → redirects stock throttle clamp to `LC_ClampAndGateOutput`.
 
 **Patch at `0x35BBC`** (`LC_GateWrapper`): jump → `LC_GateCondition_RPMLoad` at `0x6CA80`.
 
-ROM immobilizer at `0x35D90` — **unchanged** between stock and [REDACTED]. No-start = EEPROM data, not ROM immo.
+ROM immobilizer at `0x35D90` — **unchanged** between stock and tuned variants. No-start = EEPROM data, not ROM immo.
 
 ### Two separate control paths
 
@@ -37,14 +37,14 @@ Wrong ECU → checksum fails (sum ≠ −23) → output forced to 0 → throttle
 - RPM targets: 5100 (stationary), 8300 (rolling < 9 km/h), 9300 (full active)
 
 ### Inject into stock
-The private injector `tools/[REDACTED].py` (**not shipped** — not present in
-this public repo; it lives in the private checkout only) injects the cave from
-`[REDACTED]` (private, not shipped) into `60E1D400.bin`,
+The private injector `tools/<lc_patch>.py` (**not shipped** — not present in
+this public repo; it lives in the private checkout only) injects the cave code
+into `60E1D400.bin`,
 NOPs out `LC_ValidateChecksum17`, fixes checksum.
 
 ---
 
-## Ghidra Function Labels ([REDACTED])
+## Ghidra Function Labels
 
 | Address | Name |
 |---|---|
@@ -75,7 +75,7 @@ NOPs out `LC_ValidateChecksum17`, fixes checksum.
 
 ---
 
-## CAN Dispatch Table ([REDACTED])
+## CAN Dispatch Table
 
 Location: `0x4E728` (copy at `0x4E828`). Entry = 16 bytes.  
 Handler ptr formula: `(b[12] << 16) | int.from_bytes(b[10:12], 'big')`
@@ -98,7 +98,7 @@ are proprietary — not visible via standard OBD2. See `docs/notes/CAN_PROTOCOL.
 1. **Boot initializer for `0xFFFFC37E`**: which function copies EEPROM → RAM at that offset? Not found.
 2. **LC_HookClampEntry caller**: confirmed = `FUN_0x8F62` (ETB control loop). Its zeroed output = throttle clamp.
 3. **0x7FFF4 second checksum**: algorithm unknown. Not verified at ECU runtime — low priority.
-4. **[REDACTED] full function map**: live ECU ROM. CAN table located, most functions unnamed.
+4. **Live-ECU full function map**: CAN table located, most functions unnamed.
 5. **Modified stock functions outside cave**: `0x1038`, `0x109C`, `0x121F0`, `0x1237C` — semantic roles not fully confirmed.
 
 ---

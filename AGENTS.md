@@ -48,10 +48,9 @@ python tools/denso_ck.py roms/stock/my_rom.bin -f           # fix checksum in-pl
 ```
 
 Live-ECU tooling is **private and not shipped** in this repo: the ROM dump tool
-(`tools/uds/[REDACTED].py` in the private checkout — 32-bit Python, OBDX Pro VX)
-and the LC-patch injector (`tools/[REDACTED].py`) have **no public
+(32-bit Python, OBDX Pro VX) and the LC-patch injector have **no public
 equivalent** here. See `docs/notes/DUMP_ALL.md` for the dump procedure and
-`docs/notes/ECU.md` (§[REDACTED] LC Patch) for the injection description.
+`docs/notes/ECU.md` for the LC-patch injection description.
 
 ## Temp work
 

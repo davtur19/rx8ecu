@@ -19,8 +19,7 @@ two deliverables that reinforce each other:
 
 1. **Track B — byte-exact ROM rebuild**: a buildable, editable source (`.s`) that
    re-assembles into the *identical ROM bytes* (byte-for-byte, `cmp == 0`) for all
-   stock ROMs in the dataset (10 verified; 9 shipped publicly — the 10th,
-   `[REDACTED]`, the owner's personal live-ECU dump, is kept private) — without the
+   stock ROMs in the dataset (9 shipped publicly) — without the
    original Renesas/Hitachi SHC compiler.
 2. **Track A — verified C lifts**: readable, behavior-equivalent C reimplementations
    (`c/*.c`) proven against the *actual ROM bytes* executing on the custom SH-2E
@@ -63,7 +62,7 @@ one at a time, and the baseline always rebuilds.
 
 ## Current status
 
-- **Track B: all 9 shipped stock ROMs (and the private [REDACTED]) are byte-exact
+- **Track B: all 9 shipped stock ROMs are byte-exact
   rebuilds** (enforced by `make verify-all`): 512 KB each, `cmp == 0` against
   source. Instruction-lift coverage in the code window `0x800..0x60000` is
   **93.46–93.8%** per ROM (60E1D400 93.63%, 60E0FC00 93.56%, 60E1C500 93.48%,
@@ -85,10 +84,9 @@ one at a time, and the baseline always rebuilds.
 
 | Item | Value |
 |------|-------|
-| Stock ROMs (dataset) | 10, all 512 KB, valid Denso checksum; **9 shipped publicly** in `roms/stock/*.bin`, `[REDACTED]` (owner's live ECU) kept private; modded [REDACTED]/[REDACTED] images exist privately |
+| Stock ROMs (dataset) | 9 shipped publicly, all 512 KB, valid Denso checksum, in `roms/stock/*.bin` |
 | Baseline ROM | `60E1D400` (`SW-N3J1EM000.HEX`, `N3J1E_3W.T50`) |
 | Hand-annotated reference | `60E0FC00` (931 equinox names) |
-| User's live ECU | `[REDACTED]` (`[REDACTED]`, `[REDACTED]`) — PRIVATE |
 | Functions (symbol table) | 3459 total; 931 equinox-named + 2528 Ghidra-auto |
 | Call edges resolved | 6953 (758 bsr-direct, 6195 pooled jsr) |
 | Symbol coverage (baseline) | `symbols/symbols_60E1D400_merged.csv`: 2789 named functions |
@@ -114,7 +112,7 @@ make c-emu                    # Track A emulator cross-checks
   `tools/rom_rebuild.py` converges to `cmp == 0` (DoD: "`make` reproduces the stock
   ROM byte-for-byte").
 - 10-ROM stock dataset assembled and cataloged (`roms/ROMS.md`), all checksums
-  valid; 9 shipped publicly, `[REDACTED]` kept private.
+  valid; 9 shipped publicly.
 - Symbol/name transfer across ROMs (`tools/xmap_names.py`), annotated sources
   (`tools/organize_src.py`, `make src`).
 - Track A verification harness: emulator + 194-suite test harness, 266 verified
@@ -144,7 +142,7 @@ make c-emu                    # Track A emulator cross-checks
    - **OBD PID**: i 9 getter `obd_pid` — 0x4C8C2/0x4C9C0 (getOBDCANTXVars1/2, buffer 8-byte 0xFFFFCEAC/0xFFFFCEC0, pipeline delay-slot, `test_obd_vars_vector.py`), 0x55D9A/0x55E18/0x55F7A (`test_obd_pid_getters3.py`), 0x55E66/0x55E7C/0x55EA2/0x55EEA/0x55F02 (`test_obd_pid_getters.py`), 0x55F64 (`test_obd_pid_getters2.py`) + **Vector 0x670B4** (bitmap 0x5F6D8, `test_obd_vars_vector.py`) — tutti ✓ verified.
    - **can_uds** (`c/can_uds_subsystem.c`): tutti i 12 packer/dispatcher coperti via `c/tests/test_can_packers.py` (commit a7fc6d5, 3013 vectors, 0 mismatch — incl. can203TX 0x29D24, can251TX 0x2AAB6, dispatcher 0x2D402/0x33942 con catena pinnata); **0x11540 = dispatch TABLE** (24 fptr BE), non funzione (chiusa come data).
    - Work down the callgraph (≥2 callers next) → vedi sezione **Next**.
-2. **Hardware BOOT-mode debug**: practice ECU (live [REDACTED]) never entered Renesas
+2. **Hardware BOOT-mode debug**: practice ECU never entered Renesas
    BOOT mode via CN400 jig; FDT Error 15024; needs an active RESET pulse (not just
    power-on) — trace CN430/RST-OPEN, find RESET pin, get FDT handshake
    (`docs/notes/BOOT_RECOVERY.md`). **Hardware-only** (ECU + jig CN400 + FDT

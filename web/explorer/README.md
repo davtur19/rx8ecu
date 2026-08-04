@@ -171,8 +171,8 @@ The project uses **two address contexts** for symbols/callgraph:
 - **Symbols + callgraph** → ROM **60E0FC00** (all 3363 callgraph addresses
   resolve into FC00 symbols; 962 nodes have non-FUN names, 911 of them hand)
   and **60E1D400** (baseline IDA names).
-- **Calibration tables** → `cal_tables.csv` is labeled `[REDACTED]` (private dump,
-  not distributed), but its addresses match **1:1 the verified map descriptors**
+- **Calibration tables** → `cal_tables.csv` is labeled `60E1D400` (RE baseline);
+  its addresses match **1:1 the verified map descriptors**
   in `roms/stock/60E1D400.bin` (RE baseline), from which the default values are
   extracted. Verification: all 499 descriptors of `60E1D400.bin` find the
   RX8Defs name by pointer.

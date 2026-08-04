@@ -49,7 +49,7 @@
 #define SECURITY_UNLOCKED   (*(volatile uint8_t  *)0xFFFFD0F2UL)
 #define SECURITY_FLAGS      (*(volatile uint8_t  *)0xFFFFD0F3UL)
 
-/* Launch control status bit ([REDACTED]) */
+/* Launch control status bit (tuned) */
 #define LAUNCH_CTRL_STATUS  (*(volatile uint16_t *)0xFFFFF754UL)
 
 /* CAN message descriptor / buffer structure (from can_data_decode_2468C) */
@@ -342,8 +342,8 @@ done:
 }
 
 /* -----------------------------------------------------------------
- * CAN_EmitLaunchStatus — [REDACTED] Launch Control CAN Output
- * (0x57BE8, known from [REDACTED] analysis)
+ * CAN_EmitLaunchStatus — tuned Launch Control CAN Output
+ * (0x57BE8, known from tuned-variant analysis)
  *
  * Reads launch control status bit 0x0400 from RAM, emits via CAN.
  * ----------------------------------------------------------------- */

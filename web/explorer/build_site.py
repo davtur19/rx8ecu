@@ -53,8 +53,8 @@ deterministic: identical inputs produce byte-identical output. Set the
 SOURCE_DATE_EPOCH environment variable to pin the optional `generated`
 timestamp (a standard reproducible-builds convention); otherwise it is omitted.
 
-Note: cal_tables.csv is labeled "[REDACTED]" (private dump, not distributed), but
-its addresses match 1:1 the verified map descriptors in roms/stock/60E1D400.bin
+Note: cal_tables.csv is labeled "60E1D400" (RE baseline); its addresses match
+the verified map descriptors in roms/stock/60E1D400.bin
 (RE baseline); the real values are extracted from there.
 """
 import argparse
@@ -869,7 +869,7 @@ def build_dataset():
             "script": "build_site.py",
             "contexts": {
                 "callgraph": "60E0FC00 (symbols + callgraph)",
-                "cal_tables": "cal_tables.csv (labeled [REDACTED]) -> values extracted from 60E1D400.bin",
+                "cal_tables": "cal_tables.csv (labeled 60E1D400) -> values extracted from 60E1D400.bin",
             },
             "rom_cal": ROM_CAL_REL,
             "docs": len(docs),

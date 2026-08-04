@@ -17,7 +17,7 @@
  *   2. lookup = ThreeDLookup(desc 0x69EDC, x = RPM f32@FFFFB5B8, y = charge-temp
  *      f32@FFFFAA10).  Desc: 12x8 u8 cells, scale 1.0/offset 0.0, axis_x = RPM
  *      0..3000 (f32 @0x6EDA4), axis_y = temp -40..100 (f32 @0x6EDD4), values
- *      @0x6EDF4 (cal[REDACTED] "Table 3D - 14_"); the x-axis is RPM so the
+ *      @0x6EDF4 (cal60E1D400 "Table 3D - 14_"); the x-axis is RPM so the
  *      lookup reads x=RPM (fr4) against axis_x, y=temp (fr5) against axis_y.
  *   3. A9C4 = lookup
  *   4. A9C8 = f32@FFFFBD0C - lookup          (fsub fr0,fr3)

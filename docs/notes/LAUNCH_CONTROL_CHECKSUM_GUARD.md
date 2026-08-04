@@ -5,16 +5,15 @@ ROMs under analysis:
 | ROM | File | md5 | Notes |
 |-----|------|-----|-------|
 | Stock | `rx8ecu/roms/stock/60E1D400.bin` | `5e4236d2…` | no LC code |
-| Tuned | `[REDACTED]` | `[REDACTED]…` | [REDACTED], has LC |
 
 CPU: SH-2E (SH7055), big-endian. Code cave `0x6C800..0x6CC00` is all `0xFF` in
-stock; [REDACTED] injected its LC subsystem there.
+stock; a tuned variant injects its LC subsystem there.
 
 ---
 
 ## 1. Executive summary
 
-[REDACTED]'s launch-control system ends with a self-check on 17 EEPROM bytes
+The launch-control system in a tuned variant ends with a self-check on 17 EEPROM bytes
 (`E2[0x80..0x90]`, shadowed to RAM at `0xFFFFC37E..0xFFFFC38E`). Their signed
 byte sum, truncated to 8 bits, must equal **−23 (0xE9)**. If not, the LC output
 word is written 0 and LC is silently disabled. These 17 bytes are **not**

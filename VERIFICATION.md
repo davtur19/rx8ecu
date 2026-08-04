@@ -5,12 +5,8 @@ toolchain (sh-elf binutils 2.46) and capstone 5.0.7 / Python 3.14, and
 **re-run in this final refactored public tree** (see the notes below each
 section).
 
-**Scope note:** the original dataset has **10 stock ROMs**. The 10th —
-`[REDACTED]`, the project owner's personal live-ECU dump — is verified
-byte-exact (evidence kept below) but is **kept private** and not shipped in
-this public repo. All byte-exact rebuild claims for the shipped tree are
-**9/9**. The modified ([REDACTED]/[REDACTED]) images are also private and not
-shipped.
+**Scope note:** this repo ships and verifies **9 public stock ROMs**; all
+byte-exact rebuild claims below are **9/9** for the shipped tree.
 
 ## 1. Byte-exact rebuild — 9/9 public stock ROMs
 
@@ -43,17 +39,6 @@ OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 `mov.l @(disp,Rm)` encodings) or they are data words capstone over-decoded; they
 are emitted verbatim, so byte-exactness is by construction.
 
-The pre-exclusion run (in the pre-refactor tree, before `[REDACTED]` was moved
-to private storage) verified the same for **10/10**, including:
-
-```
-[REDACTED]              (sha256 withheld — private)    93.6    253  BYTE-EXACT
-...
-OK: all 10 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
-```
-
-`[REDACTED]` is byte-exact verified; the image itself is kept private.
-
 ### sha256 — source ROM vs rebuilt output (identical)
 
 | ROM (roms/stock/) | sha256(source) = sha256(rebuilt) | Status |
@@ -62,7 +47,6 @@ OK: all 10 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 | 60E0E700_N3YLEE.bin | `bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0` | public, 9/9 |
 | 60E0FB00.bin | `3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661` | public, 9/9 |
 | 60E0FC00.bin | `476ddcbed4549d89b9835dfbfb1aac48217d943fb53c73f489ffc9414803e35c` | public, 9/9 |
-| [REDACTED] | *(sha256 withheld — the private dump's hash is not published)* | **PRIVATE** (verified pre-exclusion) |
 | 60E15120_N3J1E.bin | `a7cd953c2a87af12ee2814a95c958dc23959d352ef9c5e7f82b8ab8952f264f1` | public, 9/9 |
 | 60E1B900.bin | `b0dc94f96e8eaf6f154df8e7388d12fba490cf2adf13edb077677c4c82b3b1b5` | public, 9/9 |
 | 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68` | public, 9/9 |
@@ -76,7 +60,7 @@ Single-ROM spot check (re-run here): `make ROM=roms/stock/60E1D400.bin verify`
 
 Window `0x800..0x60000` = 195,584 words. Remainder is byte-exact `.word` data
 (literal pools, jump tables, calibration, padding, strings). From
-`src/ANNOTATED_SOURCES.md` (table reproduced; `[REDACTED]` marked PRIVATE):
+`src/ANNOTATED_SOURCES.md` (table reproduced):
 
 > **Coverage honesty caveat.** The coverage figures below are *round-trip*
 > coverage — every in-window word that decodes and re-encodes to valid bytes is
@@ -92,7 +76,6 @@ Window `0x800..0x60000` = 195,584 words. Remainder is byte-exact `.word` data
 | 60E0E700_N3YLEE | src/60E0E700_N3YLEE_annotated.s | 4,660,312 | 7,306 | 58,436 | 93.46 | YES |
 | 60E0FB00 | src/60E0FB00_annotated.s | 4,640,621 | 7,197 | 60,236 | 93.60 | YES |
 | 60E0FC00 | src/60E0FC00_annotated.s | 4,444,212 | 3,454 | 60,299 | 93.56 | YES |
-| [REDACTED] | src/[REDACTED] (PRIVATE) | 4,656,172 | 7,096 | 56,245 | 93.62 | YES |
 | 60E15120_N3J1E | src/60E15120_N3J1E_annotated.s | 4,688,306 | 7,473 | 55,730 | 93.65 | YES |
 | 60E1B900 | src/60E1B900_annotated.s | 4,639,305 | 7,173 | 59,959 | 93.57 | YES |
 | 60E1C500_N3J6EB | src/60E1C500_N3J6EB_annotated.s | 4,658,588 | 7,315 | 58,332 | 93.48 | YES |
@@ -159,16 +142,11 @@ All 9 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor
 | 60E0E700_N3YLEE.bin | `bba52346a076c35d` | public |
 | 60E0FB00.bin | `3d32e2591a1170d5` | public |
 | 60E0FC00.bin | `476ddcbed4549d89` | public |
-| [REDACTED] | *(hash not published)* | **PRIVATE** (verified pre-exclusion) |
 | 60E15120_N3J1E.bin | `a7cd953c2a87af12` | public |
 | 60E1B900.bin | `b0dc94f96e8eaf6f` | public |
 | 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c` | public |
 | 60E1D400.bin | `344cb8b960eb6dde` | public |
 | 60E32000_N3M5E.bin | `d5406459cc0b19f8` | public |
-
-Modified ROMs (`[REDACTED]`, `[REDACTED]`,
-`[REDACTED]`) are **not shipped** in
-this public repo (kept private, see [ROMS.md](roms/ROMS.md)).
 
 ## 7. Self-containedness
 

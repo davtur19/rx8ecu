@@ -36,7 +36,7 @@ It supports:
 
 ## CAN Mailbox Configuration Tables (60E1D400)
 
-In 60E1D400, the CAN dispatch table (at 0x4E728 in [REDACTED]) maps to three
+In 60E1D400, the CAN dispatch table (at 0x4E728 in the J-line variant) maps to three
 configuration tables:
 
 - **CAN0 TX Primary**: `0x4EA60` (16 entries, used when `0xB5A4 == 1`)
@@ -212,9 +212,9 @@ and writes to a HCAN mailbox for transmission.
 ### `CAN_EmitLaunchStatus` (0x57BE8)
 
 Reads bit 0x0400 from RAM word at 0xFFFFF754 (the **VFAD status bit** — stock F754
-bit 0x0400 is the VFAD solenoid control bit, repurposed by the [REDACTED]
-launch-control mod as its "launch active" flag), converts to a 0/1 byte, and
-emits it via CAN. This is the [REDACTED] launch control CAN output.
+bit 0x0400 is the VFAD solenoid control bit, repurposed by a launch-control
+mod as its "launch active" flag), converts to a 0/1 byte, and
+emits it via CAN. This is the tuned launch control CAN output.
 
 ---
 
@@ -226,7 +226,7 @@ In 60E1D400, the CAN RX dispatch is done by `secondary_system_controller` at 0xD
 (not a separate `CANHandler`/`CANRX_Main` pair as previously documented). This function
 is called from the periodic task dispatcher and runs the RX handlers sequentially.
 
-**NOTE**: In the [REDACTED] ROM, there may have been separate CANHandler/CANRX_Main
+**NOTE**: In another J-line variant ROM, there may have been separate CANHandler/CANRX_Main
 functions. In 60E1D400, the RX path is simplified into `secondary_system_controller`.
 
 ```
@@ -445,7 +445,7 @@ struct UDSDispatchEntry {
 **Note:** Earlier analysis identified OBD Mode 1 handler at 0x6410C and
 Mode 9 at 0x64BB0. These are WRONG for 60E1D400 — the verified dispatch
 table shows 0x66258 and 0x66CFC respectively. The old addresses may be
-correct for [REDACTED] ROM.
+correct for another ROM variant.
 
 ### UDS Common Infrastructure
 
@@ -507,7 +507,7 @@ The UDS dispatch table points to the handler at **0x66258**. (Note: earlier anal
 identified 0x6410C, but the verified dispatch table at 0x5F57C shows 0x66258.)
 
 **Note on OBD PID helpers**: The OBD PID conversion helper functions previously
-documented at 0x53530-0x53A62 are addresses from the [REDACTED] ROM. In 60E1D400,
+documented at 0x53530-0x53A62 are addresses from another ROM variant. In 60E1D400,
 the code layout differs and these specific addresses do not correspond to named
 OBD helper functions. The region 0x53000-0x54000 contains utility functions
 (memcpy, string ops, bitfield ops) rather than OBD-specific helpers. The actual
@@ -697,7 +697,7 @@ PCI (Protocol Control Information):
 | 0xFFFFD0F2 | byte | Security unlocked status |
 | 0xFFFFD0F3 | byte | Security access flags |
 | 0xFFFFD3F0 | byte[?] | KWP session context |
-| 0xFFFFF754 | u16 | SSV/VFAD solenoid status bits (bit 0x0400 = VFAD status, repurposed by the [REDACTED] launch-control mod as "launch active") |
+| 0xFFFFF754 | u16 | SSV/VFAD solenoid status bits (bit 0x0400 = VFAD status, repurposed by a launch-control mod as "launch active") |
 | 0xFFFF878C | u32 | CAN message buffer pointer |
 
 ---
@@ -847,8 +847,6 @@ struct UDSDispatchEntry {
 
 The 5-byte security key constant is at 0x5FAC0 in 60E1D400:
 - Stock: `"MazdA"`
-- [REDACTED]: vendor-family secret (removed for privacy)
-- [REDACTED]: `"[REDACTED]"`
 
 LFSR polynomial parameters at 0x5FAC8.
 
@@ -942,7 +940,7 @@ DSC/ESP condition monitoring where hysteresis and scaling are needed.
 
 ### What Was Corrected
 
-1. **CAN RX dispatch**: Previously documented as `CANRX_Main` at 0xDBF6. Actual function is `secondary_system_controller` at 0xDE8E. Several RX handler addresses were from [REDACTED] ROM, not 60E1D400.
+1. **CAN RX dispatch**: Previously documented as `CANRX_Main` at 0xDBF6. Actual function is `secondary_system_controller` at 0xDE8E. Several RX handler addresses were from another ROM variant, not 60E1D400.
 
 2. **OBD handler addresses**: Previously documented as 0x6410C (Mode 1) and 0x64BB0 (Mode 9). Verified UDS dispatch table shows 0x66258 and 0x66CFC respectively.
 
@@ -952,7 +950,7 @@ DSC/ESP condition monitoring where hysteresis and scaling are needed.
 
 ### What Remains to Be Verified
 
-- **OBD PID helper functions**: The specific conversion helpers (RPM→OBD, temp→OBD, etc.) are at different addresses in 60E1D400 vs [REDACTED]. Their exact locations need tracing through the Mode 1 dispatcher.
+- **OBD PID helper functions**: The specific conversion helpers (RPM→OBD, temp→OBD, etc.) are at different addresses across ROM variants. Their exact locations need tracing through the Mode 1 dispatcher.
 - **DTC handler dispatch**: The `dtcRelated` (0x62002) function and its sub-handlers need full decompilation verification.
 - **KWP2000 serial protocol**: The legacy serial diagnostics at 0x1572-0x1D98 need verification against the CAN-based UDS stack.
 
