@@ -18,6 +18,9 @@ on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
+concurrency:
+  group: badges
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -27,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       # gen_badges.py computes the regression-check counts by actually running
       # tools/tests/test_decode_families.py --quick and
       # tools/tests/test_emulator_families.py (parsing their "N checks" line).
@@ -54,5 +57,6 @@ jobs:
             echo "No badge changes."
           else
             git commit -m "chore(badges): refresh README progress badges [skip ci]"
+            git pull --rebase origin main
             git push
           fi
