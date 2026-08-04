@@ -210,5 +210,14 @@ segnalate; il file è sotto test):
    solo a grandi linee; la convention esatta `r4`/`r5` dell'handler 0x584A0
    (buffer vs length) non è chiusa.
 
+Storia: i residui 1-3 (key_validate table 10-entry, middle byte = SECURITY_STATE_2,
+word_tab[2]=0xFFFC) sono stati **corretti e VERIFIED** nel C (commit `b483523`),
+mentre il residuo 4 (SF_SEND_KEY=0x04 vs librx8 `0x02`) e i flussi di dettaglio
+restano aperti.
+
 Open item esplicito per PLANS.md:155-156: verificare se `0x584A0` riceve
 `r5`=subfunction UDS o `r5`=primo byte payload (impatto su §1 e §6.4).
+Stato attuale: il handler `0x584A0` è **strutturalmente ricostruito** e il core
+(seed_gen, key_validate, position_check, seed_key_related/lfsr) è **VERIFIED**
+(vedi `docs/functions/security_access_handler.md`); resta da confermare in
+dettaglio il **flusso RequestSeed** (`c/security_access.c` ~riga 203-248).

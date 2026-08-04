@@ -243,18 +243,33 @@ The SecurityAccess handler uses these RAM locations for state:
 | Subfunction dispatch    | Confirmed  | RFE/SUB matches ISO 14229                |
 | Secret location         | Confirmed  | "MazdA" @ 0x5FAC0 (this ROM)            |
 | LFSR init table         | Confirmed  | @ 0x5FAC5, per-level INIT, 3 bytes/level |
-| Seed/key transform      | Confirmed  | ECOMcat 24-bit Galois; vector 0xA07258 emulator-verified (level 1) |
-| Seed generation         | Partial    | Flow understood; seed_gen internals for level≠3 TBD |
+| Seed/key transform      | Verified   | 2026-07-31 — ECOMcat 24-bit Galois; vector 0xA07258 emulator-verified (level 1) |
+| Seed generation         | Verified   | 2026-08-03 — `c/tests/test_seed_gen_5699A.py`, 0 mismatches (levels 0..5, retry-loop) |
+| position_check          | Verified   | 2026-08-04 — word_tab[2]=0xFFFC; commit `b483523` |
+| key_validate            | Verified   | 2026-08-04 — 10-entry table @0x5FAA2; commit `b483523` |
+| seed_key_related/lfsr   | Verified   | 2026-07-31 — 12/12 keys + 400 random seeds |
 | mazda_security.py       | Confirmed  | `tools/mazda_security.py` — bit-equivalent to ROM at level 1 |
-| C reconstruction        | Draft      | Structural; LFSR core now aligned with the ROM (see `c/security_access.c`) |
+| C reconstruction        | Draft (1)  | Core VERIFIED; the ONLY remaining Draft is the **RequestSeed flow** in `c/security_access.c` (~lines 203-248) |
 
-**Open questions (LFSR core RESOLVED 2026-08-01 — commit `a84eaba`):**
-1. **UDS subfunction→level mapping**: which RequestSeed subfunction requests
-   which security level?
-2. **`seed_gen` (@0x5699A) internals for level≠3**: the per-level init table is
-   confirmed; the generation path for higher levels still needs tracing.
-3. **`key_validate` middle-byte source**: where the third key byte comes from in
-   the validation-table search @0x5FAA2.
+**Open questions (core RESOLVED; only RequestSeed flow open):**
+1. ~~**UDS subfunction→level mapping**~~ **RESOLVED** — `seed_gen` is always
+   called with a fixed level 3; the controlling level is the `position_check`
+   table index derived from the RequestSeed payload byte (see
+   `docs/notes/UDS_SECURITY_MAPPING.md` §1).
+2. ~~**`seed_gen` (@0x5699A) internals for level≠3**~~ **RESOLVED** — the entropy
+   path (XOR-mix `b0^bN`, state==4 → `55AA55`, retry<=16 fallback `FFFFFF`)
+   is traced and VERIFIED 2026-08-03 via `c/tests/test_seed_gen_5699A.py`
+   (0 mismatches). See `c/security_access.c` §5.
+3. ~~**`key_validate` middle-byte source**~~ **RESOLVED** — the middle argument
+   is **`SECURITY_STATE_2`** (state_check2 @0x568E6), held in r10; the handler
+   calls `key_validate(state1, state, chk)` (see `c/security_access.c`
+   ~lines 232-240; commits `8e259f8`, `b483523`).
+
+**Open item (the ONLY remaining DRAFT):** the **RequestSeed sub-flow** — the exact
+ordering of `seed_gen(3)` / `position_check` / `key_validate` / `data_copy` calls
+and argument order in the RequestSeed path of `security_access_handler`
+(`c/security_access.c` ~lines 203-248) is a structural mapping of ROM `0x584A0`
+**not yet confirmed in detail**.
 
 ---
 

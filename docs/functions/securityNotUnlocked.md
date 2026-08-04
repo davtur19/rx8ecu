@@ -1,6 +1,13 @@
 # securityNotUnlocked @ 0x541F0
 _source: AI (Haiku) draft, unverified_
 
+> AI-generated structural notes only. There is **no C lift** for this 0x541F0
+> path in the repo (`c/` has no reference to 0x541F0), and this function is
+> **not part of the SecurityAccess handler `0x584A0`** described in
+> `docs/functions/security_access_handler.md` (that handler uses RAM @0xFFFFD2x,
+> not 0xFFFFCFE4/0xFFFFD0F3). Treat the RAM cell semantics below as unverified.
+> For the verified 0x27 handler and seed/key flow, see `security_access_handler.md`.
+
 **Purpose:** Check if UDS/KWP2000 security access has been unlocked; compare session key/level against current unlock state.
 
 **Inputs:**

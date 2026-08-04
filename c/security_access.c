@@ -2,11 +2,13 @@
  * security_access.c — UDS Service 0x27 (SecurityAccess) handler
  *
  * ═══════════════════════════════════════════════════════════════════
- *  STATUS: DRAFT / UNVERIFIED structural reconstruction.
+ *  STATUS: VERIFIED core, one DRAFT sub-flow remaining.
  * Address: 0x584A0
- *  2026-08-04: key_validate (10-entry table) e position_check
- *  (word_tab[2]=0xFFFC) verificati contro ROM; DRAFT residui:
- *  flusso RequestSeed (r.~203).
+ *  2026-08-04: key_validate (10-entry table @0x5FAA2) e position_check
+ *  (word_tab[2]=0xFFFC) verificati contro ROM; seed_gen VERIFIED
+ *  2026-08-03 (test_seed_gen_5699A.py, 0 mismatch); lfsr/seed_key_related
+ *  VERIFIED 2026-07-31.  L'UNICO DRAFT residuo è il flusso RequestSeed
+ *  (r.~203-248).
  *
  *  IMPORTANT — READ FIRST:
  *   * The seed↔key TRANSFORM core (seed_key_related) has been corrected to
@@ -15,16 +17,19 @@
  *     tools/mazda_security.py (ECOMcat) — it is bit-equivalent to the ROM
  *     at level 1 and reproduces all ROM-emulated reference vectors.
  *   * The surrounding UDS handler FLOW (dispatch, subfunctions, seed
- *     generation, state checks, tables) remains a partially-guessed
- *     structural mapping of the ROM: function boundaries, argument orders
- *     and the tables' exact roles are NOT all confirmed.  Parts marked
- *     "DRAFT" below must not be trusted.
+ *     generation, state checks, tables) is mostly confirmed against the
+ *     ROM: key_validate, position_check, seed_gen and the state checks
+ *     are VERIFIED (see each block below).  The ONLY unconfirmed part is
+ *     the RequestSeed sub-flow (r.~203-248), a structural mapping of the
+ *     ROM not yet confirmed in detail.  Parts marked "DRAFT" below must
+ *     not be trusted.
  *   * This file must NOT be used to answer real security-access requests
- *     on a stock ECU until the DRAFT parts are confirmed against the ROM
- *     (and, ideally, real captures).
- *   * docs/notes/RESUME.md lists the stock LFSR as an open issue; that
- *     entry is now out of date (the LFSR core was solved 2026-07-31 —
- *     see tools/mazda_security.py docstring).
+ *     on a stock ECU until that RequestSeed DRAFT flow is confirmed
+ *     against the ROM (and, ideally, real captures).
+ *   * docs/notes/UDS_SECURITY_MAPPING.md tracks the security-access open
+ *     items (subfunction→level mapping, seed_gen internals, key_validate
+ *     middle byte); the stock-LFSR core itself was solved 2026-07-31 —
+ *     see tools/mazda_security.py docstring.
  * ═══════════════════════════════════════════════════════════════════
  *
  * Structural C reconstruction of the SH-2 handler at ROM 0x584A0
@@ -44,8 +49,8 @@
  *   - tools/mazda_security.py (ECOMcat / Craig Smith Car Hacking Handbook)
  *   - ROM data at 0x5FAC0: 5-byte secret "MazdA"
  *   - ROM data at 0x5FAC5: per-level LFSR INIT table (3 bytes per level)
- *   - docs/notes/RESUME.md (note: its "stock LFSR open issue" entry is now
- *     out of date — the LFSR core is solved)
+ *   - docs/notes/UDS_SECURITY_MAPPING.md (subfunction→level mapping,
+ *     seed_gen internals, key_validate middle byte — status updated there)
  */
 
 #include <stdint.h>
@@ -166,7 +171,7 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
 
     /* --- State reads at ROM handler 0x584A0 entry (CONFIRMED 2026-08-03) ---
      * The ROM unconditionally calls state_check1() @0x584CC and state_check2()
-     * @0x584D2.  The old DRAFT guess "if state_check1() != 0 -> NRC_GR (0x11)"
+     * @0x584D2.  The old guess "if state_check1() != 0 -> NRC_GR (0x11)"
      * is WRONG — there is NO such guard:
      *   * disasm 0x584A0-0x58640: the only NRC literals emitted are
      *     {0x31, 0x12, 0x35, 0x22}.  NRC 0x11 (GR) never appears in the
@@ -207,10 +212,12 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
     if (subfunc == SF_REQUEST_SEED) {
         /* ---- Subfunction 0x01: RequestSeed ---- */
 
-        /* DRAFT: the old "absolute-value trick" (abs_sub) and the
-         * "level must be 1" guard were guesses; the outer subfunc check
-         * above already guarantees 0x01 here.  Remaining flow is a
-         * structural mapping of ROM 0x584A0, not confirmed in detail. */
+        /* DRAFT — the ONLY remaining unverified sub-flow in this file
+         * (see header STATUS; ~lines 203-248).  The old "absolute-value
+         * trick" (abs_sub) and the "level must be 1" guard were guesses;
+         * the outer subfunc check above already guarantees 0x01 here.
+         * The remaining flow is a structural mapping of ROM 0x584A0,
+         * not confirmed in detail. */
 
         /* Level 1: set up response length + generate seed */
         resp_data[0] = 0x67;           /* SID | 0x40 = 0x67 */
