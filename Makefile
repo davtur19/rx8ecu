@@ -24,11 +24,10 @@
 #   make ROM=roms/stock/<id>.bin verify   # any image in the dataset
 #   make clean
 #
-# Catalog tooling (orchestration for the classifier / catalog / badges):
-#   make all        catalog + classify + badges + test (full catalog pipeline)
+# Catalog tooling (orchestration for the classifier / catalog):
+#   make all        catalog + classify + test (full catalog pipeline)
 #   make catalog    regen symbols/CATALOG_MASTER.csv + CATALOG_STATUS.md + NAMES_STATUS.md
 #   make classify   regen symbols/FUNCTION_CATEGORIES.csv (hybrid classifier)
-#   make badges     regen README progress badges + MANIFEST rows (from CATALOG_MASTER)
 #   make test       Python regression suites (repo pattern: plain python3, see below)
 #
 # NOTE: the pre-release Makefile had a private personal-ROM target for the
@@ -65,7 +64,7 @@ endif
 # would self-reference and expand empty.
 export PATH := $(if $(TC),$(TC):$(ENV_PATH),$(ENV_PATH))
 
-.PHONY: build all verify verify-all cert src c-test c-emu test test-fast catalog classify badges clean
+.PHONY: build all verify verify-all cert src c-test c-emu test test-fast catalog classify clean
 
 # Default target: rebuild the stock ROM (documented `make` behavior).
 build: $(BUILD)/out.bin
@@ -142,21 +141,18 @@ test:
 test-fast:
 	python3 tools/run_tests_parallel.py c/tests/verify_emu.py
 
-# --- Catalog tooling: classifier + master catalog + badges (deterministic) ---
+# --- Catalog tooling: classifier + master catalog (deterministic) ---
 # Run from the repo root. Both generators are idempotent: a second run produces
 # no further diff (guarded in CI by `git diff --exit-code` on the four
 # catalog artifacts). tools/verify_roms.py does not exist in this repo, so no
 # `verify` target is provided here.
-all: catalog classify badges test
+all: catalog classify test
 
 catalog:
 	python3 tools/gen_catalog.py
 
 classify:
 	python3 tools/classify_functions.py
-
-badges:
-	python3 tools/gen_badges.py
 
 clean:
 	rm -rf $(BUILD) src/*.o src/*.elf src/*.bin

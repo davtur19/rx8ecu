@@ -1,9 +1,8 @@
 # `tools/` — reverse-engineering & byte-exact rebuild tooling
 
-Self-contained home for **rebuilding and documenting** the RX-8 ECU firmware.
-Everything needed to regenerate a ROM from source lives here (plus the shared
-data and general tooling at the repo root: `roms/`, `src/`, `symbols/`,
-`analysis/`, `c/`, `docs/`).
+Home for **rebuilding and documenting** the RX-8 ECU firmware. Everything needed
+to regenerate a ROM from source lives here (plus shared data at the repo root:
+`roms/`, `src/`, `symbols/`, `analysis/`, `c/`, `docs/`).
 
 ## Contents
 
@@ -59,7 +58,6 @@ regression-diffed against known-good firmware. Details in
 ## Related (repo root)
 
 `../PLANS.md` (master plan — single source of truth) · `../roms/ROMS.md` (ROM
-catalog) · `../docs/notes/` (KNOWLEDGE / FINDINGS / RESUME) ·
-`../c/` (verified C lifts + test suites). Security knowledge now lives in
-`../tools/mazda_security.py` and `../c/security_access.c` (the legacy
-`../security/` directory was moved to private storage).
+catalog) · `../docs/notes/` (KNOWLEDGE / FINDINGS / RESUME) · `../c/` (verified
+C lifts + test suites). Security knowledge: `../tools/mazda_security.py` and
+`../c/security_access.c` (legacy `../security/` moved to private storage).

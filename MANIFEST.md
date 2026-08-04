@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `2be22e648894112af75beee31c29d23987b0b0454a07dbaf7226440e094e0f92` | 6.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `0ee881145f29cc2edd3e5a9eb891e4918fd3343584521672e820c0b69f7f5837` | 11.3K | Master plan (single source of truth) |
-| `README.md` | `d4b5099ae98ae0c886793a255350f7b54dd50cc904af093e8f7699eff9f33826` | 10.8K | Project README |
+| `README.md` | `c9cb9f2dd955ea237095a8362c0dbb43096b16f02fcc2ea3579885c074139845` | 9.8K | Project README |
 | `REPLICATION.md` | `0d36b01f2c5c9b8333addce71df8d2f568e9a002e4b7394fb8e40b05b5384f60` | 9.8K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `41e4bc885e360a69e3fc8983e76438dbedc7ff3617eae35e3e1e3dcaf673c347` | 9.6K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -579,7 +579,6 @@ or the toolchain install (git-ignored; re-create with
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
 | `tools/fix_romcodes.py` | `a4ac233c37e70a09e297a246fdd016e69c0d824486a8a9e15cb9dd0be530a007` | 3.0K | Tracked file |
-| `tools/gen_badges.py` | `811fc966bff14589ce135baa2df7ec84ff1749a572d95786d7c580db12e2f36b` | 14.9K | RE tool (see tools/README.md) |
 | `tools/gen_catalog.py` | `13440ac2ec6b7bd770c4705c1d4242daf23e6928bf7390ea3c89ea31d123a555` | 39.7K | Tracked file |
 | `tools/gen_manifest.py` | `2154966f6530667e55ae6189a6554b0e244d091dff9cf2d7bf213f4383c70e75` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
@@ -900,7 +899,6 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
 | `.github/workflows/README.md` | `4ba420eb633f9177d6a5f5500289c905cfa6b312c4c0e861ad2db6ee93878f6d` | 5.4K | CI documentation (GitHub Actions) |
-| `.github/workflows/badges.yml` | `4f40da5c12230af92dc74d24777e5ed985ac4fe37cfcfeb4088a0a68354df82c` | 2.0K | CI workflow (GitHub Actions) |
 | `.github/workflows/ci.yml` | `1ddf36816a5002c5833d33592937c3f5843f70d67fc54b5942027a6e973dbca7` | 7.8K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `8cea71e76a9b2e7617727d4f4ef54447f8d47f48ddc5d193b986c66ce4b753ef` | 2.9K | CI workflow (GitHub Actions) |
 

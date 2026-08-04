@@ -12,7 +12,7 @@ Before using Ghidra MCP: confirm it's running and the correct program is loaded.
 
 ## Notes layout
 
-Three memory layers, aligned with episodic/semantic agent memory research:
+Three memory layers:
 
 | File | Layer | Purpose | When to read |
 |---|---|---|---|
@@ -25,8 +25,7 @@ Three memory layers, aligned with episodic/semantic agent memory research:
 | `docs/notes/CAN_PROTOCOL.md` | Reference | Full CAN ID list and protocol details | CAN work |
 | `PLANS.md` | Planning | Multi-step investigation plans | Long investigations |
 
-**Rule**: `KNOWLEDGE.md` contains only facts that cannot be discovered by reading files or running tools.
-Do not add procedural instructions, reminders, or tool usage guides — those cost tokens without benefit.
+**Rule**: `KNOWLEDGE.md` contains only facts that cannot be discovered by reading files or running tools. No procedural instructions, reminders, or tool-usage guides.
 
 ## Session memory rule
 
@@ -37,8 +36,7 @@ Do not add procedural instructions, reminders, or tool usage guides — those co
 - Next concrete step (1–2 items max)
 - Open questions (max 3)
 
-This is episodic memory — it replaces the previous entry, it is not a log.
-Confirmed facts always go to `FINDINGS.md`, not the ephemeral session notes.
+Episodic memory: replaces the previous entry, not a log. Confirmed facts go to `FINDINGS.md`, not session notes.
 
 ## Quick commands
 
@@ -49,8 +47,8 @@ python tools/denso_ck.py roms/stock/my_rom.bin -f           # fix checksum in-pl
 
 Live-ECU tooling is **private and not shipped** in this repo: the ROM dump tool
 (32-bit Python, OBDX Pro VX) and the LC-patch injector have **no public
-equivalent** here. See `docs/notes/DUMP_ALL.md` for the dump procedure and
-`docs/notes/ECU.md` for the LC-patch injection description.
+equivalent** here. Dump procedure: `docs/notes/DUMP_ALL.md`; LC-patch injection:
+`docs/notes/ECU.md`.
 
 ## Temp work
 
@@ -60,7 +58,7 @@ New artifacts go to `tmp/<topic>/` first. See `tmp/README.md` for the promotion 
 
 Rituale su ogni file modificato (`c/*.c`, `c/tests/*`, `tools/*.py`, `symbols/*.csv`):
 `fn → changed → all → make test`. `fastverify.py` è read-only (artefatti in `/tmp`),
-auto-rileva la repo root, exit 0/1/2 (ok / failure / env-error). Dalla root del repo:
+auto-rileva la repo root, exit 0/1/2 (ok / failure / env-error):
 
 ```bash
 python3 ../.opencode/fastverify.py fn <nome|0xADDR|rom.bin>   # ~0.4 s — verifica la funzione modificata

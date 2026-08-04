@@ -1,12 +1,7 @@
 # VERIFICATION — evidence that the release does what it claims
 
-Everything in this file was re-measured on 2026-07-31 with the shipped
-toolchain (sh-elf binutils 2.46) and capstone 5.0.7 / Python 3.14, and
-**re-run in this final refactored public tree** (see the notes below each
-section).
-
-**Scope note:** this repo ships and verifies **9 public stock ROMs**; all
-byte-exact rebuild claims below are **9/9** for the shipped tree.
+Measured 2026-07-31 (sh-elf binutils 2.46, capstone 5.0.7, Python 3.14);
+**re-run in this public tree**. All rebuild claims are **9/9** for the 9-ROM set.
 
 ## 1. Byte-exact rebuild — 9/9 public stock ROMs
 
@@ -34,10 +29,10 @@ ROM                            sha256 match                    cov%    raw  STAT
 OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
-`raw` = number of code-window words the self-correction loop forced back to
-`.word` because GNU-as has no syntax for them (mostly the SH-2E `0x82nn/0x86nn`
-`mov.l @(disp,Rm)` encodings) or they are data words capstone over-decoded; they
-are emitted verbatim, so byte-exactness is by construction.
+`raw` = code-window words the self-correction loop forced back to `.word`
+because GNU-as has no syntax for them (mostly the SH-2E `0x82nn/0x86nn`
+`mov.l @(disp,Rm)` encodings) or capstone over-decoded them as data; emitted
+verbatim, so byte-exactness is by construction.
 
 ### sha256 — source ROM vs rebuilt output (identical)
 
@@ -58,17 +53,16 @@ Single-ROM spot check (re-run here): `make ROM=roms/stock/60E1D400.bin verify`
 
 ## 2. Instruction-lift coverage (annotated sources)
 
-Window `0x800..0x60000` = 195,584 words. Remainder is byte-exact `.word` data
+Window `0x800..0x60000` = 195,584 words; remainder is byte-exact `.word` data
 (literal pools, jump tables, calibration, padding, strings). From
 `src/ANNOTATED_SOURCES.md` (table reproduced):
 
-> **Coverage honesty caveat.** The coverage figures below are *round-trip*
-> coverage — every in-window word that decodes and re-encodes to valid bytes is
-> counted — and the byte-exact rebuild is real and verified (section 1).
-> However, a small fraction (~6%) of those counted words are data tables that
-> happen to decode as valid instructions (e.g. the `0x0007` `mul.l r0,r0`
+> **Coverage honesty caveat.** Figures below are *round-trip* coverage — every
+> in-window word that decodes/re-encodes to valid bytes is counted — and the
+> byte-exact rebuild is real and verified (section 1). ~6% of counted words are
+> data tables that decode as valid instructions (the `0x0007` `mul.l r0,r0`
 > marker appears 2,427× — more than `rts`), so the true code fraction is
-> ~88–91%, with data ~9–12%.
+> ~88–91%, data ~9–12%.
 
 | ROM | annotated .s | size (.s) | function labels | .word lines | coverage% (in-window) | byte-exact rebuildable? |
 |---|---|---|---|---|---|---|
@@ -97,25 +91,23 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 
 ## 4. Track A / C lifts
 
-- **266 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-03:
-  266 unique address tokens across the address lines) — functions proven
-  behavior-equivalent against the emulated ROM (many over 20k–60k+ random
-  inputs; the math-primitive cluster and memory accessors over 30k, lookup/
-  interp leaves over 10k–40k, incl. inf/NaN edges).
-- **Coverage honesty caveat:** ~3.9% of the "covered" words are data markers
+- **266 verified addresses** in `c/verified_addrs.txt` (counted 2026-08-03) —
+  functions proven behavior-equivalent against the emulated ROM (many over
+  20k–60k+ random inputs; math-primitive cluster and memory accessors over 30k;
+  lookup/interp leaves over 10k–40k, incl. inf/NaN edges).
+- **Coverage honesty caveat:** ~3.9% of "covered" words are data markers
   `0x0004`–`0x0007` that decode as instructions (`0x0007` `mul.l r0,r0` ×2427);
-  real code coverage is ≈88–91%.
-- **177 C lifts** in `c/*.c` covering: lookup/interp primitives (2D/3D, u8/u16,
-  FP), the scalar-math cluster (0x2044–0x2510), redundant RAM accessors
-  (8/16/32-bit + float, self-heal), RTOS scheduler/context switch, immobilizer/
-  SecurityAccess, DTC/OBD handlers, sensors (coolant, IAT, MAP, knock, VSS,
-  battery, throttle), PID controllers, fueling/ignition/OMP chain, CAN/UDS,
-  boot/reset.
+  real code coverage ≈88–91%.
+- **177 C lifts** in `c/*.c`: lookup/interp primitives (2D/3D, u8/u16, FP),
+  scalar-math cluster (0x2044–0x2510), redundant RAM accessors (8/16/32-bit +
+  float, self-heal), RTOS scheduler/context switch, immobilizer/SecurityAccess,
+  DTC/OBD handlers, sensors (coolant, IAT, MAP, knock, VSS, battery, throttle),
+  PID controllers, fueling/ignition/OMP chain, CAN/UDS, boot/reset.
 - **Recent verification batches (reference commits)** — OBD vars/vector
   `test_obd_vars_vector.py` f7f6424, OBD vars-lift fix (getOBDCANTXVars1/2)
-  c0fa7e3, CAN packers + MAF sensor-limits fix a7fc6d5, OBD getters + CAN/O2
-  batch 14dcbf3, seed_gen 91193ac, emulator MMIO hook (unblocks sensorADCRead)
-  c1e49b6, badges/README catalog regeneration 6994add.
+  c0fa7e3, CAN packers + MAF limits fix a7fc6d5, OBD getters + CAN/O2 batch
+  14dcbf3, seed_gen 91193ac, emulator MMIO hook (unblocks sensorADCRead)
+  c1e49b6, badges/README regeneration 6994add.
 
 ## 5. Analysis / symbols / docs
 
@@ -133,8 +125,7 @@ to the shipped `src/60E1D400_annotated.s` (`cmp` == 0).
 ## 6. ROM inventory hashes (also in roms/ROMS.md)
 
 All 9 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor
-@0x7FB80, target 0x5AA5A55A). Verified here with
-`python3 tools/denso_ck.py roms/stock/60E1D400.bin` → `OK — checksum corretto`.
+@0x7FB80, target 0x5AA5A55A); verified with `python3 tools/denso_ck.py roms/stock/60E1D400.bin` → `OK — checksum corretto`.
 
 | ROM | sha256[:16] | Status |
 |---|---|---|
@@ -150,8 +141,7 @@ All 9 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor
 
 ## 7. Self-containedness
 
-`make verify-all` was executed with an **empty environment**
-(`env -i PATH=/usr/bin:/bin` + the shipped `tools/toolchain/usr/bin` on PATH),
-proving the repo needs no hidden exports, aliases or data outside its own
-tree. Output identical to section 1. The fresh-clone procedure is
-[REPLICATION.md](REPLICATION.md).
+`make verify-all` was executed with an **empty environment** (`env -i
+PATH=/usr/bin:/bin` + shipped `tools/toolchain/usr/bin` on PATH), proving no
+hidden exports, aliases, or external data are needed; output identical to
+section 1. Fresh-clone procedure: [REPLICATION.md](REPLICATION.md).
