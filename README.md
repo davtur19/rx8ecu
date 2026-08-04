@@ -1,7 +1,7 @@
 # Mazda RX-8 PCM Reverse Engineering
 
-> ⚠️ **AI-Assisted Reverse Engineering — Feasibility Experiment**
-> This repository is an experiment to assess whether AI can assist in reverse-engineering the Mazda RX-8 ECU firmware at scale. Much of the content — especially the per-function docs in `docs/functions/` and parts of the abstract C under `c/` — is AI-generated and tagged `AI (Haiku) draft, unverified`. Treat everything not backed by an explicit verification marker (see `VERIFICATION.md`, `c/verified_addrs.txt`, the `c/tests/` suites) as **unverified hypothesis to be independently confirmed**, not as ground truth. The annotated assembly in `src/` reassembles to the stock ROMs **byte-identically (9/9)** and is the most reliable artifact; the C abstraction and the docs are progressively-validated building blocks.
+> ⚠️ **AI-Generated Content — Feasibility Experiment**
+> Everything in this repository is AI-generated unless explicitly stated otherwise (e.g., the community contributions credited below). This is an experiment to assess whether AI can assist in reverse-engineering the Mazda RX-8 ECU firmware. Content without an explicit verification marker should be treated as a hypothesis to be confirmed, not as ground truth.
 
 <!-- BADGES:START -->
 ![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
