@@ -10,7 +10,7 @@
  *               0 mismatches, bit-exact 16-bit results).
  * Lift (truth): c/add16bitSaturate.c  — `add16bitSaturate_ADD1_ADD2` @0x2460,
  *               hand-annotated Ghidra RE by equinox311 (program 60E0FC00);
- *               byte-identical helper in 60E1D400 / 60E0FC00 / [REDACTED].
+ *               byte-identical helper in 60E1D400 / 60E0FC00.
  *
  * WHY THIS FUNCTION EXISTS
  * ------------------------

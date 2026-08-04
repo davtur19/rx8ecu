@@ -83,7 +83,7 @@ def derive_asm_coverage():
     """Round-trip SH-2 lift coverage badge value, derived from VERIFICATION.md.
 
     Parses the per-ROM in-window coverage percentages in the VERIFICATION.md §2
-    table (skipping [REDACTED]/private rows) and returns the mean rounded to
+    table (skipping any non-shipped rows) and returns the mean rounded to
     one decimal.  If the table cannot be read or parsed, falls back to
     ASM_COVERAGE_FALLBACK and warns on stderr.
     """
@@ -96,7 +96,7 @@ def derive_asm_coverage():
     vals = []
     for m in COVERAGE_ROW_RE.finditer(text):
         row = m.group(0)
-        if "REDACTED" in row or "PRIVATE" in row:
+        if "PRIVATE" in row:
             continue
         vals.append(float(m.group(1)))
     if not vals:

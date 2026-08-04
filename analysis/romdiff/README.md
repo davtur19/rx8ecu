@@ -14,7 +14,7 @@ Python 3.8+, no third-party packages.
 ## Inputs (read-only)
 
 - `roms/stock/*.bin` — 9 stock 512 KB SH-2E ROMs
-- `symbols/cal_tables.csv` — 1210 calibration-table addresses ([REDACTED] layout)
+- `symbols/cal_tables.csv` — 1210 calibration-table addresses (60E1D400 layout)
 
 ## Outputs
 
@@ -36,7 +36,7 @@ Python 3.8+, no third-party packages.
 
 ## Classification bands (anchored to baseline 60E1D400)
 
-See REPORT.md. Exact known-table matching uses the [REDACTED] address map from
+See REPORT.md. Exact known-table matching uses the 60E1D400 address map from
 `cal_tables.csv`; Z-line (cal_lo 0x6D300) and N3M5E (~0x715C0) builds relocate
 their table block, so `cal_table` hits are exact only for J-line-layout ROMs.
 

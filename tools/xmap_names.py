@@ -3,7 +3,7 @@
 xmap_names.py — transfer function names ACROSS ROMs by content signature.
 
 The community's reliable hand analysis (equinox) is on 60E0FC00, but the other ROMs
-(baseline 60E1D400, the user's [REDACTED], ...) have different code layouts, so names
+(baseline 60E1D400, ...) have different code layouts, so names
 cannot be moved by address. This matches functions by a layout-invariant signature —
 the instruction mnemonics + operands, with absolute pool/branch addresses masked
 (they differ across builds) — and transfers a name only on a UNIQUE 1:1 signature match.
@@ -22,7 +22,7 @@ Usage:
   # private (user's ECU, derive entries — not in the public repo; use repo-relative
   # or local paths for the private dump, which is intentionally not shipped):
   python tools/xmap_names.py --src-rom roms/stock/60E0FC00.bin --src-syms symbols/symbols_60E0FC00.csv \
-      --dst-rom <[REDACTED]> --derive --out <[REDACTED]>
+      --dst-rom <dst.bin> --derive --out <symbols.csv>
 """
 import argparse, csv, re, sys
 try:

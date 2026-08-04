@@ -12,7 +12,7 @@
   - `padding` 0x6C270-0x6CDFF  baseline 0xFF filler gap(s)
   - `cal_data` 0x6CE00-0x7DAFF  calibration tables region
   - `tail`    0x7DAFF-0x7FFFF  checksum descriptor @0x7FB80 + trailing
-- Known-table hits use `symbols/cal_tables.csv` (1210 addrs, private [REDACTED] layout). Valid only for J-line builds; other families relocate the table block.
+- Known-table hits use `symbols/cal_tables.csv` (1210 addrs, 60E1D400 layout). Valid only for J-line builds; other families relocate the table block.
 - All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), so headers are aligned; divergence accumulates through the body.
 
 ## 1. Similarity matrices
@@ -130,7 +130,7 @@ Header-region byte diffs vs baseline: 60E1C500 = 0, 60E1B900 = 3, 60E32000 = 3, 
 
 ## 5. Calibration-table differences
 
-9644 rows / 1209 distinct known-table addresses ([REDACTED] map) differ vs baseline. Full u16 values + signed deltas in `cal_table_diffs_baseline.csv`. Per pair:
+9644 rows / 1209 distinct known-table addresses (60E1D400 map) differ vs baseline. Full u16 values + signed deltas in `cal_table_diffs_baseline.csv`. Per pair:
 
 | pair | total addrs | value diffs | equal | FF artifact | max|delta| |
 |---|---|---|---|---|---|

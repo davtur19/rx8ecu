@@ -186,8 +186,7 @@ def main():
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
 in the working repository. **{total_files} entries, {human_size(total_bytes)}.** Regenerated 2026-08-02 for the
-9-ROM public tree (the 10th stock ROM [REDACTED] and all modified images are private;
-see roms/ROMS.md).
+9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
@@ -211,9 +210,9 @@ The repo is self-contained except for:
 | sh-elf binutils | 2.46 | SHIPPED at `tools/toolchain/usr/bin`; re-install via `./tools/get_toolchain.sh` |
 | cc (host C compiler) | any | only for `make c-test` (host-side tests) |
 
-No other runtime dependencies. The repo does NOT ship: the 10th stock ROM ([REDACTED]),
-modified/tuned images, Ghidra/IDA projects (`.gar`, `.i64`), [REDACTED]/[REDACTED]
-binaries, the toolchain source, or the toolchain install (git-ignored; re-create with
+No other runtime dependencies. The repo does NOT ship tuned/private ROM images,
+Ghidra/IDA project files (`.gar`, `.i64`), other binaries, the toolchain source,
+or the toolchain install (git-ignored; re-create with
 `./tools/get_toolchain.sh`).
 
 ## Notes on adapted files

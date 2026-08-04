@@ -1288,7 +1288,7 @@ skip_knock:
 
 ## 15. Open Questions / Uncertainties
 
-1. **Precise table addresses** — The cal_tables.csv addresses may be from a different ROM version ([REDACTED]). Need to verify against 60E1D400 binary.
+1. **Precise table addresses** — The cal_tables.csv addresses are for the J-line variant layout. Need to verify against 60E1D400 binary.
 2. **Coil fire helper (0xAA74)** — The function that actually triggers the coil output needs separate analysis. It may be a PWM duty cycle write or a compare register update.
 3. **Ion sense detection** — Some Mazda ECUs detect misfire via ion sense on the spark plug. The `spark_plug_monitor_0x50A54` function may be related but is in a separate code region.
 4. **Split angle computation** — The precise formula for leading-trailing split is not fully verified. The `rotor_sync_gate_state_ctrl_2100A` function needs deeper analysis for the exact lookup.

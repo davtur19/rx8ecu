@@ -2,7 +2,7 @@
  * add16bitSaturate  —  RX-8 PCM helper @ ROM 0x2460
  *
  * Function name from the hand-annotated Ghidra RE by equinox311 (program 60E0FC00):
- * `add16bitSaturate_ADD1_ADD2`. Byte-identical helper in 60E1D400, 60E0FC00, [REDACTED].
+ * `add16bitSaturate_ADD1_ADD2`. Byte-identical helper in 60E1D400 and 60E0FC00.
  *
  * Original SH-2 (big-endian):
  *     extu.w r4,r4          ; add1 = (uint16)add1   (arg0 in r4)

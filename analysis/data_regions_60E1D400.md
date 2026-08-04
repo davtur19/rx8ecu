@@ -18,7 +18,7 @@ mismatches against `L_xxxxxx` embedded addresses).
   all-zero/all-0xFFFF runs are padding even if a stray pcrel ref lands in
   them; 0x00xx/0xFFxx partial-pattern padding requires the run to be
   *unreferenced* (a referenced 0x00xx run is a constant table, not filler).
-- Calibration used `cal_tables.csv` (1210 entries; src=[REDACTED]).
+- Calibration used `cal_tables.csv` (1210 entries).
 - Capstone CS_ARCH_SH / CS_MODE_SH2, big-endian. NOTE: capstone's SH-2
   decoder is a strict subset of the .s decoder (fails on common opcodes
   such as 0x0000, 0x0100, 0x0400, 0xffff), so 'undecoded_code_capstone'

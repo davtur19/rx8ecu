@@ -4,7 +4,7 @@ Active RE work. Non-discoverable facts: `KNOWLEDGE.md`. Confirmed discoveries: `
 
 ---
 
-## CAN Dispatch Table ([REDACTED])
+## CAN Dispatch Table
 
 Location: `0x4E728` (copy at `0x4E828`). Entry = 16 bytes.  
 Handler ptr formula: `(b[12] << 16) | int.from_bytes(b[10:12], 'big')`

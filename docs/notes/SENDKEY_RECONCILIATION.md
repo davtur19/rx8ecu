@@ -99,7 +99,7 @@ What neither commit covered: **whether the ROM body at 0x58592 is itself
 reachable from the UDS dispatch**.  The flow was verified against the body, and
 the body is a faithful, identical shared-codebase remnant — but the body is
 dead in every one of the 9 public stock images (and, per `src/ANNOTATED_SOURCES.md`,
-the 10th private [REDACTED] dump belongs to the same family).
+the owner's private live-ECU dump belongs to the same family).
 
 ---
 

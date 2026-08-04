@@ -4,7 +4,7 @@ test_security_access.py — Verification of the Mazda RX-8 SecurityAccess LFSR
 
 Tests the 24-bit Galois LFSR seed↔key algorithm against:
   1. The existing mazda_security.py implementation
-  2. Real-world CAN captures ([REDACTED]-tuned ECU)
+  2. Real-world CAN captures (tuned-ECU; not shipped in this public file)
   3. Cross-checks with the ROM data tables at 0x5FAC0
   4. ROM-verified reference vectors (SeedKeyRelated @0x56ADA, emulated)
 
@@ -168,7 +168,7 @@ def compute_key_rom_params(seed_bytes, secret_bytes, init, taps):
 #   The legacy value 0x3B15E1 (kept for history) had NO ROM/emulation
 #   support and was the cause of the old self_test FAIL; docs/notes/RESUME.md
 #   still lists the stock algorithm as open — that entry is now out of date.
-# Real-world [REDACTED] capture vectors are not shipped in this public file
+# Real-world tuned-ECU capture vectors are not shipped in this public file
 # (their secret is private-capture data).  The ROM-verified stock vectors
 # below exercise the same code paths; the algorithm additionally reproduces
 # the vendor captures via the removed vendor-family LFSR-collision twin (see
@@ -180,7 +180,7 @@ STOCK_TEST = {
     'legacy_wrong_key': bytes([0x3B, 0x15, 0xE1]),  # historical, superseded
 }
 
-# Real-world captures from a [REDACTED]-tuned ECU were removed from this
+# Real-world captures from a tuned ECU were removed from this
 # public file (private-capture data).  The ROM-verified stock vectors in
 # ROM_VECTORS (level 1, secret 'MazdA') cover the same code paths.
 
@@ -220,7 +220,7 @@ def test_mazda_security_self_test():
 def test_real_captures():
     """Verify compute_key against the ROM-verified level-1 reference vectors.
 
-    (The real-world [REDACTED] capture vectors that used to live here were
+    (The real-world tuned-ECU capture vectors that used to live here were
     removed from this public file; the stock ROM vectors below cover the same
     compute_key path — see test_rom_reference_vectors for levels 1-4.)"""
     all_ok = True

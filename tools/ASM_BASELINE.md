@@ -31,15 +31,13 @@ make verify                  # 60E1D400 -> build/out.bin, then cmp
 
 Final results (this repo, sh-elf binutils 2.46, ~1.5 s per ROM): **all 9
 public stock ROMs byte-exact** (93.5–93.8% in-window instruction lift), see
-`../VERIFICATION.md` for the full table; the 10th dataset ROM ([REDACTED]) is
-byte-exact verified too but kept private.
+`../VERIFICATION.md` for the full table.
 
 Historical development figures (older toolchain, lower coverage) for reference:
 
 | ROM      | Code lifted to instructions | Raw fallbacks | cmp   |
 |----------|-----------------------------|---------------|-------|
 | 60E1D400 | 165385/195584 words (84.6%) | 5             | MATCH |
-| [REDACTED] | 165289/195584 words (84.5%) | 7             | MATCH |
 | 60E1C500 | 165434/195584 words (84.6%) | 10            | MATCH |
 | 60E32000 | 164858/195584 words (84.3%) | 8             | MATCH |
 

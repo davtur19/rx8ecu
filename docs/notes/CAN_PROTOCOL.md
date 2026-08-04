@@ -120,8 +120,8 @@ secondary_system_controller:
 ## Known Proprietary Broadcast IDs
 
 > Description column: **field-verified meanings** (per
-> `[REDACTED]05_can_protocol/verification/field_vs_firmware.md` and
-> `[REDACTED]05_can_protocol/rx8club_thread_276101_CAN_map.txt`) replace
+> `can_protocol/verification/field_vs_firmware.md` and
+> `can_protocol/rx8club_thread_276101_CAN_map.txt`) replace
 > earlier firmware-guess labels. DLC/dir/ID come from the firmware mailbox
 > config and are unchanged. See "Field vs firmware" at the end of this file.
 
@@ -155,8 +155,8 @@ secondary_system_controller:
 
 A known third-party patch that modifies CAN frame content to make normally-hidden parameters visible to dataloggers:
 
-- **0x630 handler** (`0x1C044` in [REDACTED]): adds fan status byte
-- **0x250 handler** (`0x1CEB8` in [REDACTED]): adds injection pulse width byte
+- **0x630 handler** (`0x1C044` in the J-line variant): adds fan status byte
+- **0x250 handler** (`0x1CEB8` in the J-line variant): adds injection pulse width byte
 
 These handlers are **not** accessible via standard OBD2 — a custom CAN logger (e.g., OBDX Pro or Tactrix in raw CAN mode) is required to read them.
 
@@ -197,5 +197,5 @@ tier **[A]** (≥2 independent sources; 0x041/0x047 confirmed on two cars). The 
 "PARTIAL" rows are **OPEN — need bench/Ghidra verification** (see the open
 conflicts in the verification file).
 
-Source: `[REDACTED]05_can_protocol/verification/field_vs_firmware.md`
-(+ `[REDACTED]05_can_protocol/rx8club_thread_276101_CAN_map.txt`).
+Source: `can_protocol/verification/field_vs_firmware.md`
+(+ `can_protocol/rx8club_thread_276101_CAN_map.txt`).

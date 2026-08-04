@@ -2,7 +2,7 @@
  * addSaturate8Bit  —  RX-8 PCM helper @ ROM 0x2478
  *
  * Function name from the hand-annotated Ghidra RE by equinox311 (program 60E0FC00).
- * Byte-identical helper across the family (matched into 60E1D400 / [REDACTED] by content
+ * Byte-identical helper across the family (matched into 60E1D400 by content
  * signature).
  *
  * Original SH-2 (big-endian):

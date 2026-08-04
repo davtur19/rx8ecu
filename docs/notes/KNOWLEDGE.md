@@ -12,7 +12,7 @@ Active RE notes: `ECU.md`. Findings history: `FINDINGS.md`.
 | Model | Mazda RX-8 S1, EU 6-port 231hp MT, 2004–2008 |
 | VIN | [VIN redacted] |
 | ECU P/N | N3J1-18-881L (Denso 279700-3313) |
-| Live ROM | `[REDACTED]` — owner's personal dump (`[REDACTED]`, **private — not shipped** in this repo) |
+| Live ROM | owner's personal dump (**private — not shipped** in this repo) |
 | RE baseline | `60E1D400` — same N3J1 family, full docs in `docs/` |
 | CPU | SH7055 (HD64F7055), SH-2E, 32-bit BE; flash 512 KB @ 0x000000; RAM 32 KB @ 0xFFFF6000 |
 | EEPROM | ABLIC S-93C56C, 256 B, SPI bit-bang via GPIO |
@@ -31,7 +31,7 @@ These are non-standard. Getting any of them wrong causes silent failure or NRC.
 | Session open | `10 85` directly | NOT `10 01` first |
 | TesterPresent | `3E 00` | NOT `3E 80` → NRC 0x12 |
 | RMBA format | `23 [4B addr BE][2B len BE]` | no format byte (non-standard) |
-| RMBA format — OPEN | `23 00 [3B addr][2B len]` (ConnorRigby dumper) vs `23 [4B addr][2B len]` above (matches RX8Man) — equivalent for addr < 0x01000000; whether the ECU accepts both is **unverified (bench open item)** — see `docs/hardware/RX8_OBD_UDS_Protocol.txt` and `[REDACTED]08_community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md` | assume one is wrong |
+| RMBA format — OPEN | `23 00 [3B addr][2B len]` (ConnorRigby dumper) vs `23 [4B addr][2B len]` above (matches RX8Man) — equivalent for addr < 0x01000000; whether the ECU accepts both is **unverified (bench open item)** — see `docs/hardware/RX8_OBD_UDS_Protocol.txt` and `community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md` | assume one is wrong |
 | Pending response | `7F 23 78` before each RMBA = **normal** | not an error |
 | Keepalive interval | every 10 s | S3server timeout ~30 s |
 
@@ -48,19 +48,17 @@ Flash reprogramming SIDs: 0x34→0x1A70, 0x36→0x1B8C, 0x37→0x1CB8. SecurityA
 | ROM variant | Key | Hex |
 |---|---|---|
 | Stock `60E1D400` | `"MazdA"` | `4D 61 7A 64 41` |
-| [REDACTED] (tuned ECU) | [REDACTED]-family key (removed for privacy) | — |
-| [REDACTED] `[REDACTED]` | `"[REDACTED]"` | `[REDACTED]` |
 
 LFSR: init=`0xC541A9`, taps=`0x909028`. Per-level LFSR INIT table starts at
 `0x5FAC8` in 60E1D400 (`0x5FAC5`–`0x5FAC7` is `FF FF FF` padding after the
 5-byte secret) — **unchanged across all variants**.  
-The [REDACTED]-family secret was a capture-verified RX-8 UDS SecurityAccess
+The tuned-ECU secret was a capture-verified RX-8 UDS SecurityAccess
 secret on a flashed/tuned ECU; its literal and capture vectors are removed for
 privacy (see `tools/mazda_security.py` — the stock `MazdA` vectors are the
 shipped, ROM-verified reference).
 RESOLVED 2026-08-01 (commit `a84eaba`): `mazda_security.py` self-test + `test_security_access.py` pass — ROM-verified stock vector is seed `0x45820A` / `"MazdA"` / level 1 → `0xA07258` (12 ROM vectors).
 
-**[REDACTED] NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expects ROM's actual key. Fix: set correct 5-byte key for the ROM installed in the ECU.
+If the ECU responds **NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expects ROM's actual key. Fix: set correct 5-byte key for the ROM installed in the ECU.
 
 > ⚠️ The legacy `docs/analysis/RX8_UDS_Security_Analysis.txt` (moved to private
 > storage, no longer shipped) claimed fixed-key + static seed `0x55 0xAA 0x55`.  
