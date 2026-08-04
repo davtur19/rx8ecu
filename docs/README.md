@@ -1,6 +1,6 @@
 # docs/ — documentation index
 
-Navigable index of the documentation shipped in this repo (alphabetical within each section). This index is generated/verified against the current tree; files that were moved to private storage are intentionally not listed.
+Index of the documentation shipped in this repo (alphabetical within each section); files moved to private storage are intentionally not listed.
 
 - [docs/notes/](#docsnotes--project-knowledge-base) — project knowledge base
 - [docs/subsystems/](#docssubsystems--subsystem-analysis) — subsystem analysis

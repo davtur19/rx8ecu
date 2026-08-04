@@ -1,26 +1,19 @@
 # REPLICATION — reproduce byte-perfect RX-8 ECU ROMs from scratch
 
-This is THE document: exact, copy-paste-able steps to go from a fresh clone of
-this repository to byte-perfect (1:1, sha256-verified) copies of all 9 shipped
-stock firmware ROMs, plus the reverse-engineering deliverables (annotated
-assembly, verified C lifts, docs, analysis).
+Exact, copy-paste-able steps from a fresh clone to byte-perfect (1:1,
+sha256-verified) copies of all 9 shipped stock firmware ROMs, plus the RE
+deliverables (annotated assembly, verified C lifts, docs, analysis). The
+procedure applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
 
-This guide covers the 9 sold public stock ROM images; the byte-exact procedure
-applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
-
-Everything is self-contained. The only external pieces are Python 3, the
-`capstone` pip package, and the sh-elf binutils toolchain — which is **not
-shipped in the repo**: it is downloaded on first use by `tools/get_toolchain.sh`
-into `tools/toolchain/` (git-ignored, absent from a fresh clone). A fresh clone
-must run that script once before any rebuild, which requires internet access.
-No root, no `~/.bashrc` exports, no hidden environment magic.
-
-Machine requirement: any Linux/macOS box with Python 3, `cc` (for the C test
-suites only) and `make`. ~2 GB free disk is plenty.
+Self-contained: the only external pieces are Python 3, the `capstone` pip
+package, and the sh-elf binutils toolchain — **not shipped**: a fresh clone must
+run `tools/get_toolchain.sh` once (internet required) to install it into
+`tools/toolchain/` (git-ignored). No root, no `~/.bashrc` exports. Requirements:
+Linux/macOS, Python 3, `make`, `cc` (C test suites only); ~2 GB disk is plenty.
 
 > **Note (toolchain):** `tools/get_toolchain.sh` downloads via Debian/Ubuntu
-> `apt-get`, so on macOS the sh-elf binutils (`sh-elf-as`/`ld`/`objcopy`) must
-> be preinstalled (e.g. via a local build) for the rebuild/verify steps.
+> `apt-get`; on macOS the sh-elf binutils (`sh-elf-as`/`ld`/`objcopy`) must be
+> preinstalled (e.g. local build) for the rebuild/verify steps.
 
 ---
 
@@ -37,8 +30,6 @@ python3 -m pip install capstone --break-system-packages
 cc --version               # gcc/clang, any recent version
 ```
 
-No root is needed. That is the entire prerequisite list.
-
 ## Step 2 — Toolchain (one-time, idempotent)
 
 ```bash
@@ -46,20 +37,16 @@ cd <repo root>
 ./tools/get_toolchain.sh
 ```
 
-This installs the GNU **sh-elf binutils 2.46** assembler/linker/objcopy
-(`sh-elf-as -big`, `sh-elf-ld -Ttext=0`, `sh-elf-objcopy -O binary`) locally at
-`tools/toolchain/usr/bin`. The toolchain is git-ignored and **not present in a
-fresh clone**, so the first run downloads the distro package and unpacks it
-without root (Debian/Ubuntu `apt-get download` + `dpkg-deb -x`; any other
-`sh-elf` binutils with `as`/`ld`/`objcopy` also works). Once installed, later
-runs fast-path with "already installed" and exit 0 — but a fresh copy of the
-repo must run the download once (internet required) before `make verify-all`.
+Installs GNU **sh-elf binutils 2.46** (`sh-elf-as -big`, `sh-elf-ld -Ttext=0`,
+`sh-elf-objcopy -O binary`) locally at `tools/toolchain/usr/bin` (git-ignored).
+First run downloads/unpacks without root (Debian/Ubuntu `apt-get download` +
+`dpkg-deb -x`; any other `sh-elf` binutils also works); later runs fast-path
+"already installed", exit 0. Required before `make verify-all`.
 
-The Makefile targets and `verify_all.sh` resolve this path themselves — **you
-never need to export PATH** for the make-driven steps. The standalone test
-scripts under `tools/tests/` (e.g. `python3 tools/tests/test_decode_families.py`)
-invoke `sh-elf-as` directly, so if it isn't installed system-wide you may need
-`export PATH=$PWD/tools/toolchain/usr/bin:$PATH` before running them.
+The Makefile and `verify_all.sh` resolve the toolchain path themselves — **no
+`PATH` export needed** for make-driven steps. Standalone `tools/tests/` scripts
+(e.g. `python3 tools/tests/test_decode_families.py`) invoke `sh-elf-as` directly;
+if it isn't installed system-wide: `export PATH=$PWD/tools/toolchain/usr/bin:$PATH`.
 
 ## Step 3 — Bulk verify: rebuild + byte-compare all 9 public stock ROMs
 
@@ -67,7 +54,7 @@ invoke `sh-elf-as` directly, so if it isn't installed system-wide you may need
 make verify-all
 ```
 
-Expected output (this is the core claim of the repo):
+Expected output (the repo's core claim):
 
 ```
 Rebuilding and byte-exact-verifying 9 stock ROMs (code window 0x800..0x60000)...
@@ -86,13 +73,9 @@ ROM                            sha256 match                    cov%    raw  STAT
 OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
-Each ROM takes ~1.5 s; the whole run is under 20 s. Exit status 0.
-
-**What just happened:** `tools/rom_rebuild.py` disassembled each 512 KB ROM
-(capstone SH-2 + the `disasm_sh2e.py` fallback), emitted ONE reassemblable GNU-as
-source file, assembled/linked it at the original VMA and compared it to the source
-image byte for byte. `BYTE-EXACT` means `sha256(rebuilt) == sha256(source)` — a
-100% 1:1 copy, not an approximation.
+Each ROM ~1.5 s; whole run under 20 s. Exit status 0. `BYTE-EXACT` means
+`sha256(rebuilt) == sha256(source)` — a 100% 1:1 copy, not an approximation
+(see "What the rebuilt ROM is" below for the pipeline).
 
 ## Step 4 — Verify a single ROM
 
@@ -100,22 +83,21 @@ image byte for byte. `BYTE-EXACT` means `sha256(rebuilt) == sha256(source)` — 
 make ROM=roms/stock/60E1D400.bin verify    # any image in the dataset
 ```
 
-This rebuilds `build/out.bin` from `60E1D400.bin` and `cmp`s them; it prints
+Rebuilds `build/out.bin` from `60E1D400.bin`, `cmp`s them, prints
 `OK: byte-exact rebuild of roms/stock/60E1D400.bin` on success.
 
 ## Step 5 — Regenerate an annotated source
 
-The annotated sources in `src/` (9 ROMs, table in `src/ANNOTATED_SOURCES.md`)
-are generated by `tools/organize_src.py` (function name labels + calibration
-comments + data-region comments, bytes unchanged):
+The annotated sources in `src/` (9 ROMs; table in `src/ANNOTATED_SOURCES.md`)
+are generated by `tools/organize_src.py` (function labels + calibration/
+data-region comments; bytes unchanged):
 
 ```bash
 make src          # 60E1D400 baseline (equinox+IDA names, D400 data-region comments)
 ```
 
-This regenerates the corresponding `src/60E1D400_annotated.s`; output is
-byte-identical to the shipped file (verified in this repo). The equivalent
-direct invocation is:
+Output is `src/60E1D400_annotated.s`, byte-identical to the shipped file
+(verified). Direct equivalent:
 
 ```bash
 python3 tools/organize_src.py \
@@ -126,10 +108,10 @@ python3 tools/organize_src.py \
   --out src/60E1D400_annotated.s
 ```
 
-> **Note (regenerability):** only `src/60E1D400_annotated.s` is regenerable
-> from a clone (`make src`). The other 8 annotated `.s` files require the
-> private xmap CSVs (equinox hand names / `_xmap.csv` / `_idamap.csv`, moved to
-> private storage) and cannot be regenerated from this public tree.
+> **Note (regenerability):** only `src/60E1D400_annotated.s` is regenerable from
+> a clone (`make src`). The other 8 require the private xmap CSVs (equinox hand
+> names / `_xmap.csv` / `_idamap.csv`, private storage) and cannot be
+> regenerated from this public tree.
 
 ## Step 6 — Emulator / Track A (verified C lifts)
 
@@ -148,8 +130,8 @@ OK  seed_mixer           C == emulated ROM @0x366B8  (100k random)
 OK  calculateImmoSeed    C == emulated ROM @0x3675C  (100k random)
 ```
 
-The full Python test suite (112 per-function suites in `c/tests/`, 115 total with `tools/tests/` + `verify_emu.py`) and the SH-2E family
-regression tests can be run from the repo root:
+Full Python suite (112 per-function suites in `c/tests/`, 115 with
+`tools/tests/` + `verify_emu.py`) and the SH-2E family regressions:
 
 ```bash
 python3 tools/tests/test_decode_families.py      # 38,008 checks (disassembler, GNU-as cross-checked)
@@ -166,50 +148,32 @@ python3 tools/denso_ck.py roms/stock/60E1D400.bin
 Expected: `OK — checksum corretto` (the Denso additive checksum descriptor at
 `0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
 
-Modified (tuned) images are intentionally NOT shipped with this public repo
-(they are kept private); for such images a non-OK result would be expected
-behavior, not a failure — a tuned image legitimately bypasses the Denso
-checksum, so `denso_ck.py` reports `ERRATO` and exits 1.
+Modified (tuned) images are NOT shipped (kept private); for such images a
+non-OK result is expected — tuned images legitimately bypass the Denso checksum,
+so `denso_ck.py` reports `ERRATO` and exits 1.
 
 ---
 
 ## What the rebuilt ROM is (and the ~6.4% `.word` regions)
 
-**The rebuilt ROM is a byte-identical copy of the original firmware — 100% 1:1,
-sha256-verified.** `make verify-all` proves it for all 9 public stock ROMs.
+Byte-identical 1:1 copy of the original firmware, sha256-verified by
+`make verify-all`. The annotated sources lift **93.46–93.8%** of the code
+window (`0x800..0x60000`, 195,584 words) to real SH-2 instructions; the rest is
+raw `.word` data (~6.4%: literal pools, jump tables, calibration, padding).
+Byte-exactness is by construction: every even offset is independently a decoded
+instruction or a raw `.word`, and a self-correcting loop forces anything GNU-as
+rejects or re-encodes differently back to `.word` until `cmp == 0`; outside the
+window everything is `.word` verbatim.
 
-The annotated sources lift **93.46–93.8%** of the code window
-(`0x800..0x60000`, 195,584 words) to real SH-2 instructions. The remaining
-**~6.4%** of the window is emitted as raw `.word` data — **literal pools, jump
-tables, calibration data and padding — not code**. Those words assemble back to
-the exact original bytes (byte-exactness is by construction: every even offset is
-independently either a decoded instruction or a raw `.word`, and a self-correcting
-loop forces anything GNU-as rejects or re-encodes differently back to `.word`
-until `cmp == 0`). Outside the code window (reset vectors, strings, calibration,
-Hitachi-OS data) everything is `.word` verbatim.
-
-**Coverage honesty caveat.** The 93.46–93.8% figure is *round-trip* coverage —
-every in-window word that decodes and re-encodes to valid bytes is counted — and
-the byte-exact rebuild is real and verified. But a small fraction (~6%) of those
-counted words are data tables that happen to decode as valid instructions (e.g.
-the `0x0007` `mul.l r0,r0` marker appears 2,427× — more than `rts`), so the true
-code fraction is ~88–91%, with data ~9–12%.
+**Coverage honesty caveat.** The figure is *round-trip* coverage — every
+in-window word that decodes/re-encodes to valid bytes counts. ~6% of counted
+words are data tables that decode as valid instructions (the `0x0007`
+`mul.l r0,r0` marker appears 2,427× — more than `rts`), so the true code
+fraction is ~88–91%, data ~9–12%.
 
 ## Verifying the deliverables end-to-end
 
-| Check | Command (from repo root) | Result |
-|-------|--------------------------|--------|
-| 9/9 byte-exact rebuild | `make verify-all` | `OK: all 9 stock ROMs rebuilt byte-exact` |
-| Single-ROM byte-exact | `make ROM=roms/stock/60E1D400.bin verify` | `OK: byte-exact rebuild ...` |
-| Annotated source regenerates 1:1 | `make src` | byte-identical to shipped |
-| C lifts vs ROM (host suites) | `make c-test` | 26/26 pass |
-| C lifts vs emulated ROM | `python3 c/tests/verify_emu.py` | 5/5 OK |
-| Disassembler regression | `python3 tools/tests/test_decode_families.py` | 38,008 checks, 0 failures |
-| Emulator regression | `python3 tools/tests/test_emulator_families.py` | 73 checks, 0 failures |
-| Per-function suites | `for t in c/tests/test_*.py; do python3 "$t" \|\| exit 1; done` | 112/112 pass |
-| Denso checksum | `python3 tools/denso_ck.py roms/stock/60E1D400.bin` | OK |
-
-All evidence tables and hashes are in [VERIFICATION.md](VERIFICATION.md); the
-complete file inventory is in [MANIFEST.md](MANIFEST.md). Project context and
-methodology: [PLANS.md](PLANS.md), `src/ANNOTATED_SOURCES.md`,
-`docs/subsystems/OVERVIEW.md`, `c/README.md`, `roms/ROMS.md`.
+Every check above is summarized with results in [VERIFICATION.md](VERIFICATION.md).
+Complete file inventory: [MANIFEST.md](MANIFEST.md). Methodology: [PLANS.md](PLANS.md),
+`src/ANNOTATED_SOURCES.md`, `docs/subsystems/OVERVIEW.md`, `c/README.md`,
+`roms/ROMS.md`.

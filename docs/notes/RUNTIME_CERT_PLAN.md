@@ -81,8 +81,6 @@ Identified for boot:
   `--start 0x8b8|entry`, `--budget`, `--log`, `--assert`, `--twice` determinism).
 - Benign MMIO model module (list of polled addresses from §2) to unblock full boot.
 - New section in `VERIFICATION.md` (runtime cert: method + a table of scenarios/budgets/verdicts).
-- Optional CI badge (`tools/gen_badges.py`) e.g. "runtime: N scenarios PASS, W^X ✓, no-ROM-write ✓,
-  deterministic ✓".
 
 ## 5. Metrics it will produce
 
