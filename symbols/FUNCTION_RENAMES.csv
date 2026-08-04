@@ -3,7 +3,7 @@
 # Generated: 2026-08-04. Columns: bank,addr,old_name,new_name,confidence,reason.
 60E0FC00,0x5D0B0,FUN_0005d0b0,eeprom_shadow_write_state_task,0.7,"State machine (states 0-3 on byte 0xFFFFD1C2) run from central dispatcher FUN_000115aa; calls writeToE2RAMArea_INDEX_ADDR_LEN(idx=120,len=2) and FUN_00037ffc (E2-shadow writer @0xFFFFC4B2, SR-guarded), counts loops at 0xFFFFD1C0 to 0x4E2=1250 then advances state, ends via osTaskScheduler; refs UDSModeFF; timeboxed 6min, region 4392B contains tables+code (entry function is the task)"
 60E0FC00,0x40302,FUN_00040302,eeprom_float_adapt_update,0.7,"Saturating accumulator over EEPROM-shadow float cells 0xFFFFC700-0xFFFFC809 (fsub/fadd + jsr saturateLow_SIGNAL_LOWERBOUND/minValue clamps); compares vs 0x0007980C, gated by byte 0xFFFFC7FE==1; FPU-heavy, epilogue writes 0xFFFFC809; no callers in graph (ptr-called); 6min timeboxed"
-60E0FC00,0x24D3E,interstingFunc,diag_readvalue_24d3e,0.3,no-callee-evidence
+60E0FC00,0x24D3E,interstingFunc,fp_cal_table_b48c_init_alt,0.6,"Builds fixed-point cal descriptor table 0xFFFFB48C offsets +6/+8/+0xE/+0x10/+0x12 from float cals 0x6FA60 (via readValue 0x3E1AA) and RAM word 0xAA38, floatToFP 0x2490; sibling of fp_cal_table_b48c_init(0x24040); reached via 0x23FEE from diag_buildRamBlockChecksum(0x23F40) cluster"
 60E1D400,0x3A764,extended_control_dispatcher_3a764,fuel_dispatcher_3a764,0.3,extended_control_dispatcher_3a764
 60E1D400,0x26AC8,integrated_control_algorithm_26AC8,fuel_integrated_26ac8,0.3,integrated_control_algorithm_26AC8
 60E0FC00,0x47862,FUN_00047862,throttle_sensor_learn_cal,0.85,"Called by getThrottleControl(0x237F4); reads TPS ADC bytes 0x80C6/0x80C4/0x80C8/0x80CA + floats 0xB594/0xB5DC/0xA9FC, calib floats 0x7AE54-0x7AE68, subtractAbsolute then writes learn-flags to E2 shadow 0xFFFFCBBC-0xFFFFCBC0 after threshold fcmp tests vs RAM status 0xCB68/0xCB69/0xC638/0xCB91"
@@ -50,7 +50,7 @@
 60E1D400,0x1E31E,transmission_controller_1E31E,transmission_controller_1E31E,0.9,already descriptive human name preserved
 60E0FC00,0x8B4C,FUN_00008b4c,rtos_task_wake_flag,0.4,"Low-level RTOS-ish: setSR_PARAM int-disable, indexed flag table at 0xFFFFA004, fnptr table 0x0000D7D4, calls FUN_0a8a4; no callers (ptr/ISR), near boot region"
 60E1D400,0x54C2C,amplitude_measure_0x54C2C,ctrl_amplitude_54c2c,0.3,no-callee-evidence
-60E0FC00,0x12E94,leadingAndTrailingSeperatorSomething,math_leadingandtrailingseperatorsomething_12e94,0.7,2DLookup;3dLookup
+60E0FC00,0x12E94,leadingAndTrailingSeperatorSomething,sensor_tps_delta_lookup_store,0.5,"Float lookup routine under ign_leadingAndTrailingSeperationMain(0x145DA)/engineConditionDetectForTimingModification: interpolate 0x2068 + fmax 0x23F4 on cal tables 0x67E44/0x67E58/0x6F250..c, stores prev-filtered TPS angle 0xFFFFA6B4 and O2 trim flag 0xFFFFA6B8"
 60E0FC00,0x15F82,FUN_00015f82,idle_speed_valve_signal_calc,0.7,"Called by updateIdleControl??(0x165C4); readValue_float on idle-valve air cells 0x8040/0x8048, status 0x76220/0xA88C/0xB580/0xB588, cal floats 0x7623C-0x7624C, saturate_SIGNAL_LOWER_UPPER; idle speed actuator signal update"
 60E1D400,0x16466,dual_rotor_sync_controller,dual_rotor_sync_controller,0.9,already descriptive human name preserved
 60E1D400,0x59E44,sunroof_control_0x59E44,fuel_sunroof_59e44,0.3,sunroof_control_0x59E44
@@ -123,7 +123,7 @@
 60E0FC00,0x218F4,crankingRelatedFunc,crankingRelatedFunc,0.9,already descriptive human name preserved
 60E1D400,0xAF10,rotor_position_synchronization,rotor_position_synchronization,0.9,already descriptive human name preserved
 60E0FC00,0x21C66,FUN_00021c66,cruise_engine_cond_read,0.5,"Called by cruiseControl?(0x118FE); getSR(0x10)/setSR(0x3934) wrapper around engineConditonSomething(0x205AC)+FUN_34a4a, data-ref 0xEE86 getConditionalsForRevLimit; reads engine conditions for cruise control"
-60E0FC00,0x1414,seemsImportant,ctrl_seemsimportant_1414,0.3,no-callee-evidence
+60E0FC00,0x1414,seemsImportant,uds_diag_service_dispatcher,0.9,"UDS/KWP diag service dispatcher: reads SID byte from RAM 0xFFFFD3F0, switch on SIDs 0x10/0x11/0x22/0x27/0x28/0x34/0x36/0x37/0x3B/0x3E/0x85/0xB1 routing to uds_neg_resp_build_* and diag_security_access_sid27/diag_transfer_data_*"
 60E0FC00,0x3280,FUN_00003280,rtos_context_switch_restore,0.6,"Called by FUN_03238 (context-save side); RTOS TCB 0xFFFF7638: restores SR/FPU/GPRs from stack, counter/priority checks, ends rte; calls FUN_035ee/0375c; task context-switch restore path"
 60E0FC00,0x94FC,FUN_000094fc,adc_channel_pair_linearize,0.5,"Ref'd by 0x64BA; 2-channel loop reads ADC buffer 0xFFFF9EE4 (32ch u16), clamps vs cal 0x6F544/0x6F548, scales with cal 0x6F54C/0x6F554 float pairs, writes f32 to 0xFFFFA108+/A110, counter 0xA116"
 60E0FC00,0x1AD6,FUN_00001ad6,diag_transfer_data_handler,0.6,"KWP diag download handler: validates request len word==8, resolves target addr via 0xFFFFDFB8/BC/C0 masks 0xFFFF6000/0xFFF82000, builds 0x7F neg-resp into 0xFFFFDFC6, responds via 0x11FA; sits between request_download/transfer cluster"
@@ -138,7 +138,7 @@
 60E1D400,0x5A374,humidity_control_0x5A374,fuel_humidity_5a374,0.3,humidity_control_0x5A374
 60E1D400,0x361C2,state_machine_conditional_port_361C2,math_conditional_361c2,0.3,state_machine_conditional_port_361C2
 60E0FC00,0x50AA,FUN_000050aa,periph_sfr_block_init,0.5,"Called by boot-init 0x4C80 (watchdog/ATU cluster); writes ~25 16-bit constants (0x9F3F,0x6200,0x29FF,0xC180,0x8000,0x01F4...) into SFR block 0xFFFFF720-F776 (GPIO/ATU port regs), ends rts"
-60E0FC00,0x2AB2E,thunk_FUN_00029760,diag_thunk_2ab2e,0.3,thunk_FUN_00029760
+60E0FC00,0x2AB2E,thunk_FUN_00029760,read_ram_8688_thunk,0.6,"6-byte jmp @0x29760 (= mov.w #0x8688,r4; jmp @0x3E29E readValue helper); 0xFFFF8688 is CAN A203 packing flag word (test_can_packers); called by 0x3E5B0"
 60E1D400,0x1BE08,FUN_0x1BE08,sensor_slew_rate_filter,0.6,"Float slew filter: u16 0xAD94 -> float via 0x24C0, mode byte cal 0x6FEA0 (0=direct, 1=rate-limit), up/down rates 0x6FEA4/A8, clamp 0x6FEAC/B0 via 0x23B0, out f32 0xAD98/0xFFFFADA0 + done byte 0xAD9C"
 60E0FC00,0x1A35C,getIOUpdates?,diag_getioupdates_1a35c,0.7,calcDiagFuelInjectorTrim;thunk_FUN_0004819e
 60E0FC00,0x57C6,FUN_000057c6,pwm_sensor_drive_ch1,0.6,"Twin of 0x567A for channel 1: struct 0xFFFF9F38+0x0C, 0xF480 mask 0x77FF, regs 0xF4E4/0xF4EB, same enable/ramp logic + setSR_PARAM/loadStatusRegister_ADDR"
@@ -289,7 +289,7 @@
 60E1D400,0x2C9A4,update_pid_integral_term_2C9A4,isr_integral_2c9a4,0.3,update_pid_integral_term_2C9A4
 60E1D400,0x5E8B0,getTireSize,getTireSize_a,0.9,already descriptive human name preserved
 60E1D400,0x55624,demodulator_0x55624,ctrl_demodulator_55624,0.3,no-callee-evidence
-60E0FC00,0x4A284,enrichmentUnknownConditionCheck,math_enrichmentunknownconditioncheck_4a284,0.7,2DLookup;fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x4A284,enrichmentUnknownConditionCheck,fuel_enrichment_multiplier_calc,0.7,"Called by engineControlGetFueling 0x217B2: gated by fuel-cut flag pair 0xA444/0xA445 (arbitrateFuelCut doc); if equal stores 0.0 to 0xFFFFCCC0 else two 2D lookups 0x2068 (float@0xC0D8 x tbl 0x69E24, float@0xB594 x tbl 0x69E38) scaled via fixedPointToFloat_8bit 0x2500*cal 0x7B238, multiplied into enrichment 0xFFFFCCC0"
 60E0FC00,0x25752,filterEngineSpeed,filterEngineSpeed,0.9,already descriptive human name preserved
 60E0FC00,0x2F694,setFanOutputGPIO,setFanOutputGPIO,0.9,already descriptive human name preserved
 60E1D400,0x35BBC,vfad_control_35BBC,fuel_control_35bbc,0.3,vfad_control_35BBC
@@ -419,7 +419,7 @@
 60E1D400,0x2A896,conditional_multi_check_2A896,math_conditional_2a896,0.3,conditional_multi_check_2A896
 60E0FC00,0x1A4E6,engineControlGetAir,engineControlGetAir,0.9,already descriptive human name preserved
 60E1D400,0x1A9CA,engineControlGetAir,engineControlGetAir_a,0.9,already descriptive human name preserved
-60E0FC00,0x3E15C,readValue_32bit_ADDRESS_VAL,diag_readvalue_3e15c,0.5,setMemInsideFUNCto1
+60E0FC00,0x3E15C,readValue_32bit_ADDRESS_VAL,read_value_32bit_redundant,0.9,"Canonical redundant-cell readValue_32bit helper: word@r4+word@r4+2 vs complement at r4+4 (checksum pair), else fault path; under getSR 0x3920; matches readValue_32bit family"
 60E1D400,0x3EDBC,readValue_32bit_ADDRESS_VAL,diag_readvalue_3edbc,0.5,setMemInsideFUNCto1
 60E1D400,0x2A2A8,sequential_module_dispatch_2A2A8,rtos_sequential_2a2a8,0.3,sequential_module_dispatch_2A2A8
 60E0FC00,0x320C8,apvControl?,sensor_apvcontrol_320c8,0.7,apvPositionVoltageCounter;calcAPVControl
@@ -455,9 +455,9 @@
 60E1D400,0x590AA,mixture_strength_0x590AA,ctrl_strength_590aa,0.3,no-callee-evidence
 60E1D400,0x3CF08,mode_config_3cf3c,isr_config_3cf08,0.3,mode_config_3cf3c
 60E1D400,0x54BC0,phase_measure_0x54BC0,ctrl_measure_54bc0,0.3,no-callee-evidence
-60E0FC00,0x3E11C,readValue_16bit_ADDRESS_VAL,diag_readvalue_3e11c,0.5,setMemInsideFUNCto1
+60E0FC00,0x3E11C,readValue_16bit_ADDRESS_VAL,read_value_16bit_redundant,0.9,"Canonical redundant-cell readValue_16bit helper: word@r4 vs complement word@r4+2, else fault path 0x3E3F0; under getSR 0x3920; matches known diag_fault_cond_eval helper"
 60E1D400,0x3ED7C,readValue_16bit_ADDRESS_VAL,diag_readvalue_3ed7c,0.5,setMemInsideFUNCto1
-60E0FC00,0x3E0DC,readValue_8bit_ADDRESS_VAL,diag_readvalue_3e0dc,0.5,setMemInsideFUNCto1
+60E0FC00,0x3E0DC,readValue_8bit_ADDRESS_VAL,read_value_8bit_redundant,0.9,"Canonical redundant-cell readValue_8bit helper: byte@r4 vs complement byte@r4+1, else fault path 0x3E3F0; under getSR 0x3920; matches known readValue_8bit family (cf 0x3E11C/0x3E15C)"
 60E1D400,0x3ED3C,readValue_8bit_ADDRESS_VAL,diag_readvalue_3ed3c,0.5,setMemInsideFUNCto1
 60E1D400,0x54A08,short_circuit_detect_0x54A08,diag_circuit_54a08,0.3,short_circuit_detect_0x54A08
 60E1D400,0x52C92,sync_barrier_0x52C92,fuel_barrier_52c92,0.3,sync_barrier_0x52C92
@@ -490,7 +490,7 @@
 60E0FC00,0x26308,getAlternatorSpeedConditonal,getAlternatorSpeedConditonal,0.9,already descriptive human name preserved
 60E1D400,0x47978,load_calc_manifold_47978,load_calc_manifold_47978,0.9,already descriptive human name preserved
 60E1D400,0x59B68,maintenance_alert_0x59B68,ctrl_maintenance_59b68,0.3,no-callee-evidence
-60E1D400,0x42B0,memcpy_bytewise_unroll4,ctrl_bytewise_42b0,0.3,no-callee-evidence
+60E1D400,0x42B0,memcpy_bytewise_unroll4,memcpy_bytes_unroll4,0.9,"Byte-wise memcpy r2(src)->r1(dst), r0=len, unrolled 4 bytes/iter while r2<r4; classic unrolled byte copy; matches old name"
 60E1D400,0x3DE7E,mode_handler_3DE7E,mode_handler_3DE7E,0.3,mode_handler_3DE7E
 60E1D400,0x5A494,passenger_compartment_0x5A494,ctrl_compartment_5a494,0.3,no-callee-evidence
 60E1D400,0x5B474,cell_process_0x5B474,sensor_process_5b474,0.3,cell_process_0x5B474
@@ -516,7 +516,7 @@
 60E1D400,0x566EC,matrix_inv_0x566EC,fuel_matrix_566ec,0.3,matrix_inv_0x566EC
 60E1D400,0x54A6A,resistor_check_0x54A6A,diag_resistor_54a6a,0.3,resistor_check_0x54A6A
 60E1D400,0x2AA4E,secondary_chamber_activate_2AA4E,fuel_secondary_2aa4e,0.3,secondary_chamber_activate_2AA4E
-60E0FC00,0xAA90,setAPVDC?,ctrl_setapvdc_aa90,0.3,no-callee-evidence
+60E0FC00,0xAA90,setAPVDC?,apv_duty_cycle_store_scaled,0.7,"APV control path (caller 0x32094 <- apvControl 0x320C8): scales float input by cal 0x779B6, truncates, sign-splits into RAM words 0xFFFFA1C4/0xFFFFA1C6 (duty cycle cmd); ftrc/fneg sign handling"
 60E1D400,0x5A214,vent_control_0x5A214,fuel_control_5a214,0.3,vent_control_0x5A214
 60E1D400,0x27DF4,conditional_set_byte_27DF4,math_conditional_27df4,0.3,conditional_set_byte_27DF4
 60E1D400,0x520C4,response_formatter_0x520C4,diag_formatter_520c4,0.3,response_formatter_0x520C4
@@ -529,7 +529,7 @@
 60E1D400,0x4F1E6,port_input_handler_0x4F1E6,port_input_handler_0x4F1E6,0.3,port_input_handler_0x4F1E6
 60E0FC00,0x16924,readImmoBit,readImmoBit,0.9,already descriptive human name preserved
 60E1D400,0x16E08,readImmoBit,readImmoBit_a,0.9,already descriptive human name preserved
-60E0FC00,0x32094,setAPVDC?,ctrl_setapvdc_32094,0.3,no-callee-evidence
+60E0FC00,0x32094,setAPVDC?,apv_duty_cycle_calc,0.7,"APV control: reads float cal 0xBFA0, sign flag byte 0xBFA7, divides by 100.0 (const 0x42C8), tail-jmp 0xAA90 (apv_duty_cycle_store_scaled); called from apvControl 0x320C8"
 60E1D400,0x48C12,split_selector_decoder_48C12,math_selector_48c12,0.3,split_selector_decoder_48C12
 60E1D400,0x19420,system_state_clear_all,isr_system_19420,0.3,system_state_clear_all
 60E1D400,0x19450,system_state_clear_dup,isr_system_19450,0.3,system_state_clear_dup
@@ -593,7 +593,7 @@
 60E1D400,0x547FA,test_sequence_0x547FA,init_sequence_547fa,0.3,test_sequence_0x547FA
 60E1D400,0x58BA4,trochoid_surface_0x58BA4,math_trochoid_58ba4,0.3,trochoid_surface_0x58BA4
 60E1D400,0x5AB9E,airbag_light_0x5AB9E,diag_airbag_5ab9e,0.3,airbag_light_0x5AB9E
-60E1D400,0xF4,build_addr_from_bytes,mem_build_f4,0.3,build_addr_from_bytes
+60E1D400,0xF4,build_addr_from_bytes,build_be32_from_bytes,0.9,Assembles big-endian 32-bit word from 4 bytes at r4: b0<<24|b1<<16|b2<<8|b3 via shll16/shll8/add; matches old name build_addr_from_bytes; mem/boot utility
 60E1D400,0x533B6,char_to_hex_0x533B6,math_char_533b6,0.3,char_to_hex_0x533B6
 60E1D400,0x768C,crank_mode_switch,crank_mode_switch,0.9,already descriptive human name preserved
 60E1D400,0x2B88A,ctrl_cond_state_flags_set_2B88A,isr_state_2b88a,0.3,ctrl_cond_state_flags_set_2B88A
@@ -613,7 +613,7 @@
 60E1D400,0x3E53C,header_parser_3E53C,mem_header_3e53c,0.3,header_parser_3E53C
 60E1D400,0x53392,string_length_0x53392,init_string_53392,0.3,string_length_0x53392
 60E1D400,0x55362,transformer_0x55362,ctrl_transformer_55362,0.3,no-callee-evidence
-60E1D400,0x1008,validate_rom_calibration_id,mem_calibration_1008,0.3,validate_rom_calibration_id
+60E1D400,0x1008,validate_rom_calibration_id,validate_rom_calibration_id,0.9,Redundant-cell ROM cal-ID validation: word@0x7FB00 must equal ~word@0x7FB02 and != 0xFFFF; returns validated cal id; matches old name
 60E1D400,0x60786,bit_value_extract_60786,sensor_extract_60786,0.3,bit_value_extract_60786
 60E1D400,0x387C6,bitfield_flag_getter_387C6,mem_bitfield_387c6,0.3,bitfield_flag_getter_387C6
 60E1D400,0x2EF42,conditional_flag_set_io_bit_2EF42,math_conditional_2ef42,0.3,conditional_flag_set_io_bit_2EF42
@@ -622,7 +622,7 @@
 60E1D400,0x4FCA4,transient_response_0x4FCA4,diag_transient_4fca4,0.3,transient_response_0x4FCA4
 60E1D400,0x4B8E4,tune_table_write_4B8E4,tune_table_write_4B8E4,0.9,already descriptive human name preserved
 60E1D400,0x597DA,vehicle_speed_0x597DA,vehicle_speed_0x597DA,0.9,already descriptive human name preserved
-60E0FC00,0x35104,ImmoSomethingOrOther??,ImmoSomethingOrOther??,0.9,already descriptive human name preserved
+60E0FC00,0x35104,ImmoSomethingOrOther??,immo_init_check_dispatch,0.7,"Immo security/eeprom sequence called from resetFunc 0x1107A: runs 0x36076 (immo seed init via 0x383F8), 0x360BC (immo EEPROM-shadow writes via 0x38610 to 0xFFFFC284/288/28C), checkImmoStatus 0x36684, 0x35F9C (immo words read via readValue_32bit 0x3E15C), tails jmp 0x35194 (immoRelatedMaybe: writes 0xFFFFC228/C22C/C288/C23A/C23E)"
 60E1D400,0x588AE,bearing_wear_0x588AE,ctrl_bearing_588ae,0.3,no-callee-evidence
 60E1D400,0x2DAE8,calc_correction_delta_2DAE8,calc_correction_delta_2DAE8,0.9,already descriptive human name preserved
 60E1D400,0x3FCC0,control_loop_coordinator_3FCC0,fuel_coordinator_3fcc0,0.3,control_loop_coordinator_3FCC0
@@ -650,8 +650,8 @@
 60E1D400,0x808E,crank_output_update,crank_output_update,0.9,already descriptive human name preserved
 60E1D400,0x5A8CC,display_driver_0x5A8CC,ctrl_display_5a8cc,0.3,no-callee-evidence
 60E1D400,0x17F94,exhaust_system_control,exhaust_system_control,0.9,already descriptive human name preserved
-60E0FC00,0x19B82,filterSomething,filterSomething,0.9,already descriptive human name preserved
-60E0FC00,0x19BC6,filterSomething2,filterSomething2,0.9,already descriptive human name preserved
+60E0FC00,0x19B82,filterSomething,o2_front_voltage_rate_filter,0.8,Rate-limited filter via 0x23B0 (slew limiter: fr4+rate*(fr5-fr4) clamped by fr7): raw 0xFFFFAA0C -> filtered 0xFFFFAA10 (Front O2 sensor voltage float per O2_LAMBDA doc); rate cal 0x6F568; called by aux_driver_inputs_calc(0x1A728)
+60E0FC00,0x19BC6,filterSomething2,o2_rear_voltage_rate_filter,0.7,"Rate-limited filter via 0x23B0 on second O2 channel: raw 0xFFFFAA14 -> filtered 0xFFFFAA18, rate cal 0x6F570; twin of 0x19B82, called by aux_driver_inputs_calc(0x1A728)"
 60E0FC00,0x292BA,getSomeEngineConditions,getSomeEngineConditions,0.9,already descriptive human name preserved
 60E1D400,0x54644,main_loop_0x54644,can_main_54644,0.3,main_loop_0x54644
 60E1D400,0x55EA2,mmu_config_0x55EA2,isr_config_55ea2,0.3,mmu_config_0x55EA2
@@ -866,8 +866,8 @@
 60E1D400,0x4C788,event_clear_4C788,isr_event_4c788,0.3,event_clear_4C788
 60E1D400,0x14B04,incomplete_stack_save_r14_r13,mem_incomplete_14b04,0.3,incomplete_stack_save_r14_r13
 60E1D400,0x2064,loadStatusRegister_ADDR,loadStatusRegister_ADDR,0.9,already descriptive human name preserved
-60E1D400,0x3F88,nullsub_1,ctrl_nullsub_3f88,0.3,no-callee-evidence
-60E1D400,0x5042,nullsub_10,ctrl_nullsub_5042,0.3,no-callee-evidence
+60E1D400,0x3F88,nullsub_1,rtos_noop_stub_3f88,0.9,Pure rts;nop no-op stub; called by 0x3E10 (RTOS task/TCB init cluster); placeholder OS hook
+60E1D400,0x5042,nullsub_10,rtos_noop_stub_5042,0.9,Pure rts;nop no-op stub; next function 0x5046 writes 0x80 to MMIO 0xFFFFF000/F008/F010/F018 - boot reg init; stub is placeholder
 60E1D400,0x505E,nullsub_11,ctrl_nullsub_505e,0.3,no-callee-evidence
 60E1D400,0x5062,nullsub_12,ctrl_nullsub_5062,0.3,no-callee-evidence
 60E1D400,0x5066,nullsub_13,ctrl_nullsub_5066,0.3,no-callee-evidence
@@ -877,7 +877,7 @@
 60E1D400,0x686A,nullsub_17,ctrl_nullsub_686a,0.3,no-callee-evidence
 60E1D400,0x74D0,nullsub_18,ctrl_nullsub_74d0,0.3,no-callee-evidence
 60E1D400,0xA118,nullsub_19,ctrl_nullsub_a118,0.3,no-callee-evidence
-60E1D400,0x3F8C,nullsub_2,ctrl_nullsub_3f8c,0.3,no-callee-evidence
+60E1D400,0x3F8C,nullsub_2,rtos_noop_stub_3f8c,0.9,Pure rts;nop no-op stub; called by 0x3E10 (RTOS init cluster); placeholder OS hook
 60E1D400,0xD9AA,nullsub_20,ctrl_nullsub_d9aa,0.3,no-callee-evidence
 60E1D400,0x22984,nullsub_21,ctrl_nullsub_22984,0.3,no-callee-evidence
 60E1D400,0x23374,nullsub_22,ctrl_nullsub_23374,0.3,no-callee-evidence
@@ -888,13 +888,13 @@
 60E1D400,0x60FCA,nullsub_27,ctrl_nullsub_60fca,0.3,no-callee-evidence
 60E1D400,0x60FCE,nullsub_28,ctrl_nullsub_60fce,0.3,no-callee-evidence
 60E1D400,0x64F68,nullsub_29,ctrl_nullsub_64f68,0.3,no-callee-evidence
-60E1D400,0x3FA8,nullsub_3,ctrl_nullsub_3fa8,0.3,no-callee-evidence
-60E1D400,0x4E12,nullsub_4,ctrl_nullsub_4e12,0.3,no-callee-evidence
-60E1D400,0x4E16,nullsub_5,ctrl_nullsub_4e16,0.3,no-callee-evidence
-60E1D400,0x4E1A,nullsub_6,ctrl_nullsub_4e1a,0.3,no-callee-evidence
-60E1D400,0x4FDE,nullsub_7,ctrl_nullsub_4fde,0.3,no-callee-evidence
-60E1D400,0x5028,nullsub_8,ctrl_nullsub_5028,0.3,no-callee-evidence
-60E1D400,0x503E,nullsub_9,ctrl_nullsub_503e,0.3,no-callee-evidence
+60E1D400,0x3FA8,nullsub_3,rtos_noop_stub_3fa8,0.9,Pure rts;nop no-op stub; called by 0x3E10 (RTOS init cluster); placeholder OS hook
+60E1D400,0x4E12,nullsub_4,rtos_noop_stub_4e12,0.9,Pure rts;nop no-op stub; called by 0x4CB6 (OS init dispatch 0x4CB6->bsr sequence); placeholder
+60E1D400,0x4E16,nullsub_5,rtos_noop_stub_4e16,0.9,Pure rts;nop no-op stub; adjacent to 0x4E12 in OS init sequence
+60E1D400,0x4E1A,nullsub_6,rtos_noop_stub_4e1a,0.9,Pure rts;nop no-op stub; called by 0x4CB6 (OS init dispatch); placeholder
+60E1D400,0x4FDE,nullsub_7,rtos_noop_stub_4fde,0.9,Pure rts;nop no-op stub; OS init/boot placeholder hook
+60E1D400,0x5028,nullsub_8,rtos_noop_stub_5028,0.9,Pure rts;nop no-op stub; next function 0x502C writes SCI regs 0xFFFFEC10/0xFFFFEC12 (5A1F/A518) - boot serial init; stub is placeholder
+60E1D400,0x503E,nullsub_9,rtos_noop_stub_503e,0.9,Pure rts;nop no-op stub; called by 0x4C80 (OS init dispatch); placeholder
 60E1D400,0x11206,return_const_1,sensor_return_11206,0.3,return_const_1
 60E1D400,0x55760,synchronizer_0x55760,ctrl_synchronizer_55760,0.3,no-callee-evidence
 60E1D400,0x56E18,relu_0x56E18,ctrl_relu_56e18,0.3,no-callee-evidence
@@ -1571,12 +1571,12 @@
 60E0FC00,0x59F3C,FUN_00059f3c,FUN_00059f3c,0.1,"literal-pool data entry 0x0005E024 loaded via mov.l L_059f3c in FUN_00059ef4; bytes decode as garbage (mov.w r0,@(r0,r0)), not real code"
 60E0FC00,0x54D12,FUN_00054d12,uds_mode22_get_ign_lead_advance,0.9,jsr getIgnLeadingOBD 0x53614 then jmp byteToUDS 0x55EEE with value in r5; UDS Mode-22 getter for leading-rotor ignition advance (callgraph 0x54D14)
 60E0FC00,0x770CD,FUN_000770cd,FUN_000770cd,0.1,"data table: float constants (0x3F800000=1.0, 0x3D935FC4) and stc SPC/stray bytes; sibling of 0x770C7 data block, not code"
-60E0FC00,0x66B2,thunk_FUN_00011c6e,diag_thunk_66b2,0.3,thunk_FUN_00011c6e
-60E0FC00,0x5E78,thunk_FUN_00009c86,diag_thunk_5e78,0.3,thunk_FUN_00009c86
-60E0FC00,0x5EEE,thunk_FUN_00009c86,diag_thunk_5eee,0.3,thunk_FUN_00009c86
-60E0FC00,0x66AC,thunk_FUN_00011c6a,diag_thunk_66ac,0.3,thunk_FUN_00011c6a
-60E0FC00,0x66A6,thunk_FUN_00011f3c,diag_thunk_66a6,0.3,thunk_FUN_00011f3c
-60E0FC00,0x67666,thunk_FUN_00052b8c,diag_thunk_67666,0.3,thunk_FUN_00052b8c
-60E0FC00,0x5A1E,thunk_FUN_00005348,diag_thunk_5a1e,0.3,thunk_FUN_00005348
-60E0FC00,0x48184,thunk_FUN_0004819e,diag_thunk_48184,0.3,thunk_FUN_0004819e
-60E0FC00,0x5E69E,thunk_FUN_0005eaa2,diag_thunk_5e69e,0.3,thunk_FUN_0005eaa2
+60E0FC00,0x66B2,thunk_FUN_00011c6e,noop_stub_thunk_11c6e,0.8,6-byte jmp @0x11C6E which is pure rts;nop no-op stub; consecutive table slot with 0x66A6/0x66AC
+60E0FC00,0x5E78,thunk_FUN_00009c86,fnptr_dispatch_d8d8_thunk,0.8,6-byte jmp @0x9C86 which is fnptr_dispatch_d8d8 (jmp *fnptr@0xFFFFD8D8 r4=0); tail-jump thunk alias
+60E0FC00,0x5EEE,thunk_FUN_00009c86,fnptr_dispatch_d8d8_thunk_5eee,0.8,"6-byte jmp @0x9C86 = fnptr_dispatch_d8d8 (RAM fnptr 0xFFFFD8D8, r4=0); called by interpolate_charTable 0x26F4"
+60E0FC00,0x66AC,thunk_FUN_00011c6a,noop_stub_thunk_11c6a,0.8,6-byte jmp @0x11C6A which is pure rts;nop no-op stub; consecutive table slot with 0x66A6/0x66B2
+60E0FC00,0x66A6,thunk_FUN_00011f3c,noop_stub_thunk_11f3c,0.8,6-byte jmp @0x11F3C which is pure rts;nop no-op stub; consecutive table slot with 0x66AC/0x66B2 (hook/callback table)
+60E0FC00,0x67666,thunk_FUN_00052b8c,dtc_status_getter_thunk_52b8c,0.6,6-byte jmp @0x52B8C which calls 0x5415A (status) mapping to 0x00/0x03 and calls 0x54008; DTC/fault status getter wrapper; consecutive table slot with 0x6766C/0x67672 thunks
+60E0FC00,0x5A1E,thunk_FUN_00005348,set_sr_delay_thunk_5348,0.4,4-byte tail-jump bra 0x5348; target sets SR via 0x2054 then calls delay 0xA330 and reads MMIO 0xF66A cluster; shared helper used after clearing 0xF66A bits by neighbor stubs 0x5A22+
+60E0FC00,0x48184,thunk_FUN_0004819e,batt_temp_delta_thunk_4819e,0.5,"4-byte bra 0x4819E; target reads battery temp ref 0xAE40 + 0xAA00, does |diff| via 0x23DC, flag-gated (0xC5EA/0xC5DB) cal override 0x7B000, deadband cal 0x7AFF4/8/C; called from getIOUpdates 0x1A35C"
+60E0FC00,0x5E69E,thunk_FUN_0005eaa2,clear_ram_d382_thunk,0.7,4-byte bra 0x5EAA2; target zero-fills 0x8C bytes at 0xFFFFD382 and word 0xFFFFD1D4 (RAM diagnostic block clear); called by 0x5E678

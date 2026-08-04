@@ -6,7 +6,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x8A,serial_data_read_handler,Peripherals & ISR,1.000,name
 60E1D400,0xC0,serial_rx_handler_ch2,CAN Bus,1.000,name
 60E1D400,0xD8,fatal_error_infinite_loop,Faults & DTC,1.000,name
-60E1D400,0xF4,mem_build_f4,Other / Unclassified,0.000,none
+60E1D400,0xF4,build_be32_from_bytes,Other / Unclassified,0.000,none
 60E1D400,0x11A,calculate_checksum,Memory & CRC,1.000,name
 60E1D400,0x170,hw_init_1,Boot & Init,1.000,name
 60E1D400,0x210,diag_transfer_210,Other / Unclassified,0.000,none
@@ -36,7 +36,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x9FC,atu_configure_io_channel,Peripherals & ISR,1.000,name
 60E1D400,0xACE,sensor_sequential_ace,Other / Unclassified,0.000,none
 60E1D400,0xAE8,write_verify_bytes,Memory & CRC,1.000,name
-60E1D400,0x1008,mem_calibration_1008,Other / Unclassified,0.000,none
+60E1D400,0x1008,validate_rom_calibration_id,Other / Unclassified,0.000,none
 60E1D400,0x1038,secondary_boot_init,Boot & Init,1.000,name
 60E0FC00,0x1090,rtos_switch_stack_and_jump,Other / Unclassified,0.000,none
 60E1D400,0x1094,can_jump_1094,Other / Unclassified,0.000,none
@@ -65,7 +65,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x1364,resetWatchdog?,Boot & Init,1.000,name
 60E0FC00,0x1378,diag_serial_command_dispatch,Other / Unclassified,0.000,none
 60E1D400,0x1380,wdt_disable,RTOS,1.000,name
-60E0FC00,0x1414,ctrl_seemsimportant_1414,Other / Unclassified,0.000,none
+60E0FC00,0x1414,uds_diag_service_dispatcher,Other / Unclassified,0.000,none
 60E0FC00,0x154C,kwp_short_frame_init_append,Other / Unclassified,0.000,none
 60E1D400,0x1572,diag_start_session_handler,Faults & DTC,1.000,name
 60E0FC00,0x15A6,kwp_session_frame_init,Other / Unclassified,0.000,none
@@ -189,18 +189,18 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x3E10,init_main,Other / Unclassified,0.000,none
 60E1D400,0x3EC0,task_table_scan_init,RTOS,1.000,name
 60E1D400,0x3F10,task_dependency_handler,RTOS,1.000,name
-60E1D400,0x3F88,ctrl_nullsub_3f88,Other / Unclassified,0.000,none
-60E1D400,0x3F8C,ctrl_nullsub_3f8c,Other / Unclassified,0.000,none
+60E1D400,0x3F88,rtos_noop_stub_3f88,Other / Unclassified,0.000,none
+60E1D400,0x3F8C,rtos_noop_stub_3f8c,Other / Unclassified,0.000,none
 60E1D400,0x3F90,clear_task_flag_dc,RTOS,1.000,name
 60E1D400,0x3F9C,clear_task_flag_dd,RTOS,1.000,name
-60E1D400,0x3FA8,ctrl_nullsub_3fa8,Other / Unclassified,0.000,none
+60E1D400,0x3FA8,rtos_noop_stub_3fa8,Other / Unclassified,0.000,none
 60E1D400,0x3FB0,task_ready_check,RTOS,1.000,name
 60E1D400,0x3FE8,div32_signed,Ignition & Knock,1.000,name
 60E1D400,0x409C,div32_unsigned,Ignition & Knock,1.000,name
 60E1D400,0x4144,mod32_signed,Ignition & Knock,1.000,name
 60E1D400,0x420C,div_trampoline_A,Memory & CRC,1.000,name
 60E1D400,0x4218,div_trampoline_B,Memory & CRC,1.000,name
-60E1D400,0x42B0,ctrl_bytewise_42b0,Other / Unclassified,0.000,none
+60E1D400,0x42B0,memcpy_bytes_unroll4,Other / Unclassified,0.000,none
 60E1D400,0x4308,shift_left_logical_r0,Utilities,1.000,name
 60E1D400,0x43C8,util_arithmetic_43c8,Other / Unclassified,0.000,none
 60E1D400,0x44E0,shift_right_logical_r0,Utilities,1.000,name
@@ -237,24 +237,24 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x4E06,thunk_FUN_00004dee,RTOS,1.000,graph
 60E0FC00,0x4E0A,noOpFunc,RTOS,1.000,graph
 60E1D400,0x4E0E,ubc_breakpoint_config_trampoline,Memory & CRC,1.000,name
-60E1D400,0x4E12,ctrl_nullsub_4e12,Other / Unclassified,0.000,none
-60E1D400,0x4E16,ctrl_nullsub_4e16,Other / Unclassified,0.000,none
-60E1D400,0x4E1A,ctrl_nullsub_4e1a,Other / Unclassified,0.000,none
+60E1D400,0x4E12,rtos_noop_stub_4e12,Other / Unclassified,0.000,none
+60E1D400,0x4E16,rtos_noop_stub_4e16,Other / Unclassified,0.000,none
+60E1D400,0x4E1A,rtos_noop_stub_4e1a,Other / Unclassified,0.000,none
 60E0FC00,0x4E6C,sfr_output_module_bulk_init,Other / Unclassified,0.000,none
 60E1D400,0x4E74,atu_channel_port_init,Boot & Init,1.000,name
 60E0FC00,0x4F00,FUN_00004f00,RTOS,1.000,graph
 60E1D400,0x4F08,atu_capture_compare_init,Boot & Init,1.000,name
 60E0FC00,0x4FD6,noop_return_stub,Other / Unclassified,0.000,none
-60E1D400,0x4FDE,ctrl_nullsub_4fde,Other / Unclassified,0.000,none
+60E1D400,0x4FDE,rtos_noop_stub_4fde,Other / Unclassified,0.000,none
 60E0FC00,0x5020,noOpFun3,RTOS,1.000,graph
 60E0FC00,0x5024,writeWatchdog_disable?,RTOS,1.000,name
-60E1D400,0x5028,ctrl_nullsub_5028,Other / Unclassified,0.000,none
+60E1D400,0x5028,rtos_noop_stub_5028,Other / Unclassified,0.000,none
 60E1D400,0x502C,wdt_disable_and_set_timer,Peripherals & ISR,1.000,name
 60E0FC00,0x5032,writeWatchdog_disable?,RTOS,1.000,name
 60E0FC00,0x5036,noop_return_stub_a,Other / Unclassified,0.000,none
 60E1D400,0x503A,wdt_disable_trampoline,Memory & CRC,1.000,name
-60E1D400,0x503E,ctrl_nullsub_503e,Other / Unclassified,0.000,none
-60E1D400,0x5042,ctrl_nullsub_5042,Other / Unclassified,0.000,none
+60E1D400,0x503E,rtos_noop_stub_503e,Other / Unclassified,0.000,none
+60E1D400,0x5042,rtos_noop_stub_5042,Other / Unclassified,0.000,none
 60E1D400,0x5046,sensor_channels_5046,Other / Unclassified,0.000,none
 60E0FC00,0x5056,noOpFunc5,RTOS,1.000,graph
 60E0FC00,0x505A,noop_stub,Other / Unclassified,0.000,none
@@ -339,7 +339,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x59B2,FUN_000059b2,Fuel & Lambda,1.000,graph
 60E0FC00,0x59C0,FUN_000059c0,Fuel & Lambda,1.000,graph
 60E0FC00,0x59CE,injector_pulse_stub_clearbit,Other / Unclassified,0.000,none
-60E0FC00,0x5A1E,diag_thunk_5a1e,Other / Unclassified,0.000,none
+60E0FC00,0x5A1E,set_sr_delay_thunk_5348,Other / Unclassified,0.000,none
 60E0FC00,0x5A22,boot_sfr_F66A_and_FDFF_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5A30,boot_sfr_F66A_and_FBFF_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5A3E,boot_sfr_F66A_and_F7FF_delay,Other / Unclassified,0.000,none
@@ -384,12 +384,12 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x5E48,out_reg_f024_or_f8_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5E58,out_reg_e412_or_6000_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5E68,out_reg_e412_or_9910_delay,Other / Unclassified,0.000,none
-60E0FC00,0x5E78,diag_thunk_5e78,Other / Unclassified,0.000,none
+60E0FC00,0x5E78,fnptr_dispatch_d8d8_thunk,Other / Unclassified,0.000,none
 60E0FC00,0x5EBC,port_e412_bit0_set_dispatch_9c9c,Other / Unclassified,0.000,none
 60E0FC00,0x5EC8,boot_sfr_0xe0_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5ECE,out_reg_e612_or_6000_delay,Other / Unclassified,0.000,none
 60E0FC00,0x5EDE,out_reg_e612_or_9910_delay,Other / Unclassified,0.000,none
-60E0FC00,0x5EEE,diag_thunk_5eee,Other / Unclassified,0.000,none
+60E0FC00,0x5EEE,fnptr_dispatch_d8d8_thunk_5eee,Other / Unclassified,0.000,none
 60E0FC00,0x5EF4,port_e612_bit0_set_dispatch_d8dc,Other / Unclassified,0.000,none
 60E0FC00,0x5F18,noOp,Sensors,1.000,graph
 60E0FC00,0x5F1C,FUN_00005f1c,RTOS,1.000,graph
@@ -424,9 +424,9 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x6666,obj_ptr_deref_callback_11ce0,Other / Unclassified,0.000,none
 60E0FC00,0x6670,FUN_00006670,Boot & Init,1.000,graph
 60E0FC00,0x6684,FUN_00006684,Ignition & Knock,1.000,graph
-60E0FC00,0x66A6,diag_thunk_66a6,Other / Unclassified,0.000,none
-60E0FC00,0x66AC,diag_thunk_66ac,Other / Unclassified,0.000,none
-60E0FC00,0x66B2,diag_thunk_66b2,Other / Unclassified,0.000,none
+60E0FC00,0x66A6,noop_stub_thunk_11f3c,Other / Unclassified,0.000,none
+60E0FC00,0x66AC,noop_stub_thunk_11c6a,Other / Unclassified,0.000,none
+60E0FC00,0x66B2,noop_stub_thunk_11c6e,Other / Unclassified,0.000,none
 60E0FC00,0x6744,getVehicleStatusInputs?,Sensors,1.000,graph
 60E1D400,0x6768,atu2_capture_snapshot_init,Boot & Init,1.000,name
 60E0FC00,0x6796,port_readback_shadow_update_9ec8,Other / Unclassified,0.000,none
@@ -726,7 +726,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0xA9F4,port_b_gpio_toggle_bit,Other / Unclassified,0.000,none
 60E1D400,0xAA20,math_multiply_aa20,Other / Unclassified,0.000,none
 60E1D400,0xAA74,write_to_memory_with_fpu_sync,Memory & CRC,1.000,name
-60E0FC00,0xAA90,ctrl_setapvdc_aa90,Other / Unclassified,0.000,none
+60E0FC00,0xAA90,apv_duty_cycle_store_scaled,Other / Unclassified,0.000,none
 60E1D400,0xAAAC,init_timer_interrupt_controller,Boot & Init,1.000,name
 60E0FC00,0xAAC4,FUN_0000aac4,Peripherals & ISR,1.000,graph
 60E1D400,0xAB06,task_scheduler,RTOS,1.000,name
@@ -1188,7 +1188,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x12C8C,calc_fuel_correction_all_modes,Fuel & Lambda,1.000,name
 60E0FC00,0x12CE8,getEngineLimitTimingDerates?,Ignition & Knock,1.000,name
 60E0FC00,0x12D30,engineConditionDetectForTimingModification,Ignition & Knock,1.000,name
-60E0FC00,0x12E94,math_leadingandtrailingseperatorsomething_12e94,Other / Unclassified,0.000,none
+60E0FC00,0x12E94,sensor_tps_delta_lookup_store,Other / Unclassified,0.000,none
 60E1D400,0x12EF2,calculateOffThrottleORFuelCutTimer,Fuel & Lambda,1.000,name
 60E1D400,0x12F5E,calc_idle_speed_target,Idle Control,1.000,name
 60E1D400,0x13070,read_engine_speed_status,Other / Unclassified,0.000,none
@@ -1477,9 +1477,9 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x19ADC,FUN_00019adc,Sensors,1.000,name
 60E0FC00,0x19B40,o2_voltage_state_update,Other / Unclassified,0.000,none
 60E0FC00,0x19B5C,o2_front_raw_clamp_store,Other / Unclassified,0.000,none
-60E0FC00,0x19B82,filterSomething,Other / Unclassified,0.000,none
+60E0FC00,0x19B82,o2_front_voltage_rate_filter,Other / Unclassified,0.000,none
 60E0FC00,0x19BA0,o2_aux_raw_clamp_store,Other / Unclassified,0.000,none
-60E0FC00,0x19BC6,filterSomething2,Other / Unclassified,0.000,none
+60E0FC00,0x19BC6,o2_rear_voltage_rate_filter,Other / Unclassified,0.000,none
 60E1D400,0x19BCA,spark_advance_limiter_19BCA,Ignition & Knock,1.000,name
 60E0FC00,0x19BE4,throttle_pedal_signal_calc,Other / Unclassified,0.000,none
 60E1D400,0x19DDE,idle_speed_range_validator,Idle Control,1.000,name
@@ -1896,7 +1896,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x2468C,can_data_decode_2468C,CAN Bus,1.000,name
 60E0FC00,0x247C2,updateFaults???,Faults & DTC,1.000,name
 60E0FC00,0x24B22,dtc_fault_status_flags,Other / Unclassified,0.000,none
-60E0FC00,0x24D3E,diag_readvalue_24d3e,Other / Unclassified,0.000,none
+60E0FC00,0x24D3E,fp_cal_table_b48c_init_alt,Other / Unclassified,0.000,none
 60E1D400,0x250F6,output_diagnostic_flags_250F6,Faults & DTC,1.000,name
 60E1D400,0x25312,fuel_system_health_check_25312,Fuel & Lambda,1.000,name
 60E0FC00,0x25388,FUN_00025388,Math / FPU,1.000,graph
@@ -2292,7 +2292,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x2AAF2,setOBDCANTXVars,OBD / UDS,1.000,name
 60E0FC00,0x2AB10,obd_can_tx_irq_guard,Other / Unclassified,0.000,none
 60E1D400,0x2AB28,math_executor_2ab28,Other / Unclassified,0.000,none
-60E0FC00,0x2AB2E,diag_thunk_2ab2e,Other / Unclassified,0.000,none
+60E0FC00,0x2AB2E,read_ram_8688_thunk,Other / Unclassified,0.000,none
 60E1D400,0x2AB56,ram_word_copy_2AB56,Memory & CRC,1.000,name
 60E1D400,0x2AB60,ram_word_copy_2AB60,Memory & CRC,1.000,name
 60E1D400,0x2AB6A,ram_word_copy_2AB6A,Memory & CRC,1.000,name
@@ -2681,7 +2681,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x31DCA,getEngineOffTimer,Peripherals & ISR,1.000,name
 60E0FC00,0x31DF2,getSecondaryAirOnTimer,Peripherals & ISR,1.000,name
 60E0FC00,0x31ECC,sas_air_inj_on_time_calc,Other / Unclassified,0.000,none
-60E0FC00,0x32094,ctrl_setapvdc_32094,Other / Unclassified,0.000,none
+60E0FC00,0x32094,apv_duty_cycle_calc,Other / Unclassified,0.000,none
 60E0FC00,0x320C4,FUN_000320c4,Boot & Init,1.000,graph
 60E0FC00,0x320C8,sensor_apvcontrol_320c8,Other / Unclassified,0.000,none
 60E0FC00,0x32114,calcAPVControl,Sensors,0.850,cal
@@ -2857,7 +2857,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x35036,vfadControl,Sensors,1.000,name
 60E0FC00,0x3505C,vfadControl,Sensors,1.000,name
 60E1D400,0x35096,fpu_conditional_zero_reset_35096,Boot & Init,1.000,name
-60E0FC00,0x35104,ImmoSomethingOrOther??,Other / Unclassified,0.000,none
+60E0FC00,0x35104,immo_init_check_dispatch,Other / Unclassified,0.000,none
 60E1D400,0x35114,state_copy_float_init_35114,Boot & Init,1.000,name
 60E1D400,0x35124,diag_threshold_35124,Other / Unclassified,0.000,none
 60E0FC00,0x35148,thunk_FUN_00035184,Ignition & Knock,1.000,graph
@@ -3258,10 +3258,10 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x3E00E,FUN_0003e00e,Faults & DTC,1.000,graph
 60E0FC00,0x3E07C,byte_change_flag_c634_latch,Other / Unclassified,0.000,none
 60E0FC00,0x3E0AC,floatDivideDiv0errCheck_SIG_DIVISOR,Math / FPU,1.000,name
-60E0FC00,0x3E0DC,diag_readvalue_3e0dc,Other / Unclassified,0.000,none
-60E0FC00,0x3E11C,diag_readvalue_3e11c,Other / Unclassified,0.000,none
+60E0FC00,0x3E0DC,read_value_8bit_redundant,Other / Unclassified,0.000,none
+60E0FC00,0x3E11C,read_value_16bit_redundant,Other / Unclassified,0.000,none
 60E1D400,0x3E134,error_handler_3E134,Faults & DTC,1.000,name
-60E0FC00,0x3E15C,diag_readvalue_3e15c,Other / Unclassified,0.000,none
+60E0FC00,0x3E15C,read_value_32bit_redundant,Other / Unclassified,0.000,none
 60E1D400,0x3E166,diag_validation_3e166,Other / Unclassified,0.000,none
 60E0FC00,0x3E1AA,readValue_float_DEFAULTVAL_ADDRESS,Faults & DTC,1.000,name
 60E1D400,0x3E1F8,uds_protocol_3e1f8,Other / Unclassified,0.000,none
@@ -3764,7 +3764,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x480DE,FUN_000480de,Throttle & Torque,1.000,graph
 60E0FC00,0x4810C,throttle_condition_flag_8782,Other / Unclassified,0.000,none
 60E1D400,0x48144,wankel_port_timing_48144,Ignition & Knock,1.000,name
-60E0FC00,0x48184,diag_thunk_48184,Other / Unclassified,0.000,none
+60E0FC00,0x48184,batt_temp_delta_thunk_4819e,Other / Unclassified,0.000,none
 60E0FC00,0x48188,FUN_00048188,Memory & CRC,1.000,graph
 60E0FC00,0x48192,FUN_00048192,Math / FPU,1.000,graph
 60E0FC00,0x4819A,calcSpeedBasedIATCompensation??,Sensors,1.000,name
@@ -3867,7 +3867,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x4A20A,crc_calculate_4A20A,Memory & CRC,1.000,name
 60E1D400,0x4A276,crc_verify_4A276,Memory & CRC,1.000,name
 60E0FC00,0x4A27C,unknownEnrichmentInit,Boot & Init,1.000,name
-60E0FC00,0x4A284,math_enrichmentunknownconditioncheck_4a284,Other / Unclassified,0.000,none
+60E0FC00,0x4A284,fuel_enrichment_multiplier_calc,Other / Unclassified,0.000,none
 60E1D400,0x4A2B8,checksum_calculate_4A2B8,Memory & CRC,1.000,name
 60E0FC00,0x4A308,obd_cat_monitor_eff_calc,Other / Unclassified,0.000,none
 60E1D400,0x4A31A,checksum_verify_4A31A,Memory & CRC,1.000,name
@@ -5349,7 +5349,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x5E678,FUN_0005e678,Boot & Init,1.000,graph
 60E1D400,0x5E67C,interrupt_state_update_5E67C,Peripherals & ISR,1.000,name
 60E0FC00,0x5E690,FUN_0005e690,Faults & DTC,1.000,graph
-60E0FC00,0x5E69E,diag_thunk_5e69e,Other / Unclassified,0.000,none
+60E0FC00,0x5E69E,clear_ram_d382_thunk,Other / Unclassified,0.000,none
 60E0FC00,0x5E6A2,FUN_0005e6a2,Faults & DTC,0.667,graph
 60E0FC00,0x5E700,FUN_0005e700,Faults & DTC,1.000,graph
 60E0FC00,0x5E72C,updateFaultStatus,Faults & DTC,1.000,name
@@ -5962,7 +5962,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x67654,thunk_FUN_00052aec,OBD / UDS,1.000,graph
 60E0FC00,0x6765A,thunk_FUN_00052c18,RTOS,1.000,graph
 60E0FC00,0x67660,thunk_FUN_00052b22,Boot & Init,0.667,graph
-60E0FC00,0x67666,diag_thunk_67666,Other / Unclassified,0.000,none
+60E0FC00,0x67666,dtc_status_getter_thunk_52b8c,Other / Unclassified,0.000,none
 60E0FC00,0x6766C,thunk_FUN_00052c4e,Utilities,1.000,graph
 60E0FC00,0x67672,thunk_FUN_00052c84,Boot & Init,1.000,graph
 60E1D400,0x67688,obd_service_handler_67688,OBD / UDS,1.000,name
