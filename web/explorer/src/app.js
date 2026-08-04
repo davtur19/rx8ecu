@@ -151,6 +151,20 @@ function methodBadge(m) {
   if (!m) return "";
   return `<span class="tag" title="mapping method: ${esc(METHOD_LABEL[m] || m)}">${esc(METHOD_LABEL[m] || m)}</span>`;
 }
+/* ct/cs come da build_site.py (offline classifier FUNCTION_CATEGORIES.csv):
+ * ct=="tentative" => categoria propagata dal callgraph a conf<1.0, cs e' il
+ * segnale della classificazione ("graph"/"name"/"cal"/"none"). */
+function tentBadge(sym) {
+  if (!sym || sym.ct !== "tentative") return "";
+  return ` <span class="tag" style="color:#d29922;border-color:#d29922" title="category from callgraph propagation, conf<1.0">tentative</span>`;
+}
+function catCellHtml(sym) {
+  return `${esc(sym.c)}${tentBadge(sym)}`;
+}
+function signalHtml(sym) {
+  const cs = sym && sym.cs ? sym.cs : "none";
+  return `<span class="muted" title="category signal from the offline classifier (graph/name/cal/none)">signal: ${esc(cs)}</span>`;
+}
 
 function modelContextSummary() {
   const m = modelByKey(CUR_MODEL);
@@ -418,7 +432,7 @@ function renderSymRow(sym, i) {
   return `<tr data-i="${i}">
     <td class="addr">${hex(sym.a)}</td>
     <td class="name">${esc(sym.n)}${sym.d ? ' <span class="tag doc">doc</span>' : ""}</td>
-    <td class="cat">${esc(sym.c)}</td>
+    <td class="cat">${catCellHtml(sym)}</td>
     <td><span class="tag">${romTags(sym.r)}</span></td>
     <td>${sym.d ? '<span class="tag doc">doc</span>' : ""}</td>
     <td>${cs[1]}</td><td>${cs[0]}</td>
@@ -453,7 +467,8 @@ function detailSymbolHtml(i) {
   <div class="kv-list">
     <div>Address</div><div>${hex(sym.a)}</div>
     <div>Range</div><div>${hex(sym.a)} – ${hex(sym.e)} (${sym.e - sym.a} bytes)</div>
-    <div>Category</div><div>${esc(sym.c)}</div>
+    <div>Category</div><div>${catCellHtml(sym)}</div>
+    <div>Signal</div><div>${signalHtml(sym)}</div>
     <div>Name source</div><div>${esc(sym.s)}</div>
     <div>ROM</div><div>${romTags(sym.r)}</div>
     <div>Documented</div><div>${doc ? `yes (docs/functions/${esc(doc.f)}.md)` : "no"}</div>
@@ -520,7 +535,7 @@ function renderDashboard() {
       const s = DATA.symbols[i];
       return `<tr data-sym-i="${i}"><td class="name">${esc(s.n)}${s.d ? ' <span class="tag doc">doc</span>' : ""}</td>
         <td class="addr">${hex(s.a)}</td><td>${fmtNum(deg)}</td><td>${fmtNum(indeg[i])}</td><td>${fmtNum(outdeg[i])}</td>
-        <td class="cat">${esc(s.c)}</td></tr>`;
+        <td class="cat">${catCellHtml(s)}</td></tr>`;
     }).join("") + "</tbody>";
   $("dash-top").addEventListener("click", (ev) => {
     const tr = ev.target.closest("tr[data-sym-i]");
@@ -847,7 +862,8 @@ function cgDetail(i) {
       <div>Address</div><div>${hex(s.a)}</div>
       <div>Role</div><div>${role}</div>
       <div>Total degree</div><div>${fmtNum(totalDegree(n))}</div>
-      <div>Category</div><div>${esc(s.c)}</div>
+      <div>Category</div><div>${catCellHtml(s)}</div>
+      <div>Signal</div><div>${signalHtml(s)}</div>
     </div>
     <h4>Direct callers (${fmtNum(callers.length)}${inEdges[n].length > callers.length ? "+" : ""})</h4>
     <div class="edge-list"><table>${callers.length ? callers.map(([o, k]) => row(o, k)).join("") : '<tr><td class="muted">none</td></tr>'}</table></div>
