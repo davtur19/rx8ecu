@@ -406,8 +406,14 @@ static uint8_t state_check2(void)
  *  4.  position_check  (ROM 0x56892)
  *
  *  VERIFIED 2026-08-04 — both tables match ROM verbatim (table 4x6 @0x5FA90
- *  with literal @0x56904, word_tab @0x5FA94 literal @0x56908, mask word
- *  0x61F2 @0x56CB0); word_tab[2] corrected 0x0000 -> 0xFFFC from ROM bytes.
+ *  with literal @0x56904, word_tab @0x5FA94 literal @0x56908); word_tab[2]
+ *  corrected 0x0000 -> 0xFFFC from ROM bytes.
+ *  [AUX-CORRECTION] the "mask word 0x61F2 @0x56CB0" is a misread: the
+ *  literal at 0x56CB0 is an instruction (0x61F2 = mov.l @r15,r1), and the
+ *  ROM loads the mask via a sign-extended 16-bit RAM pointer (lit 0xD3F0
+ *  @0x568EC -> 0xFFFFD3F0; mov.w @r1,r6 @0x568C6), not as an immediate —
+ *  runtime value [AUX-TBD]; see docs/notes/AUX_HANDLERS_COMPARISON.md
+ *  "Correzione mask".
  *  Role: position level check with second-stage mask qualification.
  *
  *  ROM evidence (disasm 0x56892-0x568E4):
@@ -415,8 +421,10 @@ static uint8_t state_check2(void)
  *      (shll/shll2/add at 0x5689E-0x568A2), so entries are 6 bytes apart.
  *    - loop index i runs 0..3; entry byte[+1] is compared against r4.
  *    - on match: a second stage ANDs the word at 0x5FA94 + i*6 (literal
- *      @0x56908) with the mask 0x61F2 (word @0x56CB0); if nonzero -> return
- *      i, else -> return 3.  No match at all -> return 3.
+ *      @0x56908) with the mask word loaded from RAM via sign-extended 16-bit
+ *      pointer (lit 0xD3F0 @0x568EC -> 0xFFFFD3F0; mov.w @r1,r6 @0x568C6;
+ *      runtime value [AUX-TBD]); if nonzero -> return i, else -> return 3.
+ *      No match at all -> return 3.
  *  The first stage table below is the verbatim ROM bytes (4 entries x 6B).
  *  The current 3x5-byte table used before this fix was a byte-shifted
  *  misreading of the same data.
@@ -435,7 +443,13 @@ static uint8_t position_check(uint8_t level)
         { 0xF1, 0xF1, 0xF2, 0x00, 0xFF, 0xFC },
         { 0x00, 0x00, 0x00, 0x01, 0x00, 0x01 },
     };
-    /* Second stage word table @0x5FA94 (same stride) and mask @0x56CB0. */
+    /* Second stage word table @0x5FA94 (same stride) + mask.  The ROM loads
+     * the mask via a sign-extended 16-bit RAM pointer (lit 0xD3F0 @0x568EC
+     * -> 0xFFFFD3F0; mov.w @r1,r6 @0x568C6), NOT as an immediate — the word
+     * 0x61F2 @0x56CB0 is an instruction (misread).  Mask value is
+     * runtime-written RAM: the 0x61F2 constant below is a placeholder
+     * [AUX-TBD]; see docs/notes/AUX_HANDLERS_COMPARISON.md "Correzione
+     * mask". */
     static const uint16_t word_tab[4] = { 0x0000, 0xFFFD, 0xFFFC, 0x0001 };  /* @0x5FA94+i*6; i=2 -> 0x5FAA0 = 0xFFFC (ROM) */
     static const uint16_t mask       = 0x61F2;
 
