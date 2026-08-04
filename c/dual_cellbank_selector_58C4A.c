@@ -81,7 +81,7 @@ void dual_cellbank_selector_58C4A(void)
         return;
     }
 
-    if (prev_u8 == 0 && RAM_D26C == 1) {  /* 0x58C6C tst r3 / cmp/eq#1,D26C */
+    if (prev == 0 && RAM_D26C == 1) {  /* 0x58C6C tst r3 / cmp/eq#1,D26C */
         cellbankA_recalc_0x58C9E(); /* 0x58C80 bsr 0x58C9E */
         cellbankB_recalc_0x58D58(); /* 0x58C86 bra 0x58D58 */
         return;

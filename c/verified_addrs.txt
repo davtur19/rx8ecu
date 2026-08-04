@@ -269,3 +269,27 @@
 
 ; 2026-08-03 batch obd_vars/freezeframe_uds01
 0x4C8C2 0x4C9C0 0x670B4 0x467D0 0x66258
+
+; 2026-08-04: calc_vis_solenoid_duty_cycle_1261C verified — VIS solenoid duty output
+; stage, sibling of calc_intake_pressure_pid_output_1252C (emulator vs model,
+; 500k random inputs across 5 seeds, full-RAM diff, 0 mismatches)
+0x1261C
+
+; 2026-08-04: output_spark2_0x8E20 verified — TRAIL-spark per-channel output driver,
+; twin of outputSpark1 0x8DE6 (also verified in-tree); gated on ch[4]==2, arming via
+; 0x91FE ignitonSomethingCalc (emulator vs model, 500k random inputs across 5 seeds,
+; full-RAM diff, 0 mismatches). 0x8DE6 re-verified via fastverify fn 0x8E20.
+0x8E20
+; 2026-08-04: div_4740 + ldexp_481C verified — the sqrt/ldexp stages of the
+; checkFloatValidity @0x46CC float pipeline (frexp @0x48C8 -> sqrt @0x4740 ->
+; ldexp @0x481C). NOTE: the working name "div_4740" is a misnomer — 0x4740 is a
+; fixed-point restoring SQUARE ROOT (closed form r1 = round(sqrt(a1 << (31+
+; (a0&1)))), r3 = (sext16(a0)>>1)&0xFFFF, confirmed 49932/49932 main-path
+; inputs; trial divisor r0 grows one bit/iter, 2-bit radicand shifts, sticky
+; round-up). Exact SH-2 T-flag semantics (cmp/pl r6 @0x4788 feeds loop-top
+; rotcl r0 @0x476C); a prior ref_helpers.py left T unset across iterations
+; (fixed). ldexp_481C rebuilds the float bits with exp-bias +127 inline and
+; saturates out-of-range exponents. C lifts c/div_4740.c + c/ldexp_481C.c.
+; (test_div_4740.py + test_ldexp_481C.py, 100k+ inputs each, emulator vs model
+; AND C lift vs emulated ROM, 0 mismatches)
+0x4740 0x481C
