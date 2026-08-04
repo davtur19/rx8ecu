@@ -15,7 +15,8 @@
 #                 editing CI.  -j 2 uses the runner's 2 vCPUs (its default
 #                 cpu_count-1 would be 1 worker = serial on this runner).
 #
-# The two jobs run in parallel and each fails the workflow on any failing step.
+# The three jobs run in parallel and each fails the workflow on any failing step.
+# (catalog job: determinism gate for tools/classify_functions.py + gen_catalog.py.)
 #
 # Environment reproduced from the local dev box:
 #   - Python 3.14  (local: 3.14.6)
@@ -143,3 +144,63 @@ jobs:
         run: |
           export PATH="$PWD/tools/toolchain/usr/bin:$PATH"
           python3 tools/run_tests_parallel.py -j 2
+
+  # ---------------------------------------------------------------------------
+  # catalog: determinism gate for the classifier + master-catalog generators.
+  #
+  # tools/classify_functions.py and tools/gen_catalog.py are run by hand with
+  # no tests; this job re-runs them from a clean checkout and fails the
+  # pipeline if they would modify the committed catalog artifacts, i.e. the
+  # repo is in "catalog drift". Both generators are idempotent (pure stdlib,
+  # no deps), so this gate must be green on every catalog-relevant push.
+  #
+  # Job-level path trigger: GHA has no job-level `paths:`/`paths-ignore:`
+  # (those exist only under `on: push:`/`on: pull_request:`), so the gate uses
+  # dorny/paths-filter to skip its steps unless catalog-relevant inputs
+  # changed. The workflow-level `paths-ignore` above still skips the whole
+  # workflow for docs/README-only pushes.
+  # ---------------------------------------------------------------------------
+  catalog:
+    name: Catalog (determinism gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Changed catalog-relevant paths
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            catalog:
+              - 'c/**'
+              - 'symbols/**'
+              - 'src/**'
+              - 'tools/**'
+              - 'roms/**'
+
+      - name: Run classifier
+        if: steps.changes.outputs.catalog == 'true'
+        run: python3 tools/classify_functions.py
+
+      - name: Run master-catalog generator
+        if: steps.changes.outputs.catalog == 'true'
+        run: python3 tools/gen_catalog.py
+
+      - name: Assert no catalog drift
+        if: steps.changes.outputs.catalog == 'true'
+        run: |
+          if ! git diff --exit-code -- \
+            symbols/FUNCTION_CATEGORIES.csv \
+            symbols/CATALOG_MASTER.csv \
+            symbols/CATALOG_STATUS.md \
+            symbols/NAMES_STATUS.md; then
+            echo "::error::catalog drift: run 'make catalog classify' and commit the refresh"
+            exit 1
+          fi
