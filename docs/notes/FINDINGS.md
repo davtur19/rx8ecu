@@ -674,3 +674,30 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
 - Pre-existing (unrelated) failure: `c/tests/test_o2_lambda_more.py` (untracked)
   raises AttributeError ('tuple' object has no attribute 'pop') in run_suite —
   not caused by the CAN pack work.
+
+## SecurityAccess RequestSeed flow CONFIRMED (2026-08-04)
+- Full row-by-row evidence in `docs/notes/REQUEST_SEED_EVIDENCE.md`. Handler
+  0x584A0 (SID 0x27, table @0x5F57C idx 10, mask 0x1000000E). Dispatcher
+  0x697E8-0x69840 calls it with **r4 = msg_len** (16-bit payload length EXCLUDING
+  the SID byte; RequestSeed=1, SendKey=4) and **r5 = subfunction** — r4 is NOT a
+  buffer pointer (C comment corrected).
+- RequestSeed order: state reads (0x56866, 0x568E6 — no gate), msg_len==0 → NRC
+  0x12, subfunc==0 → NRC 0x31, entry only for subfunc==1, msg_len==1 → NRC 0x12,
+  seed_gen(3) @0x58522, position_check(subfunc) @0x58526 (sentinel chk==3 → NRC
+  0x31 @0x5857E), key_validate(state1,state2,chk) @0x58538 (fail → NRC 0x31
+  @0x58574), seed written conditionally (state2==chk → {0,0,0}; else seed_gen(chk)
+  + data_copy(r13) @0x5855E-0x58566), resp builder 0x5864A → [0x67, subfunc,
+  3 bytes] → 0x68B60.
+- NRCs emitted by handler 0x584A0-0x58648: only {0x12, 0x31, 0x22, 0x35} — **no
+  0x11** anywhere (state reads gate nothing; the old "already unlocked → 0x11"
+  claim was WRONG).
+- The "absolute-value trick" (abs_sub) IS present at 0x584FE-0x58516 (cmp/pz, abs,
+  and #1, cmp/eq #1) but is vestigial: only subfunc==1 enters, always odd →
+  RequestSeed. No "level must be 1" guard exists (the ==1 test @0x5851A is on
+  msg_len).
+- **SendKey (0x58592-0x58610) is UNREACHABLE in 60E1D400**: entry 0x584B6-0x584BE
+  routes only subfunc==1; whole-ROM branch scan shows 0x58592 has exactly one
+  incoming ref (bf/s @0x58516, unreachable). Subfunc != 1 → 0x5862C: subfunc==0 →
+  resp via 0x55386; subfunc!=0 → NO response (silent). Previously "VERIFIED"
+  SendKey work needs reconciliation (likely shared-codebase remnant; 60E32000 has
+  different code at 0x58592).
