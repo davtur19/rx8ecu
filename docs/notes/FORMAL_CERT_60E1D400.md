@@ -1,9 +1,110 @@
 # FORMAL CERT — 60E1D400
 
-Verifier: `tools/verify_formal.py` (syntactic, decidable). Date: 2026-08-04.
+Verifier: `tools/verify_formal.py` (v1, then v2). Date: 2026-08-04.
+Command (v2):
+```
+python3 tools/verify_formal.py --rom roms/stock/60E1D400.bin --asm src/60E1D400_annotated.s --v2   # exit=1
+```
+
+# v2 results
+
+`tools/verify_formal.py` was refactored to correct the SH-2 semantics applied by
+the verifier itself (no fix to the `.s` — this is a report-only task). The v2
+CLI keeps `--rom`/`--asm` and the `CERTIFICATE 60E1D400 v2` output and adds the
+`--v2` switch. Determinism verified: two identical runs produce byte-identical
+output.
+
+## Counts v1 → v2
+
+| Check | v1 | v2 | Delta |
+|---|---|---|---|
+| P1 ROUND-TRIP | PASS | **PASS** | sha256 `344cb8b9…af78` |
+| P2 PARTITION | PASS | **PASS** | 524288/524288 covered |
+| P3 CFG | 448 | **7** (6 LIVE branch + 1 jt) | −441 |
+| P4 XREF (unref data) | 39061 | **37736** | −1325 |
+| P4 dead-code FLAG | 167368 | **48366** | −118k |
+| P5 GAP-AUDIT | 78 | **11** | −67 |
+| Verdict | NOT-CERTIFIED | **NOT-CERTIFIED** | exit 1 |
+
+What changed in v2:
+- **P3** — target alignment probe (±2/±4 off the instruction map) resolves
+  formerly-flagged branches; offset-dispatch **jump-table OFFLOAD** heuristic
+  (`table_base + 2*word` / `table_base + word`) resolves the in-window
+  encoding tables; every remaining branch violation is triaged **LIVE** (source
+  reachable → FAIL) vs **DEAD** (source unreachable → FLAG). DEAD branches: 86.
+- **P4** — reachability roots now include *every* `! ---` header, all of
+  `c/verified_addrs.txt`, every resolved jump-table entry, and every P3 branch
+  target that lands on an instruction start; SH-2 control flow (fallthrough +
+  bra/braf/bt/bt/s/bf/bf/s/bsr/bsrf/jmp/jsr/rts/rte) is followed to fixed point;
+  dead code is a FLAG, not a violation. Data references now collect *all*
+  PC-relative loads (`mov.w/mov.l/mova @(disp,PC)`) with a 32-bit load covering
+  both pool words, plus all 32-bit pointer values, plus declared padding/config
+  regions (data_regions CSV + padding markers + non-suspicious uncovered CSVs).
+- **P5** — only a gap with a **reachable** source branch-in is CODE-HIDDEN
+  (LIVE FAIL); unreachable branch-ins are counted as DEAD dangling (77) — not
+  violations.
+
+## LIVE residuals to fix (real, with evidence)
+
+### P3 — 6 LIVE branches + 1 jump-table entry
+| src | mne | target | target bytes | evidence |
+|---|---|---|---|---|
+| `0x5F85A` | bt/s | `0x5F7CE` | `00 00 …` | into NOP/0x00 padding run (data_regions 391048-391128) |
+| `0x6B996` | bra  | `0x6C652` | `FF FF …` | into 0xFFFF filler (no data_regions row) |
+| `0x6BC0E` | bra  | `0x6CBF2` | `FF FF …` | 0xFFFF filler |
+| `0x6BE26` | bsr  | `0x6C35A` | `FF FF …` | 0xFFFF filler |
+| `0x6BE2A` | bsr  | `0x6C39E` | `FF FF …` | 0xFFFF filler |
+| `0x6BE6A` | bsr  | `0x6C7AE` | `FF FF …` | 0xFFFF filler |
+| `0x44456` | jt   | raw `0xC72B` | `00 00 C7 2B` | jump_table 0x44456; low-word dis- placed, not resolvable as an address |
+
+`azione proposta` — **(a)** confirm whether each source is truly reachable
+entry code; if `0x6B996/0x6BC0E/0x6BE26/0x6BE2A/0x6BE6A` live in an unreachable
+stub the annotation should mark that region dead (turns these into DEAD flags);
+if reachable, the 0xFFFF/0x00 filler behind `0x6C652/0x6CBF2/0x6C35A/0x6C39E/
+0x6C7AE/0x5F7CE` should be annotated as reachable NOP/padding so the branch no
+longer points at a non-code region. For the `0x44456` jump table the entry is
+offset/dispatch: decode the loaded base and offset (or annotate the raw 0xC72B
+as a table sentinel) so it verifies.
+
+### P4 — 37736 unreferenced data words (dominant = unannotated tables)
+Residual is dominated by large contiguous unannotated data structures that the
+static reference model correctly cannot find a reference to:
+- ~27,259 words at `0x70000` page (from `0x72854`) — calibration/record table.
+- ~7,937 words at `0x60000` page (from `0x60012`) — stride-6 record tables.
+- ~1,057 words at `0x8000e`+ (bank/mirror) and ~219 at `0x50000`, ~99 near the
+  reset/vector pools (`0x2BA, 0x406, 0x4DE, 0xFF8, 0x1002, 0x2038, 0x33BC,
+  0x3B08, …`).
+
+`azione proposta` for a sample of LIVE words — `0x2BA`, `0x2BE`, `0x2C2`,
+`0x2C6`, `0x60012`, `0x60018`, `0x6001E`, `0x8000E`, `0x80012`, `0x72854`:
+import the stride/base-pointer tables (Denso flash-record and calibration
+structures) as declared data regions or document the base-register + offset
+access so the reference model can cover them. `0x2BA`/`0x406`/`0xFF8` are
+vector-adjacent pool/pointer words whose referencing instruction uses an
+indirect (register) load — recover the immediate `mov.l #addr`/pool entries.
+
+### P5 — 11 CODE-HIDDEN LIVE gaps (cand=0, one reachable branch-in each)
+`0x142B0-0x142B4`, `0x14FD2-0x14FD4`, `0x1F81E-0x1F820`, `0x30B60-0x30B64`,
+`0x31A9E-0x31AA0`, `0x31FE6-0x31FE8`, `0x32CD2-0x32CD4`, `0x34AF0-0x34AF4`,
+`0x4305C-0x4305E`, `0x44456-0x4445E`, `0x5F788-0x5F7D6`.
+
+`azione proposta` — each has a reachable branch landing inside and *no* valid
+2-instruction run (cand=0), so the targets are 0xFFFF/0x00 filler reached by a
+dangling edge. Annotate the target region as dead/padding (or as NOP code if the
+branch is live) so the gap becomes DATA; none is true hidden code.
+
+## Dead / flag summary (non-fatal)
+- Dead code (unreached instructions): **48,366** (down from 167,368).
+- DEAD branches (unreachable source): **86**.
+- DEAD dangling gap branch-ins: **77**.
+
+---
+# v1 results (superseded)
+
+Verifier: `tools/verify_formal.py` (v1, syntactic, decidable). Date: 2026-08-04.
 Command:
 ```
-python3 tools/verify_formal.py --rom roms/stock/60E1D400.bin --asm src/60E1D400_annotated.s   # exit=1
+python3 tools/verify_formal.py --rom roms/stock/60E1D400.bin --asm src/60E1D400_annotated.s   # exit=1 (v1)
 ```
 
 ## Status

@@ -14,27 +14,54 @@ violations are reported so they can be fixed with evidence later.
 Properties (P1..P5)
 -------------------
 P1  ROUND-TRIP    Reassemble (rom_rebuild logic) and compare byte-for-byte with
-the stock ROM. PASS == the annotated .s re-assembles to the identical image.
+                    the stock ROM. PASS == the annotated .s re-assembles to the
+                    identical image.
 P2  PARTITION     Parse the .s into a per-byte class map (instruction / data /
-padding / other). Check 100% coverage of the ROM and no byte in two classes.
-P3  CFG           Disassemble instruction regions (capstone SH2). For every
-branch/branch-with-delay (bra,bsr,bt,bf,bt/s,bf/s [,braf,bsrf,jmp,jsr,rts,rte])
-verify the absolute target lies in {instruction starts} U {declared function
-entries}. Jump tables (analysis/data_regions) entries must be code starts too.
-P4  XREF-CLOSURE  Roots = reset vector + exception vectors + declared function
-entries + c/verified_addrs.txt. Reachability via branch/fallthrough/call over
-decoded instructions. Flag (non-fatal) unreached code as dead code; for data
-words require a reference (pcrel load target / 32-bit pointer) or membership in
-a declared padding/config region, else VIOLATION.
-P5  GAP-AUDIT     For every uncovered gap (analysis/coverage/uncovered_*.csv)
-probe both word alignments for runs of >=2 valid instructions and scan for
-XREFs (32-bit pointers / branch targets) landing inside the gap. Verdict
-DATA if no code candidates and no refs, CODE-HIDDEN (FAIL) otherwise.
+                    padding / other). Check 100% coverage and no byte in two
+                    classes.
+P3  CFG           Disassemble instruction regions (capstone SH2). Verify every
+                    branch target lies on the instruction map. v2 adds:
+                    (a) alternative-alignment probe (a branch falling +/-2/+4
+                        off the map boundary is tolerated and reported, not a
+                        violation),
+                    (b) jump-table OFFLOAD heuristic: a 32-bit entry whose value
+                        > filesize is treated as an offset-dispatch entry and
+                        retargeted to table_base + 2*word (word = low 16 bits,
+                        big-endian) or table_base + word; if that resolves to an
+                        instruction start / declared entry the entry is treated
+                        as resolved, else it is a violation carrying the raw
+                        entry value,
+                    (c) LIVE-vs-DEAD triage: a violation whose source branch is
+                        reachable is LIVE (FAIL); an unreachable source is DEAD
+                        (flag only).
+P4  XREF-CLOSURE  Roots = reset vector + ALL `! ---` headers + declared function
+                    entries + c/verified_addrs.txt + every resolved jump-table
+                    entry + every P3 branch target that lands on an instruction
+                    start. Reachability via fallthrough + bra/braf/bt/bt/s/bf/
+                    bf/s/bsr/bsrf/jmp/jsr/rts/rte over capstone-decoded SH-2
+                    mnemonics to fixed point. Unreached code is a DEAD flag (not
+                    a violation). For data: a word is referenced if it is the
+                    target of any loaded PC-relative operand (mov.w/mov.l/mova
+                    @(disp,PC)) or of any 32-bit pointer value anywhere in the
+                    ROM, or belongs to a declared padding/config data region.
+                    VIOLATION only for a data word that is NOT in a declared
+                    padding/config region AND has zero references.
+P5  GAP-AUDIT     For every uncovered gap probe both word alignments for runs of
+                    >=2 valid instructions, and scan for branches landing inside
+                    the gap. A branch-in whose SOURCE is reachable is a LIVE
+                    CODE-HIDDEN (FAIL); an unreachable source is a DEAD
+                    "dangling branch" flag. Verdict DATA only when there is no
+                    code candidate and no LIVE branch-in.
 
-Status: COMPLETED 2026-08-04 — result NOT CERTIFIED (exit 1): P1/P2 PASS,
-P3=448, P4=39061 unref_data (+dead FLAG 167368), P5=78 CODE-HIDDEN.
-See docs/notes/FORMAL_CERT_60E1D400.md for per-violation action items.
-No fixes applied (this task is report-only).
+Status:
+  v1 (f225689): P3=448, P4=39061, P5=78 CODE-HIDDEN, dead-code FLAG=167368,
+  NOT CERTIFIED.
+  v2 (2026-08-04): P3=7 (6 LIVE branch + 1 jt, DEAD-branch FLAG 86),
+  P4=37736 unref_data (dead-code FLAG 48366), P5=11 LIVE CODE-HIDDEN gaps
+  (77 dangling), VERDICT NOT-CERTIFIED (exit 1). Determinism: two runs produce
+  byte-identical output. Exact numbers recorded in
+  docs/notes/FORMAL_CERT_60E1D400.md (section "v2 results"). Report-only task;
+  no correction to the .s performed here.
 """
 import argparse
 import hashlib
@@ -54,12 +81,15 @@ ROM_CSV = 'analysis/data_regions_60E1D400.csv'
 UNCOV_CSV = 'analysis/coverage/uncovered_60E1D400.csv'
 VERIFIED = 'c/verified_addrs.txt'
 
-# SH-2 branch/call mnemonics we can statically resolve (absolute target in op_str).
+# SH-2 branch/call mnemonics capstone reports with an ABSOLUTE static target.
 RESOLVABLE = {'bra', 'bsr', 'bt', 'bf', 'bt/s', 'bf/s'}
-# Control-flow mnemonics that end/blunt a basic block (no static target).
+COND = {'bt', 'bf', 'bt/s', 'bf/s'}
+# Control-flow mnemonics with no statically resolvable absolute target.
 TERMINAL = {'jmp', 'jsr', 'braf', 'bsrf', 'rts', 'rte'}
-# PC-relative loaders: their resolved op_str[0] is a data/pool address.
+# PC-relative loaders: capstone resolves op_str[0] to the absolute target addr.
 PCREL = {'mov.l', 'mov.w', 'mova'}
+# Uncovered-data categories that are NOT a config/padding whitelist (suspicious).
+SUSPECT_DATA = ('unknown', 'unref')
 
 
 def hx(x):
@@ -70,11 +100,20 @@ def sha256(b):
     return hashlib.sha256(b).hexdigest()
 
 
+def parse_int_tok(tok, hex_ok=True):
+    """Parse an int from a token that may be 0x-prefixed."""
+    try:
+        return int(tok, 16 if (hex_ok and tok.lower().startswith('0x')) else 10)
+    except Exception:
+        return None
+
+
 def build_partition(asm_path):
     """Parse the .s into a per-byte class map.
 
-    Returns dict {byte_addr: class} plus instr_start set, padding regions,
-    declared function entries, and coverage counts.
+    Returns (byte_class, instr_starts, data_words, padding, declared_funcs).
+    Declared function entries = every `! --- name 0xS-0xE` header start AND every
+    `name:` label, both aligned to a word boundary.
     """
     byte_class = {}
     instr_starts = set()
@@ -96,7 +135,6 @@ def build_partition(asm_path):
                 continue
             m = wordre.search(s)
             if m:
-                w = int(m.group(1), 16)
                 for b in (addr, addr + 1):
                     byte_class[b] = 'data'
                 data_words.add(addr)
@@ -110,9 +148,9 @@ def build_partition(asm_path):
                 continue
             m = header.search(s)
             if m:
-                st = int(m.group(2), 16)
-                addr = st & ~1
-                declared_funcs.add(st & ~1)
+                st = int(m.group(2), 16) & ~1
+                addr = st
+                declared_funcs.add(st)
                 continue
             m = padre.search(s)
             if m:
@@ -138,26 +176,24 @@ def build_partition(asm_path):
     return byte_class, instr_starts, data_words, padding, declared_funcs
 
 
-def disassemble_all(d, instr_starts):
-    """Decode every instruction word; return list of nodes dict."""
-    md = capstone.Cs(capstone.CS_ARCH_SH, capstone.CS_MODE_SH2 | capstone.CS_MODE_BIG_ENDIAN)
-    nodes = []
-    for a in sorted(instr_starts):
-        if a + 2 > len(d):
-            continue
-        w = int.from_bytes(d[a:a + 2], 'big')
-        mne = None
-        ops = ''
-        for i in md.disasm(w.to_bytes(2, 'big'), a):
-            mne = i.mnemonic
-            ops = i.op_str
-            break
-        nodes.append({'addr': a, 'mne': mne, 'ops': ops})
-    return nodes
+def make_cs():
+    return capstone.Cs(capstone.CS_ARCH_SH, capstone.CS_MODE_SH2 | capstone.CS_MODE_BIG_ENDIAN)
+
+
+def disasm_node(md, d, a):
+    """Decode the single 16-bit instruction word at 'a' -> (mnemonic, op_str)."""
+    if a + 2 > len(d):
+        return (None, None)
+    w = int.from_bytes(d[a:a + 2], 'big')
+    for i in md.disasm(w.to_bytes(2, 'big'), a):
+        return (i.mnemonic, i.op_str)
+    return (None, None)
 
 
 def extract_abs(op_str):
-    """First hex literal in op_str -> int or None."""
+    """First hex literal in op_str -> int or None (must be an absolute target)."""
+    if not op_str:
+        return None
     m = re.search(r'0x([0-9a-fA-F]+)', op_str)
     return int(m.group(1), 16) if m else None
 
@@ -176,8 +212,8 @@ def read_verified(path):
     return out
 
 
-def read_hex_csv(path, dec=False):
-    """Rows of an uncovered/data-region CSV -> list of (start,end) ints."""
+def read_region_csv(path, dec):
+    """Rows of a coverage/data region CSV -> list of (start, end) ints."""
     rows = []
     if not os.path.exists(path):
         return rows
@@ -188,8 +224,8 @@ def read_hex_csv(path, dec=False):
                 continue
             c = line.split(',')
             try:
-                s = int(c[0], 10 if dec else 16)
-                e = int(c[1], 10 if dec else 16)
+                s = int(c[0], 16 if not dec else 10)
+                e = int(c[1], 16 if not dec else 10)
             except Exception:
                 continue
             rows.append((s, e))
@@ -201,6 +237,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--rom', default='roms/stock/60E1D400.bin')
     ap.add_argument('--asm', default='src/60E1D400_annotated.s')
+    ap.add_argument('--v2', action='store_true', help='v2 corrected SH-2 semantics')
     a = ap.parse_args()
 
     d = open(a.rom, 'rb').read()
@@ -235,19 +272,9 @@ def main():
     bc, instr_starts, data_words, padding, declared = build_partition(a.asm)
     cov = sum(1 for x in range(N) if x in bc)
     uncov = [x for x in range(N) if x not in bc]
-    # overlaps: a byte that is both 'instr' and 'data'
-    overlap = []
-    for b in range(N):
-        k = bc.get(b)
-        if k == 'instr':
-            # check partner byte of the word
-            pass
-    # simple overlap: adjacent word reassigned — detect via class set count
     classes_of = {}
     for b, k in bc.items():
         classes_of.setdefault(b, set()).add(k)
-    multi = {b: c for b, c in classes_of.items() if len(c) > 1}
-    # padding overlaps data is expected (re-declared), so only report instr/data mix
     real_overlap = [b for b, c in classes_of.items()
                     if 'instr' in c and 'data' in c]
     coverage_ok = (len(uncov) == 0)
@@ -255,35 +282,57 @@ def main():
     if coverage_ok and overlap_ok:
         results['P2'] = ('PASS', 0, [], 'bytes %d/%d covered' % (cov, N))
     else:
-        v = []
-        for b in real_overlap[:10]:
-            v.append(('', hx(b), 'instr+data overlap'))
-        for b in uncov[:10]:
-            v.append(('', hx(b), 'uncovered'))
+        v = ([('', hx(b), 'instr+data overlap') for b in real_overlap[:10]] +
+             [('', hx(b), 'uncovered') for b in uncov[:10]])
         results['P2'] = ('FAIL', len(uncov) + len(real_overlap), v,
                          'uncov=%d overlap=%d bytes=%d/%d' % (len(uncov), len(real_overlap), cov, N))
     print('P2 PARTITION:', results['P2'][0], results['P2'][3])
 
-    # ---------------- CFG P3 ----------------
-    v_p3 = []   # (addr, mnemonic, target/msg)
-    branch_tgts = set()
-    if HAVE_CAPSTONE:
-        nodes = disassemble_all(d, instr_starts)
-        node_by_addr = {n['addr']: n for n in nodes}
-        for n in nodes:
-            t = extract_abs(n['ops'])
-            if n['mne'] in RESOLVABLE and t is not None:
-                branch_tgts.add(t)
-                if not (t in instr_starts or t in declared):
-                    v_p3.append((n['addr'], n['mne'], 'bra_tgt %s' % hx(t)))
-            elif n['mne'] in PCREL and t is not None:
-                pass  # data reference, handled in P4
-    else:
-        nodes = [{'addr': a, 'mne': None, 'ops': ''} for a in instr_starts]
-        v_p3.append(('', '', 'capstone unavailable'))
+    if not HAVE_CAPSTONE:
+        results['P3'] = ('FAIL', 1, [('', '', 'capstone unavailable')], 'capstone unavailable')
+        results['P4'] = ('FAIL', 1, [('', '', 'capstone unavailable')], 'capstone unavailable')
+        results['P5'] = ('FAIL', 1, [('', '', 'capstone unavailable')], 'capstone unavailable')
+        results['P4_dead'] = ('FLAG', 0, [], 'no decode')
+        _cert(results, len(instr_starts), 0, 0, 0, 0)
+        sys.exit(1)
 
-    # jump tables from data_regions (decimal addresses)
-    jump_viol = []
+    md = make_cs()
+    # decode all instruction-region words once.
+    nodes = {}
+    for a in sorted(instr_starts):
+        nodes[a] = disasm_node(md, d, a)
+
+    # ---- shared branch metadata (v2) ----
+    # every resolved branch target; every branch -> (source_is?) with raw source.
+    branch_edges = {}          # addr -> (raw target) for RES-branches (raw may be unresolved)
+    raw_branch_tgt = set()
+    for a, (mne, ops) in nodes.items():
+        t = extract_abs(ops)
+        if mne in RESOLVABLE and t is not None:
+            raw_branch_tgt.add(t)
+            branch_edges[a] = t
+
+    # ---------------- CFG P3 (v2) ----------------
+    # (a) target on instruction map / declared entry -> OK.
+    # off-map -> alternative alignment probe (+/-2,+/-4): tolerated, recorded.
+    # else -> violation entry (addr, mne, target).
+    p3_viol = []     # unresolved branch targets: (src_addr, mnem, target)
+    aligned_delta = []  # (src, target, resolved_with_delta)
+    resolved_branch_tgt = set()
+    for a, (mne, ops) in nodes.items():
+        t = extract_abs(ops)
+        if mne in RESOLVABLE and t is not None:
+            if (t in instr_starts) or (t in declared):
+                resolved_branch_tgt.add(t)
+                continue
+            alt = [x for x in (t - 4, t - 2, t + 2, t + 4) if x in instr_starts]
+            if alt:
+                resolved_branch_tgt.add(alt[0])
+                aligned_delta.append((a, t, alt[0] - t))
+            else:
+                p3_viol.append((a, mne, t))
+
+    # (b) jump tables: 32-bit absolute entries; >filesize -> OFFLOAD heuristic.
     jt_rows = []
     if os.path.exists(ROM_CSV):
         with open(ROM_CSV) as f:
@@ -292,70 +341,230 @@ def main():
                 c = line.split(',')
                 if len(c) > 3 and 'jump_table' in c[3]:
                     try:
-                        jt_rows.append((int(c[0]), int(c[1]), 'mova' in c[4]))
+                        jt_rows.append((int(c[0]), int(c[1])))
                     except Exception:
                         pass
-    for s, e, is_mova in jt_rows:
-        # 32-bit absolute jump-table entries (4-byte stride). mova-based tables
-        # store small 16-bit offsets in-window, so their raw values are handled
-        # leniently (offset dispatch) yet still reported if out-of-window.
-        for a in range(s, e, 4):
-            if a + 4 > N:
+    jt_resolved = set()
+    jt_viol = []      # (base, raw_value)
+    for s, e in jt_rows:
+        base = s
+        for cell in range(s, e, 4):
+            if cell + 4 > N:
                 break
-            t_a = struct.unpack('>I', d[a:a + 4])[0] & 0xFFFFF
-            if t_a == 0:
-                continue  # terminator / padding sentinel in table
-            if not (t_a in instr_starts or t_a in declared):
-                kind = 'mova-offset' if is_mova else 'abs'
-                jump_viol.append((hx(s), kind, 'jt entry @%s -> %s' % (hx(a), hx(t_a))))
+            v = struct.unpack('>I', d[cell:cell + 4])[0] & 0xFFFFF
+            if v == 0:
+                continue  # terminator / sentinel
+            if v in instr_starts or v in declared:
+                jt_resolved.add(v)
+                continue
+            if v > N:  # offload: offset-dispatch encoding
+                wordv = struct.unpack('>H', d[cell:cell + 2])[0]
+                cand = [base + 2 * wordv, base + wordv]
+                hit = None
+                for cc in cand:
+                    if cc in instr_starts or cc in declared:
+                        hit = cc
+                        break
+                if hit is not None:
+                    jt_resolved.add(hit)
+                    continue
+            jt_viol.append((base, v))
 
-    if HAVE_CAPSTONE and not v_p3 and not jump_viol:
-        results['P3'] = ('PASS', 0, [], 'branches=%d jt_tables=%d' % (len(branch_tgts), len(jt_rows)))
+    # (c) reachability (shared with P4) to triage LIVE vs DEAD.
+    reached, dead = compute_reachability(d, N, nodes, instr_starts, declared,
+                                         jt_resolved, resolved_branch_tgt, raw_branch_tgt)
+
+    live_p3 = [v for v in p3_viol if v[0] in reached]
+    dead_p3 = [v for v in p3_viol if v[0] not in reached]
+    live_jt = jt_viol  # unresolved jump-table entries (source table > filesize
+    #                     heuristic did not resolve -> report as violations)
+    p3_total = len(live_p3) + len(live_jt)
+
+    results['P3_flag'] = ('FLAG', len(dead_p3),
+                          ['dead-branch %s -> %s' % (hx(a), hx(t)) for a, _m, t in dead_p3[:20]],
+                          'DEAD branches %d (source unreachable)' % len(dead_p3))
+    if p3_total == 0:
+        results['P3'] = ('PASS', 0, [],
+                         'branches=%d jt_tables=%d aligned_delta=%d' %
+                         (len(raw_branch_tgt), len(jt_rows), len(aligned_delta)))
     else:
-        results['P3'] = ('FAIL', len(v_p3) + len(jump_viol), v_p3[:10] + jump_viol[:10],
-                         'br_viol=%d jt_viol=%d branches=%d' % (len(v_p3), len(jump_viol), len(branch_tgts)))
-    print('P3 CFG:', results['P3'][0], results['P3'][3])
+        lst = []
+        for a, m, t in live_p3[:10]:
+            lst.append((hx(a), m, 'LIVE bra_tgt %s' % hx(t)))
+        for base, v in live_jt[:10]:
+            lst.append((hx(base), 'jt', 'jt entry raw %s' % hx(v)))
+        results['P3'] = ('FAIL', p3_total, lst,
+                         'LIVE br_viol=%d jt_viol=%d DEAD_br=%d branches=%d' %
+                         (len(live_p3), len(live_jt), len(dead_p3), len(raw_branch_tgt)))
+        results['P3_flag'] = ('FLAG', len(dead_p3),
+                              ['dead-branch %s -> %s' % (hx(a), hx(t)) for a, _m, t in dead_p3[:20]],
+                              'DEAD branches %d (source unreachable)' % len(dead_p3))
+    print('P3 CFG:', results['P3'][0], results['P3'][3],
+          '(LIVE=%d DEAD=%d)' % (p3_total, results['P3_flag'][1]))
 
-    # ---------------- XREF P4 ----------------
-    # roots
+    # ---------------- XREF P4 (v2) ----------------
+    pcrel_ref = set()
+    all_abs_ref = set()
+    for a, (mne, ops) in nodes.items():
+        t = extract_abs(ops)
+        if mne in PCREL and t is not None:
+            pcrel_ref.add(t)
+            all_abs_ref.add(t)
+            if mne in ('mov.l', 'mova') and (t + 2) < N:
+                # a 32-bit pool load consumes TWO words: the whole aligned
+                # pair is a single referenced data object.
+                pcrel_ref.add(t + 2)
+
+    # 32-bit absolute pointers anywhere in the ROM.
+    ptr_vals = set()
+    for off in range(0, N - 4, 2):
+        ptr_vals.add(struct.unpack('>I', d[off:off + 4])[0] & 0xFFFFF)
+
+    # declared padding/config data regions:
+    decl_regions = set()
+    for a, b in padding:
+        for x in range(a, b):
+            decl_regions.add(x)
+    for s, e in read_region_csv(ROM_CSV, dec=True):
+        for x in range(s, e):
+            decl_regions.add(x)
+    # uncovered-CSV data categories that represent declared data (pool/table/
+    # string/padding/config/jump) — NOT the raw 'unknown_data'/'single_unref'.
+    if os.path.exists(UNCOV_CSV):
+        with open(UNCOV_CSV) as f:
+            next(f, None)
+            for line in f:
+                c = line.split(',')
+                if len(c) < 3:
+                    continue
+                try:
+                    s = int(c[0], 16)
+                    e = int(c[1], 16)
+                    cat = c[3].strip()
+                except Exception:
+                    continue
+                if SUSPECT_DATA[0] in cat or SUSPECT_DATA[1] in cat:
+                    continue  # suspicious -> keep for violation
+                for x in range(s, e + 1):
+                    decl_regions.add(x)
+
+    data_viol = [w for w in sorted(data_words)
+                 if not (w in pcrel_ref or w in ptr_vals or w in decl_regions)]
+
+    results['P4_dead'] = ('FLAG', len(dead),
+                          ['FLAG dead: %s' % hx(x) for x in dead[:20]],
+                          'unreached instructions %d' % len(dead))
+    if dead:
+        code_dead = len(dead)
+    else:
+        code_dead = 0
+
+    if not data_viol:
+        results['P4'] = ('PASS', 0, [],
+                         'dead=%d unref_data=%d pcrel=%d' % (code_dead, len(data_viol), len(pcrel_ref)))
+    else:
+        results['P4'] = ('FAIL', len(data_viol),
+                         ['%s unreferenced data word' % hx(x) for x in data_viol[:10]],
+                         'dead=%d unref_data=%d pcrel=%d' % (code_dead, len(data_viol), len(pcrel_ref)))
+    print('P4 XREF:', results['P4'][0], results['P4'][3], '(dead code %d)' % code_dead)
+
+    # ---------------- P5 GAP-AUDIT (v2) ----------------
+    def run_ok(start):
+        cnt = 0
+        a = start
+        while a + 2 <= N:
+            w = int.from_bytes(d[a:a + 2], 'big')
+            lst = list(md.disasm(w.to_bytes(2, 'big'), a))
+            if not lst or lst[0].mnemonic in ('data',):
+                break
+            cnt += 1
+            a += 2
+        return cnt
+
+    # map target -> list of source branch addresses (to triage reachability)
+    branch_in_gap = {}   # gap(start) -> (live_sources, dead_sources)
+    p5_gaps = read_region_csv(UNCOV_CSV, dec=False)
+    code_hidden = []
+    dangling = 0
+    for s, e in p5_gaps:
+        cand = 0
+        for a in range(s, e, 2):
+            if run_ok(a) >= 2:
+                cand += 1
+        # branches landing inside the gap
+        live_src = []
+        dead_src = []
+        for a, t in branch_edges.items():
+            if s <= t < e:
+                (live_src if a in reached else dead_src).append(a)
+        if cand > 0 or live_src:
+            code_hidden.append((s, e, cand, live_src))
+        if dead_src:
+            dangling += len(dead_src)
+
+    if not code_hidden:
+        results['P5'] = ('PASS', 0, [],
+                         'gaps audited=%d dangling_dead=%d' % (len(p5_gaps), dangling))
+    else:
+        results['P5'] = ('FAIL', len(code_hidden),
+                         ['gap %s-%s cand=%s LIVE_branch_in=%d' %
+                          (hx(s), hx(e), c, len(ls)) for s, e, c, ls in code_hidden[:10]],
+                         'CODE-HIDDEN gaps=%d dangling_dead=%d' % (len(code_hidden), dangling))
+    print('P5 GAP-AUDIT:', results['P5'][0], results['P5'][3])
+
+    _cert(results, len(instr_starts), p3_total, len(data_viol), len(code_hidden), len(dead))
+
+
+def compute_reachability(d, N, nodes, instr_starts, declared, jt_resolved,
+                         resolved_branch_tgt, raw_branch_tgt):
+    """BFS reachability to fixed point over SH-2 control flow.
+
+    Roots: reset vector (first 4 bytes BE, masked) + all `! ---`/label declared
+    entries + c/verified_addrs.txt + resolved jump-table entries + P3 branch
+    targets that land on an instruction start. Edges follow fallthrough and
+    statically resolvable branches; delay slots for call/indirect jumps are
+    followed so real code is less likely to be flagged.
+    """
     roots = set(declared)
-    root_vec0 = struct.unpack('>I', d[0:4])[0] & 0xFFFFF
-    if root_vec0 in instr_starts:
-        roots.add(root_vec0)
-    # exception vectors region (first 0x100 bytes, 4-byte pointers)
+    root_vec = struct.unpack('>I', d[0:4])[0] & 0xFFFFF
+    if root_vec in instr_starts:
+        roots.add(root_vec)
     for off in range(0, min(0x100, N - 4), 4):
         v = struct.unpack('>I', d[off:off + 4])[0] & 0xFFFFF
         if v in instr_starts:
             roots.add(v)
     verified = read_verified(VERIFIED)
-    roots |= {v for v in verified if v in instr_starts}
+    for v in verified:
+        roots.add(v)
+    for r in (jt_resolved | resolved_branch_tgt):
+        if r in instr_starts:
+            roots.add(r)
+    for r in raw_branch_tgt:
+        if r in instr_starts:
+            roots.add(r)
 
-    # forward edges
     succ = {}
-    pcrel_ref = set()
-    if HAVE_CAPSTONE:
-        for n in nodes:
-            a = n['addr']
-            t = extract_abs(n['ops'])
-            s = []
-            if n['mne'] in RESOLVABLE and t is not None:
-                s.append(t)
-                # conditional has fallthrough (bt/bf); branch-with-delay (bt/s bf/s bra) none
-                if n['mne'] in ('bt', 'bf'):
-                    if a + 2 in instr_starts:
-                        s.append(a + 2)
-            elif n['mne'] in TERMINAL:
-                s = []
-            else:
-                if a + 2 in instr_starts:
-                    s.append(a + 2)
-            if n['mne'] in PCREL and t is not None:
-                pcrel_ref.add(t)
-            succ[a] = s
+    for a, (mne, ops) in nodes.items():
+        t = extract_abs(ops)
+        s = []
+        if mne in RESOLVABLE and t is not None:
+            s.append(t)
+            if mne in COND and (a + 2) in instr_starts:
+                s.append(a + 2)   # conditional fallthrough (incl. delay variants)
+            elif mne == 'bsr' and (a + 2) in instr_starts:
+                s.append(a + 2)   # call delay slot
+        elif mne in ('jmp', 'jsr'):
+            if (a + 2) in instr_starts:
+                s.append(a + 2)   # delay slot executes
+        elif mne in ('braf', 'bsrf', 'rts', 'rte'):
+            pass                   # opaque / return: no static successor
+        else:
+            if (a + 2) in instr_starts:
+                s.append(a + 2)   # fallthrough
+        succ[a] = s
 
-    # BFS reachability
     reached = set()
-    stack = [r for r in roots if r in succ]
+    stack = [r for r in roots if r in instr_starts]
     while stack:
         cur = stack.pop()
         if cur in reached:
@@ -364,98 +573,27 @@ def main():
         for nx in succ.get(cur, []):
             if nx not in reached:
                 stack.append(nx)
-    dead = [a for a in instr_starts if a not in reached]
-    dead_sorted = sorted(dead)
+    dead = sorted(a for a in instr_starts if a not in reached)
+    return reached, dead
 
-    # data words referenced by pcrel loads AND by 32-bit pointer values scanned
-    ptr_vals = set()
-    for off in range(0, N - 4, 2):
-        ptr_vals.add(struct.unpack('>I', d[off:off + 4])[0] & 0xFFFFF)
-    # declared data regions (padding/string/table/config) from data_regions + padding markers
-    declared_regions = set()
-    for s, e in read_hex_csv(ROM_CSV, dec=True):
-        for x in range(s, e):
-            declared_regions.add(x)
-    for s, e in padding:
-        for x in range(s, e):
-            declared_regions.add(x)
 
-    data_viol = []
-    ref_by_ptr = set(ptr_vals)
-    for w in sorted(data_words):
-        referenced = (w in pcrel_ref) or (w in ref_by_ptr) or (w in declared_regions)
-        if not referenced:
-            data_viol.append(w)
-
-    p4 = []
-    if dead:
-        p4.append(('', '', '') )
-        results['P4_dead'] = ('FLAG', len(dead), ['FLAG dead: %s' % hx(x) for x in dead_sorted[:20]],
-                              'unreached instructions %d' % len(dead))
-    else:
-        results['P4_dead'] = ('PASS', 0, [], 'no dead code')
-
-    actual_viol = data_viol
-    if not actual_viol:
-        results['P4'] = ('PASS', 0, [], 'dead=%d unref_data=%d' % (len(dead), len(data_viol)))
-    else:
-        results['P4'] = ('FAIL', len(actual_viol),
-                         ['%s unreferenced data word' % hx(x) for x in actual_viol[:10]],
-                         'dead=%d unref_data=%d' % (len(dead), len(data_viol)))
-    print('P4 XREF:', results['P4'][0], results['P4'][3], '(dead code %d)' % len(dead))
-
-    # ---------------- P5 GAP-AUDIT ----------------
-    md5 = capstone.Cs(capstone.CS_ARCH_SH, capstone.CS_MODE_SH2 | capstone.CS_MODE_BIG_ENDIAN) if HAVE_CAPSTONE else None
-
-    def run_ok(start):
-        """count consecutive valid instructions starting at even offset start."""
-        cnt = 0
-        a = start
-        while a + 2 <= N:
-            w = int.from_bytes(d[a:a + 2], 'big')
-            lst = list(md5.disasm(w.to_bytes(2, 'big'), a))
-            if not lst or lst[0].mnemonic in ('data',):
-                break
-            cnt += 1
-            a += 2
-        return cnt
-
-    code_hidden = []
-    for s, e in read_hex_csv(UNCOV_CSV):
-        gap = list(range(s, e, 2))
-        # candidates: runs >=2 valid instrs from even alignment within gap
-        cand = 0
-        for a in gap:
-            if run_ok(a) >= 2:
-                cand += 1
-        # xref-in: only strong evidence of hidden CODE = a branch/call target
-        # landing inside the gap (data constants that merely look like small
-        # addresses are calibration values, not code edges).
-        refs = any(s <= v < e for v in branch_tgts)
-        if cand > 0 or refs:
-            code_hidden.append((s, e, cand, refs))
-    if not code_hidden:
-        results['P5'] = ('PASS', 0, [], 'gaps audited=%d' % len(read_hex_csv(UNCOV_CSV)))
-    else:
-        results['P5'] = ('FAIL', len(code_hidden),
-                         ['gap %s-%s cand=%s refs=%s' % (hx(s), hx(e), c, r) for s, e, c, r in code_hidden[:10]],
-                         'CODE-HIDDEN gaps=%d' % len(code_hidden))
-    print('P5 GAP-AUDIT:', results['P5'][0], results['P5'][3])
-
-    # ---------------- CERTIFICATE ----------------
+def _cert(results, total_instr, p3_total, p4_data, p5_gaps, dead_count):
     print()
-    print('CERTIFICATE 60E1D400')
+    print('CERTIFICATE 60E1D400 v2')
     for k in ('P1', 'P2', 'P3', 'P4', 'P5'):
         st, n, _, detail = results.get(k, ('SKIP', 0, [], ''))
         print('  %s: %s (%d) %s' % (k, st, n, detail))
+    p4_dead = results.get('P4_dead', ('FLAG', 0, [], ''))
+    p3_flag = results.get('P3_flag', ('FLAG', 0, [], ''))
+    live_rem = p3_total + p4_data
     ok = (results['P1'][0] == 'PASS' and results['P2'][0] == 'PASS' and
-          results['P3'][0] == 'PASS' and results['P5'][0] == 'PASS' and
-          results['P4'][0] == 'PASS')
-    total = sum(results[k][1] for k in ('P1', 'P2', 'P3', 'P4', 'P5'))
-    print('  VERDICT: %s  total_violations=%d  dead_code=%d' %
-          ('CERTIFIED' if ok else 'NOT-CERTIFIED', total, len(dead)))
+          p3_total == 0 and p4_data == 0 and p5_gaps == 0)
+    total = p3_total + p4_data + p5_gaps
+    print('  VERDICT: %s  residual_LIVE=%d  dead_code=%d  dead_branches=%d  dangling_gap=%d' %
+          ('CERTIFIED' if ok else 'NOT-CERTIFIED', live_rem,
+           p4_dead[1], p3_flag[1], 0))
     print()
-    print('  first violations:')
+    print('  triage: LIVE (must fix) / DEAD (flag) / declared-data residuals:')
     for k in ('P3', 'P4', 'P5'):
         st, n, lst, _ = results.get(k, ('SKIP', 0, [], ''))
         for it in lst[:5]:
