@@ -1,0 +1,1582 @@
+# Consolidated function renames (FINAL) — applied to symbols/FUNCTION_CATEGORIES.csv as checkpoint.
+# Provenance: /tmp/renames/CONSOLIDATED_final.csv (auto renames + deep-analysis + preserved human names, consolidated).
+# Generated: 2026-08-04. Columns: bank,addr,old_name,new_name,confidence,reason.
+60E0FC00,0x5D0B0,FUN_0005d0b0,eeprom_shadow_write_state_task,0.7,"State machine (states 0-3 on byte 0xFFFFD1C2) run from central dispatcher FUN_000115aa; calls writeToE2RAMArea_INDEX_ADDR_LEN(idx=120,len=2) and FUN_00037ffc (E2-shadow writer @0xFFFFC4B2, SR-guarded), counts loops at 0xFFFFD1C0 to 0x4E2=1250 then advances state, ends via osTaskScheduler; refs UDSModeFF; timeboxed 6min, region 4392B contains tables+code (entry function is the task)"
+60E0FC00,0x40302,FUN_00040302,eeprom_float_adapt_update,0.7,"Saturating accumulator over EEPROM-shadow float cells 0xFFFFC700-0xFFFFC809 (fsub/fadd + jsr saturateLow_SIGNAL_LOWERBOUND/minValue clamps); compares vs 0x0007980C, gated by byte 0xFFFFC7FE==1; FPU-heavy, epilogue writes 0xFFFFC809; no callers in graph (ptr-called); 6min timeboxed"
+60E0FC00,0x24D3E,interstingFunc,diag_readvalue_24d3e,0.3,no-callee-evidence
+60E1D400,0x3A764,extended_control_dispatcher_3a764,fuel_dispatcher_3a764,0.3,extended_control_dispatcher_3a764
+60E1D400,0x26AC8,integrated_control_algorithm_26AC8,fuel_integrated_26ac8,0.3,integrated_control_algorithm_26AC8
+60E0FC00,0x47862,FUN_00047862,throttle_sensor_learn_cal,0.85,"Called by getThrottleControl(0x237F4); reads TPS ADC bytes 0x80C6/0x80C4/0x80C8/0x80CA + floats 0xB594/0xB5DC/0xA9FC, calib floats 0x7AE54-0x7AE68, subtractAbsolute then writes learn-flags to E2 shadow 0xFFFFCBBC-0xFFFFCBC0 after threshold fcmp tests vs RAM status 0xCB68/0xCB69/0xC638/0xCB91"
+60E0FC00,0x2F092,FUN_0002f092,ac_compressor_load_calc,0.7,"Called by acCompressorControlMain(0x2F5DA); reads sensor floats/bytes (0xA9FC,0xB594,0xBBE8,0xB580,0xAAC6), 2DLookup tables 0x68E1C/0x68E30, compares vs cal words 0x76650/0x76652, add16bitSaturate, writes load/flags to RAM 0xFFFFBD8E-0xFFFFBDBC"
+60E1D400,0x487DC,split_selector_state_ctrl_487DC,math_selector_487dc,0.3,split_selector_state_ctrl_487DC
+60E0FC00,0x1EEA8,LTFTRelated,math_ltftrelated_1eea8,0.7,add16bitSaturate_ADD1_ADD2;readValue_float_DEFAULTVAL_ADDRESS;updateMemoryAtAddress_float_VAL_ADDR
+60E1D400,0x3A2F8,control_system_dispatcher_3a2f8,fuel_dispatcher_3a2f8,0.3,control_system_dispatcher_3a2f8
+60E0FC00,0x1D2E0,FUN_0001d2e0,fuel_rotor_charge_calc,0.6,"Called by engineControlGetFueling(0x217B2); 2D+3D lookups (tbl 0x6FCE4), firstOrderFilter, floatDivide w/ 0xFFFFB0B0, divides data, initializes 20-float array at 0xFFFFAF2C and per-rotor cells 0xAE50..0xAE5C; fuel/injector mass per working-rotor calc"
+60E1D400,0x1D434,combustion_feedback_calc_1D434,combustion_feedback_calc_1D434,0.9,already descriptive human name preserved
+60E1D400,0x1DDB0,transmission_load_control_1DDB0,transmission_load_control_1DDB0,0.9,already descriptive human name preserved
+60E0FC00,0x19BE4,FUN_00019be4,throttle_pedal_signal_calc,0.5,"Throttle subsystem (caller 0x1A728 under throttleTask); subtractAbsolute/minValue/saturate/updateMemory, reads floats 0xAA10..0xAA30 + bytes 0xCB6B/0xCB6C, cal floats 0x6F574..0x6F580, writes 0xFFFFAA48..0xFFFFAA66"
+60E1D400,0x19480,exhaust_oxygen_control_19480,exhaust_oxygen_control_19480,0.9,already descriptive human name preserved
+60E0FC00,0x44648,FUN_00044648,dtc_fault_counter_update,0.6,"Called by 0x39342 (throttleTask fault cluster); cal modes 0x7AFD8/0x7AFDA, ADC 0xADC0, threshold 0xB518, writes E2-shadow counters/words 0xFFFFCAA6..0xFFFFCABA, calls updateFaultStatusTHUNK(0x5E644)"
+60E0FC00,0x1BEA2,FUN_0001bea2,throttle_sensor_filter_calc,0.5,"Throttle subsystem (caller 0x1A728); readValue TPS ADC 0x80C4/0x80C6, status byte 0xCB97, firstOrderFilter, writes flags to RAM 0xFFFFADCC..0xFFFFAE37"
+60E0FC00,0xA522,FUN_0000a522,os_task_table_dispatcher,0.7,"Function-pointer dispatch table @0x0000D888 (9-entry @0xD8F0), counters 0xFFFFA1A0/0xFFFFA1A2, calls ptr fns, SR ctl via setSR_PARAM/loadStatusRegister_ADDR; no callers (ptr/ISR called)"
+60E1D400,0x18552,omp_stepper_waveform_driver,omp_stepper_waveform_driver,0.9,already descriptive human name preserved
+60E0FC00,0x18FD6,FUN_00018fd6,load_calc_state_machine,0.5,"In engine-load/air-charge region (next: engine_load_estimator_0x190A6); manages load cells 0xFFFFA9C1..0xFFFFA9CC vs cal byte 0x6F1EA, reads RPM 0xB594/baro 0xA9FC, mode gating on byte 0xA41C; addSaturate8Bit + in-fn helpers"
+60E1D400,0x1A4A4,combustion_efficiency_estimator,combustion_efficiency_estimator,0.9,already descriptive human name preserved
+60E0FC00,0x56398,FUN_00056398,uds_service_dispatch,0.7,"Called by main dispatcher 0x115AA; UDS session RAM 0xFFFFD038..0xFFFFD040, calls setupForUdsResponse?/udsResponseRelated/returnFaultCode/dtcRelated/FUN_664ac, response len setup 0x58/0x18"
+60E1D400,0x2CCCC,calc_duty_cycle_state_2CCCC_29BE8,calc_duty_cycle_state_2CCCC_29BE8,0.9,already descriptive human name preserved
+60E0FC00,0x1BC16,FUN_0001bc16,throttle_drive_filter_calc,0.5,"Throttle subsystem (caller 0x1A728); firstOrderFilter on floats 0xB4FC/0xB500 with cal coeffs 0x6FA30/0x6FA34, reads 0x875C/0xFFFF80D4/0xFFFF80DC, writes 0xFFFFADEC..0xFFFFAE35"
+60E1D400,0x1C0FA,FUN_0x1C0FA,ctrl_handler_1c0fa,0.3,no-callee-evidence
+60E1D400,0x5A530,pollen_filter_0x5A530,pollen_filter_0x5A530,0.9,already descriptive human name preserved
+60E1D400,0x48C42,FUN_0x48C42,ctrl_handler_48c42,0.3,no-callee-evidence
+60E1D400,0x42F08,FUN_0x42F08,ctrl_handler_42f08,0.3,no-callee-evidence
+60E1D400,0x40470,control_validation_calc_40678,control_validation_calc_40678,0.9,already descriptive human name preserved
+60E1D400,0x2346C,engine_load_calculation_2346C,engine_load_calculation_2346C,0.9,already descriptive human name preserved
+60E1D400,0x52EB2,register_save_0x52EB2,math_register_52eb2,0.3,register_save_0x52EB2
+60E0FC00,0x22868,FUN_00022868,evap_purge_calc,0.6,"Called by evapRelated(0x224F6); 2D/3D lookups 0x687E8/0x687FC/0x6882C, reads 0xBED8/0xBE20/0xAE50/0xB348/0xAA74/0xBE28, isNotZero_wDivideByZero_Protect, writes 0xFFFFB354/0xFFFFB37C/0xFFFFB380"
+60E1D400,0x3DEEE,packet_processor_3DEEE,ign_processor_3deee,0.3,packet_processor_3DEEE
+60E0FC00,0x1C1AC,FUN_0001c1ac,throttle_pedal_calc,0.5,"Throttle subsystem (caller 0x1A728); subtractAbsolute/saturates/readValue/updateMemory on RAM 0xFFFFADD4..0xFFFFAE37, reads TPS ADC cells"
+60E0FC00,0x58FBA,FUN_00058fba,obd_status_calc,0.4,"Called by someOBDFunctionCaller(0x58E50); OBD RAM 0xFFFFD0A8..0xFFFFD0EE, getKnownBooleanValue, floats 0xCE17/0xCF64/0xBBE8, add16bitSaturate, multiple ptr-call backends"
+60E1D400,0x431A0,port_lift_control_43334,fuel_control_431a0,0.3,port_lift_control_43334
+60E0FC00,0x115AA,FUN_000115aa,background_control_task,0.8,"Sequence of subsystem jsr calls: cruiseControlMain, calculateTorqueRelatedParams, throttlePlateTorqueStuff, calculateDiagModeTimer, FUN_5ca02/5ca3e..., plus diag/immo/mode22/uds helpers; called from FUN_64e8; RTOS background task"
+60E0FC00,0x24B22,FUN_00024b22,dtc_fault_status_flags,0.6,"Calls getFaultStatus(0x652F0) for DTC indices 19/20/33/108..., sets flag bytes 0xB528/0xB529/0xB52A accordingly; called by 0x23FEE"
+60E0FC00,0x2BBEA,FUN_0002bbea,dsc_vehicle_state_calc,0.5,"Called by updateDSCRelatedCANStuff(0x2AA02); reads cal bytes 0x77A68..0x77A6A + sensors 0xA401/0xA428/0xBB5C, 2DLookup + firstOrderFilter + floatToInt/fixedPointToFloat_8bit, writes RAM 0xFFFFBC14..0xFFFFBC2C"
+60E1D400,0x789E,crank_position_state_machine,crank_position_state_machine,0.9,already descriptive human name preserved
+60E1D400,0x189EE,rotor_sync_position_detector,rotor_sync_position_detector,0.9,already descriptive human name preserved
+60E0FC00,0x1194E,bunchOFuncs,diag_leadingandtrailingseperationmain_1194e,0.7,faultRelated??;faultSomething0x1
+60E1D400,0x1C690,combustion_quality_monitor_1C690,combustion_quality_monitor_1C690,0.9,already descriptive human name preserved
+60E0FC00,0x23A64,FUN_00023a64,throttle_control_calc,0.5,"Called by getThrottleControl; 2DLookup_FP_16bit, readValue_float 0x80A4 vs cal 0x6FA60, threshold -200 cal 0x74878, writes flag 0xFFFFB481, saturate"
+60E0FC00,0x328D4,cruiseControlSetRealted,cruiseControlSetRealted,0.9,already descriptive human name preserved
+60E1D400,0x332A8,cruiseControlSetRealted,cruiseControlSetRealted,0.9,already descriptive human name preserved
+60E1D400,0x1E31E,transmission_controller_1E31E,transmission_controller_1E31E,0.9,already descriptive human name preserved
+60E0FC00,0x8B4C,FUN_00008b4c,rtos_task_wake_flag,0.4,"Low-level RTOS-ish: setSR_PARAM int-disable, indexed flag table at 0xFFFFA004, fnptr table 0x0000D7D4, calls FUN_0a8a4; no callers (ptr/ISR), near boot region"
+60E1D400,0x54C2C,amplitude_measure_0x54C2C,ctrl_amplitude_54c2c,0.3,no-callee-evidence
+60E0FC00,0x12E94,leadingAndTrailingSeperatorSomething,math_leadingandtrailingseperatorsomething_12e94,0.7,2DLookup;3dLookup
+60E0FC00,0x15F82,FUN_00015f82,idle_speed_valve_signal_calc,0.7,"Called by updateIdleControl??(0x165C4); readValue_float on idle-valve air cells 0x8040/0x8048, status 0x76220/0xA88C/0xB580/0xB588, cal floats 0x7623C-0x7624C, saturate_SIGNAL_LOWER_UPPER; idle speed actuator signal update"
+60E1D400,0x16466,dual_rotor_sync_controller,dual_rotor_sync_controller,0.9,already descriptive human name preserved
+60E1D400,0x59E44,sunroof_control_0x59E44,fuel_sunroof_59e44,0.3,sunroof_control_0x59E44
+60E1D400,0x38F58,bulk_data_write_with_bounds_38F58,diag_bounds_38f58,0.3,bulk_data_write_with_bounds_38F58
+60E1D400,0x2830C,multi_condition_complex_2830C,math_condition_2830c,0.3,multi_condition_complex_2830C
+60E0FC00,0x2C912,debounceGearConditionAutoTransMAYBE,debounceGearConditionAutoTransMAYBE,0.9,already descriptive human name preserved
+60E1D400,0x2CFE6,debounceGearConditionAutoTransMAYBE,debounceGearConditionAutoTransMAYBE,0.9,already descriptive human name preserved
+60E0FC00,0x31ECC,FUN_00031ecc,sas_air_inj_on_time_calc,0.7,"Called by calculateSecondaryAirOnTime(0x31BF2); 2DLookup 0x69180/0x69194 on baro 0xA9FC & 0xAE40/0xC0D8, on-time timer bytes 0xFFFFBF94-0xFFFFBF9D vs cal 0x77948/0x7790C; secondary-air(SAS) injection on-time calc"
+60E1D400,0x3F208,egr_control_3F208,egr_control_3F208,0.9,already descriptive human name preserved
+60E1D400,0x4A3A4,pwm_duty_calc_4A3A4,pwm_duty_calc_4A3A4,0.9,already descriptive human name preserved
+60E0FC00,0x2CB6A,debounceCalculatedGear,debounceCalculatedGear,0.9,already descriptive human name preserved
+60E1D400,0x39C98,main_control_dispatcher_39c98,fuel_dispatcher_39c98,0.3,main_control_dispatcher_39c98
+60E0FC00,0x4D8FC,FUN_0004d8fc,obd_readiness_flags_update,0.5,"Called by faultRelated??(0x39938); OBD monitor flag bytes 0xCE40-0xCE4F/0xCFD9/0xD07A/0xD083 + RAM 0xFFFFCE8D-0xFFFFCE98, getKnownBooleanValue??(0x11F54), cal 0x7B98A threshold on 0xCDA6; readiness/flag state update"
+60E1D400,0x3CBD2,state_flag_update_3cd5c,isr_update_3cbd2,0.3,state_flag_update_3cd5c
+60E1D400,0x20C8C,apex_seal_detonation_control_20C8C,apex_seal_detonation_control_20C8C,0.9,already descriptive human name preserved
+60E1D400,0x5BB76,tolerance_check_0x5BB76,diag_tolerance_5bb76,0.3,tolerance_check_0x5BB76
+60E1D400,0x49B4E,bit_toggle_49B4E,ctrl_toggle_49b4e,0.3,no-callee-evidence
+60E0FC00,0x57BB8,FUN_00057bb8,uds_request_download_handler,0.6,"Called by task3(0x1182A); UDS diag region: builds response buffer (0x73=0x33|0x40 positive resp for service 0x33) via setupForUdsResponse(0x66A14), returnFaultCode(0x5E25C), FUN_5e1d8/5e266/5e2fc/5e414; gated by 0xD075/0xD07A/0xD083, RAM 0xFFFFD087-0xFFFFD090; KWP2000 request-download handler"
+60E1D400,0x4AFEA,cache_invalidate_4AFEA,ctrl_invalidate_4afea,0.3,no-callee-evidence
+60E0FC00,0x2138A,FUN_0002138a,dsc_throttle_intervention_calc,0.6,"Called by DSCThrottleStuff?(0x21AB6); DSC-throttle: reads 0xAAC6/0xAAC7/0xB128/0xA424/0xB586, cal 0x725F2-0x72610 thresholds, writes 0xFFFFB2AC-0xFFFFB2C5 flags + float 0xB2A8; add16bitSaturate/addSaturate8Bit/osTaskScheduler; DSC torque-limiting intervention"
+60E1D400,0x2158,LongFunc,diag_longfunc_2158,0.3,LongFunc
+60E1D400,0x1671A,secondary_chamber_controller,fuel_controller_1671a,0.3,secondary_chamber_controller
+60E1D400,0x53760,assert_handler_0x53760,assert_handler_0x53760,0.3,assert_handler_0x53760
+60E1D400,0x2D600,pid_control_loop_2D600,fuel_control_2d600,0.3,pid_control_loop_2D600
+60E0FC00,0x11286,setEngineStatusRotor,setEngineStatusRotor,0.9,already descriptive human name preserved
+60E0FC00,0x26C80,FUN_00026c80,alternator_voltage_condition_flag,0.5,"Called by alternatorControl(0x27132) (AUXILIARY_CONTROL 7.2); battery voltage 0xB5DC vs cal 0x749FC/0x74A00, engine state 0xA428, sets flag 0xB683; alternator voltage condition latch"
+60E1D400,0x18860,omp_waveform_state_machine_18860,omp_waveform_state_machine_18860,0.9,already descriptive human name preserved
+60E1D400,0x20E7C,rotary_combustion_efficiency_20E7C,rotary_combustion_efficiency_20E7C,0.9,already descriptive human name preserved
+60E1D400,0x51F04,request_parser_0x51F04,diag_request_51f04,0.3,request_parser_0x51F04
+60E1D400,0x52CF8,context_switch_0x52CF8,rtos_context_52cf8,0.3,context_switch_0x52CF8
+60E0FC00,0x35202,ImmoMain,ImmoMain,0.9,already descriptive human name preserved
+60E0FC00,0x284D6,eShaftLearn?,eShaftLearn?,0.9,already descriptive human name preserved
+60E1D400,0x2F830,multi_threshold_check_increment_2F830,math_threshold_2f830,0.3,multi_threshold_check_increment_2F830
+60E0FC00,0x4434E,FUN_0004434e,obd_fault_condition_counter,0.5,"Called by largeFunction(0x2912E); OBD/fault counters 0xCA60/0xCA83/0xCA98-0xCA9E + flag 0xCFD9, 0xBAD4==0x190 gate, fixedPointToFloat on 0xB6CC vs cal 0x7ADC6, calls obdFaultRelated?(0x444C4); driving-condition/fault-window counter"
+60E1D400,0x3E9C6,extended_calc_3E9C6,extended_calc_3E9C6,0.9,already descriptive human name preserved
+60E1D400,0x3E39A,response_builder_3E39A,diag_response_3e39a,0.3,response_builder_3E39A
+60E0FC00,0x210B6,FUN_000210b6,dsc_throttle_torque_limit_calc,0.5,"Called by DSCThrottleStuff?(0x21AB6); DSC family (cf 0x2138A/0x21228): 2DLookup 0x68A88 on 0xB5A8, cal 0x725F6, RAM 0xFFFFB2AE-0xFFFFB2C4 flags, bsr FUN_21730 + add16bitSaturate/addSaturate8Bit/osTaskScheduler; DSC throttle torque limit"
+60E0FC00,0x3D59C,FUN_0003d59c,iat_air_density_correction,0.5,"Called by 0x3D244/0x3D25E (valueInits/faultRelated helpers); engine state 0xA428/0xA42C, 2DLookup_FP_16bit 0x699AC + 2DLookup 0x699B8 on float 0xAA08, writes words 0xC5FC/0xC5FE next to IAT 0xC5F0 (SENSOR_PIPELINE); IAT-based correction"
+60E1D400,0x27BA4,complex_multi_condition_27BA4,math_condition_27ba4,0.3,complex_multi_condition_27BA4
+60E0FC00,0x6122C,FUN_0006122c,uds_caldata_validity_gate,0.5,"Called by FUN_60b8c; UDS region: zero-check RAM 0xFFFF87B0-0xFFFF87CC via FUN_2034/invertAndReturn_8bit, then chained sub-gates FUN_6267c/61500/61e30/65cd0/66280 each must return 0; calibration-data/programming validity gate"
+60E1D400,0x3BCF0,feedback_correction_3BE30,fuel_correction_3bcf0,0.3,feedback_correction_3BE30
+60E1D400,0x271B8,multi_condition_control_271B8,diag_condition_271b8,0.3,multi_condition_control_271B8
+60E1D400,0x10DC8,FUN_0x10DC8,ctrl_handler_10dc8,0.3,no-callee-evidence
+60E0FC00,0x4A308,FUN_0004a308,obd_cat_monitor_eff_calc,0.4,"Called by FUN_22532; OBD flag cells 0xCD85/0xCF4B/0xCDB2/0xD077/0xC832/0xD078 + 0xFFFFCCD4, cal thresholds 0x7B818/0x7B47C/0x7B480/0x7B484/0x7C139, 2D/3D lookups + minValue + saturate; OBD catalyst-efficiency monitor condition calc"
+60E0FC00,0x21228,FUN_00021228,dsc_throttle_reduction_calc,0.5,"Called by DSCThrottleStuff?(0x21AB6); DSC family (cf 0x2138A/0x210B6): 2DLookup 0x68A88 on 0xB5A8, cal 0x725FA, RAM 0xFFFFB2B0-0xFFFFB2C5 flags (uses 0xA445/0xB125), add16bitSaturate/addSaturate8Bit/osTaskScheduler; DSC throttle reduction logic"
+60E1D400,0x2100A,rotor_sync_gate_state_ctrl_2100A,rotor_sync_gate_state_ctrl_2100A,0.9,already descriptive human name preserved
+60E0FC00,0x22D20,FUN_00022d20,evap_purge_flow_calc,0.6,"Called by 0x2264A/0x22BBA in evap region (cf evapRelated 0x224F6); 2D/3D lookup 0x688DC/0x688FC/0x688A0/0x688B4 on RPM 0xB594 + 0xAA08, writes 0xB398 float/0xB3A4/0xB3AA, flag 0xB39C, cal 0x73620-0x73630; evap purge flow/command"
+60E1D400,0x4FAD8,feedback_control_0x4FAD8,fuel_feedback_4fad8,0.3,feedback_control_0x4FAD8
+60E1D400,0x3E1F8,protocol_handler_3E1F8,uds_protocol_3e1f8,0.3,protocol_handler_3E1F8
+60E0FC00,0x1A534,FUN_0001a534,maf_read_critical_section,0.7,Called by FUN_1151a; getSR(0x10)/setSR(0x3934) IRQ-disable wrapper around MAFRelated(0x1ACAE)+FUN_1ad8c; MAF sensor read in critical section
+60E0FC00,0x35432,ImmoWaitForKey,ImmoWaitForKey,0.9,already descriptive human name preserved
+60E1D400,0x35F92,ImmoWaitForKey,ImmoWaitForKey,0.9,already descriptive human name preserved
+60E0FC00,0x26044,alternatorStuff,alternatorStuff,0.9,already descriptive human name preserved
+60E0FC00,0x35782,ImmoStateGoodFunc,ImmoStateGoodFunc,0.9,already descriptive human name preserved
+60E1D400,0x362E2,ImmoStateGoodFunc,ImmoStateGoodFunc,0.9,already descriptive human name preserved
+60E1D400,0x4CE5C,profiler_report_4CE5C,ctrl_profiler_4ce5c,0.3,no-callee-evidence
+60E1D400,0x42DBC,traction_control_42E46,traction_control_42E46,0.9,already descriptive human name preserved
+60E0FC00,0x35D10,ImmoGetCANData,ImmoGetCANData,0.9,already descriptive human name preserved
+60E1D400,0x36870,ImmoGetCANData,ImmoGetCANData,0.9,already descriptive human name preserved
+60E1D400,0x3C888,clamp_range_check_3c938,diag_clamp_3c888,0.3,clamp_range_check_3c938
+60E0FC00,0x51968,FUN_00051968,fault_counter_clear,0.5,"Called by faultRelated??(0x39938); gated by getKnownBooleanValue??(0x11F54)+OBD flags 0xCFD9/0xFFFFCFA2, clears RAM bytes 0x8FEE/0x8FF0/0x8FF2 via updateMemoryAtAddress_8bit(0x3E1F8); fault-counter reset"
+60E0FC00,0x1A7FA,vehicleConditionRelatedFuntions,vehicleConditionRelatedFuntions,0.9,already descriptive human name preserved
+60E0FC00,0x452A8,FUN_000452a8,dtc_fault_status_update,0.6,"Called by 0x39342 (throttleTask fault cluster, cf 0x44648); status 0xB48A/0xB489/0xFFFFA228-9, updates 0x875E/0x875C vs cal 0x7AF28, E2 shadow 0xFFFFCAE5-8, updateFaultStatusTHUNK(0x5E644); DTC fault status update"
+60E0FC00,0x36684,checkImmoStatus?,checkImmoStatus?,0.9,already descriptive human name preserved
+60E0FC00,0x2D9BC,cruiseControlUndershootingPlausibilityMon,cruiseControlUndershootingPlausibilityMon,0.9,already descriptive human name preserved
+60E0FC00,0x1F74E,FUN_0001f74e,fuel_pressure_sensor_calc,0.6,"Called by getFuelingSlowtask?(0x21BB2); readValue_float on ADC 0x8114/0xFFFF8124, add16bitSaturate on 0xB16C, saturate vs cal 0x716AC/0x716CC/0x716D0, writes float 0xFFFFB168 + status 0xB164/0xFFFFB173; fuel rail pressure sensor processing"
+60E1D400,0x21C90,main_control_loop_processor_21C90,fuel_processor_21c90,0.3,main_control_loop_processor_21C90
+60E1D400,0x14E92,load_profile_accumulator,load_profile_accumulator,0.9,already descriptive human name preserved
+60E0FC00,0x1B924,FUN_0001b924,sec_o2_sensor_voltage_calc,0.7,"Called by getVehicleCondtions??(0x1A940); fixedPointToFloat on 0xAD80 -> writes 0xFFFFAD8C = Secondary O2 sensor voltage (O2_LAMBDA_SUBSYSTEM.md), rate-limited via firstOrderFilter, cal 0x6F9E4-0x6F9F4"
+60E0FC00,0x218F4,crankingRelatedFunc,crankingRelatedFunc,0.9,already descriptive human name preserved
+60E1D400,0xAF10,rotor_position_synchronization,rotor_position_synchronization,0.9,already descriptive human name preserved
+60E0FC00,0x21C66,FUN_00021c66,cruise_engine_cond_read,0.5,"Called by cruiseControl?(0x118FE); getSR(0x10)/setSR(0x3934) wrapper around engineConditonSomething(0x205AC)+FUN_34a4a, data-ref 0xEE86 getConditionalsForRevLimit; reads engine conditions for cruise control"
+60E0FC00,0x1414,seemsImportant,ctrl_seemsimportant_1414,0.3,no-callee-evidence
+60E0FC00,0x3280,FUN_00003280,rtos_context_switch_restore,0.6,"Called by FUN_03238 (context-save side); RTOS TCB 0xFFFF7638: restores SR/FPU/GPRs from stack, counter/priority checks, ends rte; calls FUN_035ee/0375c; task context-switch restore path"
+60E0FC00,0x94FC,FUN_000094fc,diag_taskendroutine_94fc,0.3,no-callee-evidence
+60E0FC00,0x1AD6,FUN_00001ad6,diag_handler_1ad6,0.3,no-callee-evidence
+60E0FC00,0x1C04,FUN_00001c04,ctrl_handler_1c04,0.3,no-callee-evidence
+60E0FC00,0x532A2,FUN_000532a2,diag_getcommandedlamdaobd_532a2,0.3,no-callee-evidence
+60E0FC00,0x7C68,geteShaftAngle?,geteShaftAngle?,0.9,already descriptive human name preserved
+60E1D400,0x5699A,security_access,diag_security_5699a,0.3,security_access
+60E0FC00,0x1858,FUN_00001858,ctrl_handler_1858,0.3,no-callee-evidence
+60E0FC00,0x55A30,FUN_00055a30,uds_readvalue_55a30,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x35662,ImmoCalculateSeedResult,ImmoCalculateSeedResult,0.9,already descriptive human name preserved
+60E1D400,0x43F56,exhaust_control_43FE8,exhaust_control_43FE8,0.9,already descriptive human name preserved
+60E1D400,0x5A374,humidity_control_0x5A374,fuel_humidity_5a374,0.3,humidity_control_0x5A374
+60E1D400,0x361C2,state_machine_conditional_port_361C2,math_conditional_361c2,0.3,state_machine_conditional_port_361C2
+60E0FC00,0x50AA,FUN_000050aa,diag_handler_50aa,0.3,no-callee-evidence
+60E0FC00,0x2AB2E,thunk_FUN_00029760,diag_thunk_2ab2e,0.3,thunk_FUN_00029760
+60E1D400,0x1BE08,FUN_0x1BE08,ctrl_handler_1be08,0.3,no-callee-evidence
+60E0FC00,0x1A35C,getIOUpdates?,diag_getioupdates_1a35c,0.7,calcDiagFuelInjectorTrim;thunk_FUN_0004819e
+60E0FC00,0x57C6,FUN_000057c6,mem_loadstatusregister_57c6,0.7,loadStatusRegister_ADDR;setSR_PARAM
+60E1D400,0x377C0,state_machine_register_controller_377C0,sensor_controller_377c0,0.3,state_machine_register_controller_377C0
+60E1D400,0x5996C,trip_distance_0x5996C,ctrl_distance_5996c,0.3,no-callee-evidence
+60E0FC00,0x475E4,FUN_000475e4,math_add16bitsaturate_475e4,0.7,add16bitSaturate_ADD1_ADD2;readValue_float_DEFAULTVAL_ADDRESS
+60E0FC00,0x1746E,FUN_0001746e,diag_saturatelow_1746e,0.3,no-callee-evidence
+60E0FC00,0x61FF6,FUN_00061ff6,diag_handler_61ff6,0.3,no-callee-evidence
+60E0FC00,0x567A,FUN_0000567a,mem_loadstatusregister_567a,0.7,loadStatusRegister_ADDR;setSR_PARAM
+60E0FC00,0x1DC2A,FUN_0001dc2a,diag_2dlookup_1dc2a,0.3,no-callee-evidence
+60E0FC00,0x2D60E,FUN_0002d60e,mem_add16bitsaturate_2d60e,0.5,readValue_8bit_ADDRESS_VAL
+60E1D400,0x121F0,calc_combustion_efficiency_metric,calc_combustion_efficiency_metric,0.9,already descriptive human name preserved
+60E1D400,0x1237C,calc_combustion_load_factor,calc_combustion_load_factor,0.9,already descriptive human name preserved
+60E0FC00,0x35BFC,calculateImmoSeed,calculateImmoSeed,0.9,already descriptive human name preserved
+60E1D400,0x3675C,calculateImmoSeed,calculateImmoSeed,0.9,already descriptive human name preserved
+60E1D400,0x2DDF6,closed_loop_correction_2DDF6,fuel_correction_2ddf6,0.3,closed_loop_correction_2DDF6
+60E1D400,0x295D2,dispatch_control_algorithm_295D2,fuel_algorithm_295d2,0.3,dispatch_control_algorithm_295D2
+60E1D400,0x53BEA,type_checker_0x53BEA,isr_checker_53bea,0.3,type_checker_0x53BEA
+60E0FC00,0x57E14,FUN_00057e14,ctrl_handler_57e14,0.3,no-callee-evidence
+60E0FC00,0x2D722,FUN_0002d722,mem_add16bitsaturate_2d722,0.5,readValue_8bit_ADDRESS_VAL
+60E0FC00,0x513EA,FUN_000513ea,diag_addsaturate8bit_513ea,0.3,no-callee-evidence
+60E0FC00,0x2ED54,calculateACClutchOn??,calculateACClutchOn??,0.9,already descriptive human name preserved
+60E1D400,0x1D32E,complex_control_loop_1D32E,fuel_control_1d32e,0.3,complex_control_loop_1D32E
+60E1D400,0x371E4,configuration_register_setup_371E4,mem_configuration_371e4,0.3,configuration_register_setup_371E4
+60E1D400,0x3EB3C,final_processor_3EB3C,ign_processor_3eb3c,0.3,final_processor_3EB3C
+60E0FC00,0x4A4A0,FUN_0004a4a0,diag_saturate_4a4a0,0.3,no-callee-evidence
+60E0FC00,0x35E58,setImmoCANTXData,setImmoCANTXData,0.9,already descriptive human name preserved
+60E1D400,0x369B8,setImmoCANTXData_369B8,setImmoCANTXData_369B8,0.9,already descriptive human name preserved
+60E1D400,0x56E64,softmax_0x56E64,diag_o2_voltage_fault_check,0.7,"reads front-O2 float @0xAA10 (O2_LAMBDA_SUBSYSTEM.md) + voltage @0xB600, 2-sided float threshold compares vs literal-pool bounds, gates on flag byte @0xC656, returns fault codes 0x00/0x10/0x22; O2 voltage bounds monitor, not softmax"
+60E1D400,0x56892,regression_0x56892,position_check,0.9,UDS 0x27 security position_check (UDS_SECURITY_MAPPING.md): scans 3 entries @0x5FA90 stride 0x6 comparing entry[i][1] then ANDs runtime mask word @0xFFFFD3F0; returns table idx 0..2/3; not regression
+60E1D400,0x57292,adadelta_0x57292,immo_security_state_reset,0.7,"if security-state flag @0xFFFFD228==1 and byte @0xD224!=0x80: clears @D228/@D226/@D224 then tail-jumps 0x55362 (UDS error sender, near udsErrorResponse 0x553AA) with code 0x22; immo/security-state reset, not adadelta"
+60E0FC00,0x1A310,calculateKeyOffTime,calculateKeyOffTime,0.9,"confirmed: while key-off flag byte @0xAACC clear, saturating-increment (0x2460 add16bitSaturate) of 16-bit counter @0xAA6A else write 0; matches ghidra-hand name; not ML"
+60E1D400,0x561F2,gradient_compute_0x561F2,sensor_scaled_read_AA4C,0.7,"reads fixed-point @0xAA4C, 0x24C0 fixedPointToFloat_16bit_MULT_OFF_SIG, fmul one cal float const, 0x24D0 floatToOB/clamp -> scaled sensor read to uint; not gradient"
+60E1D400,0x550BE,neural_network_0x550BE,diag_flag_combine_or,0.7,"logical OR of two RAM flag bytes @0xC99D/@0xC9A0 -> status byte @0xD1F8 (twin fn at 0x550E6 does AND of @0xC99C/@0xC99E -> @0xD1F9); diag flag-combiner, not neural net"
+60E1D400,0x1A7F4,calculateKeyOffTime,calculateKeyOffTime,0.9,"D400 variant: while key flag @0xAAE0 clear, saturating-increment counter @0xAA7E via 0x2460 else write 0; matches ghidra-hand name calculateKeyOffTime"
+60E1D400,0x56AC0,svm_compute_0x56AC0,security_seed_copy,0.9,doc UDS_SECURITY_MAPPING calls this data_copy: copies seed 0xFFFFD211..213 + level @0xFFFFD214 into r4 response buffer for the 0x27 SecurityAccess reply; not SVM
+60E1D400,0x54FCC,fft_compute_0x54FCC,diag_fault_task_dispatch,0.7,"reads fault flag @0xB622, picks task id 0x7C/0x7D + priority 1/2, tail-jumps task spawner 0x60774; next fn is updateSUBSYSTEM fault handler; RTOS diag dispatch not FFT"
+60E1D400,0x55078,kalman_filter_0x55078,fuel_tps_accel_wrapper_9008,0.4,"8-byte stub: mov #0x9008->r4; jmp @0x3EEFE = accel_tps_comp_3EEFE (Throttle&Torque, merged CSV); const-arg wrapper, role of 0x9008 unclear; not kalman"
+60E1D400,0x57020,adam_optimizer_0x57020,immo_counter_state_tramp,0.7,"4-byte tail-branch bra 0x571C2 into immo/security state handler (reads state @0xC242, calls 0x5712C, clears @0xD21C); trampoline, not an optimizer"
+60E1D400,0x566EA,matrix_mult_0x566EA,diag_security_level0_entry,0.4,"2-byte fragment 'mov #0,r4' falling into 0x566EC which writes security sentinel @0xFFFFD20B and calls unlock 0x56720 + getSubFunctionMapping 0x56D5C -> level-0 security/session entry; fragment, not matmul"
+60E1D400,0x3D788,boundary_check_3d83e,diag_boundary_3d788,0.3,boundary_check_3d83e
+60E1D400,0x18CC0,omp_rotor_overshoot_detector_18CC0,omp_rotor_overshoot_detector_18CC0,0.9,already descriptive human name preserved
+60E0FC00,0x33264,getCrankEnrichment?,getCrankEnrichment,0.9,2DLookup(0x692F4/0x69308 via 0x2068)+saturateLow on coolant-temp-like RAM 0xA9FC
+60E1D400,0x5A7D4,ionizer_0x5A7D4,ctrl_ionizer_5a7d4,0.3,no-callee-evidence
+60E1D400,0x51990,mem_test_0x51990,mem_test_0x51990,0.9,already descriptive human name preserved
+60E1D400,0x48050,engine_shutdown_cleanup_48050,engine_shutdown_cleanup_48050,0.9,already descriptive human name preserved
+60E1D400,0x3DBCC,safety_check_3dcb4,diag_safety_3dbcc,0.3,safety_check_3dcb4
+60E1D400,0x60996,bit_value_extract_60996,sensor_extract_60996,0.3,bit_value_extract_60996
+60E1D400,0x3E814,multi_stage_calc_3E814,multi_stage_calc_3E814,0.9,already descriptive human name preserved
+60E1D400,0x53A90,bounds_check_0x53A90,diag_bounds_53a90,0.3,bounds_check_0x53A90
+60E1D400,0x5B150,calibration_data_0x5B150,diag_calibration_5b150,0.3,calibration_data_0x5B150
+60E1D400,0x3E6FA,complex_calc_3E6FA,complex_calc_3E6FA,0.9,already descriptive human name preserved
+60E1D400,0x2734C,control_state_machine_2734C,fuel_control_2734c,0.3,control_state_machine_2734C
+60E1D400,0x2DF0A,closed_loop_correction_long_2DF0A,fuel_correction_2df0a,0.3,closed_loop_correction_long_2DF0A
+60E1D400,0x52444,event_handler_0x52444,event_handler_0x52444,0.3,event_handler_0x52444
+60E1D400,0x5A098,heating_ctrl_0x5A098,util_heating_5a098,0.3,heating_ctrl_0x5A098
+60E1D400,0x510A4,test_routine_0x510A4,diag_routine_510a4,0.3,test_routine_0x510A4
+60E0FC00,0x5C664,getTireSize,getTireSize,0.9,Reads tire-size config from E2 via getFromE2(E2ADDR=0x9A
+60E0FC00,0x35588,ImmoKeyRXd,ImmoKeyRXd,0.9,Immobilizer key-received state machine on byte 0xFFFFC23A branching to ImmoGetSeed(0x35AEE)/setImmoCANTXData/setImmoLight(0x25DF4)/ImmoBadStateSet
+60E1D400,0x4CFDC,performance_monitor_4CFDC,sensor_performance_4cfdc,0.3,performance_monitor_4CFDC
+60E1D400,0x43CE4,air_filter_control_43D72,air_filter_control_43D72,0.9,already descriptive human name preserved
+60E1D400,0x4387A,intercooler_control_4389E,fuel_intercooler_4387a,0.3,intercooler_control_4389E
+60E0FC00,0x3424A,calculateEngineLoad,calculateEngineLoad,0.9,2DLookup not used; firstOrderFilter(0x10B0 0x23B0)+minValue(0x23F4) rate-limits 0xC0DA->0xC0D8 WANKEL RPM/load; single caller engineControlGetAir
+60E1D400,0x5C228,final_validate_0x5C228,mem_validate_5c228,0.3,final_validate_0x5C228
+60E1D400,0x3D9EE,monitor_status_3da58,sensor_monitor_3d9ee,0.3,monitor_status_3da58
+60E1D400,0x428A4,secondary_rotor_validate_428A4,secondary_rotor_validate_428A4,0.9,already descriptive human name preserved
+60E1D400,0x5BD76,uncertainty_0x5BD76,ctrl_uncertainty_5bd76,0.3,no-callee-evidence
+60E0FC00,0x371EC,afterImmo_1,immo_post_unlock_response_1,0.7,Post-immo-unlock status handler: when flags 0xC269/0xC27D clear set busy C243=1+C26A
+60E0FC00,0x379AC,afterImmo_7,immo_post_unlock_response_7,0.7,Sibling of afterImmo_1 driven by 0xC275/0xC276 flags; sends CAN 0xB1 [0xF1
+60E1D400,0x2F728,dual_threshold_compare_handler_2F728,uds_threshold_2f728,0.3,dual_threshold_compare_handler_2F728
+60E0FC00,0x4D004,interestingFunc1,evap_purge_flow_calc,0.7,Called from evapRelated(0x39270); 2DLookup(0x69780)+ratio
+60E1D400,0x4FE80,misfire_detector_0x4FE80,diag_detector_4fe80,0.3,misfire_detector_0x4FE80
+60E1D400,0x18ECC,omp_enable_output_18ECC,omp_enable_output_18ECC,0.9,already descriptive human name preserved
+60E1D400,0x5BF24,reliability_0x5BF24,ctrl_reliability_5bf24,0.3,no-callee-evidence
+60E1D400,0x5A8EA,dashboard_update_0x5A8EA,isr_dashboard_5a8ea,0.3,dashboard_update_0x5A8EA
+60E0FC00,0x365C0,ImmoUpdateRelated,immo_update_state_machine,0.7,Immobilizer EEPROM/RAM-update FSM: arms C284=0x5A
+60E0FC00,0x2DB00,cruiseControlOvershootPlausibilityMon,cruiseControlOvershootPlausibilityMon,0.9,Plausibility: speed diff (0xBFC0-0xBFBC) vs threshold 0x76228
+60E1D400,0x27D12,multi_state_update_27D12,math_update_27d12,0.3,multi_state_update_27D12
+60E1D400,0x2F9A8,threshold_compare_accumulate_2F9A8,math_accumulate_2f9a8,0.3,threshold_compare_accumulate_2F9A8
+60E0FC00,0x5CD2C,getBrakingOrInNeutral,getBrakingOrInNeutral,0.9,Builds bitmask from brake(0xAD7C)/neutral(0xBF58)/gear(0xB587) flags to 0xD19C
+60E1D400,0x17A68,rotor_position_feedback_control,rotor_position_feedback_control,0.9,already descriptive human name preserved
+60E0FC00,0x4D2E,setRegisters,setRegisters,0.9,Boot init clearing RAM words 0xF42C..0xF718 and writing MCU/firmware regs (0xF4xx
+60E1D400,0x4D36,setRegisters,setRegisters,0.9,Identical bank-boot init: clear RAM + write control regs (0xEA0x/0xED00 pattern) and CAN/CAN message seed buffer; paired with 0x4D2E
+60E1D400,0x1F8E0,combustion_control_loop_1F8E0,combustion_control_loop_1F8E0,0.9,already descriptive human name preserved
+60E1D400,0x4D3F6,health_status_report_4D3F6,fuel_health_4d3f6,0.3,health_status_report_4D3F6
+60E1D400,0x4CD2C,profiler_start_4CD2C,fuel_profiler_4cd2c,0.3,profiler_start_4CD2C
+60E0FC00,0x3537C,ImmoIdleFcn,ImmoIdleFcn,0.9,Immo idle/tick: dispatches to ImmoKeyReceived/ImmoBadStateSet
+60E1D400,0x5AD30,brake_light_0x5AD30,brake_light_0x5AD30,0.9,already descriptive human name preserved
+60E1D400,0x531EA,mem_set_0x531EA,mem_set_0x531EA,0.9,already descriptive human name preserved
+60E1D400,0x35EDC,state_machine_multi_branch_35EDC,math_machine_35edc,0.3,state_machine_multi_branch_35EDC
+60E1D400,0x543D0,subtract_calc_0x543D0,subtract_calc_0x543D0,0.9,already descriptive human name preserved
+60E1D400,0x54B0E,frequency_measure_0x54B0E,ctrl_frequency_54b0e,0.3,no-callee-evidence
+60E1D400,0x1261C,calc_vis_solenoid_duty_cycle_1261C,calc_vis_solenoid_duty_cycle_1261C,0.9,already descriptive human name preserved
+60E0FC00,0x2EB40,cruiseControlMain??,cruiseControlMain,0.9,Cruise-control hub dispatcher: getSR/setSR wrapper calling calculateCruiseControlDisableCondition
+60E1D400,0x16AA8,engine_control_main_loop,engine_control_main_loop,0.9,already descriptive human name preserved
+60E0FC00,0x1A940,getVehicleCondtions??,updateVehicleConditions,0.9,Hub: getSR/setSR(0x10) task wrapper sequentially calling calculateEngineLoadMax
+60E1D400,0x2E1A4,cruiseControlUndershootingPlausibilityMon,cruiseControlUndershootingPlausibilityMon,0.9,Speeds 0xC008/0xC00C differ fr4=fr5-fr3 compared vs thresholds 0x76B4C/0x76B68; gated by cruise flags 0xAD90/0xBC37/0xB5AA/0xBD59/0xBDB5; writes 0xFFFFBD5E/0xFFFFBD62. Mirror of OvershootPlausibilityMon(0x2DB00).
+60E1D400,0x22700,gear_ratio_compensation_22700,gear_ratio_compensation_22700,0.9,already descriptive human name preserved
+60E1D400,0x30A8C,multi_threshold_accumulate_30A8C,math_accumulate_30a8c,0.3,multi_threshold_accumulate_30A8C
+60E1D400,0x48718,wankel_rotor_sync_48718,wankel_rotor_sync_48718,0.9,already descriptive human name preserved
+60E0FC00,0x358CE,ImmoStateInvalidKey,ImmoStateInvalidKey,0.9,"Called from ImmoMain(0x35202). Invalid-key state handler: on key state byte 0xFFFFC23A arms retry word 0xFFFFC228=0x1F4, sets C242=1, and on C238==1 sets C239=5 (invalid-key code); tail-branches into ImmoIdle/key FSM. Name confirmed."
+60E1D400,0x3642E,ImmoStateInvalidKey,ImmoStateInvalidKey,0.9,"Twin of 0x358CE (bank 60E1D400): identical 0x2FE6 prologue, reads 0xFFFFC28E state, retry word C27C=0x1F4, C28C->C28D=5, tail-branch to 0x360E8 FSM. Invalid-key state confirmed."
+60E1D400,0x37120,ImmoUpdateRelated,immo_update_state_machine,0.7,"Immo EEPROM/RAM-update FSM: reads C2D5; when clear arms C2D8=0x5A and C2D1=0x0C, calls updateE2RAMBasedOnInput(0x36D0C), then after flag set calls eeprom_commit(0x37000); twin of 0x365C0 renamed immo_update_state_machine in P3 deep1."
+60E1D400,0x28CD8,matrix_element_calc_28CD8,fuel_element_28cd8,0.3,matrix_element_calc_28CD8
+60E1D400,0x1B654,resonance_frequency_adaptive_filter,resonance_frequency_adaptive_filter,0.9,already descriptive human name preserved
+60E1D400,0x50FFC,readiness_monitor_0x50FFC,sensor_readiness_50ffc,0.3,readiness_monitor_0x50FFC
+60E1D400,0x3E5CE,value_calculator_3E5CE,value_calculator_3E5CE,0.9,already descriptive human name preserved
+60E1D400,0x17700,exhaust_port_control,exhaust_port_control,0.9,already descriptive human name preserved
+60E1D400,0x544AA,max_value_0x544AA,sensor_value_544aa,0.3,max_value_0x544AA
+60E0FC00,0x375F4,afterImmo_3,immo_post_unlock_response_3,0.7,"Post-unlock response #3: when flags C26D/C26E/C243/C27D clear set busy C243=1 and C27D req=0x07, call updateE2RAMBasedOnInput(0x361AC) with r4=0x07, then on C2A4==1 send CAN 0xB1 [0xF1,0xF0,0x01] via setupForUdsResponse(0x66A14)+udsResponse(0x52A12)."
+60E1D400,0x38154,afterImmo_3,immo_post_unlock_response_3,0.7,"Twin of 0x375F4 in bank B: post-unlock response; C2C1/C2C2/C297/C2D1 gating, updateE2RAM(0x36D0C), eeprom_commit(0x37000), then CAN 0xB1 [0xF1,0xF0,0x01]."
+60E1D400,0x366B8,bitwise_field_encoder_366B8,math_bitwise_366b8,0.3,bitwise_field_encoder_366B8
+60E1D400,0x5431C,divide_calc_0x5431C,divide_calc_0x5431C,0.9,already descriptive human name preserved
+60E1D400,0x1B2CA,engine_resonance_filter_calculator,engine_resonance_filter_calculator,0.9,already descriptive human name preserved
+60E0FC00,0x3735C,afterImmo_2,immo_post_unlock_response_2,0.7,"Post-unlock response #2: flags C26B/C26C/C243/C27D, set C27D=0x04, updateE2RAMBasedOnInput(0x361AC), send CAN 0xB1 [0xF1,0x01,0x9C]."
+60E1D400,0x37EBC,afterImmo_2,immo_post_unlock_response_2,0.7,"Twin of 0x3735C: flags C2BF/C2C0/C297/C2D1, set C2D1=0x04, updateE2RAM(0x36D0C), eeprom_commit(0x37000), send CAN 0xB1 [0xF1,0x01,0x9C]."
+60E0FC00,0x3775C,afterImmo_4,immo_post_unlock_response_4,0.7,"Post-unlock response #4: flags C26F/C270/C243/C27D, set C27D=0x05, updateE2RAMBasedOnInput(0x361AC), send CAN 0xB1 [0xF1,0xF0,0x04]."
+60E1D400,0x382BC,afterImmo_4,immo_post_unlock_response_4,0.7,"Twin of 0x3775C: flags C2C3/C2C4/C297/C2D1, set C2D1=0x05, updateE2RAM(0x36D0C)+eeprom_commit(0x37000), send CAN 0xB1 [0xF1,0xF0,0x04]."
+60E1D400,0x3850C,afterImmo_7,immo_post_unlock_response_7,0.7,"Twin of 0x379AC: flags C2C9/C2CA/C297/C2D1, set C2D1=0x0B, updateE2RAM(0x36D0C)+eeprom_commit(0x37000), send CAN 0xB1 [0xF1,0x00,0x0B]; matches P1-deep naming for 0x379AC."
+60E1D400,0x3C2F8,filter_process_3C2F8,filter_process_3C2F8,0.9,already descriptive human name preserved
+60E1D400,0x37D4C,afterImmo_1,immo_post_unlock_response_1,0.7,"Twin of 0x371EC: flags C2BD/C2BE/C297/C2D1, set C2D1=0x06, updateE2RAM(0x36D0C), eeprom_commit, send CAN 0xB1 [0xF1,0x01,0x01]; matches P1-deep naming."
+60E1D400,0x7FF0,crank_period_calc,crank_period_calc,0.9,already descriptive human name preserved
+60E1D400,0x168BE,secondary_chamber_ready_check,diag_secondary_168be,0.3,secondary_chamber_ready_check
+60E1D400,0x4416C,emissions_control_441BA,fuel_emissions_4416c,0.3,emissions_control_441BA
+60E1D400,0x54F00,rms_calculate_0x54F00,rms_calculate_0x54F00,0.9,already descriptive human name preserved
+60E1D400,0x2AEAA,secondary_chamber_state_2AEAA,sensor_secondary_2aeaa,0.3,secondary_chamber_state_2AEAA
+60E0FC00,0x2D924,calculateCruiseControlDisableCondition,calculateCruiseControlDisableCondition,0.9,"Disable-check: readValue_8bit_ADDRESS_VAL(0x3E0DC) gate at 0x868C; if not brake/accel 0xAACC/0xBD7C flags, compare CCSpeed 0xBFBC vs threshold 0x76280 -> set/clear disable flag 0xBD19. Called from cruiseControlMain."
+60E1D400,0x2E10C,calculateCruiseControlDisableCondition,calculateCruiseControlDisableCondition,0.9,"Twin of 0x2D924: readValue(0x3ED3C) 0x868C, gates 0xAAE0/0xBDC8/0xBDB5, CCSpeed 0xC008 vs threshold 0x76B48 -> flag 0xBD55. Called from cruise hub."
+60E1D400,0x2E2E8,cruiseControlOvershootPlausibilityMon,cruiseControlOvershootPlausibilityMon,0.9,"Twin of 0x2DB00: speed diff (0xC008-0xC00C), flag 0xBD59 gating, threshold 0x76B5C, add16bitSaturate(0x2460) counter 0xBD60, sets 0xBD57. Name confirmed."
+60E1D400,0x2E250,shift_quality_accumulator_2E250,fuel_accumulator_2e250,0.3,shift_quality_accumulator_2E250
+60E1D400,0x4B6A4,calibration_load_4B6A4,calibration_load_4B6A4,0.9,already descriptive human name preserved
+60E1D400,0x268FC,clamp_value_to_bounds_268FC,math_bounds_268fc,0.3,clamp_value_to_bounds_268FC
+60E1D400,0x53D0C,bitfield_test_0x53D0C,util_bitfield_53d0c,0.3,bitfield_test_0x53D0C
+60E1D400,0x8114,crank_event_main_handler,crank_event_main_handler,0.9,already descriptive human name preserved
+60E0FC00,0x25DF4,setImmoLight??,setImmoLight??,0.9,already descriptive human name preserved
+60E0FC00,0x2BE16,DSC_checkIfMode_x80,DSC_checkIfMode_x80,0.9,already descriptive human name preserved
+60E1D400,0x5A2E4,air_quality_0x5A2E4,air_quality_0x5A2E4,0.9,already descriptive human name preserved
+60E1D400,0x4A564,pwm_freq_adjust_4A564,pwm_freq_adjust_4A564,0.9,already descriptive human name preserved
+60E0FC00,0x2CFFA,dscMapSelectModex20,dscMapSelectModex20,0.9,already descriptive human name preserved
+60E1D400,0x379FA,multi_flag_state_dispatcher_379FA,math_dispatcher_379fa,0.3,multi_flag_state_dispatcher_379FA
+60E1D400,0x42816,secondary_rotor_calc_42884,secondary_rotor_calc_42884,0.9,already descriptive human name preserved
+60E1D400,0x4B1B0,cache_flush_4B1B0,ctrl_cache_4b1b0,0.3,no-callee-evidence
+60E1D400,0x4FF4C,crank_sync_0x4FF4C,crank_sync_0x4FF4C,0.9,already descriptive human name preserved
+60E1D400,0x52180,security_access_0x52180,diag_security_52180,0.3,security_access_0x52180
+60E1D400,0x520F6,service_handler_0x520F6,uds_service_520f6,0.3,service_handler_0x520F6
+60E0FC00,0x37BDE,afterImmo_8,afterImmo_8,0.9,already descriptive human name preserved
+60E1D400,0x3873E,afterImmo_8,afterImmo_8,0.9,already descriptive human name preserved
+60E1D400,0x2C9A4,update_pid_integral_term_2C9A4,isr_integral_2c9a4,0.3,update_pid_integral_term_2C9A4
+60E1D400,0x5E8B0,getTireSize,getTireSize,0.9,already descriptive human name preserved
+60E1D400,0x55624,demodulator_0x55624,ctrl_demodulator_55624,0.3,no-callee-evidence
+60E0FC00,0x4A284,enrichmentUnknownConditionCheck,math_enrichmentunknownconditioncheck_4a284,0.7,2DLookup;fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x25752,filterEngineSpeed,filterEngineSpeed,0.9,already descriptive human name preserved
+60E0FC00,0x2F694,setFanOutputGPIO,setFanOutputGPIO,0.9,already descriptive human name preserved
+60E1D400,0x35BBC,vfad_control_35BBC,fuel_control_35bbc,0.3,vfad_control_35BBC
+60E0FC00,0x37854,afterImmo_5,afterImmo_5,0.9,already descriptive human name preserved
+60E1D400,0x383B4,afterImmo_5,afterImmo_5,0.9,already descriptive human name preserved
+60E1D400,0x2A360,bitfield_merge_select_2A360,sensor_bitfield_2a360,0.3,bitfield_merge_select_2A360
+60E1D400,0x42A5E,clutch_control_42A7C,clutch_control_42A7C,0.9,already descriptive human name preserved
+60E1D400,0x263C8,port_write_bit_control_263C8,fuel_control_263c8,0.3,port_write_bit_control_263C8
+60E0FC00,0x25F98,calculateOutputforAlternator,calculateOutputforAlternator,0.9,already descriptive human name preserved
+60E1D400,0x5316A,mem_zero_0x5316A,mem_zero_0x5316A,0.9,already descriptive human name preserved
+60E0FC00,0x257D6,calculatePredictedEngineSpeed?,calculatePredictedEngineSpeed?,0.9,already descriptive human name preserved
+60E1D400,0x43C8,shift_right_arithmetic_r0,util_arithmetic_43c8,0.3,shift_right_arithmetic_r0
+60E1D400,0x3A28,consistencyCheck,diag_consistencycheck_3a28,0.3,consistencyCheck
+60E1D400,0x37348,multi_flag_state_dispatcher_37348,math_dispatcher_37348,0.3,multi_flag_state_dispatcher_37348
+60E1D400,0x373C2,multi_flag_state_dispatcher_373C2,math_dispatcher_373c2,0.3,multi_flag_state_dispatcher_373C2
+60E1D400,0x378DA,multi_flag_state_dispatcher_378DA,math_dispatcher_378da,0.3,multi_flag_state_dispatcher_378DA
+60E1D400,0x37980,multi_flag_state_dispatcher_37980,math_dispatcher_37980,0.3,multi_flag_state_dispatcher_37980
+60E1D400,0x37AB0,multi_flag_state_dispatcher_37AB0,math_dispatcher_37ab0,0.3,multi_flag_state_dispatcher_37AB0
+60E1D400,0x44530,readiness_check_44546,diag_readiness_44530,0.3,readiness_check_44546
+60E1D400,0x55D9A,sequencer_0x55D9A,ctrl_sequencer_55d9a,0.3,no-callee-evidence
+60E1D400,0x7E60,crank_gap_detect,crank_gap_detect,0.9,already descriptive human name preserved
+60E0FC00,0x35A76,immo_related??,immo_related??,0.9,already descriptive human name preserved
+60E1D400,0x1695A,secondary_chamber_activation,fuel_activation_1695a,0.3,secondary_chamber_activation
+60E1D400,0x55134,state_estimate_0x55134,sensor_estimate_55134,0.3,state_estimate_0x55134
+60E1D400,0x54784,calibration_routine_0x54784,diag_calibration_54784,0.3,calibration_routine_0x54784
+60E0FC00,0x359E4,ImmoGoodStateSet?,ImmoGoodStateSet?,0.9,already descriptive human name preserved
+60E1D400,0x42D1A,brake_control_42D20,brake_control_42D20,0.9,already descriptive human name preserved
+60E1D400,0x4EF24,combustion_monitor_update_0x4EF24,combustion_monitor_update_0x4EF24,0.9,already descriptive human name preserved
+60E1D400,0x54954,overvolt_protect_0x54954,mem_overvolt_54954,0.3,overvolt_protect_0x54954
+60E1D400,0x21FDA,combustion_control_pipeline_21FDA,combustion_control_pipeline_21FDA,0.9,already descriptive human name preserved
+60E0FC00,0x7FCC,getCrankAngle,getCrankAngle,0.9,already descriptive human name preserved
+60E1D400,0x28DA0,conditional_set_byte_28DA0,math_conditional_28da0,0.3,conditional_set_byte_28DA0
+60E1D400,0x5A1A4,cooling_ctrl_0x5A1A4,cooling_ctrl_0x5A1A4,0.9,already descriptive human name preserved
+60E1D400,0x4F05E,vtc_lock_check_update_0x4F05E,diag_update_4f05e,0.3,vtc_lock_check_update_0x4F05E
+60E0FC00,0x374CE,afterImmo_6,afterImmo_6,0.9,already descriptive human name preserved
+60E1D400,0x3802E,afterImmo_6,afterImmo_6,0.9,already descriptive human name preserved
+60E1D400,0x43EE8,air_bleed_control_43F20,air_bleed_control_43F20,0.9,already descriptive human name preserved
+60E1D400,0x26992,clamp_value_to_bounds_26992,math_bounds_26992,0.3,clamp_value_to_bounds_26992
+60E1D400,0x4D26C,health_check_actuators_4D26C,diag_actuators_4d26c,0.3,health_check_actuators_4D26C
+60E0FC00,0x35194,immoRelatedMaybe??,immoRelatedMaybe??,0.9,already descriptive human name preserved
+60E1D400,0x5016C,rotor_identification_0x5016C,rotor_identification_0x5016C,0.9,already descriptive human name preserved
+60E1D400,0x59D56,taillight_ctrl_0x59D56,util_taillight_59d56,0.3,taillight_ctrl_0x59D56
+60E0FC00,0x35978,ImmoStateReadyToDriveEngineOff,ImmoStateReadyToDriveEngineOff,0.9,already descriptive human name preserved
+60E1D400,0x364D8,ImmoStateReadyToDriveEngineOff,ImmoStateReadyToDriveEngineOff,0.9,already descriptive human name preserved
+60E1D400,0xE78C,engine_load_correction_calc,engine_load_correction_calc,0.9,already descriptive human name preserved
+60E1D400,0x5522A,gate_driver_0x5522A,idle_driver_5522a,0.3,gate_driver_0x5522A
+60E0FC00,0x35AEE,ImmoGetSeed,ImmoGetSeed,0.9,already descriptive human name preserved
+60E1D400,0x53E38,bit_rotate_0x53E38,can_rotate_53e38,0.3,bit_rotate_0x53E38
+60E1D400,0x55CE8,divider_0x55CE8,ctrl_divider_55ce8,0.3,no-callee-evidence
+60E1D400,0x553D0,reception_0x553D0,ctrl_reception_553d0,0.3,no-callee-evidence
+60E0FC00,0x37028,afterImmoMain,afterImmoMain,0.9,already descriptive human name preserved
+60E1D400,0x55764,clock_mgr_0x55764,math_clock_55764,0.3,clock_mgr_0x55764
+60E1D400,0x5EF5C,getBrakingOrInNeutral,init_getbrakingorinneutral_5ef5c,0.3,getBrakingOrInNeutral
+60E0FC00,0x2F5DA,acCompressorControlMain???,diag_accompressorcontrolmain_2f5da,0.3,acCompressorControlMain???
+60E1D400,0x2E3AC,brake_control_enable_2E3AC,brake_control_enable_2E3AC,0.9,already descriptive human name preserved
+60E0FC00,0x2C8AC,setGearBools,setGearBools,0.9,already descriptive human name preserved
+60E1D400,0x2CF80,setGearBools,setGearBools,0.9,already descriptive human name preserved
+60E1D400,0x133F8,calc_vehicle_speed_filter,calc_vehicle_speed_filter,0.9,already descriptive human name preserved
+60E1D400,0xE24A,diac_flag4_check_and_set,diag_flag4_e24a,0.3,diac_flag4_check_and_set
+60E1D400,0xDE8E,secondary_system_controller,fuel_controller_de8e,0.3,secondary_system_controller
+60E1D400,0x30068,setFanOutputGPIO,setFanOutputGPIO,0.9,already descriptive human name preserved
+60E1D400,0x48C8,bitfield_extract_merge,util_bitfield_48c8,0.3,bitfield_extract_merge
+60E1D400,0x3C096,detonation_detect_3C0CC,diag_detonation_3c096,0.3,detonation_detect_3C0CC
+60E1D400,0xE1A0,diac_flag2_check_and_set,diag_flag2_e1a0,0.3,diac_flag2_check_and_set
+60E1D400,0x1FA24,engine_load_control_1FA24,engine_load_control_1FA24,0.9,already descriptive human name preserved
+60E1D400,0x47FB0,engine_running_check_47FB0,engine_running_check_47FB0,0.9,already descriptive human name preserved
+60E1D400,0x56928,prediction_0x56928,ctrl_prediction_56928,0.3,no-callee-evidence
+60E1D400,0xC0A8,test_pbdr_bit11_set_pfdr_filter,test_pbdr_bit11_set_pfdr_filter,0.9,already descriptive human name preserved
+60E1D400,0x43E00,air_bypass_control_43E4A,air_bypass_control_43E4A,0.9,already descriptive human name preserved
+60E1D400,0x598DE,average_speed_0x598DE,average_speed_0x598DE,0.9,already descriptive human name preserved
+60E1D400,0x541A8,decompress_data_0x541A8,diag_decompress_541a8,0.3,decompress_data_0x541A8
+60E1D400,0x5411C,encode_data_0x5411C,can_encode_5411c,0.3,encode_data_0x5411C
+60E1D400,0x55018,iir_filter_0x55018,iir_filter_0x55018,0.9,already descriptive human name preserved
+60E1D400,0x17F1C,main_engine_cycle_10ms,main_engine_cycle_10ms,0.9,already descriptive human name preserved
+60E1D400,0x3075A,port_output_bitfield_control_3075A,fuel_bitfield_3075a,0.3,port_output_bitfield_control_3075A
+60E1D400,0x54258,random_gen_0x54258,ctrl_random_54258,0.3,no-callee-evidence
+60E1D400,0x5220A,session_manager_0x5220A,diag_session_5220a,0.3,session_manager_0x5220A
+60E1D400,0x548E4,wake_from_sleep_0x548E4,mem_sleep_548e4,0.3,wake_from_sleep_0x548E4
+60E1D400,0x607D2,bit_value_extract_607D2,sensor_extract_607d2,0.3,bit_value_extract_607D2
+60E1D400,0x806,data_transfer_setup,diag_transfer_806,0.3,data_transfer_setup
+60E1D400,0x5958E,antilock_brake_0x5958E,antilock_brake_0x5958E,0.9,already descriptive human name preserved
+60E1D400,0x3F458,aux_relay_control_3F458,aux_relay_control_3F458,0.9,already descriptive human name preserved
+60E1D400,0x11E12,calc_iacv_duty_feedback,calc_iacv_duty_feedback,0.9,already descriptive human name preserved
+60E1D400,0x144C8,calc_rotor_sequence_map,calc_rotor_sequence_map,0.9,already descriptive human name preserved
+60E1D400,0x4B770,calibration_apply_4B770,fuel_calibration_4b770,0.3,calibration_apply_4B770
+60E1D400,0x5930A,coast_down_0x5930A,ctrl_coast_5930a,0.3,no-callee-evidence
+60E1D400,0x591CC,cold_start_0x591CC,fuel_start_591cc,0.3,cold_start_0x591CC
+60E1D400,0x3DB26,control_enable_3db48,fuel_control_3db26,0.3,control_enable_3db48
+60E1D400,0x190A6,engine_load_estimator,engine_load_estimator,0.9,already descriptive human name preserved
+60E1D400,0x3C78E,feedback_dispatch_3c7b2,rtos_feedback_3c78e,0.3,feedback_dispatch_3c7b2
+60E1D400,0x21BB8,main_engine_control_dispatcher_21BB8,main_engine_control_dispatcher_21BB8,0.9,already descriptive human name preserved
+60E1D400,0x3EC6E,state_flag_dispatcher_3EC6E,sensor_dispatcher_3ec6e,0.3,state_flag_dispatcher_3EC6E
+60E1D400,0x43B50,supercharger_control_43B96,supercharger_control_43B96,0.9,already descriptive human name preserved
+60E1D400,0x3DE22,system_validator_3DE22,diag_validator_3de22,0.3,system_validator_3DE22
+60E1D400,0x3E166,validation_check_3E166,diag_validation_3e166,0.3,validation_check_3E166
+60E1D400,0x5712C,sgd_optimizer_0x5712C,ctrl_optimizer_5712c,0.3,no-callee-evidence
+60E1D400,0x3EF90,vvt_control_3EF90,vvt_control_3EF90,0.9,already descriptive human name preserved
+60E1D400,0x59BCC,battery_health_0x59BCC,battery_health_0x59BCC,0.9,already descriptive human name preserved
+60E1D400,0x12B70,calc_rotor_sync_solenoid_A,calc_rotor_sync_solenoid_A,0.9,already descriptive human name preserved
+60E1D400,0x449BA,gear_ratio_detect_449BA,gear_ratio_detect_449BA,0.9,already descriptive human name preserved
+60E1D400,0x3E904,iteration_handler_3E904,uds_iteration_3e904,0.3,iteration_handler_3E904
+60E1D400,0x58DE2,resonance_0x58DE2,ctrl_resonance_58de2,0.3,no-callee-evidence
+60E1D400,0x2F158,threshold_compare_saturation_add_2F158,math_saturation_2f158,0.3,threshold_compare_saturation_add_2F158
+60E1D400,0x2A8E4,combustion_state_flag_calc_2A8E4,combustion_state_flag_calc_2A8E4,0.9,already descriptive human name preserved
+60E1D400,0x56728,matrix_det_0x56728,fuel_matrix_56728,0.3,matrix_det_0x56728
+60E1D400,0x5BECE,quality_metric_0x5BECE,ctrl_quality_5bece,0.3,no-callee-evidence
+60E1D400,0x5C53C,report_gen_0x5C53C,ctrl_report_5c53c,0.3,no-callee-evidence
+60E1D400,0x4EFA2,state_flag_manager_0x4EFA2,sensor_manager_4efa2,0.3,state_flag_manager_0x4EFA2
+60E1D400,0x56442,variance_calc_0x56442,fuel_variance_56442,0.3,variance_calc_0x56442
+60E1D400,0x17DCC,cooling_fan_control_0x17DCC,cooling_fan_control_0x17DCC,0.9,already descriptive human name preserved
+60E1D400,0x60544,enable_count_compute_60544,fuel_compute_60544,0.3,enable_count_compute_60544
+60E1D400,0x2E470,engine_load_integral_2E470,engine_load_integral_2E470,0.9,already descriptive human name preserved
+60E1D400,0x51EB0,kwp_handler_0x51EB0,kwp_handler_0x51EB0,0.3,kwp_handler_0x51EB0
+60E1D400,0x4AD96,stack_check_4AD96,diag_stack_4ad96,0.3,stack_check_4AD96
+60E1D400,0x19190,air_charge_calc_0x19190,air_charge_calc_0x19190,0.9,already descriptive human name preserved
+60E1D400,0x33A98,bitfield_flag_selector_33A98,math_bitfield_33a98,0.3,bitfield_flag_selector_33A98
+60E1D400,0x52898,buffer_manager_0x52898,mem_manager_52898,0.3,buffer_manager_0x52898
+60E0FC00,0x327CE,debounceCruiseControlSET,debounceCruiseControlSET,0.9,already descriptive human name preserved
+60E1D400,0x331A2,debounceCruiseControlSET,debounceCruiseControlSET,0.9,already descriptive human name preserved
+60E1D400,0x1ED40,fan_speed_calc_1ED40,fan_speed_calc_1ED40,0.9,already descriptive human name preserved
+60E1D400,0x7AD6,crank_tooth_validate,crank_tooth_validate,0.9,already descriptive human name preserved
+60E0FC00,0x118FE,cruiseControl?,cruiseControl?,0.9,already descriptive human name preserved
+60E1D400,0x47F3C,engine_state_machine_47F3C,engine_state_machine_47F3C,0.9,already descriptive human name preserved
+60E1D400,0x525EC,gpio_handler_0x525EC,gpio_handler_0x525EC,0.9,already descriptive human name preserved
+60E1D400,0x59CEC,starter_motor_0x59CEC,starter_motor_0x59CEC,0.9,already descriptive human name preserved
+60E1D400,0x55E18,cache_manager_0x55E18,diag_manager_55e18,0.3,cache_manager_0x55E18
+60E1D400,0x2A896,conditional_multi_check_2A896,math_conditional_2a896,0.3,conditional_multi_check_2A896
+60E0FC00,0x1A4E6,engineControlGetAir,engineControlGetAir,0.9,already descriptive human name preserved
+60E1D400,0x1A9CA,engineControlGetAir,engineControlGetAir,0.9,already descriptive human name preserved
+60E0FC00,0x3E15C,readValue_32bit_ADDRESS_VAL,diag_readvalue_3e15c,0.5,setMemInsideFUNCto1
+60E1D400,0x3EDBC,readValue_32bit_ADDRESS_VAL,diag_readvalue_3edbc,0.5,setMemInsideFUNCto1
+60E1D400,0x2A2A8,sequential_module_dispatch_2A2A8,rtos_sequential_2a2a8,0.3,sequential_module_dispatch_2A2A8
+60E0FC00,0x320C8,apvControl?,sensor_apvcontrol_320c8,0.7,apvPositionVoltageCounter;calcAPVControl
+60E1D400,0x339AC,bitfield_flag_status_decoder_339AC,mem_bitfield_339ac,0.3,bitfield_flag_status_decoder_339AC
+60E1D400,0x5405C,data_extract_0x5405C,diag_extract_5405c,0.3,data_extract_0x5405C
+60E1D400,0x59DD4,door_lock_0x59DD4,rtos_door_59dd4,0.3,door_lock_0x59DD4
+60E1D400,0x53BA0,range_validate_0x53BA0,sensor_validate_53ba0,0.3,range_validate_0x53BA0
+60E1D400,0x56E1A,tanh_0x56E1A,ctrl_tanh_56e1a,0.3,no-callee-evidence
+60E1D400,0x53DD6,bit_count_0x53DD6,rtos_count_53dd6,0.3,bit_count_0x53DD6
+60E1D400,0xE202,diac_flag3_check_and_set,diag_flag3_e202,0.3,diac_flag3_check_and_set
+60E1D400,0x55D52,multiplier_0x55D52,isr_multiplier_55d52,0.3,multiplier_0x55D52
+60E1D400,0x1EFCC,output_byte_loop_write_1EFCC,mem_output_1efcc,0.3,output_byte_loop_write_1EFCC
+60E1D400,0x523BE,state_machine_0x523BE,sensor_machine_523be,0.3,state_machine_0x523BE
+60E1D400,0x5864A,apex_seal_0x5864A,apex_seal_0x5864A,0.9,already descriptive human name preserved
+60E1D400,0x3EEB8,cold_start_enrichment_3EEB8,fuel_enrichment_3eeb8,0.3,cold_start_enrichment_3EEB8
+60E1D400,0x210,comm_transfer_start,diag_transfer_210,0.3,comm_transfer_start
+60E1D400,0x51DC6,comms_protocol_0x51DC6,ctrl_protocol_51dc6,0.3,no-callee-evidence
+60E1D400,0x5A248,defrost_control_0x5A248,fuel_defrost_5a248,0.3,defrost_control_0x5A248
+60E0FC00,0x2F71E,fanControlMain,fanControlMain,0.9,already descriptive human name preserved
+60E1D400,0x5A4EC,cabin_air_filter_0x5A4EC,cabin_air_filter_0x5A4EC,0.9,already descriptive human name preserved
+60E1D400,0x4F778,secondary_air_control_0x4F778,secondary_air_control_0x4F778,0.9,already descriptive human name preserved
+60E0FC00,0x11540,someMainFunction,diag_somemainfunction_11540,0.3,someMainFunction
+60E1D400,0x3E58A,status_checker_3E58A,isr_checker_3e58a,0.3,status_checker_3E58A
+60E0FC00,0x31BA0,turnOnSecondaryAir??,turnOnSecondaryAir??,0.9,already descriptive human name preserved
+60E1D400,0x17E5E,zero_solenoid_outputs,zero_solenoid_outputs,0.9,already descriptive human name preserved
+60E0FC00,0x27132,alternatorControl,alternatorControl,0.9,already descriptive human name preserved
+60E1D400,0x5ACB0,battery_light_0x5ACB0,battery_light_0x5ACB0,0.9,already descriptive human name preserved
+60E1D400,0x5AFE2,cruise_status_0x5AFE2,cruise_status_0x5AFE2,0.9,already descriptive human name preserved
+60E1D400,0x2F6CC,port_bitfield_control_handler_2F6CC,uds_bitfield_2f6cc,0.3,port_bitfield_control_handler_2F6CC
+60E1D400,0x2C4EA,DSC_checkIfMode_x80,DSC_checkIfMode_x80,0.9,already descriptive human name preserved
+60E0FC00,0x275CC,calculateEngineSpeedDelta,calculateEngineSpeedDelta,0.9,already descriptive human name preserved
+60E1D400,0x549C8,circuit_monitor_0x549C8,sensor_circuit_549c8,0.3,circuit_monitor_0x549C8
+60E1D400,0x590AA,mixture_strength_0x590AA,ctrl_strength_590aa,0.3,no-callee-evidence
+60E1D400,0x3CF08,mode_config_3cf3c,isr_config_3cf08,0.3,mode_config_3cf3c
+60E1D400,0x54BC0,phase_measure_0x54BC0,ctrl_measure_54bc0,0.3,no-callee-evidence
+60E0FC00,0x3E11C,readValue_16bit_ADDRESS_VAL,diag_readvalue_3e11c,0.5,setMemInsideFUNCto1
+60E1D400,0x3ED7C,readValue_16bit_ADDRESS_VAL,diag_readvalue_3ed7c,0.5,setMemInsideFUNCto1
+60E0FC00,0x3E0DC,readValue_8bit_ADDRESS_VAL,diag_readvalue_3e0dc,0.5,setMemInsideFUNCto1
+60E1D400,0x3ED3C,readValue_8bit_ADDRESS_VAL,diag_readvalue_3ed3c,0.5,setMemInsideFUNCto1
+60E1D400,0x54A08,short_circuit_detect_0x54A08,diag_circuit_54a08,0.3,short_circuit_detect_0x54A08
+60E1D400,0x52C92,sync_barrier_0x52C92,fuel_barrier_52c92,0.3,sync_barrier_0x52C92
+60E1D400,0x2E412,brake_enable_dispatch_2E412,brake_enable_dispatch_2E412,0.9,already descriptive human name preserved
+60E1D400,0x564B8,covariance_0x564B8,ctrl_covariance_564b8,0.3,no-callee-evidence
+60E1D400,0x49AC0,mem_compare_49AC0,mem_compare_49AC0,0.9,already descriptive human name preserved
+60E1D400,0x1F014,output_word_loop_write_1F014,fuel_output_1f014,0.3,output_word_loop_write_1F014
+60E1D400,0x557CC,pll_control_0x557CC,fuel_control_557cc,0.3,pll_control_0x557CC
+60E1D400,0x552C0,power_stage_0x552C0,init_power_552c0,0.3,power_stage_0x552C0
+60E1D400,0x5C3C0,result_combine_0x5C3C0,math_combine_5c3c0,0.3,result_combine_0x5C3C0
+60E1D400,0x532CC,string_cmp_0x532CC,init_string_532cc,0.3,string_cmp_0x532CC
+60E0FC00,0x64DB4,in_range_0_6_check?,diag_range_64db4,0.3,in_range_0_6_check?
+60E1D400,0x5677E,matrix_rank_0x5677E,fuel_matrix_5677e,0.3,matrix_rank_0x5677E
+60E1D400,0x15D28,rotary_chamber_balance_calc,rotary_chamber_balance_calc,0.9,already descriptive human name preserved
+60E1D400,0x5138C,adaptive_table_update_0x5138C,adaptive_table_update_0x5138C,0.9,already descriptive human name preserved
+60E1D400,0x58F58,catalytic_conv_0x58F58,ctrl_catalytic_58f58,0.3,no-callee-evidence
+60E1D400,0x58EEA,emission_calc_0x58EEA,emission_calc_0x58EEA,0.9,already descriptive human name preserved
+60E1D400,0x2AF80,exhaust_port_condition_2AF80,exhaust_port_condition_2AF80,0.9,already descriptive human name preserved
+60E1D400,0x23B62,misfire_threshold_gate_23B62,math_threshold_23b62,0.3,misfire_threshold_gate_23B62
+60E1D400,0x556A8,modulator_0x556A8,diag_modulator_556a8,0.3,modulator_0x556A8
+60E1D400,0x59A86,odometer_0x59A86,ctrl_odometer_59a86,0.3,no-callee-evidence
+60E1D400,0x18C6C,omp_wave_reload_18C6C,omp_wave_reload_18C6C,0.9,already descriptive human name preserved
+60E1D400,0x4FC6A,open_loop_control_0x4FC6A,fuel_control_4fc6a,0.3,open_loop_control_0x4FC6A
+60E1D400,0xAA20,port_b_set_mask_with_multiply,math_multiply_aa20,0.3,port_b_set_mask_with_multiply
+60E1D400,0x58E7C,power_output_0x58E7C,fuel_output_58e7c,0.3,power_output_0x58E7C
+60E1D400,0x55328,rectifier_0x55328,ctrl_rectifier_55328,0.3,no-callee-evidence
+60E1D400,0x375EC,register_configuration_cleanup_375EC,math_configuration_375ec,0.3,register_configuration_cleanup_375EC
+60E1D400,0x54210,cipher_encrypt_0x54210,ctrl_encrypt_54210,0.3,no-callee-evidence
+60E1D400,0x540D4,data_pack_0x540D4,diag_data_540d4,0.3,data_pack_0x540D4
+60E0FC00,0x26308,getAlternatorSpeedConditonal,getAlternatorSpeedConditonal,0.9,already descriptive human name preserved
+60E1D400,0x47978,load_calc_manifold_47978,load_calc_manifold_47978,0.9,already descriptive human name preserved
+60E1D400,0x59B68,maintenance_alert_0x59B68,ctrl_maintenance_59b68,0.3,no-callee-evidence
+60E1D400,0x42B0,memcpy_bytewise_unroll4,ctrl_bytewise_42b0,0.3,no-callee-evidence
+60E1D400,0x3DE7E,mode_handler_3DE7E,mode_handler_3DE7E,0.3,mode_handler_3DE7E
+60E1D400,0x5A494,passenger_compartment_0x5A494,ctrl_compartment_5a494,0.3,no-callee-evidence
+60E1D400,0x5B474,cell_process_0x5B474,sensor_process_5b474,0.3,cell_process_0x5B474
+60E1D400,0x4FC34,closed_loop_manager_0x4FC34,init_manager_4fc34,0.3,closed_loop_manager_0x4FC34
+60E1D400,0x28E10,condition_check_28E10,diag_condition_28e10,0.3,condition_check_28E10
+60E1D400,0x2817C,condition_check_set_2817C,diag_condition_2817c,0.3,condition_check_set_2817C
+60E1D400,0x758C,crank_periodic_handler,crank_periodic_handler,0.9,already descriptive human name preserved
+60E1D400,0x58BE8,exhaust_port_0x58BE8,exhaust_port_0x58BE8,0.9,already descriptive human name preserved
+60E1D400,0x5B09E,lane_departure_0x5B09E,ctrl_departure_5b09e,0.3,no-callee-evidence
+60E1D400,0x567E8,lu_decomp_0x567E8,ctrl_decomp_567e8,0.3,no-callee-evidence
+60E1D400,0x551BC,regulator_0x551BC,ctrl_regulator_551bc,0.3,no-callee-evidence
+60E0FC00,0xA230,setupStructRotorNumber?,setupStructRotorNumber?,0.9,already descriptive human name preserved
+60E0FC00,0x2BEA8,DSC_checkIfMode_x40,DSC_checkIfMode_x40,0.9,already descriptive human name preserved
+60E1D400,0x2C57C,DSC_checkIfMode_x40,DSC_checkIfMode_x40,0.9,already descriptive human name preserved
+60E1D400,0x5C5CE,archive_0x5C5CE,ctrl_archive_5c5ce,0.3,no-callee-evidence
+60E0FC00,0x341F4,calculateEngineLoadMax,calculateEngineLoadMax,0.9,already descriptive human name preserved
+60E1D400,0x34D54,calculateEngineLoadMax,calculateEngineLoadMax,0.9,already descriptive human name preserved
+60E0FC00,0xE244,calculateEngineOnTime??,calculateEngineOnTime??,0.9,already descriptive human name preserved
+60E0FC00,0xE278,calculateEngineRunning,calculateEngineRunning,0.9,already descriptive human name preserved
+60E1D400,0x51406,cell_select_0x51406,sensor_select_51406,0.3,cell_select_0x51406
+60E1D400,0x5A044,climate_control_0x5A044,fuel_climate_5a044,0.3,climate_control_0x5A044
+60E1D400,0x5637E,convolution_0x5637E,ctrl_convolution_5637e,0.3,no-callee-evidence
+60E1D400,0x566EC,matrix_inv_0x566EC,fuel_matrix_566ec,0.3,matrix_inv_0x566EC
+60E1D400,0x54A6A,resistor_check_0x54A6A,diag_resistor_54a6a,0.3,resistor_check_0x54A6A
+60E1D400,0x2AA4E,secondary_chamber_activate_2AA4E,fuel_secondary_2aa4e,0.3,secondary_chamber_activate_2AA4E
+60E0FC00,0xAA90,setAPVDC?,ctrl_setapvdc_aa90,0.3,no-callee-evidence
+60E1D400,0x5A214,vent_control_0x5A214,fuel_control_5a214,0.3,vent_control_0x5A214
+60E1D400,0x27DF4,conditional_set_byte_27DF4,math_conditional_27df4,0.3,conditional_set_byte_27DF4
+60E1D400,0x520C4,response_formatter_0x520C4,diag_formatter_520c4,0.3,response_formatter_0x520C4
+60E1D400,0x16F0C,solenoid_control_branch_0x16F0C,solenoid_control_branch_0x16F0C,0.9,already descriptive human name preserved
+60E1D400,0x16F70,solenoid_control_branch_0x16F70,solenoid_control_branch_0x16F70,0.9,already descriptive human name preserved
+60E1D400,0x556E2,codec_encoder_0x556E2,can_encoder_556e2,0.3,codec_encoder_0x556E2
+60E1D400,0x7618,crank_event_dispatcher,crank_event_dispatcher,0.9,already descriptive human name preserved
+60E1D400,0x25DAA,feedback_control_filter_25DAA,feedback_control_filter_25DAA,0.9,already descriptive human name preserved
+60E1D400,0x32574,port_control_bitfield_toggle_32574,fuel_bitfield_32574,0.3,port_control_bitfield_toggle_32574
+60E1D400,0x4F1E6,port_input_handler_0x4F1E6,port_input_handler_0x4F1E6,0.3,port_input_handler_0x4F1E6
+60E0FC00,0x16924,readImmoBit,readImmoBit,0.9,already descriptive human name preserved
+60E1D400,0x16E08,readImmoBit,readImmoBit,0.9,already descriptive human name preserved
+60E0FC00,0x32094,setAPVDC?,ctrl_setapvdc_32094,0.3,no-callee-evidence
+60E1D400,0x48C12,split_selector_decoder_48C12,math_selector_48c12,0.3,split_selector_decoder_48C12
+60E1D400,0x19420,system_state_clear_all,isr_system_19420,0.3,system_state_clear_all
+60E1D400,0x19450,system_state_clear_dup,isr_system_19450,0.3,system_state_clear_dup
+60E1D400,0x7BB4,crank_event_process,crank_event_process,0.9,already descriptive human name preserved
+60E1D400,0x4D2DA,health_check_comm_4D2DA,diag_health_4d2da,0.3,health_check_comm_4D2DA
+60E1D400,0x513D8,learn_manager_0x513D8,ign_manager_513d8,0.3,learn_manager_0x513D8
+60E1D400,0x49A92,mem_clear_49A92,mem_clear_49A92,0.9,already descriptive human name preserved
+60E1D400,0x2AB28,multi_state_executor_2AB28,math_executor_2ab28,0.3,multi_state_executor_2AB28
+60E1D400,0x3E95C,accumulation_loop_3E95C,init_accumulation_3e95c,0.3,accumulation_loop_3E95C
+60E1D400,0x3C39A,accumulator_dispatch_3c3a6,rtos_accumulator_3c39a,0.3,accumulator_dispatch_3c3a6
+60E1D400,0x6067C,bit_value_extract_6067C,sensor_extract_6067c,0.3,bit_value_extract_6067C
+60E1D400,0x3D43C,buffer_controller_3D43C,mem_controller_3d43c,0.3,buffer_controller_3D43C
+60E1D400,0x55734,codec_decoder_0x55734,fuel_decoder_55734,0.3,codec_decoder_0x55734
+60E1D400,0x3C762,control_loop_3C762,fuel_control_3c762,0.3,control_loop_3C762
+60E1D400,0x7AAA,crank_sync_acquire,crank_sync_acquire,0.9,already descriptive human name preserved
+60E1D400,0x3E510,data_encoder_3E510,diag_encoder_3e510,0.3,data_encoder_3E510
+60E1D400,0x39C36,flag_based_dispatch_39c36,rtos_dispatch_39c36,0.3,flag_based_dispatch_39c36
+60E1D400,0x3BFEA,gear_detection_3BFEA,gear_detection_3BFEA,0.9,already descriptive human name preserved
+60E1D400,0x3DAFA,health_check_3DAFA,diag_health_3dafa,0.3,health_check_3DAFA
+60E1D400,0x53610,itoa_convert_0x53610,math_convert_53610,0.3,itoa_convert_0x53610
+60E1D400,0x50326,load_compensation_0x50326,load_compensation_0x50326,0.9,already descriptive human name preserved
+60E1D400,0x532A0,mem_compare_0x532A0,mem_compare_0x532A0,0.9,already descriptive human name preserved
+60E1D400,0x3E6A4,offset_calculator_3E6A4,offset_calculator_3E6A4,0.9,already descriptive human name preserved
+60E1D400,0xA9F4,port_b_gpio_toggle_bit,port_b_gpio_toggle_bit,0.9,already descriptive human name preserved
+60E1D400,0xFCA6,pulse_period_filter,pulse_period_filter,0.9,already descriptive human name preserved
+60E1D400,0x11DCC,read_iacv_target_duty,read_iacv_target_duty,0.9,already descriptive human name preserved
+60E1D400,0x55F7A,segment_0x55F7A,ctrl_segment_55f7a,0.3,no-callee-evidence
+60E1D400,0x3D124,state_encoder_3D124,sensor_encoder_3d124,0.3,state_encoder_3D124
+60E1D400,0x3B6B0,state_machine_dispatcher_3B6B0,sensor_dispatcher_3b6b0,0.3,state_machine_dispatcher_3B6B0
+60E1D400,0x35124,threshold_range_check_35124,diag_threshold_35124,0.3,threshold_range_check_35124
+60E1D400,0x6096C,bit_value_extract_6096C,sensor_extract_6096c,0.3,bit_value_extract_6096C
+60E1D400,0x54ABA,capacitor_check_0x54ABA,diag_capacitor_54aba,0.3,capacitor_check_0x54ABA
+60E1D400,0x4F264,duty_cycle_control_0x4F264,duty_cycle_control_0x4F264,0.9,already descriptive human name preserved
+60E1D400,0x503F2,engine_protection_0x503F2,engine_protection_0x503F2,0.9,already descriptive human name preserved
+60E0FC00,0x145DA,leadingAndTrailingSeperationMain,ign_leadingandtrailingseperationmain_145da,0.5,engineConditionDetectForTimingModification
+60E1D400,0xD526,rom_table_secondary_validator,rom_table_secondary_validator,0.9,already descriptive human name preserved
+60E1D400,0x53A2E,safety_check_0x53A2E,diag_safety_53a2e,0.3,safety_check_0x53A2E
+60E1D400,0x2DBA0,sine_approx_calc_2DBA0,sine_approx_calc_2DBA0,0.9,already descriptive human name preserved
+60E1D400,0x56418,statistics_0x56418,ctrl_statistics_56418,0.3,no-callee-evidence
+60E1D400,0x2B08E,table_axis_increment_2B08E,table_axis_increment_2B08E,0.9,already descriptive human name preserved
+60E1D400,0x3941E,update_rom_value_or_decrement_3941E,isr_decrement_3941e,0.3,update_rom_value_or_decrement_3941E
+60E1D400,0x606F8,bit_value_extract_606F8,sensor_extract_606f8,0.3,bit_value_extract_606F8
+60E1D400,0x13A5E,calc_rotor_sync_base_A,calc_rotor_sync_base_A,0.9,already descriptive human name preserved
+60E0FC00,0x1A2E8,calculateKeyOnTime,calculateKeyOnTime,0.9,already descriptive human name preserved
+60E1D400,0x1A7CC,calculateKeyOnTime,calculateKeyOnTime,0.9,already descriptive human name preserved
+60E1D400,0x1B56C,crank_enable_status_checker,crank_enable_status_checker,0.9,already descriptive human name preserved
+60E1D400,0x7C08,crank_event_timeout_check,crank_event_timeout_check,0.9,already descriptive human name preserved
+60E1D400,0x4F70C,emission_control_0x4F70C,fuel_emission_4f70c,0.3,emission_control_0x4F70C
+60E1D400,0x5C602,finalize_0x5C602,ctrl_finalize_5c602,0.3,no-callee-evidence
+60E1D400,0x23B0,firstOrderFilter,firstOrderFilter,0.9,already descriptive human name preserved
+60E0FC00,0x2FD20,getACSwitchStatus,diag_getacswitchstatus_2fd20,0.3,getACSwitchStatus
+60E0FC00,0x53A3A,getMode22EngineLoad,getMode22EngineLoad,0.9,already descriptive human name preserved
+60E1D400,0x5600C,import_table_0x5600C,import_table_0x5600C,0.9,already descriptive human name preserved
+60E1D400,0x56EE8,loss_compute_0x56EE8,fuel_compute_56ee8,0.3,loss_compute_0x56EE8
+60E1D400,0x1CD32,misfire_detection_control_1CD32,fuel_detection_1cd32,0.3,misfire_detection_control_1CD32
+60E1D400,0x550E6,model_predict_0x550E6,ctrl_predict_550e6,0.3,no-callee-evidence
+60E1D400,0x55CB4,oscillator_0x55CB4,ctrl_oscillator_55cb4,0.3,no-callee-evidence
+60E1D400,0x526BA,pwm_control_0x526BA,pwm_control_0x526BA,0.9,already descriptive human name preserved
+60E1D400,0x54706,shutdown_sequence_0x54706,init_shutdown_54706,0.3,shutdown_sequence_0x54706
+60E1D400,0x4F216,state_write_wrapper_0x4F216,sensor_wrapper_4f216,0.3,state_write_wrapper_0x4F216
+60E1D400,0x547FA,test_sequence_0x547FA,init_sequence_547fa,0.3,test_sequence_0x547FA
+60E1D400,0x58BA4,trochoid_surface_0x58BA4,math_trochoid_58ba4,0.3,trochoid_surface_0x58BA4
+60E1D400,0x5AB9E,airbag_light_0x5AB9E,diag_airbag_5ab9e,0.3,airbag_light_0x5AB9E
+60E1D400,0xF4,build_addr_from_bytes,mem_build_f4,0.3,build_addr_from_bytes
+60E1D400,0x533B6,char_to_hex_0x533B6,math_char_533b6,0.3,char_to_hex_0x533B6
+60E1D400,0x768C,crank_mode_switch,crank_mode_switch,0.9,already descriptive human name preserved
+60E1D400,0x2B88A,ctrl_cond_state_flags_set_2B88A,isr_state_2b88a,0.3,ctrl_cond_state_flags_set_2B88A
+60E1D400,0x4C78C,event_check_4C78C,diag_event_4c78c,0.3,event_check_4C78C
+60E1D400,0x4F23E,hw_register_read_0x4F23E,hw_register_read_0x4F23E,0.9,already descriptive human name preserved
+60E1D400,0x562A0,laplacian_0x562A0,ctrl_laplacian_562a0,0.3,no-callee-evidence
+60E1D400,0x55FC2,linker_0x55FC2,ctrl_linker_55fc2,0.3,no-callee-evidence
+60E1D400,0x37B88,master_system_dispatcher_37B88,fuel_dispatcher_37b88,0.3,master_system_dispatcher_37B88
+60E1D400,0x542C8,or_operator_0x542C8,ctrl_operator_542c8,0.3,no-callee-evidence
+60E1D400,0x55E7C,tlb_handler_0x55E7C,tlb_handler_0x55E7C,0.3,tlb_handler_0x55E7C
+60E0FC00,0x31BF2,calculateSecondaryAirOnTime,calculateSecondaryAirOnTime,0.9,already descriptive human name preserved
+60E1D400,0x5BFEC,consistency_check_0x5BFEC,diag_consistency_5bfec,0.3,consistency_check_0x5BFEC
+60E1D400,0x55386,distribution_0x55386,ctrl_distribution_55386,0.3,no-callee-evidence
+60E1D400,0x22988,emission_control_dispatcher_22988,fuel_dispatcher_22988,0.3,emission_control_dispatcher_22988
+60E1D400,0x546A0,event_loop_0x546A0,init_event_546a0,0.3,event_loop_0x546A0
+60E1D400,0x5A28E,filter_monitor_0x5A28E,filter_monitor_0x5A28E,0.9,already descriptive human name preserved
+60E1D400,0x3E53C,header_parser_3E53C,mem_header_3e53c,0.3,header_parser_3E53C
+60E1D400,0x53392,string_length_0x53392,init_string_53392,0.3,string_length_0x53392
+60E1D400,0x55362,transformer_0x55362,ctrl_transformer_55362,0.3,no-callee-evidence
+60E1D400,0x1008,validate_rom_calibration_id,mem_calibration_1008,0.3,validate_rom_calibration_id
+60E1D400,0x60786,bit_value_extract_60786,sensor_extract_60786,0.3,bit_value_extract_60786
+60E1D400,0x387C6,bitfield_flag_getter_387C6,mem_bitfield_387c6,0.3,bitfield_flag_getter_387C6
+60E1D400,0x2EF42,conditional_flag_set_io_bit_2EF42,math_conditional_2ef42,0.3,conditional_flag_set_io_bit_2EF42
+60E1D400,0x28126,decrement_on_flag_28126,isr_decrement_28126,0.3,decrement_on_flag_28126
+60E1D400,0x49ED0,flag_setter_49ED0,mem_setter_49ed0,0.3,flag_setter_49ED0
+60E1D400,0x4FCA4,transient_response_0x4FCA4,diag_transient_4fca4,0.3,transient_response_0x4FCA4
+60E1D400,0x4B8E4,tune_table_write_4B8E4,tune_table_write_4B8E4,0.9,already descriptive human name preserved
+60E1D400,0x597DA,vehicle_speed_0x597DA,vehicle_speed_0x597DA,0.9,already descriptive human name preserved
+60E0FC00,0x35104,ImmoSomethingOrOther??,ImmoSomethingOrOther??,0.9,already descriptive human name preserved
+60E1D400,0x588AE,bearing_wear_0x588AE,ctrl_bearing_588ae,0.3,no-callee-evidence
+60E1D400,0x2DAE8,calc_correction_delta_2DAE8,calc_correction_delta_2DAE8,0.9,already descriptive human name preserved
+60E1D400,0x3FCC0,control_loop_coordinator_3FCC0,fuel_coordinator_3fcc0,0.3,control_loop_coordinator_3FCC0
+60E1D400,0x7F46,crank_event_update,crank_event_update,0.9,already descriptive human name preserved
+60E1D400,0x2DCF0,enrichment_add_conditional_2DCF0,math_conditional_2dcf0,0.3,enrichment_add_conditional_2DCF0
+60E1D400,0x306F4,getACSwitchStatus,diag_getacswitchstatus_306f4,0.3,getACSwitchStatus
+60E1D400,0x2638E,heater_setup_handler_2638E,heater_setup_handler_2638E,0.3,heater_setup_handler_2638E
+60E1D400,0x59E24,mirror_control_0x59E24,fuel_control_59e24,0.3,mirror_control_0x59E24
+60E1D400,0x5035C,octane_rating_check_0x5035C,diag_octane_5035c,0.3,octane_rating_check_0x5035C
+60E1D400,0x32F10,port_bitfield_check_flag_bit_32F10,diag_bitfield_32f10,0.3,port_bitfield_check_flag_bit_32F10
+60E1D400,0x3E9A6,result_formatter_3E9A6,math_formatter_3e9a6,0.3,result_formatter_3E9A6
+60E1D400,0x2658,table2d_axis_resolve,table2d_axis_resolve,0.9,already descriptive human name preserved
+60E1D400,0x1A762,three_point_calibration_mapper,rtos_calibration_1a762,0.3,three_point_calibration_mapper
+60E1D400,0x3C3DC,threshold_check_3C3DC,diag_threshold_3c3dc,0.3,threshold_check_3C3DC
+60E0FC00,0x2BEFA,DSC_checkIfMode_x10,DSC_checkIfMode_x10,0.9,already descriptive human name preserved
+60E1D400,0x2C5CE,DSC_checkIfMode_x10,DSC_checkIfMode_x10,0.9,already descriptive human name preserved
+60E0FC00,0x2BEDC,DSC_checkIfMode_x20,DSC_checkIfMode_x20,0.9,already descriptive human name preserved
+60E1D400,0x2C5B0,DSC_checkIfMode_x20,DSC_checkIfMode_x20,0.9,already descriptive human name preserved
+60E0FC00,0x35A58,ImmoBadStateSet?,ImmoBadStateSet?,0.9,already descriptive human name preserved
+60E0FC00,0x553D6,Mode22PIDAlternatorDC,Mode22PIDAlternatorDC,0.9,already descriptive human name preserved
+60E1D400,0x4F54C,adaptive_control_0x4F54C,fuel_adaptive_4f54c,0.3,adaptive_control_0x4F54C
+60E1D400,0x2C4CC,check_bitfield_flag_2C4CC,diag_bitfield_2c4cc,0.3,check_bitfield_flag_2C4CC
+60E1D400,0x2440,complement_shift_u32,math_complement_2440,0.3,complement_shift_u32
+60E1D400,0x29758,control_saturation_dispatcher_29758,fuel_saturation_29758,0.3,control_saturation_dispatcher_29758
+60E1D400,0x808E,crank_output_update,crank_output_update,0.9,already descriptive human name preserved
+60E1D400,0x5A8CC,display_driver_0x5A8CC,ctrl_display_5a8cc,0.3,no-callee-evidence
+60E1D400,0x17F94,exhaust_system_control,exhaust_system_control,0.9,already descriptive human name preserved
+60E0FC00,0x19B82,filterSomething,filterSomething,0.9,already descriptive human name preserved
+60E0FC00,0x19BC6,filterSomething2,filterSomething2,0.9,already descriptive human name preserved
+60E0FC00,0x292BA,getSomeEngineConditions,getSomeEngineConditions,0.9,already descriptive human name preserved
+60E1D400,0x54644,main_loop_0x54644,can_main_54644,0.3,main_loop_0x54644
+60E1D400,0x55EA2,mmu_config_0x55EA2,isr_config_55ea2,0.3,mmu_config_0x55EA2
+60E1D400,0x5B058,parking_assist_0x5B058,ctrl_parking_5b058,0.3,no-callee-evidence
+60E1D400,0x55FE8,relocation_0x55FE8,ctrl_relocation_55fe8,0.3,no-callee-evidence
+60E1D400,0x18240,solenoid_hold_pattern,solenoid_hold_pattern,0.9,already descriptive human name preserved
+60E1D400,0x477A4,adaptive_load_477A4,adaptive_load_477A4,0.9,already descriptive human name preserved
+60E1D400,0x2B86E,cond_mem_write_bypass_check_2B86E,cond_mem_write_bypass_check_2B86E,0.9,already descriptive human name preserved
+60E1D400,0x7FD4,crank_mode_transition,crank_mode_transition,0.9,already descriptive human name preserved
+60E1D400,0x5AE14,fog_light_0x5AE14,diag_light_5ae14,0.3,fog_light_0x5AE14
+60E1D400,0x1A024,gyroscope_orientation_processor,ign_orientation_1a024,0.3,gyroscope_orientation_processor
+60E1D400,0x54A9E,impedance_test_0x54A9E,diag_impedance_54a9e,0.3,impedance_test_0x54A9E
+60E1D400,0x5530C,inverter_0x5530C,ctrl_inverter_5530c,0.3,no-callee-evidence
+60E1D400,0x54EC2,peak_detect_0x54EC2,diag_detect_54ec2,0.3,peak_detect_0x54EC2
+60E1D400,0x13070,read_engine_speed_status,read_engine_speed_status,0.9,already descriptive human name preserved
+60E1D400,0xBF70,sci4_set_8n1_115200_simple,can_simple_bf70,0.3,sci4_set_8n1_115200_simple
+60E1D400,0x4BEF0,state_save_4BEF0,sensor_state_4bef0,0.3,state_save_4BEF0
+60E1D400,0x54F9A,thd_measure_0x54F9A,ctrl_measure_54f9a,0.3,no-callee-evidence
+60E1D400,0x11DF8,calc_iacv_opening_angle,calc_iacv_opening_angle,0.9,already descriptive human name preserved
+60E1D400,0x5C62A,cleanup_0x5C62A,ctrl_cleanup_5c62a,0.3,no-callee-evidence
+60E1D400,0x1CDE8,conditional_constant_output_1CDE8,math_conditional_1cde8,0.3,conditional_constant_output_1CDE8
+60E1D400,0x1A782,dac_output_three_channel_writer,ign_channel_1a782,0.3,dac_output_three_channel_writer
+60E1D400,0xACE,fill_range_sequential,sensor_sequential_ace,0.3,fill_range_sequential
+60E1D400,0x59D3C,headlight_ctrl_0x59D3C,util_headlight_59d3c,0.3,headlight_ctrl_0x59D3C
+60E1D400,0x403DE,nan_check_dual_dispatch_403DE,diag_dispatch_403de,0.3,nan_check_dual_dispatch_403DE
+60E1D400,0x56FEA,optimization_0x56FEA,ctrl_optimization_56fea,0.3,no-callee-evidence
+60E1D400,0x3DED4,request_handler_3DED4,uds_request_3ded4,0.3,request_handler_3DED4
+60E1D400,0x5AD04,seatbelt_light_0x5AD04,diag_seatbelt_5ad04,0.3,seatbelt_light_0x5AD04
+60E1D400,0x4BF10,state_restore_4BF10,sensor_restore_4bf10,0.3,state_restore_4BF10
+60E1D400,0x3664E,ImmoGetSeed,ImmoGetSeed,0.9,already descriptive human name preserved
+60E1D400,0x607A8,bit_value_extract_607A8,sensor_extract_607a8,0.3,bit_value_extract_607A8
+60E0FC00,0x2C5D0,calculateCruiseControlSwitchVolt,calculateCruiseControlSwitchVolt,0.9,already descriptive human name preserved
+60E1D400,0x29776,control_decrement_dispatcher_29776,fuel_dispatcher_29776,0.3,control_decrement_dispatcher_29776
+60E1D400,0x2978E,control_loop_dispatch_2978E,fuel_dispatch_2978e,0.3,control_loop_dispatch_2978E
+60E1D400,0x37B70,encoder_register_wrapper_37B70,math_register_37b70,0.3,encoder_register_wrapper_37B70
+60E1D400,0x48038,engine_load_hysteresis_48038,engine_load_hysteresis_48038,0.9,already descriptive human name preserved
+60E1D400,0x571E6,nesterov_0x571E6,ctrl_nesterov_571e6,0.3,no-callee-evidence
+60E1D400,0x5A7BC,odor_control_0x5A7BC,fuel_control_5a7bc,0.3,odor_control_0x5A7BC
+60E1D400,0x55EEA,protection_0x55EEA,ctrl_protection_55eea,0.3,no-callee-evidence
+60E1D400,0x5046,sci_all_channels_clock_async,sensor_channels_5046,0.3,sci_all_channels_clock_async
+60E1D400,0x5687A,sentinel_equality_check_5687A,diag_sentinel_5687a,0.3,sentinel_equality_check_5687A
+60E1D400,0x4BBC,setRegister_REG_BIT_VAL,diag_setregister_4bbc,0.3,setRegister_REG_BIT_VAL
+60E1D400,0x3934,setSR,diag_setsr_3934,0.3,setSR
+60E1D400,0x56D66,sigmoid_0x56D66,ctrl_sigmoid_56d66,0.3,no-callee-evidence
+60E1D400,0x2D4E0,state_flags_clear_2D4E0,isr_state_2d4e0,0.3,state_flags_clear_2D4E0
+60E1D400,0x4E026,test_run_4E026,rtos_test_4e026,0.3,test_run_4E026
+60E1D400,0x222AC,tps_acquisition_dispatcher_222AC,tps_acquisition_dispatcher_222AC,0.9,already descriptive human name preserved
+60E1D400,0x17F7C,transmission_shift_control,transmission_shift_control,0.9,already descriptive human name preserved
+60E1D400,0x55EC0,access_control_0x55EC0,fuel_control_55ec0,0.3,access_control_0x55EC0
+60E1D400,0x606D4,bit_value_extract_606D4,sensor_extract_606d4,0.3,bit_value_extract_606D4
+60E1D400,0x1D318,complex_combustion_calc_1D318,complex_combustion_calc_1D318,0.9,already descriptive human name preserved
+60E1D400,0x7ED8,crank_flags_enable,crank_flags_enable,0.9,already descriptive human name preserved
+60E1D400,0x51DB0,data_validate_0x51DB0,diag_validate_51db0,0.3,data_validate_0x51DB0
+60E1D400,0x54FF8,fir_filter_0x54FF8,fir_filter_0x54FF8,0.9,already descriptive human name preserved
+60E1D400,0x59BA0,fluid_level_0x59BA0,fuel_fluid_59ba0,0.3,fluid_level_0x59BA0
+60E1D400,0x55F02,isolation_0x55F02,ctrl_isolation_55f02,0.3,no-callee-evidence
+60E1D400,0x25E36,limp_mode_detection_25E36,diag_detection_25e36,0.3,limp_mode_detection_25E36
+60E1D400,0x55E66,page_table_0x55E66,page_table_0x55E66,0.9,already descriptive human name preserved
+60E1D400,0x55F64,partition_0x55F64,ctrl_partition_55f64,0.3,no-callee-evidence
+60E1D400,0x3C74C,setup_handler_3C74C,setup_handler_3C74C,0.3,setup_handler_3C74C
+60E1D400,0x3DAE4,status_reporter_3DAE4,isr_reporter_3dae4,0.3,status_reporter_3DAE4
+60E1D400,0x606C0,bit_value_extract_606C0,sensor_extract_606c0,0.3,bit_value_extract_606C0
+60E1D400,0x11166,calc_traction_control_mode,calc_traction_control_mode,0.9,already descriptive human name preserved
+60E1D400,0x3E386,command_handler_3E386,uds_command_3e386,0.3,command_handler_3E386
+60E1D400,0x56F10,cross_entropy_0x56F10,ctrl_entropy_56f10,0.3,no-callee-evidence
+60E1D400,0x3920,getSR,diag_getsr_3920,0.3,getSR
+60E1D400,0x533DC,hex_to_char_0x533DC,mem_char_533dc,0.3,hex_to_char_0x533DC
+60E1D400,0x16A08,load_bias_accumulator_a8d0,math_accumulator_16a08,0.3,load_bias_accumulator_a8d0
+60E1D400,0x54496,min_value_0x54496,sensor_value_54496,0.3,min_value_0x54496
+60E1D400,0x307D4,multi_check_port_control_307D4,fuel_control_307d4,0.3,multi_check_port_control_307D4
+60E1D400,0x297A6,nested_loop_dispatch_297A6,rtos_dispatch_297a6,0.3,nested_loop_dispatch_297A6
+60E1D400,0x55ED6,privilege_check_0x55ED6,diag_privilege_55ed6,0.3,privilege_check_0x55ED6
+60E1D400,0xFC8A,pulse_filter_update,pulse_filter_update,0.9,already descriptive human name preserved
+60E1D400,0xFCD2,pulse_window_compute,fuel_compute_fcd2,0.3,pulse_window_compute
+60E1D400,0x54484,absolute_value_0x54484,sensor_absolute_54484,0.3,absolute_value_0x54484
+60E1D400,0x59C24,charging_status_0x59C24,isr_charging_59c24,0.3,charging_status_0x59C24
+60E1D400,0x3E994,finalize_result_3E994,math_finalize_3e994,0.3,finalize_result_3E994
+60E1D400,0x5AE02,high_beam_0x5AE02,isr_high_5ae02,0.3,high_beam_0x5AE02
+60E1D400,0x54AFC,inductor_check_0x54AFC,diag_inductor_54afc,0.3,inductor_check_0x54AFC
+60E1D400,0x467A,shift_right_8_r0,util_shift_467a,0.3,shift_right_8_r0
+60E1D400,0x5957C,stability_control_0x5957C,stability_control_0x5957C,0.9,already descriptive human name preserved
+60E1D400,0x596B4,steering_angle_0x596B4,idle_steering_596b4,0.3,steering_angle_0x596B4
+60E1D400,0x59098,stoichiometric_0x59098,ctrl_stoichiometric_59098,0.3,no-callee-evidence
+60E1D400,0x5C420,summarize_0x5C420,ctrl_summarize_5c420,0.3,no-callee-evidence
+60E1D400,0x58DD0,vibration_damper_0x58DD0,ctrl_vibration_58dd0,0.3,no-callee-evidence
+60E0FC00,0x341E4,airPerStroke,airPerStroke,0.9,already descriptive human name preserved
+60E1D400,0x2430,complement_shift_u16,math_complement_2430,0.3,complement_shift_u16
+60E1D400,0x2420,complement_shift_u8,math_complement_2420,0.3,complement_shift_u8
+60E1D400,0x5BEBE,confidence_level_0x5BEBE,fuel_confidence_5bebe,0.3,confidence_level_0x5BEBE
+60E1D400,0x5698A,decision_tree_0x5698A,ctrl_decision_5698a,0.3,no-callee-evidence
+60E1D400,0x3F4BC,output_latch_3F4BC,fuel_output_3f4bc,0.3,output_latch_3F4BC
+60E1D400,0x4E0C6,test_report_4E0C6,diag_report_4e0c6,0.3,test_report_4E0C6
+60E1D400,0x18C5C,waveform_state_transition,sensor_transition_18c5c,0.3,waveform_state_transition
+60E1D400,0x606EA,bit_value_extract_606EA,sensor_extract_606ea,0.3,bit_value_extract_606EA
+60E1D400,0x60720,bit_value_extract_60720,sensor_extract_60720,0.3,bit_value_extract_60720
+60E1D400,0x60778,bit_value_extract_60778,sensor_extract_60778,0.3,bit_value_extract_60778
+60E1D400,0x3399E,bitfield_status_multi_read_3399E,diag_bitfield_3399e,0.3,bitfield_status_multi_read_3399E
+60E1D400,0x121CC,check_vtc_lock_state,diag_check_121cc,0.3,check_vtc_lock_state
+60E1D400,0x552FE,converter_0x552FE,rev_converter_552fe,0.3,converter_0x552FE
+60E1D400,0x23EF0,ecu_self_test_routine_23EF0,diag_routine_23ef0,0.3,ecu_self_test_routine_23EF0
+60E1D400,0x25E28,engine_state_transition_25E28,engine_state_transition_25E28,0.9,already descriptive human name preserved
+60E0FC00,0x55412,getTireSizeMode22,getTireSizeMode22,0.9,already descriptive human name preserved
+60E1D400,0x2044,invertAndReturn_8bit_ADDR,diag_invertandreturn_2044,0.3,invertAndReturn_8bit_ADDR
+60E1D400,0x5C9D8,check_system_status_reg_5C9D8,diag_system_5c9d8,0.3,check_system_status_reg_5C9D8
+60E1D400,0x17B24,continuation_partial_drive,ctrl_continuation_17b24,0.3,no-callee-evidence
+60E1D400,0x7BA8,crank_state_bytes_clear,crank_state_bytes_clear,0.9,already descriptive human name preserved
+60E1D400,0x277DE,read_byte_to_word_277DE,mem_read_277de,0.3,read_byte_to_word_277DE
+60E1D400,0x49B3C,bit_set_49B3C,can_bit_49b3c,0.3,bit_set_49B3C
+60E1D400,0x33A8E,bitfield_status_multi_decoder_33A8E,math_bitfield_33a8e,0.3,bitfield_status_multi_decoder_33A8E
+60E1D400,0x53DCC,bitfield_toggle_0x53DCC,util_bitfield_53dcc,0.3,bitfield_toggle_0x53DCC
+60E1D400,0x563C4,correlation_0x563C4,ctrl_correlation_563c4,0.3,no-callee-evidence
+60E1D400,0x1B594,crank_flag_propagator,crank_flag_propagator,0.9,already descriptive human name preserved
+60E1D400,0x4FD4C,cruise_control_check_0x4FD4C,cruise_control_check_0x4FD4C,0.9,already descriptive human name preserved
+60E1D400,0x3E580,flag_checker_3E580,mem_checker_3e580,0.3,flag_checker_3E580
+60E1D400,0x3F3D8,indirect_jump_wrapper_3F3D8,math_indirect_3f3d8,0.3,indirect_jump_wrapper_3F3D8
+60E1D400,0x3F4D4,led_status_update_3F4D4,isr_status_3f4d4,0.3,led_status_update_3F4D4
+60E1D400,0x54A60,open_circuit_detect_0x54A60,diag_circuit_54a60,0.3,open_circuit_detect_0x54A60
+60E1D400,0x4B830,tune_validate_4B830,mem_validate_4b830,0.3,tune_validate_4B830
+60E1D400,0x571FE,adagrad_0x571FE,ctrl_adagrad_571fe,0.3,no-callee-evidence
+60E1D400,0x543C8,add_calc_0x543C8,add_calc_0x543C8,0.9,already descriptive human name preserved
+60E1D400,0x542C0,and_operator_0x542C0,math_operator_542c0,0.3,and_operator_0x542C0
+60E1D400,0x49B46,bit_clear_49B46,isr_clear_49b46,0.3,bit_clear_49B46
+60E1D400,0x53D04,bitfield_clear_0x53D04,math_bitfield_53d04,0.3,bitfield_clear_0x53D04
+60E1D400,0x53CFC,bitfield_set_0x53CFC,can_bitfield_53cfc,0.3,bitfield_set_0x53CFC
+60E1D400,0x5494C,brownout_detect_0x5494C,diag_brownout_5494c,0.3,brownout_detect_0x5494C
+60E1D400,0x54248,cipher_decrypt_0x54248,ctrl_decrypt_54248,0.3,no-callee-evidence
+60E1D400,0x54184,compress_data_0x54184,diag_compress_54184,0.3,compress_data_0x54184
+60E1D400,0x551B4,controller_0x551B4,fuel_controller_551b4,0.3,controller_0x551B4
+60E1D400,0x7C00,crank_mode_write,crank_mode_write,0.9,already descriptive human name preserved
+60E1D400,0x2C99C,ctrl_flag_set_2C99C,mem_ctrl_2c99c,0.3,ctrl_flag_set_2C99C
+60E1D400,0x5417C,decode_data_0x5417C,diag_decode_5417c,0.3,decode_data_0x5417C
+60E1D400,0x54114,endian_convert_0x54114,math_convert_54114,0.3,endian_convert_0x54114
+60E1D400,0x5410C,endian_swap_0x5410C,math_endian_5410c,0.3,endian_swap_0x5410C
+60E1D400,0x3F050,fan_speed_control_3F050,fan_speed_control_3F050,0.9,already descriptive human name preserved
+60E1D400,0xE2D0,flag_set_0xA405,mem_flag_e2d0,0.3,flag_set_0xA405
+60E1D400,0xE2D8,flag_set_0xA406,mem_flag_e2d8,0.3,flag_set_0xA406
+60E1D400,0xE2E0,flag_set_0xA407,mem_flag_e2e0,0.3,flag_set_0xA407
+60E1D400,0xE2E8,flag_set_0xA408,mem_flag_e2e8,0.3,flag_set_0xA408
+60E1D400,0xFB60,flag_set_0xA571,mem_flag_fb60,0.3,flag_set_0xA571
+60E1D400,0x30A7C,flag_set_one_30A7C,mem_flag_30a7c,0.3,flag_set_one_30A7C
+60E1D400,0x54250,hash_compute_0x54250,fuel_compute_54250,0.3,hash_compute_0x54250
+60E1D400,0x3B3B4,heartbeat_check_3b3b4,diag_heartbeat_3b3b4,0.3,heartbeat_check_3b3b4
+60E1D400,0x26374,heater_control_set_26374,fuel_control_26374,0.3,heater_control_set_26374
+60E1D400,0x5286,intc_clear_flag_ec26,mem_clear_5286,0.3,intc_clear_flag_ec26
+60E1D400,0x479E6,load_hysteresis_479E6,load_hysteresis_479E6,0.9,already descriptive human name preserved
+60E1D400,0x479DE,load_smooth_filter_479DE,load_smooth_filter_479DE,0.9,already descriptive human name preserved
+60E1D400,0x56720,matrix_transpose_0x56720,fuel_transpose_56720,0.3,matrix_transpose_0x56720
+60E1D400,0x54310,modulo_calc_0x54310,modulo_calc_0x54310,0.9,already descriptive human name preserved
+60E1D400,0x543C0,multiply_calc_0x543C0,multiply_calc_0x543C0,0.9,already descriptive human name preserved
+60E1D400,0x551AC,observer_0x551AC,ctrl_observer_551ac,0.3,no-callee-evidence
+60E1D400,0x53978,panic_handler_0x53978,panic_handler_0x53978,0.3,panic_handler_0x53978
+60E1D400,0x55080,pid_controller_0x55080,fuel_controller_55080,0.3,pid_controller_0x55080
+60E1D400,0x344DA,port_register_clear_344DA,math_register_344da,0.3,port_register_clear_344DA
+60E1D400,0x548D4,power_down_0x548D4,init_power_548d4,0.3,power_down_0x548D4
+60E1D400,0xFC9E,pulse_filter_done_flag,pulse_filter_done_flag,0.9,already descriptive human name preserved
+60E1D400,0x3F4B4,pwm_output_3F4B4,pwm_output_3F4B4,0.9,already descriptive human name preserved
+60E1D400,0x23710,set_mode_flag_23710,mem_mode_23710,0.3,set_mode_flag_23710
+60E1D400,0xD9AE,set_warm_start_flag_a3fc,mem_start_d9ae,0.3,set_warm_start_flag_a3fc
+60E1D400,0x548DC,sleep_mode_0x548DC,diag_sleep_548dc,0.3,sleep_mode_0x548DC
+60E1D400,0x27EAE,tail_call_wrapper_27EAE,math_wrapper_27eae,0.3,tail_call_wrapper_27EAE
+60E1D400,0x59DCC,window_control_0x59DCC,fuel_control_59dcc,0.3,window_control_0x59DCC
+60E1D400,0x59DC4,wiper_control_0x59DC4,fuel_control_59dc4,0.3,wiper_control_0x59DC4
+60E0FC00,0x11C4,writeImmoBitZero?,writeImmoBitZero?,0.9,already descriptive human name preserved
+60E1D400,0x109FA,write_iacv_neutral_status,write_iacv_neutral_status,0.9,already descriptive human name preserved
+60E1D400,0x542B8,xor_operator_0x542B8,isr_operator_542b8,0.3,xor_operator_0x542B8
+60E1D400,0x606A8,bit_value_extract_606A8,sensor_extract_606a8,0.3,bit_value_extract_606A8
+60E1D400,0x606AE,bit_value_extract_606AE,sensor_extract_606ae,0.3,bit_value_extract_606AE
+60E1D400,0x606B4,bit_value_extract_606B4,sensor_extract_606b4,0.3,bit_value_extract_606B4
+60E1D400,0x606BA,bit_value_extract_606BA,sensor_extract_606ba,0.3,bit_value_extract_606BA
+60E1D400,0x6072E,bit_value_extract_6072E,sensor_extract_6072e,0.3,bit_value_extract_6072E
+60E1D400,0x60734,bit_value_extract_60734,sensor_extract_60734,0.3,bit_value_extract_60734
+60E1D400,0x6073A,bit_value_extract_6073A,sensor_extract_6073a,0.3,bit_value_extract_6073A
+60E1D400,0x568E6,clustering_0x568E6,ctrl_clustering_568e6,0.3,no-callee-evidence
+60E1D400,0x58D16,cooling_jacket_0x58D16,cooling_jacket_0x58D16,0.9,already descriptive human name preserved
+60E1D400,0x74FE,crank_set_state_byte,crank_set_state_byte,0.9,already descriptive human name preserved
+60E1D400,0x55CDC,crystal_0x55CDC,ctrl_crystal_55cdc,0.3,no-callee-evidence
+60E1D400,0x594AE,dispatch_stub_594AE,rtos_dispatch_594ae,0.3,dispatch_stub_594AE
+60E1D400,0x594B4,dispatch_stub_594B4,rtos_dispatch_594b4,0.3,dispatch_stub_594B4
+60E1D400,0x598D2,distance_calc_0x598D2,distance_calc_0x598D2,0.9,already descriptive human name preserved
+60E1D400,0x58C98,eccentric_shaft_0x58C98,eccentric_shaft_0x58C98,0.9,already descriptive human name preserved
+60E1D400,0x58EDE,efficiency_calc_0x58EDE,efficiency_calc_0x58EDE,0.9,already descriptive human name preserved
+60E1D400,0x5936C,engine_braking_0x5936C,engine_braking_0x5936C,0.9,already descriptive human name preserved
+60E1D400,0x58E3A,harmonics_0x58E3A,ctrl_harmonics_58e3a,0.3,no-callee-evidence
+60E1D400,0x59130,lean_burn_0x59130,omp_lean_59130,0.3,lean_burn_0x59130
+60E1D400,0x58D1C,lubrication_system_0x58D1C,fuel_lubrication_58d1c,0.3,lubrication_system_0x58D1C
+60E1D400,0x55FBC,module_loader_0x55FBC,module_loader_0x55FBC,0.9,already descriptive human name preserved
+60E1D400,0x297BA,nested_loop_state_machine_297BA,sensor_machine_297ba,0.3,nested_loop_state_machine_297BA
+60E1D400,0x58F4C,nox_control_0x58F4C,fuel_control_58f4c,0.3,nox_control_0x58F4C
+60E1D400,0x58C92,output_shaft_0x58C92,output_shaft_0x58C92,0.9,already descriptive human name preserved
+60E1D400,0x59366,overrun_0x59366,ctrl_overrun_59366,0.3,no-callee-evidence
+60E1D400,0x58F52,particulate_filter_0x58F52,particulate_filter_0x58F52,0.9,already descriptive human name preserved
+60E1D400,0x2FFA8,port_bitfield_control_redirect_2FFA8,fuel_bitfield_2ffa8,0.3,port_bitfield_control_redirect_2FFA8
+60E1D400,0x300EC,port_output_control_wrapper_300EC,fuel_control_300ec,0.3,port_output_control_wrapper_300EC
+60E1D400,0x101A2,read_iacv_duty,read_iacv_duty,0.9,already descriptive human name preserved
+60E1D400,0x39254,register_address_getter_39254,math_register_39254,0.3,register_address_getter_39254
+60E1D400,0x59136,rich_burn_0x59136,fuel_rich_59136,0.3,rich_burn_0x59136
+60E1D400,0x59E1E,seat_adj_0x59E1E,ctrl_seat_59e1e,0.3,no-callee-evidence
+60E1D400,0x1094,set_sp_and_jump,can_jump_1094,0.3,set_sp_and_jump
+60E1D400,0xA0E2,sfr_read_a16c,diag_read_a0e2,0.3,sfr_read_a16c
+60E1D400,0xA0DC,sfr_write_a16c,mem_write_a0dc,0.3,sfr_write_a16c
+60E1D400,0x3FD54,state_machine_update_3FD54,isr_machine_3fd54,0.3,state_machine_update_3FD54
+60E1D400,0xA11C,status_check_and_flag_write,diag_status_a11c,0.3,status_check_and_flag_write
+60E1D400,0x5922E,steady_state_0x5922E,sensor_steady_5922e,0.3,steady_state_0x5922E
+60E1D400,0x56866,svd_decomp_0x56866,ctrl_decomp_56866,0.3,no-callee-evidence
+60E1D400,0x56006,symbol_resolve_0x56006,ctrl_resolve_56006,0.3,no-callee-evidence
+60E1D400,0x598D8,time_elapsed_0x598D8,fuel_elapsed_598d8,0.3,time_elapsed_0x598D8
+60E1D400,0x59228,warm_up_0x59228,idle_warm_59228,0.3,warm_up_0x59228
+60E1D400,0x5970C,wheel_speed_0x5970C,wheel_speed_0x5970C,0.9,already descriptive human name preserved
+60E1D400,0x5C41C,aggregate_0x5C41C,ctrl_aggregate_5c41c,0.3,no-callee-evidence
+60E1D400,0x49B38,bit_extract_49B38,can_extract_49b38,0.3,bit_extract_49B38
+60E1D400,0x607CE,bit_value_extract_607CE,sensor_extract_607ce,0.3,bit_value_extract_607CE
+60E1D400,0x4C788,event_clear_4C788,isr_event_4c788,0.3,event_clear_4C788
+60E1D400,0x14B04,incomplete_stack_save_r14_r13,mem_incomplete_14b04,0.3,incomplete_stack_save_r14_r13
+60E1D400,0x2064,loadStatusRegister_ADDR,loadStatusRegister_ADDR,0.9,already descriptive human name preserved
+60E1D400,0x3F88,nullsub_1,ctrl_nullsub_3f88,0.3,no-callee-evidence
+60E1D400,0x5042,nullsub_10,ctrl_nullsub_5042,0.3,no-callee-evidence
+60E1D400,0x505E,nullsub_11,ctrl_nullsub_505e,0.3,no-callee-evidence
+60E1D400,0x5062,nullsub_12,ctrl_nullsub_5062,0.3,no-callee-evidence
+60E1D400,0x5066,nullsub_13,ctrl_nullsub_5066,0.3,no-callee-evidence
+60E1D400,0x50AE,nullsub_14,ctrl_nullsub_50ae,0.3,no-callee-evidence
+60E1D400,0x5F30,nullsub_15,ctrl_nullsub_5f30,0.3,no-callee-evidence
+60E1D400,0x6866,nullsub_16,ctrl_nullsub_6866,0.3,no-callee-evidence
+60E1D400,0x686A,nullsub_17,ctrl_nullsub_686a,0.3,no-callee-evidence
+60E1D400,0x74D0,nullsub_18,ctrl_nullsub_74d0,0.3,no-callee-evidence
+60E1D400,0xA118,nullsub_19,ctrl_nullsub_a118,0.3,no-callee-evidence
+60E1D400,0x3F8C,nullsub_2,ctrl_nullsub_3f8c,0.3,no-callee-evidence
+60E1D400,0xD9AA,nullsub_20,ctrl_nullsub_d9aa,0.3,no-callee-evidence
+60E1D400,0x22984,nullsub_21,ctrl_nullsub_22984,0.3,no-callee-evidence
+60E1D400,0x23374,nullsub_22,ctrl_nullsub_23374,0.3,no-callee-evidence
+60E1D400,0x2D9EC,nullsub_23,ctrl_nullsub_2d9ec,0.3,no-callee-evidence
+60E1D400,0x32A98,nullsub_24,ctrl_nullsub_32a98,0.3,no-callee-evidence
+60E1D400,0x60F54,nullsub_25,ctrl_nullsub_60f54,0.3,no-callee-evidence
+60E1D400,0x60F70,nullsub_26,ctrl_nullsub_60f70,0.3,no-callee-evidence
+60E1D400,0x60FCA,nullsub_27,ctrl_nullsub_60fca,0.3,no-callee-evidence
+60E1D400,0x60FCE,nullsub_28,ctrl_nullsub_60fce,0.3,no-callee-evidence
+60E1D400,0x64F68,nullsub_29,ctrl_nullsub_64f68,0.3,no-callee-evidence
+60E1D400,0x3FA8,nullsub_3,ctrl_nullsub_3fa8,0.3,no-callee-evidence
+60E1D400,0x4E12,nullsub_4,ctrl_nullsub_4e12,0.3,no-callee-evidence
+60E1D400,0x4E16,nullsub_5,ctrl_nullsub_4e16,0.3,no-callee-evidence
+60E1D400,0x4E1A,nullsub_6,ctrl_nullsub_4e1a,0.3,no-callee-evidence
+60E1D400,0x4FDE,nullsub_7,ctrl_nullsub_4fde,0.3,no-callee-evidence
+60E1D400,0x5028,nullsub_8,ctrl_nullsub_5028,0.3,no-callee-evidence
+60E1D400,0x503E,nullsub_9,ctrl_nullsub_503e,0.3,no-callee-evidence
+60E1D400,0x11206,return_const_1,sensor_return_11206,0.3,return_const_1
+60E1D400,0x55760,synchronizer_0x55760,ctrl_synchronizer_55760,0.3,no-callee-evidence
+60E1D400,0x56E18,relu_0x56E18,ctrl_relu_56e18,0.3,no-callee-evidence
+60E0FC00,0x6C8,FUN_000006c8,boot_serial_dispatch_loop,0.9,"BOOT_SEQUENCE.md sec5: default reset vector when no app entry; clears WDT [0xDFB8]=0, loops SCI receive, masks byte with 0xF8 and dispatches 0xA8->0x806 / 0x98->0x7C0 / 0x88->0x4C / 0x90->0x64 / 0xA0->0x7C / 0xB0->0x8A / 0xC0->0xC0; consistent with eqinox 'somethingWDTRelated??' (WDT write)"
+60E0FC00,0x3490,FUN_00003490,rtos_swtimer_expire_check,0.5,"RTOS region: stc/ldc SR save-restore, struct 0xFFFF7638 tick counter @+8 += 0x100, compares words @+4/@+6, gates on counter bit 0x1000 and global 0x4B10, calls consistencyCheck(0x3A28), task_flag_run(0x35EE, r4=2) and 0x3BF4 callback; software-timer expiry processing"
+60E0FC00,0x375C,FUN_0000375c,rtos_task_start,0.6,"Builds TCB from task table 0x4990 (16B stride, e.g. entry0->stack 0xFFFF7408), stores @+0x14/@+0x18, calls task_flag_run_B(0x35CC) when 0x4B0C set, tail-jmps 0x3848 (rte context-restore) to launch task; called by 0x3280 and 0x3C68 (SR-restore restart)"
+60E0FC00,0x60E60,FUN_00060e60,dtc_pending_counter_update,0.7,"Ages OBD DTC service entry: record base 0xFFFF8928 (DTC being serviced, dtcRelated.c) + 0x34*idx (idx=word @0xFFFF8D6C), folds pending marker @+7 into occurrence counter @+0x32 then clears +7; state byte 0xFFFF87C8 0/1/2; helpers 0x61F70/0x61FF6/0x62152 loop 21 records; matches dtc_management.md 'OBD service-entry array (pending @+7, +8, counter @+0x32)'"
+60E0FC00,0x6689A,FUN_0006689a,obd_mode22_pid_handler,0.7,"OBD Mode-22 PID access per unknownMode22Func.md: lookup PID byte in table 0xFFFFDC03 (stride 2, via 0x673D8), manage status 0xFFFFDC05 bits 0x10(response)/0x40(validity), clamp 0x0FFF, write result record @0xFFFFDBEC (0x66C88 zeroes), helpers 0x67436/0x67488/0x67548/0x67066, seq state 0xFFFFDC06/07"
+60E0FC00,0x592E0,FUN_000592e0,ctrl_handler_592e0,0.3,no-callee-evidence
+60E0FC00,0x593D2,FUN_000593d2,ctrl_handler_593d2,0.3,no-callee-evidence
+60E0FC00,0x58940,FUN_00058940,sensor_8bit_corrected_float_store,0.5,"Reads raw byte 0xFFFFCCEC, fixedPointToFloat_8bit_MULT_OFF_SIG(0x2500), offset-corrects vs float @0xFFFFD0A0 (+0x3DCC2830 const), stores float @0xFFFFD094; mode byte 0xFFFFD0A4 gating; fallback via readValue_float_DEFAULTVAL_ADDRESS(0x3E1AA)/updateMemoryAtAddress_float(0x3E258) into 0xFFFF9150; called from bunchOFuncs(0x1194E)"
+60E0FC00,0x5CE70,FUN_0005ce70,aux_vehicle_cfg_e2_restore,0.6,"getFromE2_E2ADDR_RAMADDR_LEN(0x38610) restores 3 E2 blocks (table @0x5DFE8: 0x0164 len3, 0x0268 len1, 0x036A len2) combining bytes into 32-bit value+0x20 -> RAM 0xFFFFD1A8 and byte 0xFFFFD1AE..; sibling of getTireSize(0x5C664) which also uses getFromE2; called from 0x11054/0x11B9A"
+60E0FC00,0x6DE2,FUN_00006de2,boot_phase_output_config,0.4,"Called (bsr) by 0x6A90 boot init state machine (counter @0xFFFF9F24, phase bytes @0xFFFF9F29); gated on byte @0xFFFF9F25==1; writes config bytes 0x73/0x63/0x53/0x50/0x33/0x23/0x13/0x10 to 0xFFFFF838 and bit-masks struct at 0xFFFF9F2C (and 0x6EC4 sibling for 0xFFFF9F2F); phase-dependent output/register init"
+60E0FC00,0x192D4,FUN_000192d4,dtc_fault_type_flags_set,0.7,"Matches eqinox 'setsEngineFaultTypeThing': decodes arg r4 bitmask (bits 1/2/4/8 below 0x10; 0x10/0x20 for >=0x10) into 4 fault-flag bytes @0xFFFFA9C1..A9C4 (r11/r10/r13/r12), type r5 in {0,6,0xC,0x12}; called from 0x18FD6"
+60E0FC00,0x5AE38,FUN_0005ae38,obd_control_pid_fan2_enable,0.8,"OBD secured control-PID apply: table @0x5E0A4 holds PID 0x17C4 (=Fan Enable 2, COOLING_FANS.md), compares PID word @0xFFFFD128, reads cmd byte 0xFFFFD180&mask, writes 0xFFFFD12C->output ptr @(0xC,table), state byte 0xFFFFD12D, out cell 0xFFFFD157; called from setFanOutputGPIO(0x2F694)"
+60E0FC00,0x5AF14,FUN_0005af14,obd_control_pid_fan1_enable,0.8,"OBD secured control-PID apply, twin of 0x5AE38: table @0x5E0B4 PID 0x17C3 (=Fan Enable 1, COOLING_FANS.md), same 0xFFFFD128/0xFFFFD12C/0xFFFFD12D pattern, out cell 0xFFFFD159; called from setFanOutputGPIO(0x2F694)"
+60E0FC00,0x5B690,FUN_0005b690,obd_control_pid_e901_handler,0.6,"Same OBD control-PID handler family: table @0x5E134 PID 0xE901, compares word @0xFFFFD128, writes 0xFFFFD12C to output ptr, state 0xFFFFD12D, out cell 0xFFFFD169; called from 0x31ECC"
+60E0FC00,0x5B924,FUN_0005b924,obd_control_pid_17e1_handler,0.6,"Same OBD control-PID handler family: table @0x5E164 PID 0x17E1, compares word @0xFFFFD128, writes 0xFFFFD12C to output ptr @0xFFFFE0A0, state 0xFFFFD12D, out cell 0xFFFFD16F; called from 0x4A684"
+60E0FC00,0x33B6,FUN_000033b6,ctrl_handler_33b6,0.3,no-callee-evidence
+60E0FC00,0x4AA60,FUN_0004aa60,sensor_tps_ratio_calc,0.6,"Reads TPS raw ADC words 0xFFFFA424/0xFFFFA426 (SENSOR_PIPELINE: main TPS raw ADC), fixedPointToFloat_16bit_MULT_OFF_SIG(0x24C0) x2, saturateLow(0x23E4)/minValue(0x23F4)/fdiv consts, ftrc->long @0xFFFFCD04; gated by bytes 0xFFFFCD11/0xFFFFCD15/0xFFFFA428; called from getVehicleCondtions(0x1A940)"
+60E0FC00,0x594C0,FUN_000594c0,ctrl_handler_594c0,0.3,no-callee-evidence
+60E0FC00,0x1A728,FUN_0001a728,aux_driver_inputs_calc,0.9,"Pure dispatch block (jsr sequence) of 35 driver-input functions under throttleTask(0x11584): getSR(0x3920)+0x4455E, calculateKeyOnTime(0x1A2E8), calculateKeyOffTime(0x1A310), calculateEngineRunning(0xE278)/Timer(0xE220)/Timer2(0xE1DC), calculateThrottlePedalPercent(0x19FC0), getDriverOffThrottleTimer(0x1AFCC), getACSwitchStatus(0x2FD20), detectDriverIntentKnockControl(0x33F20), filters 0x19B82/0x19BC6; matches eqinox 'calculateDriverInputs'"
+60E0FC00,0x650B8,FUN_000650b8,obd_mode137_response_payload_build,0.7,"OBD modes 1/3/7 payload builder: called with subcode 1/3/7 by OBD handlers 0x64270/0x648e8/0x64adc (just before UDSMode09Handler; emit resp bytes 0x41/0x43/0x47, use dtcRelated 0x5FEB6 / 0x60618); copies 5-word header from RAM 0x7C8DE into out ptr r5, appends values via ID lookup helpers 0x664AC/0x6650A scanning 10B table 0xFFFF8FC0 (stride 10, key word @+0), gated on word 0xFFFF8FD4"
+60E0FC00,0x6A90,FUN_00006a90,boot_output_phase_state_machine,0.7,"Boot-time phase state machine: increments counter 0xFFFF9F24, clears 0xFFFF9F25, dispatches on counter&0xF, sets phase bytes at 0xFFFF9F29+2/+5/+8, calls 0x6D7C (writes pin reg 0xFFFFF818 with per-phase values 0x10/0x13/0x23/0x33, mask 0xDF) and boot_phase_output_config 0x6DE2 (writes 0xFFFFF838), wraps in getSR/setSR 0x3920/0x3934 IRQ guard, tails into sibling 0x6EC4; consistent with P4FUN_deep1 analysis of 0x6DE2"
+60E0FC00,0x5AC8C,FUN_0005ac8c,obd_control_pid_e91a_handler,0.8,"Secured OBD control-PID apply, twin of deep1 rows 0x5AE38/0x5AF14/0x5B690/0x5B924: table @0x5E084 (PID 0xE91A, mask 0xC0 @+8, out ptr 0xFFFFD134 @+12), compares PID word @0xFFFFD128, reads cmd byte 0xFFFFD180&mask, writes 0xFFFFD12C->out ptr, state byte 0xFFFFD12D (0/1/2), out cell 0xFFFFD149; called from 0x22D20; special-case value 7 -> 0xFFFFD153 from 0xFFFFD12A>>8"
+60E0FC00,0x57212,FUN_00057212,dtc_fault_value_record_update,0.6,"Fault-condition record update, called from faultRelated?? 0x39938: reads 10k-reset inhibit flag byte 0xCFD9; if set, calls 0x572FC which zeroes fault values 0xFFFF913C/0xFFFF9140 and clears 3-word records at 0xFFFF90EC/0xFFFF90FC via 0x577E8; if fault-state byte 0xFFFFD052 transitions 0->1 runs 0.1/0.9 smoothing filter 0x5731A on the two 16-bit values; when fault byte 0xFFFF914C==1 snapshots values into records (value,0,0xFFFF sentinel) at 0xFFFF90EC/0xFFFF90FC via 0x5781C; uses readValue_8bit/16bit_ADDRESS_VAL 0x3E0DC/0x3E11C"
+60E0FC00,0x4607A,FUN_0004607a,dtc_fault94_counter_update,0.6,"Counter-based fault #94 detection, called from fault cluster 0x39342 (same family as deep1 0x44648 dtc_fault_counter_update / 0x452A8 dtc_fault_status_update): counter word @0xCB3E incremented via add16bitSaturate 0x2460, threshold word @0x7AFD6 (calibration area, neighbors 0x7AFD8/0x7AFDA are cal modes); when byte @0xFFFFA229==1 sets status byte 0x8778 and clears counter; writes byte @0xCB3D when threshold crossed; ends with updateFaultStatusTHUNK(0x5E644) r4=94 r5=1/2; also 0xB5FA init when control byte @0xCB3C==0"
+60E1D400,0x22A50,FUN_0x22A50,ctrl_handler_22a50,0.3,no-callee-evidence
+60E0FC00,0x38AB6,FUN_00038ab6,sensor_temp_lookup_ratio_calc,0.4,"FPU signal math called from dispatch 0x3A10A (also calls IATTimerOperation 0x5131E, getTireSizeChecksumthing 0x524C0, getFaultStatus 0x652F0 / updateFaultStatus cluster): 0.1/0.9 first-order smoothing (fmac) of two RAM floats 0xC4E8/0xC4FC (inputs 0xC4EC/0xC500), scaling by cal floats 0x792F0/0x792F4=6027.0, 2DLookup_FP_16bit desc 0x6971C (temp axis 0x793E4 = -20..70C) of @0xC514 scaled 1024, ratio @0xC4FC/(71.0-@0xC514) via isNotZero_wDivideByZero_Protect 0x2440 -> f32 0xC510 and u16 0xC518/0xC51A; temp-dependent correction/ratio calc, exact sensor unknown"
+60E0FC00,0x59CD8,FUN_00059cd8,uds_sid21_subfunc_access_check,0.6,"Called by UDSService21Function 0x59C04: validates Service-0x21 subfunction byte at 0xFFFFD0FC; returns 0 (OK) iff subfunc present in registry table 0x5DFE8 (12B stride, subfunc at +0, word at +4 mask; entries 0x00..0xE0, count byte at 0x5E030=6) AND (word@+4 AND mask word at 0xD1C8)!=0; returns 0x31 (UDS NRC RequestOutOfRange) when subfunc>=0xF0, not found, or mask-disabled; caller sets 0xFFFFD104/0xFFFFD105 on success else udsErrorResponse 0x52A5A/udsResponseRelated 0x52A12"
+60E0FC00,0x5BDCA,FUN_0005bdca,obd_control_pid_17df_handler,0.8,"Secured OBD control-PID apply, same family as deep1 0x5AE38/0x5AF14/0x5B690/0x5B924 and this batch 0x5AC8C: table @0x5E1C4 (PID 0x17DF, mask 0x60 @+8, out ptr 0xFFFFD148 @+12), compares PID word @0xFFFFD128, reads cmd byte 0xFFFFD180&mask, writes 0xFFFFD12C->out ptr, state byte 0xFFFFD12D (0/1/2), out cell 0xFFFFD149 with +50 (0xFFFFD17B) side-cell read when state 5/7; called from 0x18F9C"
+60E0FC00,0xB114,FUN_0000b114,boot_hw_timer_channel_setup,0.5,"Boot-gated hardware timer setup: called once after boot phase config (0x6B60 requires byte 0xFFFF9F25==1, 0xFFFF9F27==0); reads free-running timer base word at 0xFFFFF440 (fuel-injector output-compare timer per FUEL_INJECTION_SUBSYSTEM.md), writes timer/peripheral regs 0xFFFFF450/0xFFFFF452/0xFFFFF622/0xFFFFF64C/0xFFFFF64E/0xFFFFF65E = base + cal offsets {16,45,5,14} from 0x6D42E..0x6D434, bank selected by r4; writes via SR-guarded helper 0xA8A4 (used by injectorPulseSet/ignitionTimingHardwareTimerSomething/setupCoilOutputs); caller 0xB0A6 also samples ADC result regs 0xFFFFF816/0xFFFFF836"
+60E0FC00,0x450B4,FUN_000450b4,dtc_signal_match_counter,0.5,"Called from fault cluster 0x3939C (sibling of dtc_fault_counter_update 0x44648 / dtc_fault_status_update 0x452A8): counts consecutive samples where bytes 0xAD7C and 0xB538 match, using two saturating E2-shadow counters word 0xFFFFCADE and 0xFFFFCAE0 via add16bitSaturate 0x2460, previous samples stored to bytes 0xFFFFCAE2/0xFFFFCAE3, state byte 0xCADC (0/1) gates counting, counters cleared on mismatch; plausibility/equality fault-timer pattern"
+60E0FC00,0x2A5FE,FUN_0002a5fe,dsc_signal_fp16_store,0.5,"DSC-cluster signal->FP16 converter, sibling of 0x2A6C2 (->0xBB72) and 0x2A730 (->0xBB74) called from dispatch 0x2A454; stores float 0xBCD8 as saturated FP16 to word 0xBB70 via saturate_SIGNAL_LOWER_UPPER 0x2404 (range -512..65022) + floatToFP_16bit 0x2490; gating: disable byte 0xBB5C==1 stores 0xFFFF sentinel, TPS/pedal gate byte 0xA428 (also used by dsc_vehicle_state_calc 0x2BBEA per P1FUN_deep1), enable bytes 0xB126/0xB127 with 0.5x factor"
+60E0FC00,0x12A2,FUN_000012a2,ctrl_handler_12a2,0.3,no-callee-evidence
+60E0FC00,0x45E94,FUN_00045e94,dtc_fault_counter_threshold_set,0.5,"Counter-threshold fault latch called from valueInits 0x38E70 (fault cluster): saturating counter word 0xFFFF8774 (add16bitSaturate 0x2460) incremented while condition byte 0x8772==1, reset when byte 0x8780==1; uses channel-status lookup 0xD2F6 (table 0x7FB80 stride 12) + state check 0xD3B8 (bytes 0xFFFFA3F9/0xFFFFA3FA); when count >= cal threshold 0x7AFD0 sets fault byte 0x8770=1 clears 0x8772, else clears 0x8772 and sets flag 0xCB38=1; cal thresholds 0x7AFD0/0x7AFD2 same range as fault94 0x7AFD6/0x452A8 0x7AF28"
+60E0FC00,0x27DA8,FUN_00027da8,aux_condition_duration_counters,0.4,"Maintains three saturating 8-bit duration counters at 0xFFFFBA55/0xFFFFBA56/0xFFFFBA57 (addSaturate8Bit 0x2478, cleared when condition active): BA57 counts consecutive zero results of isNotZero_wDivideByZero_Protect on float 0xB34C vs 1e-5, BA55 counts time with injectors-off flag 0xA42C==0 (per setEngineRunningInjectorsOffFlag.md), BA56 counts time byte 0xB126==0 (DSC enable byte per 0x2A5FE); stores last check result to 0xFFFFBA58; invoked via SR-guarded wrapper 0x292F0; plausibility/duration timing cluster"
+60E0FC00,0x51254,FUN_00051254,iat_condition_fault_counter,0.4,"Condition-elapsed counter called from faultRelated?? 0x39938, sibling of IATTimerOperation 0x5131E (both keyed on float 0xBBE8 and the 0x7C04x threshold cluster): while float 0xBBE8 < 1.884 (isNotZero_wDivideByZero_Protect 0x2440 vs 1.884) AND byte 0xAAC6==1 AND TPS byte 0xA428==1 AND counter 0x8708 < limit 0x7C04A AND flag byte 0x7C048==0, sets flag byte 0xCF60=1 and accumulates counter 0x8708 toward limit via add16bitSaturate 0x2460 + updateMemoryAtAddress_16bit 0x3E208; readValue_16bit_ADDRESS_VAL 0x3E11C on 0x8708"
+60E0FC00,0x1BB3E,FUN_0001bb3e,aux_input_signal_mirror_filter,0.5,"Driver-input signal mirror + smoothing, called from aux_driver_inputs_calc dispatch 0x1A728: mirrors word 0xFFFF9F08 into 0xADC0 (ADC raw also used by dtc_fault_counter_update 0x44648), word 0xFFFFA222 into 0xFFFFADE8, float 0xFFFFA218 into 0xAD94; first-order-filters float at 0xADB8 via firstOrderFilter 0x23B0 with cal 0.25 at 0x6FA2C and 1e-5 epsilon, initializing filter state on first run via flag byte 0xFFFFAE36"
+60E0FC00,0x1D78,FUN_00001d78,ctrl_handler_1d78,0.3,no-callee-evidence
+60E0FC00,0xE0F8,FUN_0000e0f8,diag_add16bitsaturate_e0f8,0.3,no-callee-evidence
+60E0FC00,0x6010,FUN_00006010,rtos_task_table_dispatch_load,0.7,"SR-protected RTOS task dispatch loader: indexes descriptor table 0xD74C+idx*8 (src ptr + period byte), maintains countdown/counter in TCB base 0xFFFF9304 (stride 3, RTOS_SUBSYSTEM sec7), on expiry copies 6 words from src+ctr*20 into caller buffer (callers use task flag table 0xFFFFA118, then invoke copied funcptr and tail taskEndRoutine 0x3D58); returns 0=dispatched/3=not-ready; setSR_PARAM 0x2054/0x2064"
+60E0FC00,0x6B94,FUN_00006b94,diag_handler_6b94,0.3,no-callee-evidence
+60E0FC00,0x80F0,FUN_000080f0,diag_handler_80f0,0.3,no-callee-evidence
+60E0FC00,0x3269C,FUN_0003269c,ctrl_handler_3269c,0.3,no-callee-evidence
+60E0FC00,0x47510,FUN_00047510,throttle_fault_active_duration_watchdog,0.6,Throttle-fault duration latch from getThrottleControl(0x237F4): if readValue_8bit(0x876A/0x8772)==1 or byte 0xB567==1 sets flag 0xFFFFCB75=1 else 0; then saturates counter 0xFFFFCB5E via add16bitSaturate(0x2460) while active else clears; when 0xFFFFCB5E >= cal word 0x7AE1E tail-jmps whileLoop(0x9EFE).
+60E0FC00,0x3BC88,FUN_0003bc88,diag_handler_3bc88,0.3,no-callee-evidence
+60E0FC00,0x3E10,FUN_00003e10,init_main,0.9,"Byte-identical to c/init_main.c reconstruction: RTOS control block at 0xFFFF7638, initial SR from [0x4B04], task config table 0x4990, callee sequence 0x3964/0x3EC0/0x3F10/0x3AC0/0x3F8C/0x3F88/0x3F90/0x3F9C/0x3588/0x3FA8, tail jmp 0x3C2A task_full_context_save; called from 0x3AD8"
+60E0FC00,0x5CC0E,FUN_0005cc0e,obd_float_pct_write_filter,0.4,"Float percent writer in OBD/UDS data region: computes (float@0xB12C + float@0xAE50 - 1.0) * 100.0 into fr15, mode byte @0xD066 selects: 0x30 -> direct updateMemoryAtAddress_float 0x3E258 @0x91BC; 0x40 -> firstOrderFilter 0x23B0 (coef @0x7C2A4, min fconst 0x5CDB8) on readValue_float 0x3E1AA @0x91BC then filtered store; called from task3 0x1182A periodic sensor chain"
+60E0FC00,0x61E30,FUN_00061e30,diag_handler_61e30,0.3,no-callee-evidence
+60E0FC00,0x6796,FUN_00006796,diag_getfromgpio_6796,0.3,no-callee-evidence
+60E0FC00,0x7D90,FUN_00007d90,diag_handler_7d90,0.3,no-callee-evidence
+60E0FC00,0x2D878,FUN_0002d878,math_add16bitsaturate_2d878,0.5,add16bitSaturate_ADD1_ADD2
+60E0FC00,0x16184,FUN_00016184,idle_target_rpm_calc,0.7,"Idle-target calc called by updateIdleControl(0x165C4): gated by byte 0xB352==1 && (cal 0x72990 || byte 0xAAC6==1); 2DLookup(0x2068) table 0x68788(axis 0xB27C) -> result to 0xFFFFA89C, scaled by cal 0x7870A etc, saturation 0x2404 and floatDivideDiv0errCheck 0x3E0AC of 0xB594, stored to idle-cell 0xFFFFA898."
+60E0FC00,0x61458,FUN_00061458,can_encode_61458,0.5,encode??
+60E0FC00,0x4D6CA,FUN_0004d6ca,diag_updatememoryataddress_4d6ca,0.3,no-callee-evidence
+60E0FC00,0x4E4C8,FUN_0004e4c8,diag_8bit_4e4c8,0.3,no-callee-evidence
+60E0FC00,0x4F084,FUN_0004f084,init_handler_4f084,0.3,no-callee-evidence
+60E0FC00,0x521EA,FUN_000521ea,diag_readvalue_521ea,0.3,no-callee-evidence
+60E0FC00,0x3B544,FUN_0003b544,fuel_getfaultstatus_3b544,0.3,no-callee-evidence
+60E0FC00,0x649C0,FUN_000649c0,uds_service_response_dispatch,0.7,"UDS service response dispatcher (caller 0x5CFF0 sensor/UDS ctx): when gate-check 0x64A8A passes sets flag 0xFFFFD768=1, builds msg (0x44,4,0xFF00) + osTaskScheduler 0x9630 + setupForUdsResponse 0x66A14 (docs/functions/setupforudsresponse.md); on error code 1/2 sends negative response via 0x6501A with NRC 0x12/0x22 and len bytes -> UDS positive/negative-response branching"
+60E0FC00,0x2E8C0,FUN_0002e8c0,mem_readvalue_2e8c0,0.5,readValue_8bit_ADDRESS_VAL
+60E0FC00,0x1378,FUN_00001378,diag_serial_command_dispatch,0.7,Boot/serial diagnostic command dispatch (early ROM near resetWatchdog 0x1364): polls serial_try_receive(0x125C) then reads byte via 0x1272 and switch(>>4) routes to handlers 0x154C/0x15A6/0x1654; on success calls writeImmoBitZero(0x11C4) and diag_send_status_frame(0x1624) - Denso serial diagnostic/immobilizer status protocol.
+60E0FC00,0xD5AC,FUN_0000d5ac,diag_handler_d5ac,0.3,no-callee-evidence
+60E0FC00,0x6F16,FUN_00006f16,diag_handler_6f16,0.3,no-callee-evidence
+60E0FC00,0x427B8,FUN_000427b8,math_fixedpointtofloat_427b8,0.5,fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x6267C,FUN_0006267c,diag_invertandreturn_6267c,0.3,no-callee-evidence
+60E0FC00,0x65E08,FUN_00065e08,diag_handler_65e08,0.3,no-callee-evidence
+60E0FC00,0x71EA,FUN_000071ea,adc_serial_channel_convert,0.7,"Serial ADC single-channel read called by getFromGPIO(0x70AC): writes arg channel to 0xFFFFF003, control 0xFFFFF004 start bit0x80/clear0x7F, busy-waits bit0x40, reads result 0xFFFFF005, toggles 0xFFFFF764 via setRegister_REG_BIT_VAL(0x4BBC); matches ida adc_single_convert."
+60E0FC00,0x1C75E,FUN_0001c75e,diag_add16bitsaturate_1c75e,0.3,no-callee-evidence
+60E0FC00,0x65CD0,FUN_00065cd0,diag_handler_65cd0,0.3,no-callee-evidence
+60E0FC00,0x4E6C,FUN_00004e6c,diag_handler_4e6c,0.3,no-callee-evidence
+60E0FC00,0xD518,FUN_0000d518,boot_ram_selftest_relocate,0.7,"Boot-init (caller 0x9E68 init chain w/ setMainInitDoneBool): pattern write/readback RAM test 0xD648 (magics 0x5AA5A55A/0xA55A5AA5, same family as warm-boot magic @0xFFFFDFFC), 2x memcpy loops over RAM ranges 0xFFFF6000-0xFFFF7FFF via ptrs 0xD734/0xD738 into [0xFFFF9300], transfer-engine registers 0xECB0-0xECCE (0xECC0 SAR/0xECC4 DAR/0xECC8 TCR/0xECCC CHCR-like, wait bit1), delays 0x4C70/0x4C76, result code 0/1/2 -> 0xFFFFA3F0 u8 cell"
+60E0FC00,0x66280,FUN_00066280,diag_handler_66280,0.3,no-callee-evidence
+60E0FC00,0x59250,FUN_00059250,ctrl_handler_59250,0.3,no-callee-evidence
+60E0FC00,0x61500,FUN_00061500,diag_handler_61500,0.3,no-callee-evidence
+60E0FC00,0x1BA60,FUN_0001ba60,sensor_snapshot_propagate_working,0.4,"I/O snapshot/propagate (caller getIOUpdates? 0x1A35C): if reset flag 0xFFFF8780==1 zeroes working cells 0x80C4/0x80CA/0xFFFF80D4/0xFFFF80DC/0xADC7; always copies byte 0x80C4->0xFFFFAE31, 0x80C6->0xFFFFAE32, float 0x80A4->0xADBC, float 0x80AC->0xFFFFADDC, clears 0xADC4, copies ADC raw buffer 0xFFFF9EE4 (SENSOR_PIPELINE 32x16) channel 18/19 words -> 0xADC0/0xADC2; readValue/updateMemory helpers 0x3E0DC/0x3E1F8/0x3E1AA/0x3E258"
+60E0FC00,0x4A5C0,FUN_0004a5c0,mem_updatememoryataddress_4a5c0,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x346F0,FUN_000346f0,diag_fixedpointtofloat_346f0,0.3,no-callee-evidence
+60E0FC00,0x42D08,FUN_00042d08,math_fixedpointtofloat_42d08,0.7,3dLookup;fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x1654,FUN_00001654,diag_handler_1654,0.3,no-callee-evidence
+60E0FC00,0x36D4,FUN_000036d4,ctrl_handler_36d4,0.3,no-callee-evidence
+60E0FC00,0x806A,FUN_0000806a,diag_handler_806a,0.3,no-callee-evidence
+60E0FC00,0x871C,FUN_0000871c,fuel_injectorStateTimerUpdate,0.7,"updates per-injector state (0xFFFFA004 +idx*12, fields +4/+8) using cal arrays 0xFFFFA094/0xFFFFA0AC via LongFunc(0x2158)*0xB4(180); called by 0x8320/0x84C6 in injector cluster (injectorRelatedFunc@0x83CA); matches FUEL_INJECTION_SUBSYSTEM state-array layout"
+60E0FC00,0x61F70,FUN_00061f70,diag_handler_61f70,0.3,no-callee-evidence
+60E0FC00,0x2E580,FUN_0002e580,mem_wdividebyzero_2e580,0.5,isNotZero_wDivideByZero_Protect
+60E0FC00,0x52CD4,FUN_00052cd4,obd_assembleOidMessageChecksum,0.7,"walks 0xFF-terminated OID list @0x5D5E4, dispatches each via OBDHandlerMAYBE??(0x52E7C, OID->handler table 0x5D214), accumulates byte-sum into 0xFFFF9039, writes 0xA5/0x5A header to 0xFFFF9010/11, final 0x52D92 checksum word to 0xFFFF903A"
+60E0FC00,0x19CE,FUN_000019ce,ctrl_handler_19ce,0.3,no-callee-evidence
+60E0FC00,0x8F94,FUN_00008f94,ign_configureSparkOutputRegs,0.7,"first step of ignitionDwellOutputInit(0x8F2A bsr): AND/OR bit-twiddle of MTU2 output-compare regs 0xFFFFF626/0xF627/0xF630/0xF66C (4 spark channels, see IGNITION_SUBSYSTEM F6xx map); setSR_PARAM/loadStatusRegister_ADDR around RMW"
+60E0FC00,0x274CE,FUN_000274ce,math_add16bitsaturate_274ce,0.5,add16bitSaturate_ADD1_ADD2
+60E0FC00,0x66E8E,FUN_00066e8e,obd_pack_12bit_value_response,0.7,"OBD/UDS response builder: reads 12-bit value from RAM 0xFFFFDBD8-9, range-gates 8<=v<=0x0FFF, sets flag 0xFFFFDC05|=0x04, converts via 0x67376, builds response msg at 0xFFFFDBF6 (word value @0, mode 0x06 @2, PID byte @4, 0x02 @5, 0x01 @7), packs via pack_for_OBD_response 0x6670C, encodes 0x674B6(6,5), tails thunk 0x6766C->0x52c4e; called from OBD msg-type dispatcher 0x66D1C for type 0x10 after 0x67002"
+60E0FC00,0x14824,FUN_00014824,math_floatdividediv0errcheck_14824,0.7,2DLookup;floatDivideDiv0errCheck_SIG_DIVISOR
+60E0FC00,0x15A6,FUN_000015a6,diag_handler_15a6,0.3,no-callee-evidence
+60E0FC00,0x2A730,FUN_0002a730,diag_floattofp_2a730,0.3,no-callee-evidence
+60E0FC00,0x34536,FUN_00034536,diag_handler_34536,0.3,no-callee-evidence
+60E0FC00,0x1774,FUN_00001774,ctrl_handler_1774,0.3,no-callee-evidence
+60E0FC00,0x550A4,FUN_000550a4,diag_fixedpointtofloat_550a4,0.3,no-callee-evidence
+60E0FC00,0x2845C,FUN_0002845c,ctrl_handler_2845c,0.3,no-callee-evidence
+60E0FC00,0x3A586,FUN_0003a586,rtos_ostaskscheduler_3a586,0.5,osTaskScheduler
+60E0FC00,0x7E3C,FUN_00007e3c,diag_handler_7e3c,0.3,no-callee-evidence
+60E0FC00,0x2165C,FUN_0002165c,diag_add16bitsaturate_2165c,0.3,no-callee-evidence
+60E0FC00,0x24040,FUN_00024040,diag_floattofp_24040,0.3,no-callee-evidence
+60E0FC00,0x33D2C,FUN_00033d2c,diag_enabledisablecruisecontrol_33d2c,0.3,no-callee-evidence
+60E0FC00,0x4810C,FUN_0004810c,mem_updatememoryataddress_4810c,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x4F90C,FUN_0004f90c,diag_8bit_4f90c,0.3,no-callee-evidence
+60E0FC00,0x527DC,FUN_000527dc,mem_updatememoryataddress_527dc,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x38B7E,FUN_00038b7e,diag_add16bitsaturate_38b7e,0.3,no-callee-evidence
+60E0FC00,0x51E5C,FUN_00051e5c,init_handler_51e5c,0.3,no-callee-evidence
+60E0FC00,0x6C4C,FUN_00006c4c,diag_handler_6c4c,0.3,no-callee-evidence
+60E0FC00,0x23F40,FUN_00023f40,diag_buildRamBlockChecksum,0.4,"writes 0xA55A magic @0xB48C, sums 27 words, stores checksum @0xB4C2, calls 0xB886(block,0x1C=28 words); on error sets fault byte 0xB487=1; runs 0x23FEE(0x24B22/interstingFunc) under getSR/setSR; exact consumer unknown"
+60E0FC00,0x2C1DC,FUN_0002c1dc,math_add16bitsaturate_2c1dc,0.5,add16bitSaturate_ADD1_ADD2
+60E0FC00,0x34458,FUN_00034458,fuel_load_factor_enrich_calc,0.6,Fuel load/enrich factor from engineControlGetFueling(0x217B2): 2DLookup(0x2068) table 0x69458 + fixedPointToFloat_8bit(0x2500) of cal byte 0x78675 -> 0xFFFFC11C; multiplies cal float 0x78688 -> 0xFFFFC114; 3dLookup(0x20DC) table 0x694A4(ax 0xA9FC/0xB594) -> 0xFFFFC120; on injectors-off 0xA42C==1 zeros. Cells 0xFFFFC114/118/11C/120.
+60E0FC00,0x42DFC,FUN_00042dfc,math_fixedpointtofloat_42dfc,0.7,2DLookup;fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x46588,FUN_00046588,math_defaultval_46588,0.5,readValue_float_DEFAULTVAL_ADDRESS
+60E0FC00,0x53AB4,FUN_00053ab4,obd_mode22_iat_scale_calc,0.5,OBD mode-22 IAT scaling near getMode22IAT(0x53A9E) called by 0x532A2 & 0x5500C: fixedPointToFloat_16bit(0x24C0) of word 0xADC2 * 20.0(0x41A00000 @0x53B10) then floatToInt(0x24D0). Converts IAT cell to scaled integer degC for PID response.
+60E0FC00,0x6620C,FUN_0006620c,diag_handler_6620c,0.3,no-callee-evidence
+60E0FC00,0x21AF8,FUN_00021af8,fuel_subsystem_init_task,0.9,"SR-protected fuel init batch (called by 0x115AA): getFuelInectorLatencyCals 0x30414, throttleDownDeFloodCheck? 0x3083C, revLimitFuelCutInit 0xEE68, calculateFuelCutLoadBased? 0x4615C, FUN_checksImmoState 0x42210, resetStartupEnrich?? 0x349D8, getEngineStartupEnrichValue 0x348CC, plus 0x21534/0x21580/0x2165C/0xE448/0x30586/0x3059E/0x1DC2A/0x34536/0x346F0"
+60E0FC00,0x4541E,FUN_0004541e,diag_getfaultstatus_4541e,0.5,getFaultStatus??
+60E0FC00,0x1A50,FUN_00001a50,ctrl_handler_1a50,0.3,no-callee-evidence
+60E0FC00,0x4C0F6,FUN_0004c0f6,dtc_fault_value_filter_snapshot,0.6,"DTC fault-value filter+snapshot from faultRelated(0x39938): firstOrderFilter(0x23B0) of float 0xCD8C -> 0xCD90 (factor cal table 0x7B80C), latency gate 0xCFB9; when byte 0xCDB2 bit0x40==0 && getKnownBooleanValue(0x11F54)==1 && byte 0xCD96==1 stores filtered float via updateMemoryAtAddress_float(0x3E258) to DTC value cell 0x86A4; persists to 0xCD96."
+60E0FC00,0x57F20,FUN_00057f20,uds_subfunction_running_guard,0.5,UDS service-concurrency gate called by task3(0x1182A): getSR(0x3920)/setSR(0x3934) guard around checkSubFunctionCurrentlyRunning(0x54146); tracks subfunction/state at 0xFFFFD086/0xD070/0xD092/0xD093/0xD064/0xD06E to enforce single UDS subfunction execution in 0xFFFFD0xx region.
+60E0FC00,0x39BA,FUN_000039ba,diag_handler_39ba,0.3,no-callee-evidence
+60E0FC00,0xB0A6,FUN_0000b0a6,diag_handler_b0a6,0.3,no-callee-evidence
+60E0FC00,0x2A6C2,FUN_0002a6c2,diag_floattofp_2a6c2,0.3,no-callee-evidence
+60E0FC00,0x34110,FUN_00034110,diag_add16bitsaturate_34110,0.3,no-callee-evidence
+60E0FC00,0x45E26,FUN_00045e26,diag_updatefaultstatusthunk_45e26,0.5,updateFaultStatusTHUNK
+60E0FC00,0x4D2F0,FUN_0004d2f0,ign_saturate_4d2f0,0.5,saturate_SIGNAL_LOWER_UPPER
+60E0FC00,0x76B8,FUN_000076b8,diag_handler_76b8,0.3,no-callee-evidence
+60E0FC00,0xE4F8,FUN_0000e4f8,fuel_rpmThresholdTableSelect,0.4,selects among 4 RPM-axis FP tables (0x6784C/0x67858/0x67864 2D + 0x67884 3D via 2DLookup_FP_8bit 0x20AC/3DLookup 0x2120/fixedPointToFloat 0x2500) gated by mode bytes 0xB586/0xB580/0xC94C; result byte -> 0xFFFFA460; called from fuel-cut/throttle cluster 0x21AB6/0x218F4
+60E0FC00,0x41CF2,FUN_00041cf2,math_add16bitsaturate_41cf2,0.5,add16bitSaturate_ADD1_ADD2
+60E0FC00,0x170A,FUN_0000170a,ctrl_handler_170a,0.3,no-callee-evidence
+60E0FC00,0xE07E,FUN_0000e07e,diag_loadstatusregister_e07e,0.3,no-callee-evidence
+60E0FC00,0x4FA02,FUN_0004fa02,init_2dlookup_4fa02,0.3,no-callee-evidence
+60E0FC00,0x50756,FUN_00050756,fuel_handler_50756,0.3,no-callee-evidence
+60E0FC00,0x53400,FUN_00053400,obd_dtc_status_bitmask_build,0.6,"OBD DTC-present bitmask builder called by caseD_0(0x52EBE)/0x51E06/UDSServiceSomething(0x54BD2): reads fault status bytes 0x8FE0/0x8FE4/0x8FEC/0x8FF4/0x9002 via readValue_8bit(0x3E0DC), builds bits 0x1/0x4/0x8/0x20/0x40 and ANDs with report mask byte 0xD09D; returns active-DTC bitmask for OBD mode-3/7."
+60E0FC00,0x5A58,FUN_00005a58,math_handler_5a58,0.3,no-callee-evidence
+60E0FC00,0x66F10,FUN_00066f10,obd_accumulate_and_pack_response,0.7,"OBD/UDS response updater: increments counter word @0xFFFFDBF6+2 by 7, addSaturate8Bit 0x2478 on byte @+8, sets @+5=0x04, encodes 0x674B6(5,0x96=150), then jmp pack_for_OBD_response 0x6670C with src=0xFFFFDBD9 len=7; called from same dispatcher 0x66D1C for msg type 0x20 after 0x6701C (type0x10=0x66E8E, 0x20=0x66F10, 0x30=0x66F78)"
+60E0FC00,0x6D7C,FUN_00006d7c,diag_handler_6d7c,0.3,no-callee-evidence
+60E0FC00,0x75F4,FUN_000075f4,crank_sensor_state_init,0.7,"Gated by byte flag @0xFFFF9FA5: if clear runs init sequence 0x7F22/0x7B90/0x77F0/(0x80F0 when 0x6D468==0x5A)/0x7BE4 writing 0xFFFF9Fxx RAM (crank/engine-speed state), then tails 0x7B58; neighbor cluster is reInitCrankSensor 0x7724/engineSpeedInit 0x7F90; called by 0x5B3C"
+60E0FC00,0x55352,FUN_00055352,diag_handler_55352,0.3,no-callee-evidence
+60E0FC00,0x55D50,FUN_00055d50,uds_accumulate_55d50,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x11FA,FUN_000011fa,ctrl_handler_11fa,0.3,no-callee-evidence
+60E0FC00,0x51C8,FUN_000051c8,ctrl_handler_51c8,0.3,no-callee-evidence
+60E0FC00,0x7188,FUN_00007188,ign_drive_coil_output_ports,0.7,"SR-protected (getSR 0x3920/jmp loadStatusRegister_ADDR 0x3934) ignition output driver shared by setupCoilOutputs 0xC7BA and ignitionCoilPulse 0xCA7E (tail-jmp): masks/writes SH7055 port regs 0xF000/0xF001/0xF002/0xF006, sets bits 0x4000+0x8000 in ctrl word 0xFFFFF72C, ORs GPIO_COIL_CTRL bytes 0xFFFF9F34|0xFFFF9F35 into 0xF002; sub 0x71EA bit-bangs coil driver data 0xF003/0xF005 w/ wait bit0x40 @0xF004"
+60E0FC00,0xB1DA,FUN_0000b1da,diag_handler_b1da,0.3,no-callee-evidence
+60E0FC00,0x4A95E,FUN_0004a95e,ctrl_handler_4a95e,0.3,no-callee-evidence
+60E0FC00,0x4C382,FUN_0004c382,init_getknownbooleanvalue_4c382,0.3,no-callee-evidence
+60E0FC00,0x5582A,FUN_0005582a,uds_accumulate_5582a,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x67376,FUN_00067376,diag_handler_67376,0.3,no-callee-evidence
+60E0FC00,0x3DB0,FUN_00003db0,diag_handler_3db0,0.3,no-callee-evidence
+60E0FC00,0x17A38,FUN_00017a38,omp_knock_periodic_dispatch,0.9,"Periodic task w/ getSR/setSR guard: increments 8-tick counter @RAM 0xFFFFA950; every 8th call runs knock batch (0x1721C knockRelatedFUNC, 0x172C2, 0x1746E) + oil metering (0x16B30 calcOilMetering, 0x17584, 0x17B70, 0x1702C) then resets counter; always calls 0x17D7A omp_control_task_1825E; called by 0x1151A"
+60E0FC00,0x51664,FUN_00051664,mem_updatememoryataddress_51664,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x516F0,FUN_000516f0,dtc_engine_fault_flag_set_update,0.6,Engine-fault aggregate called by FUNC_valueInits(0x38E70)/dealsWithFuelCutSetting(0x3905A)/faultRelated(0x39951): queries 0x5E2FC for fault codes 0x29/0x69/0x6A/0x6B/0x6C; if any active sets flag 0xFFFFCF94=1 else clears. Fuel-cut/MIL relevant engine-fault aggregate flag 0xCF94.
+60E0FC00,0x517C0,FUN_000517c0,mem_updatememoryataddress_517c0,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x51FBC,FUN_00051fbc,mem_updatememoryataddress_51fbc,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x57544,FUN_00057544,math_blend16bitCells_09,0.7,"reads 16-bit cells 0xFFFF9144/0x9148 via readValue_16bit(0x3E11C), fixedPointToFloat_16bit(0x24C0), blends 0.9*a+0.1*b with float consts 0.1/0.9 @0x57638/0x5763C, floatToFP_16bit(0x2490), writes both via updateMemoryAtAddress_16bit(0x3E208); parent 0x57424 (Faults & DTC)"
+60E0FC00,0x591F0,FUN_000591f0,obd_32bit_signal_split_words,0.6,"OBD helper called by 0x58DD4/0x58E1A/someOBDFunctionCaller(0x58E50): readValue_32bit(0x3E15C) at 0xFFFF916C+idx*8, splits hi/lo words into 0xFFFFD0CC+idx*2 (UDS/mode22 response cell)."
+60E0FC00,0x2DC2A,FUN_0002dc2a,ctrl_handler_2dc2a,0.3,no-callee-evidence
+60E0FC00,0x4AA02,FUN_0004aa02,math_addsaturate8bit_4aa02,0.5,addSaturate8Bit
+60E0FC00,0x11B9A,FUN_00011b9a,periodic_super_task_body,0.7,"Task body called by 0x65E8 (which tails into taskEndRoutine 0x3D58): runs 16-callee batch - vehicle speed (getTireSize 0x5C664, 0x5CF54, 0x5CE70, 0x5CFF0, 0x52DE4), OMP/speed-limit (0x1AA9C), sensor task (0x3A10A), SR-protected wrappers 0x21DE2/0x31C16/0x2AB10, tails into 0x3E3F8 RTOS task"
+60E0FC00,0x15DA4,FUN_00015da4,math_defaultval_15da4,0.5,readValue_float_DEFAULTVAL_ADDRESS
+60E0FC00,0x520E0,FUN_000520e0,init_handler_520e0,0.3,no-callee-evidence
+60E0FC00,0x56BF4,FUN_00056bf4,diag_handler_56bf4,0.3,no-callee-evidence
+60E0FC00,0x56D32,FUN_00056d32,diag_handler_56d32,0.3,no-callee-evidence
+60E0FC00,0x56E7A,FUN_00056e7a,diag_handler_56e7a,0.3,no-callee-evidence
+60E0FC00,0x56FB6,FUN_00056fb6,diag_handler_56fb6,0.3,no-callee-evidence
+60E0FC00,0x57664,FUN_00057664,diag_handler_57664,0.3,no-callee-evidence
+60E0FC00,0x154C,FUN_0000154c,diag_handler_154c,0.3,no-callee-evidence
+60E0FC00,0x1AD8C,FUN_0001ad8c,diag_saturatelow_1ad8c,0.3,no-callee-evidence
+60E0FC00,0x3A10A,FUN_0003a10a,aux_sensor_task_iat_tire,0.7,"SR-protected batch task (called by 0x11B9A): runs IATTimerOperation?? 0x5131E, getTireSizeChecksumthing? 0x524C0 + 0x52502/0x52562/0x525A0/0x5263A tire/speed cluster, float-math 0x38AB6/0x38B7E/0x38BF4, 0x4E4C8/0x4F90C/0x3D726; IAT-timer + tire-size checksum theme"
+60E0FC00,0x45B56,FUN_00045b56,diag_getfaultstatus_45b56,0.5,getFaultStatus??
+60E0FC00,0x5F904,FUN_0005f904,diag_sensorFaultFlagsAny,0.7,OR-chain: returns 1 if any of 0x63ED4/0x62DD4 status or RAM fault words 0xFFFF87A8/0xFFFF87AC/0xFFFF87A4 (read via 0x2034/0x2044) nonzero; called by 0x60B8C aggregate fault gate (see FUNCTION_RENAMES note on 0x60B8C)
+60E0FC00,0x3F180,FUN_0003f180,diag_getfromgpio_3f180,0.3,no-callee-evidence
+60E0FC00,0x555F0,FUN_000555f0,uds_accumulate_555f0,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x57D68,FUN_00057d68,diag_udsresponserelated_57d68,0.3,no-callee-evidence
+60E0FC00,0x5CF54,FUN_0005cf54,diag_getfrome2_5cf54,0.3,no-callee-evidence
+60E0FC00,0x2F57E,FUN_0002f57e,ctrl_handler_2f57e,0.3,no-callee-evidence
+60E0FC00,0x51E06,FUN_00051e06,diag_handler_51e06,0.3,no-callee-evidence
+60E0FC00,0x5800A,FUN_0005800a,diag_thunk_5800a,0.5,thunk_FUN_0005eaa2
+60E0FC00,0x66E38,FUN_00066e38,obd_mode22_pid_value_pack,0.5,"Mode22 PID nibble/response helper called by 0x66D1C: reads byte 0xFFFFDBD8, low nibble p; if 1<=p<=7 sets valid bit 0xFFFFDC05|=0x04 via 0x66CA4, reads 0xFFFFDBD9 through 0x67376, writes 0xFFFFDBF6 and pack_for_OBD_response(0x6670C). Matches 0xFFFFDC0x/0x66xxx OBD mode-22 cells."
+60E0FC00,0x197A,FUN_0000197a,ctrl_handler_197a,0.3,no-callee-evidence
+60E0FC00,0x2DC88,FUN_0002dc88,math_add16bitsaturate_2dc88,0.5,add16bitSaturate_ADD1_ADD2
+60E0FC00,0x44A5C,FUN_00044a5c,ctrl_handler_44a5c,0.3,no-callee-evidence
+60E0FC00,0x57DC0,FUN_00057dc0,uds_checksubfunctioncurrentlyrunning_57dc0,0.5,checkSubFunctionCurrentlyRunning??
+60E0FC00,0x59E34,FUN_00059e34,mem_setupforudsresponse_59e34,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x10FE,FUN_000010fe,diag_handler_10fe,0.3,no-callee-evidence
+60E0FC00,0x1FE2,FUN_00001fe2,diag_handler_1fe2,0.3,no-callee-evidence
+60E0FC00,0x6EC4,FUN_00006ec4,ctrl_handler_6ec4,0.3,no-callee-evidence
+60E0FC00,0xCE76,FUN_0000ce76,diag_handler_ce76,0.3,no-callee-evidence
+60E0FC00,0x3417E,FUN_0003417e,diag_handler_3417e,0.3,no-callee-evidence
+60E0FC00,0x5E7FA,FUN_0005e7fa,diag_handler_5e7fa,0.3,no-callee-evidence
+60E0FC00,0x6175A,FUN_0006175a,diag_handler_6175a,0.3,no-callee-evidence
+60E0FC00,0x59CE,FUN_000059ce,math_injectorpulseset_59ce,0.3,no-callee-evidence
+60E0FC00,0x445F8,FUN_000445f8,diag_getfaultstatus_445f8,0.5,getFaultStatus??
+60E0FC00,0x45D50,FUN_00045d50,idle_learn_counter_update,0.4,"Saturating learn-counter update: readValue_16bit 0x3E11C counter @0xFFFF876C, gate on 8-bit cells 0xFFFF8780/0xFFFF876A (reset/increment flags set by sibling 0x45DA0 from cal threshold @0x7AFCC under adaptive-learning-inhibit 0xFFFFA3F0), add16bitSaturate 0x2460 +1, writeback updateMemoryAtAddress_16bit 0x3E208; cells adjacent to documented adaptive-idle trim/acc 0xFFFF8772/0xFFFF8774; caller valueInits 0x38E70"
+60E0FC00,0x55B50,FUN_00055b50,diag_handler_55b50,0.3,no-callee-evidence
+60E0FC00,0x7F42,FUN_00007f42,diag_handler_7f42,0.3,no-callee-evidence
+60E0FC00,0x22532,FUN_00022532,fuel_enrichCalcPairAtomic,0.4,getSR(0x10)/setSR critical-section wrapper around 0x4A4A0 (saturate_SIGNAL_LOWER_UPPER-based FP calc reading 0xCEF3/0xCDA6/0xCCD8) and 0x4A308 (2DLookup/3dLookup/minValue/saturate reading 0xCD85/0xCF4B/0xD077); called by bunchOFuncs 0x1194E; subsystem inferred as load/enrich
+60E0FC00,0x49E82,FUN_00049e82,ctrl_handler_49e82,0.3,no-callee-evidence
+60E0FC00,0x4F378,FUN_0004f378,ctrl_handler_4f378,0.3,no-callee-evidence
+60E0FC00,0x21534,FUN_00021534,diag_handler_21534,0.3,no-callee-evidence
+60E0FC00,0x2D4BC,FUN_0002d4bc,torque_correction_factor_calc,0.5,"Torque-correction factor from calculateTorqueRelatedParams(0x2D208)/getDesiredTorqueCalcVar3(0x2D486) cluster: isNotZero_wDivideByZero_Protect(0x2440) of float 0xB5EC, 2DLookup(0x2068) table 0x68CC8(axis 0xB5E4), floatDivideDiv0errCheck(0x3E0AC) 0xB5F0/0xB5EC, result to desired-torque cell 0xFFFFBCF4."
+60E0FC00,0x55210,FUN_00055210,mem_floattofp_55210,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x4FD6,FUN_00004fd6,diag_handler_4fd6,0.3,no-callee-evidence
+60E0FC00,0x1A29E,FUN_0001a29e,aux_input_copy_validate,0.5,"Aux driver-input cell copy/validate called by 0x196E6 & 0x1AB0A: validateAddressCopy_float(0x3E38A) on 0x8090 & 0x8098, then validateAddressCopy_8bit(0x3E29E) on 0x80A0 (tail-jmp). Backup/copy+integrity check of aux input signal cells 0x8090/0x8098/0x80A0."
+60E0FC00,0x40E18,FUN_00040e18,fuel_getfaultstatus_40e18,0.3,no-callee-evidence
+60E0FC00,0x4C4D0,FUN_0004c4d0,ign_handler_4c4d0,0.3,no-callee-evidence
+60E0FC00,0x5737A,FUN_0005737a,diag_updatememoryataddress_5737a,0.3,no-callee-evidence
+60E0FC00,0x664AC,FUN_000664ac,obd_pid_table_id_lookup,0.7,"OBD modes-1/3/7 PID ID lookup: scans 10-byte table @0xFFFF8FC0 (stride*10 via shll2+add+shll, key word @+0 compared to r4, gate word 0xFFFF8FD4!=0), returns byte @(idx*10+2); called by OBD handlers 0x56398/0x5992A/0x63CD0/0x650B8 — matches deep2 row 0x650B8 obd_mode137_response_payload_build which calls 0x664AC/0x6650A as table ID lookups."
+60E0FC00,0x66568,FUN_00066568,diag_handler_66568,0.3,no-callee-evidence
+60E0FC00,0x1D30,FUN_00001d30,ctrl_handler_1d30,0.3,no-callee-evidence
+60E0FC00,0xF258,FUN_0000f258,ctrl_handler_f258,0.3,no-callee-evidence
+60E0FC00,0x50E68,FUN_00050e68,diag_updatememoryataddress_50e68,0.3,no-callee-evidence
+60E0FC00,0x53B80,FUN_00053b80,diag_floattoint_53b80,0.3,no-callee-evidence
+60E0FC00,0x566DE,FUN_000566de,dtc_fault_record_clear_conditional,0.4,"Fault-cluster helper called by faultRelated??(0x39938): reads byte 0xFFFFD044, calls 0x566CC; if 10k-reset inhibit flag 0xCFD9==1 branches to 0x5672E (jmp 0x577E8, which per deep2 row 0x57212 clears fault-value records 0xFFFF90EC/0xFFFF90FC); else if byte!=0 and 0xFFFFD044==1 runs 0x56736 float record processing (fldi0, TwoDLookup 0x2490 family); conditional DTC record clear/persist state machine."
+60E0FC00,0x59EF4,FUN_00059ef4,mem_setupforudsresponse_59ef4,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x96FE,FUN_000096fe,diag_taskendroutine_96fe,0.3,no-callee-evidence
+60E0FC00,0x25A58,FUN_00025a58,throttle_tpsStatusOutputPort,0.5,"reads TPS status byte 0xCB91, writes inverted flag to 0xFFFFB5C0, then setRegister_REG_BIT_VAL(0x4BBC)(port 0xFFFFF746, bit 0x800, val) under setSR_PARAM/loadStatusRegister_ADDR; called by getThrottleControl(0x237F4) and 0x237BC; 0xCB91 also used by throttle_sensor_learn_cal(0x47862)"
+60E0FC00,0x2D088,FUN_0002d088,ign_fixedpointtofloat_2d088,0.5,saturateLow_SIGNAL_LOWERBOUND
+60E0FC00,0x57736,FUN_00057736,mem_readvalue_57736,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x669CE,FUN_000669ce,diag_handler_669ce,0.3,no-callee-evidence
+60E1D400,0x1C022,FUN_0x1C022,ctrl_handler_1c022,0.3,no-callee-evidence
+60E1D400,0x22534,FUN_0x22534,ctrl_handler_22534,0.3,no-callee-evidence
+60E0FC00,0x2B156,FUN_0002b156,diag_handler_2b156,0.3,no-callee-evidence
+60E0FC00,0x45FC4,FUN_00045fc4,diag_updatefaultstatusthunk_45fc4,0.5,updateFaultStatusTHUNK
+60E0FC00,0x5CFAC,FUN_0005cfac,mem_getfrome2_5cfac,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x60B8C,FUN_00060b8c,diag_aggregate_fault_flags,0.7,OR-chain of 4 status checks 0x6122C/0x5F904/0x5EE50/0x5F358 (each tests RAM fault/status words 0xFFFF87B0-0xFFFF87C4 via read helpers 0x2034/0x2044): returns 1 if ANY flag set; callers 0x5EBD0/0x5EBEC jump to fault handler 0x3E5A8 when nonzero else rts -> aggregated sensor/self-diagnostic flag gate
+60E1D400,0x4F7BC,FUN_0x4F7BC,ctrl_handler_4f7bc,0.3,no-callee-evidence
+60E0FC00,0x1182,FUN_00001182,ctrl_handler_1182,0.3,no-callee-evidence
+60E0FC00,0x3A0C8,FUN_0003a0c8,fuel_level_timer_task,0.7,"SR-protected periodic task (called by 0x11B80): fuelLevelRelated 0x3BD3A + checkTimers 0x3CE22 + fuel-level/sensor float compares 0x4D5A8/0x4F9DA/0x513EA/0x514F2/0x3D92A, tails setSR"
+60E0FC00,0x3B5E6,FUN_0003b5e6,fuel_updatefaultstatusthunk_3b5e6,0.3,no-callee-evidence
+60E0FC00,0x4455E,FUN_0004455e,diag_handler_4455e,0.3,no-callee-evidence
+60E0FC00,0x4A9C0,FUN_0004a9c0,ctrl_handler_4a9c0,0.3,no-callee-evidence
+60E0FC00,0x4E61E,FUN_0004e61e,diag_updatememoryataddress_4e61e,0.3,no-callee-evidence
+60E0FC00,0x51D9C,FUN_00051d9c,dtc_fault_flag_cell_pair_update,0.5,DTC flag cell update called by FUNC_valueInits_MAYBE(0x38E70) & faultRelated??(0x39938): readValue_8bit(0x3E0DC) of fault cell 0x8FFC; if 0 reads 0x8688; combines with 0xCFD9 gate (10k-reset inhibit) then updateMemoryAtAddress_8bit(0x3E1F8) writes result to 0x8FFE; propagates paired fault-flag cells 0x8FFC/0x8688 -> 0x8FFE.
+60E0FC00,0x52196,FUN_00052196,init_handler_52196,0.3,no-callee-evidence
+60E0FC00,0x58A2C,FUN_00058a2c,math_float_58a2c,0.7,readValue_float_DEFAULTVAL_ADDRESS;updateMemoryAtAddress_float_VAL_ADDR
+60E0FC00,0x5CE00,FUN_0005ce00,mem_updatememoryataddress_5ce00,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x5EABC,FUN_0005eabc,ctrl_handler_5eabc,0.3,no-callee-evidence
+60E0FC00,0x652AE,FUN_000652ae,diag_handler_652ae,0.3,no-callee-evidence
+60E0FC00,0x67116,FUN_00067116,diag_handler_67116,0.3,no-callee-evidence
+60E0FC00,0x5434,FUN_00005434,math_handler_5434,0.3,no-callee-evidence
+60E0FC00,0x969E,FUN_0000969e,diag_taskendroutine_969e,0.3,no-callee-evidence
+60E0FC00,0x449A6,FUN_000449a6,mem_getfaultstatus_449a6,0.5,readValue_8bit_ADDRESS_VAL
+60E0FC00,0x45268,FUN_00045268,diag_getfaultstatus_45268,0.5,getFaultStatus??
+60E0FC00,0x4603A,FUN_0004603a,diag_getfaultstatus_4603a,0.5,getFaultStatus??
+60E0FC00,0x49DE0,FUN_00049de0,ctrl_handler_49de0,0.3,no-callee-evidence
+60E0FC00,0x49E20,FUN_00049e20,ctrl_handler_49e20,0.3,no-callee-evidence
+60E0FC00,0x520A0,FUN_000520a0,init_handler_520a0,0.3,no-callee-evidence
+60E0FC00,0x56ADE,FUN_00056ade,diag_handler_56ade,0.3,no-callee-evidence
+60E0FC00,0x570EE,FUN_000570ee,diag_handler_570ee,0.3,no-callee-evidence
+60E0FC00,0x58798,FUN_00058798,dtc_fault58_status_update,0.6,"Called by task3(0x1182A): if fault-gate byte 0xD071==1, reports DTC code 0x3A(58) with status r5=1/2 (from byte 0xD07C) via tail-jmp updateFaultStatusTHUNK(0x5E644); else rts. Standard fault-status report pattern (cf. deep1 0x4607A dtc_fault94_counter_update)."
+60E0FC00,0x3C2A,FUN_00003c2a,diag_handler_3c2a,0.3,no-callee-evidence
+60E0FC00,0x2EAD2,FUN_0002ead2,ctrl_handler_2ead2,0.3,no-callee-evidence
+60E0FC00,0x52970,FUN_00052970,math_divRoundClampInt16,0.7,"pure FP: fr6=(fr4-fr6)/fr5 + round-const (+/-0.5 @0x52AB8/0x52ABC), ftrc to int, clamp [-0x8000,0x7FFF]; callers 0x550A4/0x55120/0x55152/0x55184/0x55352 in OBD-mode22 PID area (getDesiredIdleRPMMode22 etc.)"
+60E0FC00,0x670D8,FUN_000670d8,diag_handler_670d8,0.3,no-callee-evidence
+60E0FC00,0x5564,FUN_00005564,math_handler_5564,0.3,no-callee-evidence
+60E0FC00,0x9CA4,FUN_00009ca4,diag_handler_9ca4,0.3,no-callee-evidence
+60E0FC00,0x4A6B0,FUN_0004a6b0,diag_handler_4a6b0,0.3,no-callee-evidence
+60E0FC00,0x5A346,FUN_0005a346,diag_getsr_5a346,0.3,no-callee-evidence
+60E0FC00,0x5C568,FUN_0005c568,diag_getsr_5c568,0.3,no-callee-evidence
+60E0FC00,0x5CA02,FUN_0005ca02,diag_getsr_5ca02,0.3,no-callee-evidence
+60E0FC00,0x5CA3E,FUN_0005ca3e,diag_elapsedTimerSetFlagOnce,0.7,under getSR/setSR: if counter 0xFFFFD198 >= 0x271 (625) (0x5CAE4) and one-shot flag 0xFFFFD19B set -> call 0x57B5C (sets 0xFFFFD086=1) and clear flag; in UDS/diag cluster (neighbors 0x5CA7A/0x5CA9E build 0x31/0x32 UDS msgs via setupForUdsResponse? 0x66A14)
+60E0FC00,0x5D36,FUN_00005d36,math_handler_5d36,0.3,no-callee-evidence
+60E0FC00,0x25DBA,FUN_00025dba,irq_masked_25da0_call,0.7,"SR-protected wrapper called by FUN_000115aa: setSR_PARAM(0x2054) with 0xE0 (mask IRQ), calls 0x25DA0, then loadStatusRegister_ADDR(0x2064) restores saved SR; result of 0x25DA0 left in r0. Classic disable-IRQ/call/restore thunk."
+60E0FC00,0x34A4A,FUN_00034a4a,diag_add16bitsaturate_34a4a,0.3,no-callee-evidence
+60E0FC00,0x5934,FUN_00005934,math_handler_5934,0.3,no-callee-evidence
+60E0FC00,0x74E0,FUN_000074e0,eshaft_onRunStateReinitCrank,0.7,"engine-state transition: if arg!=current 0xFFFF9FA5 and arg==1 -> set state, getSR/setSR around bsr 0x765A (reInitCrankSensor?? 0x7724 + 0x7B84 + 0x7F90); tail-called with r4=1 by 0x25854 (copies 0x749C4->0xB5B4); other caller 0x25878"
+60E0FC00,0xA8A4,FUN_0000a8a4,mem_write16_sr_protected,0.9,"Save SR via setSR_PARAM(0x2054) storing old SR on stack, set SR=0xE0, write 16-bit r5->*r4 twice, restore via loadStatusRegister_ADDR(0x2064) thunk; called from 13 fueling/ignition hw init sites (injectorPulseSet, ignitionDwellOutputInit, setupCoilOutputs, detectKnockOverTime, ignitionTimingHardwareTimerSomething)"
+60E0FC00,0x1929C,FUN_0001929c,ctrl_handler_1929c,0.3,no-callee-evidence
+60E0FC00,0x38BF4,FUN_00038bf4,diag_add16bitsaturate_38bf4,0.3,no-callee-evidence
+60E0FC00,0x51EFA,FUN_00051efa,mem_readvalue_51efa,0.5,readValue_8bit_ADDRESS_VAL
+60E0FC00,0x55648,FUN_00055648,uds_accumulate_55648,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x578C6,FUN_000578c6,ctrl_handler_578c6,0.3,no-callee-evidence
+60E0FC00,0x59DFE,FUN_00059dfe,mem_setupforudsresponse_59dfe,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x59E88,FUN_00059e88,mem_setupforudsresponse_59e88,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x59EBE,FUN_00059ebe,mem_setupforudsresponse_59ebe,0.5,getFromE2_E2ADDR_RAMADDR_LEN
+60E0FC00,0x6B60,FUN_00006b60,diag_handler_6b60,0.3,no-callee-evidence
+60E0FC00,0x1896C,FUN_0001896c,diag_8bit_1896c,0.3,no-callee-evidence
+60E0FC00,0x2A5CA,FUN_0002a5ca,ctrl_handler_2a5ca,0.3,no-callee-evidence
+60E0FC00,0x1150,FUN_00001150,diag_handler_1150,0.3,no-callee-evidence
+60E0FC00,0x1410E,FUN_0001410e,ign_init_timing_batch,0.9,"Init dispatcher (called by bulkInits?? 0x11C72): engineCrankingConditionsInit?? 0x1476C, 0x127D6, 0x43150, throttleLiftInitStuff 0x4315C, getInitalLeadingTrailingAdvance? 0x12192, 0x1325C, 0x18F6C, tail-jmp getInitalTimingValues?? 0x2C37E - cranking+initial advance/timing init"
+60E0FC00,0x16A5A,FUN_00016a5a,diag_handler_16a5a,0.3,no-callee-evidence
+60E0FC00,0x55120,FUN_00055120,diag_fixedpointtofloat_55120,0.3,no-callee-evidence
+60E0FC00,0x55152,FUN_00055152,diag_fixedpointtofloat_55152,0.3,no-callee-evidence
+60E0FC00,0x55184,FUN_00055184,diag_fixedpointtofloat_55184,0.3,no-callee-evidence
+60E0FC00,0x63ED4,FUN_00063ed4,diag_invertandreturn_63ed4,0.3,no-callee-evidence
+60E0FC00,0x65EB2,FUN_00065eb2,diag_handler_65eb2,0.3,no-callee-evidence
+60E0FC00,0x1624,FUN_00001624,diag_handler_1624,0.3,no-callee-evidence
+60E0FC00,0x4BE4,FUN_00004be4,ctrl_handler_4be4,0.3,no-callee-evidence
+60E0FC00,0x18F6C,FUN_00018f6c,diag_handler_18f6c,0.3,no-callee-evidence
+60E0FC00,0x1AA9C,FUN_0001aa9c,vehicle_speed_omp_time_task,0.9,"SR-protected task (called by 0x11B9A): getSpeedLimitCal 0x483C0, getAutoTransCal?? 0x253CC, getEngineOnTimeForOilMetering 0xE1FE, calculateEngineOnTime?? 0xE244, vehicleSPeed_E2_something 0x4A820 - all 5 named callees align on vehicle speed + OMP engine-on-time"
+60E0FC00,0x3E07C,FUN_0003e07c,ctrl_handler_3e07c,0.3,no-callee-evidence
+60E0FC00,0x4C262,FUN_0004c262,fuel_handler_4c262,0.3,no-callee-evidence
+60E0FC00,0x64BA,FUN_000064ba,rtos_main_task_super_loop,0.4,"Fixed sub-task chain then task end: jsr 0xD21E(main??), 0x6842(stub rts), 0x94FC, knockSensorADCFault 0xC290, throttleTask 0x11584, funcptr [0xD894]=0x9FB2, then jmp taskEndRoutine? 0x3D58 with r4=0 -> RTOS periodic main task that runs knock+throttle subsystem tasks and terminates itself"
+60E0FC00,0x7B90,FUN_00007b90,diag_handler_7b90,0.3,no-callee-evidence
+60E0FC00,0xACFC,FUN_0000acfc,boot_irq_tick_inc_dispatch,0.5,"Boot/interrupt-setup region (caller interruptSetup??? 0x63F0): getSR(0x90) guard, increments saturating byte counter at 0xFFFFA207 (max 0xFF), bsr 0xAD40, setSR restore — a software tick counter with SR-protected dispatch into 0xAD40."
+60E0FC00,0x2A454,FUN_0002a454,can251_throttle_values_pack,0.7,"Sub-pack called every 2nd tick from can251TX_getAndPack 0x2A3E2 (which is called by CANTX_Main 0xDB58): runs 10 getters incl FUNC_ThrottleMapRelated1 0x2A4A0 and word-copy stubs 0x2A482/0x2A48C/0x2A496 (0xBB70->0xFFFFBB88 etc), 0x2A5FE/0x2A6C2/0x2A730/0x2A7AE/0x2A7D6/0x2A8AC, then bra 0x2A5CA"
+60E0FC00,0x32EA2,FUN_00032ea2,ctrl_handler_32ea2,0.3,no-callee-evidence
+60E0FC00,0x42DCE,FUN_00042dce,math_checkfloatvalidity_42dce,0.5,checkFloatValidity?
+60E0FC00,0x578FE,FUN_000578fe,diag_handler_578fe,0.3,no-callee-evidence
+60E0FC00,0x62DD4,FUN_00062dd4,diag_invertandreturn_62dd4,0.3,no-callee-evidence
+60E0FC00,0x648E,FUN_0000648e,sensor_voltage_o2_task,0.7,"Task wrapper (no direct callers; entered via task table): 0x6796 RAM calc, 0x759E SR-protected sensor read, 0xB3AA float math, readECMVoltage?? 0x7338, getRearO2Voltage 0xD1E0, someMainFunction 0x11540, then jmp taskEndRoutine 0x3D58"
+60E0FC00,0x7B58,FUN_00007b58,isr_handler_7b58,0.3,no-callee-evidence
+60E0FC00,0xD648,FUN_0000d648,diag_handler_d648,0.3,no-callee-evidence
+60E0FC00,0x1B83C,FUN_0001b83c,ctrl_handler_1b83c,0.3,no-callee-evidence
+60E0FC00,0x2CD9C,FUN_0002cd9c,diag_handler_2cd9c,0.3,no-callee-evidence
+60E0FC00,0x48394,FUN_00048394,diag_handler_48394,0.3,no-callee-evidence
+60E0FC00,0x53B28,FUN_00053b28,obd_word_aa38_scale_to_pct_a,0.6,"Sensor-word scaling called by UDS 0x532A2 & 0x55020: fixedPointToFloat_16bit_MULT_OFF_SIG(0x24C0) of word 0xAA38 with 7.629e-05 float (0x38A00000 @0x53BAC), fmul 20.0 (0x41A00000 @0x53BB4), floatToInt(0x24D0) offset 100/255 (0x3EC8C8C8 @0x53BB8); raw ADC word -> scaled int (sibling of 0x53AB4 obd_mode22_iat_scale_calc which reads 0xADC2)."
+60E0FC00,0x53B54,FUN_00053b54,obd_word_aa3a_scale_to_pct_b,0.6,"Twin of 0x53B28 reading adjacent word 0xAA3A: fixedPointToFloat_16bit(0x24C0)*7.629e-05, fmul 20.0, floatToInt(0x24D0) offset 100/255 — second scaled ADC/RAM word for OBD (called by 0x532A2 & 0x55034)."
+60E0FC00,0x6667C,FUN_0006667c,diag_handler_6667c,0.3,no-callee-evidence
+60E0FC00,0x1A4BC,FUN_0001a4bc,sensor_throttle_maf_calc_protected,0.7,"SR-protected (getSR 0x3920 / jmp loadStatusRegister_ADDR 0x3934) wrapper: saves byte arg, jsr 0xE07E (setSR_PARAM 0x2054 helper reading 0xC5CC/0xA414/0xA415), then calcThrottleBasedMAF 0x1AE8A and filterMAF?? 0x1ADE6 with saved arg -> atomic throttle-position-based MAF calc + filtering; called by 0x11BF6"
+60E0FC00,0x49DB6,FUN_00049db6,ctrl_handler_49db6,0.3,no-callee-evidence
+60E0FC00,0x5CBBA,FUN_0005cbba,math_float_5cbba,0.7,readValue_float_DEFAULTVAL_ADDRESS;updateMemoryAtAddress_float_VAL_ADDR
+60E0FC00,0x5CBE4,FUN_0005cbe4,math_float_5cbe4,0.7,readValue_float_DEFAULTVAL_ADDRESS;updateMemoryAtAddress_float_VAL_ADDR
+60E0FC00,0x7BE4,FUN_00007be4,diag_handler_7be4,0.3,no-callee-evidence
+60E0FC00,0x253EC,FUN_000253ec,ctrl_handler_253ec,0.3,no-callee-evidence
+60E0FC00,0x2A7AE,FUN_0002a7ae,diag_handler_2a7ae,0.3,no-callee-evidence
+60E0FC00,0x3253C,FUN_0003253c,ctrl_handler_3253c,0.3,no-callee-evidence
+60E0FC00,0x4C292,FUN_0004c292,init_handler_4c292,0.3,no-callee-evidence
+60E0FC00,0x4F9DA,FUN_0004f9da,diag_handler_4f9da,0.3,no-callee-evidence
+60E0FC00,0x51ED2,FUN_00051ed2,init_handler_51ed2,0.3,no-callee-evidence
+60E0FC00,0x533CC,FUN_000533cc,obd_dtc_status_byte_accum,0.7,OBD/UDS DTC status byte builder called by caseD_0(0x52EBE) & UDSServiceSomething(0x54BD2): base = faultSomething0x2(0x5E380); if readValue_8bit(0x3E0DC) of 0x8FFC==1 ORs bit 0x80; returns accumulated status byte (sibling of 0x53400 obd_dtc_status_bitmask_build).
+60E0FC00,0x673D8,FUN_000673d8,diag_handler_673d8,0.3,no-callee-evidence
+60E0FC00,0x1272,FUN_00001272,ctrl_handler_1272,0.3,no-callee-evidence
+60E0FC00,0x1E4C,FUN_00001e4c,diag_handler_1e4c,0.3,no-callee-evidence
+60E0FC00,0x1FBC,FUN_00001fbc,diag_handler_1fbc,0.3,no-callee-evidence
+60E0FC00,0x553E,FUN_0000553e,math_handler_553e,0.3,no-callee-evidence
+60E0FC00,0x19B5C,FUN_00019b5c,diag_minvalue_19b5c,0.3,no-callee-evidence
+60E0FC00,0x19BA0,FUN_00019ba0,diag_minvalue_19ba0,0.3,no-callee-evidence
+60E0FC00,0x3BA90,FUN_0003ba90,diag_updatememoryataddress_3ba90,0.3,no-callee-evidence
+60E0FC00,0x4AB3A,FUN_0004ab3a,ctrl_handler_4ab3a,0.3,no-callee-evidence
+60E0FC00,0x4C2BA,FUN_0004c2ba,math_fixedpointtofloat_4c2ba,0.5,fixedPointToFloat_16bit_MULT_OFF_SIG
+60E0FC00,0x5891A,FUN_0005891a,diag_handler_5891a,0.3,no-callee-evidence
+60E0FC00,0x55C4,FUN_000055c4,math_handler_55c4,0.3,no-callee-evidence
+60E0FC00,0x5EF4,FUN_00005ef4,diag_handler_5ef4,0.3,no-callee-evidence
+60E0FC00,0x317C0,FUN_000317c0,diag_handler_317c0,0.3,no-callee-evidence
+60E0FC00,0x4A684,FUN_0004a684,diag_handler_4a684,0.3,no-callee-evidence
+60E0FC00,0x51D78,FUN_00051d78,mem_updatememoryataddress_51d78,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x54E90,FUN_00054e90,uds_fp_54e90,0.5,intToUDS_SERVICE_DATA
+60E0FC00,0x1E72,FUN_00001e72,diag_handler_1e72,0.3,no-callee-evidence
+60E0FC00,0x2D5EC,FUN_0002d5ec,mem_8bit_2d5ec,0.7,readValue_8bit_ADDRESS_VAL;updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x37C66,FUN_00037c66,diag_handler_37c66,0.3,no-callee-evidence
+60E0FC00,0x49E60,FUN_00049e60,ctrl_handler_49e60,0.3,no-callee-evidence
+60E0FC00,0x4AC1C,FUN_0004ac1c,ctrl_handler_4ac1c,0.3,no-callee-evidence
+60E0FC00,0x5EA80,FUN_0005ea80,diag_ostaskscheduler_5ea80,0.3,no-callee-evidence
+60E0FC00,0x674B6,FUN_000674b6,mode22_store_service_data_scaled,0.7,Mode-22 UDS helper (called by 13 OBD handlers incl unknownMode22Func 0x66AAA): stores 32-bit value = 0x0FA0(4000)*r5 + *[0xF430] at 0xFFFFDC14+idx*4 and sets valid-flag byte 1 at 0xFFFFDC0C+idx (Mode22 response/PID area per unknownMode22Func.md)
+60E0FC00,0x7F22,FUN_00007f22,diag_handler_7f22,0.3,no-callee-evidence
+60E0FC00,0x82B8,FUN_000082b8,diag_putfuelingstuffinarray_82b8,0.3,no-callee-evidence
+60E0FC00,0x96DE,FUN_000096de,diag_taskendroutine_96de,0.3,no-callee-evidence
+60E0FC00,0xCEC8,FUN_0000cec8,diag_handler_cec8,0.3,no-callee-evidence
+60E0FC00,0xD398,FUN_0000d398,ctrl_handler_d398,0.3,no-callee-evidence
+60E0FC00,0x317A0,FUN_000317a0,diag_handler_317a0,0.3,no-callee-evidence
+60E0FC00,0x475C4,FUN_000475c4,diag_defaultval_475c4,0.3,no-callee-evidence
+60E0FC00,0x53144,FUN_00053144,diag_handler_53144,0.3,no-callee-evidence
+60E0FC00,0x5CAE4,FUN_0005cae4,diag_handler_5cae4,0.3,no-callee-evidence
+60E0FC00,0x42210,FUN_checksImmoState,diag_handler_42210,0.3,no-callee-evidence
+60E0FC00,0x7BBE,FUN_00007bbe,ctrl_handler_7bbe,0.3,no-callee-evidence
+60E0FC00,0x21A54,FUN_00021a54,fuel_purgeAndFuelArrayAtomic,0.7,"getSR(0x10)/setSR wrapper around 0xF2A0 (clears purge-flow counters 0xA4B0/0xA4B1/0xA4B2, see c/purge_flow_counter_init.c) and 0xF8D4 (fueling array update -> putFuelingStuffInArray? 0x85E4); called by 0x11CA2"
+60E0FC00,0x2A99C,FUN_0002a99c,can_keyOnHandlerAtomic,0.9,getSR(0x10)/setSR critical-section wrapper around checkCANsomethingKeyOnBased(0xDCC0: canSetup 0xD9F4 + key-on CAN init) and set_CAN_fault???(0x528C4 -> updateFaultStatusTHUNK 0x5E644); called by dispatcher 0x1151A
+60E0FC00,0x3C53A,FUN_0003c53a,diag_getfaultstatus_3c53a,0.5,getFaultStatus??
+60E0FC00,0x41D5E,FUN_00041d5e,ctrl_handler_41d5e,0.3,no-callee-evidence
+60E0FC00,0x551B6,FUN_000551b6,mem_floattofp_551b6,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x551D4,FUN_000551d4,mem_floattofp_551d4,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x5525C,FUN_0005525c,mem_floattofp_5525c,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x5527A,FUN_0005527a,mem_floattofp_5527a,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x55298,FUN_00055298,mem_floattofp_55298,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x553B8,FUN_000553b8,diag_floattofp_553b8,0.3,no-callee-evidence
+60E0FC00,0x553F4,FUN_000553f4,mem_floattofp_553f4,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x55420,FUN_00055420,mem_floattofp_55420,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x5545C,FUN_0005545c,mem_floattofp_5545c,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x55524,FUN_00055524,mem_floattofp_55524,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x55542,FUN_00055542,mem_floattofp_55542,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x55560,FUN_00055560,mem_floattofp_55560,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x555D2,FUN_000555d2,mem_floattofp_555d2,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x57526,FUN_00057526,mem_zeroSignalCells16,0.7,"zeros 16-bit cells 0xFFFF9144/0xFFFF9148 via updateMemoryAtAddress_16bit(0x3E208, val=0) and 0xFFFF910C/0xFFFF911C via bsr 0x577E8; called by 0x57424 when inhibit flag 0xCFD9==1 and by 0x1141C/0x3E3F8"
+60E0FC00,0x5EE50,FUN_0005ee50,diag_invertandreturn_5ee50,0.3,no-callee-evidence
+60E0FC00,0x5F358,FUN_0005f358,diag_invertandreturn_5f358,0.3,no-callee-evidence
+60E0FC00,0x6CC0,FUN_00006cc0,ctrl_handler_6cc0,0.3,no-callee-evidence
+60E0FC00,0x11F20,FUN_00011f20,diag_handler_11f20,0.3,no-callee-evidence
+60E0FC00,0x19B40,FUN_00019b40,diag_handler_19b40,0.3,no-callee-evidence
+60E0FC00,0x1B8F0,FUN_0001b8f0,math_fixedpointtofloat_1b8f0,0.5,fixedPointToFloat_16bit_MULT_OFF_SIG
+60E0FC00,0x45DF0,FUN_00045df0,diag_updatememoryataddress_45df0,0.3,no-callee-evidence
+60E0FC00,0x4A5A4,FUN_0004a5a4,init_handler_4a5a4,0.3,no-callee-evidence
+60E0FC00,0x4C7B8,FUN_0004c7b8,ign_handler_4c7b8,0.3,no-callee-evidence
+60E0FC00,0x51898,FUN_00051898,init_handler_51898,0.3,no-callee-evidence
+60E0FC00,0x5217A,FUN_0005217a,init_handler_5217a,0.3,no-callee-evidence
+60E0FC00,0x6547E,FUN_0006547e,diag_handler_6547e,0.3,no-callee-evidence
+60E0FC00,0x5B3C,FUN_00005b3c,diag_handler_5b3c,0.3,no-callee-evidence
+60E0FC00,0xC276,FUN_0000c276,diag_readadcresult_c276,0.3,no-callee-evidence
+60E0FC00,0xE064,FUN_0000e064,diag_handler_e064,0.3,no-callee-evidence
+60E0FC00,0x1BBFC,FUN_0001bbfc,diag_handler_1bbfc,0.3,no-callee-evidence
+60E0FC00,0x3F792,FUN_0003f792,diag_updatememoryataddress_3f792,0.3,no-callee-evidence
+60E1D400,0x1C0E0,FUN_0x1C0E0,ctrl_handler_1c0e0,0.3,no-callee-evidence
+60E0FC00,0x1E34,FUN_00001e34,ctrl_handler_1e34,0.3,no-callee-evidence
+60E0FC00,0x3C68,FUN_00003c68,diag_handler_3c68,0.3,no-callee-evidence
+60E0FC00,0x4B64,FUN_00004b64,ctrl_handler_4b64,0.3,no-callee-evidence
+60E0FC00,0x4B84,FUN_00004b84,ctrl_handler_4b84,0.3,no-callee-evidence
+60E0FC00,0x4B9C,FUN_00004b9c,ctrl_handler_4b9c,0.3,no-callee-evidence
+60E0FC00,0x4DEE,FUN_00004dee,diag_handler_4dee,0.3,no-callee-evidence
+60E0FC00,0x17A98,FUN_00017a98,engine_control_task2_irq_guard,0.6,"SR-guard wrapper called by engineControlTASK2(0x117C8): getSR(0x3920) with r4=0x10, jsr 0x187DC (addSaturate8Bit 0x2478 + readValue_8bit engine-control counter), setSR(0x3934) restore — atomic engine-control update."
+60E0FC00,0x1A710,FUN_0001a710,main_loop_irq_guarded_call,0.5,SR-guard wrapper called by someMainFunction(0x11540): getSR(0x3920) r4=0x10 -> jsr 0x3417E (fueling-region helper) -> setSR(0x3934); same template as 0x17A98/0x292F0/0x2AB10/0x3A174.
+60E0FC00,0x1B90C,FUN_0001b90c,mem_floattofp_1b90c,0.5,floatToFP_16bit_NUMBER_SCALAR_OFFSET
+60E0FC00,0x1EAD0,FUN_0001ead0,math_defaultval_1ead0,0.5,readValue_float_DEFAULTVAL_ADDRESS
+60E0FC00,0x292F0,FUN_000292f0,alternator_voltage_irq_guard,0.6,SR-guard wrapper called by bunchOFuncs(0x1194E): getSR(0x3920) r4=0x10 -> jsr 0x27DA8 (uses isNotZero_wDivideByZero_Protect 0x2440 + addSaturate8Bit — alternator voltage calc cluster) -> setSR(0x3934) restore.
+60E0FC00,0x2AB10,FUN_0002ab10,obd_can_tx_irq_guard,0.6,"SR-guard wrapper immediately after setOBDCANTXVars(0x2AAF2), called by FUN_00011b9a: getSR(0x3920) r4=0x10 -> jsr 0x2B156 (OBD/CAN TX region) -> setSR(0x3934) restore."
+60E0FC00,0x30586,FUN_00030586,diag_handler_30586,0.3,no-callee-evidence
+60E0FC00,0x3A174,FUN_0003a174,fuel_cut_reset_irq_guard,0.7,SR-guard wrapper called by FUN_00011ca2: getSR(0x3920) r4=0x10 -> jsr 0x49A8E resetFuelCutCondition7 -> setSR(0x3934) restore; atomic fuel-cut condition reset.
+60E0FC00,0x4C0DE,FUN_0004c0de,math_fixedpointtofloat_4c0de,0.5,fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x5E93C,FUN_0005e93c,diag_handler_5e93c,0.3,no-callee-evidence
+60E1D400,0x1BDF0,FUN_0x1BDF0,ctrl_handler_1bdf0,0.3,no-callee-evidence
+60E0FC00,0x125C,FUN_0000125c,ctrl_handler_125c,0.3,no-callee-evidence
+60E0FC00,0x1AC0,FUN_00001ac0,ctrl_handler_1ac0,0.3,no-callee-evidence
+60E0FC00,0xD3B8,FUN_0000d3b8,diag_handler_d3b8,0.3,no-callee-evidence
+60E0FC00,0xD716,FUN_0000d716,diag_handler_d716,0.3,no-callee-evidence
+60E0FC00,0x2BBD4,FUN_0002bbd4,math_fixedpointtofloat_2bbd4,0.5,fixedPointToFloat_8bit_MULT_OFF_SIG
+60E0FC00,0x54D6A,FUN_00054d6a,uds_getsecondaryairpumprequestformode22_54d6a,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x54E0C,FUN_00054e0c,diag_inttouds_54e0c,0.3,no-callee-evidence
+60E0FC00,0x54E22,FUN_00054e22,uds_getevappurgemode22_54e22,0.5,byteToUDS_SERVICE_DATA
+60E0FC00,0x54E64,FUN_00054e64,uds_getdistancesincemilclearedformode22_54e64,0.5,intToUDS_SERVICE_DATA
+60E0FC00,0x559E2,FUN_000559e2,ctrl_handler_559e2,0.3,no-callee-evidence
+60E0FC00,0x65F16,FUN_00065f16,ctrl_handler_65f16,0.3,no-callee-evidence
+60E0FC00,0x54D6,FUN_000054d6,math_handler_54d6,0.3,no-callee-evidence
+60E0FC00,0x17A24,FUN_00017a24,reset_init_read_values_chain,0.4,"Init chain called by resetFunc?(0x1107A): sequential jsr 0x16AC8 (readValue_float_DEFAULTVAL_ADDRESS 0x3E1AA), 0x17D30, tail-jmp 0x1896C (readValue_8bit 0x3E0DC + updateMemoryAtAddress_8bit 0x3E1F8) — early reset-time value read/init sequence."
+60E0FC00,0x25E88,FUN_00025e88,ctrl_handler_25e88,0.3,no-callee-evidence
+60E0FC00,0x38E5C,FUN_00038e5c,tire_size_checksum_init_chain,0.6,"Called by FUN_00011054: jsr getTireSizeChecksumthing?(0x524C0), 0x52502, tail-jmp 0x525A0 — same 3-callee chain as 0x3A10A/0x38E70 value-init cluster; tire-size checksum/init values."
+60E0FC00,0x3D726,FUN_0003d726,diag_handler_3d726,0.3,no-callee-evidence
+60E0FC00,0x54FD0,FUN_00054fd0,ctrl_getmode22engineload_54fd0,0.3,no-callee-evidence
+60E0FC00,0x5500C,FUN_0005500c,diag_handler_5500c,0.3,no-callee-evidence
+60E0FC00,0x55020,FUN_00055020,diag_handler_55020,0.3,no-callee-evidence
+60E0FC00,0x55034,FUN_00055034,diag_handler_55034,0.3,no-callee-evidence
+60E0FC00,0x55048,FUN_00055048,diag_handler_55048,0.3,no-callee-evidence
+60E0FC00,0x55070,FUN_00055070,diag_handler_55070,0.3,no-callee-evidence
+60E0FC00,0x55C00,FUN_00055c00,diag_handler_55c00,0.3,no-callee-evidence
+60E0FC00,0x55A0,FUN_000055a0,math_handler_55a0,0.3,no-callee-evidence
+60E0FC00,0x55B2,FUN_000055b2,math_handler_55b2,0.3,no-callee-evidence
+60E0FC00,0x55E8,FUN_000055e8,math_handler_55e8,0.3,no-callee-evidence
+60E0FC00,0x55FA,FUN_000055fa,math_handler_55fa,0.3,no-callee-evidence
+60E0FC00,0x560C,FUN_0000560c,math_handler_560c,0.3,no-callee-evidence
+60E0FC00,0x561E,FUN_0000561e,math_handler_561e,0.3,no-callee-evidence
+60E0FC00,0x127D6,FUN_000127d6,diag_handler_127d6,0.3,no-callee-evidence
+60E0FC00,0x1325C,FUN_0001325c,diag_handler_1325c,0.3,no-callee-evidence
+60E0FC00,0x2CD8A,FUN_0002cd8a,can_231_frame_tx_init_bytes,0.7,"CAN0 frame-0x231 TX prep called by can231TX_getAndPack(0x2CD2E) & calculateEngineTorqueWithTimingLoss(0x2D3B8): 0x2CD9C writes 0xFFFFBC95 (index math from flags 0xB580/0xB586), 0x2CDC8 zeros 0xFFFFBC96, 0x2CDD0 writes word 0xFFFF to 0xFFFFBC98, tail-jmp 0x2CDD8 zeros 0xFFFFBC9A; initializes the 5-byte 0x231 CAN TX buffer cells BC95..BC9A per CAN_UDS_SUBSYSTEM 0x231 dispatch."
+60E0FC00,0x4454C,FUN_0004454c,ctrl_handler_4454c,0.3,no-callee-evidence
+60E0FC00,0x53C92,FUN_00053c92,ctrl_handler_53c92,0.3,no-callee-evidence
+60E0FC00,0x67400,FUN_00067400,diag_handler_67400,0.3,no-callee-evidence
+60E1D400,0x21588,FUN_0x21588,ctrl_handler_21588,0.3,no-callee-evidence
+60E0FC00,0x3954,FUN_00003954,diag_handler_3954,0.3,no-callee-evidence
+60E0FC00,0x4BD4,FUN_00004bd4,ctrl_handler_4bd4,0.3,no-callee-evidence
+60E0FC00,0x5CD2,FUN_00005cd2,math_handler_5cd2,0.3,no-callee-evidence
+60E0FC00,0x5CEE,FUN_00005cee,diag_handler_5cee,0.3,no-callee-evidence
+60E0FC00,0x5D16,FUN_00005d16,math_handler_5d16,0.3,no-callee-evidence
+60E0FC00,0x5D26,FUN_00005d26,math_handler_5d26,0.3,no-callee-evidence
+60E0FC00,0x5D70,FUN_00005d70,math_handler_5d70,0.3,no-callee-evidence
+60E0FC00,0x5D80,FUN_00005d80,math_handler_5d80,0.3,no-callee-evidence
+60E0FC00,0x5D90,FUN_00005d90,math_handler_5d90,0.3,no-callee-evidence
+60E0FC00,0x5DA6,FUN_00005da6,math_handler_5da6,0.3,no-callee-evidence
+60E0FC00,0x5DB6,FUN_00005db6,math_handler_5db6,0.3,no-callee-evidence
+60E0FC00,0x5DC6,FUN_00005dc6,math_handler_5dc6,0.3,no-callee-evidence
+60E0FC00,0x5DDC,FUN_00005ddc,math_handler_5ddc,0.3,no-callee-evidence
+60E0FC00,0x5DEC,FUN_00005dec,math_handler_5dec,0.3,no-callee-evidence
+60E0FC00,0x5DFC,FUN_00005dfc,math_handler_5dfc,0.3,no-callee-evidence
+60E0FC00,0x5E12,FUN_00005e12,math_handler_5e12,0.3,no-callee-evidence
+60E0FC00,0x5E22,FUN_00005e22,math_handler_5e22,0.3,no-callee-evidence
+60E0FC00,0x5E32,FUN_00005e32,math_handler_5e32,0.3,no-callee-evidence
+60E0FC00,0x5E48,FUN_00005e48,math_handler_5e48,0.3,no-callee-evidence
+60E0FC00,0x5E58,FUN_00005e58,math_handler_5e58,0.3,no-callee-evidence
+60E0FC00,0x5E68,FUN_00005e68,math_handler_5e68,0.3,no-callee-evidence
+60E0FC00,0x5ECE,FUN_00005ece,math_handler_5ece,0.3,no-callee-evidence
+60E0FC00,0x5EDE,FUN_00005ede,math_handler_5ede,0.3,no-callee-evidence
+60E0FC00,0x9E58,FUN_00009e58,diag_handler_9e58,0.3,no-callee-evidence
+60E0FC00,0xE0E8,FUN_0000e0e8,diag_handler_e0e8,0.3,no-callee-evidence
+60E0FC00,0x567A0,FUN_000567a0,mem_readvalue_567a0,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5686A,FUN_0005686a,mem_readvalue_5686a,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56972,FUN_00056972,mem_readvalue_56972,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x569E0,FUN_000569e0,mem_readvalue_569e0,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56ABC,FUN_00056abc,mem_readvalue_56abc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56BD2,FUN_00056bd2,mem_readvalue_56bd2,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56D10,FUN_00056d10,mem_readvalue_56d10,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56F94,FUN_00056f94,mem_readvalue_56f94,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x570CC,FUN_000570cc,mem_readvalue_570cc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x571F2,FUN_000571f2,mem_readvalue_571f2,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x57202,FUN_00057202,diag_getknownbooleanvalue_57202,0.3,no-callee-evidence
+60E0FC00,0x573DC,FUN_000573dc,mem_readvalue_573dc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x57404,FUN_00057404,mem_readvalue_57404,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x57414,FUN_00057414,diag_getknownbooleanvalue_57414,0.3,no-callee-evidence
+60E0FC00,0x575C6,FUN_000575c6,mem_readvalue_575c6,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575EE,FUN_000575ee,mem_readvalue_575ee,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x59C72,FUN_00059c72,diag_e2intoram_59c72,0.3,no-callee-evidence
+60E0FC00,0x5426,FUN_00005426,math_handler_5426,0.3,no-callee-evidence
+60E0FC00,0x5474,FUN_00005474,math_handler_5474,0.3,no-callee-evidence
+60E0FC00,0x5482,FUN_00005482,math_handler_5482,0.3,no-callee-evidence
+60E0FC00,0x566C,FUN_0000566c,math_handler_566c,0.3,no-callee-evidence
+60E0FC00,0x578E,FUN_0000578e,math_handler_578e,0.3,no-callee-evidence
+60E0FC00,0x579C,FUN_0000579c,math_handler_579c,0.3,no-callee-evidence
+60E0FC00,0x57AA,FUN_000057aa,math_handler_57aa,0.3,no-callee-evidence
+60E0FC00,0x57B8,FUN_000057b8,math_handler_57b8,0.3,no-callee-evidence
+60E0FC00,0x58E0,FUN_000058e0,math_handler_58e0,0.3,no-callee-evidence
+60E0FC00,0x58EE,FUN_000058ee,math_handler_58ee,0.3,no-callee-evidence
+60E0FC00,0x58FC,FUN_000058fc,math_handler_58fc,0.3,no-callee-evidence
+60E0FC00,0x590A,FUN_0000590a,math_handler_590a,0.3,no-callee-evidence
+60E0FC00,0x5918,FUN_00005918,math_handler_5918,0.3,no-callee-evidence
+60E0FC00,0x5926,FUN_00005926,math_handler_5926,0.3,no-callee-evidence
+60E0FC00,0x596C,FUN_0000596c,math_handler_596c,0.3,no-callee-evidence
+60E0FC00,0x597A,FUN_0000597a,math_handler_597a,0.3,no-callee-evidence
+60E0FC00,0x5988,FUN_00005988,math_handler_5988,0.3,no-callee-evidence
+60E0FC00,0x5996,FUN_00005996,math_handler_5996,0.3,no-callee-evidence
+60E0FC00,0x5A22,FUN_00005a22,math_handler_5a22,0.3,no-callee-evidence
+60E0FC00,0x5A30,FUN_00005a30,math_handler_5a30,0.3,no-callee-evidence
+60E0FC00,0x5A3E,FUN_00005a3e,math_handler_5a3e,0.3,no-callee-evidence
+60E0FC00,0x5AC0,FUN_00005ac0,math_handler_5ac0,0.3,no-callee-evidence
+60E0FC00,0x5ACE,FUN_00005ace,math_handler_5ace,0.3,no-callee-evidence
+60E0FC00,0x5AEA,FUN_00005aea,math_handler_5aea,0.3,no-callee-evidence
+60E0FC00,0x5AF8,FUN_00005af8,math_handler_5af8,0.3,no-callee-evidence
+60E0FC00,0x5B06,FUN_00005b06,math_handler_5b06,0.3,no-callee-evidence
+60E0FC00,0x5B20,FUN_00005b20,math_handler_5b20,0.3,no-callee-evidence
+60E0FC00,0x5B2E,FUN_00005b2e,math_handler_5b2e,0.3,no-callee-evidence
+60E0FC00,0x5CC4,FUN_00005cc4,math_handler_5cc4,0.3,no-callee-evidence
+60E0FC00,0x64E8,FUN_000064e8,diag_taskendroutine_64e8,0.3,no-callee-evidence
+60E0FC00,0x65E8,FUN_000065e8,diag_taskendroutine_65e8,0.3,no-callee-evidence
+60E0FC00,0x17D30,FUN_00017d30,diag_handler_17d30,0.3,no-callee-evidence
+60E0FC00,0x1A340,FUN_0001a340,diag_getspeedlimitcal_1a340,0.3,no-callee-evidence
+60E0FC00,0x1A34E,FUN_0001a34e,coolant_iat_temp_adc_chain,0.7,Called by resetFunc?(0x1107A) & FUN_0001141c: jsr 0x19A24 (adcCoolantTemp2Volts bsr + coolantTempRAMWrite bsr) then tail-jmp 0x1C8B0 (adcIAT2Volts + 0x1C8FA) — coolant-temp then IAT A/D processing chain.
+60E0FC00,0x23FB4,FUN_00023fb4,diag_handler_23fb4,0.3,no-callee-evidence
+60E0FC00,0x23FE0,FUN_00023fe0,fault_condition_convert_update,0.6,Called by fault dispatchers FUN_00023e3c & FUN_00023e6c: jsr 0x240B8 (fixedPointToFloat_16bit 0x24C0 / 8bit 0x2500 conversions) then tail-jmp updateFaults???(0x247C2) which ends in updateFaultStatusTHUNK(0x5E644) — convert-and-update fault conditions.
+60E0FC00,0x25854,FUN_00025854,diag_handler_25854,0.3,no-callee-evidence
+60E0FC00,0x270DC,FUN_000270dc,alternator_voltage_control_chain,0.7,"Right after setAlternatorWarningLight(0x27084), called via bsr by getVehicleConditionforAlternatorControl(0x2639A): jsr 0x26018 (calculate12VBatteryTemperature + calcDesiredAlternatorVoltage) then tail-jmp 0x25EFC (setSR_PARAM/multiply32Bit alternator voltage calc) — desired alternator voltage computation chain."
+60E0FC00,0x31BE4,FUN_00031be4,diag_secondaryairrelated_31be4,0.3,no-callee-evidence
+60E0FC00,0x3F0FA,FUN_0003f0fa,cat_temp_float_store_chain,0.5,"Right after catTempRelated(0x3F0D6), called by FUN_0003e3f8 & FUN_0001141c: jsr 0x3E888 then tail-jmp 0x3E892, both updateMemoryAtAddress_float(0x3E258) — stores cat-temp float values to RAM."
+60E0FC00,0x5414C,FUN_0005414c,diag_handler_5414c,0.3,no-callee-evidence
+60E0FC00,0x554B6,FUN_000554b6,ctrl_handler_554b6,0.3,no-callee-evidence
+60E0FC00,0x55BB8,FUN_00055bb8,ctrl_handler_55bb8,0.3,no-callee-evidence
+60E0FC00,0x5A338,FUN_0005a338,mem_setsr_5a338,0.5,setSR
+60E0FC00,0x5C9F4,FUN_0005c9f4,mem_setsr_5c9f4,0.5,setSR
+60E0FC00,0x1090,FUN_00001090,ctrl_handler_1090,0.3,no-callee-evidence
+60E0FC00,0x53C6,FUN_000053c6,math_handler_53c6,0.3,no-callee-evidence
+60E0FC00,0x53D2,FUN_000053d2,math_handler_53d2,0.3,no-callee-evidence
+60E0FC00,0x53DE,FUN_000053de,math_handler_53de,0.3,no-callee-evidence
+60E0FC00,0x53EA,FUN_000053ea,math_handler_53ea,0.3,no-callee-evidence
+60E0FC00,0x5402,FUN_00005402,math_handler_5402,0.3,no-callee-evidence
+60E0FC00,0x540E,FUN_0000540e,math_handler_540e,0.3,no-callee-evidence
+60E0FC00,0x541A,FUN_0000541a,math_handler_541a,0.3,no-callee-evidence
+60E0FC00,0x549A,FUN_0000549a,math_handler_549a,0.3,no-callee-evidence
+60E0FC00,0x54A6,FUN_000054a6,math_handler_54a6,0.3,no-callee-evidence
+60E0FC00,0x54B2,FUN_000054b2,math_handler_54b2,0.3,no-callee-evidence
+60E0FC00,0x54BE,FUN_000054be,math_handler_54be,0.3,no-callee-evidence
+60E0FC00,0x54CA,FUN_000054ca,math_handler_54ca,0.3,no-callee-evidence
+60E0FC00,0x54EA,FUN_000054ea,math_handler_54ea,0.3,no-callee-evidence
+60E0FC00,0x54F6,FUN_000054f6,math_handler_54f6,0.3,no-callee-evidence
+60E0FC00,0x5502,FUN_00005502,math_handler_5502,0.3,no-callee-evidence
+60E0FC00,0x550E,FUN_0000550e,math_handler_550e,0.3,no-callee-evidence
+60E0FC00,0x551A,FUN_0000551a,math_handler_551a,0.3,no-callee-evidence
+60E0FC00,0x5526,FUN_00005526,math_handler_5526,0.3,no-callee-evidence
+60E0FC00,0x5532,FUN_00005532,math_handler_5532,0.3,no-callee-evidence
+60E0FC00,0x5630,FUN_00005630,math_handler_5630,0.3,no-callee-evidence
+60E0FC00,0x563C,FUN_0000563c,math_handler_563c,0.3,no-callee-evidence
+60E0FC00,0x5648,FUN_00005648,math_handler_5648,0.3,no-callee-evidence
+60E0FC00,0x5654,FUN_00005654,math_handler_5654,0.3,no-callee-evidence
+60E0FC00,0x5660,FUN_00005660,math_handler_5660,0.3,no-callee-evidence
+60E0FC00,0x5A4C,FUN_00005a4c,diag_handler_5a4c,0.3,no-callee-evidence
+60E0FC00,0x5B14,FUN_00005b14,diag_handler_5b14,0.3,no-callee-evidence
+60E0FC00,0x5CE2,FUN_00005ce2,math_handler_5ce2,0.3,no-callee-evidence
+60E0FC00,0x5CFE,FUN_00005cfe,diag_handler_5cfe,0.3,no-callee-evidence
+60E0FC00,0x5D0A,FUN_00005d0a,math_handler_5d0a,0.3,no-callee-evidence
+60E0FC00,0x5EBC,FUN_00005ebc,diag_handler_5ebc,0.3,no-callee-evidence
+60E0FC00,0x25DA0,FUN_00025da0,diag_handler_25da0,0.3,no-callee-evidence
+60E0FC00,0x43150,FUN_00043150,diag_handler_43150,0.3,no-callee-evidence
+60E0FC00,0x55BA0,FUN_00055ba0,ctrl_handler_55ba0,0.3,no-callee-evidence
+60E0FC00,0x55BAC,FUN_00055bac,ctrl_handler_55bac,0.3,no-callee-evidence
+60E0FC00,0x4812,FUN_00004812,ctrl_handler_4812,0.3,no-callee-evidence
+60E0FC00,0x5490,FUN_00005490,math_handler_5490,0.3,no-callee-evidence
+60E0FC00,0x6648,FUN_00006648,diag_handler_6648,0.3,no-callee-evidence
+60E0FC00,0x6652,FUN_00006652,diag_handler_6652,0.3,no-callee-evidence
+60E0FC00,0x6666,FUN_00006666,diag_handler_6666,0.3,no-callee-evidence
+60E0FC00,0x2A482,FUN_0002a482,diag_handler_2a482,0.3,no-callee-evidence
+60E0FC00,0x2A48C,FUN_0002a48c,diag_handler_2a48c,0.3,no-callee-evidence
+60E0FC00,0x2A496,FUN_0002a496,diag_handler_2a496,0.3,no-callee-evidence
+60E0FC00,0x2C0DC,FUN_0002c0dc,ctrl_handler_2c0dc,0.3,no-callee-evidence
+60E0FC00,0x2D57C,FUN_0002d57c,ctrl_handler_2d57c,0.3,no-callee-evidence
+60E0FC00,0x31DC0,FUN_00031dc0,diag_handler_31dc0,0.3,no-callee-evidence
+60E0FC00,0x32564,FUN_00032564,ctrl_handler_32564,0.3,no-callee-evidence
+60E0FC00,0x330B2,FUN_000330b2,ctrl_handler_330b2,0.3,no-callee-evidence
+60E0FC00,0x49DAC,FUN_00049dac,ctrl_handler_49dac,0.3,no-callee-evidence
+60E0FC00,0x575A4,FUN_000575a4,diag_updatememoryataddress_575a4,0.3,no-callee-evidence
+60E0FC00,0x5E266,FUN_0005e266,diag_handler_5e266,0.3,no-callee-evidence
+60E0FC00,0x4B7C,FUN_00004b7c,ctrl_handler_4b7c,0.3,no-callee-evidence
+60E0FC00,0x4BB4,FUN_00004bb4,ctrl_handler_4bb4,0.3,no-callee-evidence
+60E0FC00,0x4BCC,FUN_00004bcc,ctrl_handler_4bcc,0.3,no-callee-evidence
+60E0FC00,0x9C86,FUN_00009c86,diag_handler_9c86,0.3,no-callee-evidence
+60E0FC00,0x9C9C,FUN_00009c9c,diag_handler_9c9c,0.3,no-callee-evidence
+60E0FC00,0xB5FA,FUN_0000b5fa,diag_handler_b5fa,0.3,no-callee-evidence
+60E0FC00,0x2C2C8,FUN_0002c2c8,ctrl_handler_2c2c8,0.3,no-callee-evidence
+60E0FC00,0x2C5F0,FUN_0002c5f0,diag_validateaddresscopy_2c5f0,0.3,no-callee-evidence
+60E0FC00,0x2CDC8,FUN_0002cdc8,diag_handler_2cdc8,0.3,no-callee-evidence
+60E0FC00,0x2CDD0,FUN_0002cdd0,diag_handler_2cdd0,0.3,no-callee-evidence
+60E0FC00,0x2D5E4,FUN_0002d5e4,diag_validateaddresscopy_2d5e4,0.3,no-callee-evidence
+60E0FC00,0x3259C,FUN_0003259c,diag_updatememoryataddress_3259c,0.3,no-callee-evidence
+60E0FC00,0x35184,FUN_00035184,diag_updatememoryataddress_35184,0.3,no-callee-evidence
+60E0FC00,0x45F56,FUN_00045f56,diag_updatememoryataddress_45f56,0.3,no-callee-evidence
+60E0FC00,0x4773C,FUN_0004773c,diag_updatememoryataddress_4773c,0.3,no-callee-evidence
+60E0FC00,0x4C0D6,FUN_0004c0d6,diag_updatememoryataddress_4c0d6,0.3,no-callee-evidence
+60E0FC00,0x5124C,FUN_0005124c,diag_updatememoryataddress_5124c,0.3,no-callee-evidence
+60E0FC00,0x51880,FUN_00051880,mem_updatememoryataddress_51880,0.5,updateMemoryAtAddress_8bit_ADDR_VAL
+60E0FC00,0x56788,FUN_00056788,mem_readvalue_56788,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56790,FUN_00056790,mem_readvalue_56790,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56798,FUN_00056798,mem_readvalue_56798,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56852,FUN_00056852,mem_readvalue_56852,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5685A,FUN_0005685a,mem_readvalue_5685a,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56862,FUN_00056862,mem_readvalue_56862,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5695A,FUN_0005695a,mem_readvalue_5695a,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56962,FUN_00056962,mem_readvalue_56962,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5696A,FUN_0005696a,mem_readvalue_5696a,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x569C8,FUN_000569c8,mem_readvalue_569c8,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x569D0,FUN_000569d0,mem_readvalue_569d0,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x569D8,FUN_000569d8,mem_readvalue_569d8,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56AA4,FUN_00056aa4,mem_readvalue_56aa4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56AAC,FUN_00056aac,mem_readvalue_56aac,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56AB4,FUN_00056ab4,mem_readvalue_56ab4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56BBA,FUN_00056bba,mem_readvalue_56bba,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56BC2,FUN_00056bc2,mem_readvalue_56bc2,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56BCA,FUN_00056bca,mem_readvalue_56bca,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56CF8,FUN_00056cf8,mem_readvalue_56cf8,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56D00,FUN_00056d00,mem_readvalue_56d00,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x56D08,FUN_00056d08,mem_readvalue_56d08,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x570B4,FUN_000570b4,mem_readvalue_570b4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x570BC,FUN_000570bc,mem_readvalue_570bc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x570C4,FUN_000570c4,mem_readvalue_570c4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x571DA,FUN_000571da,mem_readvalue_571da,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x571E2,FUN_000571e2,mem_readvalue_571e2,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x571EA,FUN_000571ea,mem_readvalue_571ea,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573C4,FUN_000573c4,mem_readvalue_573c4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573CC,FUN_000573cc,mem_readvalue_573cc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573D4,FUN_000573d4,mem_readvalue_573d4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573EC,FUN_000573ec,mem_readvalue_573ec,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573F4,FUN_000573f4,mem_readvalue_573f4,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x573FC,FUN_000573fc,mem_readvalue_573fc,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575AE,FUN_000575ae,mem_readvalue_575ae,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575B6,FUN_000575b6,mem_readvalue_575b6,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575BE,FUN_000575be,mem_readvalue_575be,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575D6,FUN_000575d6,mem_readvalue_575d6,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575DE,FUN_000575de,mem_readvalue_575de,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x575E6,FUN_000575e6,mem_readvalue_575e6,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5771E,FUN_0005771e,mem_readvalue_5771e,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x57726,FUN_00057726,mem_readvalue_57726,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x5772E,FUN_0005772e,mem_readvalue_5772e,0.5,readValue_16bit_ADDRESS_VAL
+60E0FC00,0x57B5C,FUN_00057b5c,diag_handler_57b5c,0.3,no-callee-evidence
+60E0FC00,0x5DA0,FUN_00005da0,math_handler_5da0,0.3,no-callee-evidence
+60E0FC00,0x5DD6,FUN_00005dd6,math_handler_5dd6,0.3,no-callee-evidence
+60E0FC00,0x5E0C,FUN_00005e0c,math_handler_5e0c,0.3,no-callee-evidence
+60E0FC00,0x5E42,FUN_00005e42,math_handler_5e42,0.3,no-callee-evidence
+60E0FC00,0x5EC8,FUN_00005ec8,math_handler_5ec8,0.3,no-callee-evidence
+60E0FC00,0x74DA,FUN_000074da,diag_handler_74da,0.3,no-callee-evidence
+60E0FC00,0x533F4,FUN_000533f4,uds_handler_533f4,0.3,no-callee-evidence
+60E0FC00,0x533FA,FUN_000533fa,uds_handler_533fa,0.3,no-callee-evidence
+60E0FC00,0x55E5C,FUN_00055e5c,ctrl_handler_55e5c,0.3,no-callee-evidence
+60E0FC00,0x55E62,FUN_00055e62,ctrl_handler_55e62,0.3,no-callee-evidence
+60E0FC00,0x5973E,FUN_0005973e,ctrl_handler_5973e,0.3,no-callee-evidence
+60E0FC00,0x770C7,FUN_000770c7,ctrl_handler_770c7,0.3,no-callee-evidence
+60E1D400,0x1019C,FUN_0x1019C,ctrl_handler_1019c,0.3,no-callee-evidence
+60E0FC00,0x3DAC,FUN_00003dac,diag_handler_3dac,0.3,no-callee-evidence
+60E0FC00,0x5036,FUN_00005036,diag_handler_5036,0.3,no-callee-evidence
+60E0FC00,0x505A,FUN_0000505a,diag_handler_505a,0.3,no-callee-evidence
+60E0FC00,0x6842,FUN_00006842,diag_handler_6842,0.3,no-callee-evidence
+60E0FC00,0x11C6A,FUN_00011c6a,diag_handler_11c6a,0.3,no-callee-evidence
+60E0FC00,0x11C6E,FUN_00011c6e,diag_handler_11c6e,0.3,no-callee-evidence
+60E0FC00,0x11CD4,FUN_00011cd4,diag_handler_11cd4,0.3,no-callee-evidence
+60E0FC00,0x11CD8,FUN_00011cd8,diag_handler_11cd8,0.3,no-callee-evidence
+60E0FC00,0x11CE0,FUN_00011ce0,diag_handler_11ce0,0.3,no-callee-evidence
+60E0FC00,0x11F3C,FUN_00011f3c,diag_handler_11f3c,0.3,no-callee-evidence
+60E0FC00,0x554B2,FUN_000554b2,ctrl_handler_554b2,0.3,no-callee-evidence
+60E0FC00,0x566BC,FUN_000566bc,ctrl_handler_566bc,0.3,no-callee-evidence
+60E0FC00,0x566C0,FUN_000566c0,ctrl_handler_566c0,0.3,no-callee-evidence
+60E0FC00,0x566C8,FUN_000566c8,ctrl_handler_566c8,0.3,no-callee-evidence
+60E0FC00,0x59F3C,FUN_00059f3c,ctrl_handler_59f3c,0.3,no-callee-evidence
+60E0FC00,0x54D12,FUN_00054d12,ctrl_handler_54d12,0.3,no-callee-evidence
+60E0FC00,0x770CD,FUN_000770cd,ctrl_handler_770cd,0.3,no-callee-evidence
+60E0FC00,0x66B2,thunk_FUN_00011c6e,diag_thunk_66b2,0.3,thunk_FUN_00011c6e
+60E0FC00,0x5E78,thunk_FUN_00009c86,diag_thunk_5e78,0.3,thunk_FUN_00009c86
+60E0FC00,0x5EEE,thunk_FUN_00009c86,diag_thunk_5eee,0.3,thunk_FUN_00009c86
+60E0FC00,0x66AC,thunk_FUN_00011c6a,diag_thunk_66ac,0.3,thunk_FUN_00011c6a
+60E0FC00,0x66A6,thunk_FUN_00011f3c,diag_thunk_66a6,0.3,thunk_FUN_00011f3c
+60E0FC00,0x67666,thunk_FUN_00052b8c,diag_thunk_67666,0.3,thunk_FUN_00052b8c
+60E0FC00,0x5A1E,thunk_FUN_00005348,diag_thunk_5a1e,0.3,thunk_FUN_00005348
+60E0FC00,0x48184,thunk_FUN_0004819e,diag_thunk_48184,0.3,thunk_FUN_0004819e
+60E0FC00,0x5E69E,thunk_FUN_0005eaa2,diag_thunk_5e69e,0.3,thunk_FUN_0005eaa2
