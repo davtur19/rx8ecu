@@ -1,15 +1,13 @@
 # Findings
 
 ## CORRECTION: fcmp/gt operand order (the old "emulator bug fix" note was FALSE)
-- The emulator's `fcmp/gt` semantics in `tools/sh2emu.py` — T = 1 iff **FRn > FRm**
-  (code `f[n] > f[m]`) — were ALWAYS correct and match the Renesas SH-2E manual,
-  Ghidra's SuperH4 sleigh, and QEMU's sh4 translate.c (`fcmp/gt Fm,Fn` → `f[n] > f[m]`).
-- The previously recorded "operand order bug fix" was NEVER made: `tools/sh2emu.py`
-  was not changed, and the old note described the OPPOSITE of the hardware.
-- The real bug was in the test/C-model expectations: `calc_lambda_integration_time`
-  (0x1418C) does `fcmp/gt fr2,fr3` with fr3=2.5 (threshold) and fr2=signal, so
-  T=(2.5 > signal); `bt` → countdown when signal < 2.5, fall-through → reload to 7
-  when signal >= 2.5. The old tests/C model had the branches inverted.
+- `tools/sh2emu.py` `fcmp/gt`: T = 1 iff **FRn > FRm** (`f[n] > f[m]`) — ALWAYS
+  correct; matches Renesas SH-2E manual, Ghidra SuperH4 sleigh, QEMU sh4 translate.c
+  (`fcmp/gt Fm,Fn` → `f[n] > f[m]`). The recorded "operand order bug fix" was NEVER
+  made (sh2emu.py unchanged; the old note described the opposite of the hardware).
+- Real bug = test/C-model branch inversion in `calc_lambda_integration_time`
+  (0x1418C): `fcmp/gt fr2,fr3`, fr3=2.5 (threshold), fr2=signal → T=(2.5 > signal);
+  `bt` → countdown when signal < 2.5, fall-through → reload to 7 when signal >= 2.5.
   Fixed 2026-07-31: test_o2_lambda.py expectations + o2_lambda_subsystem.c.
 
 ## On‑chip RAM Address Sign‑Extension
@@ -106,10 +104,8 @@
   VFAD solenoid control (reads VFAD open-threshold + hysteresis cal, sets
   F754 bit 0x400); stock has NO launch control, a tuned mod repurposes
   that bit.
-- fcmp/gt operand order: the emulator computes T = FRn > FRm (code
-  `f[n] > f[m]`), so disassembly `fcmp/gt fr4,fr6` = "5250 > boost". The
-  FINDINGS note "fcmp/gt Fm,Fn compares Fm > Fn" is misleading — trust the
-  emulator code.
+- fcmp/gt operand order (see top correction): disassembly `fcmp/gt fr4,fr6` =
+  "5250 > boost" (T = FRn > FRm).
 - `pressure_delta_monitor_1AED2` (0x1AED2, formerly `aux_fan_control_task`): boost filter RAM[C008] (0.7, eps 1e-5,
   firstOrderFilter @0x32F42) -> delta control RAM[BD3C]=(C008-BD40)*15.625
   (@0x2DD6E) -> error filter RAM[BD38] (0.5, 1e-5, @0x2DD88) -> fixed 6-copy
@@ -459,8 +455,7 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   preloaded with 0x08). 5000 host tests OK.
 - All five verified against the ROM in the SH-2E emulator first (targeted +
   random), then as host-C mmap companions with matching reference models;
-  0 mismatches everywhere. `make c-test` not yet re-run after these additions
-  (auto-discovers test_*.c) — run at the end of the OBD batch.
+  0 mismatches everywhere.
 
 ## Track A session 8 cont.: idx_table + req_queue families, setSR tail-call
 
@@ -492,12 +487,10 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   machinery, out of scope). getSR (0x3920) and
   setSR_PARAM (0x2054) also verified (20000 random each). SR accessors are
   emulator-only (no host C test: the lift's SR is a private file-scoped var).
-- **Fixes during verification**: (1) my initial step model had the comparison
-  inverted — 0x3013 decodes as n=(op>>8)&0xF=0 (r0), m=(op>>4)&0xF=1 (r1), so
-  cmp/ge r1,r0 => T=(r0>=r1), i.e. the counter RESETS when word@p+4 >= 0x0464
-  (count-up), not below it. (2) host test seeding must use host-endian
-  *(volatile uint16_t*) writes to match the lift, not big-endian byte writes.
-  Both caught by the emulator-first workflow.
+- **Verification gotchas**: 0x3013 decodes n=(op>>8)&0xF=0 (r0), m=(op>>4)&0xF=1
+  (r1) → cmp/ge r1,r0 ⇒ T=(r0>=r1): counter RESETS when word@p+4 >= 0x0464
+  (count-up), not below it. Host test seeding must use host-endian
+  *(volatile uint16_t*) writes (not big-endian byte writes).
 
 ## fuelingInit @ 0x753C reconstructed + Track-A verified (2026-08-02)
 - New reconstructed sample `reconstructed/samples/src/rx8_fueling_init.c`
@@ -623,7 +616,7 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool:
   confirming 0x46CC is a SQUARE ROOT (frexp 0x48C8 -> sqrt 0x4740 -> ldexp
   0x481C) that also flags Inf/NaN inputs by writing a fault code (0x044D
   NaN / 0x044C Inf) to byte 0xFFFF768C.
-- Regression: full suite 203/203 passed (1910s), `make test` green.
+- Regression: full suite 203/203 passed, `make test` green.
 
 ## 0x481C — ldexp-style float reconstruction (2026-08-04)
 - Third stage of the `frexp 0x48C8 -> sqrt 0x4740 -> ldexp 0x481C` chain,

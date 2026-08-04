@@ -843,13 +843,13 @@ The dwell (coil charge time) is computed from:
 ### 6.2 `getIgnitionDwellTime` (0x9490)
 
 ```
-dwell_time = ThreeDLookup(table_0x69F30, rpm, battery_voltage)
+dwell_time = ThreeDLookup(table_dwell, rpm, battery_voltage)   // dwell desc 0x6C1C0, dati 0x7CB20 (NON 0x69F30, che è MinSplit)
 dwell_time = dwell_time + offset(0xFFFFA0D6)
 if (dwell_time > 0xFFFF) dwell_time = 0xFFFF  // clamp
 store to 0xFFFFA0D4
 ```
 
-The 3D table at **0x69F30** maps RPM × battery voltage to dwell time in timer ticks.
+**0x69F30** = **MinSplit** (3D lookup, verificato) — non è la tabella del dwell. Il dwell usa il desc **0x6C1C0** (dati **0x7CB20**).
 
 ### 6.3 `outputPerRotorIgnitionDwell` (0x11218)
 
@@ -892,7 +892,7 @@ The following calibration data structures are referenced by the ignition subsyst
 | 0x6D5C8 | Ignition Temp Correction? | ECT-based timing correction |
 | 0x6F2EC | Ignition Min Split | Minimum leading-trailing split angle |
 | 0x6B68C | RPM Correction (in code) | RPM-based knock/temp correction |
-| 0x69F30 | Dwell Table (in code) | RPM × Battery voltage dwell lookup |
+| 0x69F30 | MinSplit (3D lookup, verificato) | ThreeD(load, RPM) min lead-trail split |
 | 0x7CB20 | Ignition Dwell Time_ | Dwell calibration constants |
 
 ### 7.3 Boundary Tables
@@ -1010,7 +1010,7 @@ The table lookup functions at 0x2068 (1D) and 0x20DC (3D) use **linear interpola
 | Address | Name | Format | Description |
 |---------|------|--------|-------------|
 | 0x06B68C | RPM correction | 1D (RPM) | Knock/temp RPM correction |
-| 0x069F30 | Dwell time | 3D (RPM × BattV) | Base dwell lookup |
+| 0x069F30 | MinSplit | 3D (load × RPM) | Min lead-trail split (3D lookup, verificato) |
 | 0x06DB48 | Leading base | 3D (RPM × Load) | Main leading advance |
 | 0x06D948 | Leading safe | 3D (RPM × Load) | Safe-mode leading advance |
 | 0x06EEEC | Trailing B | 3D (RPM × Load) | Rotor 2 trailing advance |
