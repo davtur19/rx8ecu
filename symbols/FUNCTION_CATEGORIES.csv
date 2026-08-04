@@ -1693,7 +1693,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x1EDB0,multi_sensor_fault_check_1EDB0,Faults & DTC,1.000,name
 60E0FC00,0x1EEA8,math_ltftrelated_1eea8,Other / Unclassified,0.000,none
 60E1D400,0x1EFB4,ram_address_setup_1EFB4,Memory & CRC,1.000,name
-60E1D400,0x1EFCC,mem_output_1efcc,Other / Unclassified,0.000,none
+60E1D400,0x1EFCC,fuel_coldstart_cell_loop_write,Other / Unclassified,0.000,none
 60E1D400,0x1F014,fuel_output_1f014,Other / Unclassified,0.000,none
 60E1D400,0x1F078,sensor_validation_monitor_1F078,Sensors,1.000,name
 60E0FC00,0x1F2A2,getMAFOpertionRange,Sensors,1.000,name
@@ -2065,7 +2065,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x27C82,FUN_00027c82,Math / FPU,1.000,graph
 60E0FC00,0x27CA4,calculateEngineNotLeanCounter,Peripherals & ISR,1.000,name
 60E0FC00,0x27CD8,FUN_00027cd8,Math / FPU,1.000,graph
-60E1D400,0x27D12,math_update_27d12,Other / Unclassified,0.000,none
+60E1D400,0x27D12,timer_engoff_counter_reload,Other / Unclassified,0.000,none
 60E0FC00,0x27D38,FUN_00027d38,Math / FPU,1.000,graph
 60E0FC00,0x27DA8,aux_condition_duration_counters,Other / Unclassified,0.000,none
 60E1D400,0x27DD2,saturated_decrement_27DD2,Math / FPU,1.000,name
@@ -2103,7 +2103,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x28AF2,bilinear_interpolate_28AF2,Math / FPU,1.000,name
 60E0FC00,0x28BE8,FUN_00028be8,Faults & DTC,1.000,graph
 60E0FC00,0x28CC4,FUN_00028cc4,Math / FPU,1.000,graph
-60E1D400,0x28CD8,fuel_element_28cd8,Other / Unclassified,0.000,none
+60E1D400,0x28CD8,eshaft_learn_state_update,Other / Unclassified,0.000,none
 60E0FC00,0x28D74,FUN_00028d74,Math / FPU,1.000,graph
 60E1D400,0x28DA0,math_conditional_28da0,Other / Unclassified,0.000,none
 60E0FC00,0x28DCC,FUN_00028dcc,Faults & DTC,1.000,graph
@@ -2252,7 +2252,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x2A314,ram_byte_copy_2A314,Memory & CRC,1.000,name
 60E0FC00,0x2A31C,FUN_0002a31c,CAN Bus,1.000,graph
 60E1D400,0x2A31E,ram_byte_copy_2A31E,Memory & CRC,1.000,name
-60E1D400,0x2A360,sensor_bitfield_2a360,Other / Unclassified,0.000,none
+60E1D400,0x2A360,sensor_status_byte_pack,Other / Unclassified,0.000,none
 60E0FC00,0x2A372,FUN_0002a372,Throttle & Torque,0.850,cal
 60E0FC00,0x2A3DC,FUN_0002a3dc,CAN Bus,1.000,graph
 60E0FC00,0x2A3E2,can251TX_getAndPack,CAN Bus,1.000,name
@@ -2581,7 +2581,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x2F728,uds_threshold_2f728,Other / Unclassified,0.000,none
 60E0FC00,0x2F764,calcFanControlFaultRelated_MAYBE,Faults & DTC,1.000,name
 60E1D400,0x2F830,math_threshold_2f830,Other / Unclassified,0.000,none
-60E1D400,0x2F9A8,math_accumulate_2f9a8,Other / Unclassified,0.000,none
+60E1D400,0x2F9A8,aux_monitor_confirm_counter,Other / Unclassified,0.000,none
 60E0FC00,0x2F9D2,calcFan1Control,Sensors,0.850,cal
 60E1D400,0x2FA66,complex_fpu_calculations_thresholds_2FA66,Math / FPU,1.000,name
 60E0FC00,0x2FB14,calcFan2Control,Sensors,0.850,cal
@@ -2636,7 +2636,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x309AC,conditional_fpu_threshold_increment_309AC,Math / FPU,1.000,name
 60E1D400,0x30A7C,mem_flag_30a7c,Other / Unclassified,0.000,none
 60E1D400,0x30A84,counter_init_30A84,Boot & Init,1.000,name
-60E1D400,0x30A8C,math_accumulate_30a8c,Other / Unclassified,0.000,none
+60E1D400,0x30A8C,aux_idle_debounce_accumulate,Other / Unclassified,0.000,none
 60E0FC00,0x30B14,diagCrankingInjectorPulseAdder?,Faults & DTC,1.000,name
 60E1D400,0x30B38,counter_limit_check_30B38,Rev Limit,1.000,name
 60E1D400,0x30B84,fpu_interpolation_calc_30B84,Math / FPU,1.000,name
@@ -2780,7 +2780,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x33A60,counter_reset_simple_33A60,Boot & Init,1.000,name
 60E1D400,0x33A68,can620Pack,CAN Bus,1.000,name
 60E1D400,0x33A8E,math_bitfield_33a8e,Other / Unclassified,0.000,none
-60E1D400,0x33A98,math_bitfield_33a98,Other / Unclassified,0.000,none
+60E1D400,0x33A98,can620_priority_decode_pack,Other / Unclassified,0.000,none
 60E1D400,0x33B9C,port_byte_copy_simple_33B9C,Memory & CRC,1.000,name
 60E1D400,0x33BA0,table_lookup_conditional_dispatch_33BA0,Math / FPU,1.000,name
 60E1D400,0x33BCA,can430rx_unpack,CAN Bus,1.000,name
@@ -2957,9 +2957,9 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x371EC,immo_post_unlock_response_1,Other / Unclassified,0.000,none
 60E0FC00,0x372B8,FUN_000372b8,OBD / UDS,1.000,graph
 60E1D400,0x37328,timer_xor_shift_operation_37328,Peripherals & ISR,1.000,name
-60E1D400,0x37348,math_dispatcher_37348,Other / Unclassified,0.000,none
+60E1D400,0x37348,immo_eeprom_write_request_02,Other / Unclassified,0.000,none
 60E0FC00,0x3735C,immo_post_unlock_response_2,Other / Unclassified,0.000,none
-60E1D400,0x373C2,math_dispatcher_373c2,Other / Unclassified,0.000,none
+60E1D400,0x373C2,immo_eeprom_write_request_01,Other / Unclassified,0.000,none
 60E0FC00,0x373FE,ModeB1UDSFunc,OBD / UDS,1.000,name
 60E0FC00,0x374CE,afterImmo_6,Other / Unclassified,0.000,none
 60E1D400,0x374DE,fpu_threshold_state_coordinator_374DE,Math / FPU,1.000,name
@@ -2975,12 +2975,12 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x377FE,FUN_000377fe,OBD / UDS,1.000,graph
 60E0FC00,0x37854,afterImmo_5,Other / Unclassified,0.000,none
 60E0FC00,0x378D6,FUN_000378d6,OBD / UDS,1.000,graph
-60E1D400,0x378DA,math_dispatcher_378da,Other / Unclassified,0.000,none
-60E1D400,0x37980,math_dispatcher_37980,Other / Unclassified,0.000,none
+60E1D400,0x378DA,immo_eeprom_write_request_09,Other / Unclassified,0.000,none
+60E1D400,0x37980,immo_eeprom_write_request_08,Other / Unclassified,0.000,none
 60E0FC00,0x379AC,immo_post_unlock_response_7,Other / Unclassified,0.000,none
-60E1D400,0x379FA,math_dispatcher_379fa,Other / Unclassified,0.000,none
+60E1D400,0x379FA,immo_eeprom_write_request_0e,Other / Unclassified,0.000,none
 60E0FC00,0x37A78,FUN_00037a78,OBD / UDS,1.000,graph
-60E1D400,0x37AB0,math_dispatcher_37ab0,Other / Unclassified,0.000,none
+60E1D400,0x37AB0,immo_eeprom_write_request_0f,Other / Unclassified,0.000,none
 60E1D400,0x37B2A,timer_encoder_setup_37B2A,Peripherals & ISR,1.000,name
 60E1D400,0x37B70,math_register_37b70,Other / Unclassified,0.000,none
 60E1D400,0x37B88,fuel_dispatcher_37b88,Other / Unclassified,0.000,none
@@ -3233,13 +3233,13 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x3D920,FUN_0003d920,Math / FPU,0.850,cal
 60E0FC00,0x3D92A,FUN_0003d92a,Math / FPU,0.850,cal
 60E0FC00,0x3D96E,FUN_0003d96e,Math / FPU,0.850,cal
-60E1D400,0x3D9EE,sensor_monitor_3d9ee,Other / Unclassified,0.000,none
+60E1D400,0x3D9EE,sensor_delta_monitor_flags,Other / Unclassified,0.000,none
 60E0FC00,0x3DA44,FUN_0003da44,Faults & DTC,1.000,graph
 60E0FC00,0x3DA78,FUN_0003da78,Boot & Init,1.000,graph
 60E0FC00,0x3DA9A,FUN_0003da9a,Faults & DTC,1.000,graph
 60E1D400,0x3DAE4,isr_reporter_3dae4,Other / Unclassified,0.000,none
 60E1D400,0x3DAFA,diag_health_3dafa,Other / Unclassified,0.000,none
-60E1D400,0x3DB26,fuel_control_3db26,Other / Unclassified,0.000,none
+60E1D400,0x3DB26,dtc_status_write_pair_0f16,Other / Unclassified,0.000,none
 60E1D400,0x3DB82,fuel_table_lookup_compare_3DB82,Fuel & Lambda,1.000,name
 60E0FC00,0x3DBB4,FUN_0003dbb4,Faults & DTC,1.000,graph
 60E1D400,0x3DBCC,diag_safety_3dbcc,Other / Unclassified,0.000,none
@@ -3280,17 +3280,17 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x3E510,diag_encoder_3e510,Other / Unclassified,0.000,none
 60E1D400,0x3E53C,mem_header_3e53c,Other / Unclassified,0.000,none
 60E1D400,0x3E580,mem_checker_3e580,Other / Unclassified,0.000,none
-60E1D400,0x3E58A,isr_checker_3e58a,Other / Unclassified,0.000,none
+60E1D400,0x3E58A,o2_boost_cond_timer_countdown,Other / Unclassified,0.000,none
 60E0FC00,0x3E5A8,SetMemoryNotValid2??,Memory & CRC,1.000,name
 60E0FC00,0x3E5B0,FUN_0003e5b0,Memory & CRC,0.611,graph
-60E1D400,0x3E5CE,value_calculator_3E5CE,Other / Unclassified,0.000,none
+60E1D400,0x3E5CE,fuel_o2_warmup_condition,Other / Unclassified,0.000,none
 60E1D400,0x3E6A4,offset_calculator_3E6A4,Other / Unclassified,0.000,none
 60E1D400,0x3E6D8,scale_converter_3E6D8,Math / FPU,1.000,name
 60E1D400,0x3E6FA,complex_calc_3E6FA,Other / Unclassified,0.000,none
 60E0FC00,0x3E78C,FUN_0003e78c,Ignition & Knock,0.632,graph
 60E0FC00,0x3E7B0,FUN_0003e7b0,Faults & DTC,1.000,graph
 60E0FC00,0x3E80C,FUN_0003e80c,Faults & DTC,1.000,graph
-60E1D400,0x3E814,multi_stage_calc_3E814,Other / Unclassified,0.000,none
+60E1D400,0x3E814,diag_emission_monitor_state,Other / Unclassified,0.000,none
 60E0FC00,0x3E868,FUN_0003e868,Faults & DTC,1.000,graph
 60E0FC00,0x3E870,FUN_0003e870,Faults & DTC,1.000,graph
 60E0FC00,0x3E880,FUN_0003e880,Faults & DTC,1.000,graph
@@ -3308,7 +3308,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x3EAFC,calcEstimatedCatTemp,Sensors,1.000,name
 60E1D400,0x3EB3C,ign_processor_3eb3c,Other / Unclassified,0.000,none
 60E1D400,0x3EC42,obd_svc_dispatcher_3EC42,OBD / UDS,1.000,name
-60E1D400,0x3EC6E,sensor_dispatcher_3ec6e,Other / Unclassified,0.000,none
+60E1D400,0x3EC6E,dtc_status_write_pair_4873,Other / Unclassified,0.000,none
 60E1D400,0x3ECDC,fault_code_dispatcher_3ECDC,Faults & DTC,1.000,name
 60E0FC00,0x3ED02,getCatTempConditional,Sensors,1.000,name
 60E1D400,0x3ED0C,sensor_range_check_3ED0C,Sensors,1.000,name
@@ -4139,7 +4139,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x4EF24,combustion_monitor_update_0x4EF24,Other / Unclassified,0.000,none
 60E0FC00,0x4EF76,FUN_0004ef76,Faults & DTC,1.000,graph
 60E1D400,0x4EF98,load_float_constant_0x4EF98,Math / FPU,1.000,name
-60E1D400,0x4EFA2,sensor_manager_4efa2,Other / Unclassified,0.000,none
+60E1D400,0x4EFA2,timer_state_debounce_latch,Other / Unclassified,0.000,none
 60E0FC00,0x4EFBC,FUN_0004efbc,Boot & Init,1.000,graph
 60E0FC00,0x4F016,FUN_0004f016,Memory & CRC,1.000,graph
 60E0FC00,0x4F028,FUN_0004f028,Ignition & Knock,1.000,graph
@@ -4259,7 +4259,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x50F76,FUN_00050f76,Faults & DTC,1.000,graph
 60E0FC00,0x50FD8,FUN_00050fd8,Faults & DTC,1.000,graph
 60E1D400,0x50FFC,sensor_readiness_50ffc,Other / Unclassified,0.000,none
-60E1D400,0x510A4,diag_routine_510a4,Other / Unclassified,0.000,none
+60E1D400,0x510A4,ign_cold_start_corr_write,Other / Unclassified,0.000,none
 60E0FC00,0x510E8,FUN_000510e8,Faults & DTC,1.000,graph
 60E0FC00,0x51132,FUN_00051132,Faults & DTC,1.000,graph
 60E1D400,0x51188,data_logger_0x51188,Utilities,1.000,name
@@ -4306,7 +4306,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x51958,FUN_00051958,Memory & CRC,1.000,graph
 60E0FC00,0x51960,FUN_00051960,Ignition & Knock,1.000,graph
 60E0FC00,0x51968,fault_counter_clear,Other / Unclassified,0.000,none
-60E1D400,0x51990,mem_test_0x51990,Other / Unclassified,0.000,none
+60E1D400,0x51990,ign_timing_correction_calc,Other / Unclassified,0.000,none
 60E1D400,0x51A86,eeprom_manager_0x51A86,Memory & CRC,1.000,name
 60E0FC00,0x51AAE,FUN_00051aae,Memory & CRC,1.000,graph
 60E0FC00,0x51ACC,FUN_00051acc,Ignition & Knock,1.000,graph
@@ -4383,7 +4383,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x52854,FUN_00052854,Memory & CRC,1.000,graph
 60E0FC00,0x5285C,FUN_0005285c,Ignition & Knock,1.000,graph
 60E0FC00,0x52864,FUN_00052864,Faults & DTC,0.630,graph
-60E1D400,0x52898,mem_manager_52898,Other / Unclassified,0.000,none
+60E1D400,0x52898,mem_counter_delta_error_latch,Other / Unclassified,0.000,none
 60E0FC00,0x528C4,set_CAN_fault???,Faults & DTC,1.000,name
 60E0FC00,0x528DA,updateCANFaults,Faults & DTC,1.000,name
 60E1D400,0x528EA,queue_handler_0x528EA,RTOS,1.000,name
@@ -4419,8 +4419,8 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x53124,FUN_00053124,OBD / UDS,1.000,graph
 60E0FC00,0x53144,diag_handler_53144,Other / Unclassified,0.000,none
 60E0FC00,0x53164,FUN_00053164,OBD / UDS,0.643,graph
-60E1D400,0x5316A,mem_zero_0x5316A,Other / Unclassified,0.000,none
-60E1D400,0x531EA,mem_set_0x531EA,Other / Unclassified,0.000,none
+60E1D400,0x5316A,diag_monitor_flag_pair_write,Other / Unclassified,0.000,none
+60E1D400,0x531EA,mem_enable_flag_and_gate,Other / Unclassified,0.000,none
 60E1D400,0x532A0,mem_compare_0x532A0,Other / Unclassified,0.000,none
 60E0FC00,0x532A2,diag_getcommandedlamdaobd_532a2,Other / Unclassified,0.000,none
 60E1D400,0x532CC,init_string_532cc,Other / Unclassified,0.000,none
@@ -4494,13 +4494,13 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x53CF8,FUN_00053cf8,Faults & DTC,1.000,graph
 60E1D400,0x53CFC,can_bitfield_53cfc,Other / Unclassified,0.000,none
 60E1D400,0x53D04,math_bitfield_53d04,Other / Unclassified,0.000,none
-60E1D400,0x53D0C,util_bitfield_53d0c,Other / Unclassified,0.000,none
+60E1D400,0x53D0C,fuel_closed_loop_confirm_ctr,Other / Unclassified,0.000,none
 60E0FC00,0x53D22,FUN_00053d22,OBD / UDS,1.000,graph
 60E0FC00,0x53D98,OBDModeFunc_Unsure,OBD / UDS,1.000,name
 60E1D400,0x53DCC,util_bitfield_53dcc,Other / Unclassified,0.000,none
-60E1D400,0x53DD6,rtos_count_53dd6,Other / Unclassified,0.000,none
+60E1D400,0x53DD6,boost_timer_latch,Other / Unclassified,0.000,none
 60E0FC00,0x53E34,getCalID,Memory & CRC,1.000,graph
-60E1D400,0x53E38,can_rotate_53e38,Other / Unclassified,0.000,none
+60E1D400,0x53E38,mem_cellflag_reset_on_enable,Other / Unclassified,0.000,none
 60E0FC00,0x53EF6,FUN_00053ef6,Memory & CRC,1.000,graph
 60E0FC00,0x53FA4,calculateDiagSessionConditional,Faults & DTC,1.000,name
 60E1D400,0x53FAA,lut_lookup_0x53FAA,Math / FPU,1.000,name
@@ -4508,14 +4508,14 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x53FCC,runSubfunction??,OBD / UDS,1.000,graph
 60E0FC00,0x54000,FUN_00054000,OBD / UDS,1.000,graph
 60E0FC00,0x54008,FUN_00054008,Utilities,1.000,graph
-60E1D400,0x5405C,diag_extract_5405c,Other / Unclassified,0.000,none
+60E1D400,0x5405C,mem_cellflag_sensor_cond_write,Other / Unclassified,0.000,none
 60E0FC00,0x5405E,calculateDiagModeTimer,Faults & DTC,1.000,name
 60E0FC00,0x540C8,FUN_000540c8,OBD / UDS,1.000,graph
 60E1D400,0x540D4,diag_data_540d4,Other / Unclassified,0.000,none
 60E0FC00,0x540FE,getDiagSessionSubFunction,Faults & DTC,1.000,name
 60E1D400,0x5410C,math_endian_5410c,Other / Unclassified,0.000,none
 60E1D400,0x54114,math_convert_54114,Other / Unclassified,0.000,none
-60E1D400,0x5411C,can_encode_5411c,Other / Unclassified,0.000,none
+60E1D400,0x5411C,mem_cellflag_vtc_lock_write,Other / Unclassified,0.000,none
 60E0FC00,0x54146,checkSubFunctionCurrentlyRunning??,OBD / UDS,1.000,graph
 60E0FC00,0x5414C,diag_handler_5414c,Other / Unclassified,0.000,none
 60E0FC00,0x5415A,FUN_0005415a,OBD / UDS,0.846,graph
@@ -4536,15 +4536,15 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x542C0,math_operator_542c0,Other / Unclassified,0.000,none
 60E1D400,0x542C8,ctrl_operator_542c8,Other / Unclassified,0.000,none
 60E1D400,0x54310,modulo_calc_0x54310,Other / Unclassified,0.000,none
-60E1D400,0x5431C,divide_calc_0x5431C,Other / Unclassified,0.000,none
+60E1D400,0x5431C,mem_cellbank_flag_or_gate,Other / Unclassified,0.000,none
 60E0FC00,0x543A0,FUN_000543a0,OBD / UDS,1.000,graph
 60E0FC00,0x543BA,SeedKeyRelated,OBD / UDS,1.000,graph
 60E1D400,0x543C0,multiply_calc_0x543C0,Other / Unclassified,0.000,none
 60E1D400,0x543C8,add_calc_0x543C8,Other / Unclassified,0.000,none
-60E1D400,0x543D0,subtract_calc_0x543D0,Other / Unclassified,0.000,none
+60E1D400,0x543D0,mem_cellbank_flag_pair_write,Other / Unclassified,0.000,none
 60E1D400,0x54484,sensor_absolute_54484,Other / Unclassified,0.000,none
 60E1D400,0x54496,sensor_value_54496,Other / Unclassified,0.000,none
-60E1D400,0x544AA,sensor_value_544aa,Other / Unclassified,0.000,none
+60E1D400,0x544AA,dtc_any_fault_flag_or,Other / Unclassified,0.000,none
 60E1D400,0x54570,system_init_0x54570,Boot & Init,1.000,name
 60E0FC00,0x545BA,checkDeviceControlConditional,OBD / UDS,1.000,graph
 60E0FC00,0x5463C,getSubFunctionMapping,OBD / UDS,1.000,graph
@@ -4741,7 +4741,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x55D24,UDSPositiveResponse_16bit,OBD / UDS,1.000,name
 60E0FC00,0x55D50,uds_accumulate_55d50,Other / Unclassified,0.000,none
 60E1D400,0x55D52,isr_multiplier_55d52,Other / Unclassified,0.000,none
-60E1D400,0x55D9A,ctrl_sequencer_55d9a,Other / Unclassified,0.000,none
+60E1D400,0x55D9A,obd_mode_state_selector,Other / Unclassified,0.000,none
 60E0FC00,0x55DB4,FUN_00055db4,OBD / UDS,1.000,graph
 60E0FC00,0x55DCE,FUN_00055dce,OBD / UDS,1.000,graph
 60E1D400,0x55E14,memory_mgr_0x55E14,Memory & CRC,1.000,name
@@ -4809,7 +4809,7 @@ bank,addr,name,category,confidence,signal
 60E1D400,0x566EC,fuel_matrix_566ec,Other / Unclassified,0.000,none
 60E1D400,0x56720,fuel_transpose_56720,Other / Unclassified,0.000,none
 60E0FC00,0x56726,FUN_00056726,Memory & CRC,1.000,graph
-60E1D400,0x56728,fuel_matrix_56728,Other / Unclassified,0.000,none
+60E1D400,0x56728,uds_security_unlock_state_set,Other / Unclassified,0.000,none
 60E0FC00,0x5672E,FUN_0005672e,Ignition & Knock,1.000,graph
 60E0FC00,0x56736,FUN_00056736,Faults & DTC,1.000,graph
 60E1D400,0x5677E,fuel_matrix_5677e,Other / Unclassified,0.000,none
@@ -4908,7 +4908,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x570CC,mem_readvalue_570cc,Other / Unclassified,0.000,none
 60E0FC00,0x570DC,FUN_000570dc,Boot & Init,1.000,graph
 60E0FC00,0x570EE,diag_handler_570ee,Other / Unclassified,0.000,none
-60E1D400,0x5712C,ctrl_optimizer_5712c,Other / Unclassified,0.000,none
+60E1D400,0x5712C,immo_security_state_write,Other / Unclassified,0.000,none
 60E0FC00,0x5712E,FUN_0005712e,Memory & CRC,1.000,graph
 60E0FC00,0x57134,FUN_00057134,Ignition & Knock,1.000,graph
 60E0FC00,0x57170,FUN_00057170,Math / FPU,1.000,graph
@@ -5228,7 +5228,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x5C064,UDSService37Function,OBD / UDS,1.000,name
 60E0FC00,0x5C0A4,FUN_0005c0a4,OBD / UDS,1.000,graph
 60E0FC00,0x5C1C8,FUN_0005c1c8,OBD / UDS,0.667,graph
-60E1D400,0x5C228,mem_validate_5c228,Other / Unclassified,0.000,none
+60E1D400,0x5C228,can_uds_memread_response_tx,Other / Unclassified,0.000,none
 60E1D400,0x5C2FA,checkIfAddressInRange,OBD / UDS,1.000,graph
 60E0FC00,0x5C328,FUN_0005c328,OBD / UDS,1.000,graph
 60E1D400,0x5C3C0,math_combine_5c3c0,Other / Unclassified,0.000,none
@@ -5455,7 +5455,7 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x603F2,FUN_000603f2,Faults & DTC,0.667,graph
 60E0FC00,0x60418,FUN_00060418,Faults & DTC,0.854,graph
 60E1D400,0x604EE,faultSomething0x0,Faults & DTC,1.000,name
-60E1D400,0x60544,fuel_compute_60544,Other / Unclassified,0.000,none
+60E1D400,0x60544,obd_dtc_enabled_count,Other / Unclassified,0.000,none
 60E1D400,0x605A4,obd_status_flags_605A4,OBD / UDS,1.000,name
 60E0FC00,0x60604,FUN_00060604,OBD / UDS,1.000,graph
 60E0FC00,0x6060A,FUN_0006060a,Faults & DTC,1.000,graph
@@ -5479,12 +5479,12 @@ bank,addr,name,category,confidence,signal
 60E0FC00,0x607A0,FUN_000607a0,Faults & DTC,1.000,graph
 60E1D400,0x607A8,sensor_extract_607a8,Other / Unclassified,0.000,none
 60E1D400,0x607CE,sensor_extract_607ce,Other / Unclassified,0.000,none
-60E1D400,0x607D2,sensor_extract_607d2,Other / Unclassified,0.000,none
+60E1D400,0x607D2,obd_dtc_active_frame_send,Other / Unclassified,0.000,none
 60E0FC00,0x608B0,FUN_000608b0,Faults & DTC,1.000,graph
 60E0FC00,0x60930,FUN_00060930,Boot & Init,1.000,graph
 60E1D400,0x6096C,sensor_extract_6096c,Other / Unclassified,0.000,none
 60E0FC00,0x60970,FUN_00060970,Faults & DTC,1.000,graph
-60E1D400,0x60996,sensor_extract_60996,Other / Unclassified,0.000,none
+60E1D400,0x60996,obd_dtc_status_write,Other / Unclassified,0.000,none
 60E0FC00,0x609D8,FUN_000609d8,Faults & DTC,1.000,graph
 60E0FC00,0x60A28,FUN_00060a28,Faults & DTC,1.000,graph
 60E0FC00,0x60A6C,FUN_00060a6c,Faults & DTC,1.000,graph

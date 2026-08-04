@@ -207,14 +207,19 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 ### Subfunction 0x04 — SendKey
 
-> FLAG 2026-08-04: **unreachable in 60E1D400** — the entry dispatch routes only
-> `subfunc == 0x01` into the handler; the SendKey body at 0x58592-0x58610 is only
-> reachable via the abs-trick even-branch (`bf/s 0x58592` @0x58516), which can never
-> be taken.  Subfunctions != 1 fall to 0x5862C: `subfunc==0` → response via 0x55386,
-> `subfunc!=0` → no response (silent).  The flow below is kept for reference
-> (shared-codebase remnant) and needs reconciliation.  (Evidence: `docs/notes/
-> REQUEST_SEED_EVIDENCE.md`, discrepancy (e); whole-ROM branch scan shows exactly
-> one incoming reference to 0x58592.)
+> **RESOLVED 2026-08-04 — verdict (b): dead code in ALL 9 public stock ROMs.**
+> (was: FLAG 2026-08-04 — unreachable in 60E1D400.)  Cross-ROM scan
+> (`docs/notes/SENDKEY_RECONCILIATION.md`): the SendKey body is present with
+> identical structure in every stock image (60E1D400 `0x58592`-`0x58610`;
+> 60E0E500 `0x56F3E`, 60E0E700 `0x57196`, 60E0FB00/60E0FC00 `0x56026`,
+> 60E15120 `0x57B56`, 60E1B900 `0x562BE`, 60E1C500 `0x57202`, 60E32000
+> `0x5D4D2`) but is unreachable in every one: the entry dispatch routes only
+> `subfunc == 0x01` into the handler; the only incoming branch to the body is
+> the abs-trick even-branch `bf/s` (never taken — `subfunc==1` is odd), and
+> there are no indirect refs (pools/jump tables) to it.  Subfunctions != 1
+> fall to the else path: `subfunc==0` → response, `subfunc!=0` → no response
+> (silent).  The flow below is kept for reference as the ROM-accurate
+> reconstruction of a shared-codebase remnant (no removal).
 
 1. Retrieve cached seed via `data_copy`
 2. Re-generate seed via `seed_gen(3)`
@@ -274,9 +279,9 @@ The SecurityAccess handler uses these RAM locations for state:
 | seed_key_related/lfsr   | Verified   | 2026-07-31 — 12/12 keys + 400 random seeds |
 | mazda_security.py       | Confirmed  | `tools/mazda_security.py` — bit-equivalent to ROM at level 1 |
 | RequestSeed flow        | Confirmed  | 2026-08-04 — `docs/notes/REQUEST_SEED_EVIDENCE.md` (row-by-row; entry dispatch, msg_len==1, conditional seed path) |
-| C reconstruction        | Confirmed  | Core VERIFIED + RequestSeed CONFIRMED 2026-08-04; only open item: SendKey reachability (see below) |
+| C reconstruction        | Confirmed  | Core VERIFIED + RequestSeed CONFIRMED 2026-08-04; SendKey reachability **RESOLVED 2026-08-04** — dead code in all 9 public stock ROMs (see below) |
 
-**Open questions (core RESOLVED; one open item):**
+**Open questions (core RESOLVED; no remaining items):**
 1. ~~**UDS subfunction→level mapping**~~ **RESOLVED** — `seed_gen` is always
    called with a fixed level 3; the controlling level is the `position_check`
    table index derived from the RequestSeed payload byte (see
@@ -290,11 +295,18 @@ The SecurityAccess handler uses these RAM locations for state:
    calls `key_validate(state1, state, chk)` (see `c/security_access.c`
    ~lines 232-240; commits `8e259f8`, `b483523`).
 
-**Open item (the ONLY remaining):** **SendKey reachability in 60E1D400** — the
-SendKey body at 0x58592-0x58610 appears to be **dead code** (entry dispatch routes
-only `subfunc==1`; the only branch to 0x58592 is the unreachable abs-trick
-even-branch).  Needs reconciliation with the earlier "VERIFIED" SendKey work and
-with other ROM variants.  See `docs/notes/REQUEST_SEED_EVIDENCE.md` discrepancy (e).
+**RESOLVED 2026-08-04 — SendKey reachability:** **SendKey body is dead code in
+all 9 public stock ROMs** (60E1D400 + 8 aux).  Cross-ROM whole-family scan
+(entry dispatch, incoming branches, indirect refs) confirms the body is present
+but unreachable in every image — the entry dispatch admits only `subfunc==1`,
+and the only incoming branch is the never-taken abs-trick even-branch `bf/s`.
+The earlier "VERIFIED" SendKey work (commit `fd56201` SeedKeyRelated transform;
+`31bb0ac` flow aligned to the ROM body) covered the algorithm/flow against the
+ROM body, not the reachability of that body from the UDS dispatch.  Verdict (b):
+definitive dead code, shared-codebase remnant — kept in the C reconstruction,
+no removal.  See `docs/notes/SENDKEY_RECONCILIATION.md` for the ROM-by-ROM table
+and per-ROM branch addresses, and `docs/notes/REQUEST_SEED_EVIDENCE.md`
+discrepancy (e) for the original 60E1D400 finding.
 
 ---
 
