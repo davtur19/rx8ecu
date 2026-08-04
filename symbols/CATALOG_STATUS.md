@@ -1,6 +1,6 @@
 # CATALOG_STATUS -- stato catalogo master (post lift-merge, DEDUP)
 
-Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift (`c/*.c`, `c/tests/test_*.py`). `CATALOG_MASTER.csv` e' DEDUP per `(bank, addr)`: per chiave si tiene UNA sola riga (source piu' autorevole); le altre sorgenti perse sono elencate in `also_sources`. `lift_name` porta il nome autorevole se disponibile, altrimenti coincide con `src_name`.
+Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift (`c/*.c`, `c/tests/test_*.py`). `CATALOG_MASTER.csv` e' DEDUP per `(bank, addr)`: per chiave si tiene UNA sola riga (source piu' autorevole); le altre sorgenti perse sono elencate in `also_sources`. `lift_name` porta il nome autorevole se disponibile, altrimenti coincide con `src_name`. Colonna `category` in coda: join con `FUNCTION_CATEGORIES.csv` su `(bank normalizzato, int(addr,16))` — ~6.082 righe matchate, cella vuota per le non classificate.
 
 | bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note |
 |-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|

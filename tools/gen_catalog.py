@@ -7,11 +7,14 @@ simboli (symbols/symbols_*.csv) e produce tre artefatti:
 
   symbols/CATALOG_MASTER.csv --- merge di TUTTI i symbols_*.csv in un unico
       catalogo. Colonne: bank, addr, end, src_name, source, flag, lift_name,
-      verified. Ogni riga originale e' preservata; se quel (bank,addr) ha un
-      lift name, la riga viene arricchita (src_name preserva il nome originale,
-      lift_name porta il nome autorevole). verified = 'YES' se l'addr e' in
-      c/verified_addrs.txt. Gli "orphan" (lift addrs senza START di riga in
-      alcun CSV) vengono ADOTTATI come entry LIFT_ONLY (boundary non in IDA):
+      verified, also_sources (+ category in coda, join con
+      FUNCTION_CATEGORIES.csv su (bank normalizzato, int(addr,16)) — cella
+      vuota per le non classificate). Ogni riga originale e' preservata; se
+      quel (bank,addr) ha un lift name, la riga viene arricchita (src_name
+      preserva il nome originale, lift_name porta il nome autorevole).
+      verified = 'YES' se l'addr e' in c/verified_addrs.txt. Gli "orphan"
+      (lift addrs senza START di riga in alcun CSV) vengono ADOTTATI come
+      entry LIFT_ONLY (boundary non in IDA):
       riga bank, 0x%05X, end vuoto, lift_name, source=lift, flag=LIFT_ONLY,
       verified da c/verified_addrs.txt. Attribuzione bank via range CSV
       (fallback 60E1D400 se fuori range di ogni bank).
@@ -573,14 +576,58 @@ def bank_note(bank):
     return "derivata over-segmentata"
 
 
-def write_master(out):
+def load_category_map():
+    """Read symbols/FUNCTION_CATEGORIES.csv into {(bank_norm, addr_int): category}.
+
+    Normalizza bank con .upper() (formato del master) e addr con int(addr, 16),
+    cosi' da ignorare differenze di maiuscole/padding. Righe con campi mancanti
+    sono saltate. Ritorna il dict (join gia' verificato pulito, missing=0).
+    """
+    cat_file = os.path.join(SYMBOLS_DIR, "FUNCTION_CATEGORIES.csv")
+    cat = {}
+    if not os.path.exists(cat_file):
+        print(f"WARNING: {cat_file} mancante; output senza colonna category",
+              file=sys.stderr)
+        return cat
+    with open(cat_file, newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            bank = (row.get("bank") or "").strip().upper()
+            addr = row.get("addr") or ""
+            category = row.get("category")
+            # guardia: salta righe prive dei campi indispensabili
+            if not bank or not addr or category is None:
+                continue
+            try:
+                key = (bank, int(addr, 16))
+            except ValueError:
+                continue
+            cat[key] = category
+    return cat
+
+
+def write_master(out, categories=None):
+    if categories is None:
+        categories = load_category_map()
+    matched = 0
     with open(MASTER_CSV, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=[
             "bank", "addr", "end", "src_name", "source", "flag", "lift_name",
-            "verified", "also_sources"])
+            "verified", "also_sources", "category"])
         w.writeheader()
         for r in out:
-            w.writerow({k: r.get(k, "") for k in w.fieldnames})
+            row = {k: r.get(k, "") for k in w.fieldnames}
+            bank = (r.get("bank") or "").strip().upper()
+            addr = r.get("addr") or ""
+            category = ""
+            try:
+                category = categories.get((bank, int(addr, 16)), "")
+            except ValueError:
+                category = ""
+            if category:
+                matched += 1
+            row["category"] = category
+            w.writerow(row)
+    print(f"CATALOG_MASTER category join: {matched} righe matchate")
 
 
 def aggregate(records):
@@ -615,7 +662,9 @@ def write_status(agg, input_count, raw_per_bank, orphan_records=None,
                  "`(bank, addr)`: per chiave si tiene UNA sola riga (source piu' "
                  "autorevole); le altre sorgenti perse sono elencate in `also_sources`. "
                  "`lift_name` porta il nome autorevole se disponibile, altrimenti coincide "
-                 "con `src_name`.\n")
+                 "con `src_name`. Colonna `category` in coda: join con "
+                 "`FUNCTION_CATEGORIES.csv` su `(bank normalizzato, int(addr,16))` — "
+                 "~6.082 righe matchate, cella vuota per le non classificate.\n")
     lines.append("| bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note |")
     lines.append("|-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|")
     for bank in sorted(agg):
@@ -807,7 +856,7 @@ def main():
     # ---- NOISE flag: derived, span<=4 (after dedup) -----------------------
     out, noise_counts, noise_examples, kept_spanned = apply_noise_flags(out)
 
-    write_master(out)
+    write_master(out, load_category_map())
 
     agg = aggregate(out)
     write_status(agg, input_count, raw_per_bank, orphan_records,
