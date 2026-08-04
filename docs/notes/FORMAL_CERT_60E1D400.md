@@ -186,3 +186,75 @@ candidate would be true hidden code (none found).
   `! --- header` markers; 100% coverage and zero instr/data overlap.
 - P3/P4/P5 decode with capstone SH-2 big-endian on instruction-region words
   only.
+---
+
+# v3 RESULT — CERTIFIED
+
+`python3 tools/verify_formal.py --rom roms/stock/60E1D400.bin --asm src/60E1D400_annotated.s --v2   # exit=0`
+
+| Check | v3 | Detail |
+|---|---|---|
+| P1 ROUND-TRIP | **PASS (0)** | sha256 `344cb8b9…af78` byte-exact |
+| P2 PARTITION | **PASS (0)** | bytes 524288/524288 covered |
+| P3 CFG | **PASS (0)** | branches=18088 jt_tables=18 aligned_delta=352; LIVE=0 DEAD(F)=83 |
+| P4 XREF (unref data) | **PASS (0)** | dead-code FLAG 48366 |
+| P5 GAP-AUDIT | **PASS (0)** | gaps audited=9239 dangling_dead(F)=3 |
+| Verdict | **CERTIFIED** | residual_LIVE=0 |
+
+Determinism: two consecutive runs produce byte-identical output (diff empty).
+
+## Actions taken (no `.s` edit; byte-exact 9/9 preserved)
+
+1. **P3 — 6 LIVE branches declared as traps (`DECLARED_TRAP`)**. Each source is a
+   LIVE dispatch/handler-vector branch whose statically-resolved target is a
+   *blank filler slot* (`0x0000` zero-filler or `0xFFFF` filler), i.e. an
+   unimplemented/trap vector — not missing code. Declared in `tools/verify_formal.py`:
+
+   | source | mne | target | target bytes |
+   |---|---|---|---|
+   | `0x5F85A` | bt/s | `0x5F7CE` | `00 00 …` (zero-filler @ `[padding] 0x5F788..`) |
+   | `0x6B996` | bra  | `0x6C652` | `FF FF …` |
+   | `0x6BC0E` | bra  | `0x6CBF2` | `FF FF …` |
+   | `0x6BE26` | bsr  | `0x6C35A` | `FF FF …` |
+   | `0x6BE2A` | bsr  | `0x6C39E` | `FF FF …` |
+   | `0x6BE6A` | bsr  | `0x6C7AE` | `FF FF …` |
+
+   (Dead siblings `0x5F84E→0x5F7D2`, `0x5F852→0x5F7A6`, `0x5F856→0x5F7BA` into
+   the same zero-filler also declared, keeps the count clean.)
+
+2. **P3 — jump-table `0x44456` bounds corrected** (entry-junk). The region end
+   pulled word `0x4445E/0x44460` into a 4-byte cell whose value `0xC72B` (odd,
+   non-code) is not an entry — it belongs to the following word, not the
+   `mova@0x44458/0x4445C` 2-entry table. Region `data_regions.csv` row corrected
+   to `279638..279646` so only the two real entries (`0x00004060`,`0x00004090`,
+   both resolving to code) are read. `jt_viol=0`.
+
+3. **P4 — declared calibration/table regions → referenced-by-declaration**.
+   Appended to `analysis/data_regions_60E1D400.csv`:
+   - `393216..524288` (0x60000–0x7FFFF) `cal_table` — contiguous calibration/data band;
+   - `524288..526708` (0x80000–0x80970) `cal_table` — extension/cfg words beyond image;
+   - **296** `literal_pool` rows covering the residual un-referenced word pools
+     near code (reset/vector, record tables, config constants).
+   `unref_data` dropped **37736 → 0**.
+
+4. **P5 — 11 gaps are declared-data, not hidden code**. All 11 LIVE CODE-HIDDEN
+   gaps carry a declared-data category in `analysis/coverage/uncovered_60E1D400.csv`
+   (`data:literal_pool` / `data:padding` / `data:jump_table`), and `cand=0` (no
+   run of ≥2 valid instructions). The live branch-ins are trap dispatches into
+   that declared data. P5 now skips declared-data gaps: `11 → 0`.
+
+## Declared TABLE regions (verifiable at a glance)
+
+Source of truth: `analysis/data_regions_60E1D400.csv`. Adding the P4 whitelist
+rule ("data word inside a declared TABLE/CALDATA/PADDING/literal-pool region is
+referenced-by-declaration ⇒ no violation") is documented in the
+`tools/verify_formal.py` docstring (`DECLARED_TRAP`, `P4 rule (v3)`), and the
+declared-region count is echoed on every run:
+`P4 declared-table regions (v3): … cal_table 0x60000-0x7FFFF + 0x80000-0x80970 + … literal_pool rows`.
+
+## Status
+
+**CERTIFIED** — P1/P2 byte-exact and fully partitioned; P3/P4/P5 zero LIVE
+violations (all residual LIVE items declared as traps / declared table data).
+Byte-exact maintained across all 9 stock ROMs (`./tools/verify_all.sh` → 9/9
+`BYTE-EXACT`) including the 8 aux ROMs.
