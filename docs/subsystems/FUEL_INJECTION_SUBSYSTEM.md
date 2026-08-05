@@ -1,11 +1,9 @@
 # Fuel Injection Control Subsystem — RX-8 PCM (60E1D400)
 
-**ROM:** 60E1D400 (N3J1EM, 6-Port MT, 2004–08)  
-**Cross-reference:** 60E0FC00 (USDM), 60E1D400 (baseline)  
-**Functions:** ~93 fuel/injection-related functions  
+**ROM:** 60E1D400 (N3J1EM, 6-Port MT, 2004–08)
+**Cross-reference:** 60E0FC00 (USDM), 60E1D400 (baseline)
+**Functions:** ~93 fuel/injection-related functions
 **Last updated:** 2026-07-31
-
----
 
 ## Table of Contents
 
@@ -22,79 +20,60 @@
 11. [Test Strategy](#11-test-strategy)
 12. [Open Questions](#12-open-questions)
 
----
-
 ## 1. Overall Fueling Architecture
 
-The RX-8 PCM uses a **speed-density** fueling strategy, with the following high-level pipeline:
+**Speed-density** fueling strategy:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                   FUELING CONTROL PIPELINE                          │
-│                                                                     │
-│  SENSORS ──► LOAD ──► BASE FUEL ──► CORRECTIONS ──► PULSE WIDTH    │
-│  RPM           CALC      MASS          × 1.23          CALC         │
-│  MAF/VAF                 (AFR             ┌──┬──┬──┐   (ms)         │
-│  MAP                      from        ──► │WU│AC│CL├─►              │
-│  TPS                      table)          │FT│FP│FL│                │
-│  IAT                                       └──┴──┴──┘                │
-│  CLT                                                                 │
-│  O2/Lambda ─────────────────────────────────────────────────────►    │
-│                                                                     │
-│  Output: Injector pulse width in microseconds/timer ticks           │
-│  Per: Rotor A, Rotor B (leading + trailing ports)                   │
-└─────────────────────────────────────────────────────────────────────┘
+SENSORS (RPM, MAF/VAF, MAP, TPS, IAT, CLT, O2/Lambda)
+  → LOAD CALC → BASE FUEL MASS (AFR from table)
+  → CORRECTIONS ×1.23 (WU, AC, CL, FT, FP, FL)
+  → PULSE WIDTH CALC (ms → timer ticks) — Per Rotor A, Rotor B (leading + trailing ports)
 ```
 
-### Pipeline Stages (in order of execution):
+### Pipeline Stages
 
 | Stage | Functions | Tick |
-|-------|-----------|------|
-| **Sensor acquisition** | MAF, MAP, TPS, IAT, CLT, O2, RPM | Pre-tick (interrupt) |
-| **Load calculation** | `calc_combustion_load_factor`, `calc_combustion_efficiency_metric` | Phase 1 |
-| **Main fuel corrections** | `calc_adaptive_fuel_trim`, `calc_accel_fuel_enrichment`, `calc_barometric_pressure_trim`, `calc_closed_loop_fuel_status`, `read_o2_sensor_voltage_trim` | Phase 2 |
-| **Fuel cut arbitration** | `calc_decel_fuel_cut_445AA`, `fuel_cut_logic`, `fuel_enable_logic`, `arbitrateFuelCut` | Phase 2 |
-| **Pulse width calc** | `fuel_injector_pulse_calc`, `calc_fuel_injection_all_rotors`, `fuel_injector_pulse_calc`, `injectorPulseSet` | Post-Phase 2 |
-| **Fuel pump control** | `calc_fuel_pump_duty_trim`, `calc_fuel_pump_control_output`, `check_fuel_pump_relay_enable` | Phase 2 |
-| **Output to hardware** | `injection_pulse_decoder_main`, `injector_timing_output_copy`, `injector_control_write` | End of cycle |
+|---|---|---|
+| Sensor acquisition | MAF, MAP, TPS, IAT, CLT, O2, RPM | Pre-tick (interrupt) |
+| Load calculation | `calc_combustion_load_factor`, `calc_combustion_efficiency_metric` | Phase 1 |
+| Main fuel corrections | `calc_adaptive_fuel_trim`, `calc_accel_fuel_enrichment`, `calc_barometric_pressure_trim`, `calc_closed_loop_fuel_status`, `read_o2_sensor_voltage_trim` | Phase 2 |
+| Fuel cut arbitration | `calc_decel_fuel_cut_445AA`, `fuel_cut_logic`, `fuel_enable_logic`, `arbitrateFuelCut` | Phase 2 |
+| Pulse width calc | `fuel_injector_pulse_calc`, `calc_fuel_injection_all_rotors`, `injectorPulseSet` | Post-Phase 2 |
+| Fuel pump control | `calc_fuel_pump_duty_trim`, `calc_fuel_pump_control_output`, `check_fuel_pump_relay_enable` | Phase 2 |
+| Output to hardware | `injection_pulse_decoder_main`, `injector_timing_output_copy`, `injector_control_write` | End of cycle |
 
-All functions are called **unconditionally** from `engineControlCalculateTiming` (0x14584), which runs every scheduler tick (~10ms). Conditional logic is pushed *into* each subfunction, which reads/writes global RAM directly.
-
----
+All functions called **unconditionally** from `engineControlCalculateTiming` (0x14584) every scheduler tick (~10ms); conditional logic is pushed into each subfunction (global RAM read/write).
 
 ## 2. Fuel Mass Calculation Strategy
 
-The RX-8 uses a **speed-density** system with MAF sensor validation:
+Speed-density with MAF validation.
 
-### 2.1 Air Mass Determination
+### 2.1 Air Mass
 
 ```
 Air Mass (g/rev) = f(MAF_sensor_voltage, RPM, IAT, barometric_pressure)
 ```
 
-The MAF sensor is a hot-wire type (Mazda PN: N3H1-13-215). The calibration curve is stored in the `MAF Scaling` table at 0x6FBD8 (48-point 1D lookup, float type). This converts MAF voltage to air mass flow.
+MAF sensor: hot-wire (Mazda PN N3H1-13-215). Calibration curve in `MAF Scaling` table @0x6FBD8 (48-point 1D lookup, float).
 
-**Key sensor processing functions:**
-- `maf_sensor_value` — reads and linearizes MAF sensor ADC input
-- `baro_sensor_value` — barometric pressure sensor compensation
-- `sensor_signal_calc_44076` — general sensor signal conditioning
+Key sensor processing: `maf_sensor_value` (linearize MAF ADC), `baro_sensor_value`, `sensor_signal_calc_44076`.
 
-### 2.2 Base Fuel Mass (Open Loop Target)
+### 2.2 Base Fuel Mass (Open Loop)
 
 From the Equinox guide:
-
 > Open Loop Lambda values are stored as the decimal part (ECU adds 1; defs subtract 1 for readability)
 
 ```
 OpenLoop = max(OpenLoopTarget, TipInTarget * TipInBaroCorr) * CoolantTempCorr
 ```
 
-The base fuel mass is derived from **Fuelling** calibration maps (1D and 2D tables indexed by load and RPM). There are multiple fuel tables selected by operating mode:
+Multiple fuel tables selected by operating mode:
 
 | Table | Address (60E1D400) | Type | Description |
-|-------|----------------|------|-------------|
+|---|---|---|---|
 | Fuelling - Safe Mode | 0x71CD0 | 1D ×9 | Default/safe lambda target |
-| Fuelling 0 | 0x71CE0 | 1D ×? | Normal operating fuel map |
+| Fuelling 0 | 0x71CE0 | 1D | Normal operating fuel map |
 | Fuelling 1 | 0x71D00 | 1D ×7 | Light load fuel target |
 | Fuelling 2 - Safe Mode | 0x71D2C | 1D ×9 | Safe mode backup |
 | Fuelling 3 | 0x71D5C | 1D ×9 | Medium load |
@@ -110,463 +89,260 @@ The base fuel mass is derived from **Fuelling** calibration maps (1D and 2D tabl
 | Fuelling 15 | 0x72864 | 2D 12×8 | Normal 3D fuel map A |
 | Fuelling 16 | 0x72964 | 2D 21×19 | Normal 3D fuel map B |
 
-**Key function:** `calcOpenLoopFuelingTarget` (0x1FD8E, 578 bytes) appears to be the main open-loop target calculation, selecting among these tables based on operating mode and applying the `CoolantTempCorr` from the equinox formula.
+**Key function:** `calcOpenLoopFuelingTarget` (0x1FD8E, 578 B) — selects among tables by mode, applies `CoolantTempCorr`.
 
-### 2.3 Lambda to Injector Pulse Width Conversion
-
-The ECU converts the commanded lambda / fuel mass to an injector pulse width using:
+### 2.3 Lambda → Pulse Width
 
 ```
 InjectorPulse_ms = (FuelMass_g * StoichAFR) / (InjectorFlow_cc/min * Latency_correction)
 ```
+Steps: fuel mass = AirMass / CommandedLambda / StoichAFR → pulse = FuelMass/(FlowRate × NumInjectors) × 60000 → + dead time → convert to timer ticks (× 65536 or ÷ 16 by stage).
 
-This involves:
-1. Calculating the required fuel mass per cycle: `FuelMass = AirMass / CommandedLambda / StoichAFR`
-2. Converting to injector open time: `PulseWidth = FuelMass / (InjectorFlowRate * NumInjectors) * 60000`
-3. Adding injector dead time / latency
-4. Converting to timer ticks (× 65536 or ÷ 16 depending on stage)
-
-**Key functions:**
-- `fuel_injector_pulse_calc` (0x10620, 708 bytes) — main pulse width calculator
-- `injector_pulse_width_calc` (0xB2E4, 198 bytes) — lower-level pulse computation
-- `injector_pulse_width_calculator` (0xAEFA, 4 bytes — trampoline)
-- `fuel_pulse_width_calc_saturated` (0xB4D8, 100 bytes) — saturated variant
-
----
+Key functions: `fuel_injector_pulse_calc` (0x10620, 708 B) · `injector_pulse_width_calc` (0xB2E4, 198 B) · `injector_pulse_width_calculator` (0xAEFA, 4 B trampoline) · `fuel_pulse_width_calc_saturated` (0xB4D8, 100 B).
 
 ## 3. Correction Hierarchy
 
-The fueling corrections are applied in a specific order, with each correction multiplying or adding to the base fuel mass:
+Applied in order, multiplying/adding to base fuel mass:
 
-### Correction Pipeline (applied in order)
+1. **Warm-up enrichment** `calc_engine_temp_fuel_trim` @0x1437C — coolant-based; tapers off warm. Tables e.g. 0x71D00, 0x71D84.
+2. **Cold start enrichment** `calc_cold_start_fuel_enrichment` @0x142E8 — decays with time/temp. `after_start_fuel_enrichment_task` (0x1A95C), `setStartupInjectorPwMult` (0x3126E), `calcInjectorCrankingTime` (0x31088), `getCrankingInjectorPulseTime` (0x310D4).
+3. **Acceleration enrichment** `calc_accel_fuel_enrichment` @0x138CC — tip-in on TPS rate-of-change + MAP/RPM.
+4. **Closed-loop / O2** `calc_closed_loop_fuel_status` @0x141B8 — when O2 warm, targets λ=1.0. Reads `read_o2_sensor_voltage_trim` (0x1412A).
+5. **Adaptive fuel trim** `calc_adaptive_fuel_trim` @0x1379C — long-term from O2. Two 1D tables (0x6A868, 0x6A87C) 9 breakpoints. Clamp [-2.8%, +0.7%], gain ~0.009766. Enabled: RPM > 1500 AND coolant warm (closed loop).
+6. **Barometric trim** `calc_barometric_pressure_trim` @0x13F68 — altitude compensation (reduces fuel at altitude).
+7. **WOT enrichment** `calc_wot_fuel_enrichment` @0x14220 — open-loop rich (λ<1) for power/cooling. Tables Fuelling 15/16.
+8. **Catalyst warm-up** — `CatWarmup = (LoadBasedEnrich * LoadComp) + EngineSpeedEnrich`; active cold start.
+9. **Fuel pressure correction** `add_fuel_pressure_correction` @0x126CA — low pressure → wider pulse. `fuel_pressure_calc_4409E` (0x4409E), `read_fuel_pressure_feedback_status` (0x1408C).
+10. **Fuel cut** (overrides all): `calc_decel_fuel_cut_445AA` (0x445AA), `fuel_cut_logic` (0x4490A), `rpm_limiter_fuel_cutoff` (0xC59E), `calculateRevLimiterFuelCut` (0xF192), `arbitrateFuelCut` (0xE56C).
 
-```
-Base Fuel Mass (from OpenLoopTarget table)
-  │
-  ├── 1. Warm-up enrichment (calc_engine_temp_fuel_trim @ 0x1437C)
-  │      Based on coolant temperature. Higher enrichment when cold,
-  │      tapers off as engine warms to operating temperature.
-  │      Table: Fuelling temp correction (e.g., 0x71D00, 0x71D84)
-  │
-  ├── 2. Cold start enrichment (calc_cold_start_fuel_enrichment @ 0x142E8)
-  │      Extra fuel during initial start-up, decays with time/temperature.
-  │      Functions: after_start_fuel_enrichment_task (0x1A95C)
-  │                setStartupInjectorPwMult (0x3126E)
-  │                calcInjectorCrankingTime (0x31088)
-  │                getCrankingInjectorPulseTime (0x310D4)
-  │
-  ├── 3. Acceleration enrichment (calc_accel_fuel_enrichment @ 0x138CC)
-  │      Transient enrichment when throttle opens rapidly (tip-in).
-  │      Based on TPS rate-of-change and MAP/RPM.
-  │      Prevents lean spike during acceleration.
-  │
-  ├── 4. Closed-loop / O2 feedback (calc_closed_loop_fuel_status @ 0x141B8)
-  │      Active when O2 sensor is warm and engine is in closed-loop mode.
-  │      Reads: read_o2_sensor_voltage_trim (0x1412A)
-  │      Targets stoichiometric (lambda = 1.0) during cruise.
-  │
-  ├── 5. Adaptive fuel trim (calc_adaptive_fuel_trim @ 0x1379C)
-  │      Long-term correction learned from O2 feedback.
-  │      Two 1D tables (0x6A868, 0x6A87C) with 9 breakpoints.
-  │      Limited to [-2.8%, +0.7%], integrates with gain ~0.009766.
-  │      Enabled when: RPM > 1500 AND coolant warm (closed loop).
-  │
-  ├── 6. Barometric pressure trim (calc_barometric_pressure_trim @ 0x13F68)
-  │      Altitude compensation. Reduces fuel at high altitude
-  │      (lower air density). Uses barometric pressure sensor.
-  │
-  ├── 7. WOT enrichment (calc_wot_fuel_enrichment @ 0x14220)
-  │      Open-loop enrichment at wide-open throttle for power.
-  │      Richer mixture (lambda < 1.0) for maximum power / cooling.
-  │      Tables: Fuelling 15, Fuelling 16 (2D, RPM × load).
-  │
-  ├── 8. Catalyst warm-up enrichment
-  │      From equinox: CatWarmup = (LoadBasedEnrich * LoadComp) + EngineSpeedEnrich
-  │      Active during cold start to heat the catalytic converter quickly.
-  │      Adds enrichment on top of normal open-loop target.
-  │
-  ├── 9. Fuel pressure correction (add_fuel_pressure_correction @ 0x126CA)
-  │      Compensates for actual fuel rail pressure vs. reference.
-  │      If pressure is low → increase pulse width.
-  │      Uses: fuel_pressure_calc_4409E (0x4409E), read_fuel_pressure_feedback_status (0x1408C)
-  │
-  └── 10. Fuel cut (applied at end — overrides everything)
-        calc_decel_fuel_cut_445AA (0x445AA)
-        fuel_cut_logic (0x4490A)
-        rpm_limiter_fuel_cutoff (0xC59E)
-        calculateRevLimiterFuelCut (0xF192)
-        arbitrateFuelCut (0xE56C)
-```
-
-### Correction Accumulation Model
-
-Based on the Equinox guide formula and decompilation analysis:
+### Accumulation Model
 
 ```c
-// Simplified correction accumulation
 float computeFinalPulseWidth(void) {
-    float base_afr = getBaseOpenLoopTarget();          // from fuel table
-    float tip_in = getTipInEnrichment();               // accel enrichment
-    float baro_corr = getBarometricPressureCorr();
-    float clt_corr = getCoolantTempCorr();
-    
-    // Open loop target (from equinox guide)
-    float open_loop = max(base_afr, tip_in * baro_corr) * clt_corr;
-    
-    // Add cat warmup enrichment
+    float open_loop = max(getBaseOpenLoopTarget(), getTipInEnrichment() * getBarometricPressureCorr()) * getCoolantTempCorr();
     float cat_warmup = getLoadBasedEnrich() * getLoadComp() + getEngineSpeedEnrich();
-    
-    // Apply adaptive trim
-    float trim = getAdaptiveFuelTrim();                 // [-2.8%, +0.7%]
-    
-    // Apply closed-loop correction
-    float cl_correction = getClosedLoopCorrection();    // ±~15%
-    
-    // Final commanded lambda
-    float commanded_lambda = (open_loop + cat_warmup) * (1.0 + trim + cl_correction);
-    
-    // Convert to injector pulse width
-    float air_mass_per_cycle = getAirMassPerCycle();
-    float fuel_mass = air_mass_per_cycle / (commanded_lambda * STOICH_AFR);
-    float pulse_ms = fuel_mass / injector_flow_rate * 60000.0f + injector_latency;
-    
+    float commanded_lambda = (open_loop + cat_warmup) * (1.0 + getAdaptiveFuelTrim() + getClosedLoopCorrection());
+    float pulse_ms = (getAirMassPerCycle() / (commanded_lambda * STOICH_AFR)) / injector_flow_rate * 60000.0f + injector_latency;
     return pulse_ms;
 }
 ```
-
----
 
 ## 4. Injector Flow Rate and Latency Calibration
 
 ### 4.1 Injector Sizing
 
-The RX-8 uses two-stage injection (primary + secondary injectors per rotor):
+Two-stage injection (primary + secondary per rotor):
 
-| Parameter | Address (60E1D400) | Units |
-|-----------|----------------|-------|
+| Parameter | Address | Units |
+|---|---|---|
 | Primary Injector Size | 0x0783A0 | cc/min (or g/sec) |
 | Secondary Injector Size | 0x0783A8 | cc/min |
 | Secondary Injector Size #2 | 0x0783B0 | cc/min |
 
-The stock RX-8 injectors are:
-- **Primary:** 420 cc/min @ 3.9 bar (DENSO 195500-4450)
-- **Secondary:** 420 cc/min @ 3.9 bar (DENSO 195500-4450)
+Stock: **Primary** 420 cc/min @ 3.9 bar (DENSO 195500-4450) · **Secondary** 420 cc/min @ 3.9 bar (DENSO 195500-4450).
 
-### 4.2 Injector Latency (Dead Time)
+### 4.2 Latency (Dead Time)
 
-Injector latency (dead time) is the time required for the injector to open after the solenoid is energized. It varies with battery voltage.
+| Table | Address | Type |
+|---|---|---|
+| Injector Latency Primary | 0x780F4 | 2D 17×9 (dead time vs voltage) |
+| Injector Latency Secondary | 0x77F58 | 2D 17×9 |
 
-**Calibration tables:**
-| Table | Address (60E1D400) | Type | Description |
-|-------|----------------|------|-------------|
-| Injector Latency Primary | 0x780F4 | 2D 17×9 | Primary injector dead time vs. voltage |
-| Injector Latency Secondary | 0x77F58 | 2D 17×9 | Secondary injector dead time vs. voltage |
+Functions: `setFuelInjectorLatency` (0x86F8, 16 B — writes latency to 3 channels, paired primary/shadow at 0xFFFFA094) · `getFuelInectorLatencyCals` (0x30DE8, 146 B) · `getInjectorTempBasedMultiplierLookups` (0x30BCA, 60 B).
 
-**Key functions:**
-- `setFuelInjectorLatency` (0x86F8, 16 bytes) — writes latency value to registers (3 channels, paired primary/shadow writes)
-- `getFuelInectorLatencyCals` (0x30DE8, 146 bytes) — loads latency calibration from tables
-- `getInjectorTempBasedMultiplierLookups` (0x30BCA, 60 bytes) — temperature-based latency adjustment
-
-### 4.3 Injector Pulse Calculation Flow
+### 4.3 Pulse Calculation Flow
 
 ```
-                  ┌──────────────────┐
-                  │  Engine Speed    │
-                  │  Load (g/rev)    │
-                  │  Target Lambda   │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  Base Fuel Mass  │
-                  │  = air / lambda  │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  Injector Pulse  │
-                  │  = fuel / flow   │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  + Injector      │
-                  │    Latency (V)   │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  Convert to      │
-                  │  Timer Ticks     │
-                  │  (× 65536)       │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  Saturation      │
-                  │  & Limit Check   │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │  Write to        │
-                  │  Hardware OC Reg │
-                  └──────────────────┘
+Engine Speed / Load / Target Lambda → Base Fuel Mass (= air / lambda)
+→ Injector Pulse (= fuel / flow) → + Latency(V) → Timer Ticks (×65536)
+→ Saturation & Limit Check → Write to HW OC Reg
 ```
 
-### 4.4 Hardware Output Register Layout
+### 4.4 Hardware Output Registers
 
-The injector control registers are at 0xFFFFA004 (injector state array, 12 bytes per injector × 6 injectors = 72 bytes) and 0xFFFFA094 (injector calibration map, 32 bytes per injector).
-
-The hardware timer/output-compare registers are at 0xF440 (16-bit) and 0xF66C (injector enable bits).
-
----
+`0xFFFFA004` injector state array (12 B/injector × 6 = 72 B) · `0xFFFFA094` injector calibration map (32 B/injector) · HW timer/OC regs `0xF440` (16-bit) and `0xF66C` (injector enable bits).
 
 ## 5. Fuel Cut Logic
 
-Fuel cut is a critical safety and economy feature. The RX-8 ECU implements multiple independent fuel cut conditions:
-
-### 5.1 Fuel Cut Sources
+### 5.1 Sources
 
 | Source | Function | Address | Condition |
-|--------|----------|---------|-----------|
-| **Throttle lift (decel)** | `calc_decel_fuel_cut_445AA` | 0x445AA | Throttle closed, RPM above threshold |
-| **Rev limit** | `calculateRevLimiterFuelCut` | 0xF192 | RPM exceeds hard limit |
-| **Rev limit init** | `revLimitFuelCutInit` | 0xF0FC | Initialize at power-on |
-| **RPM limiter** | `rpm_limiter_fuel_cutoff` | 0xC59E | Soft limit (fuel cut per rotor) |
-| **Cold rev limit** | `calculateRevLimiterFuelCut` (w/ cold threshold) | — | Lower RPM limit when cold |
-| **DSC/TC request** | `arbitrateDSCFuelCut` | 0x2D994 | Stability control torque reduction |
-| **Diagnostic** | `calcDiagFuelInjectorTrim` | 0x4C6C4 | Diagnostic injector cut |
-| **Fault conditions** | `arbitrateFuelCut` | 0xE56C | 13 fault condition flags |
+|---|---|---|---|
+| Throttle lift (decel) | `calc_decel_fuel_cut_445AA` | 0x445AA | Throttle closed, RPM above threshold |
+| Rev limit | `calculateRevLimiterFuelCut` | 0xF192 | RPM exceeds hard limit |
+| Rev limit init | `revLimitFuelCutInit` | 0xF0FC | Power-on init |
+| RPM limiter | `rpm_limiter_fuel_cutoff` | 0xC59E | Soft limit (per rotor) |
+| Cold rev limit | `calculateRevLimiterFuelCut` (cold) | — | Lower limit when cold |
+| DSC/TC request | `arbitrateDSCFuelCut` | 0x2D994 | Stability control torque reduction |
+| Diagnostic | `calcDiagFuelInjectorTrim` | 0x4C6C4 | Diagnostic injector cut |
+| Fault conditions | `arbitrateFuelCut` | 0xE56C | 13 fault condition flags |
 
-### 5.2 Fuel Cut Arbitration
+### 5.2 Arbitration
 
-The function `arbitrateFuelCut` (0xE56C) OR's together multiple fuel cut request flags and produces a 2-bit result:
-- **Bit 0 (0x01):** Primary fuel cut — normal condition (throttle lift, rev limit)
-- **Bit 1 (0x02):** Secondary protection — fault/error conditions
+`arbitrateFuelCut` (0xE56C) ORs fuel cut request flags → 2-bit result:
+- **Bit 0 (0x01):** primary fuel cut — throttle lift, rev limit
+- **Bit 1 (0x02):** secondary protection — fault/error conditions
 
-The result is stored at `0xA430`, which is read by:
-- `getFuelCutRequestStatus` (0xFF08) — returns fuel cut status word
-- `calc_fuel_injection_all_rotors` (0x13D3C) — disables injection when cut is active
-- `fuel_cut_logic_4490A` (0x4490A) — applies fuel cut with hysteresis
+Stored at `0xA430`; read by `getFuelCutRequestStatus` (0xFF08), `calc_fuel_injection_all_rotors` (0x13D3C, disables injection when cut), `fuel_cut_logic_4490A` (0x4490A, applies with hysteresis).
+
+Condition flags — primary set: `0xA444, 0xA4A4, 0xA9D4, 0xC89C, 0xCB41, 0xBCB6, 0xCB42, 0xC945, 0xCC8A, 0xCC8B, 0xCC8C, 0xCC8D` + `0xC1EC` (non-zero). Secondary set: same list with `0xA445, 0xA4A5, 0xBCB7, 0xCB43` substituted for `0xA444, 0xA4A4, 0xBCB6, 0xCB42`.
 
 ### 5.3 Rev Limit Strategy
 
-The rev limiter uses a **fuel-cut** strategy (not ignition cut):
+Fuel-cut strategy (not ignition cut):
+1. **Soft limit:** begins cutting ~9000 RPM (calibratable via `Rev Limit` table @0x6D54C)
+2. **Hard limit:** complete cut ~9500 RPM
+3. **Cold limit:** ~4000 RPM when coolant below threshold (`Cold Rev Limit Threshold` @0x6D53C, `Cold Rev Limit` @0x6D544)
 
-1. **Soft limit:** Begins cutting fuel at ~9000 RPM (calibratable via `Rev Limit` table at 0x6D54C)
-2. **Hard limit:** Complete fuel cut at ~9500 RPM
-3. **Cold limit:** Lower limit (~4000 RPM) when coolant temp is below threshold (`Cold Rev Limit Threshold` at 0x6D53C, `Cold Rev Limit` at 0x6D544)
-
-The RPM limiter fuel cut function `rpm_limiter_fuel_cutoff` (0xC59E) implements a progressive cut—one rotor at a time—to allow smooth engagement.
+`rpm_limiter_fuel_cutoff` (0xC59E) cuts one rotor at a time for smooth engagement.
 
 ### 5.4 Deceleration Fuel Cut
 
-`calc_decel_fuel_cut_445AA` (0x445AA) implements over-run fuel cut:
-
-```
-Conditions for fuel cut on throttle lift:
-1. Throttle position < closed threshold (~0.01 V / angle)
-2. Engine speed > minimum threshold (calibratable)
-3. Not in override mode (DSC torque request, etc.)
-4. Feature is enabled (calibration: 0x7B3DC = 0x01)
-
-Hysteresis:
-- Uses a saturating accumulator (addSaturate8Bit) to prevent rapid on/off cycling
-- Fuel cut remains active until RPM drops below re-enable threshold
-```
-
----
+`calc_decel_fuel_cut_445AA` (0x445AA): TPS < closed threshold (~0.01 V/angle), RPM > min threshold, not in override (DSC etc.), feature enabled (cal `0x7B3DC` = 0x01). Hysteresis via saturating accumulator (addSaturate8Bit); cut stays until RPM drops below re-enable threshold.
 
 ## 6. Per-Rotor Fueling
 
-The RX-8 uses a 2-rotor (13B-MSP Renesis) engine, requiring per-rotor fuel delivery.
-
-### 6.1 Rotor Fuel Dispatch
-
 ```
-fuel_calc_entry (0x9528, 12 bytes — trampoline)
-  └── fuel_calc_per_rotor (0x9534, 262 bytes)
-        ├── rotor_fuel_calc_dispatcher (0xB57A, 268 bytes)
-        │     ├── calc_fuel_correction_all_modes (0x12C8C, 614 bytes)
-        │     ├── calc_fuel_trim_correction_map (0x136F0, 140 bytes)
-        │     └── dual_channel_fuel_computation (0x14BAC, 88 bytes)
-        │
-        ├── fuel_injector_pulse_calc (0x10620, 708 bytes)
-        │     └── Per-injector PWM calculation for all 6 injectors (3/rotor × 2 rotors)
-        │
-        └── calc_fuel_injection_all_rotors (0x13D3C, 236 bytes)
-              ├── Applies fuel cut flags
-              ├── Per-rotor dispatch via compare_select_two_float_values
+fuel_calc_entry (0x9528, 12 B trampoline)
+  └── fuel_calc_per_rotor (0x9534, 262 B)
+        ├── rotor_fuel_calc_dispatcher (0xB57A, 268 B)
+        │     ├── calc_fuel_correction_all_modes (0x12C8C, 614 B)
+        │     ├── calc_fuel_trim_correction_map (0x136F0, 140 B)
+        │     └── dual_channel_fuel_computation (0x14BAC, 88 B)
+        ├── fuel_injector_pulse_calc (0x10620, 708 B)  — all 6 injectors (3/rotor × 2)
+        └── calc_fuel_injection_all_rotors (0x13D3C, 236 B)
+              ├── applies fuel cut flags; per-rotor via compare_select_two_float_values
               ├── calc_fuel_pump_control_output (0x13E6C)
               └── calc_fuel_pressure_load_compensation (0x13EE6)
 ```
 
-### 6.2 Per-Rotor Trim Functions
-
-Each rotor (A and B) has its own fuel trim calculation:
+### Per-Rotor Trim
 
 | Function | Address | Purpose |
-|----------|---------|---------|
-| `calc_fuel_trim_correction_cyl_A` | 0x14722 | Rotor A fuel trim |
-| `calc_fuel_trim_correction_cyl_B` | 0x14742 | Rotor B fuel trim |
+|---|---|---|
+| `calc_fuel_trim_correction_cyl_A` | 0x14722 | Rotor A trim |
+| `calc_fuel_trim_correction_cyl_B` | 0x14742 | Rotor B trim |
 | `calc_cyl_B_fuel_pulse_width` | 0x14464 | Rotor B pulse width |
 
-### 6.3 Injection Timing (Per Rotor)
-
-The injection timing (when in the cycle fuel is delivered) is computed per-rotor:
+### Injection Timing
 
 | Function | Address | Purpose |
-|----------|---------|---------|
-| `injectionTimingMaybe` | 0xE726 | Injection timing angle computation |
-| `injection_timing_calculator` | 0xFCE6 | Main timing calculator |
-| `injection_timing_calc_3BA3E` | 0x3BA3E | Timing calculation variant |
-| `injection_timing_calc_409CE` | 0x409C6 | Timing for specific mode |
-| `injection_timing_decrement_44A12` | 0x44A12 | Timing countdown/advance |
+|---|---|---|
+| `injectionTimingMaybe` | 0xE726 | Timing angle computation |
+| `injection_timing_calculator` | 0xFCE6 | Main calculator |
+| `injection_timing_calc_3BA3E` | 0x3BA3E | Variant |
+| `injection_timing_calc_409CE` | 0x409C6 | Specific mode |
+| `injection_timing_decrement_44A12` | 0x44A12 | Countdown/advance |
 
-### 6.4 Hardware Output
-
-The final injector pulse is written to hardware output-compare registers:
+### Hardware Output
 
 | Function | Address | Purpose |
-|----------|---------|---------|
-| `injectorPulseSet` | 0x8A68 | Write computed pulse to HW register |
+|---|---|---|
+| `injectorPulseSet` | 0x8A68 | Write pulse to HW reg |
 | `injector_control_write_2CCBC` | 0x2CCBC | Direct register write |
-| `injection_pulse_decoder_main` | 0xFA90 | Decodes pulse timing for output |
-| `injector_timing_output_copy` | 0xBB28 | Copies timing to output buffer |
-| `injector_timing_scheduler_229C0` | 0x229C0 | Schedules injector events |
+| `injection_pulse_decoder_main` | 0xFA90 | Decode pulse timing |
+| `injector_timing_output_copy` | 0xBB28 | Copy timing to output |
+| `injector_timing_scheduler_229C0` | 0x229C0 | Schedule events |
 
-### 6.5 Cranking vs. Running Injection
-
-During cranking, a separate set of functions handles fuel delivery:
+### Cranking vs Running
 
 | Function | Address | Purpose |
-|----------|---------|---------|
-| `calcInjectorCrankingTime` | 0x31088 | Base cranking pulse width |
-| `getCrankingInjectorPulseTime` | 0x310D4 | Temperature-compensated cranking pulse |
+|---|---|---|
+| `calcInjectorCrankingTime` | 0x31088 | Base cranking pulse |
+| `getCrankingInjectorPulseTime` | 0x310D4 | Temp-compensated cranking pulse |
 | `setStartupInjectorPwMult` | 0x3126E | Startup multiplier (deflood-aware) |
 | `getDiagnosticFuelPulseCranking` | 0x310FC | Diagnostic cranking pulse |
 | `crank_gated_fuel_pressure_proc` | 0xE6DC | Cranking fuel pressure |
-| `crank_inject_count_44988` | 0x44988 | Cranking injector event count |
-
----
+| `crank_inject_count_44988` | 0x44988 | Crank injector event count |
 
 ## 7. Fuel Pump Control
 
-### 7.1 Fuel Pump PWM Control
-
-The fuel pump speed is modulated via PWM for noise reduction and pressure regulation:
+Pump speed modulated via PWM (noise reduction, pressure regulation).
 
 | Function | Address | Purpose |
-|----------|---------|---------|
-| `calc_fuel_pump_duty_trim` | 0x135F6 | Pump duty cycle trim based on mode |
-| `calc_fuel_pump_control_output` | 0x13E6C | Main pump output calculation |
+|---|---|---|
+| `calc_fuel_pump_duty_trim` | 0x135F6 | Duty trim by mode |
+| `calc_fuel_pump_control_output` | 0x13E6C | Main pump output |
 | `calc_fuel_pump_pwm_output` | 0x11EEA | PWM duty generation |
 | `fuel_pump_speed_controller` | 0x1B5A8 | Speed control loop |
-| `fuel_pump_rpm_scale_262FA` | 0x262FA | RPM-based scaling |
+| `fuel_pump_rpm_scale_262FA` | 0x262FA | RPM scaling |
 | `pump_control_output_2602C` | 0x2602C | Output stage |
 
-### 7.2 Fuel Pressure Regulation
+Pressure regulation: `fuel_pressure_calc` (0x15D82, 1642 B) · `fuel_pressure_calc_with_interpolation` (0xE6EC) · `calc_fuel_pressure_feedback` (0x11BC0) · `calc_fuel_pressure_error_integral` (0x140A4) · `calc_fuel_pressure_load_compensation` (0x13EE6) · `fuel_rail_pressure_state_machine` (0x197B8) · `fuel_rail_pressure_limiter_21B40` (0x21B40) · `read_fuel_pressure_feedback_status` (0x1408C).
 
-| Function | Address | Purpose |
-|----------|---------|---------|
-| `fuel_pressure_calc` | 0x15D82 | Main fuel pressure calculation |
-| `fuel_pressure_calc_with_interpolation` | 0xE6EC | Interpolated pressure calc |
-| `calc_fuel_pressure_feedback` | 0x11BC0 | Pressure feedback PID |
-| `calc_fuel_pressure_error_integral` | 0x140A4 | Integral term for pressure control |
-| `calc_fuel_pressure_load_compensation` | 0x13EE6 | Load-based pressure target |
-| `fuel_rail_pressure_state_machine` | 0x197B8 | Pressure control state machine |
-| `fuel_rail_pressure_limiter_21B40` | 0x21B40 | Over-pressure protection |
-| `read_fuel_pressure_feedback_status` | 0x1408C | Pressure sensor status |
-
-### 7.3 Fuel Pump Priming and Safety
-
-| Function | Address | Purpose |
-|----------|---------|---------|
-| `calc_fuel_pump_priming` | 0x14962 | Prime on ignition-on |
-| `pump_prime_watchdog_2611E` | 0x2611E | Prime timeout/safety |
-| `pump_prime_wrapper_26244` | 0x26244 | Prime sequence wrapper |
-| `pump_ready_flag_26208` | 0x26208 | Ready flag |
-| `check_fuel_pump_relay_enable` | 0x2CC1C | Relay control |
-| `fuel_pump_control_0x17510` | 0x17510 | Full pump control state machine |
-
----
+Priming/safety: `calc_fuel_pump_priming` (0x14962, prime on ignition-on) · `pump_prime_watchdog_2611E` (0x2611E) · `pump_prime_wrapper_26244` (0x26244) · `pump_ready_flag_26208` (0x26208) · `check_fuel_pump_relay_enable` (0x2CC1C) · `fuel_pump_control_0x17510` (0x17510, full state machine).
 
 ## 8. Key Calibration Tables
 
-### 8.1 Fueling Target Tables (Open Loop)
+### 8.1 Fueling Targets (Open Loop)
 
-| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
-|----------------|------|------------|------|-------|-------------|
-| 0x71CD0 | Fuelling - Safe Mode | 1D ×9 | u8 | 0.007812 | Default lambda when in safe mode |
-| 0x71D00 | Fuelling 1 | 1D ×7 | u8 | 0.007812 | Light load fueling |
-| 0x71D2C | Fuelling 2 - Safe Mode | 1D ×9 | u8 | 0.007812 | Safe mode backup |
-| 0x71D5C | Fuelling 3 | 1D ×9 | u8 | 0.007812 | Medium load fueling |
-| 0x71D84 | Fuelling 4 | 1D ×7 | u8 | 0.007812 | High load fueling |
-| 0x71DD4 | Fuelling 5 | 1D ×18 | u8 | 0.003906 | RPM-based enrichment A |
-| 0x71E30 | Fuelling 6 | 1D ×18 | u8 | 0.003906 | RPM-based enrichment B |
-| 0x71E8C | Fuelling 7 | 1D ×18 | u8 | 0.003906 | RPM-based enrichment C |
-| 0x72084 | Fuelling 8 | 1D ×7 | u8 | 0.003906 | Idle fuel trim |
-| 0x7228C | Fuelling 9 - Safe Mode | 2D 12×8 | u8 | 0.003906 | Safe mode 3D map A |
-| 0x7238C | Fuelling 10 - Safe Mode | 2D 21×19 | u8 | 0.003906 | Safe mode 3D map B |
-| 0x72864 | Fuelling 15 | 2D 12×8 | u8 | 0.003906 | Normal 3D fuel map A |
-| 0x72964 | Fuelling 16 | 2D 21×19 | u8 | 0.003906 | Normal 3D fuel map B |
+| Address | Name | Dimensions | Type | Scale |
+|---|---|---|---|---|
+| 0x71CD0 | Fuelling - Safe Mode | 1D ×9 | u8 | 0.007812 |
+| 0x71D00 | Fuelling 1 | 1D ×7 | u8 | 0.007812 |
+| 0x71D2C | Fuelling 2 - Safe Mode | 1D ×9 | u8 | 0.007812 |
+| 0x71D5C | Fuelling 3 | 1D ×9 | u8 | 0.007812 |
+| 0x71D84 | Fuelling 4 | 1D ×7 | u8 | 0.007812 |
+| 0x71DD4 | Fuelling 5 | 1D ×18 | u8 | 0.003906 |
+| 0x71E30 | Fuelling 6 | 1D ×18 | u8 | 0.003906 |
+| 0x71E8C | Fuelling 7 | 1D ×18 | u8 | 0.003906 |
+| 0x72084 | Fuelling 8 | 1D ×7 | u8 | 0.003906 |
+| 0x7228C | Fuelling 9 - Safe Mode | 2D 12×8 | u8 | 0.003906 |
+| 0x7238C | Fuelling 10 - Safe Mode | 2D 21×19 | u8 | 0.003906 |
+| 0x72864 | Fuelling 15 | 2D 12×8 | u8 | 0.003906 |
+| 0x72964 | Fuelling 16 | 2D 21×19 | u8 | 0.003906 |
 
-### 8.2 Adaptive Trim Tables
+### 8.2 Adaptive Trim
 
-| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
-|----------------|------|------------|------|-------|-------------|
-| 0x72CAC | Table 2D - 106_ | 1D ×9 | u8 | 0.25 / -32 offset | Primary adaptive trim |
-| 0x72CDC | Table 2D - 107_ | 1D ×9 | u8 | 0.25 / -32 offset | Secondary adaptive trim |
+| Address | Name | Dims | Type | Scale |
+|---|---|---|---|---|
+| 0x72CAC | Table 2D - 106_ | 1D ×9 | u8 | 0.25 / -32 off |
+| 0x72CDC | Table 2D - 107_ | 1D ×9 | u8 | 0.25 / -32 off |
 
-### 8.3 Injector Calibration
+### 8.3 Injector Cal
 
-| Address (60E1D400) | Name | Dimensions | Type | Scale | Description |
-|----------------|------|------------|------|-------|-------------|
-| 0x0783A0 | Primary Injector Size | Scalar | u32 | — | Flow rate cc/min |
-| 0x0783A8 | Secondary Injector Size | Scalar | u32 | — | Flow rate cc/min |
-| 0x0783B0 | Secondary Injector Size #2 | Scalar | u32 | — | Flow rate cc/min |
-| 0x780F4 | Injector Latency Primary | 2D 17×9 | u16 | 1 | Dead time vs. voltage |
-| 0x77F58 | Injector Latency Secondary | 2D 17×9 | u16 | 1 | Dead time vs. voltage |
-| 0x6FD38 | Injector Barometric Pressure Compensation | 1D ×4 | f32 | — | Altitude correction |
+| Address | Name | Dims | Type |
+|---|---|---|---|
+| 0x0783A0 | Primary Injector Size | Scalar | u32 |
+| 0x0783A8 | Secondary Injector Size | Scalar | u32 |
+| 0x0783B0 | Secondary Injector Size #2 | Scalar | u32 |
+| 0x780F4 | Injector Latency Primary | 2D 17×9 | u16 |
+| 0x77F58 | Injector Latency Secondary | 2D 17×9 | u16 |
+| 0x6FD38 | Injector Barometric Pressure Compensation | 1D ×4 | f32 |
 
-### 8.4 Warm-up / Enrichment Tables
+### 8.4 Warm-up / Enrichment
 
-| Address (60E1D400) | Name | Description |
-|----------------|------|-------------|
-| 0x72C20 | Table 2D - 104_ | Temperature correction A |
-| 0x72C50 | Table 2D - 105_ | Temperature correction B |
-| 0x72E84 | Table 2D - 112_ | Warm-up enrichment A |
-| 0x72EB4 | Table 2D - 113_ | Warm-up enrichment B |
+| Address | Name |
+|---|---|
+| 0x72C20 | Table 2D - 104_ (temp correction A) |
+| 0x72C50 | Table 2D - 105_ (temp correction B) |
+| 0x72E84 | Table 2D - 112_ (warm-up enrichment A) |
+| 0x72EB4 | Table 2D - 113_ (warm-up enrichment B) |
 
-### 8.5 Lambda / AFR Related
+### 8.5 Lambda / AFR
 
-| Address (60E1D400) | Name | Description |
-|----------------|------|-------------|
-| 0x6FD74 | Lambda Sensor Scaling | O2 sensor linearization |
-| 0x7AF48 | Injection Angle Related AFR Input | AFR for injection timing |
-| 0x7AF74 | Unknown Lambda Input | Secondary lambda input |
+| Address | Name |
+|---|---|
+| 0x6FD74 | Lambda Sensor Scaling (O2 linearization) |
+| 0x7AF48 | Injection Angle Related AFR Input |
+| 0x7AF74 | Unknown Lambda Input (secondary) |
 
 ### 8.6 Rev Limit / Fuel Cut
 
-| Address (60E1D400) | Name | Description |
-|----------------|------|-------------|
-| 0x6D54C | Rev Limit | Hard RPM limit |
-| 0x6D544 | Cold Rev Limit | Cold engine RPM limit |
-| 0x6D53C | Cold Rev Limit Threshold | Coolant temp threshold °C |
-
----
+| Address | Name |
+|---|---|
+| 0x6D54C | Rev Limit (hard RPM limit) |
+| 0x6D544 | Cold Rev Limit |
+| 0x6D53C | Cold Rev Limit Threshold (coolant temp °C) |
 
 ## 9. Complete Fuel Function Catalog
-
-The 93 fuel-related functions, organized by subsystem:
 
 ### Main Pipeline (5)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x09528 | fuel_calc_entry | 12 | Entry trampoline |
-| 0x09534 | fuel_calc_per_rotor | 262 | Per-rotor fuel dispatch |
+| 0x09534 | fuel_calc_per_rotor | 262 | Per-rotor dispatch |
 | 0x0B57A | rotor_fuel_calc_dispatcher | 268 | Rotor calc dispatcher |
 | 0x0B7D2 | fuel_calc_task_dispatcher | 176 | Task-level dispatcher |
 | 0x22094 | main_fuel_control_pipeline_22094 | 180 | Main pipeline orchestrator |
@@ -574,26 +350,26 @@ The 93 fuel-related functions, organized by subsystem:
 ### Base Fuel Calculation (8)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
-| 0x1FD8E | calcOpenLoopFuelingTarget | 558 | Open loop target calculation |
-| 0x12C8C | calc_fuel_correction_all_modes | 614 | Multi-mode correction calc |
-| 0x0B2E4 | injector_pulse_width_calc | 198 | Base pulse width calc |
+|---|---|---|---|
+| 0x1FD8E | calcOpenLoopFuelingTarget | 558 | Open loop target calc |
+| 0x12C8C | calc_fuel_correction_all_modes | 614 | Multi-mode correction |
+| 0x0B2E4 | injector_pulse_width_calc | 198 | Base pulse width |
 | 0x0D3DC | fuel_air_bilinear_interpolation | 106 | Fuel-air interpolation |
 | 0x0B4D8 | fuel_pulse_width_calc_saturated | 100 | Saturated pulse calc |
 | 0x0B3AA | atu_injector_enable_update | 40 | Injector enable update |
-| 0x3BAD4 | base_fuel_calc_3BAD4 | 60 | Base fuel calc stub |
+| 0x3BAD4 | base_fuel_calc_3BAD4 | 60 | Base fuel stub |
 | 0x3B8B0 | fuel_calc_processor_3b8b0 | 398 | Fuel calc processor |
 
 ### Fuel Trims / Corrections (17)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x1379C | calc_adaptive_fuel_trim | 228 | Long-term adaptive trim |
 | 0x138CC | calc_accel_fuel_enrichment | 228 | Acceleration enrichment |
-| 0x13F68 | calc_barometric_pressure_trim | ? | Barometric pressure trim |
+| 0x13F68 | calc_barometric_pressure_trim | ? | Barometric trim |
 | 0x14220 | calc_wot_fuel_enrichment | 118 | WOT enrichment |
 | 0x142E8 | calc_cold_start_fuel_enrichment | 118 | Cold start enrichment |
-| 0x1437C | calc_engine_temp_fuel_trim | 82 | Coolant temp fuel trim |
+| 0x1437C | calc_engine_temp_fuel_trim | 82 | Coolant temp trim |
 | 0x14496 | calc_deadband_fuel_trim | 50 | Deadband trim |
 | 0x136F0 | calc_fuel_trim_correction_map | 140 | Trim correction map |
 | 0x14722 | calc_fuel_trim_correction_cyl_A | 32 | Rotor A trim |
@@ -609,10 +385,10 @@ The 93 fuel-related functions, organized by subsystem:
 ### Closed-Loop / O2 Feedback (6)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x141B8 | calc_closed_loop_fuel_status | 104 | Closed loop status |
 | 0x1412A | read_o2_sensor_voltage_trim | 142 | O2 voltage trim |
-| 0x1913C | air_fuel_ratio_feedback_calc | 84 | AFR feedback calc |
+| 0x1913C | air_fuel_ratio_feedback_calc | 84 | AFR feedback |
 | 0x21A18 | air_fuel_ratio_check_21A18 | 76 | AFR check |
 | 0x230D0 | air_fuel_ratio_check_230D0 | 224 | AFR check 2 |
 | 0x1A95C | after_start_fuel_enrichment_task | 68 | Post-start enrichment |
@@ -620,7 +396,7 @@ The 93 fuel-related functions, organized by subsystem:
 ### Cranking / Startup (11)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x31088 | calcInjectorCrankingTime | 76 | Cranking pulse width |
 | 0x310D4 | getCrankingInjectorPulseTime | 40 | Get cranking pulse |
 | 0x30D18 | injectorPulseTimeArbitrate_crankAddTimer | 164 | Crank timing arbitration |
@@ -636,7 +412,7 @@ The 93 fuel-related functions, organized by subsystem:
 ### Fuel Cut / Limits (18)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0xE56C | arbitrateFuelCut | 358 | Fuel cut arbitration |
 | 0xEBA8 | throttlePlateSomethingFuelCut | 1146 | Throttle plate fuel cut |
 | 0xF05C | fuelCutArbitration_weirdBlock | 134 | Arbitration block |
@@ -659,9 +435,9 @@ The 93 fuel-related functions, organized by subsystem:
 ### Fuel Pump & Pressure (27)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
-| 0x135F6 | calc_fuel_pump_duty_trim | 92 | Pump duty cycle trim |
-| 0x13E6C | calc_fuel_pump_control_output | 102 | Pump control output |
+|---|---|---|---|
+| 0x135F6 | calc_fuel_pump_duty_trim | 92 | Pump duty trim |
+| 0x13E6C | calc_fuel_pump_control_output | 102 | Pump output |
 | 0x13EE6 | calc_fuel_pressure_load_compensation | 56 | Pressure load comp |
 | 0x11EEA | calc_fuel_pump_pwm_output | 48 | PWM output |
 | 0x14962 | calc_fuel_pump_priming | 42 | Priming |
@@ -670,7 +446,7 @@ The 93 fuel-related functions, organized by subsystem:
 | 0x10444 | calc_fuel_pressure_div | 72 | Pressure division |
 | 0x126CA | add_fuel_pressure_correction | 16 | Pressure correction adder |
 | 0x1408C | read_fuel_pressure_feedback_status | 24 | Pressure feedback status |
-| 0x140A4 | calc_fuel_pressure_error_integral | 134 | Pressure error integrator |
+| 0x140A4 | calc_fuel_pressure_error_integral | 134 | Error integrator |
 | 0x197B8 | fuel_rail_pressure_state_machine | 222 | Pressure state machine |
 | 0x23A38 | fuel_pressure_control_23A38 | 298 | Pressure control |
 | 0x4409E | fuel_pressure_calc_4409E | 64 | Pressure calc snippet |
@@ -681,17 +457,17 @@ The 93 fuel-related functions, organized by subsystem:
 | 0x504EA | fuel_pump_ctrl_0x504EA | 78 | Pump control snippet |
 | 0x50590 | fuel_pressure_monitor_0x50590 | 342 | Pressure monitor |
 | 0x45984 | fuel_pressure_monitor_reset_45984 | 46 | Pressure monitor reset |
-| 0x45B0A | fuel_pressure_storage_45B0A | 50 | Pressure data storage |
+| 0x45B0A | fuel_pressure_storage_45B0A | 50 | Pressure storage |
 | 0x25CDC | fuel_pressure_storage_25CDC | 26 | Pressure storage alt |
 | 0x1B5A8 | fuel_pump_speed_controller | 114 | Pump speed control |
 | 0x262FA | fuel_pump_rpm_scale_262FA | 72 | Pump RPM scaling |
 | 0x2CC1C | check_fuel_pump_relay_enable_2CC1C | 136 | Relay enable check |
-| 0x2611E | pump_prime_watchdog_2611E | 178 | Prime watchdog timer |
+| 0x2611E | pump_prime_watchdog_2611E | 178 | Prime watchdog |
 
 ### Injector Control / Hardware (16)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x10620 | fuel_injector_pulse_calc | 708 | Main injector pulse calc |
 | 0x13D3C | calc_fuel_injection_all_rotors | 236 | Per-rotor injection dispatch |
 | 0xFA90 | injection_pulse_decoder_main | 208 | Pulse decoder |
@@ -712,7 +488,7 @@ The 93 fuel-related functions, organized by subsystem:
 ### Diagnostics / OBD (6)
 
 | Address | Name | Size | Description |
-|---------|------|------|-------------|
+|---|---|---|---|
 | 0x4C6C4 | calcDiagFuelInjectorTrim | 154 | Diagnostic injector trim |
 | 0x24440 | injector_checksum_validation_24440 | 170 | Injector checksum |
 | 0x1A41A | fuel_injector_error_calc | 76 | Injector error calc |
@@ -720,429 +496,59 @@ The 93 fuel-related functions, organized by subsystem:
 | 0x43476 | dtc_status_check_injector_43476 | 132 | DTC injector check |
 | 0x25312 | fuel_system_health_check_25312 | 1676 | Full health check |
 
----
-
 ## 10. C Code for Key Functions
 
-### 10.1 `calc_fuel_pump_duty_trim` (0x135F6)
-
-This function computes the fuel pump duty cycle trim based on the operating mode:
+### `arbitrateFuelCut` (0xE56C, 358 B) — produces 2-bit result
 
 ```c
-/* calc_fuel_pump_duty_trim — fuel pump duty cycle trim calculation
- *
- * ROM: 60E1D400  |  Address: 0x135F6  |  Size: 92 bytes
- *
- * Called from engineControlCalculateTiming Phase 2.
- * Computes trim values for fuel pump duty cycle based on mode:
- *   Mode 0: No trim (use base values from calibration)
- *   Mode 1: Compute additive trims (load + RPM components) for both rotors
- *   Mode 2: Use calibration default values (safe backup)
- *
- * RAM read/write via global addresses.
- */
-
-/* ---- RAM Globals ---- */
-#define RAM_PUMP_MODE_FLAG    (*(volatile uint8_t *)0xFFFFA7??)  /* mode selector */
-#define RAM_PUMP_BASE_DUTY_R  (*(volatile float *)0xFFFFA7??)   /* base duty cycle (R rotor?) */
-#define RAM_PUMP_TRIM_OUT_R   (*(volatile float *)0xFFFFA7??)   /* trimmed output R */
-#define RAM_PUMP_TRIM_OUT_L   (*(volatile float *)0xFFFFA7??)   /* trimmed output L (or F) */
-
-/* ---- Calibration ROM constants ---- */
-#define CAL_TRIM_LOAD_R       (*(const float *)0x000136B8)      /* load trim addend */
-#define CAL_TRIM_LOAD_L       (*(const float *)0x000136BA)      /* load trim addend (L) */
-#define CAL_TRIM_RPM_R        (*(const float *)0x000136BC)      /* RPM trim addend R */
-#define CAL_TRIM_RPM_L        (*(const float *)0x000136BE)      /* RPM trim addend L */
-#define CAL_TRIM_FINAL_R      (*(const float *)0x000136C0)      /* final trim target R */
-#define CAL_TRIM_FINAL_L      (*(const float *)0x000136CC)      /* final trim target L */
-#define CAL_DEFAULT_DUTY_R    (*(const float *)0x000136DC)      /* safe default R */
-#define CAL_DEFAULT_DUTY_L    (*(const float *)0x000136E0)      /* safe default L */
-
-void calc_fuel_pump_duty_trim(void)
-{
-    uint8_t mode = RAM_PUMP_MODE_FLAG;
-
-    if (mode == 0) {
-        /* Mode 0: Load base duty from calibration and store */
-        float base_r = RAM_PUMP_BASE_DUTY_R;        /* or a calibration constant */
-        RAM_PUMP_TRIM_OUT_R = base_r;
-        /* (Mode 0 path in ROM loads a float and stores it) */
-    }
-
-    if (mode == 1) {
-        /* Mode 1: Compute active trims.
-         * Formula: trim = base + load_comp + rpm_comp
-         * Both rotors computed identically with different calibration constants.
-         */
-        float base = RAM_PUMP_BASE_DUTY_R;
-
-        /* Rotor R (or Front): */
-        float load_r = CAL_TRIM_LOAD_R;              /* load compensation addend */
-        float rpm_r  = CAL_TRIM_RPM_R;               /* RPM compensation addend */
-        float trim_r = base + load_r + rpm_r;
-        RAM_PUMP_TRIM_OUT_R = trim_r;
-
-        /* Rotor L (or Rear): */
-        float load_l = CAL_TRIM_LOAD_L;
-        float rpm_l  = CAL_TRIM_RPM_L;
-        float trim_l = base + load_l + rpm_l;
-        RAM_PUMP_TRIM_OUT_L = trim_l;
-    }
-
-    if (mode == 2) {
-        /* Mode 2: Use calibration default/safe values directly */
-        RAM_PUMP_TRIM_OUT_R = CAL_DEFAULT_DUTY_R;
-        RAM_PUMP_TRIM_OUT_L = CAL_DEFAULT_DUTY_L;
-    }
-}
-```
-
-### 10.2 `arbitrateFuelCut` (0xE56C)
-
-```c
-/* arbitrateFuelCut — fuel cut arbitration
- *
- * ROM: 60E1D400  |  Address: 0xE56C  |  Size: 358 bytes
- *
- * Evaluates two sets of fault/protection conditions and produces
- * a 2-bit fuel cut result:
- *   Bit 0: Primary fuel cut (normal conditions)
- *   Bit 1: Secondary protection (fault/error conditions)
- */
-
-void arbitrateFuelCut(void)
-{
+void arbitrateFuelCut(void) {
     uint8_t result = 0;
-
-    /* ---- Condition Set 1: Primary fuel cut (bit 0) ---- */
-    /* 12 fault flags checked: any == 1 triggers cut */
-    uint8_t cond1_set[] = {
-        *(volatile uint8_t *)0xA444,
-        *(volatile uint8_t *)0xA4A4,
-        *(volatile uint8_t *)0xA9D4,
-        *(volatile uint8_t *)0xC89C,
-        *(volatile uint8_t *)0xCB41,
-        *(volatile uint8_t *)0xBCB6,
-        *(volatile uint8_t *)0xCB42,
-        *(volatile uint8_t *)0xC945,
-        *(volatile uint8_t *)0xCC8A,
-        *(volatile uint8_t *)0xCC8B,
-        *(volatile uint8_t *)0xCC8C,
-        *(volatile uint8_t *)0xCC8D,
-    };
-    for (int i = 0; i < 12; i++) {
-        if (cond1_set[i] == 1) { result |= 0x01; break; }
-    }
-    /* Also check 0xC1EC (non-zero triggers cut) */
-    if (*(volatile uint8_t *)0xC1EC != 0) result |= 0x01;
-
-    /* ---- Condition Set 2: Secondary protection (bit 1) ---- */
-    uint8_t cond2_set[] = {
-        *(volatile uint8_t *)0xA445,
-        *(volatile uint8_t *)0xA4A5,
-        *(volatile uint8_t *)0xA9D4,
-        *(volatile uint8_t *)0xC89C,
-        *(volatile uint8_t *)0xCB41,
-        *(volatile uint8_t *)0xBCB7,
-        *(volatile uint8_t *)0xCB43,
-        *(volatile uint8_t *)0xC945,
-        *(volatile uint8_t *)0xCC8A,
-        *(volatile uint8_t *)0xCC8B,
-        *(volatile uint8_t *)0xCC8C,
-        *(volatile uint8_t *)0xCC8D,
-    };
-    for (int i = 0; i < 12; i++) {
-        if (cond2_set[i] == 1) { result |= 0x02; break; }
-    }
-    if (*(volatile uint8_t *)0xC1EC != 0) result |= 0x02;
-
-    *(volatile uint16_t *)0xA430 = result;
+    // Primary (bit 0): 12 flags 0xA444,0xA4A4,0xA9D4,0xC89C,0xCB41,0xBCB6,0xCB42,
+    //   0xC945,0xCC8A,0xCC8B,0xCC8C,0xCC8D (==1) OR 0xC1EC (!=0) → result |= 0x01
+    // Secondary (bit 1): same with 0xA445,0xA4A5,0xBCB7,0xCB43 → result |= 0x02
+    *(volatile uint16_t*)0xA430 = result;
 }
 ```
 
-### 10.3 `calc_fuel_injection_all_rotors` (0x13D3C)
+### `calc_fuel_pump_duty_trim` (0x135F6, 92 B) — pump duty by mode
 
-```c
-/* calc_fuel_injection_all_rotors — fuel injection dispatch for all rotors
- *
- * ROM: 60E1D400  |  Address: 0x13D3C  |  Size: 236 bytes
- *
- * Computes per-rotor injection timing and dispatches to output helpers.
- * Structurally parallel to calc_ignition_all_rotors_13C2C.
- *
- * Inputs:
- *   - RAM main injection value at 0xFFFFA744 (float)
- *   - RAM engine speed at 0xFFFFB5B8 (float)
- *   - Fuel cut flag, injection enable flag
- *
- * Outputs:
- *   - Ignition timing values at 0xFFFFA734/0xFFFFA738 (float) — written
- *     identically by calc_ignition_all_rotors_13C2C; lead/trail split applied
- *     later in rotor_sync_gate_state_ctrl_2100A (0x2100A, formerly leading_trailing_spark_control, unverified)
- */
+Modes: 0 → load base duty, store; 1 → `trim = base + load_comp + rpm_comp` per rotor (distinct cal addends); 2 → use safe default cal values. Cal constants at 0x136B8-0x136E0.
 
-void calc_fuel_injection_all_rotors(void)
-{
-    float main_inj = *(volatile float *)0xFFFFA744;   /* fr14: main injection value */
-    float engine_rpm = *(volatile float *)0xFFFFB5B8;  /* fr15: engine speed */
+### `calc_fuel_injection_all_rotors` (0x13D3C, 236 B)
 
-    uint8_t fuel_cut_flag = *(volatile uint8_t *)0x????;   /* fuel cut active? */
-    uint8_t mode12_flag  = *(volatile uint8_t *)0x????;    /* injection mode flag */
+Reads main injection value `0xFFFFA744` and engine speed `0xFFFFB5B8`; checks fuel-cut/injection-mode flags; applies load correction (+accel enrichment if flagged); dispatches per rotor via `compare_select_two_float_values` (0x13ED2), `calc_fuel_pump_control_output` (0x13E6C), `calc_fuel_pressure_load_compensation` (0x13EE6). Writes identical value to `0xFFFFA734`/`0xFFFFA738` (no lead/trail split here).
 
-    /* ---- Fuel cut check ---- */
-    if (fuel_cut_flag != 0) {
-        /* Fuel cut active — skip normal injection */
-        /* Clear injection enable and return */
-        *(volatile uint8_t *)0x???? = 0;
-        return;
-    }
+### `calc_adaptive_fuel_trim` (0x1379C, 228 B)
 
-    /* ---- Mode check: cranking vs. running injection ---- */
-    if (mode12_flag != 0) {
-        /* Normal running mode or specific injection mode */
-        uint8_t temp_ok = *(volatile uint8_t *)0x????;  /* coolant temp OK? */
-        if (temp_ok < some_threshold) {
-            /* Apply injection correction */
-            float corr_val = *(volatile float *)0x????;  /* load correction */
-            float adjusted = main_inj + corr_val;       /* fr15 = corrected */
-            uint8_t accel_flag = *(volatile uint8_t *)0x????;
-            if (accel_flag != 0) {
-                /* Apply acceleration enrichment on top */
-                float accel_val = *(volatile float *)0x????;
-                adjusted = some_interpolation(adjusted, accel_val);
-            }
-            main_inj = adjusted;
-        }
-    }
+Deviation from reference (RPM `0xFFFFB5B8`, lambda `0xFFFFB5C4`) → stored `0xFFFFA728`. Table selector `0xFFFFB5AC`/`0xFFFFB5A4` → 1D tables 0x6A868 / 0x6A87C (9 bp); result `0xFFFFA720`. Integrates with gain ~0.009766 when `0xFFFFC084==1 && RPM>1500`; clamps [-2.8, +0.7]; output `0xFFFFA718`.
 
-    /* ---- Per-rotor dispatch ---- */
-    /* Check individual rotor/injector enable flags */
-    /* Dispatch to output helpers that write to hardware */
-    compare_select_two_float_values(main_inj, ...);   /* 0x13ED2 */
-    calc_fuel_pump_control_output(...);               /* 0x13E6C */
-    calc_fuel_pressure_load_compensation(...);         /* 0x13EE6 */
+### `setFuelInjectorLatency` (0x86F8, 16 B)
 
-    /* Write outputs — both cells get the same value (no lead/trail split here;
-       that happens later in rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified) */
-    *(volatile float *)0xFFFFA734 = main_inj;  /* ignition timing values (A734/A738) */
-    *(volatile float *)0xFFFFA738 = main_inj;
-}
-```
-
-### 10.4 `setFuelInjectorLatency` (0x86F8)
-
-```c
-/* setFuelInjectorLatency — set injector latency/dead-time
- *
- * ROM: 60E1D400  |  Address: 0x86F8  |  Size: 16 bytes
- *
- * Writes a latency value (timer ticks) to paired primary/shadow
- * registers for one of three injector channels.
- *
- * Parameters:
- *   r4 — injector channel (0, 1, 2)
- *   r5 — latency value (unsigned 32-bit)
- *
- * Register layout at 0xFFFFA094:
- *   [0]:  channel 0 primary
- *   [1]:  channel 1 primary
- *   [2]:  channel 2 primary
- *   [3]:  channel 0 shadow
- *   [4]:  channel 1 shadow
- *   [5]:  channel 2 shadow
- */
-
-void setFuelInjectorLatency(int injector_idx, uint32_t latency)
-{
-    volatile uint32_t *base = (volatile uint32_t *)0xFFFFA094;
-
-    switch (injector_idx) {
-        case 0:
-            base[0] = latency;  /* primary */
-            base[3] = latency;  /* shadow */
-            break;
-        case 1:
-            base[1] = latency;
-            base[4] = latency;
-            break;
-        case 2:
-            base[2] = latency;
-            base[5] = latency;
-            break;
-        /* No default — no action for invalid index */
-    }
-}
-```
-
-### 10.5 `calc_adaptive_fuel_trim` (0x1379C)
-
-```c
-/* calc_adaptive_fuel_trim — long-term adaptive fuel trim
- *
- * ROM: 60E1D400  |  Address: 0x1379C  |  Size: 228 bytes
- *
- * Computes a long-term fuel trim based on O2 feedback.
- * Integrated over time with a leaky integrator, clipped
- * to [-2.8%, +0.7%].
- *
- * Called first in Phase 2 of engineControlCalculateTiming.
- */
-
-void calc_adaptive_fuel_trim(void)
-{
-    float engine_rpm      = *(volatile float *)0xFFFFB5B8;
-    float lambda_feedback = *(volatile float *)0xFFFFB5C4;
-
-    /* Compute deviation from reference target */
-    float deviation = compute_deviation(engine_rpm, lambda_feedback);
-    *(volatile float *)0xFFFFA728 = deviation;  /* store error signal */
-
-    /* Select trim table */
-    uint8_t table_select = *(volatile uint8_t *)0xFFFFB5AC;
-    const void *table_desc;
-    if (table_select == 0) {
-        table_desc = (const void *)0x6A868;      /* primary trim table */
-    } else {
-        uint8_t trim_enable = *(volatile uint8_t *)0xFFFFB5A4;
-        table_desc = (trim_enable == 0)
-            ? (const void *)0x6A868
-            : (const void *)0x6A87C;             /* secondary trim table */
-    }
-
-    /* 1D table lookup */
-    float trim_value = table1D_lookup(table_desc, deviation);
-    *(volatile float *)0xFFFFA720 = trim_value;
-
-    /* Enable conditions for integration */
-    uint8_t ect_status = *(volatile uint8_t *)0xFFFFC084;
-    float trimmed;
-
-    if (ect_status == 1 && engine_rpm > 1500.0f) {
-        /* Adaptation active — leaky integrator */
-        float previous_trim = trim_value;         /* or from stored state */
-        float gain = 0.009766f;                   /* ~1/1024 per tick */
-        trimmed = previous_trim + gain * (trim_value - previous_trim);
-    } else {
-        trimmed = 0.0f;  /* No adaptation when cold or below RPM threshold */
-    }
-
-    /* Clamp to safe limits */
-    if (trimmed < -2.8f) trimmed = -2.8f;
-    if (trimmed > 0.7f)  trimmed = 0.7f;
-
-    /* Write outputs */
-    *(volatile float *)0xFFFFA718 = trimmed;   /* leading edge trim */
-    /* Also written to trailing edge trim at 0xFFFFAADA */
-}
-```
-
----
+Writes latency to paired primary/shadow regs at base `0xFFFFA094`: channel i → `base[i]=latency`, `base[i+3]=latency` for i in 0..2.
 
 ## 11. Test Strategy
 
-### 11.1 Unit Tests (Against Emulator `sh2emu.py`)
-
-Each reconstructed C function should be verified against the emulator:
-
-```python
-# Example test: calc_fuel_pump_duty_trim
-def test_calc_fuel_pump_duty_trim():
-    """Verify fuel pump duty trim calculation against ROM behavior."""
-    
-    # Initialize emulator with ROM
-    emu = sh2emu.SH2Emulator('roms/stock/60E1D400.bin')
-    
-    # Set up test inputs
-    emu.write_byte(0xFFFFA7??, 1)    # mode = 1 (active trim)
-    emu.write_float(0xFFFFA7??, 50.0) # base duty = 50%
-    
-    # Execute function
-    emu.call(0x135F6)
-    
-    # Read outputs
-    trim_r = emu.read_float(0x????)
-    trim_l = emu.read_float(0x????)
-    
-    # Verify: base + load_comp + rpm_comp
-    assert trim_r >= 0 and trim_r <= 100, f"Trim R {trim_r} out of range"
-    assert trim_l >= 0 and trim_l <= 100, f"Trim L {trim_l} out of range"
-```
-
-### 11.2 Integration Tests
-
-Test the complete pipeline by setting up sensor inputs and verifying injector outputs:
-
-```python
-def test_fuel_injection_pipeline():
-    """End-to-end: sensor inputs → injector pulse width output."""
-    
-    emu = sh2emu.SH2Emulator('roms/stock/60E1D400.bin')
-    
-    # Set simulated sensor values
-    emu.write_float(0xFFFFB5B8, 2000.0)   # RPM = 2000
-    emu.write_float(0xFFFFB5C4, 0.8)       # O2 sensor = 0.8V (rich)
-    emu.write_float(0xFFFFCA2C, 0.5)       # TPS = 50%
-    emu.write_float(0xFFFFA9FC, 85.0)      # CLT = 85°C (warm)
-    
-    # Execute engine control tick
-    emu.call(0x14584)  # engineControlCalculateTiming
-    
-    # Read fueling outputs
-    adapt_trim = emu.read_float(0xFFFFA718)
-    pulse_widths = [emu.read_word(0xF440 + i*2) for i in range(6)]
-    
-    # Verify
-    assert -2.8 <= adapt_trim <= 0.7, f"Adaptive trim {adapt_trim} out of range"
-```
-
-### 11.3 Existing Test Infrastructure
-
-Tests live in `c/tests/`. The existing tests cover:
-- 2D/3D table lookups
-- Math primitives (saturation, addition, filtering)
-- Memory accessors
-- Emulator verification harness
-
-New fuel-specific tests should be added as `test_fuel_injector_pulse_calc.py`, `test_fuel_pump_duty_trim.py`, etc.
-
-### 11.4 Calibration Table Verification
-
-Cross-reference all calibration table addresses between:
-1. `symbols/cal_tables.csv` (naming follows RX8Defs XML conventions; original XML not redistributed)
-2. MAP scan output (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`)
-3. Actual ROM bytes at the target address
-
-Note: Addresses may differ between ROM variants — verify before assuming equivalence.
-
----
+- **Unit tests**: reconstruct each C function and verify against emulator `sh2emu.py` (`c/tests/`; covers 2D/3D table lookups, math primitives, memory accessors, emulator harness). New: `test_fuel_injector_pulse_calc.py`, `test_fuel_pump_duty_trim.py`.
+- **Integration**: drive `engineControlCalculateTiming` (0x14584) with sensor inputs (RPM 0xFFFFB5B8, O2 0xFFFFB5C4, TPS 0xFFFFCA2C, CLT 0xFFFFA9FC) and verify injector outputs (0xF440+2i ×6) and adaptive trim bounds.
+- **Calibration verification**: cross-reference `symbols/cal_tables.csv` (RX8Defs XML naming), mapscan (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`), and ROM bytes. Addresses differ between ROM variants.
 
 ## 12. Open Questions
 
-1. **Speed-density vs. MAF?** The equinox guide mentions load in g/rev, but the ROM has MAF sensor processing — is the primary fuel calculation MAF-based with speed-density as backup, or purely speed-density?
-
-2. **Open loop target address?** The exact RAM location of the computed open loop lambda target (before corrections are applied) needs identification.
-
-3. **Reference for adaptive trim deviation?** The `calc_adaptive_fuel_trim` deviation computation subtracts a reference value from engine RPM or lambda — the source of this reference value is not fully identified.
-
-4. **Injector flow rate units?** The scalar injector size values (Primary Injector Size at 0x783A0 et al.) need their exact units confirmed (cc/min, g/sec, or lb/hr?).
-
-5. **Injection timing strategy?** Sequential vs. batch fire vs. semi-sequential — the injection timing functions suggest sequential per-rotor injection, but the exact strategy (when in the cycle each injector fires) needs confirmation.
-
-6. **Secondary injector staging?** At what RPM/load threshold do the secondary injectors activate? The `Injector Barometric Pressure Compensation` and staging logic needs tracing.
-
-7. **Lambda target interpolation?** The exact interpolation between the multiple fueling maps (Fuelling 0-16) based on load, RPM, and operating mode needs full decoding.
-
-8. **Fuel pressure sensor?** Does the RX-8 use a returnless fuel system with a pressure sensor, or a return system with a pressure regulator? This affects how `fuel_pressure_calc` works.
-
----
+1. **Speed-density vs MAF?** ROM has MAF processing but equinox mentions g/rev load — primary calc MAF-based with speed-density backup, or purely speed-density?
+2. **Open loop target address?** Exact RAM of computed open-loop lambda target (pre-correction) unidentified.
+3. **Adaptive trim reference?** Source of the reference deviated from RPM/lambda in `calc_adaptive_fuel_trim` unidentified.
+4. **Injector flow units?** Scalar size values (0x783A0 et al.) units unconfirmed (cc/min, g/sec, or lb/hr?).
+5. **Injection timing strategy?** Sequential vs batch vs semi-sequential unconfirmed.
+6. **Secondary injector staging?** RPM/load threshold for activation not traced.
+7. **Lambda target interpolation?** Interpolation between Fuelling 0-16 by load/RPM/mode needs full decoding.
+8. **Fuel pressure sensor?** Returnless (with sensor) vs return (with regulator) affects `fuel_pressure_calc`.
 
 ## References
 
-- equinox92 user guide (captured from RX8Club; provenance and credits): `CREDITS.md`
-- RX8Defs calibration definitions: RomRaider RX8Defs XML (not shipped)
+- equinox92 user guide: `CREDITS.md`
+- RX8Defs calibration definitions (RomRaider XML, not shipped)
 - Calibration table catalog: `docs/subsystems/MAPS.md`
 - Symbol table (merged): `symbols_60E1D400_merged.csv`
 - Annotated assembly: `src/60E1D400_annotated.s`
 - Function analysis docs: `docs/functions/`
 - Existing C models: `c/`
-- Engine fundamentals: `renesis_i_rotary_engine_fundamentals.pdf` (moved to private storage, not shipped)

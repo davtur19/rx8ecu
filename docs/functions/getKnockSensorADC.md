@@ -1,10 +1,6 @@
 # getKnockSensorADC @ 0xC3CE
 
-## Location
-- **Image:** 60E0FC00.bin / 60E1D400.bin
-- **Address:** 0xC3CE (60E0FC00) / part of `knockRelatedInit` (60E1D400)
-- **End:** 0xC486 (60E0FC00)
-
+**Note:** 0xC3CE (60E0FC00) / part of `knockRelatedInit` (60E1D400)
 ## Purpose
 Read knock sensor raw ADC, copy to output buffer, apply first-order IIR low-pass filter when RPM is within the 200-2000 RPM band, and validate RPM reference against a 10000 RPM fault limit.
 

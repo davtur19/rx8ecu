@@ -1,11 +1,7 @@
 # calc_ignition_all_rotors_13C2C
 
 **Address:** 0x013C2C – 0x013CFC  (208 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Called by:** engineControlCalculateTiming (Phase 1, slot 7)
-
----
 
 ## Overview
 
@@ -24,8 +20,6 @@ This function computes the **correction terms** and combines them with the base
 advance value. The final timing value (in degrees BTDC) is written to two RAM
 locations for the trailing-edge and leading-edge coil drivers respectively.
 
----
-
 ## Subcalls
 
 | Address | Name | Purpose |
@@ -33,8 +27,6 @@ locations for the trailing-edge and leading-edge coil drivers respectively.
 | 0x13ED2 | compare_select_two_float_values | Selects min/max of two float pairs, returns two values |
 | 0x13E6C | calc_fuel_pump_control_output | Writes final ignition timing to trailing edge output |
 | 0x13EE6 | calc_fuel_pressure_load_compensation | Writes to leading edge output with pressure correction |
-
----
 
 ## RAM Variables
 
@@ -50,8 +42,6 @@ locations for the trailing-edge and leading-edge coil drivers respectively.
 | 0xFFFFB5B8 | float | Engine RPM (alternative read — maybe filtered vs raw) |
 | 0xFFFFC0C4 | u8 | Coolant temperature status flag (== 1 when engine is warm?) |
 | 0xFFFFC0C5 | u8 | ECT correction enable flag |
-
----
 
 ## Calibration Tables & Constants
 
@@ -92,8 +82,6 @@ temperature-protection or knock-avoidance strategy.
 | 0x00079880 | 1.0f | Default correction multiplier (warm-up compensation) |
 | 0x00079888 | 1.0f | Default correction multiplier (alternate path) |
 | 0x0007983B | 0x01 (u8) | RPM threshold flag for knock retard table selection |
-
----
 
 ## Control Flow
 
@@ -188,8 +176,6 @@ call 0x13EE6  ; calc_fuel_pressure_load_compensation
 [0xFFFFA75C] = r14      ; save byte flag back
 ```
 
----
-
 ## Ignition Timing Formula
 
 Based on the analysis, the ignition timing strategy works as follows:
@@ -213,8 +199,6 @@ The function writes final timing values to:
   identically by this function; the lead/trail split is applied later in
   rotor_sync_gate_state_ctrl_2100A (0x2100A, not yet emulated)
 
----
-
 ## Relationships
 
 ```
@@ -232,8 +216,6 @@ engineControlCalculateTiming (0x14584)
   │     └── calc_fuel_pressure_load_compensation (0x13EE6)
   └── cooling_fan_control (0x17DCC)
 ```
-
----
 
 ## Verification Notes
 

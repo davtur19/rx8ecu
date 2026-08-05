@@ -1,11 +1,7 @@
 # calc_adaptive_fuel_trim
 
 **Address:** 0x01379C – 0x013880  (228 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Called by:** engineControlCalculateTiming (Phase 2, first call)
-
----
 
 ## Overview
 
@@ -20,16 +16,12 @@ The equinox guide describes adaptive fuel trim as:
 > These trims are applied as multipliers to the base injector pulse width and
 > adapt over time to keep the air-fuel ratio at the target lambda."*
 
----
-
 ## Subcalls
 
 | Address | Name | Purpose |
 |---------|------|---------|
 | 0x2068 | 1D table lookup | Interpolates adaptive trim from calibration table |
 | 0x2404 | fpu_compare_and_select | Compares and selects between two float values (for limiting) |
-
----
 
 ## RAM Variables
 
@@ -46,8 +38,6 @@ The equinox guide describes adaptive fuel trim as:
 | 0xFFFFA718 | float | Output to leading edge trim |
 | 0xFFFFC084 | u8 | Coolant temperature status (diagnostic enable) |
 | 0xFFFFA424 | u8 | Some status flag |
-
----
 
 ## Calibration Tables & Constants
 
@@ -102,8 +92,6 @@ Same axis but different, more conservative values:
 | 0x00072C68 | 0.6 | Adaptation speed / proportional gain |
 | 0x00072C6C | -2.8 | Negative trim limit |
 | 0x00072C70 | 0.7 | Positive trim limit |
-
----
 
 ## Control Flow
 
@@ -175,34 +163,6 @@ fr15 = result               ; clipped trim value
 ; Store output
 [0xFFFFA718] = fr15         ; leading edge fuel trim
 ```
-
----
-
-## Adaptive Fuel Trim Strategy
-
-The adaptive fuel trim algorithm works as follows:
-
-1. **Error computation:** The difference between the target lambda (or RPM-based
-   reference) and the actual O2 sensor reading is computed.
-
-2. **Table lookup:** The error is used to index into one of two 1-D calibration
-   tables (selected by a flag). The tables map load deviation to a raw trim
-   value (128 = stoich, < 128 = lean, > 128 = rich).
-
-3. **Enable conditions:** Adaptation only runs when:
-   - Engine coolant temperature indicates closed-loop operation
-   - RPM is above 1500
-
-4. **Integration:** The trimmed value is accumulated with an integral gain of
-   ~0.009766 per tick, providing long-term adaptation.
-
-5. **Limiting:** The final trim is clamped to [-2.8%, +0.7%] to prevent
-   excessive correction.
-
-6. **Output:** The trim value is written to RAM for consumption by the injector
-   pulse width calculation functions.
-
----
 
 ## Relationships
 

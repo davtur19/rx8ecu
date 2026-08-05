@@ -1,11 +1,6 @@
 # task_flag_run_C @ 0x35EE
 
-**Address:** 0x35EE – 0x3610  (34 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (bit set/clear tests)
-
----
 
 ## Overview
 

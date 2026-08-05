@@ -1,11 +1,6 @@
 # dtc_data_read_60F58 @ 0x60F58
 
-**Address:** 0x60F58 – 0x60F70  (24 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (500 random initial states)
-
----
 
 ## Overview
 

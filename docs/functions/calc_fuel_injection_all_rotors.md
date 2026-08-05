@@ -1,11 +1,7 @@
 # calc_fuel_injection_all_rotors
 
 **Address:** 0x013D3C – 0x013E28  (236 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Called by:** engineControlCalculateTiming (Phase 2)
-
----
 
 ## Overview
 
@@ -15,8 +11,6 @@ three final dispatch helpers (0x13ED2, 0x13E6C, 0x13EE6). It reads engine
 speed, fuel cut flags, and injection mode status; computes the corrected fuel
 injection quantity; and writes the result to per-rotor output registers.
 
----
-
 ## Subcalls
 
 | Address | Name | Purpose |
@@ -24,8 +18,6 @@ injection quantity; and writes the result to per-rotor output registers.
 | 0x13ED2 | compare_select_two_float_values | Selects between two float values |
 | 0x13E6C | calc_fuel_pump_control_output | Writes trailing-edge output |
 | 0x13EE6 | calc_fuel_pressure_load_compensation | Writes leading-edge output |
-
----
 
 ## RAM Variables
 
@@ -37,8 +29,6 @@ injection quantity; and writes the result to per-rotor output registers.
 | 0xFFFF???? | u8 | Injection enable flag |
 | 0xFFFF???? | u8 | Rotor-specific injector flags |
 | 0xFFFFA734/0xFFFFA738 | float | Ignition timing values — written identically by calc_ignition_all_rotors_13C2C; lead/trail split applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A, unverified) |
-
----
 
 ## Control Flow
 
@@ -62,8 +52,6 @@ injection quantity; and writes the result to per-rotor output registers.
    identically; lead/trail split applied later in
    rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified)
 7. **Pop registers and return**
-
----
 
 ## Relationship to Ignition Calculation
 

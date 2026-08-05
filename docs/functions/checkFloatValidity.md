@@ -1,11 +1,7 @@
 # checkFloatValidity @ 0x46CC
 
-**Address:** 0x46CC – 0x46EA  (30 bytes)
 **ROM:** 60E1D400.bin (also present in 60E0FC00.bin at same offset)
-**Source label:** ghidra (manual)
 **Track-A verification:** C host test (16 edge cases)
-
----
 
 ## Overview
 

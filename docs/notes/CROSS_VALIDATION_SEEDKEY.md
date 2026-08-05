@@ -55,24 +55,11 @@ The C++ inline LFSR formula was decoded and transcribed 1:1 into
 
 ## 4. Analysis
 
-**Verdict: CONFIRMED-CROSS.** The two implementations compute the **same transformation** on every
-input: 24-bit Galois LFSR, init `0xC541A9`, taps `0x909028` (bits {23,20,15,12,5,3}), 64 clocks over
-the LSB-first stream `seed[0..2] + "MazdA"`, nibble-interleave key extraction returned as `[b2,b1,b0]`.
+**Verdict: CONFIRMED-CROSS.** Both implementations compute the **same transformation** on every input: 24-bit Galois LFSR, init `0xC541A9`, taps `0x909028` (bits {23,20,15,12,5,3}), 64 clocks over the LSB-first stream `seed[0..2] + "MazdA"`, nibble-interleave key extraction returned as `[b2,b1,b0]`.
 
-- **Stage coverage:** both implement the **key-computation** stage only (our `seed_key_related`
-  @0x56ADA; community `calculateKey`). Seed **generation** stays on the ECU in both models:
-  community `getSeed()` just copies the 3 bytes of `67 01 s0 s1 s2`; our `seed_gen` @0x5699A is a
-  model of the ECU's own entropy loop (counter XOR / 0x55-AA-55 sentinel / level-3 FF-FF-FF),
-  verified against ROM. The seed request vs key stage distinction requested in the task is therefore:
-  **request-seed = ECU (unmodeled on the community side), key = identical in both.**
-- **No divergence** in taps, endianness, init state, iterations, or extraction — the two are
-  bit-identical (0 divergent cases out of 100 000 + 400 + 3 + 1).
-- **Capture 0x464E7F:** both implementations compute key **0xFAFDD8**. The capture carries only the
-  seed (no key), so it cannot *discriminate* the two implementations — but it is a live-ECU input on
-  which they agree, and it fixes an expected `27 02 FA FD D8` response for a future live capture
-  (see ECU_CAPTURE_PLAN.md note). NOTE: 0x464E7F was observed on the **ICM** (0x720→0x728), same
-  platform diag stack, not the PCM (0x7E0→0x7E8); the PCM is expected to use the same transform
-  (same ROM family, same secret/LFSR data verified in 9 images).
+- **Stage coverage:** both implement the **key-computation** stage only (our `seed_key_related` @0x56ADA; community `calculateKey`). Seed **generation** stays on the ECU in both models: community `getSeed()` just copies the 3 bytes of `67 01 s0 s1 s2`; our `seed_gen` @0x5699A models the ECU's own entropy loop (counter XOR / 0x55-AA-55 sentinel / level-3 FF-FF-FF), verified against ROM. So: **request-seed = ECU (unmodeled on the community side), key = identical in both.**
+- **No divergence** in taps, endianness, init state, iterations, or extraction — bit-identical (0 divergent cases out of 100 000 + 400 + 3 + 1).
+- **Capture 0x464E7F:** both compute key **0xFAFDD8**. The capture carries only the seed (no key), so it cannot *discriminate* the two implementations — but it's a live-ECU input on which they agree, and it fixes an expected `27 02 FA FD D8` for a future live capture (ECU_CAPTURE_PLAN.md). NOTE: observed on the **ICM** (0x720→0x728), same platform diag stack, not the PCM (0x7E0→0x7E8); the PCM is expected to use the same transform (same ROM family, same secret/LFSR data verified in 9 images).
 
 ## 5. Nuances kept on record (not transform divergences)
 

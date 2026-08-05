@@ -1,28 +1,27 @@
 # REPORT — Coverage-gap analysis: the uncovered `.word` words
 
-**Date:** 2026-08-01 · **Scope:** all 9 stock ROMs in the window `0x800..0x60000`
+**Date:** 2026-08-01 · **Scope:** all 9 stock ROMs, window `0x800..0x60000`
 **Deliverable:** classify the "uncovered instructions" gap (~6.4%) and make it recoverable.
-**Safety:** read-only access to `c/ docs/ tools/ src/*.s`; only script created: `analysis/coverage/coverage_gap.py`; output in `analysis/coverage/`.
+**Safety:** read-only to `c/ docs/ tools/ src/*.s`; only script created: `analysis/coverage/coverage_gap.py`; output in `analysis/coverage/`.
 
 ---
 
-## 1. How coverage is measured (exact method)
+## 1. How coverage is measured
 
-The declared coverage (e.g. `60E1D400` = **93.63%**) is a *round-trip coverage*, produced by
-`tools/rom_rebuild.py` / `tools/organize_src.py` and frozen into the assembler `src/*_annotated.s`:
+Declared coverage (e.g. `60E1D400` = **93.63%**) is a *round-trip coverage* produced by
+`tools/rom_rebuild.py` / `tools/organize_src.py`, frozen into `src/*_annotated.s`:
 
-1. **Linear sweep** at every even offset of `0x800..0x60000` (195,584 words per ROM).
-2. Decode with **capstone (SH-2)** + `disasm_sh2e.py` fallback.
-3. **GNU-as self-correction**: every word that `sh-elf-as -big` *rejects* or *re-encodes with different
-   bytes* than the original is forced to `.word 0xNNNN`. The resulting `.s` file is the ground truth
-   of what is "covered" (the force-loop reproduces it 100%).
+1. Linear sweep at every even offset of `0x800..0x60000` (195,584 words/ROM).
+2. Decode with capstone (SH-2) + `disasm_sh2e.py` fallback.
+3. GNU-as self-correction: any word `sh-elf-as -big` rejects/re-encodes differently is forced
+   to `.word 0xNNNN`. The `.s` = ground truth of "covered".
 
-The 93% **includes** words that are data but *decode as instructions* (see §5: the "coverage
-honesty" caveat is real: ~4-6% of "covered" words are tables decoded as code).
+93% **includes** words that are data but decode as instructions (§5: ~4-6% of "covered" words are
+tables decoded as code).
 
-**Reproduced verification** by `coverage_gap.py` (exact match with the declared values):
+Reproduced by `coverage_gap.py` (exact match with declared values):
 
-| ROM | declared coverage% | reproduced coverage% | uncovered (words) | forced→.word | cluster |
+| ROM | declared % | reproduced % | uncovered (words) | forced→.word | cluster |
 |---|---|---|---|---|---|
 | 60E0E500 | 93.50 | 93.498 | 12,716 | 246 | 9,373 |
 | 60E0E700_N3YLEE | 93.46 | 93.458 | 12,796 | 326 | 9,384 |
@@ -34,36 +33,34 @@ honesty" caveat is real: ~4-6% of "covered" words are tables decoded as code).
 | **60E1D400** | **93.63** | **93.627** | **12,464** | **252** | **9,239** |
 | 60E32000_N3M5E | 93.80 | 93.800 | 12,126 | 265 | 8,937 |
 
-The gap is identical across all ROMs (12.1–12.8k words): it is a **structural feature of the firmware**
-(identical prologue, constant layout), not an artifact of a specific ROM.
+Gap is identical across ROMs (12.1–12.8k words): a **structural feature of the firmware**, not a per-ROM artifact.
 
 ---
 
-## 2. What the 12,464 uncovered words of `60E1D400` (baseline) are
+## 2. What the 12,464 uncovered words of `60E1D400` are
 
-Per-word classification (heuristic: pcrel/branch references, labels, values, neighborhood) + manual
-verification of ambiguous cases. **Conclusion: 100% data. Not code.**
+Per-word classification (pcrel/branch refs, labels, values, neighborhood) + manual verification:
+**100% data, not code.**
 
 | Category | words | % | cluster | notes |
 |---|---|---|---|---|
-| `data:pool_single` | 6,478 | **51.97%** | 6,478 | 16-bit constants referenced by `mov.w @(disp,PC)` with no table placeholder |
-| `data:literal_pool` | 2,282 | 18.31% | 883 | 16-bit literal pools (already classified in `data_regions_60E1D400.csv`) |
+| `data:pool_single` | 6,478 | **51.97%** | 6,478 | 16-bit constants via `mov.w @(disp,PC)`, no table placeholder |
+| `data:literal_pool` | 2,282 | 18.31% | 883 | 16-bit literal pools (in `data_regions_60E1D400.csv`) |
 | `data:padding` | 1,540 | 12.36% | 366 | filler runs (dominated by `0xFFFF`) |
 | `data:unknown_data` | 782 | 6.27% | 218 | unreferenced data (config/calibration) |
 | `data:padding_single` | 749 | 6.01% | 749 | isolated single filler words |
 | `data:single_unref` | 463 | 3.71% | 463 | isolated words never referenced |
-| `data:jump_table` | 107 | 0.86% | 23 | jump tables (ROM addresses, referenced via switch) |
-| `data:table_member` | 30 | 0.24% | 30 | members of 16-bit tables (0x82nn/0x86nn values or near 0x0007/0x0009 markers) |
+| `data:jump_table` | 107 | 0.86% | 23 | jump tables (ROM addresses, via switch) |
+| `data:table_member` | 30 | 0.24% | 30 | members of 16-bit tables (0x82nn/0x86nn or near 0x0007/0x0009) |
 | `label_on_data` | 24 | 0.19% | 24 | symbol labels resting on data |
 | `data:string` | 7 | 0.06% | 3 | strings |
-| `instr_forced` | 2 | 0.02% | 2 | decodable residue (verified: table, see §4) |
+| `instr_forced` | 2 | 0.02% | 2 | decodable residue (verified: table, §4) |
 | **TOTAL** | **12,464** | **100%** | 9,239 | = 24,928 bytes |
 
-**Summary by value**: **79.02%** of the gap (9,849 words) is `0xFFFF`/`0x0000`
-(filler/padding); the most common single values after those are `0x0001`, `0x0100`, `0x0200`
+**Summary by value:** **79.02%** (9,849 words) is `0xFFFF`/`0x0000`; then `0x0001`, `0x0100`, `0x0200`
 (masks/config), `0x8C2C` (addresses).
 
-**Cluster structure**: 9,239 clusters, average 1.3 words. The largest:
+**Cluster structure:** 9,239 clusters, avg 1.3 words. Largest:
 
 | range | words | category |
 |---|---|---|
@@ -76,64 +73,52 @@ verification of ambiguous cases. **Conclusion: 100% data. Not code.**
 | `0x4E946 – 0x4E968` | 18 | unknown_data |
 | `0x5AAC – 0x5ACC` | 17 | literal_pool |
 
-**31.88%** of the gap (3,974 words) is **inside named-function ranges**: they are pools/tables
-*inline* at function edges (e.g. the dense patterns at `0x27F68`, `0x51C44`, `0x50CAA`), consistent with
-the firmware emitting constants at the end of functions.
+**31.88%** of the gap (3,974 words) is **inside named-function ranges**: pools/tables *inline* at
+function edges (e.g. `0x27F68`, `0x51C44`, `0x50CAA`).
 
-**Reset/exception vectors**: 20 entries fall in the window and **0 point to uncovered words**
-→ no handler is "lost as data" through the vector.
+**Reset/exception vectors:** 20 entries in window, **0 point to uncovered words** → no handler lost as data.
 
 ---
 
-## 3. The "decodable but forced" words (252) — the key point
+## 3. The "decodable but forced" words (252)
 
-The force-loop also leaves `.word` for words that **decode as valid instructions** (capstone reads them,
-GNU-as re-encodes them differently or rejects them). Breakdown of the 252 in D400:
+Force-loop also leaves `.word` for words that decode as valid SH-2E instructions (GNU-as re-encodes
+differently/rejects). Breakdown in D400:
 
-- **241 (95.6%)** are SH-2E `mov.l` **`0x82nn` / `0x86nn`** (16-bit disp): opcodes not assemblable
-  by GNU-as (the toolchain lacks the SH-2E extensions).
+- **241 (95.6%)** are `mov.l` **`0x82nn` / `0x86nn`** (16-bit disp): not assemblable by GNU-as
+  (toolchain lacks SH-2E extensions).
 - **11** are rare opcodes (`ldc`/`stc`/`synco`/`movua`/`mulr`/`divs`/`divu`), e.g. `0x403E` (`ldc r0,SSR`),
   `0x0132` (`stc SSR,r0`), `0x014B` (`synco`).
 
-**Manual verification of all D400 occurrences → they are data, not code:**
-- The `0x86xx` patterns appear in pairs with `0x0007`/`0x0009` markers (e.g. `0x31064–0x3107C`,
-  `0x31196`, `0x31406`): this is the div-library *register-save table* (save/restore
-  masks, 16-bit rows).
-- The two `0x403E` words (`0x4300`, `0x44D8`) sit in **structured tables** (at `0x42F0` the values
-  decrease by 4: `0x201E 0x1C1A 0x1816 0x1412 …`), again div-library tables.
-- **Therefore: real instructions left stranded as `.word` = 0** (same outcome for all ROMs:
-  `instr_forced` residue 0–2 words, always table members).
+Manual verification of all D400 occurrences → data, not code:
+- `0x86xx` pairs with `0x0007`/`0x0009` markers (e.g. `0x31064–0x3107C`, `0x31196`, `0x31406`) — div-library
+  *register-save table* (16-bit rows).
+- The two `0x403E` words (`0x4300`, `0x44D8`) sit in structured tables (values decreasing by 4 at `0x42F0`).
 
-The project's `.word` writing is **correct**: it is not a decode gap, it is the GNU-as
-toolchain not knowing SH-2E. Recovering them as instructions would yield **zero** extra code.
+**Real instructions stranded as `.word` = 0** (`instr_forced` residue 0–2 words, always table members).
+The project's `.word` writing is **correct**: not a decode gap but the GNU-as toolchain not knowing SH-2E;
+recovering them yields **zero** extra code.
 
 ---
 
-## 4. Answer to the question: "what are the ~6.4% and how recoverable are they?"
+## 4. Answer: "what are the ~6.4%, how recoverable?"
 
-**What they are:** 6.37% = 12,464 words = **pure data** (pools, padding, tables, config). No
-real uncovered instruction exists.
+**What:** 6.37% = 12,464 words = **pure data** (pools, padding, tables, config). No real uncovered instruction.
 
-**Recoverability (how much "re-enters" coverage):**
-- **~52%** (`pool_single`) and **~19%** (`literal_pool`): pools/constants already referenced by
-  `mov.w @(disp,PC)`; they are *legitimately* excluded data — they would re-enter only by changing the
-  coverage definition (e.g. marking them `@pool` instead of instructions).
-- **~31%** (`padding` + `padding_single` + `single_unref` + `unknown_data` + strings): data never
-  referenced (filler `0xFFFF`/`0x0000` for ~79% of the overall gap). Unrecoverable as
-  instructions — and should not be recovered.
-- **~1%** (`jump_table` + `table_member` + `label_on_data`): tables; same considerations as pools.
-- **`instr_forced` 2 words (0.02%)**: verified = table members → nothing to recover.
+**Recoverability:**
+- **~52%** (`pool_single`) + **~19%** (`literal_pool`): pools/constants already referenced by `mov.w @(disp,PC)` — legitimately excluded data; re-enter only by changing the coverage definition (`@pool`).
+- **~31%** (padding + padding_single + single_unref + unknown_data + strings): never-referenced filler (`0xFFFF`/`0x0000` ≈79% of gap). Unrecoverable as instructions — and should not be.
+- **~1%** (`jump_table` + `table_member` + `label_on_data`): tables.
+- **`instr_forced` 2 words (0.02%)**: verified table members → nothing to recover.
 
-**In one sentence:** the force-loop has already "recovered" all possible code; the residue is 100% data
-and the 93.63% coverage is **saturated** from an instruction-decode standpoint.
+The force-loop already recovered all possible code; the residue is 100% data and **93.63% coverage is saturated** from an instruction-decode standpoint.
 
 ---
 
-## 5. Opposite direction (coverage "honesty"): there is *non-code* *counted as covered*
+## 5. Opposite direction: *non-code* counted as *covered*
 
-The `VERIFICATION.md` caveat is measurable: words with the data markers `0x0004/0x0005/0x0006/0x0007`
-(`mov r0,@(r0,r0)` / `mul.l r0,r0`, a sequence never used as code) get **decoded and counted
-covered**:
+Data markers `0x0004/0x0005/0x0006/0x0007` (`mov r0,@(r0,r0)` / `mul.l r0,r0`, a sequence never used as
+code) get decoded and counted covered:
 
 | value | "covered" words |
 |---|---|
@@ -143,25 +128,21 @@ covered**:
 | `0x0004` (`mov.b r0,@(r0,r0)`) | 491 |
 | **total** | **7,184 = 3.92% of covered** |
 
-Adding the `0x0008`/`0x0009` separator patterns and the known mis-decode regions
-(e.g. `0x30F30–0x31550`, 734 covered words, are tables), the honest estimate of "real" code is
-**~88–91%** of the window. If a *more honest* number were ever wanted, it should be **lowered**
-by labeling these words as data, not raised.
+Adding the `0x0008`/`0x0009` separators and mis-decode regions (e.g. `0x30F30–0x31550`, 734 covered
+words are tables), the honest estimate of "real" code is **~88–91%** of the window. A more honest
+number, if wanted, would be **lower**, not higher.
 
 ---
 
 ## 6. Recommendations
 
-1. **No action on decoding**: the gap contains no instructions; there is no
-   decompilation work to do on the uncovered words. Close the task with the classification documented
-   here.
-2. **Do not "recover" the gap**: marking pools/padding as data (e.g. `@pool` labels, defined bytes)
-   is *cosmetic* (at `0x60000` there is no code to run) and would **lower** the honest 93%.
-3. **Toolchain note**: if the 241 `0x82nn/0x86nn` words were ever to be assembled as
-   SH-2E instructions, a custom emitter or a more recent binutils would be needed; for now they are
-   correctly `.word` (they are data).
-4. **Reproducibility**: `coverage_gap.py` regenerates the full 9-ROM table in ~40 s and the per-ROM
-   CSV/TXT (`uncovered_<ROM>.{csv,txt}`); reusable to re-verify after any `.s` change.
+1. **No action on decoding**: the gap contains no instructions; no decompilation work to do. Close the task.
+2. **Do not "recover" the gap**: marking pools/padding as data (e.g. `@pool`) is cosmetic (at `0x60000`
+   there is no code to run) and would **lower** the honest 93%.
+3. **Toolchain note**: if the 241 `0x82nn/0x86nn` words were ever assembled as SH-2E, a custom emitter
+   or newer binutils is needed; currently correctly `.word`.
+4. **Reproducibility**: `coverage_gap.py` regenerates the 9-ROM table in ~40 s + per-ROM CSV/TXT
+   (`uncovered_<ROM>.{csv,txt}`).
 
 ---
 
@@ -169,14 +150,12 @@ by labeling these words as data, not raised.
 
 | file | contents |
 |---|---|
-| `analysis/coverage/coverage_gap.py` | reproduces the round-trip coverage, classifies the gap, generates output (the only new script) |
-| `analysis/coverage/uncovered_60E1D400.{csv,txt}` | 12,464 D400 uncovered words: per-word (csv) and per-category with clusters (txt) |
-| `analysis/coverage/uncovered_60E32000_N3M5E.{csv,txt}` | same for the second ROM |
+| `analysis/coverage/coverage_gap.py` | reproduces round-trip coverage, classifies gap, generates output (only new script) |
+| `analysis/coverage/uncovered_60E1D400.{csv,txt}` | 12,464 D400 words: per-word (csv) / per-category with clusters (txt) |
+| `analysis/coverage/uncovered_60E32000_N3M5E.{csv,txt}` | same for second ROM |
 | `analysis/coverage/REPORT.md` | this report |
 
 **Open issues / uncertainties:**
-- The CSV categories of `data_regions_60E1D400.csv` are only available for D400; for the other ROMs the
-  classification uses the script heuristics (slightly "coarser": the classes
-  `pool_unclassified`, `padding_pattern`, `run_unclassified` appear), with equivalent outcomes.
-- The "real code ~88–91%" estimate is an indicative lower/upper bound: it would require a
-  human annotator for the exact count of covered data words.
+- `data_regions_60E1D400.csv` categories exist only for D400; other ROMs use coarser script heuristics
+  (classes `pool_unclassified`, `padding_pattern`, `run_unclassified`), equivalent outcomes.
+- "Real code ~88–91%" is an indicative bound; exact covered-data count needs a human annotator.

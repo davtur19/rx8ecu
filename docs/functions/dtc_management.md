@@ -17,8 +17,6 @@ Verified: `c/tests/test_dtcRelated.py` (500 states), `test_dtc_handler_610FA.py`
 (200), `test_dtc_handler_61550.py` (200), `test_dtc_code_set_clear.py` (500),
 `test_dtc_debounce_monitor_43760.py` (500) — all pass.
 
----
-
 ## Shared RAM map (diagnostics area)
 
 | Address | Size | Meaning |
@@ -40,8 +38,6 @@ Checksum convention: every byte is stored with its bitwise complement in the
 adjacent byte (16-bit pair); `readValue_8bit_ADDRESS_VAL` @0x3ED3C validates
 `b[0] == ~b[1]` (else default), `updateMemoryAtAddress_8bit_ADDR_VAL` @0x3EE58
 writes `val<<8 | ~val`.
-
----
 
 ## dtcRelated @ 0x062002
 
@@ -115,8 +111,6 @@ flag2 at >=4, B=0); else path B (counterB++, flag1 at >=16, C=0).  Else B=C=0.
 Then `cond ? counterA++ : counterA = 0` (saturating).
 Emulator note: `fcmp/gt Fm,Fn` sets T = (FRn > FRm) (sh2emu.py:110) — the
 nested gate above matches that ordering.
-
----
 
 ## Callers
 

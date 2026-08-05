@@ -1,11 +1,6 @@
 # consistencyCheck @ 0x3A28
 
-**Address:** 0x3A28 – 0x3AA4  (124 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ghidra-hand-xmap
 **Track-A verification:** C code written, emulator test pending
-
----
 
 ## Overview
 

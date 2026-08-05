@@ -1,10 +1,6 @@
 # dtcRelated @ 0x062002
 
-**Address:** 0x062002
-**ROM:** 60E1D400.bin
 **Track-A verification:** emulator (500 random states × 8 type selectors × 4 enable modes) — `c/tests/test_dtcRelated.py`
-
----
 
 ## Overview
 

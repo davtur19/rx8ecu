@@ -1,11 +1,7 @@
 # calc_decel_fuel_cut_445AA
 
 **Address:** 0x0445AA – 0x044694  (234 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ghidra-hand-xmap
 **Called by:** engineControlCalculateTiming (Phase 2)
-
----
 
 ## Overview
 
@@ -19,8 +15,6 @@ The equinox guide describes this as:
 
 > *"Deceleration fuel cut — when throttle is closed and RPM is above a threshold,
 > fuel injectors are disabled until RPM drops or throttle opens."*
-
----
 
 ## RAM Variables
 
@@ -36,8 +30,6 @@ The equinox guide describes this as:
 | 0xFFFFCAB6 | u8 | Secondary fuel cut flag |
 | 0xFFFFCA88 | u8 | Saturation accumulator output |
 
----
-
 ## Calibration Constants
 
 | Address | Type | Value | Description |
@@ -46,8 +38,6 @@ The equinox guide describes this as:
 | 0x0007B3DD | u8 | 0x00 | Feature disable byte |
 | 0x0007B418 | f32 | 0.01 | Throttle-closed voltage threshold |
 | 0x0007B41C | f32 | 50.0 | RPM threshold for fuel cut (x100 RPM? or speed?) |
-
----
 
 ## Control Flow
 
@@ -124,43 +114,10 @@ EXIT:
     return
 ```
 
----
-
-## Strategy Summary
-
-The throttle lift fuel cut algorithm implements:
-
-```
-fuel_cut = 0  (normal fueling)  -- default
-
-IF override_flag == 1:
-    fuel_cut = 0                  ; forced normal
-ELIF decel_enable == 1 AND cal_enable == 1:
-    fuel_cut = 0                  ; forced normal (overrides decel)
-ELIF fuel_cut_mode == 0:
-    fuel_cut = 1                  ; mode not active → cut fuel
-ELIF rpm_sensor > 0.01:
-    fuel_cut = 1                  ; speed detected → cut fuel
-ELIF throttle > rpm_sensor:
-    ; throttle more open than RPM → re-evaluate with hysteresis
-    IF accumulator > 0 OR high_RPM:
-        fuel_cut = 1
-    ELSE:
-        fuel_cut = 0
-ELIF rpm > 50 AND accumulator > 0:
-    fuel_cut = 1
-ELIF cal_disable_byte == 0 AND decel_flag == 1:
-    fuel_cut = 1
-ELSE:
-    fuel_cut = 0
-```
-
 The fuel cut flag at 0xFFFFCAB5 is read by:
 - `fuel_cut_logic` (0x4490A)
 - `calc_fuel_cut_flags_merged` (0x11140)
 - `calc_fuel_injection_all_rotors` (0x13D3C)
-
----
 
 ## Calibration Effect
 

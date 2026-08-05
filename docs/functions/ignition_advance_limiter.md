@@ -1,11 +1,7 @@
 # ignition_advance_limiter
 
 **Address:** 0x00E38C – 0x00E43C  (176 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Called by:** Multiple ignition subsystem functions
-
----
 
 ## Overview
 
@@ -15,8 +11,6 @@ what corrections (knock retard, temperature compensation, etc.) have been
 applied. It reads the current advance value, compares against calibration table
 limits, and clamps if necessary.
 
----
-
 ## Calibration Tables
 
 ### Table at 0x??? — Ignition advance limits (RPM-based)
@@ -24,8 +18,6 @@ limits, and clamps if necessary.
 A 1D table (or possibly 2D) mapping RPM to maximum advance. The function
 also applies a minimum advance limit (usually 0° BTDC or slightly retarded
 for safety during cranking).
-
----
 
 ## Control Flow
 
@@ -36,8 +28,6 @@ for safety during cranking).
 5. If advance < min: clamp to min
 6. Write the clamped value back to RAM
 7. Return
-
----
 
 ## Output
 

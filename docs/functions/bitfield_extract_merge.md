@@ -1,13 +1,9 @@
 # bitfield_extract_merge @ 0x48C8
 
-**Address:** 0x48C8 – 0x492A (0x62 bytes + 12-byte literal pool @0x492C)
 **ROM:** 60E1D400.bin (byte-identical code also in 60E0FC00.bin @0x48C8)
-**Source label:** ida-ai — `bitfield_extract_merge`
 **Track-A verification:** SH-2E emulator vs independent model (30 edge cases +
 100k random bit patterns, 0 mismatches) **and** C lift vs emulated ROM
 (100k+ inputs, 0 mismatches) — `c/tests/test_bitfield_extract_merge.py`
-
----
 
 ## Overview
 
