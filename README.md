@@ -9,7 +9,7 @@ Denso **279700-3313**, Renesas **SH-2E** (**SH7055 / HD64F7055**) 32-bit CPU,
 C reimplementations, analysis, docs, and the stock firmware images — every
 shipped ROM rebuilds to **byte-identical** output.
 
-## Methodology — AI as hypothesis generator, never ground truth
+## Verification methodology
 
 The model proposes; every claim below is **machine-checked or explicitly
 tagged**. Verification is a cascade (L1→L6); anything not yet through it is
