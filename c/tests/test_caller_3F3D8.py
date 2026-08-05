@@ -48,7 +48,7 @@ CODE = {
     0x3f3d8: {"kind": 'reg', "py": 'r[5] = 0x0000AA55', "slot_py": None, "target": None, "cond": None},
     0x3f3da: {"kind": 'reg', "py": 'r[4] = 0xFFFF872C', "slot_py": None, "target": None, "cond": None},
     0x3f3dc: {"kind": 'reg', "py": 'r[3] = 0x0003EE68', "slot_py": None, "target": None, "cond": None},
-    0x3f3de: {"kind": "call", "py": None, "slot_py": None, "target": 0x3ee68, "ret_pc": 0x3f3e2, "set_pr": False, "cond": None},
+    0x3f3de: {"kind": "call", "py": None, "slot_py": '', "target": 0x3ee68, "ret_pc": 0x3f3e2, "set_pr": False, "cond": None},
     0x3ee68: {"kind": 'reg', "py": 'r[3] = r[5] & 0xFFFF', "slot_py": None, "target": None, "cond": None},
     0x3ee6a: {"kind": 'reg', "py": 'r[3] = (r[3] << 16) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x3ee6c: {"kind": 'reg', "py": 'r[2] = (~r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},

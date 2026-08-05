@@ -58,7 +58,7 @@ CODE = {
     0x546ba: {"kind": 'reg', "py": 'r[5] = s8(0x01)', "slot_py": None, "target": None, "cond": None},
     0x546bc: {"kind": 'reg', "py": 'r[4] = 0xFFFF9000', "slot_py": None, "target": None, "cond": None},
     0x546be: {"kind": 'reg', "py": 'r[2] = 0x0003EE58', "slot_py": None, "target": None, "cond": None},
-    0x546c0: {"kind": "call", "py": None, "slot_py": None, "target": 0x3ee58, "ret_pc": 0x546c4, "set_pr": False, "cond": None},
+    0x546c0: {"kind": "call", "py": None, "slot_py": '', "target": 0x3ee58, "ret_pc": 0x546c4, "set_pr": False, "cond": None},
     0x3ee58: {"kind": 'reg', "py": 'r[3] = r[5] & 0xFF', "slot_py": None, "target": None, "cond": None},
     0x3ee5a: {"kind": 'reg', "py": 'r[3] = (r[3] << 8) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x3ee5c: {"kind": 'reg', "py": 'r[2] = (~r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
