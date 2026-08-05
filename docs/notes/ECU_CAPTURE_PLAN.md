@@ -2,7 +2,7 @@
 
 Status: **PLAN (not executed)** · date 2026-08-04 · external captures reviewed: 6 references found (see §7)
 
-References: `docs/notes/REQUEST_SEED_EVIDENCE.md` (RequestSeed ROM evidence, CONFIRMED 2026-08-04); `docs/notes/SENDKEY_RECONCILIATION.md` (SendKey cross-ROM reachability verdict (b): dead code in all 9 stock images, RESOLVED 2026-08-04).
+References: `docs/notes/UDS_SECURITY_MAPPING.md` §7 (RequestSeed ROM evidence, CONFIRMED 2026-08-04; SendKey cross-ROM reachability verdict (b): dead code in all 9 stock images, RESOLVED 2026-08-04 — ex `REQUEST_SEED_EVIDENCE.md` / `SENDKEY_RECONCILIATION.md`, merged).
 
 Scope: live, on-ECU validation of the UDS security-access handler SID 0x27 — specifically that subfunction `0x04` (SendKey) produces **silence / no response** and the SendKey flow **never executes**. Companion doc to the two static-evidence notes; documents *how* to confirm at runtime what they already prove in ROM.
 
@@ -13,7 +13,7 @@ Scope: live, on-ECU validation of the UDS security-access handler SID 0x27 — s
 Confirm at runtime, on a stock Mazda RX-8 ECU, that the SID 0x27 handler
 (`security_access_handler` @ `0x584A0`, UDS dispatch table @ `0x5F57C` entry idx 10, accessMask `0x1000000E`, dispatcher `0x697E8`-`0x69840`) behaves as the ROM evidence says:
 
-(a) RequestSeed (subfunc `0x01`) answers as per REQUEST_SEED_EVIDENCE: positive response `[0x67, subfunc, 3 seed bytes]` (builder `0x5864A` → send `0x68B60`), NRC set {0x12, 0x31} for malformed/not-found.
+(a) RequestSeed (subfunc `0x01`) answers as per UDS_SECURITY_MAPPING §7.1: positive response `[0x67, subfunc, 3 seed bytes]` (builder `0x5864A` → send `0x68B60`), NRC set {0x12, 0x31} for malformed/not-found.
 (b) subfunc `0x04` (SendKey) → **silence** (no response frame on 0x7E8), i.e. SendKey flow (`0x58592`-`0x58610`) never executes — verdict (b) at runtime.
 (c) msg_len gates as in ROM: `msg_len==0` → NRC `0x12` (`0x584E8`); `msg_len==1` required for RequestSeed (else NRC `0x12` @ `0x58588` — discrepancy a); the SendKey body's `msg_len==4` gate (`cmp/eq #4` @ `0x58592`) is never reached.
 
@@ -58,7 +58,7 @@ Note: the only NRC literals in the whole handler body `0x584A0`-`0x58648` are {0
 
 ## 4. Expected results
 
-Derived strictly from REQUEST_SEED_EVIDENCE.md and SENDKEY_RECONCILIATION.md (addresses cited):
+Derived strictly from UDS_SECURITY_MAPPING.md §7.1/§7.3 (addresses cited):
 
 | # | Expected observation | Evidence / ROM ref |
 |---|----------------------|--------------------|
@@ -70,7 +70,7 @@ Derived strictly from REQUEST_SEED_EVIDENCE.md and SENDKEY_RECONCILIATION.md (ad
 | E6 | NRC 0x31 only if `position_check` returns the ==3 sentinel (`chk==3`, `0x5857E`) or `key_validate(...) != 0` (`0x58574`) — neither expected on a healthy stock unit | `0x58530`-`0x58534`, `0x58544`-`0x58548` |
 | E7 | Repeated `27 01`: seed may collapse to `{0,0,0}` if state2==chk after the first request | `0x5854E` (chk vs state2 compare) |
 
-Live discriminability of the 5 documented discrepancies (REQUEST_SEED_EVIDENCE):
+Live discriminability of the 5 documented discrepancies (UDS_SECURITY_MAPPING §7.1):
 
 | Discr | Discriminable on the wire? | How |
 |-------|----------------------------|-----|
@@ -87,7 +87,7 @@ The capture is "validated" when **all**:
 2. **Zero SendKey executions**: no response frame of any kind for any subfunc `0x02`/`0x04` request (no `67 04`, no `7F` error, no data), and no NRC `0x22`/`0x35` anywhere on the bus.
 3. TC-9 holds the structural seed contract: every RequestSeed reply is `67 01` + exactly 3 bytes; if `{0,0,0}` ever observed, discrepancy (b) confirmed live.
 4. `7F 27 12` for **both** TC-2 (msg_len==0) and TC-3 (msg_len==2) — discrepancy (a) confirmed live.
-5. If 1-4 pass: verdict — SENDKEY_RECONCILIATION verdict (b) (SendKey dead code in 60E1D400) is **runtime-CONFIRMED**; the two evidence notes are updated after the run (not by this plan).
+5. If 1-4 pass: verdict — UDS_SECURITY_MAPPING §7.3 verdict (b) (SendKey dead code in 60E1D400) is **runtime-CONFIRMED**; the evidence notes are updated after the run (not by this plan).
 
 ## 6. Risks / notes
 
@@ -96,7 +96,7 @@ The capture is "validated" when **all**:
 - **Bench DTCs**: bench power-up without cluster/sensors sets a pile of DTCs (DUMP_ALL.md) — harmless for UDS; don't clear mid-capture (0x14 out of scope, **[TBD]** if needed).
 - **Timing / silence**: "silent" defined against the tester's UDS session timeout (suggest ≥ 1 s; exact **[TBD]**); log timestamps. The else path still runs the framework epilogue (`0x58622` → `0x55362` notification) — internal only, no CAN frame.
 - **Seed nondeterminism**: RequestSeed seeds come from the 24-bit Galois LFSR (`seed_key_related`, `0x56ADA`) — assert *structure* (3 bytes; zero-fill allowed per discr b), never exact values.
-- **9-image family**: baseline `60E1D400` is the target. The other 8 aux images carry the same dead-code structure (SENDKEY_RECONCILIATION ROM-by-ROM table) but differ in entry layout (extra `msg_len==1`/`subfunc==1` checks) and else-path response-SID constant (`#62`/0x3E vs `#39`/0x27). One clean baseline capture confirms the verdict class for all 9; a full family capture needs per-ROM passes (out of scope).
+- **9-image family**: baseline `60E1D400` is the target. The other 8 aux images carry the same dead-code structure (UDS_SECURITY_MAPPING §7.3 ROM-by-ROM table) but differ in entry layout (extra `msg_len==1`/`subfunc==1` checks) and else-path response-SID constant (`#62`/0x3E vs `#39`/0x27). One clean baseline capture confirms the verdict class for all 9; a full family capture needs per-ROM passes (out of scope).
 - **Private tooling**: live tester (`tools/uds/<dump_tool>.py`, OBDX Pro VX, 32-bit Python) is private, not shipped — run from the private checkout. This plan adds documentation only.
 - **Session/security state**: 0x27 security state (SECURITY_STATE_2 @ `0xFFFFD20C`) can be mutated by a RequestSeed (discr b). Run TC-9 (repeats) last, or repower between classes, so an early RequestSeed can't bias later silent-case results.
 
@@ -107,8 +107,8 @@ Reviewed 2026-08-04 (curl + GitHub REST API + indexed web search; DuckDuckGo HTM
 ### 7.1 Live 0x27 exchange (bench RX-8 ICM) — rnd-ash wiki
 - URL: https://github.com/rnd-ash/rx8-reverse-engineering/wiki (pages: Home, "Instrument cluster", "RX8 CANBUS", "powertrain control module"; wiki repo `rnd-ash/rx8-reverse-engineering.wiki`) — ISO-TP trace of live KWP2000-over-CAN bench sessions (OpenVehicleDiag), 2006 S1 RX-8 (231 PS).
 - Content: ICM (0x720→0x728): `27 01` → `67 01 46 4E 7F` — **3-byte seed**; SecurityAccess **only in session 0x87** (0x81 = default); Mazda NRC quirk: `0x22` (ConditionsNotCorrect) used instead of `0x80`. PCM diag IDs confirmed: 0x7E0/0x7E8.
-- Cross-validated 2026-08-04 (CROSS_VALIDATION_SEEDKEY.md): seed `0x464E7F` → **expected key `0xFAFDD8`** — identical from our VERIFIED transform and the ConnorRigby implementation. Adds an expected PCM capture case: `27 01` → `67 01 46 4E 7F` → `27 02 FA FD D8` → `67 02` (observed on ICM; PCM expected same transform — same ROM family).
-- Reuse: seed reply = `[0x67, subfunc, 3 bytes]`, exactly as REQUEST_SEED_EVIDENCE predicts (TC-1/TC-9). Session-0x87 gating matches 7.2 and the run-mode caveat. ICM not PCM, but same platform diag stack.
+- Cross-validated 2026-08-04 (UDS_SECURITY_MAPPING §7.2): seed `0x464E7F` → **expected key `0xFAFDD8`** — identical from our VERIFIED transform and the ConnorRigby implementation. Adds an expected PCM capture case: `27 01` → `67 01 46 4E 7F` → `27 02 FA FD D8` → `67 02` (observed on ICM; PCM expected same transform — same ROM family).
+- Reuse: seed reply = `[0x67, subfunc, 3 bytes]`, exactly as UDS_SECURITY_MAPPING §7.1 predicts (TC-1/TC-9). Session-0x87 gating matches 7.2 and the run-mode caveat. ICM not PCM, but same platform diag stack.
 - Status: accessible (public wiki; cloned OK 2026-08-04).
 
 ### 7.2 Working seed-key ROM-dump implementation — ConnorRigby/rx8-ecu-dump
@@ -157,8 +157,7 @@ Search log (2026-08-04): DuckDuckGo HTML (partial, bot-gated), GitHub repo-searc
 
 ## References
 
-- `docs/notes/REQUEST_SEED_EVIDENCE.md` (CONFIRMED 2026-08-04)
-- `docs/notes/SENDKEY_RECONCILIATION.md` (RESOLVED 2026-08-04, verdict (b))
+- `docs/notes/UDS_SECURITY_MAPPING.md` §7 (RequestSeed evidence CONFIRMED 2026-08-04; SendKey verdict (b) RESOLVED 2026-08-04 — ex `REQUEST_SEED_EVIDENCE.md` / `SENDKEY_RECONCILIATION.md` / `CROSS_VALIDATION_SEEDKEY.md`, merged 2026-08-04)
 - `docs/notes/CAN_PROTOCOL.md` (HS-CAN; IDs 0x7E0/0x7DF/0x7E8; MB13-15; dispatcher `0x697E8`)
 - `docs/notes/CONNECTOR_PINOUT.md` / `docs/notes/DUMP_ALL.md` (bench power + CAN wiring, J2534)
 - `docs/notes/HARDWARE.md` (unit, SH7055 IC430)

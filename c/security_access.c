@@ -5,7 +5,7 @@
  *  STATUS: VERIFIED core; RequestSeed flow CONFIRMED 2026-08-04.
  * Address: 0x584A0
  *  2026-08-04: RequestSeed sub-flow (r.191-255) CONFIRMED against ROM
- *  (docs/notes/REQUEST_SEED_EVIDENCE.md) — incl. entry dispatch (only
+ *  (docs/notes/UDS_SECURITY_MAPPING.md §7.1) — incl. entry dispatch (only
  *  subfunc==1 enters), msg_len==1 requirement, conditional seed path,
  *  and the finding that SendKey (0x58592) is UNREACHABLE in 60E1D400.
  *  2026-08-04: key_validate (10-entry table @0x5FAA2) e position_check
@@ -22,14 +22,14 @@
  *   * The UDS handler FLOW is confirmed against the ROM: key_validate,
  *     position_check, seed_gen, the state checks and the RequestSeed
  *     sub-flow are VERIFIED (see each block below and
- *     docs/notes/REQUEST_SEED_EVIDENCE.md).  Documented discrepancies
+ *     docs/notes/UDS_SECURITY_MAPPING.md §7.1).  Documented discrepancies
  *     (logic untouched, comments only): r4 = msg_len (not a pointer),
  *     ROM requires msg_len==1 for RequestSeed, the seed bytes are written
  *     conditionally (state2==chk -> {0,0,0}), and the SendKey body
  *     (0x58592-0x58610) is UNREACHABLE in this ROM build — the entry
  *     dispatch routes only subfunc==1 into the handler; subfunc!=1 falls
  *     to 0x5862C (subfunc==0 -> resp, else silent no-response).
- *     2026-08-04 reconciliation (docs/notes/SENDKEY_RECONCILIATION.md):
+ *     2026-08-04 reconciliation (docs/notes/UDS_SECURITY_MAPPING.md §7.3):
  *     the SendKey body is dead code in ALL 9 public stock ROMs (see
  *     "SendKey" note below); verdict (b) — no removal, kept as the
  *     ROM-accurate reconstruction of the shared-codebase remnant.
@@ -37,7 +37,7 @@
  *     on a stock ECU until the flow is validated against the ROM end-to-end
  *     and, ideally, real captures (the RequestSeed flow is now ROM-CONFIRMED
  *     2026-08-04, but real-ECU capture validation is still open; SendKey is
- *     dead code in all 9 public stock ROMs — see SENDKEY_RECONCILIATION.md).
+ *     dead code in all 9 public stock ROMs — see UDS_SECURITY_MAPPING.md §7.3).
  *   * docs/notes/UDS_SECURITY_MAPPING.md tracks the security-access open
  *     items (subfunction→level mapping, seed_gen internals, key_validate
  *     middle byte); the stock-LFSR core itself was solved 2026-07-31 —
@@ -231,7 +231,7 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
         /* ---- Subfunction 0x01: RequestSeed ---- */
 
         /* [REQSEED-EVIDENCE] CONFIRMED 2026-08-04 against ROM 60E1D400
-         * (see docs/notes/REQUEST_SEED_EVIDENCE.md).  Entry dispatch
+         * (see docs/notes/UDS_SECURITY_MAPPING.md §7.1).  Entry dispatch
          * 0x584B6-0x584BE (cmp/eq #0x01; bt/s 0x584C2) routes ONLY
          * subfunc==1 into this flow.  The old "absolute-value trick"
          * (abs_sub @0x584FE-0x58516) is REAL but vestigial: abs(1)&1==1
@@ -306,7 +306,7 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
         /* [SENDKEY-RECONCILIATION 2026-08-04] RESOLVED — verdict (b):
          * this branch is DEAD CODE in ALL 9 public stock ROMs (60E1D400
          * baseline + 8 aux; independent whole-ROM branch scan, see
-         * docs/notes/SENDKEY_RECONCILIATION.md).  In every image the SendKey
+         * docs/notes/UDS_SECURITY_MAPPING.md §7.3).  In every image the SendKey
          * body (60E1D400: 0x58592-0x58610; different VA per ROM) is present
          * with IDENTICAL structure (same 8-byte signature: mov r4,r0;
          * cmp/eq #0x04,r0; bf/s ...; nop) but is UNREACHABLE:
@@ -329,7 +329,7 @@ void security_access_handler(const uint8_t *msg, uint8_t subfunc)
          * REACHABILITY of that body from the UDS dispatch.  The code below
          * is intentionally KEPT (no removal) as the ROM-accurate
          * reconstruction of a shared-codebase remnant.  Previous flag:
-         * docs/notes/REQUEST_SEED_EVIDENCE.md discrepancy (e). */
+         * docs/notes/UDS_SECURITY_MAPPING.md §7.1 discrepancy (e). */
 
         /* ROM 0x58592-0x58596: FIRST instruction of the SendKey path is
          * `mov r4,r0; cmp/eq #0x04,r0; bf/s 0x58610` — the message length

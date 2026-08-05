@@ -169,7 +169,7 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 ### Subfunction 0x01 — RequestSeed
 
-> CONFIRMED 2026-08-04 — see `docs/notes/REQUEST_SEED_EVIDENCE.md` for the
+> CONFIRMED 2026-08-04 — see `docs/notes/UDS_SECURITY_MAPPING.md §7.1` for the
 > row-by-row ROM evidence.  Corrections to the previous (DRAFT) description:
 
 1. Read `SECURITY_STATE_1` (0xFFFFD20B, state_check1 @0x56866) and
@@ -194,7 +194,7 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 > **RESOLVED 2026-08-04 — verdict (b): dead code in ALL 9 public stock ROMs.**
 > (was: FLAG 2026-08-04 — unreachable in 60E1D400.)  Cross-ROM scan
-> (`docs/notes/SENDKEY_RECONCILIATION.md`): the SendKey body is present with
+> (`docs/notes/UDS_SECURITY_MAPPING.md §7.3`): the SendKey body is present with
 > identical structure in every stock image (60E1D400 `0x58592`-`0x58610`;
 > 60E0E500 `0x56F3E`, 60E0E700 `0x57196`, 60E0FB00/60E0FC00 `0x56026`,
 > 60E15120 `0x57B56`, 60E1B900 `0x562BE`, 60E1C500 `0x57202`, 60E32000
@@ -259,7 +259,7 @@ The SecurityAccess handler uses these RAM locations for state:
 | key_validate            | Verified   | 2026-08-04 — 10-entry table @0x5FAA2; commit `b483523` |
 | seed_key_related/lfsr   | Verified   | 2026-07-31 — 12/12 keys + 400 random seeds |
 | mazda_security.py       | Confirmed  | `tools/mazda_security.py` — bit-equivalent to ROM at level 1 |
-| RequestSeed flow        | Confirmed  | 2026-08-04 — `docs/notes/REQUEST_SEED_EVIDENCE.md` (row-by-row; entry dispatch, msg_len==1, conditional seed path) |
+| RequestSeed flow        | Confirmed  | 2026-08-04 — `docs/notes/UDS_SECURITY_MAPPING.md §7.1` (row-by-row; entry dispatch, msg_len==1, conditional seed path) |
 | C reconstruction        | Confirmed  | Core VERIFIED + RequestSeed CONFIRMED 2026-08-04; SendKey reachability **RESOLVED 2026-08-04** — dead code in all 9 public stock ROMs (see below) |
 
 **Open questions (core RESOLVED; no remaining items):**
@@ -285,8 +285,8 @@ The earlier "VERIFIED" SendKey work (commit `fd56201` SeedKeyRelated transform;
 `31bb0ac` flow aligned to the ROM body) covered the algorithm/flow against the
 ROM body, not the reachability of that body from the UDS dispatch.  Verdict (b):
 definitive dead code, shared-codebase remnant — kept in the C reconstruction,
-no removal.  See `docs/notes/SENDKEY_RECONCILIATION.md` for the ROM-by-ROM table
-and per-ROM branch addresses, and `docs/notes/REQUEST_SEED_EVIDENCE.md`
+no removal.  See `docs/notes/UDS_SECURITY_MAPPING.md §7.3` for the ROM-by-ROM table
+and per-ROM branch addresses, and `docs/notes/UDS_SECURITY_MAPPING.md §7.1`
 discrepancy (e) for the original 60E1D400 finding.
 
 ## References

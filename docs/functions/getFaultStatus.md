@@ -43,3 +43,12 @@ including sensor monitoring tasks, DTC evaluation, and subsystem health checks.
 - [ ] Verified against emulator (needs getFaultEvalState stubs)
 - [x] Logic analyzed from disassembly
 - [x] C code written
+
+## Note: earlier location @ 0x652F0 (doc merged from docs/functions/getfaultstatus.md)
+- An earlier/variant implementation of the same two-path fault query lives at **0x652F0** (referenced as `getFaultStatus??` by `sourceOf10kReset.md` and `symbols/callgraph.csv`, ~40 callers incl. can216RXFaultEval, getCAN47RXStatus).
+- Different concrete addresses than the 0x6743C version:
+  - ROM fault table at **0x0007CCB8** (word entries, indexed by DTC index) — vs 0x0007E4DC here
+  - RAM fault flags buffer at **0xFFFFD740** (word) — vs 0xFFFFD96C here
+  - Helper **sub_65348 @ 0x65348** (takes r4 index, returns candidate in r0; per CATALOG_MASTER.csv this region overlaps `getFaultEvalState` 0x65336–0x65348) — vs getFaultEvalState @ 0x67494 here
+- Same two-path structure: AND table entry with flags; if zero, call helper and re-check with **0xFFFF0000** mask; non-zero → fault active.
+- Draft C of the 0x652F0 version (dtcIndex word → `faultTable[dtcIndex] & flags`, alt-path via sub_65348) was in the deleted doc; status was "med" (helper purpose and two-path rationale unconfirmed).

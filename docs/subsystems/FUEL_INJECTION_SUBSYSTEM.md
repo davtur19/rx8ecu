@@ -36,7 +36,7 @@ SENSORS (RPM, MAF/VAF, MAP, TPS, IAT, CLT, O2/Lambda)
 | Stage | Functions | Tick |
 |---|---|---|
 | Sensor acquisition | MAF, MAP, TPS, IAT, CLT, O2, RPM | Pre-tick (interrupt) |
-| Load calculation | `calc_combustion_load_factor`, `calc_combustion_efficiency_metric` | Phase 1 |
+| Load calculation | `calc_spark_advance`, `calc_spark_advance` | Phase 1 |
 | Main fuel corrections | `calc_adaptive_fuel_trim`, `calc_accel_fuel_enrichment`, `calc_barometric_pressure_trim`, `calc_closed_loop_fuel_status`, `read_o2_sensor_voltage_trim` | Phase 2 |
 | Fuel cut arbitration | `calc_decel_fuel_cut_445AA`, `fuel_cut_logic`, `fuel_enable_logic`, `arbitrateFuelCut` | Phase 2 |
 | Pulse width calc | `fuel_injector_pulse_calc`, `calc_fuel_injection_all_rotors`, `injectorPulseSet` | Post-Phase 2 |

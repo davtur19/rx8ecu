@@ -106,7 +106,7 @@ cross-checks), `clean`.
 
 | State | Item | Source of truth |
 |---|---|---|
-| **Done** | 9/9 ROMs byte-exact rebuild; 9/9 formal certificates (P1–P5 zero LIVE); seed/key cross-validated bit-identical to community (0 divergences) | `VERIFICATION.md` §1; `FORMAL_CERT_60E1D400.md`; `CROSS_VALIDATION_SEEDKEY.md` |
+| **Done** | 9/9 ROMs byte-exact rebuild; 9/9 formal certificates (P1–P5 zero LIVE); seed/key cross-validated bit-identical to community (0 divergences) | `VERIFICATION.md` §1; `FORMAL_CERT_60E1D400.md`; `UDS_SECURITY_MAPPING.md` §7.2 |
 | **Done** | Symbol catalog, named/categorized functions, cal tables, explorer site | `CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`, `cal_tables.csv` |
 | **In progress** | Naming / categorization of the ~50,676 real-function estimate (6,439 named, 6,082 categorized); function docs (191/…); more C lifts + emulator-verified addresses | `NAMES_STATUS.md`, `CATALOG_STATUS.md`, `c/verified_addrs.txt` |
 | **Open** | Semantic meaning of the firmware; runtime on real hardware | `RUNTIME_CERT_PLAN.md`, `ECU_CAPTURE_PLAN.md` |
