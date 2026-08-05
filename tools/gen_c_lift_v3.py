@@ -1779,6 +1779,26 @@ def _pool_end(records, fallback):
     return fallback
 
 
+def _norm_py(parts):
+    """Normalize mapper py fragments for the mirror CODE dict.
+
+    Some c_lift_ops templates embed newline + indentation inside ONE py
+    fragment (div1/addc/subc/negc/cmp-str/div0s/shll/rotcl/... — every
+    multi-line 'T'-expression template).  exec()ing such a fragment at module
+    indentation level raises ``IndentationError: unexpected indent`` on the
+    indented continuation line.  Every line is a complete simple statement (or
+    a one-line compound such as ``if t1 == 0: t2 = r[0]``), so stripping the
+    leading whitespace of each line is semantics-preserving (T stays the
+    integer 0/1 the mapper produces)."""
+    out = []
+    for frag in parts:
+        for ln in frag.split('\n'):
+            s = ln.strip()
+            if s:
+                out.append(s)
+    return '\n'.join(out)
+
+
 def _code_literal(records):
     """Render the interpreter's CODE = {addr: inst} dict as Python source."""
     lines = []
@@ -1788,7 +1808,7 @@ def _code_literal(records):
             bi = ops.branch_info(rec['op'])
             bkind = bi['kind']
             slot = rec.get('slot')
-            slot_py = '\n'.join(slot['py']) if slot and slot.get('py') else None
+            slot_py = _norm_py(slot['py']) if slot and slot.get('py') else None
             if bkind == 'rts':
                 lines.append('    %#x: {"kind": "ret", "py": None, '
                              '"slot_py": %r, "target": None, "cond": None},'
@@ -1807,7 +1827,7 @@ def _code_literal(records):
                              '"slot_py": %r, "target": %#x, "cond": %r},'
                              % (pc, slot_py, rec['target'], _BRANCH_COND[bkind]))
         else:
-            py = '\n'.join(rec.get('py') or []) or None
+            py = _norm_py(rec.get('py') or []) or None
             lines.append('    %#x: {"kind": %r, "py": %r, "slot_py": None, '
                          '"target": None, "cond": None},'
                          % (pc, _MIRROR_KIND[rec['kind']], py))
