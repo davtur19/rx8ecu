@@ -361,6 +361,17 @@ def translate(op, pc, rom, ann=''):
         if op & 0xF0FF == 0x001A: return _mk('r%d = macl;' % n, 'r[%d] = macl' % n, ['r%d' % n, 'macl'])
         if op & 0xF0FF == 0x002A: return _mk('r%d = pr;' % n, 'r[%d] = pr' % n, ['r%d' % n, 'pr'])
 
+    # ---- SR system-register ops (additive, real): sh2emu executes these
+    # (stc SR,Rn 0x0n02 / ldc Rn,SR 0x4n0E — see sh2emu._exec).  `sr` is an
+    # independent uint32 state, init 0x000000F0 (sh2emu call() default), and is
+    # NOT synced with T: ldc sets sr verbatim, stc reads it verbatim, exactly
+    # like the oracle.  The generator declares sr (uint32_t, default 0x000000F0)
+    # only when the body references it, and the test mirror seeds sr likewise.
+    if op & 0xF0FF == 0x0002 and (op >> 12) == 0:      # stc SR,Rn
+        return _mk('r%d = sr;' % n, 'r[%d] = sr' % n, ['r%d' % n, 'sr'])
+    if op & 0xF0FF == 0x400E:                          # ldc Rn,SR
+        return _mk('sr = r%d;' % n, 'sr = r[%d]' % n, ['r%d' % n, 'sr'])
+
     # ---- branches / return (control flow) ----
     if op == 0x000B:   # rts (delayed)
         return {'c': [], 'py': [], 'uses': set(), 'kind': 'ret', 'delayed': True,
@@ -380,6 +391,18 @@ def translate(op, pc, rom, ann=''):
     if n0 == 0xA:   # bra (delayed, unconditional)
         return {'c': [], 'py': [], 'uses': set(), 'kind': 'branch', 'delayed': True,
                 'target': bra_target(pc, op & 0xFFF), 'cond_c': '1u', 'cond_py': '1', 'ann': ann}
+    # bsrf Rn / braf Rn (delayed, DYNAMIC target = P+4+Rn — never statically
+    # known; only bsrf also writes PR = P+4).  The selector's _v3_branch_rule
+    # needs an in-span target to admit a branch, so these carry a DUMMY target
+    # == pc (the instruction itself is always inside the scanned span); the
+    # generator never uses it (walk_v3 emits them as terminal `return r0;` and
+    # the test mirror as a dynamic pc jump).  Matching sh2emu's _delayed().
+    if op & 0xF0FF == 0x0003 and (op >> 12) == 0:      # bsrf Rn
+        return {'c': [], 'py': [], 'uses': {'r%d' % n}, 'kind': 'branch', 'delayed': True,
+                'target': pc, 'cond_c': None, 'cond_py': None, 'ann': ann}
+    if op & 0xF0FF == 0x0023 and (op >> 12) == 0:      # braf Rn
+        return {'c': [], 'py': [], 'uses': {'r%d' % n}, 'kind': 'branch', 'delayed': True,
+                'target': pc, 'cond_c': None, 'cond_py': None, 'ann': ann}
 
     return None  # unsupported / impure opcode
 
@@ -565,6 +588,47 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
         ann = 'mov.%s @(r0,r%d),r%d' % (_SIZE_CH[size], m, n)
         return mem('load', size, m, None, n, 0, 'r0', None, ann)
 
+    # ---- SR system-register memory forms (additive, real): stc.l SR,@-Rn
+    # (0x4n03) / ldc.l @Rn+,SR (0x4n07) — sh2emu._exec 0x4n03/0x4n07.  Base
+    # resolution is exactly the param/literal rule of the other mem forms (a
+    # r15/r14 stack base falls through _resolve_base -> None and is rejected,
+    # as documented).  The value transferred is the `sr` state, not an rN, so
+    # src/dest stay None and 'sr_src'/'sr_dest' flag the op for the generator —
+    # _scan_mem_function only consumes size/dir/base_reg/auto (selection), and
+    # gen_c_lift_v3.walk_v3 renders the record itself (c_lift_ops.decode_mem
+    # dicts are never re-rendered by _mem_record for these).
+    if op & 0xF0FF == 0x4003:    # stc.l SR,@-Rn: rn -= 4; wr(rn, 4, sr)
+        rb = _resolve_base(ctx, n)
+        if rb is None:
+            return None
+        base_kind, abs_addr = rb
+        eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, -4, None, abs_addr)
+        c = ['*(volatile uint32_t*)%s = sr;' % eff]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        c.append('r%d = r%d - 4;' % (n, n))
+        return {'kind': 'mem', 'size': 4, 'dir': 'store', 'base': base_kind,
+                'c': c, 'src': None, 'base_reg': n, 'disp': -4, 'idx': None,
+                'auto': 'pre', 'sext': False, 'ann': 'stc.l SR,@-r%d' % n,
+                'uses': {'sr', 'r%d' % n}, 'sr_src': True}
+    if op & 0xF0FF == 0x4007:    # ldc.l @Rn+,SR: sr = rd(rn, 4); rn += 4
+        rb = _resolve_base(ctx, n)
+        if rb is None:
+            return None
+        base_kind, abs_addr = rb
+        eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, 0, None, abs_addr)
+        t = temp()
+        c = ['uint32_t %s = *(volatile uint32_t*)%s;' % (t, eff)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        c.append('sr = %s;' % t)
+        c.append('r%d = r%d + 4;' % (n, n))
+        return {'kind': 'mem', 'size': 4, 'dir': 'load', 'base': base_kind,
+                'c': c, 'temp': t, 'dest': None, 'base_reg': n, 'disp': 0,
+                'idx': None, 'auto': 'post', 'sext': False,
+                'ann': 'ldc.l @r%d+,SR' % n, 'uses': {'sr', 'r%d' % n, t},
+                'sr_dest': True}
+
     return None  # not a covered memory op
 
 
@@ -638,6 +702,12 @@ def branch_info(opcode_hi):
         if d12 & 0x800:
             d12 -= 0x1000
         return {'kind': 'bra', 'delayed': True, 'target_disp': d12}
+    if op & 0xF0FF == 0x0003 and (op >> 12) == 0:       # bsrf Rn (delayed, dynamic)
+        return {'kind': 'bsrf', 'delayed': True, 'target_disp': None,
+                'reg': (op >> 8) & 0xF}
+    if op & 0xF0FF == 0x0023 and (op >> 12) == 0:       # braf Rn (delayed, dynamic)
+        return {'kind': 'braf', 'delayed': True, 'target_disp': None,
+                'reg': (op >> 8) & 0xF}
     return None
 
 

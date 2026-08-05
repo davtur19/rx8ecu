@@ -54,7 +54,7 @@ end-to-end validation).
 
 - **9/9 ROMs byte-exact + 9/9 formally certified** (`make verify-all`, `make cert`) — code window 0x800..0x60000, SH-2 lift 93.46–93.8% round-trip (true code ≈88–91%).
 - **Symbol catalog:** 56,952 deduped rows → **50,676 real-function estimate** (NOISE-filtered), **6,439 named**, **6,082 categorized** (`symbols/CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`).
-- **660 C lifts**, **746 emulator-verified addresses**, 100k+ random vectors per key function (`c/`, `c/verified_addrs.txt`).
+- **687 C lifts**, **773 emulator-verified addresses**, 100k+ random vectors per key function (`c/`, `c/verified_addrs.txt`).
 - **Tables:** 1,210 calibration tables + 37,121 RomRaider/GROM defs across 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
 - **Docs:** 191 function + 15 subsystem docs; **tests:** 203 Python + 26 C suites, regressions 38,008 + 83 ✓.
 - **Explore:** [RX-8 ECU Firmware Explorer](https://davtur19.github.io/rx8ecu/) · evidence [VERIFICATION.md](VERIFICATION.md) · inventory [MANIFEST.md](MANIFEST.md) · [docs/README.md](docs/README.md) · formal cert [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
@@ -83,7 +83,7 @@ File inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 660 verified C lifts, `eeprom_immo.h`, host test suites (863 py + 26 c), `verified_addrs.txt` |
+| `c/` | 687 verified C lifts, `eeprom_immo.h`, host test suites (890 py + 26 c), `verified_addrs.txt` |
 | `tools/` | SH-2E disassembler, emulator, formal verifier, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | `symbols/` | Per-ROM symbol CSVs, CATALOG_MASTER.csv (56,952 rows), CATALOG_STATUS.md / NAMES_STATUS.md / TABLES_STATUS.md, cal_tables.csv (1,210), romraider_rx8_tables.csv (37,121 defs / 13 ROM codes), callgraph.csv |
 | `analysis/` | Code-window data-region classification + per-ROM declared configs for the formal verifier |
