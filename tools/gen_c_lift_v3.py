@@ -335,6 +335,298 @@ def select_v4_sanitized(cats, rom, catalog, outdir, root=ROOT, v3_pool=None):
 
 
 # ---------------------------------------------------------------------------
+# FPU-aware selection (dryrun-only feasibility measurement).  pool_fpu counts
+# the functions that would pass ALL the existing v3/v4 selection criteria
+# (sanitized span, size gate, dedup, call/branch/base/stack rules, unmapped =
+# reject) IF the FPU opcodes that c_lift_ops.decode_fpu now maps were allowed.
+# It NEVER changes the real selection: _scan_mem_function / the v3/v4 pools and
+# counters are untouched — a function with any FPU op is still rejected by the
+# real pipeline (fpu/altre) until FPU emission lands.  The FPU-using functions
+# are further broken down by whether they ALSO trip up on a call, an unresolved
+# base, or nothing else (fpu_only).
+# ---------------------------------------------------------------------------
+def _scan_fpu_function(rom, c, end, branch_stats=None):
+    """Mirror of gcl._scan_mem_function whose only difference is that an FPU
+    opcode decode_fpu() maps is treated as an admitted statement (instead of
+    rejecting the function with 'fpu/altre').  Everything else — decision
+    order, call/branch/GBR/stack/base rules, and the final 'no_mem_op' gate —
+    is identical, so the counter is a faithful "what if FPU were allowed"."
+    """
+    addr = c['addr']
+    bound = min(end, len(rom))
+    written = set()
+    lits = {}
+    tmp = [0]
+    gbr_known = False
+    gbr_value = None
+    stack_ok = True
+    frame_live = False
+
+    def temp():
+        tmp[0] += 1
+        return 't%d' % tmp[0]
+
+    def resolve(reg):
+        v = lits.get('r%d' % reg)
+        if v is None:
+            return None
+        cls = ops.classify_addr(v)
+        if cls in ('RAM', 'ROM'):
+            return (cls, v)
+        return None
+
+    ctx = {'temp': temp, 'resolve': resolve}
+    bases = {}
+    ops_list = []
+    lit_vals = []
+    brs = []
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        d = ops.translate(op, pc, rom)
+        if d is not None:
+            if d.get('kind') in ('branch', 'ret'):
+                target = d.get('target')
+                admit, det = gcl._v3_branch_rule(rom, op, target, pc, addr, end)
+                gcl._count_branch(branch_stats, det)
+                if admit:
+                    brs.append((det, pc, target))
+                    pc += 2
+                    continue
+                return None, ('branch_v3', det)
+            writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
+            if op == 0x6E3F:
+                if stack_ok and 'r14' not in written:
+                    frame_live = True
+            else:
+                if 'r15' in writes:
+                    stack_ok = False
+                if 'r14' in writes:
+                    frame_live = False
+            if not gcl._apply_stmt(rom, pc, op, d, written, lits):
+                return None, 'unmapped'
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x401E:
+            gbr_known = True
+            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            pc += 2
+            continue
+        if gcl.is_call_op(op):
+            return None, 'call'
+        if op == 0x002B:
+            return None, 'rte'
+        if gcl.is_branch_op(op):
+            return None, 'branch'
+        m = ops.decode_mem(op, None, ctx)
+        if m is not None:
+            base_reg = m['base_reg']
+            if m.get('idx') == 'r0' and 'r0' not in lits:
+                return None, ('base_unresolved', 'altro')
+            if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                kind = ('PARAM', None)
+                bkind = 'param'
+            elif 'r%d' % base_reg in lits:
+                kind = ('LITERAL', lits['r%d' % base_reg])
+                bkind = 'literal'
+            else:
+                return None, ('base_unresolved', 'altro')
+            bases.setdefault('r%d' % base_reg, kind)
+            if kind[0] == 'LITERAL' and kind[1] not in lit_vals:
+                lit_vals.append(kind[1])
+            ops_list.append({'pc': pc, 'size': m['size'], 'dir': m['dir'],
+                             'kind': bkind, 'base_reg': base_reg,
+                             'disp': m.get('disp', 0), 'auto': m.get('auto'),
+                             'idx': m.get('idx'), 'gbr': False})
+            gcl._apply_mem_writes(m, written, lits)
+            pc += 2
+            continue
+        g = gcl._decode_gbr(op)
+        if g is not None:
+            size, gdir, disp = g
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                return None, ('base_unresolved', 'r0-non-literal')
+            abs_addr = (gbr_value + lits['r0'] + disp) & gcl.MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
+                  'src': 0 if gdir == 'store' else None}
+            ops_list.append({'pc': pc, 'size': size, 'dir': gdir, 'kind': 'gbr',
+                             'base_reg': None, 'disp': disp, 'auto': None,
+                             'idx': None, 'gbr': True})
+            gcl._apply_mem_writes(gm, written, lits)
+            pc += 2
+            continue
+        sh = gcl._mem_shape(op)
+        if sh is not None and sh['base'] in (14, 15):
+            breg = sh['base']
+            if sh['idx'] is not None:
+                return None, ('base_unresolved', 'altro')
+            if breg == 15:
+                if not stack_ok or sh['dest'] == 15:
+                    return None, ('base_unresolved', 'r15-non-tracked')
+            else:
+                if not frame_live or sh['dest'] == 14:
+                    return None, ('base_unresolved', 'r14-non-frame')
+            bases.setdefault('r%d' % breg, ('STACK', None))
+            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                  'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
+            ops_list.append({'pc': pc, 'size': sh['size'], 'dir': sh['dir'],
+                             'kind': 'stack', 'base_reg': breg, 'disp': sh['disp'],
+                             'auto': sh['auto'], 'idx': sh.get('idx'), 'gbr': False})
+            gcl._apply_mem_writes(sm, written, lits)
+            pc += 2
+            continue
+        if gcl.is_mem_opcode(op):
+            return None, ('base_unresolved', 'altro')
+        # ---- FPU (additive): decode_fpu maps it -> admitted; else fpu/altre ----
+        f = ops.decode_fpu(op, pc, rom, ctx)
+        if f is not None:
+            if f.get('kind') == 'fpu_mem':
+                if f.get('unresolved'):
+                    return None, ('base_unresolved', 'altro')
+                base_reg = f['base_reg']
+                if f.get('idx') == 'r0' and 'r0' not in lits:
+                    return None, ('base_unresolved', 'altro')
+                if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                    bkind = 'param'
+                elif 'r%d' % base_reg in lits:
+                    bkind = 'literal'
+                else:
+                    return None, ('base_unresolved', 'altro')
+                bases.setdefault('r%d' % base_reg, ('LITERAL', lits['r%d' % base_reg])
+                                 if bkind == 'literal' else ('PARAM', None))
+                ops_list.append({'pc': pc, 'size': 4, 'dir': f['dir'],
+                                 'kind': 'fpu_mem', 'base_reg': base_reg,
+                                 'disp': 0, 'auto': f.get('auto'),
+                                 'idx': f.get('idx'), 'gbr': False})
+                if f.get('auto') in ('post', 'pre'):
+                    reg = 'r%d' % base_reg
+                    written.add(reg)
+                    lits.pop(reg, None)
+            else:                       # pure fpu op: track any integer-RN write
+                # (fmul/fadd/etc write frN only; sts fpul,Rn / fcmp set rN / T)
+                for reg in gcl._stmt_writes('\n'.join(f.get('c') or [])):
+                    written.add(reg)
+                    lits.pop(reg, None)
+            pc += 2
+            continue
+        if ops.is_fpu_op(op):
+            return None, 'fpu/altre'
+        return None, 'unmapped'
+
+    if not ops_list:
+        return None, 'no_mem_op'
+    return ({'name': c['name'], 'addr': addr, 'size': end - addr,
+             'bases': bases, 'ops': ops_list, 'literal_values': lit_vals,
+             'branches': brs}, None)
+
+
+def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0):
+    """pool_fpu selection (v4: now the REAL selector when emission lands — FPU
+    opcodes decode_fpu() maps are admitted; every other criterion is identical
+    to select_v3/select_v4_sanitized: sanitized span, size gate, dedup,
+    call/branch/GBR/stack/base rules, unmapped = reject).  Returns
+    (pool_fpu, counters).  counters carries the fpu breakdown:
+      pool_fpu      : functions passing every existing v4 criterion WITH the
+                      mapped FPU ops admitted (superset of the v4 pool).
+      fpu_used      : span/size/dedup-passing candidates whose span holds any
+                      FPU op (decode_fpu-able or recognizably FPU).
+      fpu_only      : the fpu_used subset that passes cleanly (in pool_fpu).
+      fpu_calls     : fpu_used subsets tripping over a call (reject reason).
+      fpu_bases     : ... over an unresolved base (base_unresolved reason).
+      fpu_other     : ... over another reject (rte, unmapped FPU, no_mem_op,
+                      delay_slot_ctrl, target_fuori, branch).
+      fpu_no_branch : admitted span but zero internal branches (skipped).
+    Every accepted entry carries the sanitized end (entry['end_s'] = end_s) so
+    the emission path decodes exactly the sanitized span.  max_n/seed sampling
+    matches select_v3 (sorted by size, then random.Random(seed).sample)."""
+    counters = {'pool_fpu': 0,
+                'fpu_used': 0, 'fpu_only': 0, 'fpu_calls': 0,
+                'fpu_bases': 0, 'fpu_other': 0, 'fpu_no_branch': 0,
+                'rejected': Counter(),
+                'skipped_size': 0, 'skipped_dedup': 0, 'skipped_no_branch': 0,
+                'n_over_160': 0, 'n_trimmed': 0, 'n_extended': 0,
+                'n_entrambi': 0, 'examples': []}
+    pool = []
+    for c in cats:
+        addr = c['addr']
+        end = catalog.get(c['addr'])
+        if end is None:
+            continue
+        addr_s, end_s, reasons = sanitize_span(addr, end, rom)
+        if not (gcl.MEM_MIN <= end_s - addr <= gcl.MEM_MAX + 16):
+            counters['skipped_size'] += 1
+            continue
+        base = gcl.sanitize(c['name'])
+        out_c = os.path.join(outdir, '%s_%x.c' % (base, addr))
+        out_t = os.path.join(root, 'c', 'tests', 'test_%s_%x.py' % (base, addr))
+        if os.path.exists(out_c) or os.path.exists(out_t) or \
+                glob.glob(os.path.join(outdir, '*_%x.c' % addr)):
+            counters['skipped_dedup'] += 1
+            continue
+        # does the sanitized span hold any FPU op?
+        has_fpu = False
+        pc = addr
+        b = min(end_s, len(rom))
+        while pc + 1 < b:
+            op = (rom[pc] << 8) | rom[pc + 1]
+            if ops.is_fpu_op(op) or ops.decode_fpu(op, pc, rom, None) is not None:
+                has_fpu = True
+                break
+            pc += 2
+        if has_fpu:
+            counters['fpu_used'] += 1
+        entry, reason = _scan_fpu_function(rom, c, end_s, None)
+        if entry is None:
+            if isinstance(reason, tuple):
+                r, det = reason
+                if r == 'branch_v3':
+                    r = gcl._BRANCH_V3_REASON.get(det, 'branch')
+            else:
+                r = reason
+            counters['rejected'][r] += 1
+            if has_fpu:
+                if r == 'call':
+                    counters['fpu_calls'] += 1
+                elif r == 'base_unresolved':
+                    counters['fpu_bases'] += 1
+                else:
+                    counters['fpu_other'] += 1
+            continue
+        cnt = len(entry['branches'])
+        if not cnt:
+            counters['skipped_no_branch'] += 1
+            if has_fpu:
+                counters['fpu_no_branch'] += 1
+            continue
+        if end_s - addr > gcl.MEM_MAX:
+            counters['n_over_160'] += 1
+        trimmed = 'trimmed_padding' in reasons
+        extended = 'extended_end' in reasons
+        if trimmed and extended:
+            counters['n_entrambi'] += 1
+        elif trimmed:
+            counters['n_trimmed'] += 1
+        elif extended:
+            counters['n_extended'] += 1
+        entry['end_s'] = end_s            # sanitized end for emission
+        pool.append(entry)
+        counters['pool_fpu'] += 1
+        if has_fpu:
+            counters['fpu_only'] += 1
+            if len(counters['examples']) < 5:
+                counters['examples'].append((addr, c['name']))
+    pool.sort(key=lambda x: x['size'])
+    if max_n is not None and max_n < len(pool):
+        pool = random.Random(seed).sample(pool, max_n)
+    return pool, counters
+
+
+# ---------------------------------------------------------------------------
 # Additive dryrun-only feasibility counters (A/B/C).  They NEVER change the
 # selection: they post-mortem spans that _scan_mem_function already rejected.
 # The baseline pool / rejection numbers / branch breakdown are untouched.
@@ -778,6 +1070,37 @@ def walk_v3(rom, addr, end):
             gcl._apply_mem_writes(sm, st['written'], st['lits'])
             return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
+        # ---- v4 FPU (additive): decode_fpu-able ops are emitted verbatim ----
+        f = ops.decode_fpu(op, pc, rom, ctx)
+        if f is not None:
+            if f.get('kind') == 'fpu_mem':
+                if f.get('unresolved'):          # base not param/literal
+                    return None
+                base_reg = f['base_reg']
+                if f.get('idx') == 'r0' and 'r0' not in st['lits']:
+                    return None
+                if f['base'] == 'literal':
+                    info['has_literal'] = True
+                    v = st['lits'].get('r%d' % base_reg)
+                    if v is not None and ops.classify_addr(v) == 'RAM':
+                        info['ram_addrs'].add(v)
+                if f.get('auto') in ('post', 'pre'):
+                    reg = 'r%d' % base_reg
+                    st['written'].add(reg)       # auto-update kills any literal
+                    st['lits'].pop(reg, None)
+                return {'pc': pc, 'op': op, 'kind': 'fpu_mem',
+                        'c': list(f.get('c') or []),
+                        'py': list(f.get('py') or []),
+                        'target': None, 'slot': None,
+                        'mnem': f.get('ann') or ('op 0x%04X' % op)}
+            for reg in gcl._stmt_writes('\n'.join(f.get('c') or [])):
+                st['written'].add(reg)           # sts/lds write rN (frN too)
+                st['lits'].pop(reg, None)
+            return {'pc': pc, 'op': op, 'kind': 'fpu',
+                    'c': list(f.get('c') or []),
+                    'py': list(f.get('py') or []),
+                    'target': None, 'slot': None,
+                    'mnem': f.get('ann') or ('op 0x%04X' % op)}
         return None
 
     pc = addr
@@ -864,6 +1187,23 @@ def build_locals(stmts, info):
                 lines.append('    uint32_t pr = 0xEEEE0000u;')
             else:
                 lines.append('    uint32_t %s = 0;' % t)
+    # v4 FPU locals: frN bit-pattern registers for the FRs the body touches,
+    # plus fpul/fpscr if the FPUL/FPSCR system transfers appear.  Arithmetic/
+    # compare unions are declared inline inside the decode_fpu fragments, so no
+    # top-level union is needed here.
+    frrefs = set()
+    for m_ in re.finditer(r'\bfr(?:[0-9]|1[0-5])\b', body_text):
+        frrefs.add(m_.group(0))
+    for tok in ('fpul', 'fpscr'):
+        if re.search(r'\b%s\b' % tok, body_text):
+            frrefs.add(tok)
+    for n in range(16):
+        if 'fr%d' % n in frrefs:
+            lines.append('    uint32_t fr%d = 0;' % n)
+    if 'fpul' in frrefs:
+        lines.append('    uint32_t fpul = 0;')
+    if 'fpscr' in frrefs:
+        lines.append('    uint32_t fpscr = 0;')
     for off in sorted(info['stack_offs']):
         lines.append('    uint32_t local_%x = 0;' % off)
     return lines
@@ -879,6 +1219,7 @@ def emit_v3(addr, name, size, rom, out_c):
               % (addr, fn))
         return False
     records, info, labels = walked
+    has_fpu = any(r['kind'] in ('fpu', 'fpu_mem') for r in records)
     stmts = render_body(records, labels)
     body = build_locals(stmts, info)
     body.extend('    ' + s for s in stmts)
@@ -887,11 +1228,14 @@ def emit_v3(addr, name, size, rom, out_c):
 
     banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
               ' * Auto-generated by tools/gen_c_lift_v3.py — not human-verified.\n'
-              ' * v3: branches + delay slots. */') % (gcl.ROM_LABEL, addr, size)
+              ' * v3: branches + delay slots%s. */') % (
+        gcl.ROM_LABEL, addr, size,
+        ' + v4 FPU (frN bit-pattern locals; fpul/fpscr)' if has_fpu else '')
     c_text = (banner + '\n'
               '#include <stdint.h>\n'
-              'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
-              '{\n%s\n}\n') % (fn, addr, cbody)
+              + ('#include <math.h>\n' if has_fpu else '')
+              + 'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
+                '{\n%s\n}\n') % (fn, addr, cbody)
     with open(out_c, 'w') as f:
         f.write(c_text)
 
@@ -924,7 +1268,8 @@ def emit_v3(addr, name, size, rom, out_c):
 # RAM prefill + stack + sh2emu call config copied verbatim from the v2 tests.
 # ---------------------------------------------------------------------------
 _MIRROR_KIND = {'st': 'reg', 'mem': 'mem', 'gbr': 'mem', 'stack': 'mem',
-                'frame': 'reg', 'ldc': 'reg'}
+                'frame': 'reg', 'ldc': 'reg',
+                'fpu': 'fpu', 'fpu_mem': 'fpu'}   # v4 FPU records (py-only)
 _BRANCH_COND = {'bt': 'T', 'bts': 'T', 'bf': 'notT', 'bfs': 'notT', 'bra': 'always'}
 
 
@@ -1175,6 +1520,242 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
     return True
 
 
+# ---------------------------------------------------------------------------
+# v4 FPU test emission: c/tests/test_<name>_<addr>.py — the v3 pc-interpreter
+# spec_mirror extended with the FR state.  spec_mirror(r4,r5,r6,r7,ram,fr_in)
+# takes fr_in = 16 uint32 IEEE-754 bit patterns (the C lift holds FRs as
+# bit-pattern uint32 locals); the mirror converts them to float32 values with
+# bits2f (sh2emu semantics — decode_fpu's py fragments operate on float32 like
+# the emulator), runs the mapper py fragments (ts/f2bits/bits2f/s32 + _rdw/
+# _wrw for the fmov.s memory forms), and returns ("RET", regs, writes, ram, pr,
+# fr_bits, fpul) where fr_bits = [f2bits(f) for f in fr] (exact bit patterns).
+# main() seeds FR input deterministically per case:
+#   fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF
+#   then NaN/Inf-free filtered: (x & 0x7F7FFFFF) | 0x3F800000
+#   — clears the sign bit and forces exponent < 0xFF so no -0.0 edge/NaN/Inf
+#   (every bit pattern is a finite, positive float32; the OR keeps the value
+#   >= 1.0 magnitude so denormal corner cases never enter the comparison).
+# The sh2emu oracle is fed the SAME bit patterns as float32 values:
+#   cpu.call(..., fr={i: bits2f(fr_in[i]) for i in range(16)}, ...).
+# Comparison: r0..r15, the 16 FR bit patterns, fpul, pr and every written RAM
+# address (T is not part of the state call() exposes — not compared).
+# fsqrt on a negative input makes both sides raise ValueError (Python complex
+# branch of **0.5 / the C sqrtf domain) -> those cases are counted as skips.
+# ---------------------------------------------------------------------------
+def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
+                  cases=2000):
+    """Write c/tests/test_<name>_<addr>.py for a v3 lift whose span holds FPU
+    ops (mirror + oracle both track FR)."""
+    fn = gcl.sanitize(name)
+    raw = rom[addr:addr + size]
+    flat = ' '.join('%02X' % b for b in raw)
+
+    offs_list = sorted(info['stack_offs'])
+    stack_offs = ', '.join('0x%X' % o for o in offs_list)
+    if len(offs_list) == 1:
+        stack_offs += ','                     # (0x414,) must stay a tuple
+    ram_addrs = [v for v in info['ram_addrs'] if ops.classify_addr(v) == 'RAM']
+    ram_min = min(ram_addrs) if ram_addrs else None
+    ram_max = max(ram_addrs) if ram_addrs else None
+
+    end_addr = addr + size
+    sent_addr = _pool_end(records, end_addr)
+
+    test = (
+        '#!/usr/bin/env python3\n'
+        '"""Differential test for %s (0x%X) — v3 lift + v4 FPU, %d bytes.\n'
+        'Auto-generated by tools/gen_c_lift_v3.py — not human-verified.\n'
+        'Compares a Python pc-interpreter spec_mirror against the sh2emu oracle\n'
+        '(which runs the actual ROM bytes) over %d random inputs: deterministic RAM\n'
+        'prefill around the literal addresses plus a synthetic 0x400-byte stack at\n'
+        'STACK_BASE.  FR inputs are seeded per case as 16 uint32 bit patterns\n'
+        'fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with\n'
+        '(x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive\n'
+        'float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).\n'
+        'The mirror converts bit patterns to float32 via bits2f (sh2emu\n'
+        'semantics); the oracle is fed the same patterns as float values via\n'
+        'cpu.call(..., fr={i: bits2f(fr_in[i]) ...}).  Compared: r0..r15, the 16\n'
+        'FR bit patterns (f2bits), fpul, pr and every written RAM address (T is\n'
+        'not part of the state call() exposes).  fsqrt of a negative input raises\n'
+        'ValueError on both sides -> counted as skip.  Branch cond is sampled on T\n'
+        'BEFORE the delay slot (as sh2emu); cases where either side leaves the\n'
+        'modeled span / exceeds max_steps are skipped.\n'
+        'Run from repo root: python3 c/tests/test_%s_%x.py\n'
+        '"""\n'
+        'import os, random, sys\n\n'
+        'ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n'
+        'sys.path.insert(0, os.path.join(ROOT, "tools"))\n'
+        'from sh2emu import SH2, StepLimitExceeded\n'
+        'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n\n'
+        'ROM = os.path.join(ROOT, "roms", "stock", "60E1D400.bin")\n'
+        'ROM_BYTES = open(ROM, "rb").read()\n'
+        'ENTRY = 0x%X\n'
+        'RAW = bytes.fromhex("%s")\n'
+        'SEED = %d\n'
+        'N = %d\n'
+        'MAXSTEPS = 100000\n'
+        'STACK_BASE = 0xFFFFD000\n'
+        'STACK_TOP = STACK_BASE + 0x400\n'
+        'STACK_OFFS = (%s)\n'
+        'RAM_MIN = %s\n'
+        'RAM_MAX = %s\n'
+        'SPAN_END = 0x%X\n'
+        'SENT = 0x%X     # stop-sentinel, placed past the literal pool\n\n'
+        '_WRITES = []\n\n'
+        'def _rd(ram, a):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    v = ram.get(a)\n'
+        '    if v is not None:\n'
+        '        return v\n'
+        '    return ROM_BYTES[a] if a < len(ROM_BYTES) else 0\n\n'
+        'def _rdw(ram, a, n):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    return int.from_bytes(bytes(_rd(ram, (a + i) & 0xFFFFFFFF) for i in range(n)), "big")\n\n'
+        'def _wrw(ram, a, n, v):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    for i in range(n):\n'
+        '        ad = (a + i) & 0xFFFFFFFF\n'
+        '        ram[ad] = (v >> (8 * (n - 1 - i))) & 0xFF\n'
+        '        _WRITES.append(ad)\n\n'
+        '%s\n'
+        'def spec_mirror(r4, r5, r6, r7, ram, fr_in):\n'
+        '    """pc-interpreter over CODE; returns ("RET", regs, writes, ram, pr,\n'
+        '    fr_bits, fpul) or ("SKIP"/"ERR", detail).  fr_in is 16 uint32 bit\n'
+        '    patterns; fr is the float32 mirror (bits2f) the FPU fragments run\n'
+        '    on — sh2emu semantics, exact same list the emulator builds from\n'
+        '    ts(v) in call()."""\n'
+        '    global _WRITES\n'
+        '    _WRITES[:] = []\n'
+        '    r = [0] * 16\n'
+        '    r[4], r[5], r[6], r[7] = r4 & 0xFFFFFFFF, r5 & 0xFFFFFFFF, r6 & 0xFFFFFFFF, r7 & 0xFFFFFFFF\n'
+        '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
+        '    fr = [bits2f(x) for x in fr_in]\n'
+        '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
+        '          "fr": fr, "fpul": 0, "fpscr": 0,\n'
+        '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "bits2f": bits2f,\n'
+        '          "f2bits": f2bits, "ram": ram, "sp": r[15],\n'
+        '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
+        '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
+        '    pc = ENTRY\n'
+        '    steps = 0\n'
+        '    while True:\n'
+        '        steps += 1\n'
+        '        if steps > MAXSTEPS:\n'
+        '            return ("SKIP", None)\n'
+        '        inst = CODE.get(pc)\n'
+        '        if inst is None:\n'
+        '            return ("ERR", pc)\n'
+        '        kind = inst["kind"]\n'
+        '        if kind == "branch":\n'
+        '            t = ns["T"]\n'
+        '            cond = inst["cond"]\n'
+        '            taken = True\n'
+        '            if cond == "T":\n'
+        '                taken = (t == 1)\n'
+        '            elif cond == "notT":\n'
+        '                taken = (t == 0)\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            if taken:\n'
+        '                pc = inst["target"]\n'
+        '            elif slot_py is not None:\n'
+        '                pc = pc + 4            # delayed: slot at P+2 already ran\n'
+        '            else:\n'
+        '                pc = pc + 2            # non-delayed bt/bf\n'
+        '        elif kind == "ret":\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            r[15] = ns["sp"] & 0xFFFFFFFF\n'
+        '            return ("RET", [x & 0xFFFFFFFF for x in r], _WRITES, ram,\n'
+        '                    ns["pr"] & 0xFFFFFFFF,\n'
+        '                    [f2bits(f) for f in fr], ns["fpul"] & 0xFFFFFFFF)\n'
+        '        else:\n'
+        '            py = inst["py"]\n'
+        '            if py:\n'
+        '                exec(py, ns)\n'
+        '            pc = pc + 2\n\n'
+        'def run(cpu, ram, a, b, c_, d, fr_in):\n'
+        '    ram = dict(ram)\n'
+        '    ram[SENT] = 0x00; ram[SENT + 1] = 0x0B; ram[SENT + 2] = 0x00; ram[SENT + 3] = 0x09\n'
+        '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram,\n'
+        '             fr={i: bits2f(fr_in[i]) for i in range(16)},\n'
+        '             regs={15: STACK_TOP}, max_steps=MAXSTEPS)\n'
+        '    out = dict(cpu.ram)\n'
+        '    for i in range(4):\n'
+        '        out.pop(SENT + i, None)\n'
+        '    return (cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out,\n'
+        '            cpu.pr & 0xFFFFFFFF,\n'
+        '            [f2bits(cpu.fr[i]) for i in range(16)], cpu.fpul & 0xFFFFFFFF)\n\n'
+        'def main():\n'
+        '    rnd = random.Random(SEED)\n'
+        '    cpu = SH2(ROM_BYTES)\n'
+        '    skipped = 0\n'
+        '    for caso in range(N):\n'
+        '        ram = {}\n'
+        '        if RAM_MIN is not None:\n'
+        '            for a in range(RAM_MIN - 0x400, RAM_MAX + 0x401):\n'
+        '                ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        for a in range(STACK_BASE, STACK_BASE + 0x400):\n'
+        '            ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        a = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        b = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        c_ = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        d = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        fr_in = [((caso * 0x9E3779B1 + i * 0x1000003) & 0xFFFFFFFF) for i in range(16)]\n'
+        '        fr_in = [((x & 0x7F7FFFFF) | 0x3F800000) for x in fr_in]  # finite, positive, no NaN/Inf\n'
+        '        try:\n'
+        '            m = spec_mirror(a, b, c_, d, dict(ram), fr_in)\n'
+        '        except ValueError:\n'
+        '            skipped += 1          # fsqrt of a negative input (both sides)\n'
+        '            continue\n'
+        '        if m[0] != "RET":\n'
+        '            skipped += 1\n'
+        '            continue\n'
+        '        try:\n'
+        '            g = run(cpu, ram, a, b, c_, d, fr_in)\n'
+        '        except (StepLimitExceeded, NotImplementedError, RuntimeError, ValueError):\n'
+        '            skipped += 1\n'
+        '            continue\n'
+        '        _, exp_regs, _, exp_ram, exp_pr, exp_fr, exp_fpul = m\n'
+        '        _, got_regs, got_ram, got_pr, got_fr, got_fpul = g\n'
+        '        for i in range(16):\n'
+        '            if exp_regs[i] != got_regs[i]:\n'
+        '                print("MISMATCH case=%%d reg=r%%d mirror=%%08X emu=%%08X" %% (caso, i, exp_regs[i], got_regs[i]))\n'
+        '                sys.exit(1)\n'
+        '        for i in range(16):\n'
+        '            if exp_fr[i] != got_fr[i]:\n'
+        '                print("MISMATCH case=%%d fr%%d mirror=%%08X emu=%%08X" %% (caso, i, exp_fr[i], got_fr[i]))\n'
+        '                sys.exit(1)\n'
+        '        if exp_fpul != got_fpul:\n'
+        '            print("MISMATCH case=%%d fpul mirror=%%08X emu=%%08X" %% (caso, exp_fpul, got_fpul))\n'
+        '            sys.exit(1)\n'
+        '        if exp_pr != got_pr:\n'
+        '            print("MISMATCH case=%%d reg=pr mirror=%%08X emu=%%08X" %% (caso, exp_pr, got_pr))\n'
+        '            sys.exit(1)\n'
+        '        for ad in sorted(set(exp_ram) | set(got_ram)):\n'
+        '            if exp_ram.get(ad, 0) != got_ram.get(ad, 0):\n'
+        '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
+        '                sys.exit(1)\n'
+        '    ok = N - skipped\n'
+        '    if skipped > 200 or ok == 0:\n'
+        '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+        '        sys.exit(1)\n'
+        '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'
+        'if __name__ == "__main__":\n'
+        '    main()\n'
+    ) % (fn, addr, size, cases, fn, addr, addr, flat, seed, cases, stack_offs,
+         'None' if ram_min is None else '0x%X' % ram_min,
+         'None' if ram_max is None else '0x%X' % ram_max,
+         end_addr, sent_addr,
+         _code_literal(records))
+
+    with open(out_t, 'w') as f:
+        f.write(test)
+    return True
+
+
 def run_test(out_t):
     """Run one generated test from the repo root; returns 'PASS' or 'FAIL'."""
     try:
@@ -1283,6 +1864,33 @@ def print_dryrun(pool, counters, args, rom):
                       % (addr, name, '+'.join(reasons), end_o, end_s,
                          '' if in_v3 else '  [new, not in v3 pool]'))
 
+    # ---- FPU additive: pool_fpu if mapped FPU ops were allowed (dryrun only) ----
+    fp = counters.get('fpu_pool')
+    fc = counters.get('fpu')
+    if fp is not None and fc is not None:
+        print('=== FPU pool measurement (additive; selection unchanged: FPU'
+              ' functions still rejected until emission) ===')
+        print('pool_fpu=%d   (pool_v4=%d + fpu_gained=%d)'
+              % (len(fp), len(v4p) if v4p is not None else -1,
+                 len(fp) - len(v4p) if v4p is not None else -1))
+        print('  fpu_used=%d (span+size+dedup candidates holding any FPU op):'
+              ' fpu_only=%d fpu_calls=%d fpu_bases=%d fpu_other=%d'
+              ' fpu_no_branch=%d'
+              % (fc.get('fpu_used', 0), fc.get('fpu_only', 0),
+                 fc.get('fpu_calls', 0), fc.get('fpu_bases', 0),
+                 fc.get('fpu_other', 0), fc.get('fpu_no_branch', 0)))
+        fpu_rej = fc['rejected']
+        print('  fpu rejected_total=%d' % sum(fpu_rej.values()))
+        for r in ('call', 'base_unresolved', 'fpu/altre', 'unmapped', 'rte',
+                  'delay_slot_ctrl', 'target_fuori', 'no_mem_op', 'branch'):
+            if fpu_rej.get(r):
+                print('    rejected_%-15s %d' % (r, fpu_rej.get(r)))
+        ex = fc['examples']
+        if ex:
+            print('  examples (first %d FPU-using, in pool_fpu):' % len(ex))
+            for addr, name in ex:
+                print('    0x%06X %-32s' % (addr, name))
+
 
 def main():
     ap = argparse.ArgumentParser(
@@ -1322,14 +1930,22 @@ def main():
             cands = [c for c in cands if c['category'] == args.category]
 
     outdir = args.outdir if os.path.isabs(args.outdir) else os.path.join(ROOT, args.outdir)
-    selected, counters = select_v3(cands, args.n, args.seed, rom, catalog,
-                                   outdir=outdir)
+    # v4: the FPU-aware scan is now the REAL selector — functions whose span
+    # holds decode_fpu-mappable FPU ops are admitted (call/unmapped/base rules
+    # unchanged); non-FPU functions take the identical v3 path.
+    selected, counters = select_fpu(cands, rom, catalog, outdir=outdir,
+                                    max_n=args.n, seed=args.seed)
     if args.dryrun:
         # v4 additive measurement: sanitized-span pool (never affects emission)
         v4_pool, v4_counters = select_v4_sanitized(
             cands, rom, catalog, outdir=outdir, root=ROOT, v3_pool=selected)
         counters['v4_pool'] = v4_pool
         counters['v4'] = v4_counters
+        # FPU additive measurement: pool_fpu if mapped FPU ops were allowed
+        fpu_pool, fpu_counters = select_fpu(cands, rom, catalog, outdir=outdir,
+                                            root=ROOT)
+        counters['fpu_pool'] = fpu_pool
+        counters['fpu'] = fpu_counters
         print_dryrun(selected, counters, args, rom)
         return
 
@@ -1357,13 +1973,23 @@ def main():
             report.append((lf, 'test_skipped'))
             continue
         records, info, labels = walked
-        if emit_v3_test(e['addr'], e['name'], e['size'], rom, records, info,
-                        args.seed, out_t, cases=args.cases):
-            res = run_test(out_t)
-            report.append((lf, res))
-            print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
+        has_fpu = any(r['kind'] in ('fpu', 'fpu_mem') for r in records)
+        if has_fpu:
+            if emit_fpu_test(e['addr'], e['name'], e['size'], rom, records, info,
+                             args.seed, out_t, cases=args.cases):
+                res = run_test(out_t)
+                report.append((lf, res))
+                print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
+            else:
+                report.append((lf, 'test_write_failed'))
         else:
-            report.append((lf, 'test_write_failed'))
+            if emit_v3_test(e['addr'], e['name'], e['size'], rom, records, info,
+                            args.seed, out_t, cases=args.cases):
+                res = run_test(out_t)
+                report.append((lf, res))
+                print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
+            else:
+                report.append((lf, 'test_write_failed'))
     print('emitted=%d dropped_compile=%d' % (emitted, dropped))
     tr_ = (counters.get('n_trimmed', 0) + counters.get('n_extended', 0)
            + counters.get('n_entrambi', 0))
