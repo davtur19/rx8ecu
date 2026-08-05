@@ -5,8 +5,6 @@
 **UDS dispatch table entry:** `SID=0x27, handler=0x584A0, accessMask=0x1000000E`  
 **Symbol names:** `Srv27_SecurityAccess` (Ghidra), `security_access_0x52180` (IDA-AI)  
 
----
-
 ## Overview
 
 Implements ISO 14229 UDS Service 0x27 (SecurityAccess) for the Mazda RX-8 PCM.  
@@ -17,8 +15,6 @@ The ECU generates a pseudo-random 3-byte **seed** in response to subfunction `0x
 (RequestSeed).  The external tool must compute a 3-byte **key** using a 24-bit Galois
 LFSR with a shared secret, and send it via subfunction `0x04` (SendKey).  If the key
 matches, the ECU unlocks security and allows the requested operations.
-
----
 
 ## Call Tree
 
@@ -48,8 +44,6 @@ udsHandler (0x697E8)
                 subfunc!=0 → NO response (silent)   [not NRC 0x12]
 ```
 
----
-
 ## UDS Dispatch Table Entry
 
 At `0x5F57C + 10*12 = 0x5F5A4`:
@@ -66,8 +60,6 @@ Offset  Bytes     Field          Value         Description
 The access mask `0x1000000E` allows sessions 2 (programming), 3 (extended), and
 4 (safety).  Bit 28 (`0x10000000`) is a `seed_already_generated` flag — when set
 the handler skips the session check on the SendKey path.
-
----
 
 ## Secret & LFSR Parameters
 
@@ -128,8 +120,6 @@ level 1 is **`0xA07258`** (levels 1–4 × 3 seeds validated against
 `seed_gen` (@0x5699A) internals for level≠3, and the `key_validate` middle-byte
 source.
 
----
-
 ## LFSR Algorithm
 
 ### Existing Reference (mazda_security.py)
@@ -174,8 +164,6 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
      the byte-wise view of taps `0x909028`)  
 4. **Final comparison**: the processed buffer's high nibbles are compared against
    the user-provided key bytes
-
----
 
 ## Subfunction Handling
 
@@ -242,8 +230,6 @@ do not gate anything).
 | 0x36 | ExceededNumberOfAttempts       | NOT used by this handler (ISO-14229 spec only) |
 | 0x37 | RequiredTimeDelayNotExpired    | NOT used by this handler (ISO-14229 spec only) |
 
----
-
 ## RAM State Map
 
 The SecurityAccess handler uses these RAM locations for state:
@@ -258,8 +244,6 @@ The SecurityAccess handler uses these RAM locations for state:
 | 0xFFFFD214   | 3    | SEED_WORKING       | LFSR working state                      |
 | 0xFFFFD0F2   | 1    | SECURITY_UNLOCKED  | Final unlock flag (1 = unlocked)        |
 | 0xFFFFD0F3   | 1    | SECURITY_FLAGS     | Additional security flags               |
-
----
 
 ## Verification Status
 
@@ -304,8 +288,6 @@ definitive dead code, shared-codebase remnant — kept in the C reconstruction,
 no removal.  See `docs/notes/SENDKEY_RECONCILIATION.md` for the ROM-by-ROM table
 and per-ROM branch addresses, and `docs/notes/REQUEST_SEED_EVIDENCE.md`
 discrepancy (e) for the original 60E1D400 finding.
-
----
 
 ## References
 

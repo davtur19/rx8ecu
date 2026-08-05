@@ -1,11 +1,6 @@
 # shift_right_logical_r0 @ 0x44E0
 
-**Address:** 0x44E0 – 0x451C (60 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (18 edge + 100k random) + C-host vs ROM (100k)
-
----
 
 ## Overview
 

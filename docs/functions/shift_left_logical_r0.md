@@ -1,11 +1,6 @@
 # shift_left_logical_r0 @ 0x4308
 
-**Address:** 0x4308 – 0x4344 (60 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (18 edge + 100k random) + C-host vs ROM (100k)
-
----
 
 ## Overview
 

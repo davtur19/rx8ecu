@@ -1,11 +1,6 @@
 # div32_signed @ 0x3FE8
 
-**Address:** 0x3FE8 – 0x4092  (170 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** C host test (100K random + 26 edge cases)
-
----
 
 ## Overview
 

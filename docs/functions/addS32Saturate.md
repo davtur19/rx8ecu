@@ -1,11 +1,6 @@
 # addS32Saturate @ 0x2304
 
-**Address:** 0x2304 – 0x2318 (20 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai — `fpu_compare_float` (**mislabeled**: no FPU code)
 **Track-A verification:** emulator (14 edge + 100k random) + C-host vs ROM (100k)
-
----
 
 ## Overview
 

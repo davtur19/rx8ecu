@@ -1,27 +1,17 @@
 # Calibration map catalog — J-line variant (60E1D400-based)
 
-> **WARNING:** the descriptor addresses below reference a **J-line ROM variant**
-> (shift +0x298 from 60E1D400); on the shipped `60E1D400.bin` apply a **+0x298** shift
-> (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264).
-> Always verify with `tools/mapscan.py`.
+> **WARNING:** descriptor addresses below reference a **J-line ROM variant** (shift +0x298 from 60E1D400); on `60E1D400.bin` apply **+0x298** (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264). Always verify with `tools/mapscan.py`.
 
-Auto-extracted by `tools/mapscan.py` using the reverse-engineered TwoDLookup/ThreeDLookup
-descriptor format (emulator-verified). Naming follows RX8Defs conventions
-(original RomRaider XML not redistributed in this repo). Dump any map in physical units with:
+Auto-extracted by `tools/mapscan.py` using the reverse-engineered TwoDLookup/ThreeDLookup descriptor format (emulator-verified). Naming follows RX8Defs conventions (original RomRaider XML not redistributed). Dump any map in physical units:
 ```
 python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<descAddr>
 ```
 
-> **cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence`.
-> Columns 4-9 are appended backward-compatibly (first 3 columns unchanged; `mapscan.py` reads only
-> `name`/`address` via DictReader). `kind` (1210 rows): `axis`=662 (bare "X"/"Y", pointer-verified
-> 3D-map axis arrays), `table`=443 (334 anonymous "Table 2D/3D - NNN" + 109 descriptive),
-> `intermediate`=105 ("Check DataType" annotations). `dims`: 1D=1014, 2D=87, blank where not derivable (109).
-> `scale`/`offset`/`units` are **unverified** (blank) unless declared by a verified source; `confidence`: high=1072, low=138.
+**cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence` (columns 4–9 appended backward-compatibly; `mapscan.py` reads only `name`/`address`). `kind` (1210 rows): `axis`=662 (bare "X"/"Y", pointer-verified 3D-map axes), `table`=443 (334 anonymous "Table 2D/3D - NNN" + 109 descriptive), `intermediate`=105 ("Check DataType"). `dims`: 1D=1014, 2D=87, blank where not derivable (109). `scale`/`offset`/`units` **unverified** unless declared by a verified source; `confidence` high=1072, low=138. See `CALIBRATION_TABLES_CROSS_REFERENCE.md` for the 499-descriptor catalog grouped by subsystem.
+
+## Descriptor table (J-line variant: 499 descriptors; 119 2D, 380 1D)
 
 ```
-J-line variant: 499 map descriptors (119 2D, 380 1D); naming follows RX8Defs conventions
-
 addr     kind  dims    type  scale     offset    values    name(RX8Defs)
 0x6969C 1D   16      u8   2         0         0x6CFE4  Table 2D - 0_
 0x696B0 1D   16      u8   2         0         0x6D034  Table 2D - 1_

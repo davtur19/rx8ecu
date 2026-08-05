@@ -1,10 +1,5 @@
 # getFaultStatus @ 0x6743C
 
-## Location
-- **Image:** 60E1D400.bin
-- **Address:** 0x6743C
-- **End:** 0x67482
-
 ## Purpose
 Check the fault status for a given fault channel index. Returns 1 if a fault is active/pending, 0 otherwise. This is a critical query function with 78+ callers across the ECU firmware.
 

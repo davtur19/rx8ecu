@@ -25,45 +25,13 @@
 | 0xF840–0xF84E | ADDRn | Additional ADC data registers (channels 0–7) |
 
 **Behavior:**
-1. **Initialize ADC unit 0** (0xF819):
-   - Clear bit 5 (stop conversion)
-   - Set conversion mode (value 0x20 = single scan?)
-   
-2. **Initialize ADC unit 1** (0xF818):
-   - Configure for 3 channels
-   - Set control bits (value 0x33)
-   - Set mode (0x20)
-
-3. **Initialize ADC unit 2** (0xF838):
-   - Configure for conversion
-   - Set control bits (value 0x2B)
-   - Set mode (0x20)
-
-4. **Initialize ADC unit 3** (0xF858):
-   - Configure for conversion
-   - Set control bits (value 0x2B)
-   - Set mode (0x20)
-
-5. **Initialize RAM state:**
-   - 0xFFFF9F27 = 0 (state byte 1)
-   - 0xFFFF9F28 = 0x00FF (state byte 2 mask)
-   - 0xFFFF9F29[1] = 0, [4] = 0, [7] = 0 (sub-state reset)
-
-6. **Wait for conversion complete** on all 4 ADC units:
-   - Poll ADCSR0 bit 7 (0x0080 mask)
-   - Poll ADCSR1 bit 7
-   - Poll ADCSR2 bit 7
-   - Each loop continues until bit 7 is set (conversion done)
-
-7. **Read all 32 ADC data registers:**
-   - 0xF800 → buffer[0]   (offset 0)
-   - 0xF802 → buffer[1]   (offset 2)
-   - 0xF804 → buffer[2]   (offset 4)
-   - 0xF806 → buffer[3]   (offset 6)
-   - ... (sequential reads of data registers)
-   - 0xF840 → buffer[n]   (offset N)
-   - ... up to 32 channels
-
+1. Init ADC unit 0 (0xF819): clear bit 5, set mode 0x20 (single scan)
+2. Init ADC unit 1 (0xF818): 3 chans, ctrl 0x33, mode 0x20
+3. Init ADC unit 2 (0xF838): ctrl 0x2B, mode 0x20
+4. Init ADC unit 3 (0xF858): ctrl 0x2B, mode 0x20
+5. Init RAM state: 0xFFFF9F27=0; 0xFFFF9F28=0x00FF; 0xFFFF9F29[1/4/7]=0
+6. Poll ADCSR0/1/2 bit 7 (0x0080 mask) until conversion done
+7. Read 32 ADC data regs (0xF800..0xF84E) into 0xFFFF9EE4[0..31] (64 bytes)
 **Confidence:** High — function structure clearly shows ADC init → poll → read pattern typical of SH-2E ADC peripheral usage.
 
 **RAM buffer layout at 0xFFFF9EE4:**

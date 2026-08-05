@@ -1,11 +1,6 @@
 # shift_right_arithmetic_r0 @ 0x43C8
 
-**Address:** 0x43C8 – 0x4446 (126 bytes; code also spans 0x4446–0x44C0 tails)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (24 edge + 100k random) + C-host vs ROM (100k)
-
----
 
 ## Overview
 

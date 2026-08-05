@@ -5,15 +5,15 @@
 ## Method
 
 - **Raw byte diff** at identical file offsets (36 pairs).
-- **Block-content similarity**: 16-byte windows of A (stride 16) searched in the set of *all* 16-byte windows of B (stride 1). Tolerant to code/table relocation; this is the metric used to group variants.
-- Differing bytes merged into ranges (identical runs of <=8 bytes spliced) and classified against baseline-anchored address bands:
-  - `header`  0x00000-0x01FFF  vectors/boot (below Denso checksum lo=0x2000)
-  - `code`    0x02000-0x6C26F  checksummed code (OBD handlers to ~0x6BFE0)
-  - `padding` 0x6C270-0x6CDFF  baseline 0xFF filler gap(s)
-  - `cal_data` 0x6CE00-0x7DAFF  calibration tables region
-  - `tail`    0x7DAFF-0x7FFFF  checksum descriptor @0x7FB80 + trailing
+- **Block-content similarity**: 16-byte windows of A (stride 16) searched in the set of *all* 16-byte windows of B (stride 1). Tolerant to code/table relocation; the metric used to group variants.
+- Differing bytes merged into ranges (identical runs of <=8 bytes spliced), classified against baseline-anchored address bands:
+  - `header` 0x00000-0x01FFF (vectors/boot, below Denso checksum lo=0x2000)
+  - `code` 0x02000-0x6C26F (checksummed code, OBD handlers to ~0x6BFE0)
+  - `padding` 0x6C270-0x6CDFF (baseline 0xFF filler gap)
+  - `cal_data` 0x6CE00-0x7DAFF (calibration tables region)
+  - `tail` 0x7DAFF-0x7FFFF (checksum descriptor @0x7FB80 + trailing)
 - Known-table hits use `symbols/cal_tables.csv` (1210 addrs, 60E1D400 layout). Valid only for J-line builds; other families relocate the table block.
-- All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), so headers are aligned; divergence accumulates through the body.
+- All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8); divergence accumulates through the body.
 
 ## 1. Similarity matrices
 
@@ -90,29 +90,16 @@ High values everywhere (except 60E0FB00 vs 60E0FC00, 0.008%) because every build
 
 ## 3. Clustering / variant families
 
-- **content distance <= 10%:**
-  - 60E0E500
-  - 60E0E700_N3YLEE
-  - 60E0FB00 + 60E0FC00 + 60E1B900
-  - 60E15120_N3J1E
-  - 60E1C500_N3J6EB
-  - 60E1D400
-  - 60E32000_N3M5E
-- **content distance <= 20%:**
-  - 60E0E500 + 60E1C500_N3J6EB + 60E1D400
-  - 60E0E700_N3YLEE
-  - 60E0FB00 + 60E0FC00 + 60E1B900
-  - 60E15120_N3J1E
-  - 60E32000_N3M5E
-- **content distance <= 35%:**
-  - 60E0E500 + 60E0E700_N3YLEE + 60E0FB00 + 60E0FC00 + 60E15120_N3J1E + 60E1B900 + 60E1C500_N3J6EB + 60E1D400
-  - 60E32000_N3M5E
+Content distance (1 - similarity):
+- **<= 10%:** single members: 60E0E500 · 60E0E700_N3YLEE · {60E0FB00+60E0FC00+60E1B900} · 60E15120_N3J1E · 60E1C500_N3J6EB · 60E1D400 · 60E32000_N3M5E
+- **<= 20%:** {60E0E500+60E1C500_N3J6EB+60E1D400} · 60E0E700_N3YLEE · {60E0FB00+60E0FC00+60E1B900} · 60E15120_N3J1E · 60E32000_N3M5E
+- **<= 35%:** all except 60E32000_N3M5E
 
 Full merge tree in `clusters.txt`.
 
 ## 4. Diff ranges vs baseline (classified)
 
-Cumulative over the 8 baseline comparisons; **raw diff at identical offsets** (so the `code` volume is mostly relocation smear, see other_ff_fraction).
+Cumulative over the 8 baseline comparisons; **raw diff at identical offsets** (so `code` volume is mostly relocation smear, see other_ff_fraction).
 
 | region | runs | diff bytes | known cal tables hit |
 |---|---|---|---|
@@ -126,14 +113,14 @@ Cumulative over the 8 baseline comparisons; **raw diff at identical offsets** (s
 
 ### Boot region (0x40-0x1FFF) is shared across families
 
-Header-region byte diffs vs baseline: 60E1C500 = 0, 60E1B900 = 3, 60E32000 = 3, but 60E0E500 = 3888, 60E0E700 = 3887, 60E0FB00/60E0FC00 = 3887, 60E15120 = 3887. I.e. the boot/vector-handler block below the checksum start is byte-identical among {60E1D400, 60E1C500, 60E1B900, 60E32000} and differs as one block in the other five.
+Header-region byte diffs vs baseline: 60E1C500 = 0, 60E1B900 = 3, 60E32000 = 3, but 60E0E500 = 3888, 60E0E700 = 3887, 60E0FB00/60E0FC00 = 3887, 60E15120 = 3887. The boot/vector-handler block below the checksum start is byte-identical among {60E1D400, 60E1C500, 60E1B900, 60E32000} and differs as one block in the other five.
 
 ## 5. Calibration-table differences
 
 9644 rows / 1209 distinct known-table addresses (60E1D400 map) differ vs baseline. Full u16 values + signed deltas in `cal_table_diffs_baseline.csv`. Per pair:
 
 | pair | total addrs | value diffs | equal | FF artifact | max|delta| |
-|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|
 | 60E1D400__vs__60E0E500 | 1208 | 1160 | 25 | 23 | 64255 |
 | 60E1D400__vs__60E0E700_N3YLEE | 1206 | 1181 | 11 | 14 | 65532 |
 | 60E1D400__vs__60E0FB00 | 1204 | 1158 | 14 | 32 | 65534 |
@@ -143,7 +130,7 @@ Header-region byte diffs vs baseline: 60E1C500 = 0, 60E1B900 = 3, 60E32000 = 3, 
 | 60E1D400__vs__60E1C500_N3J6EB | 1208 | 1159 | 26 | 23 | 64255 |
 | 60E1D400__vs__60E32000_N3M5E | 1208 | 1175 | 19 | 14 | 64255 |
 
-Nearly every known table address differs in value vs the baseline — the calibration set itself is retuned between builds (rev-limit, sensor scaling, 2D/3D maps). FF artifacts = addresses that are 0xFF in the other ROM (relocated table block, mostly Z-line). NOTE: cal_tables.csv addresses are u16-aligned entries of f32 tables; a u16 read from an f32 word shows half the value, so deltas are indicative, not the full numeric difference.
+Nearly every known table address differs vs baseline — the calibration set itself is retuned between builds (rev-limit, sensor scaling, 2D/3D maps). FF artifacts = addresses 0xFF in the other ROM (relocated table block, mostly Z-line). NOTE: cal_tables.csv addresses are u16-aligned entries of f32 tables; a u16 read from an f32 word shows half the value, so deltas are indicative, not the full numeric difference.
 
 ## 6. Conclusions
 
@@ -152,11 +139,11 @@ Nearly every known table address differs in value vs the baseline — the calibr
 - **5 variant families (content-distance based):**
   1. **Z-line US 6-port MT** = 60E0FB00 + 60E0FC00 + 60E1B900 (pairwise content >=91%; calibration blocks ~99.7% identical).
   2. **J-line** = 60E1D400 + 60E0E500 + 60E1C500 (pairwise content 77-90%; E500-C500 89.8% is the closest non-Z pair).
-  3. **60E0E700 (N3YLEE)** — JDM-flavoured N3YL build; closer to the J-line than to the Z-line but distinct (72-78% from J-line members).
+  3. **60E0E700 (N3YLEE)** — JDM-flavoured N3YL build; closer to J-line than Z-line but distinct (72-78% from J-line members).
   4. **60E15120 (internal SW-N3ZHEB000, tag _N3J1E)** — hybrid: cal content 91.1% vs baseline (near-J-line calibration) but code closer to Z-line (61-70%).
   5. **60E32000 (N3M5E)** — structural outlier (later/different market build): no large 0xFF gap, code dense to ~0x7144C, cal block ~0x715C0 (5-50KB later than everyone else); lowest content similarity overall (50-60%).
-- **Where the bytes differ (vs baseline):** dominated by the `code` band in raw terms, but most of that is relocation (other_ff_fraction near 1.0), not logic edits. The *true* tuning differences live in the `cal_data` band (0x6CE00-0x7DAFF): per-address table values differ nearly everywhere, and the table block itself is relocated per family (cal_lo 0x6C000-0x6D300, N3M5E ~0x715C0).
-- **Calibration vs code:** code-region content similarity (49-100%) is usually higher than cal-region similarity (42-100%) for a given pair — i.e. the code reading the tables is more conserved than the tables themselves.
+- **Where the bytes differ (vs baseline):** raw diff dominated by the `code` band, but most of that is relocation (other_ff_fraction near 1.0), not logic edits. The *true* tuning differences live in the `cal_data` band (0x6CE00-0x7DAFF): per-address table values differ nearly everywhere, and the table block is relocated per family (cal_lo 0x6C000-0x6D300, N3M5E ~0x715C0).
+- **Calibration vs code:** code-region content similarity (49-100%) is usually higher than cal-region similarity (42-100%) for a given pair — code reading the tables is more conserved than the tables themselves.
 
 ## 7. Open questions
 
@@ -164,4 +151,3 @@ Nearly every known table address differs in value vs the baseline — the calibr
 - 60E15120 is tagged `_N3J1E` but carries Z-line software (SW-N3ZHEB000); its hybrid position (J-line calibration, Z-line code) should be confirmed against a per-ROM mapscan.
 - What are the 0x728D5 and 0x77B47-0x77CC7 blocks that differ between FB00/FC00? (serial/anti-tamper vs real calibration constants).
 - Baseline-anchored classification labels relocated code as `code`; a function-level (cross-reference / decompiler) diff would separate real logic edits from pure relocation.
-

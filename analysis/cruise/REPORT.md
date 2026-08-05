@@ -1,19 +1,14 @@
 # REPORT — What the "Cruise Control" function really is in the RX-8 firmware
 
-**Date:** 2026-08-01
-**Scope:** Mazda RX-8 PCM (Renesas SH-2E SH7055), ROM `60E0FC00.bin` (RENESIS 6-port, base variant) with cross-check on `60E1D400.bin` (differentiated variant).
-**User note:** the user's car does NOT have cruise control installed (no buttons, no actuator).
+**Date:** 2026-08-01 · **Scope:** Mazda RX-8 PCM (Renesas SH-2E SH7055), ROM `60E0FC00.bin` (RENESIS 6-port, base variant), cross-check on `60E1D400.bin`. **User note:** the user's car does NOT have cruise installed (no buttons, no actuator).
 
 ---
 
 ## 1. Question and hypotheses
 
-The functions named `*CruiseControl*` appear in all dumps and internal docs. Three hypotheses:
-- **H1 — Mislabel:** the code is not a cruise control; the name is an analysis error.
-- **H2 — Platform code:** same firmware shared across models/markets with and without cruise; the code exists but is "something else".
-- **H3 — Real cruise, not wired:** the firmware implements a real factory cruise control, simply not connected/active on the user's car.
+Three hypotheses: **H1** — mislabel (not a cruise, analysis error); **H2** — platform code shared across models, "something else"; **H3** — real factory cruise, simply not wired/active on this car.
 
-**Verdict: H3 is confirmed (with an H2 component); H1 is ruled out** except for a single false positive.
+**Verdict: H3 confirmed (with an H2 component); H1 ruled out** except for a single false positive.
 
 ---
 
@@ -48,24 +43,24 @@ The functions named `*CruiseControl*` appear in all dumps and internal docs. Thr
 
 ### 2.2 Functions (ROM 60E1D400, source `symbols/symbols_60E1D400_merged.csv`)
 
-Same cluster with different offsets: `enableDisableCruiseControl??` @0x00C2E6, `cruiseControl?` @0x011B70, `calculateCruiseControlDisableCondition` @0x02E10C, `Undershooting` @0x02E1A4, `Overshoot` @0x02E2E8, `getCruiseControlAllowedBool??` @0x02E3AC, `cruiseControlStateStuff` @0x02EF74, `debounceCruiseControlSET` @0x0331A2, `debounceCruiseControlACCELRES` @0x0331F4, `cruiseControlSetRealted` @0x0332A8, `cruiseControlInit` @0x03446C, plus IDA-ai `cruise_control_check_0x4FD4C`, `cruise_status_0x5AFE2`.
+Same cluster, different offsets: `enableDisableCruiseControl??` @0x00C2E6, `cruiseControl?` @0x011B70, `calculateCruiseControlDisableCondition` @0x02E10C, `Undershooting` @0x02E1A4, `Overshoot` @0x02E2E8, `getCruiseControlAllowedBool??` @0x02E3AC, `cruiseControlStateStuff` @0x02EF74, `debounceCruiseControlSET` @0x0331A2, `debounceCruiseControlACCELRES` @0x0331F4, `cruiseControlSetRealted` @0x0332A8, `cruiseControlInit` @0x03446C, plus IDA-ai `cruise_control_check_0x4FD4C`, `cruise_status_0x5AFE2`.
 
 ### 2.3 References in files (grep -ri cruise)
 
 - `docs/functions/calculateCruiseControlSwitchVolt.md`, `enableDisableCruiseControl.md`, `getCruiseControlAllowedBool.md`
-- `c/` : `getCruiseControlAllowedBool.c` (0x02E3AC, verified), `enableDisableCruiseControl.c` (0x00C2E6, verified); tests in `c/tests/`
-- `src/60E0FC00_annotated.s` : cruise cluster ~lines 114543–120700 (SwitchVolt @114543, DriverRequest @114572, FinalTorque @119670, cruiseControlMain @120686)
-- `docs/subsystems/` : `AUXILIARY_CONTROL_SUBSYSTEM.md:128` (cruise condition in the idle branch), `:748` (consumption ~1–2 cc/min); `PID_CONTROLLERS.md:48` (0xFFFFA9A8 "cruise path"); `SENSOR_PIPELINE.md:1053` (post-processing "Cruise Control"); `CALIBRATION_TABLES_CROSS_REFERENCE.md:767` (cruise tables, speed)
-- `MANIFEST.md:219/225/351/355/493/522/542` : verified C lifts and docs
-- `analysis/coverage/uncovered_60E0FC00.csv:4790+` : data pool of `calculateCruiseControlDriverRequest`
-- `web/explorer/data.js` / `data.json` : 1 hit each
-- Internal cross-validation (private archive, non-sensitive): §4.4 of `RX8_Ghidra_vs_IDA_CrossValidation.txt` (22+ functions, torque-based), §4.1 of `RX8_New_Subsystems_From_Ghidra.txt` (0x2EB40 chain = 27 calls); xmaps `symbols_60E0E700_N3YLEE_xmap.csv`, `symbols_60E1B900_xmap.csv` (alternative names, same cluster)
+- `c/`: `getCruiseControlAllowedBool.c` (0x02E3AC, verified), `enableDisableCruiseControl.c` (0x00C2E6, verified); tests in `c/tests/`
+- `src/60E0FC00_annotated.s`: cruise cluster ~lines 114543–120700 (SwitchVolt @114543, DriverRequest @114572, FinalTorque @119670, cruiseControlMain @120686)
+- `docs/subsystems/`: `AUXILIARY_CONTROL_SUBSYSTEM.md:128` (cruise condition in idle branch), `:748` (consumption ~1–2 cc/min); `PID_CONTROLLERS.md:48` (0xFFFFA9A8 "cruise path"); `SENSOR_PIPELINE.md:1053` (post-processing "Cruise Control"); `CALIBRATION_TABLES_CROSS_REFERENCE.md:767` (cruise tables, speed)
+- `MANIFEST.md:219/225/351/355/493/522/542`: verified C lifts and docs
+- `analysis/coverage/uncovered_60E0FC00.csv:4790+`: data pool of `calculateCruiseControlDriverRequest`
+- `web/explorer/data.js` / `data.json`: 1 hit each
+- Internal cross-validation (private archive): §4.4 of `RX8_Ghidra_vs_IDA_CrossValidation.txt` (22+ functions, torque-based), §4.1 of `RX8_New_Subsystems_From_Ghidra.txt` (0x2EB40 chain = 27 calls); xmaps `symbols_60E0E700_N3YLEE_xmap.csv`, `symbols_60E1B900_xmap.csv` (alternative names, same cluster)
 
 ---
 
 ## 3. Behavioral evidence — the pipeline
 
-The disassembly shows a complete and consistent cruise pipeline:
+Complete and consistent cruise pipeline in the disassembly:
 
 ```
 [ADC @0xFFFF9F1A]                 (only reference in the whole ROM)
@@ -90,31 +85,19 @@ The disassembly shows a complete and consistent cruise pipeline:
        → pedal/DBW request (drive-by-wire)
 ```
 
-This architecture — resistive-divider switch decode → driver request →
-speed target → feed-forward + proportional torque → final torque injected
-into the throttle-opening request — is the signature of a torque-based
-cruise control. No alternative "cruising speed" function
-shares this structure.
+This architecture — resistive-divider switch decode → driver request → speed target → feed-forward + proportional torque → final torque injected into the throttle-opening request — is the signature of a torque-based cruise control. No alternative "cruising speed" function shares this structure.
 
 ---
 
 ## 4. Authenticity evidence
 
-1. **Dedicated physical input:** ADC address `0xFFFF9F1A` is referenced ONLY by
-   `calculateCruiseControlSwitchVolt` (1 literal in ROM). It is the cruise
-   command input (multi-button resistive divider, 4 thresholds = 4+ states).
-2. **Classic thresholds:** 0.125 / 1.0 / 2.0 / 3.0 V on 5 V is the typical scheme of a
-   resistive cruise switch (each button partitions the voltage).
+1. **Dedicated physical input:** ADC `0xFFFF9F1A` referenced ONLY by `calculateCruiseControlSwitchVolt` (1 literal in ROM) — the cruise command input (multi-button resistive divider, 4 thresholds = 4+ states).
+2. **Classic thresholds:** 0.125/1.0/2.0/3.0 V on 5 V — typical resistive cruise switch scheme (each button partitions the voltage).
 3. **Dedicated calibration tables** (`CALIBRATION_TABLES_CROSS_REFERENCE.md:767`).
-4. **Vehicle-side inhibitors:** gates on brake switch, clutch switch, VSS fault and
-   ASC/DSC intervention (see §5) — typical cruise safety logic.
-5. **Persistent EEPROM-backed config:** 0x868C read/written with the value+complement
-   pattern (`readValue_8bit_ADDRESS_VAL` 0x3E0DC / `updateMemoryAtAddress_8bit_ADDR_VAL` 0x3E1F8) and **used exclusively by the cruise cluster** (7 genuine refs: 0x2C696, 0x2C7A2, 0x2C892, 0x2D6DC, 0x2D978, 0x2E5D6, 0x2E74E). It is the "cruise configured/installed" flag.
-6. **Two ROMs, same structure:** 60E0FC00 and 60E1D400 implement the same
-   cluster with different offsets (RAM layout differs between variants — known pattern in
-   this firmware).
-7. **Mazda documentation:** the RX-8 was sold with optional cruise control
-   (e.g. "SWITCH,ACCEL-CRUISE" 2004; 2005 manual: works above ~30 km/h).
+4. **Vehicle-side inhibitors:** gates on brake switch, clutch switch, VSS fault, ASC/DSC intervention (see §5) — typical cruise safety logic.
+5. **Persistent EEPROM-backed config:** 0x868C read/written with value+complement pattern (`readValue_8bit_ADDRESS_VAL` 0x3E0DC / `updateMemoryAtAddress_8bit_ADDR_VAL` 0x3E1F8) and **used exclusively by the cruise cluster** (7 genuine refs: 0x2C696, 0x2C7A2, 0x2C892, 0x2D6DC, 0x2D978, 0x2E5D6, 0x2E74E) — the "cruise configured/installed" flag.
+6. **Two ROMs, same structure:** 60E0FC00 and 60E1D400 implement the same cluster with different offsets (known RAM-layout-differs pattern in this firmware).
+7. **Mazda documentation:** RX-8 sold with optional cruise control (e.g. "SWITCH,ACCEL-CRUISE" 2004; 2005 manual: works above ~30 km/h).
 
 ---
 
@@ -122,23 +105,15 @@ shares this structure.
 
 ### `getCruiseControlAllowedBool` @0x2DBC4 (60E0FC00)
 Output @0xBD1C = 1 (cruise allowed) if:
-
 ```
 (no inhibitor active AND speed > 27.0 km/h)  OR  master_enable == 1
 ```
-
 - Inhibitors: 0xBD18, 0xBD19, 0xBD1A, 0xBD2E (diag)
-- Threshold: f32 @0x76298 = 27.0 (km/h)
-- Speed: float @0xBFBC
-- master_enable: ROM @0x762A5 = **0x80** → NOT == 1 → factory override inactive
-  (in 60E1D400: @0x76B6D = 0x00, same effect)
-- Variant 60E1D400 @0x2E3AC (C lift verified in `c/`): brake inhibitor 0xBD54,
-  clutch 0xBD55, VSS 0xBD56, ASC/DSC 0xBD6A; output @0xBD58; min threshold @0xC008.
+- Threshold: f32 @0x76298 = 27.0 (km/h); speed: float @0xBFBC
+- master_enable: ROM @0x762A5 = **0x80** → NOT == 1 → factory override inactive (60E1D400: @0x76B6D = 0x00, same effect)
+- Variant 60E1D400 @0x2E3AC (C lift verified in `c/`): brake inhibitor 0xBD54, clutch 0xBD55, VSS 0xBD56, ASC/DSC 0xBD6A; output @0xBD58; min threshold @0xC008.
 
-Gate conclusion: in both ROMs the master_enable is a test/diagnostic
-override calibration **not enabled in stock**; enabling depends only on
-minimum speed (~27 km/h) and the absence of inhibitors. The 27 km/h threshold is
-consistent with the official manual (~30 km/h).
+Gate conclusion: in both ROMs master_enable is a test/diagnostic override calibration **not enabled in stock**; enabling depends only on minimum speed (~27 km/h) and absence of inhibitors. The 27 km/h threshold matches the official manual (~30 km/h).
 
 ### `calculateCruiseControlDisableCondition` @0x2D924
 Writes 0xBD19 = 1 (disabled) if **at least one**:
@@ -152,74 +127,45 @@ Writes 0xBD19 = 1 (disabled) if **at least one**:
 ## 6. Reachability and consumption (active, not dead code)
 
 From `symbols/callgraph.csv`:
-- `throttleTask` (0x11584, called from the main task via FUN_000064ba) → `cruiseControlFunctions` (0x2EB22)
-- `FUN_000115aa` (throttle/torque task, via FUN_000064e8) → `cruiseControlMain??` (0x2EB40) — together with `calculateTorqueRelatedParams` (0x2D208), `throttlePlateTorqueStuff`, etc.
+- `throttleTask` (0x11584, from main task via FUN_000064ba) → `cruiseControlFunctions` (0x2EB22)
+- `FUN_000115aa` (throttle/torque task, via FUN_000064e8) → `cruiseControlMain??` (0x2EB40) — with `calculateTorqueRelatedParams` (0x2D208), `throttlePlateTorqueStuff`, etc.
 - `getIOUpdates?` (0x1A35C) → `calculateCruiseControlSwitchVolt` (0x2C5D0) and `cruiseControlInit` (0x3390C)
 - `vehicleConditionRelatedFuntions` (0x1A7FA) → `calculateCruiseControlDriverRequest` (0x2C5F8)
 
-The code runs **every cycle** in the throttle/IO management tasks. The torque output
-@0xBD28 is read by `calculateThrottlePedalPercent` (0x1A1AE: `mov.w 0x1A1FE,r1 ; 0xBD28`
-→ `fmov.s @r1,fr5`): the cruise torque feeds directly into the DBW
-throttle-opening request. When cruise is inactive @0xBD28 stays ~0 and the pedal
-controls normally.
+The code runs **every cycle** in the throttle/IO management tasks. The torque output @0xBD28 is read by `calculateThrottlePedalPercent` (0x1A1AE: `mov.w 0x1A1FE,r1 ; 0xBD28` → `fmov.s @r1,fr5`): cruise torque feeds directly into the DBW throttle-opening request. When cruise is inactive @0xBD28 stays ~0 and the pedal controls normally.
 
 ---
 
 ## 7. The only false positive
 
-`cruiseControl?` @0x118FE **is not** a cruise function: it is a periodic
-diagnostics/conditions dispatcher that calls 13 functions (0x1A9EE, 0x2EBEE
-`getCruiseControlE2Metrics`, 0x398F4, 0x21C66, 0x27174, 0x3F0B2, 0x292D8, 0x2AAC8,
-0x545BA `checkDeviceControlConditional`, 0x5A78C, 0x63F20, 0x63F48
-`coolantTempPlausibilityCheck`, 0x169EA). The name comes from the fact that
-`getCruiseControlE2Metrics` (0x2EBEE) is one of the callees. It is the only truly
-wrong "cruise" hit.
+`cruiseControl?` @0x118FE **is not** a cruise function: it is a periodic diagnostics/conditions dispatcher calling 13 functions (0x1A9EE, 0x2EBEE `getCruiseControlE2Metrics`, 0x398F4, 0x21C66, 0x27174, 0x3F0B2, 0x292D8, 0x2AAC8, 0x545BA `checkDeviceControlConditional`, 0x5A78C, 0x63F20, 0x63F48 `coolantTempPlausibilityCheck`, 0x169EA). Named because `getCruiseControlE2Metrics` (0x2EBEE) is one of the callees. Only truly wrong "cruise" hit.
 
 ---
 
 ## 8. Why the user's car has no cruise
 
-Combination of the three factors (H3 with H2 component):
-1. **Factory option:** cruise was an option (2004–2005). The PCM hardware and
-   firmware support it, but the car has neither the buttons nor the optional
-   actuator/wiring.
-2. **Dedicated ADC input not connected:** 0xFFFF9F1A is read only by cruise; if
-   the switch is not wired, the voltage stays in the "off" state and
-   `calculateCruiseControlDriverRequest` always produces "no request".
-3. **Persistent config:** 0x868C (EEPROM-backed) is read by
-   `calculateCruiseControlDisableCondition` with default 0 → cruise kept
-   disabled when not marked as installed/configured.
-4. **Enable gate** requires speed > ~27 km/h and no inhibitors — in
-   any case without a button request the cruise never activates.
+1. **Factory option** (2004–2005): PCM hardware/firmware support it, but the car has neither buttons nor the optional actuator/wiring.
+2. **Dedicated ADC input not connected:** 0xFFFF9F1A is read only by cruise; un-wired switch → voltage stays in "off" state → `calculateCruiseControlDriverRequest` always produces "no request".
+3. **Persistent config:** 0x868C (EEPROM-backed) read by `calculateCruiseControlDisableCondition` with default 0 → cruise kept disabled when not marked installed/configured.
+4. **Enable gate** requires speed > ~27 km/h and no inhibitors — without a button request cruise never activates.
 
-**H2:** it is also true that the firmware is shared across variants (same code on
-60E0FC00/60E1D400/60E0E700/60E1B900) — cruise is present on all of them, which is
-typical of Denso platform software — but the code behavior is
-unambiguously "cruise control" and not another function.
+**H2:** firmware is shared across variants (same code on 60E0FC00/60E1D400/60E0E700/60E1B900) — typical of Denso platform software — but the code behavior is unambiguously "cruise control".
 
 ---
 
 ## 9. Conclusion
 
-- The "cruise control" is **real**: a factory torque-based cruise control,
-  complete (switch decode → speed target → FF+P torque → DBW throttle).
-- It is **active in the firmware** (executed every cycle by the throttle/IO tasks), not dead code.
-- On the user's car it is simply **not installed/not wired**: no
-  buttons → no request; 0x868C not configured → disabled.
+- The "cruise control" is **real**: a factory torque-based cruise control, complete (switch decode → speed target → FF+P torque → DBW throttle).
+- **Active in the firmware** (executed every cycle by the throttle/IO tasks), not dead code.
+- On the user's car it is simply **not installed/not wired**: no buttons → no request; 0x868C not configured → disabled.
 - **H1 ruled out** (except `cruiseControl?` @0x118FE, mislabel).
-- **Confidence:** high for "real torque-based cruise"; high for "not wired/not
-  configured on the user's car".
+- **Confidence:** high for "real torque-based cruise"; high for "not wired/not configured on the user's car".
 
 ## 10. Open questions (max 3)
 
-1. **Exact semantics of the intermediate flags** 0xBD7C / 0xBD69 / 0xBD2E and who writes them
-   (likely: button state, gear/conditions, diagnostics state).
-2. **Who feeds the brake/clutch/VSS/ASC inhibitors** (0xBD54/0xBD55/0xBD56/
-   0xBD6A in the 60E1D400 variant) — presumably brake switch, clutch switch,
-   VSS plausibility and the DSC module; to be confirmed with xref.
-3. **Is 0x868C ever written at runtime** (e.g. by UDS diagnostics) or is it
-   preconfigured at the factory? And what is the physical pinout of the cruise switch
-   connector (not present in `CONNECTOR_PINOUT.md`)?
+1. Exact semantics of intermediate flags 0xBD7C / 0xBD69 / 0xBD2E and who writes them (likely: button state, gear/conditions, diagnostics state).
+2. Who feeds the brake/clutch/VSS/ASC inhibitors (0xBD54/0xBD55/0xBD56/0xBD6A in 60E1D400) — presumably brake switch, clutch switch, VSS plausibility, DSC module; confirm with xref.
+3. Is 0x868C ever written at runtime (e.g. by UDS diagnostics) or factory-preconfigured? Physical pinout of the cruise switch connector (not in `CONNECTOR_PINOUT.md`)?
 
 ---
 

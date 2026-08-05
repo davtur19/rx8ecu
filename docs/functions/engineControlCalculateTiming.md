@@ -1,12 +1,10 @@
 # engineControlCalculateTiming @ 0x14584
 
-**ROM:** 60E1D400 | **Size:** 414 bytes (0x14584–0x14722) | **Source:** ghidra-hand-xmap
+**Size:** 414 bytes (0x14584–0x14722)
 
 The **largest flat dispatch function** in the callgraph — calls 66 unique subfunctions
 with zero branches. It is the central engine control loop, invoked once per scheduler
 tick from `engineControlTASK` (0x11E94).
-
----
 
 ## Caller
 
@@ -20,8 +18,6 @@ tick from `engineControlTASK` (0x11E94).
 3. **`engineControlCalculateTiming`** ← here
 4. `FUN_00016f70`
 5. Conditional getSR chain
-
----
 
 ## Structure
 
@@ -148,8 +144,6 @@ tick from `engineControlTASK` (0x11E94).
 > has no camshafts; the "cam timing" here refers to per-rotor synchronization
 > of the eccentric-shaft angle.
 
----
-
 ## Disassembly (SH-2E, big-endian)
 
 ```
@@ -193,8 +187,6 @@ engineControlCalculateTiming:
   0x1471E: jmp @r3           ; tail call: setSR(saved_SR)
   0x14720: lds.l @r15+,pr    ; delay slot: pop return address
 ```
-
----
 
 ## Jump table (literal pool at 0x14784–0x14888)
 
@@ -267,8 +259,6 @@ engineControlCalculateTiming:
 | 64 | 0x14884 | 0x02CC1C | check_fuel_pump_relay_enable_2CC1C |
 | 65 | 0x14888 | 0x04D0E8 | health_check_system_4D0E8 |
 
----
-
 ## Subsystem grouping
 
 | Group | Count | Functions |
@@ -293,8 +283,6 @@ engineControlCalculateTiming:
 | **FPU maintenance** | 2 | fpu_clear_result_44506, fpu_conditional_accumulate_pair_{ch0,ch1} |
 | **Cranking / engine state** | 2 | getEngineCrankingStatus?, intake_condition_check_44694 |
 | **Driver conditions** | 1 | calculateDriverConditions |
-
----
 
 ## Key observations
 
@@ -322,8 +310,6 @@ engineControlCalculateTiming:
 
 6. **Caller** — `engineControlTASK` at 0x11E94, itself a flat dispatch of ~5
    functions, with this function as the 3rd stage.
-
----
 
 ## Draft C
 
@@ -415,8 +401,6 @@ void engineControlCalculateTiming(void)
     setSR(saved_sr);
 }
 ```
-
----
 
 ## Uncertainties
 

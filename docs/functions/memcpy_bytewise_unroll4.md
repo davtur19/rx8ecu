@@ -1,11 +1,6 @@
 # memcpy_bytewise_unroll4 @ 0x42B0
 
-**Address:** 0x42B0 – 0x42E8  (56 bytes)
-**ROM:** 60E1D400.bin
-**Source label:** ida-ai
 **Track-A verification:** emulator (18 edge + 500 random)
-
----
 
 ## Overview
 
