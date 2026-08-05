@@ -23,7 +23,9 @@ import glob
 import os
 import random
 import re
+import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -103,7 +105,13 @@ def sanitize(name):
 
 
 def gen_c_body(instrs, rom):
-    """Return (c_text, used_set) — full lift body incl. locals + return r0."""
+    """Return (c_text, used_set) — full lift body incl. locals + return r0.
+
+    Only the registers the emitted C actually references are declared (one per
+    line, no dead declarations).  r4..r7 are the C function parameters, so when
+    any of them is used we add the `/* params (possibly) */` note instead of a
+    local re-declaration (which would shadow the parameter and fail to compile).
+    """
     stmts = []
     used = set()
     for pc, op, d in instrs:
@@ -112,26 +120,34 @@ def gen_c_body(instrs, rom):
         stmts.extend(d['c'])
         used |= d.get('uses', set())
 
-    reg_used = {u for u in used if re.fullmatch(r'r\d+', u)}
-    flag_used = {u for u in used if u in ('T', 'Q', 'M', 'mach', 'macl', 'pr')}
-    reg_nums = sorted({int(u[1:]) for u in reg_used})
+    # Scan the emitted C fragments (mapper text) for the register tokens the
+    # function actually touches: r0..r15 plus the control/mult/accumulator regs.
+    body_text = '\n'.join(stmts)
+    refs = set()
+    for m in re.finditer(r'\br(?:[0-9]|1[0-5])\b', body_text):
+        refs.add(m.group(0))
+    for tok in ('T', 'Q', 'M', 'macl', 'mach', 'sr', 'pr'):
+        if re.search(r'\b%s\b' % tok, body_text):
+            refs.add(tok)
+
+    # r0 is the function's return register (`return r0;` is always emitted),
+    # so it is always a live local regardless of the mapper's 'uses' set.
+    refs.add('r0')
 
     lines = []
-    # r4..r7 are the (potential) function args — declared as C parameters below.
-    lines.append('    // locals; r0..r3 and r8..r15 start as 0')
-    lines.append('    uint32_t ' + ', '.join('r%d=0' % n for n in range(4)) + ';')
-    extra = [n for n in range(8, 16) if n in reg_nums]
-    if extra:
-        lines.append('    uint32_t ' + ', '.join('r%d=0' % n for n in extra) + ';')
-    if flag_used:
-        defs = []
-        for fl in sorted(flag_used):
-            if fl == 'pr':
-                defs.append('pr=0x%08Xu' % 0xEEEE0000)
+    # r4..r7 are possible function arguments (set at entry) — note only.
+    if any('r%d' % n in refs for n in range(4, 8)):
+        lines.append('    /* params (possibly) */')
+    # locals: only the registers actually referenced (r0..r3, r8..r15), one per line.
+    for n in list(range(0, 4)) + list(range(8, 16)):
+        if 'r%d' % n in refs:
+            lines.append('    uint32_t r%d = 0;' % n)
+    for t in ('T', 'Q', 'M', 'macl', 'mach', 'sr', 'pr'):
+        if t in refs:
+            if t == 'pr':
+                lines.append('    uint32_t pr = 0xEEEE0000u;')
             else:
-                defs.append('%s=0' % fl)
-        lines.append('    uint32_t ' + ', '.join(defs) + ';')
-    lines.append('    // r4..r7 are possible function arguments (set at entry)')
+                lines.append('    uint32_t %s = 0;' % t)
     lines.extend('    ' + s for s in stmts)
     lines.append('    return r0;')
     return '\n'.join(lines), used
@@ -158,6 +174,20 @@ def emit(addr, name, size, instrs, rom, seed, out_c, out_t):
 
     with open(out_c, 'w') as f:
         f.write(c_text)
+
+    # ---- compile gate: must pass the repo's real C gate (PASSO 1: cc -O2) ----
+    # If the lift doesn't compile, drop it: remove the .c, write no test, warn.
+    tmp_obj = os.path.join(tempfile.gettempdir(),
+                           'gen_c_lift_%d.o' % os.getpid())
+    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
+                          capture_output=True, text=True)
+    if os.path.exists(tmp_obj):
+        os.remove(tmp_obj)
+    if gate.returncode != 0:
+        os.remove(out_c)
+        print('WARNING: lift 0x%X %-40s failed `cc -O2 -c`; .c dropped, no test written'
+              % (addr, fn))
+        return False
 
     # ---- spec_mirror: replicate the same semantics in Python ----
     py_stmts = []
@@ -220,6 +250,7 @@ def emit(addr, name, size, instrs, rom, seed, out_c, out_t):
 
     with open(out_t, 'w') as f:
         f.write(test)
+    return True
 
 
 def compute_stats():
@@ -291,6 +322,7 @@ def main():
 
     emitted = 0
     skipped = 0
+    dropped = 0
     for hit in rnd.sample(pool, min(args.n, len(pool))):
         c = hit['g']
         size = hit['size']
@@ -308,11 +340,14 @@ def main():
             skipped += 1
             continue
 
-        emit(c['addr'], c['name'], size, span, rom, args.seed, out_c, out_t)
+        if not emit(c['addr'], c['name'], size, span, rom, args.seed, out_c, out_t):
+            dropped += 1
+            continue
         emitted += 1
         print('lifted 0x%X %-40s size=%3d -> %s' % (c['addr'], c['name'], size, out_c))
 
-    print('emitted=%d skipped_dedup=%d pool=%d' % (emitted, skipped, len(pool)))
+    print('emitted=%d skipped_dedup=%d dropped_compile=%d pool=%d'
+          % (emitted, skipped, dropped, len(pool)))
 
 
 if __name__ == '__main__':

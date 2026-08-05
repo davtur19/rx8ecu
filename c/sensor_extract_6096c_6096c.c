@@ -4,9 +4,8 @@
 #include <stdint.h>
 uint32_t sensor_extract_6096c_6096c(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    // r4..r7 are possible function arguments (set at entry)
+    /* params (possibly) */
+    uint32_t r0 = 0;
     /* 0x06096C: op 0x9771 */
     r7 = (uint32_t)(int32_t)(int16_t)0x96u;
     /* 0x06096E: op 0xE400 */
