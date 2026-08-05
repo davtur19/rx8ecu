@@ -69,12 +69,12 @@ v6 (additive, this module): GBR byte bit-ops — decode_gbr_bit() decodes the
 must resolve to constants, passed as ctx['gbr']), size 1, tst.b sets T only,
 the others read-modify-write the byte.  translate() additionally gains the
 real lds Rn,mach/macl/pr (0x4n0A/0x4n1A/0x4n2A, previously dead-code 'unmapped')
-and xtrct (0x2nmD).  NOT implemented (documented, remain 'unmapped'):
-mac.l/mac.w @Rm+,@Rn+ (two memory reads + S-bit 64/32-bit accumulate — not
-replicable 1:1 without a ram model for dynamic bases), sts.l/lds.l
-mach/macl/pr stack forms (need generator dest support beyond rN/sr; bases are
-usually r15), stc/ldc VBR/SSR/SPC and stc GBR (system regs not a lift state),
-tas.b @Rn (byte RMW at a dynamic rN base).
+and xtrct (0x2nmD).  The v6 "NOT implemented" note below is now partially
+superseded: translate() additionally maps ldc Rn,VBR (0x4n2E) as a pure op, and
+decode_mem() maps the sts.l/lds.l mach/macl/pr stack/memory forms
+(0x4n02/06/12/16/22/26, param/literal bases only) plus mac.l @Rm+,@Rn+ (0x0nmF,
+when BOTH base registers resolve); the mac.w form, the stc.l/ldc.l VBR/SSR/SPC
+and stc GBR memory forms, and tas.b @Rn remain 'unmapped'.
 """
 import struct
 
@@ -400,6 +400,13 @@ def translate(op, pc, rom, ann=''):
         return _mk('r%d = sr;' % n, 'r[%d] = sr' % n, ['r%d' % n, 'sr'])
     if op & 0xF0FF == 0x400E:                          # ldc Rn,SR
         return _mk('sr = r%d;' % n, 'sr = r[%d]' % n, ['r%d' % n, 'sr'])
+    if op & 0xF0FF == 0x402E:                          # ldc Rn,VBR (mirror sh2emu 0x4n2E)
+        # `vbr` is modeled like `sr`: an independent uint32 state (sh2emu seeds
+        # it 0 at call()).  NOTE: gen_c_lift_v3.build_locals currently declares
+        # no `vbr` C local (only T/Q/M/macl/mach/sr/pr/fr*/fpul/fpscr), so a
+        # lift containing this op would need a generator update to compile —
+        # out of scope here; the decode itself is 1:1 with the oracle.
+        return _mk('vbr = r%d;' % n, 'vbr = r[%d] & 0xFFFFFFFF' % n, ['vbr', 'r%d' % n])
 
     # ---- branches / return (control flow) ----
     if op == 0x000B:   # rts (delayed)
@@ -670,6 +677,110 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
                 'idx': None, 'auto': 'post', 'sext': False,
                 'ann': 'ldc.l @r%d+,SR' % n, 'uses': {'sr', 'r%d' % n, t},
                 'sr_dest': True}
+
+    # ---- sts.l / lds.l mach/macl/pr stack/memory forms (additive, real):
+    # mirror sh2emu._exec n0==0x4 `op & 0xF0FF` lines 450-455.  The transferred
+    # value is a multiply system register (mach/macl/pr), NOT an rN, so src/dest
+    # stay None and 'sys_src'/'sys_dest' + 'sys_reg' flag the transfer for the
+    # generator — the exact same contract as the SR forms (0x4n03/0x4n07 above).
+    # Base resolution is the standard param/literal rule; a r15/r14 stack base
+    # falls through _resolve_base -> None and is rejected, exactly as documented
+    # for the SR forms (the SH-2 prologue/epilogue sts.l/lds.l pr use r15).
+    # NOTE: gen_c_lift_v3.walk_v3 special-cases ONLY 0x4003/0x4007 (SR); these
+    # six encodings need a matching walker block to render end-to-end (out of
+    # scope here).  The decode dicts are nevertheless 1:1 with the oracle and
+    # carry self-contained 'py' mirror fragments for the differential test.
+    if op & 0xF0FF in (0x4002, 0x4012, 0x4022):    # sts.l mach/macl/pr,@-Rn
+        reg = {0x4002: 'mach', 0x4012: 'macl', 0x4022: 'pr'}[op & 0xF0FF]
+        rb = _resolve_base(ctx, n)
+        if rb is None:
+            return None
+        base_kind, abs_addr = rb
+        eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, -4, None, abs_addr)
+        c = ['*(volatile uint32_t*)%s = %s;' % (eff, reg)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        c.append('r%d = r%d - 4;' % (n, n))
+        py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, %s)' % (n, reg),
+              'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (n, n)]
+        return {'kind': 'mem', 'size': 4, 'dir': 'store', 'base': base_kind,
+                'c': c, 'src': None, 'base_reg': n, 'disp': -4, 'idx': None,
+                'auto': 'pre', 'sext': False, 'ann': 'sts.l %s,@-r%d' % (reg, n),
+                'uses': {reg, 'r%d' % n}, 'sys_src': True, 'sys_reg': reg, 'py': py}
+    if op & 0xF0FF in (0x4006, 0x4016, 0x4026):    # lds.l @Rn+,mach/macl/pr
+        reg = {0x4006: 'mach', 0x4016: 'macl', 0x4026: 'pr'}[op & 0xF0FF]
+        rb = _resolve_base(ctx, n)
+        if rb is None:
+            return None
+        base_kind, abs_addr = rb
+        eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, 0, None, abs_addr)
+        t = temp()
+        c = ['uint32_t %s = *(volatile uint32_t*)%s;' % (t, eff)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        c.append('%s = %s;' % (reg, t))
+        c.append('r%d = r%d + 4;' % (n, n))
+        py = ['%s = _rdw(ram, r[%d], 4)' % (reg, n),
+              'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (n, n)]
+        return {'kind': 'mem', 'size': 4, 'dir': 'load', 'base': base_kind,
+                'c': c, 'temp': t, 'dest': None, 'base_reg': n, 'disp': 0,
+                'idx': None, 'auto': 'post', 'sext': False,
+                'ann': 'lds.l @r%d+,%s' % (n, reg),
+                'uses': {reg, 'r%d' % n, t}, 'sys_dest': True, 'sys_reg': reg,
+                'py': py}
+
+    # ---- mac.l @Rm+,@Rn+ (0x0nmF) — additive.  sh2emu._exec n0==0x0 nib==0xF
+    # reads TWO 32-bit words (signed) at r[m]/r[n], post-increments BOTH, then
+    # accumulates 64-bit: MAC = ((mach<<32)|macl) sign-adjusted + a*b, saturated
+    # to 64-bit when SR bit 1 (S) is set.  Two independent base registers make
+    # this unlike every single-base mem form: the decode returns None unless
+    # BOTH r[m] and r[n] resolve (param r4..r7 / known literal) — exactly the
+    # _resolve_base rule applied twice.  With dynamic bases (the common rN data
+    # pointer case) it returns None, so the v3 generator keeps rejecting the
+    # function as before (no behavior change).  The dict is self-contained
+    # (kind 'mac') with C + 'py' mirror fragments 1:1 to the oracle; the
+    # generator has no emission path for it yet (out of scope here).
+    if n0 == 0x0 and nib == 0xF:            # mac.l @Rm+,@Rn+ (0x0nmF)
+        rb_m = _resolve_base(ctx, m)
+        rb_n = _resolve_base(ctx, n)
+        if rb_m is None or rb_n is None:
+            return None
+        bm_kind, am_addr = rb_m
+        bn_kind, an_addr = rb_n
+        eff_m, em_abs = _eff_addr(bm_kind, 'r%d' % m, 0, None, am_addr)
+        eff_n, en_abs = _eff_addr(bn_kind, 'r%d' % n, 0, None, an_addr)
+        c = ['int32_t _ma = (int32_t)*(volatile uint32_t*)%s;' % eff_m,
+             'int32_t _mb = (int32_t)*(volatile uint32_t*)%s;' % eff_n]
+        if em_abs is not None:
+            c[0] += _ram_note(em_abs)
+        if en_abs is not None:
+            c[1] += _ram_note(en_abs)
+        c += ['r%d = r%d + 4;' % (m, m), 'r%d = r%d + 4;' % (n, n),
+              '{ int64_t _p = (int64_t)_ma * _mb;'
+              ' int64_t _mac = (int64_t)(((uint64_t)(uint32_t)mach << 32) | (uint32_t)macl);'
+              ' int64_t _res = _mac + _p;'
+              ' if ((sr >> 1) & 1u) {'
+              '   if (_res > 0x7FFFFFFFFFFFFFFFLL) _res = 0x7FFFFFFFFFFFFFFFLL;'
+              '   else if (_res < (-0x8000000000000000LL)) _res = -0x8000000000000000LL; }'
+              ' mach = (uint32_t)(_res >> 32); macl = (uint32_t)_res; }']
+        py = ['_ma = s32(_rdw(ram, r[%d], 4))' % m,
+              '_mb = s32(_rdw(ram, r[%d], 4))' % n,
+              'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (m, m),
+              'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (n, n),
+              '_mac = ((mach << 32) | macl) & 0xFFFFFFFFFFFFFFFF',
+              'if _mac >= 0x8000000000000000: _mac -= 0x10000000000000000',
+              '_res = _mac + _ma * _mb',
+              'if (sr >> 1) & 1:',
+              '    if _res > 0x7FFFFFFFFFFFFFFF: _res = 0x7FFFFFFFFFFFFFFF',
+              '    elif _res < -0x8000000000000000: _res = -0x8000000000000000',
+              'mach = (_res >> 32) & 0xFFFFFFFF',
+              'macl = _res & 0xFFFFFFFF']
+        return {'kind': 'mac', 'dir': 'load', 'size': 4,
+                'base_reg': n, 'auto': 'post', 'sext': False,
+                'base': bn_kind, 'base2_reg': m, 'base2': bm_kind,
+                'ann': 'mac.l @r%d+,@r%d+' % (m, n),
+                'c': c, 'py': py, 'uses': {'mach', 'macl', 'sr',
+                                           'r%d' % m, 'r%d' % n}}
 
     return None  # not a covered memory op
 
