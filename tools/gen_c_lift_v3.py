@@ -50,6 +50,7 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 
 import c_lift_ops as ops
 import gen_c_lift as gcl          # reuse v3 selection + mem-emission helpers
+import sh2emu                     # emu:(yes/no) check for unmapped opcodes (additive C)
 
 DEFAULT_ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 
@@ -78,15 +79,31 @@ BRANCH_MNEM = {
 # _scan_mem_function verbatim, including the v3 branch admission + per-motivo
 # branch counters), but the pool only keeps functions with >= 1 admitted
 # branch — v3 lifts are branch/delay-slot lifts by construction.
+#
+# v4: selection AND emission run on the SANITIZED span (addr_s, end_s) — the
+# catalog end is trimmed of trailing 0x0000/0xFFFF padding and extended into
+# near branch targets (sanitize_span).  The size gate is adapted to the
+# sanitized span (8 <= end_s-addr <= 160+16); each accepted entry carries the
+# sanitized end (entry['size'] = end_s - addr, entry['end_s'] = end_s) so the
+# emission path (emit_v3 / emit_v3_test / walk_v3 / banner / sentinel) decodes
+# exactly the sanitized span.
 # ---------------------------------------------------------------------------
 def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
     """Returns (selected, counters) — see gen_c_lift.select_mem; extra counter
     'skipped_no_branch' for functions that pass the mem scan but have no
-    admitted internal branch."""
+    admitted internal branch.  v4: spans are sanitized (sanitize_span) and the
+    sanitized end is returned on each entry; sanitize breakdown counters
+    (n_trimmed/n_extended/n_entrambi) track the pool composition."""
     counters = {'selected': 0, 'rejected': Counter(),
                 'motivo_dettaglio': Counter(),
                 'skipped_no_span': 0, 'skipped_size': 0, 'skipped_dedup': 0,
-                'skipped_no_branch': 0, 'by_category': {}}
+                'skipped_no_branch': 0, 'by_category': {},
+                'n_trimmed': 0, 'n_extended': 0, 'n_entrambi': 0,
+                # ---- additive dryrun counters (never affect selection) ----
+                'fuori_vicini_8': 0, 'fuori_vicini_16': 0,   # A: span-end
+                'chain_resolvable': 0,                       # B: copy-chain
+                'unmapped_opcodes': Counter(),               # C: unmapped list
+                '_fuori8_addrs': set()}   # addrs of the A<=8 candidates (v4 hook)
     branch_stats = {'branch_tot': 0,
                     'branch_ammessi': Counter(),
                     'branch_rigettati': Counter()}
@@ -98,8 +115,10 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
         if end is None:
             counters['skipped_no_span'] += 1
             continue
-        size = end - c['addr']
-        if not (gcl.MEM_MIN <= size <= gcl.MEM_MAX):
+        # v4: sanitized span — addr_s == addr; size/scan/emission use end_s.
+        _addr_s, end_s, reasons = sanitize_span(c['addr'], end, rom)
+        size = end_s - c['addr']
+        if not (gcl.MEM_MIN <= size <= gcl.MEM_MAX + 16):
             counters['skipped_size'] += 1
             continue
         # dedup: skip if c/<name>_<addr>.c exists, a v1/v2 test exists, or any
@@ -111,7 +130,7 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
                 glob.glob(os.path.join(outdir, '*_%x.c' % c['addr'])):
             counters['skipped_dedup'] += 1
             continue
-        entry, reason = gcl._scan_mem_function(rom, c, end, branch_stats)
+        entry, reason = gcl._scan_mem_function(rom, c, end_s, branch_stats)
         if entry is None:
             if isinstance(reason, tuple):
                 r, det = reason
@@ -122,13 +141,26 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
                     counters['rejected'][r] += 1
                     counters['motivo_dettaglio'][det] += 1
             else:
+                r = reason
                 counters['rejected'][reason] += 1
             catstat['rejected'] += 1
+            # ---- additive dryrun-only counters (do NOT change selection) ----
+            # analyze the SAME span the scan rejected on (end_s == sanitized).
+            _accum_additive(counters, rom, c, end_s, r)
             continue
         if not entry['branches']:                   # v3 = branch lifts only
             counters['skipped_no_branch'] += 1
             catstat['rejected'] += 1
             continue
+        entry['end_s'] = end_s                      # sanitized end for emission
+        trimmed = 'trimmed_padding' in reasons
+        extended = 'extended_end' in reasons
+        if trimmed and extended:
+            counters['n_entrambi'] += 1
+        elif trimmed:
+            counters['n_trimmed'] += 1
+        elif extended:
+            counters['n_extended'] += 1
         pool.append(entry)
         counters['selected'] += 1
         catstat['selected'] += 1
@@ -140,6 +172,472 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
     if max_n is not None and max_n < len(pool):
         pool = random.Random(seed).sample(pool, max_n)
     return pool, counters
+
+
+# ---------------------------------------------------------------------------
+# v4 additive: SANITIZED-SPAN selection (dryrun measurement only; never touches
+# the v3 pool/counters and never emission).  sanitize_span trims trailing
+# 0x0000/0xFFFF padding from the catalog end and extends the end into near
+# branch targets; select_v4_sanitized re-runs the v3 criteria on the sanitized
+# span (only the size gate is adapted: 8 <= end_s-addr <= 160+16).
+# ---------------------------------------------------------------------------
+_PAD_WORDS = (0x0000, 0xFFFF)
+
+
+def sanitize_span(addr, end, rom_bytes):
+    """Return (addr_s, end_s, reasons) for the sanitized span of [addr, end).
+
+    reasons is a list of 'trimmed_padding' | 'extended_end' markers (additive).
+    a) TRIM: trailing 16-bit big-endian words of value 0x0000/0xFFFF are
+       dropped from the END (end_s stops at the first non-padding word, or at
+       addr+4 — the span never shrinks below 4 bytes).
+    b) EXTEND: branch targets (P+4+disp*2 for bt/bf/bt.s/bf.s/bra) of
+       instructions INSIDE the scan that fall in [end_s, end_s+16] and whose
+       target word is not 0x0000/0xFFFF pull the end out to max(target)+4;
+       iterated to fixed point (max 2 rounds).
+    c) GUARD: if the resulting end_s - addr is < 4 or > 200, the ORIGINAL
+       (addr, end) is returned untouched with no reasons (no sanitization).
+    addr_s == addr always (only the end is sanitized).
+    """
+    n = len(rom_bytes)
+    addr_s = addr
+    end_s = end
+    # (a) trim trailing padding words (big-endian)
+    while end_s - 2 >= addr + 4 and end_s <= n:
+        w = (rom_bytes[end_s - 2] << 8) | rom_bytes[end_s - 1]
+        if w not in _PAD_WORDS:
+            break
+        end_s -= 2
+    reasons = []
+    if end_s < end:
+        reasons.append('trimmed_padding')
+    # (b) extend into near branch targets (fixed point, max 2 rounds)
+    for _ in range(2):
+        best = end_s
+        bound = min(end_s, n)
+        pc = addr
+        while pc + 1 < bound:
+            op = (rom_bytes[pc] << 8) | rom_bytes[pc + 1]
+            bi = ops.branch_info(op)
+            if bi is not None and bi.get('target_disp') is not None:
+                t = (pc + 4 + bi['target_disp'] * 2) & gcl.MASK
+                if end_s <= t <= end_s + 16 and t + 2 <= n:
+                    tw = (rom_bytes[t] << 8) | rom_bytes[t + 1]
+                    if tw not in _PAD_WORDS:     # never extend into padding
+                        best = max(best, t + 4)
+            pc += 2
+        if best == end_s:
+            break
+        end_s = best
+    if end_s > end:
+        reasons.append('extended_end')
+    # (c) bounds guard: out-of-range spans are left unsanitized
+    if end_s - addr < 4 or end_s - addr > 200:
+        return addr, end, []
+    return addr_s, end_s, reasons
+
+
+def _span_out_targets(rom, addr, end):
+    """All (pc, target) of bt/bf/bt.s/bf.s/bra in [addr, min(end,len(rom)))
+    whose target lies OUTSIDE [addr, end).  Mirrors _analyze_rejected's
+    counter-A collection (ops.branch_info, target = P+4+disp*2)."""
+    outs = []
+    bound = min(end, len(rom))
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        bi = ops.branch_info(op)
+        if bi is not None and bi.get('target_disp') is not None:
+            t = (pc + 4 + bi['target_disp'] * 2) & gcl.MASK
+            if not (addr <= t < end):
+                outs.append((pc, t))
+        pc += 2
+    return outs
+
+
+def select_v4_sanitized(cats, rom, catalog, outdir, root=ROOT, v3_pool=None):
+    """Additive dryrun-only sanitized-span selection -> (pool_v4, v4_counters).
+
+    Re-runs the v3 criteria on the sanitized span (addr_s, end_s):
+      - size gate 8 <= end_s-addr <= 160+16 (the sanitized span MAY exceed the
+        old 160 cap; the count of pool members that do is reported);
+      - _scan_mem_function on [addr, end_s) -> branch targets must still lie in
+        [addr_s, end_s);
+      - same dedup as v3.
+    The v3 pool / counters / emission are untouched.
+    """
+    v3_addrs = {e['addr'] for e in (v3_pool or [])}
+    counters = {
+        'pool_v4': 0,
+        'rejected': Counter(),
+        'skipped_size': 0, 'skipped_dedup': 0, 'skipped_no_branch': 0,
+        'n_trimmed': 0, 'n_extended': 0, 'n_entrambi': 0,
+        'n_over_160': 0,
+        'fuori8_now': 0, 'fuori8_total': 0,
+        'examples': [],     # (addr, name, end_orig, end_san, reasons, in_v3)
+    }
+    pool = []
+    for c in cats:
+        addr = c['addr']
+        end = catalog.get(c['addr'])
+        if end is None:
+            continue
+        # classify the ORIGINAL span as a v3-A fuori_vicini_8 candidate
+        outs = _span_out_targets(rom, addr, end)
+        is_fuori8 = bool(outs) and all(end <= t <= end + 8 for _, t in outs)
+        if is_fuori8:
+            counters['fuori8_total'] += 1
+        addr_s, end_s, reasons = sanitize_span(addr, end, rom)
+        if not (gcl.MEM_MIN <= end_s - addr <= gcl.MEM_MAX + 16):
+            counters['skipped_size'] += 1
+            continue
+        # dedup mirrors v3
+        base = gcl.sanitize(c['name'])
+        out_c = os.path.join(outdir, '%s_%x.c' % (base, addr))
+        out_t = os.path.join(root, 'c', 'tests', 'test_%s_%x.py' % (base, addr))
+        if os.path.exists(out_c) or os.path.exists(out_t) or \
+                glob.glob(os.path.join(outdir, '*_%x.c' % addr)):
+            counters['skipped_dedup'] += 1
+            continue
+        entry, reason = gcl._scan_mem_function(rom, c, end_s, None)
+        if entry is None:
+            if isinstance(reason, tuple):
+                r, det = reason
+                if r == 'branch_v3':       # v3 per-motivo branch reject
+                    r = gcl._BRANCH_V3_REASON.get(det, 'branch')
+                # else: r stays 'base_unresolved' (mirror select_v3)
+            else:
+                r = reason
+            counters['rejected'][r] += 1
+            continue
+        if not entry['branches']:
+            counters['skipped_no_branch'] += 1
+            continue
+        trimmed = 'trimmed_padding' in reasons
+        extended = 'extended_end' in reasons
+        if trimmed and extended:
+            counters['n_entrambi'] += 1
+        elif trimmed:
+            counters['n_trimmed'] += 1
+        elif extended:
+            counters['n_extended'] += 1
+        if end_s - addr > gcl.MEM_MAX:
+            counters['n_over_160'] += 1
+        if is_fuori8:
+            counters['fuori8_now'] += 1
+        if (trimmed or extended) and len(counters['examples']) < 5:
+            counters['examples'].append(
+                (addr, c['name'], end, end_s, list(reasons), addr in v3_addrs))
+        pool.append(entry)
+        counters['pool_v4'] += 1
+    pool.sort(key=lambda x: x['size'])
+    return pool, counters
+
+
+# ---------------------------------------------------------------------------
+# Additive dryrun-only feasibility counters (A/B/C).  They NEVER change the
+# selection: they post-mortem spans that _scan_mem_function already rejected.
+# The baseline pool / rejection numbers / branch breakdown are untouched.
+# ---------------------------------------------------------------------------
+def _analyze_rejected(rom, addr, end):
+    """Re-walk a REJECTED span [addr,end) to feed the additive counters.
+
+    Mirrors _scan_mem_function's instruction walk and decision order (same
+    written/lits/gbr/stack/frame tracking) so the FIRST rejecting instruction
+    matches the real scan — but continues to the end of the span (the real scan
+    stops at the first reject) to collect:
+      out_targets : [(pc,target)] for EVERY branch (bt/bf/bt.s/bf.s/bra) whose
+                    target lies OUTSIDE [addr,end)            -> counter A
+      unmapped    : Counter of every opcode ops.translate() leaves unmapped
+                    across the whole span                     -> counter C
+      reject      : (pc, reason, base_reg) at the first rejecting instruction.
+                    base_reg is the integer register index a copy-chain fix
+                    (counter B) would need to resolve to a literal, else None.
+    It never mutates shared branch_stats and never touches selection.
+    """
+    bound = min(end, len(rom))
+    written = set()
+    lits = {}
+    tmp = [0]
+    gbr_known = False;  gbr_value = None
+    stack_ok = True;  frame_live = False
+
+    def temp():
+        tmp[0] += 1
+        return 't%d' % tmp[0]
+
+    def resolve(reg):
+        # identical to _scan_mem_function's: decode_mem's _resolve_base uses
+        # this to accept literal-based (non-param) bases — stubbing it would
+        # change decode_mem's output and shift the reject point.
+        v = lits.get('r%d' % reg)
+        if v is None:
+            return None
+        cls = ops.classify_addr(v)
+        if cls in ('RAM', 'ROM'):
+            return (cls, v)
+        return None
+
+    ctx = {'temp': temp, 'resolve': resolve}
+    out_targets = []
+    unmapped = Counter()
+    reject = None
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        d = ops.translate(op, pc, rom)
+        if d is None:
+            unmapped[op] += 1            # C: opcodes the mapper doesn't know
+        if d is not None:
+            if d.get('kind') in ('branch', 'ret'):
+                if d.get('kind') == 'branch':
+                    t = d.get('target')
+                    if t is not None and not (addr <= t < end):
+                        out_targets.append((pc, t))
+                pc += 2
+                continue
+            writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
+            if op == 0x6E3F:             # mov r15,r14 -> frame pointer
+                if stack_ok and 'r14' not in written:
+                    frame_live = True
+            else:
+                if 'r15' in writes:
+                    stack_ok = False
+                if 'r14' in writes:
+                    frame_live = False
+            if not gcl._apply_stmt(rom, pc, op, d, written, lits):
+                if reject is None:
+                    reject = (pc, 'unmapped', None)
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x401E:        # ldc Rn,GBR
+            gbr_known = True
+            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            pc += 2
+            continue
+        if gcl.is_call_op(op):
+            if reject is None:
+                reject = (pc, 'call', None)
+            pc += 2
+            continue
+        if op == 0x002B:                 # rte
+            if reject is None:
+                reject = (pc, 'rte', None)
+            pc += 2
+            continue
+        if gcl.is_branch_op(op):
+            if reject is None:
+                reject = (pc, 'branch', None)
+            pc += 2
+            continue
+        m = ops.decode_mem(op, None, ctx)
+        if m is not None:
+            base_reg = m['base_reg']
+            if m.get('idx') == 'r0' and 'r0' not in lits:
+                if reject is None:
+                    reject = (pc, 'base_unresolved', 0)
+            elif base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                pass                    # param base: accepted
+            elif 'r%d' % base_reg in lits:
+                pass                    # literal base: accepted
+            else:
+                if reject is None:
+                    reject = (pc, 'base_unresolved', base_reg)
+            gcl._apply_mem_writes(m, written, lits)
+            pc += 2
+            continue
+        g = gcl._decode_gbr(op)
+        if g is not None:
+            if not gbr_known or gbr_value is None:
+                if reject is None:
+                    reject = (pc, 'base_unresolved', None)
+            elif 'r0' not in lits:
+                if reject is None:
+                    reject = (pc, 'base_unresolved', 0)
+            pc += 2
+            continue
+        sh = gcl._mem_shape(op)
+        if sh is not None and sh['base'] in (14, 15):
+            breg = sh['base']
+            if sh['idx'] is not None:    # @(R0,r15/r14): unresolved index r0
+                if reject is None:
+                    reject = (pc, 'base_unresolved', 0)
+            elif breg == 15:
+                if not stack_ok or sh['dest'] == 15:
+                    if reject is None:
+                        reject = (pc, 'base_unresolved', 15)
+            else:
+                if not frame_live or sh['dest'] == 14:
+                    if reject is None:
+                        reject = (pc, 'base_unresolved', 14)
+            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                  'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
+            gcl._apply_mem_writes(sm, written, lits)
+            pc += 2
+            continue
+        if gcl.is_mem_opcode(op):
+            sh2 = gcl._mem_shape(op)
+            base_reg = sh2['base'] if sh2 is not None else None
+            if reject is None:
+                reject = (pc, 'base_unresolved', base_reg)
+            pc += 2
+            continue
+        if gcl.is_fpu_op(op):
+            if reject is None:
+                reject = (pc, 'fpu/altre', None)
+            pc += 2
+            continue
+        if reject is None:               # fallthrough: truly unmapped
+            reject = (pc, 'unmapped', None)
+        pc += 2
+    return out_targets, unmapped, reject
+
+
+def _chain_resolvable(rom, addr, reject_pc, base_reg):
+    """Counter B: is base_reg at reject_pc derivable, walking BACKWARD through
+    the preceding span instructions, from a LITERAL origin using ONLY:
+      - mov rA,rB          (0x6n3m: a direct copy)
+      - mov #imm,Rn        (0xEnnn)
+      - mov.w @(disp,PC),Rn(0x9nnn) / mov.l @(disp,PC),Rn (0xDnnn)
+    There must be NO branch/call/return in the walk, and no instruction that
+    REWRITES a chased register (arithmetic/memory/other) — the value has to
+    propagate purely through copies.  translate() leaves some system/shift ops
+    unmapped; for those we heuristically infer rN writes.  Anything fully
+    unknown breaks the chain (cannot prove purity)."""
+    if base_reg is None:
+        return False
+    live = [base_reg]
+    p = reject_pc - 2
+    while p + 2 > addr:
+        op = (rom[p] << 8) | rom[p + 1]
+        n = (op >> 8) & 0xF
+        # a branch/call/return anywhere in the walk => linear order untrusted
+        if ops.branch_info(op) is not None or gcl.is_call_op(op) \
+                or gcl.is_branch_op(op):
+            return False
+        # literal loads: the chain origin
+        if op & 0xF000 in (0xE000, 0x9000, 0xD000):
+            if n in live:
+                live.remove(n)
+                if not live:
+                    return True
+            p -= 2
+            continue
+        # mov rA,rB copy: Rn <- Rm
+        if op & 0xF000 == 0x6000 and (op & 0xF) == 0x3:
+            if n in live:
+                live.remove(n)
+                live.append((op >> 4) & 0xF)
+            p -= 2
+            continue
+        d = ops.translate(op, p, rom)
+        if d is not None:                # pure statement: which R does it write?
+            writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
+            if any(i in live for i in range(16) if 'r%d' % i in writes):
+                return False             # arithmetic/etc. rewrote a chased reg
+            p -= 2
+            continue
+        sh = gcl._mem_shape(op)
+        if sh is not None:
+            w = []
+            if sh['dir'] == 'load':
+                if sh.get('dest') is not None:
+                    w.append(sh['dest'])
+                if sh.get('auto') == 'post':
+                    w.append(sh['base'])
+            elif sh.get('auto') == 'pre':
+                w.append(sh['base'])
+            if any(i in live for i in w):
+                return False
+            p -= 2
+            continue
+        g = gcl._decode_gbr(op)
+        if g is not None:
+            if g[1] == 'load' and 0 in live:
+                return False             # GBR load writes r0
+            p -= 2
+            continue
+        if gcl.is_fpu_op(op):
+            p -= 2
+            continue                     # writes FR/FPUL only, never Rn
+        if op & 0xF000 == 0x4:           # 0x4nxx system-control / shift family
+            ctrlload = op & 0xF0FF in (0x400A, 0x401A, 0x402A, 0x405A, 0x406A,
+                                       0x400E, 0x401E, 0x402E, 0x403E, 0x404E)
+            tonly = op in (0x4011, 0x4015, 0x401B)
+            if ctrlload or tonly:
+                p -= 2
+                continue
+            if n in live:
+                return False
+            p -= 2
+            continue
+        if op & 0xF000 == 0x0:           # 0x0nxx sts/stc/movt write Rn
+            if op & 0xF0FF in (0x000A, 0x001A, 0x002A, 0x005A, 0x006A,
+                               0x0002, 0x0012, 0x0022, 0x0032, 0x0042, 0x0029):
+                if n in live:
+                    return False
+            p -= 2
+            continue
+        return False                     # unknown opcode: cannot verify purity
+    return False
+
+
+def _accum_additive(counters, rom, c, end, reason):
+    """Additive dryrun-only counter updates for one rejected candidate.  Called
+    only for reasons target_fuori / base_unresolved / unmapped.  Does NOT alter
+    the selection pool or the existing rejected/skipped counters."""
+    addr = c['addr']
+    out_targets, unmapped, reject = _analyze_rejected(rom, addr, end)
+    if reason == 'target_fuori':
+        if out_targets:
+            if all(end <= t <= end + 8 for _, t in out_targets):
+                counters['fuori_vicini_8'] += 1
+                counters.setdefault('_fuori8_addrs', set()).add(addr)
+            if all(end <= t <= end + 16 for _, t in out_targets):
+                counters['fuori_vicini_16'] += 1
+    elif reason == 'base_unresolved':
+        rpc, rreason, base_reg = reject
+        if _chain_resolvable(rom, addr, rpc, base_reg):
+            counters['chain_resolvable'] += 1
+    elif reason == 'unmapped':
+        counters['unmapped_opcodes'].update(unmapped)
+
+
+_EMU_CACHE = {}
+
+
+def _emu_executes(rom, op):
+    """emu:(yes/no) for counter C: does sh2emu actually implement this exact
+    opcode?  Branches are dispatched by _delayed() (bsrf/braf/jsr/jmp/bsr/bra/
+    bt.s/bf.s/rts/rte) — a non-None _delayed result means sh2emu executes it.
+    Non-branches go through _exec(), which raises NotImplementedError at every
+    unhandled path (unknown-opcode fallthrough, unhandled FPU sub-encoding,
+    trapa).  The opcode runs on a freshly-initialized CPU with a zeroed integer
+    state; a completed handler (or any incidental non-NotImplemented exception
+    from the zeroed state) means a handler exists -> emu:yes, else emu:no."""
+    key = (id(rom), op)
+    if key in _EMU_CACHE:
+        return _EMU_CACHE[key]
+    try:
+        c = sh2emu.SH2(rom)
+        c.ram = {}
+        c.r = [0] * 16
+        c.fr = [0.0] * 16
+        c.pr = 0; c.T = 0; c.macl = 0; c.mach = 0; c.gbr = 0
+        c.sr = 0x000000F0
+        c._Q = (c.sr >> 3) & 1; c._M = (c.sr >> 2) & 1
+        c.vbr = 0; c.ssr = 0; c.spc = 0; c.fpul = 0; c.fpscr = 0
+        c.pc = 0
+        if c._delayed(op) is not None:
+            _EMU_CACHE[key] = True   # sh2emu dispatches it as a branch/return
+        else:
+            c._exec(op, 0)
+            _EMU_CACHE[key] = True
+    except NotImplementedError:
+        _EMU_CACHE[key] = False
+    except Exception:
+        _EMU_CACHE[key] = True
+    return _EMU_CACHE[key]
 
 
 # ---------------------------------------------------------------------------
@@ -688,8 +1186,10 @@ def run_test(out_t):
     return 'PASS' if r.returncode == 0 and out and out[-1].startswith('PASS') else 'FAIL'
 
 
-def print_dryrun(pool, counters, args):
-    """--dryrun report: pool + rejection reasons + branch breakdown."""
+def print_dryrun(pool, counters, args, rom):
+    """--dryrun report: pool + rejection reasons + branch breakdown + the
+    additive feasibility counters (A/B/C).  Existing numbers are unchanged from
+    the baseline; the additive sections only ADD counts."""
     rej = counters['rejected']
     print('=== v3 selection (--dryrun): no files written ===')
     print('pool_v3=%d' % counters['selected'])
@@ -721,6 +1221,67 @@ def print_dryrun(pool, counters, args):
         print('  0x%06X %-32s size=%3d branches={%s} ops=%d'
               % (e['addr'], e['name'], e['size'], brs, len(e['ops'])))
     print('options: --n %d --seed %d' % (args.n, args.seed))
+
+    # ---- additive feasibility counters (never change selection) ----
+    pool_n = counters['selected']
+    print('=== additive counters (feasibility only; selection unchanged) ===')
+    # A) SPAN-END: among target_fuori-rejected functions, out-of-span targets
+    #    all within [end, end+8] / [end, end+16] (catalog `end` under-guesses
+    #    the real function end).
+    f8 = counters.get('fuori_vicini_8', 0)
+    f16 = counters.get('fuori_vicini_16', 0)
+    print('A) fuori_vicini(<=8)=%d  fuori_vicini(<=16)=%d' % (f8, f16))
+    print('   pool_endfix (pool_v3 + <=8) = %d' % (pool_n + f8))
+    # B) COPIA-CATENA: among base_unresolved-rejected functions whose base
+    #    register is derivable via pure mov-copy / literal chain.
+    ch = counters.get('chain_resolvable', 0)
+    print('B) chain_resolvable=%d  pool_chain (pool_v3 + chain_resolvable) = %d'
+          % (ch, pool_n + ch))
+    # C) UNMAPPED LIST: all mapper-unrecognized opcodes in unmapped-rejected
+    #    functions, top 20 by count, tagged with whether sh2emu executes them.
+    um = counters.get('unmapped_opcodes')
+    if um:
+        print('C) unmapped opcodes in unmapped-rejected fns (top 20, cur=%d distinct)'
+              % len(um))
+        for op, cnt in um.most_common(20):
+            print('   0x%04X  %6d  emu:%s'
+                  % (op, cnt, 'yes' if _emu_executes(rom, op) else 'no'))
+
+    # ---- v4 additive: sanitized-span pool (dryrun only; v3 untouched) ----
+    v4p = counters.get('v4_pool')
+    v4c = counters.get('v4')
+    if v4p is not None and v4c is not None:
+        print('=== v4 sanitized-span selection (additive; v3 counters above'
+              ' untouched) ===')
+        print('pool_v4=%d   (pool_v3=%d + sanitized-span rescues)'
+              % (len(v4p), pool_n))
+        v4rej = v4c['rejected']
+        print('  v4 rejected_total=%d' % sum(v4rej.values()))
+        for r in ('unmapped', 'branch', 'delay_slot_ctrl', 'target_fuori',
+                  'rte', 'call', 'base_unresolved', 'fpu/altre', 'no_mem_op'):
+            print('  v4 rejected_%-15s %d' % (r, v4rej.get(r, 0)))
+        print('  v4 skipped_size=%d skipped_dedup=%d skipped_no_branch=%d'
+              % (v4c['skipped_size'], v4c['skipped_dedup'],
+                 v4c['skipped_no_branch']))
+        tr_ = v4c['n_trimmed'] + v4c['n_extended'] + v4c['n_entrambi']
+        print('  sanitize breakdown (of pool_v4): trimmed=%d extended=%d'
+              ' both=%d untouched=%d'
+              % (v4c['n_trimmed'], v4c['n_extended'], v4c['n_entrambi'],
+                 len(v4p) - tr_))
+        print('  n_over_160 (end_s-addr in (160,176]) = %d' % v4c['n_over_160'])
+        fuori8_set = counters.get('_fuori8_addrs') or set()
+        v4_addrs = {e['addr'] for e in v4p}
+        print('  fuori_vicini_8 now selectable: %d/%d'
+              ' (v3 additive counter A: %d)'
+              % (sum(1 for a in fuori8_set if a in v4_addrs),
+                 len(fuori8_set), counters.get('fuori_vicini_8', 0)))
+        ex = v4c['examples']
+        if ex:
+            print('  examples (first %d sanitized selectable):' % len(ex))
+            for addr, name, end_o, end_s, reasons, in_v3 in ex:
+                print('    0x%06X %-32s %-18s end 0x%X -> 0x%X%s'
+                      % (addr, name, '+'.join(reasons), end_o, end_s,
+                         '' if in_v3 else '  [new, not in v3 pool]'))
 
 
 def main():
@@ -764,7 +1325,12 @@ def main():
     selected, counters = select_v3(cands, args.n, args.seed, rom, catalog,
                                    outdir=outdir)
     if args.dryrun:
-        print_dryrun(selected, counters, args)
+        # v4 additive measurement: sanitized-span pool (never affects emission)
+        v4_pool, v4_counters = select_v4_sanitized(
+            cands, rom, catalog, outdir=outdir, root=ROOT, v3_pool=selected)
+        counters['v4_pool'] = v4_pool
+        counters['v4'] = v4_counters
+        print_dryrun(selected, counters, args, rom)
         return
 
     if args.addr is not None and not selected:
@@ -783,8 +1349,8 @@ def main():
             report.append((lf, 'dropped_compile'))
             continue
         emitted += 1
-        print('lifted 0x%X %-40s size=%3d -> %s'
-              % (e['addr'], e['name'], e['size'], out_c))
+        print('lifted 0x%X %-40s size=%3d end_s=0x%X -> %s'
+              % (e['addr'], e['name'], e['size'], e['end_s'], out_c))
         out_t = os.path.join(ROOT, 'c', 'tests', 'test_%s_%x.py' % (base, e['addr']))
         walked = walk_v3(rom, e['addr'], e['addr'] + e['size'])
         if walked is None:                       # cannot happen after emit_v3
@@ -799,6 +1365,11 @@ def main():
         else:
             report.append((lf, 'test_write_failed'))
     print('emitted=%d dropped_compile=%d' % (emitted, dropped))
+    tr_ = (counters.get('n_trimmed', 0) + counters.get('n_extended', 0)
+           + counters.get('n_entrambi', 0))
+    print('sanitized-span (of selected): trimmed=%d extended=%d both=%d untouched=%d'
+          % (counters.get('n_trimmed', 0), counters.get('n_extended', 0),
+             counters.get('n_entrambi', 0), emitted - tr_))
     if report:
         g = sum(1 for _, r in report if r == 'PASS')
         f = sum(1 for _, r in report if r == 'FAIL')
