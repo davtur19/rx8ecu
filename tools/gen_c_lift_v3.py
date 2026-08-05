@@ -525,7 +525,8 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
              'branches': brs}, None)
 
 
-def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0):
+def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
+               rescue_trailing_rts=True):
     """pool_fpu selection (v4: now the REAL selector when emission lands — FPU
     opcodes decode_fpu() maps are admitted; every other criterion is identical
     to select_v3/select_v4_sanitized: sanitized span, size gate, dedup,
@@ -541,12 +542,22 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0):
       fpu_other     : ... over another reject (rte, unmapped FPU, no_mem_op,
                       delay_slot_ctrl, target_fuori, branch).
       fpu_no_branch : admitted span but zero internal branches (skipped).
+      rescued_trailing_rts: candidates REJECTED on the sanitized span that were
+                      recovered by (A) TRAILING-RTS: an rts (0x000B) at an even
+                      offset in [end, end+16] marks the true function end, and
+                      the FULL gate sequence passes on the span extended through
+                      that rts and its delay slot.  Rescue-only + fallback: the
+                      extension is attempted only after a sanitized-span reject
+                      and a failed extended attempt keeps the original
+                      rejection — the existing pool never regresses.  Rescued
+                      entries carry entry['rescued_trailing_rts'] = True.
     Every accepted entry carries the sanitized end (entry['end_s'] = end_s) so
     the emission path decodes exactly the sanitized span.  max_n/seed sampling
     matches select_v3 (sorted by size, then random.Random(seed).sample)."""
     counters = {'pool_fpu': 0,
                 'fpu_used': 0, 'fpu_only': 0, 'fpu_calls': 0,
                 'fpu_bases': 0, 'fpu_other': 0, 'fpu_no_branch': 0,
+                'rescued_trailing_rts': 0,
                 'rejected': Counter(),
                 'skipped_size': 0, 'skipped_dedup': 0, 'skipped_no_branch': 0,
                 'n_over_160': 0, 'n_trimmed': 0, 'n_extended': 0,
@@ -557,18 +568,49 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0):
         end = catalog.get(c['addr'])
         if end is None:
             continue
-        addr_s, end_s, reasons = sanitize_span(addr, end, rom)
-        if not (gcl.MEM_MIN <= end_s - addr <= gcl.MEM_MAX + 16):
-            counters['skipped_size'] += 1
-            continue
-        base = gcl.sanitize(c['name'])
-        out_c = os.path.join(outdir, '%s_%x.c' % (base, addr))
-        out_t = os.path.join(root, 'c', 'tests', 'test_%s_%x.py' % (base, addr))
-        if os.path.exists(out_c) or os.path.exists(out_t) or \
-                glob.glob(os.path.join(outdir, '*_%x.c' % addr)):
-            counters['skipped_dedup'] += 1
-            continue
-        # does the sanitized span hold any FPU op?
+
+        def _gate(end_cand):
+            """Full pool_fpu gate sequence on [addr, sanitize(end_cand)):
+            sanitize + size + dedup + _scan_fpu_function + >=1-branch.
+            Returns (entry, reason, end_s, reasons); entry None on reject and
+            `reason` is the exact rejection key the counters use
+            ('skipped_size' / 'skipped_dedup' / 'skipped_no_branch' / the scan
+            reason string-or-tuple)."""
+            _a, _e, _r = sanitize_span(addr, end_cand, rom)
+            if not (gcl.MEM_MIN <= _e - addr <= gcl.MEM_MAX + 16):
+                return None, 'skipped_size', _e, _r
+            _base = gcl.sanitize(c['name'])
+            if os.path.exists(os.path.join(outdir, '%s_%x.c' % (_base, addr))) \
+                    or os.path.exists(os.path.join(root, 'c', 'tests',
+                                                   'test_%s_%x.py' % (_base, addr))) \
+                    or glob.glob(os.path.join(outdir, '*_%x.c' % addr)):
+                return None, 'skipped_dedup', _e, _r
+            _entry, _reason = _scan_fpu_function(rom, c, _e, None)
+            if _entry is None:
+                return None, _reason, _e, _r
+            if not _entry['branches']:
+                return None, 'skipped_no_branch', _e, _r
+            _entry['end_s'] = _e
+            return _entry, None, _e, _r
+
+        # ---- sanitized-span selection ----
+        entry, reason, end_s, reasons = _gate(end)
+        if entry is None and rescue_trailing_rts:
+            # (A) TRAILING-RTS rescue: an rts (0x000B) at an even offset in
+            # [end, end+16] marks the true function end (the catalog end sits
+            # in padding/alignment after it).  Retry the FULL gate sequence on
+            # the span extended through that rts AND its delay slot (rts is a
+            # delayed return, so P+2 stays in-span).  Rescue-only + fallback:
+            # only sanitized-span rejects are extended, and a failed extended
+            # attempt keeps the original rejection — the pool never regresses.
+            rts_addr = _find_trailing_rts(rom, end)
+            if rts_addr is not None:
+                entry2, _r2, end_s2, reasons2 = _gate(rts_addr + 4)
+                if entry2 is not None:
+                    entry, reason, end_s, reasons = entry2, None, end_s2, reasons2
+                    entry['rescued_trailing_rts'] = True
+                    counters['rescued_trailing_rts'] += 1
+        # does the (final) span hold any FPU op?
         has_fpu = False
         pc = addr
         b = min(end_s, len(rom))
@@ -580,8 +622,18 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0):
             pc += 2
         if has_fpu:
             counters['fpu_used'] += 1
-        entry, reason = _scan_fpu_function(rom, c, end_s, None)
         if entry is None:
+            if reason == 'skipped_size':
+                counters['skipped_size'] += 1
+                continue
+            if reason == 'skipped_dedup':
+                counters['skipped_dedup'] += 1
+                continue
+            if reason == 'skipped_no_branch':
+                counters['skipped_no_branch'] += 1
+                if has_fpu:
+                    counters['fpu_no_branch'] += 1
+                continue
             if isinstance(reason, tuple):
                 r, det = reason
                 if r == 'branch_v3':
@@ -933,6 +985,182 @@ def _emu_executes(rom, op):
 
 
 # ---------------------------------------------------------------------------
+# Additive dryrun-only extension measurements (a) TRAILING-RTS and (b)
+# UNMAPPED-REALI.  Both NEVER change the selection: they post-mortem spans the
+# v3 selector (select_v3) already rejected and count how many would be
+# rescued by a concrete, bounded criterion.  No files are written.
+# ---------------------------------------------------------------------------
+def _is_dedup(c, outdir, root=ROOT):
+    """Mirror of select_v3's dedup check (same names, same globs)."""
+    base = gcl.sanitize(c['name'])
+    out_c = os.path.join(outdir, '%s_%x.c' % (base, c['addr']))
+    out_t = os.path.join(root, 'c', 'tests', 'test_%s_%x.py' % (base, c['addr']))
+    return (os.path.exists(out_c) or os.path.exists(out_t) or
+            glob.glob(os.path.join(outdir, '*_%x.c' % c['addr'])))
+
+
+def _find_trailing_rts(rom, end, limit=16):
+    """First rts (opcode 0x000B) 16-bit word at an even offset in
+    [end, end+limit] -> its address, or None.  SH-2 is 2-byte aligned, so an
+    odd `end` is aligned up to the first even address before scanning."""
+    start = end if end % 2 == 0 else end + 1
+    for p in range(start, end + limit + 1, 2):
+        if p + 2 > len(rom):
+            break
+        if (rom[p] << 8) | rom[p + 1] == 0x000B:
+            return p
+    return None
+
+
+def scan_with_end_ext(cats, rom, catalog, outdir, root=ROOT):
+    """Additive dryrun-only (a): TRAILING-RTS feasibility.
+
+    Scope = candidates the v3 selector (select_v3) rejects on END-related
+    motifs — the "size / no_span / target_fuori / skipped" reasons found in the
+    selector: skipped_size, skipped_dedup, skipped_no_branch and the rejected
+    'target_fuori' (both direct and branch_v3).  skipped_no_span candidates
+    have NO catalog end, so there is no end..end+16 window to inspect — they
+    cannot participate (documented exclusion).
+
+    For each in-scope candidate we look for an rts (0x000B) in
+    rom[end:end+16]; trailing_rts_n counts those.  Then scan_with_end_ext
+    re-runs the FULL v3 criteria on the span extended past that rts AND its
+    delay slot (new_end = rts_addr + 4; rts is a delayed return, so its P+2
+    slot must stay in-span per _v3_branch_rule) — sanitize_span, the size
+    gate, the dedup rule, _scan_mem_function and the >= 1 admitted-branch
+    gate — and counts how many would be selected: pool_rts =
+    pool_attuale + rescued.  Pure measurement; selection/emission untouched.
+    Returns (trailing_rts_n, rescued, examples).
+    """
+    trailing_rts_n = 0
+    rescued = 0
+    examples = []
+    for c in cats:
+        end = catalog.get(c['addr'])
+        if end is None:
+            continue                        # no_span: no end to extend from
+        _a, end_s, _r = sanitize_span(c['addr'], end, rom)
+        size = end_s - c['addr']
+        # -- classify the v3 reject/skip motif, exactly select_v3's order --
+        if not (gcl.MEM_MIN <= size <= gcl.MEM_MAX + 16):
+            motif = 'skipped_size'
+        elif _is_dedup(c, outdir, root):
+            motif = 'skipped_dedup'
+        else:
+            entry, reason = gcl._scan_mem_function(rom, c, end_s, None)
+            if entry is None:
+                if isinstance(reason, tuple):
+                    r, det = reason
+                    motif = (gcl._BRANCH_V3_REASON.get(det, 'branch')
+                             if r == 'branch_v3' else r)
+                else:
+                    motif = reason
+            elif not entry['branches']:
+                motif = 'skipped_no_branch'
+            else:
+                continue                    # selected: not in scope
+        if motif not in ('skipped_size', 'skipped_dedup', 'skipped_no_branch',
+                         'target_fuori'):
+            continue                        # not an end-related motif
+        rts_addr = _find_trailing_rts(rom, end)
+        if rts_addr is None:
+            continue
+        trailing_rts_n += 1
+        # re-run the FULL v3 criteria on the extended span (rts + its slot)
+        _a2, end_s2, _r2 = sanitize_span(c['addr'], rts_addr + 4, rom)
+        if not (gcl.MEM_MIN <= end_s2 - c['addr'] <= gcl.MEM_MAX + 16):
+            continue
+        if _is_dedup(c, outdir, root):
+            continue
+        entry, reason = gcl._scan_mem_function(rom, c, end_s2, None)
+        if entry is None or not entry['branches']:
+            continue
+        rescued += 1
+        if len(examples) < 5:
+            examples.append((c['addr'], c['name'], end, rts_addr, motif))
+    return trailing_rts_n, rescued, examples
+
+
+def _v3_unmapped_op(rom, op, pc):
+    """True when NO v3 mapper stage handles `op`: translate(), the ldc-Rn-GBR
+    pattern (0x4n1E), decode_mem, _decode_gbr, the r14/r15 mem shapes,
+    is_mem_opcode and is_fpu_op — i.e. the op would hit _scan_mem_function's
+    `return None, 'unmapped'` fallthrough.  (decode_mem runs with a stub
+    resolve ctx: base RESOLUTION doesn't change whether the encoding decodes.)"""
+    if ops.translate(op, pc, rom) is not None:
+        return False
+    if op & 0xF0FF == 0x401E:
+        return False
+    if gcl.is_call_op(op) or op == 0x002B or gcl.is_branch_op(op):
+        return False
+    ctx = {'temp': (lambda: 't1'), 'resolve': (lambda reg: None)}
+    if ops.decode_mem(op, None, ctx) is not None:
+        return False
+    if gcl._decode_gbr(op) is not None:
+        return False
+    sh = gcl._mem_shape(op)
+    if sh is not None and sh['base'] in (14, 15):
+        return False
+    if gcl.is_mem_opcode(op) or gcl.is_fpu_op(op):
+        return False
+    return True
+
+
+def scan_unmapped_reali(cats, rom, catalog, outdir, root=ROOT):
+    """Additive dryrun-only (b): UNMAPPED-REALI feasibility.
+
+    Scope = candidates the v3 selector rejects 'unmapped' (on the sanitized
+    span).  Count those whose EVERY 16-bit word in [addr, end_s) is an opcode
+    sh2emu actually executes (_emu_executes: _exec/_delayed do NOT raise
+    NotImplementedError — e.g. bsrf 0x0003, stc SR 0x0002, 0x2FE6, 0x4F22)
+    with NO call, NO rte and NO FPU op anywhere ("solo opcode che sh2emu
+    esegue, niente call/altro"): the only thing standing between the function
+    and the pool is the mapper not knowing an opcode the emulator runs.
+    Returns (count, top_opcodes Counter of the mapper-unmapped opcodes,
+    examples); pool_unmap = pool_attuale + count.  Pure measurement;
+    selection/emission untouched.
+    """
+    count = 0
+    top = Counter()
+    examples = []
+    for c in cats:
+        end = catalog.get(c['addr'])
+        if end is None:
+            continue
+        _a, end_s, _r = sanitize_span(c['addr'], end, rom)
+        if not (gcl.MEM_MIN <= end_s - c['addr'] <= gcl.MEM_MAX + 16):
+            continue
+        if _is_dedup(c, outdir, root):
+            continue
+        entry, reason = gcl._scan_mem_function(rom, c, end_s, None)
+        if entry is not None:
+            continue
+        r = reason[0] if isinstance(reason, tuple) else reason
+        if r != 'unmapped':
+            continue
+        ok = True
+        these = Counter()
+        pc = c['addr']
+        bound = min(end_s, len(rom))
+        while pc + 1 < bound:
+            op = (rom[pc] << 8) | rom[pc + 1]
+            if gcl.is_call_op(op) or op == 0x002B or gcl.is_fpu_op(op) \
+                    or not _emu_executes(rom, op):
+                ok = False
+                break
+            if _v3_unmapped_op(rom, op, pc):
+                these[op] += 1
+            pc += 2
+        if ok:
+            count += 1
+            top.update(these)
+            if len(examples) < 5:
+                examples.append((c['addr'], c['name'], end_s,
+                                 sorted(these)))
+    return count, top, examples
+
+
+# ---------------------------------------------------------------------------
 # Emission walker: re-decode an accepted span with the SAME acceptance tracking
 # as gen_c_lift._walk_mem_span (written/lits/gbr/stack_ok/frame_live/frame_off/
 # sp_off), but treat admitted branches as first-class records with their delay
@@ -1003,6 +1231,53 @@ def walk_v3(rom, addr, end):
                           % ((op >> 8) & 0xF, st['gbr_value'] or 0)],
                     'py': [], 'target': None, 'slot': None,
                     'mnem': 'ldc r%d,GBR' % ((op >> 8) & 0xF)}
+        if op & 0xF0FF in (0x4003, 0x4007):        # stc.l SR,@-Rn / ldc.l @Rn+,SR
+            # Same base resolution as decode_mem (param r4..r7 | known literal);
+            # the value transferred is `sr` (not an rN), so _mem_record cannot
+            # render these — build the record here.  Auto side-effects and the
+            # sr state are modeled exactly as sh2emu (0x4n03: rn -= 4 then
+            # wr(rn,sr); 0x4n07: sr = rd(rn) then rn += 4).
+            srn = (op >> 8) & 0xF
+            if srn in (4, 5, 6, 7) and 'r%d' % srn not in st['written']:
+                bkind, abs_addr = 'param', None
+            elif 'r%d' % srn in st['lits']:
+                bkind, abs_addr = 'literal', st['lits']['r%d' % srn]
+            else:
+                return None
+            if bkind == 'literal':
+                info['has_literal'] = True
+                info['ram_addrs'].add(abs_addr)
+            if op & 0xF0FF == 0x4003:              # stc.l SR,@-Rn (pre-decrement)
+                if bkind == 'literal':
+                    a = (abs_addr - 4) & gcl.MASK
+                    eff = '0x%08X' % a
+                    note = (' /* RAM 0x%08X */' % a
+                            if ops.classify_addr(a) == 'RAM' else ' /* ROM */')
+                else:
+                    eff, note = '(r%d - 4)' % srn, ''
+                c = ['*(volatile uint32_t*)%s = sr;%s' % (eff, note),
+                     'r%d = r%d - 4;' % (srn, srn)]
+                py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, sr)' % srn,
+                      'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (srn, srn)]
+                mnem = 'stc.l SR,@-r%d' % srn
+            else:                                  # ldc.l @Rn+,SR (post-increment)
+                if bkind == 'literal':
+                    eff = '0x%08X' % (abs_addr & gcl.MASK)
+                    note = (' /* RAM 0x%08X */' % (abs_addr & gcl.MASK)
+                            if ops.classify_addr(abs_addr) == 'RAM' else ' /* ROM */')
+                else:
+                    eff, note = 'r%d' % srn, ''
+                t = temp()
+                c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
+                     'sr = %s;' % t,
+                     'r%d = r%d + 4;' % (srn, srn)]
+                py = ['sr = _rdw(ram, r[%d], 4)' % srn,
+                      'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
+                mnem = 'ldc.l @r%d+,SR' % srn
+            st['written'].add('r%d' % srn)         # auto side-effect kills literal
+            st['lits'].pop('r%d' % srn, None)
+            return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
+                    'target': None, 'slot': None, 'mnem': mnem}
         m = ops.decode_mem(op, None, ctx)
         if m is not None:
             base_reg = m['base_reg']
@@ -1116,7 +1391,11 @@ def walk_v3(rom, addr, end):
             if kind is None or kind == 'rte':      # not a v3-admitted branch
                 return None
             target = None
-            if kind != 'rts':
+            if kind == 'rts':
+                pass                               # target is PR — no static addr
+            elif kind in ('bsrf', 'braf'):
+                pass                               # dynamic target P+4+Rn
+            else:
                 target = (pc + 4 + bi['target_disp'] * 2) & gcl.MASK
                 labels.add(target)
             slot = None
@@ -1127,8 +1406,19 @@ def walk_v3(rom, addr, end):
                 if slot is None:
                     return None
                 skip.add(spc)
-            line = BRANCH_C[kind] if kind == 'rts' else BRANCH_C[kind] % target
-            mnem = BRANCH_MNEM[kind] if kind == 'rts' else BRANCH_MNEM[kind] % target
+            if kind in ('bsrf', 'braf'):
+                # dynamic jump: not statically liftable as a goto.  The C ends
+                # the lift here (DRAFT — matches the model's fallthrough return);
+                # the test mirror jumps pc = P+4+Rn dynamically (CODE dict entry
+                # kind 'dynbranch'), so cases that leave the modeled span are
+                # skipped and cases landing back inside it still diff exactly.
+                reg = bi['reg']
+                line = ('return r0; /* %s r%d — dynamic target P+4+r%d, leaves '
+                        'the modeled span (DRAFT) */' % (kind, reg, reg))
+                mnem = '%s r%d' % (kind, reg)
+            else:
+                line = BRANCH_C[kind] if kind == 'rts' else BRANCH_C[kind] % target
+                mnem = BRANCH_MNEM[kind] if kind == 'rts' else BRANCH_MNEM[kind] % target
             records.append({'pc': pc, 'op': op, 'kind': 'branch',
                             'c': [line], 'mnem': mnem,
                             'target': target, 'slot': slot})
@@ -1185,6 +1475,10 @@ def build_locals(stmts, info):
         if t in refs:
             if t == 'pr':
                 lines.append('    uint32_t pr = 0xEEEE0000u;')
+            elif t == 'sr':
+                # sh2emu call() default: sr = 0x000000F0 (independent of T —
+                # ldc/stc SR ops only, never auto-synced with T)
+                lines.append('    uint32_t sr = 0x000000F0u;')
             else:
                 lines.append('    uint32_t %s = 0;' % t)
     # v4 FPU locals: frN bit-pattern registers for the FRs the body touches,
@@ -1209,6 +1503,27 @@ def build_locals(stmts, info):
     return lines
 
 
+def _records_have_fpu(records):
+    """True when any top-level record — OR the delay slot nested inside a branch
+    record — is an FPU record (kind 'fpu'/'fpu_mem').
+
+    walk_v3 stores a delayed branch's delay slot INSIDE the branch record
+    (rec['slot']), so a top-level-only scan misses FPU ops that live in a delay
+    slot.  That matters for emission: the FPU test template's mirror ns carries
+    ts/bits2f/f2bits (decode_fpu's py fragments call ts()/f2bits()), while the
+    v3 non-FPU template's ns does not — routing an FPU-slot function to the
+    non-FPU template makes its mirror NameError on `ts`.  Checking the slots
+    guarantees the FPU template is selected whenever any FPU op is emitted.
+    """
+    for r in records:
+        if r['kind'] in ('fpu', 'fpu_mem'):
+            return True
+        s = r.get('slot')
+        if s is not None and s['kind'] in ('fpu', 'fpu_mem'):
+            return True
+    return False
+
+
 def emit_v3(addr, name, size, rom, out_c):
     """Lift one accepted v3 function: write c/<name>_<addr>.c, compile-gate it
     with `cc -O2 -c`, and delete the file if the gate fails."""
@@ -1219,7 +1534,7 @@ def emit_v3(addr, name, size, rom, out_c):
               % (addr, fn))
         return False
     records, info, labels = walked
-    has_fpu = any(r['kind'] in ('fpu', 'fpu_mem') for r in records)
+    has_fpu = _records_have_fpu(records)
     stmts = render_body(records, labels)
     body = build_locals(stmts, info)
     body.extend('    ' + s for s in stmts)
@@ -1322,6 +1637,15 @@ def _code_literal(records):
                 lines.append('    %#x: {"kind": "ret", "py": None, '
                              '"slot_py": %r, "target": None, "cond": None},'
                              % (pc, slot_py))
+            elif bkind in ('bsrf', 'braf'):
+                # dynamic branch: the mirror executes the delay slot, then (for
+                # bsrf) sets pr = P+4, then pc = P+4 + r[reg] — sh2emu's
+                # _delayed().  The interpreter's 'dynbranch' case performs the
+                # pc update itself (pc is an interpreter local, not in ns).
+                lines.append('    %#x: {"kind": "dynbranch", "py": None, '
+                             '"slot_py": %r, "target": None, "cond": None, '
+                             '"reg": %d, "set_pr": %r},'
+                             % (pc, slot_py, bi['reg'], bkind == 'bsrf'))
             else:
                 lines.append('    %#x: {"kind": "branch", "py": None, '
                              '"slot_py": %r, "target": %#x, "cond": %r},'
@@ -1415,6 +1739,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '    r[4], r[5], r[6], r[7] = r4 & 0xFFFFFFFF, r5 & 0xFFFFFFFF, r6 & 0xFFFFFFFF, r7 & 0xFFFFFFFF\n'
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
+        '          "sr": 0x000000F0,  # sh2emu call() default (independent of T)\n'
         '          "s8": s8, "s16": s16, "s32": s32, "ram": ram, "sp": r[15],\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
         '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
@@ -1445,6 +1770,13 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '                pc = pc + 4            # delayed: slot at P+2 already ran\n'
         '            else:\n'
         '                pc = pc + 2            # non-delayed bt/bf\n'
+        '        elif kind == "dynbranch":\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            if inst["set_pr"]:\n'
+        '                ns["pr"] = (pc + 4) & 0xFFFFFFFF\n'
+        '            pc = (pc + 4 + ns["r"][inst["reg"]]) & 0xFFFFFFFF\n'
         '        elif kind == "ret":\n'
         '            slot_py = inst["slot_py"]\n'
         '            if slot_py:\n'
@@ -1631,6 +1963,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    fr = [bits2f(x) for x in fr_in]\n'
         '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
+        '          "sr": 0x000000F0,  # sh2emu call() default (independent of T)\n'
         '          "fr": fr, "fpul": 0, "fpscr": 0,\n'
         '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "bits2f": bits2f,\n'
         '          "f2bits": f2bits, "ram": ram, "sp": r[15],\n'
@@ -1663,6 +1996,13 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '                pc = pc + 4            # delayed: slot at P+2 already ran\n'
         '            else:\n'
         '                pc = pc + 2            # non-delayed bt/bf\n'
+        '        elif kind == "dynbranch":\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            if inst["set_pr"]:\n'
+        '                ns["pr"] = (pc + 4) & 0xFFFFFFFF\n'
+        '            pc = (pc + 4 + ns["r"][inst["reg"]]) & 0xFFFFFFFF\n'
         '        elif kind == "ret":\n'
         '            slot_py = inst["slot_py"]\n'
         '            if slot_py:\n'
@@ -1891,6 +2231,41 @@ def print_dryrun(pool, counters, args, rom):
             for addr, name in ex:
                 print('    0x%06X %-32s' % (addr, name))
 
+    # ---- additive (a): TRAILING-RTS (dryrun only; selection unchanged) ----
+    tr = counters.get('trailing_rts')
+    if tr is not None:
+        print('=== trailing-rts measurement (additive; selection unchanged) ===')
+        print('  trailing_rts_n=%d   (rts 0x000B in end..end+16 of v3 rejects'
+              ' size/no_span/target_fuori/skipped; no_span has no end -> n/a)'
+              % tr['n'])
+        print('  rescued=%d   pool_rts (pool_v3 + rescued) = %d'
+              % (tr['rescued'], pool_n + tr['rescued']))
+        if tr['examples']:
+            print('  examples (first %d trailing-rts rescued):' % len(tr['examples']))
+            for addr, name, end_o, rts_addr, motif in tr['examples']:
+                print('    0x%06X %-32s end 0x%X -> rts 0x%X (%s)'
+                      % (addr, name, end_o, rts_addr, motif))
+
+    # ---- additive (b): UNMAPPED-REALI (dryrun only; selection unchanged) ----
+    um = counters.get('unmapped_reali')
+    if um is not None:
+        print('=== unmapped-reali measurement (additive; selection unchanged) ===')
+        print('  unmapped_reali=%d   (v3 unmapped rejects whose span has ONLY'
+              ' sh2emu-executable opcodes, no call/rte/fpu)'
+              % um['n'])
+        print('  pool_unmap (pool_v3 + unmapped_reali) = %d' % (pool_n + um['n']))
+        top = um['top']
+        if top:
+            print('  top-10 opcodes involved:')
+            for op, cnt in top.most_common(10):
+                print('    0x%04X  %6d  emu:yes' % (op, cnt))
+        if um['examples']:
+            print('  examples (first %d):' % len(um['examples']))
+            for addr, name, end_s, ops_l in um['examples']:
+                print('    0x%06X %-32s end_s 0x%X unmapped %s'
+                      % (addr, name, end_s,
+                         ' '.join('0x%04X' % o for o in ops_l[:8])))
+
 
 def main():
     ap = argparse.ArgumentParser(
@@ -1936,17 +2311,34 @@ def main():
     selected, counters = select_fpu(cands, rom, catalog, outdir=outdir,
                                     max_n=args.n, seed=args.seed)
     if args.dryrun:
+        # "pool attuale" baseline = the classic v3 selection (counters carry
+        # the rejected/skipped/branch breakdown print_dryrun reports); the
+        # sanitized-span, FPU, trailing-rts and unmapped-reali pools are
+        # ADDITIVE dryrun-only measurements that never affect selection.
+        v3_pool, v3_counters = select_v3(cands, args.n, args.seed, rom, catalog,
+                                         outdir=outdir, root=ROOT)
         # v4 additive measurement: sanitized-span pool (never affects emission)
         v4_pool, v4_counters = select_v4_sanitized(
-            cands, rom, catalog, outdir=outdir, root=ROOT, v3_pool=selected)
-        counters['v4_pool'] = v4_pool
-        counters['v4'] = v4_counters
+            cands, rom, catalog, outdir=outdir, root=ROOT, v3_pool=v3_pool)
+        v3_counters['v4_pool'] = v4_pool
+        v3_counters['v4'] = v4_counters
         # FPU additive measurement: pool_fpu if mapped FPU ops were allowed
+        # (rescue disabled so the additive pool reflects the baseline criteria)
         fpu_pool, fpu_counters = select_fpu(cands, rom, catalog, outdir=outdir,
-                                            root=ROOT)
-        counters['fpu_pool'] = fpu_pool
-        counters['fpu'] = fpu_counters
-        print_dryrun(selected, counters, args, rom)
+                                            root=ROOT, rescue_trailing_rts=False)
+        v3_counters['fpu_pool'] = fpu_pool
+        v3_counters['fpu'] = fpu_counters
+        # additive (a): TRAILING-RTS — trailing rts rescue with end extended
+        rts_n, rts_rescued, rts_ex = scan_with_end_ext(
+            cands, rom, catalog, outdir=outdir, root=ROOT)
+        v3_counters['trailing_rts'] = {'n': rts_n, 'rescued': rts_rescued,
+                                       'examples': rts_ex}
+        # additive (b): UNMAPPED-REALI — mapper-unmapped but emu-executable
+        unmap_n, unmap_top, unmap_ex = scan_unmapped_reali(
+            cands, rom, catalog, outdir=outdir, root=ROOT)
+        v3_counters['unmapped_reali'] = {'n': unmap_n, 'top': unmap_top,
+                                         'examples': unmap_ex}
+        print_dryrun(v3_pool, v3_counters, args, rom)
         return
 
     if args.addr is not None and not selected:
@@ -1973,7 +2365,7 @@ def main():
             report.append((lf, 'test_skipped'))
             continue
         records, info, labels = walked
-        has_fpu = any(r['kind'] in ('fpu', 'fpu_mem') for r in records)
+        has_fpu = _records_have_fpu(records)     # includes delay-slot FPU ops
         if has_fpu:
             if emit_fpu_test(e['addr'], e['name'], e['size'], rom, records, info,
                              args.seed, out_t, cases=args.cases):
@@ -1996,6 +2388,9 @@ def main():
     print('sanitized-span (of selected): trimmed=%d extended=%d both=%d untouched=%d'
           % (counters.get('n_trimmed', 0), counters.get('n_extended', 0),
              counters.get('n_entrambi', 0), emitted - tr_))
+    if counters.get('rescued_trailing_rts'):
+        print('(A) trailing-rts rescued=%d (span extended through a trailing rts'
+              ' in [catalog_end, +16))' % counters['rescued_trailing_rts'])
     if report:
         g = sum(1 for _, r in report if r == 'PASS')
         f = sum(1 for _, r in report if r == 'FAIL')
