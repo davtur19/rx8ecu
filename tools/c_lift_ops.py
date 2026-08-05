@@ -196,12 +196,14 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x0:
             return _mk('T = (r%d == r%d) ? 1u : 0u;' % (n, m), 'T = 1 if r[%d] == r[%d] else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x2:
-            return _mk('T = (r%d >= r%d) ? 1u : 0u;' % (n, m), 'T = 1 if r[%d] >= r[%d] else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
+            return _mk('T = (r%d >= r%d) ? 1u : 0u;' % (n, m),
+                       'T = 1 if (r[%d] & 0xFFFFFFFF) >= (r[%d] & 0xFFFFFFFF) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x3:
             return _mk('T = ((int32_t)r%d >= (int32_t)r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if s32(r[%d]) >= s32(r[%d]) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x6:
-            return _mk('T = (r%d > r%d) ? 1u : 0u;' % (n, m), 'T = 1 if r[%d] > r[%d] else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
+            return _mk('T = (r%d > r%d) ? 1u : 0u;' % (n, m),
+                       'T = 1 if (r[%d] & 0xFFFFFFFF) > (r[%d] & 0xFFFFFFFF) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x7:
             return _mk('T = ((int32_t)r%d > (int32_t)r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if s32(r[%d]) > s32(r[%d]) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])

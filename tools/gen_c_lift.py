@@ -317,6 +317,41 @@ def _mem_shape(op):
     return None
 
 
+def _pcrel_pool_words(rom, addr, end):
+    """Word (2-byte) addresses inside [addr, min(end,len(rom))) that are
+    LITERAL-POOL DATA — referenced by mov.l/mov.w @(disp,PC) or mova
+    @(disp,PC) — and so must be SKIPPED by the instruction walkers (never
+    decoded as instructions, never 'unmapped').  Uses the exact sh2emu EA
+    formulas: mov.l -> (pc+4)&~3 + disp*4 (4 bytes), mov.w -> pc+4 + disp*2
+    (2 bytes), mova -> (pc+4)&~3 + disp*4 (4 bytes).  Only words that fall
+    inside the span are marked (words after `end` are never walked).  A word
+    that is BOTH pool data and executed (rare) keeps the walker skipping it —
+    the differential tests surface those.
+    """
+    bound = min(end, len(rom))
+    words = set()
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        lo = op & 0xFF
+        if op >> 12 == 0xD:                      # mov.l @(disp,PC),Rn  (4 bytes)
+            ea = ((pc + 4) & ~3) + lo * 4
+            for a in (ea, ea + 2):
+                if a < bound:
+                    words.add(a)
+        elif op >> 12 == 0x9:                    # mov.w @(disp,PC),Rn  (2 bytes)
+            ea = pc + 4 + lo * 2
+            if ea < bound:
+                words.add(ea)
+        elif op & 0xFF00 == 0xC700:              # mova @(disp,PC),R0  (4 bytes)
+            ea = ((pc + 4) & ~3) + lo * 4
+            for a in (ea, ea + 2):
+                if a < bound:
+                    words.add(a)
+        pc += 2
+    return words
+
+
 def _scan_mem_function(rom, c, end, branch_stats=None):
     """Decode one classified function's span [addr,end) for mem mode.
 
@@ -368,8 +403,12 @@ def _scan_mem_function(rom, c, end, branch_stats=None):
     ops_list = []
     lit_vals = []
     brs = []                              # admitted branches: (kind, pc, target)
+    pool_words = _pcrel_pool_words(rom, addr, end)
     pc = addr
     while pc + 1 < bound:
+        if pc in pool_words:              # literal-pool data — not an instruction
+            pc += 2
+            continue
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is not None:
@@ -388,8 +427,8 @@ def _scan_mem_function(rom, c, end, branch_stats=None):
                     continue
                 return None, ('branch_v3', det)
             writes = _stmt_writes('\n'.join(d.get('c') or []))
-            if op == 0x6E3F:                 # mov r15,r14 -> frame pointer
-                if stack_ok and 'r14' not in written:
+            if op == 0x6EF3:                 # mov r15,r14 -> frame pointer
+                if 'r14' not in written:
                     frame_live = True
             else:
                 if 'r15' in writes:          # r15 rewritten non-stack -> taint
@@ -972,16 +1011,20 @@ def _walk_mem_span(rom, addr, end):
         return None
 
     ctx = {'temp': temp, 'resolve': resolve}
+    pool_words = _pcrel_pool_words(rom, addr, end)
     pc = addr
     while pc + 1 < bound:
+        if pc in pool_words:              # literal-pool data — not an instruction
+            pc += 2
+            continue
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is not None:
             if d.get('kind') in ('branch', 'ret'):
                 return None
             ctext = '\n'.join(d.get('c') or [])
-            if op == 0x6E3F:                       # mov r15,r14 -> frame pointer
-                if stack_ok and 'r14' not in written:
+            if op == 0x6EF3:                       # mov r15,r14 -> frame pointer
+                if 'r14' not in written:
                     frame_live = True
                     frame_off = sp_off
                 records.append({'pc': pc, 'op': op, 'kind': 'frame',
