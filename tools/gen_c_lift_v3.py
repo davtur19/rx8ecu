@@ -466,8 +466,12 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
     ops_list = []
     lit_vals = []
     brs = []
+    pool_words = gcl._pcrel_pool_words(rom, addr, end)
     pc = addr
     while pc + 1 < bound:
+        if pc in pool_words:              # literal-pool data — not an instruction
+            pc += 2
+            continue
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is not None:
@@ -481,8 +485,8 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                     continue
                 return None, ('branch_v3', det)
             writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
-            if op == 0x6E3F:
-                if stack_ok and 'r14' not in written:
+            if op == 0x6EF3:
+                if 'r14' not in written:
                     frame_live = True
             else:
                 if 'r15' in writes:
@@ -730,7 +734,11 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
         has_fpu = False
         pc = addr
         b = min(end_s, len(rom))
+        pw = gcl._pcrel_pool_words(rom, addr, end_s)
         while pc + 1 < b:
+            if pc in pw:                       # literal-pool data — not an opcode
+                pc += 2
+                continue
             op = (rom[pc] << 8) | rom[pc + 1]
             if ops.is_fpu_op(op) or ops.decode_fpu(op, pc, rom, None) is not None:
                 has_fpu = True
@@ -844,8 +852,12 @@ def _analyze_rejected(rom, addr, end):
     out_targets = []
     unmapped = Counter()
     reject = None
+    pool_words = gcl._pcrel_pool_words(rom, addr, end)
     pc = addr
     while pc + 1 < bound:
+        if pc in pool_words:              # literal-pool data — not an instruction
+            pc += 2
+            continue
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is None:
@@ -859,8 +871,8 @@ def _analyze_rejected(rom, addr, end):
                 pc += 2
                 continue
             writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
-            if op == 0x6E3F:             # mov r15,r14 -> frame pointer
-                if stack_ok and 'r14' not in written:
+            if op == 0x6EF3:             # mov r15,r14 -> frame pointer
+                if 'r14' not in written:
                     frame_live = True
             else:
                 if 'r15' in writes:
@@ -1260,9 +1272,13 @@ def scan_unmapped_reali(cats, rom, catalog, outdir, root=ROOT):
             continue
         ok = True
         these = Counter()
+        pw = gcl._pcrel_pool_words(rom, c['addr'], end_s)
         pc = c['addr']
         bound = min(end_s, len(rom))
         while pc + 1 < bound:
+            if pc in pw:                        # literal-pool data — not an opcode
+                pc += 2
+                continue
             op = (rom[pc] << 8) | rom[pc + 1]
             if gcl.is_call_op(op) or op == 0x002B or gcl.is_fpu_op(op) \
                     or not _emu_executes(rom, op):
@@ -1325,8 +1341,8 @@ def walk_v3(rom, addr, end):
         if d is not None:
             ctext = '\n'.join(d.get('c') or [])
             writes = gcl._stmt_writes(ctext)
-            if op == 0x6E3F:                       # mov r15,r14 -> frame pointer
-                if st['stack_ok'] and 'r14' not in st['written']:
+            if op == 0x6EF3:                       # mov r15,r14 -> frame pointer
+                if 'r14' not in st['written']:
                     st['frame_live'] = True
                     st['frame_off'] = st['sp_off']
                 return {'pc': pc, 'op': op, 'kind': 'frame',
@@ -1510,7 +1526,11 @@ def walk_v3(rom, addr, end):
         return None
 
     pc = addr
+    pool_words = gcl._pcrel_pool_words(rom, addr, end)
     while pc + 1 < bound:
+        if pc in pool_words:                     # literal-pool data word
+            pc += 2
+            continue
         if pc in skip:                             # consumed delay slot
             pc += 2
             continue
