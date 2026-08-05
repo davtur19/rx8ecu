@@ -229,9 +229,9 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x9:
             return _mk('r%d &= r%d;' % (n, m), 'r[%d] = (r[%d] & r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xA:
-            return _mk('r%d ^= r%d;' % (n, m), 'r[%d] = (r[%d] ^ r[%d]) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
+            return _mk('r%d ^= r%d;' % (n, m), 'r[%d] = (r[%d] ^ r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xB:
-            return _mk('r%d |= r%d;' % (n, m), 'r[%d] = (r[%d] | r[%d]) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
+            return _mk('r%d |= r%d;' % (n, m), 'r[%d] = (r[%d] | r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xC:   # cmp/str
             return _mk('{ uint32_t _x = r%d ^ r%d; uint32_t _y = (_x - 0x01010101u) & ~_x; T = (_y & 0x80808080u) ? 1u : 0u; }' % (m, n),
                        'x = r[%d] ^ r[%d]\n            y = ((x - 0x01010101) & (~x) & 0xFFFFFFFF)\n            T = 1 if (y & 0x80808080) else 0' % (m, n),
