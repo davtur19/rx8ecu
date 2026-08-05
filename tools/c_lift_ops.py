@@ -45,6 +45,19 @@ them, exactly as before — but by the v2 entry point decode_mem():
     @Rn->Rd, @Rn+->Rd, @(R0,Rn)->Rd; stores Rs->@(disp,Rn) (Rs==R0 only),
     Rs->@Rn, Rs->@-Rn, Rs->@(R0,Rn).  The SH-2 ISA has NO @-Rn load and NO
     @Rn+ store, so those two directions are inherently undecodable (None).
+
+v3 (additive, same module): the T-flag templates and the branch/return decode
+API, ready for the generator's branch emission (translate() above is untouched
+for branch/ret opcodes and gen_c_lift.py still rejects them):
+    branch_info(opcode_hi) -> {'kind': 'bt'|'bf'|'bts'|'bfs'|'bra'|'rts'|'rte'|None,
+                               'delayed': bool, 'target_disp': int|None}
+    BRANCH_C_TEMPLATE / BRANCH_PY_TEMPLATE — goto/return C templates and their
+    pc-updating mirror equivalents.
+    Target formulas: bt/bf/bt.s/bf.s target = P+4 + s8(low byte)*2; bra target =
+    P+4 + s12*2; rts target = PR (mirror `pc = pr`); rte has NO template (the
+    generator must reject it).  The C never reads T for branches — the generator
+    emits `if (T) goto L_...;` / `if (!T) goto L_...;` and places the delay slot
+    BEFORE the branch when delayed; the mirror uses T as its internal flag.
 """
 import struct
 
@@ -151,6 +164,11 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x9:
             return _mk('r%d = (r%d << 16) | (r%d >> 16);' % (n, m, m),
                        'r[%d] = ((r[%d] << 16) | (r[%d] >> 16)) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
+        if nib == 0xA:   # negc Rm,Rn  (mirror sh2emu: T = borrow, rn = 0-rm-T;
+            # T reads r[m] AFTER the write, so n==m sees the negated value)
+            return _mk('{ uint32_t _m0 = r%d; r%d = (uint32_t)(0u - _m0 - T); T = ((r%d + T) & 0xFFFFFFFFu) ? 1u : 0u; }' % (m, n, m),
+                       's = -r[%d] - T\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if (r[%d] + T) & 0xFFFFFFFF else 0' % (m, n, m),
+                       ['T', 'r%d' % n, 'r%d' % m])
 
     # ---- arithmetic / compare (n0==3) ----
     if n0 == 0x3:
@@ -285,8 +303,12 @@ def translate(op, pc, rom, ann=''):
     # ---- shifts / rotates / T-flag tests (n0==4, small set) ----
     f = op & 0xF0FF
     if n0 == 0x4:
-        if f == 0x4000: return _mk('r%d = (r%d << 1);' % (n, n), 'r[%d] = (r[%d] << 1) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
-        if f == 0x4001: return _mk('r%d = (r%d >> 1);' % (n, n), 'r[%d] = (r[%d] >> 1) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
+        if f == 0x4000: return _mk('T = (r%d >> 31) & 1u; r%d = (r%d << 1);' % (n, n, n),
+                                   'T = (r[%d] >> 31) & 1\n            r[%d] = (r[%d] << 1) & 0xFFFFFFFF' % (n, n, n),
+                                   ['T', 'r%d' % n])
+        if f == 0x4001: return _mk('T = r%d & 1u; r%d = (r%d >> 1);' % (n, n, n),
+                                   'T = r[%d] & 1\n            r[%d] = (r[%d] >> 1) & 0xFFFFFFFF' % (n, n, n),
+                                   ['T', 'r%d' % n])
         if f == 0x4008: return _mk('r%d = (r%d << 2);' % (n, n), 'r[%d] = (r[%d] << 2) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
         if f == 0x4009: return _mk('r%d = (r%d >> 2);' % (n, n), 'r[%d] = (r[%d] >> 2) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
         if f == 0x4018: return _mk('r%d = (r%d << 8);' % (n, n), 'r[%d] = (r[%d] << 8) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
@@ -327,7 +349,7 @@ def translate(op, pc, rom, ann=''):
     if op == 0x0008: return _mk('T = 0u;', 'T = 0', ['T'])       # clrt
     if op == 0x0018: return _mk('T = 1u;', 'T = 1', ['T'])       # sett
     if op == 0x0028: return _mk('mach = 0u; macl = 0u;', 'mach = 0; macl = 0', ['mach', 'macl'])  # clrmac
-    if op & 0xF0FF == 0x0029: return _mk('r%d = T;' % n, 'r[%d] = T' % n, ['r%d' % n, 'T'])      # movt
+    if op & 0xF0FF == 0x0029: return _mk('r%d = T;' % n, 'r[%d] = T;' % n, ['r%d' % n, 'T'])      # movt
     if op == 0x001B: return _mk('', '', [])                       # sleep -> no-op (as sh2emu)
 
     # ---- mul.l / sts macl / mach (n0==0) ----
@@ -544,3 +566,76 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
         return mem('load', size, m, None, n, 0, 'r0', None, ann)
 
     return None  # not a covered memory op
+
+
+# ---------------------------------------------------------------------------
+# v3: branch/return decode API — branch_info() + C/mirror templates for the
+# generator's branch emission (bt/bf/bt.s/bf.s/bra/rts).  Purely additive:
+# translate() above is untouched for these opcodes and gen_c_lift.py still
+# rejects every branch ('branch' / 'branch_v3'), so v1/v2 consumers see no
+# change.  The mirror uses T as its internal branch flag, exactly as
+# translate()'s cond_py does; the C uses T only inside the generator-emitted
+# `if (T) goto L_...;` / `if (!T) goto L_...;` (delay slot first when delayed).
+# ---------------------------------------------------------------------------
+
+# C templates, rendered with the resolved target address (the generator fills
+# `%x` with the target: bt/bf/bt.s/bf.s target = P+4 + s8(low byte)*2, bra
+# target = P+4 + s12*2).  bt.s/bf.s reuse bt/bf — branch_info()['delayed']
+# tells the generator to emit the delay slot BEFORE the branch.  'rte' has NO
+# template: the generator rejects it.
+BRANCH_C_TEMPLATE = {
+    'bt':  'if (T) goto L_%x;',
+    'bts': 'if (T) goto L_%x;',
+    'bf':  'if (!T) goto L_%x;',
+    'bfs': 'if (!T) goto L_%x;',
+    'bra': 'goto L_%x;',
+    'rts': 'return r0; /* delay slot handled by generator */',
+}
+
+# Mirror equivalents for the test's ref() model: a branch is a pc update using
+# T as the internal flag; rts returns through PR (`pc = pr`).
+BRANCH_PY_TEMPLATE = {
+    'bt':  'pc = %#x if T else pc',
+    'bts': 'pc = %#x if T else pc',
+    'bf':  'pc = %#x if not T else pc',
+    'bfs': 'pc = %#x if not T else pc',
+    'bra': 'pc = %#x',
+    'rts': 'pc = pr',
+}
+
+
+def branch_info(opcode_hi):
+    """Decode a SH-2 branch/return opcode (v3 API).
+
+    `opcode_hi` is the 16-bit opcode word.  Returns
+        {'kind': 'bt'|'bf'|'bts'|'bfs'|'bra'|'rts'|'rte'|None,
+         'delayed': bool,
+         'target_disp': int|None}
+    or None when `opcode_hi` is not a branch/return opcode.  target_disp is the
+    raw displacement, sign-extended to 32 bits; the caller resolves the target
+    as (P + 4 + target_disp * 2) for bt/bf/bt.s/bf.s/bra (P = opcode address).
+    rts/rte have no displacement: target_disp is None — rts target is PR (the
+    mirror is `pc = pr`), rte target is SPC/SSR and has NO template (the
+    generator rejects it).  delayed is True for bt.s/bf.s/bra/rts/rte (the
+    delay slot executes first), False for bt/bf.
+    """
+    op = opcode_hi & 0xFFFF
+    d8 = s8(op & 0xFF)
+    if op == 0x000B:                                    # rts (delayed, PR)
+        return {'kind': 'rts', 'delayed': True, 'target_disp': None}
+    if op == 0x002B:                                    # rte (delayed, SPC/SSR)
+        return {'kind': 'rte', 'delayed': True, 'target_disp': None}
+    if op & 0xFF00 == 0x8900:                           # bt
+        return {'kind': 'bt', 'delayed': False, 'target_disp': d8}
+    if op & 0xFF00 == 0x8B00:                           # bf
+        return {'kind': 'bf', 'delayed': False, 'target_disp': d8}
+    if op & 0xFF00 == 0x8D00:                           # bt/s
+        return {'kind': 'bts', 'delayed': True, 'target_disp': d8}
+    if op & 0xFF00 == 0x8F00:                           # bf/s
+        return {'kind': 'bfs', 'delayed': True, 'target_disp': d8}
+    if op & 0xF000 == 0xA000:                           # bra (12-bit disp)
+        d12 = op & 0xFFF
+        if d12 & 0x800:
+            d12 -= 0x1000
+        return {'kind': 'bra', 'delayed': True, 'target_disp': d12}
+    return None

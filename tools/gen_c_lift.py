@@ -132,6 +132,60 @@ def is_branch_op(op):
             op & 0xF000 == 0xA000 or op in (0x000B, 0x002B))
 
 
+# ---------------------------------------------------------------------------
+# v3 (complete): internal-branch admission (selection only + counters, emission
+# untouched).  A translatable branch/return is ADMITTED iff its target lies
+# inside the function span [addr,end) — rts (kind 'ret', target PR) is admitted
+# in ANY position (early return OK) — and, for the delayed variants
+# (bt.s/bf.s/bra/rts), the delay slot at P+2 is not itself a
+# branch/call/rte/jmp/bsr/jsr.  Admitted: bt/bf (non delayed, both directions),
+# bt.s/bf.s (delayed), bra (delayed, both directions incl. loop-back), rts
+# (delayed, any position).  Rejected with a per-motivo reason: delay_slot_ctrl
+# (P+2 of a delayed branch is itself a ctrl instruction — checked via
+# ops.branch_info + the call predicates), target_fuori (target not in
+# [addr,end)), rte (privileged, translate() -> None, never admitted).
+# ---------------------------------------------------------------------------
+def _v3_branch_rule(rom, op, target, pc, addr, end):
+    """Classify one branch/return instruction.  Returns (admit, det) with det
+    one of the admitted keys 'bt/bf' | 'bts/bfs' | 'bra' | 'rts' or the
+    rejected keys 'delay_slot_ctrl' | 'target_fuori' | 'rte' — det doubles as
+    the branch_stats key."""
+    bi = ops.branch_info(op)
+    if bi is None:                       # not a branch/return — caller bug
+        return False, 'rte'
+    kind = bi['kind']
+    if kind == 'rte':                    # privileged: no template, never admitted
+        return False, 'rte'
+    if kind != 'rts' and not (addr <= target < end):
+        return False, 'target_fuori'     # rts targets PR — no span check
+    if bi['delayed']:                    # bts/bfs/bra/rts: P+2 must be in-span
+        # and must not itself be a branch/call/rte/jmp/bsr/jsr (delay slot ctrl)
+        if pc + 2 >= end or pc + 4 > len(rom):
+            return False, 'delay_slot_ctrl'
+        nxt = (rom[pc + 2] << 8) | rom[pc + 3]
+        if ops.branch_info(nxt) is not None or is_call_op(nxt):
+            return False, 'delay_slot_ctrl'
+    if kind == 'rts':
+        return True, 'rts'
+    if kind in ('bt', 'bf'):
+        return True, 'bt/bf'
+    if kind in ('bts', 'bfs'):
+        return True, 'bts/bfs'
+    return True, 'bra'                   # bra: both directions (loop-back OK)
+
+
+def _count_branch(branch_stats, det):
+    """Instruction-level branch counter (no double counting: one increment per
+    branch actually scanned; det is the motivo)."""
+    if branch_stats is None:
+        return
+    branch_stats['branch_tot'] += 1
+    if det in ('bt/bf', 'bts/bfs', 'bra', 'rts'):
+        branch_stats['branch_ammessi'][det] += 1
+    else:
+        branch_stats['branch_rigettati'][det] += 1
+
+
 def is_fpu_op(op):
     """SH-2E FPU block (0xFxxx) + LDS/STS FPU regs (0x4Fxx)."""
     return op & 0xF000 == 0xF000 or op & 0xFF00 == 0x4F00
@@ -263,7 +317,7 @@ def _mem_shape(op):
     return None
 
 
-def _scan_mem_function(rom, c, end):
+def _scan_mem_function(rom, c, end, branch_stats=None):
     """Decode one classified function's span [addr,end) for mem mode.
 
     Returns (entry, None) on success, or (None, reason) at the first rejecting
@@ -273,6 +327,16 @@ def _scan_mem_function(rom, c, end):
     literal_values}; each ops entry is a dict
         {'pc', 'size', 'dir', 'kind': param|literal|stack|gbr,
          'base_reg', 'disp', 'auto', 'idx', 'gbr'}
+
+    v3 (branch_stats): internal branches/returns (bt/bf/bt.s/bf.s/bra with
+    in-span target, rts in any position; delay slots not ctrl — see
+    _v3_branch_rule) are ADMITTED — the scan skips them and continues —
+    instead of rejecting the function; rejected branch/return opcodes carry a
+    per-motivo reason ('delay_slot_ctrl' / 'target_fuori' / 'rte').
+    branch_stats, when given, accumulates instruction-level branch counters
+    (branch_tot + ammessi/rigettati by motivo); a branch counted here is never
+    counted elsewhere.  The entry carries 'branches': list of (kind, pc,
+    target|None) for the ADMITTED branches (for the dryrun example report).
     """
     addr = c['addr']
     bound = min(end, len(rom))
@@ -303,13 +367,26 @@ def _scan_mem_function(rom, c, end):
     bases = {}
     ops_list = []
     lit_vals = []
+    brs = []                              # admitted branches: (kind, pc, target)
     pc = addr
     while pc + 1 < bound:
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is not None:
             if d.get('kind') in ('branch', 'ret'):
-                return None, 'branch'
+                # v3 (complete): translatable branch (bt/bf/bt.s/bf.s/bra —
+                # kind 'branch') or early return (rts — kind 'ret') is admitted
+                # iff its target lies in [addr,end) (rts: any position) and, for
+                # delayed variants, its P+2 delay slot is not a ctrl instruction.
+                # rte (kind none — translate() -> None) is handled below.
+                target = d.get('target')
+                admit, det = _v3_branch_rule(rom, op, target, pc, addr, end)
+                _count_branch(branch_stats, det)
+                if admit:
+                    brs.append((det, pc, target))
+                    pc += 2
+                    continue
+                return None, ('branch_v3', det)
             writes = _stmt_writes('\n'.join(d.get('c') or []))
             if op == 0x6E3F:                 # mov r15,r14 -> frame pointer
                 if stack_ok and 'r14' not in written:
@@ -331,8 +408,11 @@ def _scan_mem_function(rom, c, end):
             continue
         if is_call_op(op):
             return None, 'call'
+        if op == 0x002B:                      # rte (privileged) — dedicated reason
+            return None, 'rte'
         if is_branch_op(op):
-            return None, 'branch'
+            return None, 'branch'             # unreachable: rte is the only branch
+                                              # translate() doesn't map
         m = ops.decode_mem(op, None, ctx)
         if m is not None:
             base_reg = m['base_reg']
@@ -408,7 +488,8 @@ def _scan_mem_function(rom, c, end):
     if not ops_list:
         return None, 'no_mem_op'
     return ({'name': c['name'], 'addr': addr, 'size': end - addr,
-             'bases': bases, 'ops': ops_list, 'literal_values': lit_vals}, None)
+             'bases': bases, 'ops': ops_list, 'literal_values': lit_vals,
+             'branches': brs}, None)
 
 
 def select_mem(cats, max_n, seed, rom, catalog, root=ROOT):
@@ -428,6 +509,9 @@ def select_mem(cats, max_n, seed, rom, catalog, root=ROOT):
                 'base_param': 0, 'base_literal': 0, 'base_stack': 0, 'base_gbr': 0,
                 'skipped_no_span': 0, 'skipped_size': 0, 'skipped_dedup': 0,
                 'by_category': {}}
+    branch_stats = {'branch_tot': 0,
+                    'branch_ammessi': Counter(),      # bt/bf, bts/bfs, bra, rts
+                    'branch_rigettati': Counter()}    # delay_slot_ctrl, target_fuori, rte
     pool = []
     for c in cats:
         cat = c['category']
@@ -448,12 +532,16 @@ def select_mem(cats, max_n, seed, rom, catalog, root=ROOT):
                 glob.glob(os.path.join(root, 'c', '*_%x.c' % c['addr'])):
             counters['skipped_dedup'] += 1
             continue
-        entry, reason = _scan_mem_function(rom, c, end)
+        entry, reason = _scan_mem_function(rom, c, end, branch_stats)
         if entry is None:
             if isinstance(reason, tuple):
                 r, det = reason
-                counters['rejected'][r] += 1
-                counters['motivo_dettaglio'][det] += 1
+                if r == 'branch_v3':                # v3 per-motivo branch reject
+                    r = _BRANCH_V3_REASON.get(det, 'branch')
+                    counters['rejected'][r] += 1
+                else:
+                    counters['rejected'][r] += 1
+                    counters['motivo_dettaglio'][det] += 1
             else:
                 counters['rejected'][reason] += 1
             catstat['rejected'] += 1
@@ -473,12 +561,20 @@ def select_mem(cats, max_n, seed, rom, catalog, root=ROOT):
         catstat['selected'] += 1
 
     pool.sort(key=lambda x: x['size'])                 # stable
+    counters['branch_tot'] = branch_stats['branch_tot']
+    counters['branch_ammessi'] = branch_stats['branch_ammessi']
+    counters['branch_rigettati'] = branch_stats['branch_rigettati']
     if max_n is not None and max_n < len(pool):
         pool = random.Random(seed).sample(pool, max_n)
     return pool, counters
 
 
-_REASONS = ('unmapped', 'branch', 'call', 'base_unresolved', 'fpu/altre', 'no_mem_op')
+_BRANCH_V3_REASON = {'delay_slot_ctrl': 'delay_slot_ctrl',
+                     'target_fuori': 'target_fuori',
+                     'rte': 'rte'}
+
+_REASONS = ('unmapped', 'branch', 'delay_slot_ctrl', 'target_fuori', 'rte',
+            'call', 'base_unresolved', 'fpu/altre', 'no_mem_op')
 
 
 def print_mem_report(selected, counters, args):
@@ -486,12 +582,22 @@ def print_mem_report(selected, counters, args):
     of the selected pool, residual base_unresolved detail, first 15 picks."""
     rej = counters['rejected']
     print('=== mem selection (--mode mem --dryrun): no files written ===')
-    print('selected=%d' % counters['selected'])
+    print('pool_v3=%d' % counters['selected'])
     print('rejected_total=%d' % sum(rej.values()))
     for r in _REASONS:
         print('  rejected_%-15s %d' % (r, rej.get(r, 0)))
     print('skipped_no_span=%d skipped_size=%d skipped_dedup=%d'
           % (counters['skipped_no_span'], counters['skipped_size'], counters['skipped_dedup']))
+    print('--- branch breakdown (v3 internal-branch admission) ---')
+    ba, br = counters.get('branch_ammessi', {}), counters.get('branch_rigettati', {})
+    print('  branch_tot=%d (ammessi %d: bt/bf=%d bts/bfs=%d bra=%d rts=%d;'
+          ' rigettati %d:'
+          % (counters.get('branch_tot', 0), sum(ba.values()),
+             ba.get('bt/bf', 0), ba.get('bts/bfs', 0), ba.get('bra', 0),
+             ba.get('rts', 0), sum(br.values())))
+    print('             delay_slot_ctrl=%d target_fuori=%d rte=%d)'
+          % (br.get('delay_slot_ctrl', 0), br.get('target_fuori', 0),
+             br.get('rte', 0)))
     print('--- selected mem ops by base ---')
     print('  base_param=%d base_literal=%d base_stack=%d base_gbr=%d'
           % (counters['base_param'], counters['base_literal'],
@@ -508,12 +614,18 @@ def print_mem_report(selected, counters, args):
                  key=lambda kv: (kv[1]['selected'], kv[1]['rejected']), reverse=True)[:8]
     for cat, st in top:
         print('  %-24s selected=%4d rejected=%4d' % (cat, st['selected'], st['rejected']))
-    print('--- first 15 selected ---')
+    print('--- branch functions in sampled pool ---')
+    dl = sum(1 for e in selected if any(
+        k in ('bts', 'bfs', 'bra', 'rts') for k, _, _ in e.get('branches', [])))
+    ndl = sum(1 for e in selected if e.get('branches') and not any(
+        k in ('bts', 'bfs', 'bra', 'rts') for k, _, _ in e.get('branches', [])))
+    print('  fns_with_delay_slot_branch=%d fns_btbf_only=%d fns_without_branch=%d'
+          % (dl, ndl, len(selected) - dl - ndl))
+    print('--- first 15 selected (addr, branch types present, size) ---')
     for e in selected[:15]:
-        bb = ', '.join('%s:%s%s' % (r, k, '' if v is None else '=0x%X' % v)
-                       for r, (k, v) in sorted(e['bases'].items()))
-        print('  0x%06X %-32s size=%3d bases={%s} ops=%d'
-              % (e['addr'], e['name'], e['size'], bb, len(e['ops'])))
+        brs = ', '.join(k for k, pc_, t_ in e.get('branches', [])) or 'none'
+        print('  0x%06X %-32s size=%3d branches={%s} ops=%d'
+              % (e['addr'], e['name'], e['size'], brs, len(e['ops'])))
     print('options: --mode mem --dryrun --n %d --seed %d' % (args.n, args.seed))
 
 

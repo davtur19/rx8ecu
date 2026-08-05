@@ -12,10 +12,22 @@ API:
   cpu = SH2(rom_bytes)
   r0  = cpu.call(entry, r4=..., r5=..., ram={addr:byte}, fr={4:1.5,5:2.0})
   # FP result is in cpu.fr[0]
+  # Optional safety valve: cpu.call(..., max_steps=N) raises StepLimitExceeded
+  # after N executed instructions (branch + its delay slot count as 2).
 """
 import struct
 
 MASK = 0xFFFFFFFF
+
+
+class StepLimitExceeded(Exception):
+    """Raised by SH2.call when max_steps is set and the executed-instruction
+    count goes over it. Carries .steps (instruction count at the limit) and
+    .pc (address of the instruction that exceeded the limit)."""
+    def __init__(self, steps, pc):
+        self.steps = steps
+        self.pc = pc & MASK
+        super().__init__("step limit exceeded at %d steps (pc=0x%X)" % (self.steps, self.pc))
 
 
 def s32(x): x &= MASK; return x - (1 << 32) if x & 0x80000000 else x
@@ -59,7 +71,12 @@ class SH2:
         b = struct.pack('>f', ts(v))
         for i in range(4): self._wb(a + i, b[i])
 
-    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None, mmio=None):
+    def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None, mmio=None,
+             max_steps=None):
+        """Run the program at `entry`. max_steps=None keeps the historical
+        behavior (only the internal 500000-iteration runaway guard);
+        max_steps=int raises StepLimitExceeded once the number of executed
+        instructions (delay slot included) exceeds it."""
         self.ram = dict(ram or {})
         self._mmio = mmio                # additive MMIO mock: {addr: byte} — None = disabled
         self.r = [0] * 16
@@ -98,6 +115,8 @@ class SH2:
         exec_op = self._exec
         pc = entry & M
         steps = 0
+        n = 0                       # executed-instruction counter (delay slot counts too)
+        mx = max_steps              # None -> historical behavior only
         if not ram:
             while True:
                 if ram:
@@ -120,10 +139,16 @@ class SH2:
                 self.pc = pc
                 br = delayed(op)
                 if br is None:
+                    n += 1
+                    if mx is not None and n > mx:
+                        raise StepLimitExceeded(n, pc)
                     exec_op(op, pc)
                     pc = (self.pc + 2) & M
                 else:
                     target, take = br
+                    n += 1
+                    if mx is not None and n > mx:
+                        raise StepLimitExceeded(n, pc)
                     a = (pc + 2) & M
                     if a + 1 < romlen:
                         op2 = (rom[a] << 8) | rom[a + 1]
@@ -131,6 +156,9 @@ class SH2:
                         b = rom[a] if a < romlen else 0
                         b1 = rom[a + 1] if a + 1 < romlen else 0
                         op2 = (b << 8) | b1
+                    n += 1
+                    if mx is not None and n > mx:
+                        raise StepLimitExceeded(n, a)
                     exec_op(op2, a)
                     pc = target if take else (self.pc + 4) & M
         # Mixed ram/rom fetch.  Reached when ram was non-empty up front, or when
@@ -155,10 +183,16 @@ class SH2:
             self.pc = pc
             br = delayed(op)
             if br is None:
+                n += 1
+                if mx is not None and n > mx:
+                    raise StepLimitExceeded(n, pc)
                 exec_op(op, pc)
                 pc = (self.pc + 2) & M
             else:
                 target, take = br
+                n += 1
+                if mx is not None and n > mx:
+                    raise StepLimitExceeded(n, pc)
                 a = (pc + 2) & M
                 b = ram.get(a)
                 if b is None:
@@ -167,6 +201,9 @@ class SH2:
                 b1 = ram.get(a1)
                 if b1 is None:
                     b1 = rom[a1] if a1 < romlen else 0
+                n += 1
+                if mx is not None and n > mx:
+                    raise StepLimitExceeded(n, a)
                 exec_op((b << 8) | b1, a)
                 pc = target if take else (self.pc + 4) & M
 

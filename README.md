@@ -54,7 +54,7 @@ end-to-end validation).
 
 - **9/9 ROMs byte-exact + 9/9 formally certified** (`make verify-all`, `make cert`) — code window 0x800..0x60000, SH-2 lift 93.46–93.8% round-trip (true code ≈88–91%).
 - **Symbol catalog:** 56,952 deduped rows → **50,676 real-function estimate** (NOISE-filtered), **6,439 named**, **6,082 categorized** (`symbols/CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`).
-- **229 C lifts**, **270 emulator-verified addresses**, 100k+ random vectors per key function (`c/`, `c/verified_addrs.txt`).
+- **238 C lifts**, **279 emulator-verified addresses**, 100k+ random vectors per key function (`c/`, `c/verified_addrs.txt`).
 - **Tables:** 1,210 calibration tables + 37,121 RomRaider/GROM defs across 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
 - **Docs:** 191 function + 15 subsystem docs; **tests:** 203 Python + 26 C suites, regressions 38,008 + 83 ✓.
 - **Explore:** [RX-8 ECU Firmware Explorer](https://davtur19.github.io/rx8ecu/) · evidence [VERIFICATION.md](VERIFICATION.md) · inventory [MANIFEST.md](MANIFEST.md) · [docs/README.md](docs/README.md) · formal cert [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
@@ -71,7 +71,7 @@ make verify-all                 # rebuild + byte-compare ALL 9 public stock ROMs
 make cert                       # formal certification (verify_formal.py) of all 9 ROMs -> 9/9 CERTIFIED
 ```
 
-`tools/gen_c_lift.py` — batch SH-2→C generator: pure-function lifts + mem mode (RAM-only: param/literal/stack bases), emulator-verified
+`tools/gen_c_lift.py` — batch SH-2→C generator: pure-function lifts + mem mode (RAM-only: param/literal/stack bases), emulator-verified · v3: branch/delay-slot lifts (`tools/gen_c_lift_v3.py`), emulator-verified
 
 Fresh-clone reproduction: **[REPLICATION.md](REPLICATION.md)**. Evidence
 (hashes, test runs, coverage tables): **[VERIFICATION.md](VERIFICATION.md)**.
