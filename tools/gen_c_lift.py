@@ -15,6 +15,8 @@ side effects".
 
 Usage:
     python3 tools/gen_c_lift.py [--category CAN Bus] [--n 10] [--seed 0] [--addr 0x1234]
+    python3 tools/gen_c_lift.py --mode pure --dryrun --category "Math / FPU" --n 1
+    python3 tools/gen_c_lift.py --mode mem --dryrun --category "CAN Bus" --n 20
     python3 tools/gen_c_lift.py --stats
 """
 import argparse
@@ -26,6 +28,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -98,6 +101,420 @@ def decode_pure_span(rom, addr, end):
         instrs.append((pc, op, d))
         pc += 2
     return instrs if instrs else None
+
+
+# ---------------------------------------------------------------------------
+# v2: --mode mem selection.  Additive: the pure flow above is untouched.
+# A function is accepted when every instruction in its catalog span [addr,end)
+# decodes as a pure statement (translate) or as a memory op (decode_mem) whose
+# base register is statically resolvable: PARAM (r4..r7 never written before),
+# LITERAL (register loaded from mov.w/l @(disp,PC) before use), GBR (gbr_value
+# tracked from `ldc Rn,GBR` = 0x4n1E with rN a known literal, and r0 literal ->
+# base ('LITERAL', gbr_value + r0_val + disp) with gbr=True), or STACK (base
+# r15 kept stack-clean — only @-r15/@r15+ auto modifications — or base r14
+# established as frame pointer by `mov r15,r14`; disp/auto preserved, absolute
+# resolution deferred to emission).  Everything else rejects the whole function
+# with a reason counter; residual base_unresolved rejections are split out in
+# counters['motivo_dettaglio'] (r15-non-tracked / r14-non-frame /
+# GBR-non-risolto / r0-non-literal / altro).
+# ---------------------------------------------------------------------------
+MEM_MIN, MEM_MAX = 8, 160
+
+
+def is_call_op(op):
+    """jmp @Rn / jsr @Rn / bsr (translate() returns None for these)."""
+    return (op & 0xF0FF == 0x402B or op & 0xF0FF == 0x400B or op & 0xF000 == 0xB000)
+
+
+def is_branch_op(op):
+    """bt/bf/bt.s/bf.s/bra/rts/rte — translate() already maps most of these."""
+    return (op & 0xFF00 in (0x8900, 0x8B00, 0x8D00, 0x8F00) or
+            op & 0xF000 == 0xA000 or op in (0x000B, 0x002B))
+
+
+def is_fpu_op(op):
+    """SH-2E FPU block (0xFxxx) + LDS/STS FPU regs (0x4Fxx)."""
+    return op & 0xF000 == 0xF000 or op & 0xFF00 == 0x4F00
+
+
+def is_mem_opcode(op):
+    """True iff the encoding has a b/w/l memory-op shape (mirrors decode_mem's
+    pattern checks, plus the GBR forms 0xC0-C6, which _scan_mem_function now
+    resolves itself via _decode_gbr; an op reaching is_mem_opcode with a GBR /
+    r15 / r14 base is therefore always an unresolvable residual -> altro)."""
+    n0 = op >> 12
+    nib = op & 0xF
+    if n0 == 0x6 and nib in (0, 1, 2, 4, 5, 6):       # loads @Rn / @Rn+
+        return True
+    if n0 == 0x2 and nib in (0, 1, 2, 4, 5, 6):       # stores @Rn / @-Rn
+        return True
+    if op & 0xFF00 in (0x8000, 0x8100, 0x8200, 0x8400, 0x8500, 0x8600):
+        return True                                   # R0-only disp forms
+    if op & 0xF00F in (0x0004, 0x0005, 0x0006, 0x000C, 0x000D, 0x000E):
+        return True                                   # indexed @(R0,Rn)
+    if op & 0xFF00 in (0xC000, 0xC100, 0xC200, 0xC400, 0xC500, 0xC600):
+        return True                                   # GBR disp forms
+    return False
+
+
+_WRITE_RE = re.compile(r'\b(r(?:[0-9]|1[0-5])|macl|mach|pr|T|Q|M)\b\s*=(?!=)')
+
+
+def _stmt_writes(c_text):
+    """Registers a pure statement assigns (parsed from the mapper's C text;
+    `=` not followed by `=` so `rN == ...` is not a write)."""
+    return set(_WRITE_RE.findall(c_text))
+
+
+def _apply_stmt(rom, pc, op, d, written, lits):
+    """Track register writes + literal-pool loads (mov.w/l @(disp,PC)) for a
+    pure statement.  Returns False when a literal pool read falls outside the
+    ROM (function must be rejected)."""
+    ctext = '\n'.join(d.get('c') or [])
+    for reg in _stmt_writes(ctext):
+        written.add(reg)
+        lits.pop(reg, None)          # a write kills any previously loaded literal
+    n = (op >> 8) & 0xF
+    if op & 0xF000 == 0x9000:                        # mov.w @(disp,PC),Rn
+        a = (pc + 4 + (op & 0xFF) * 2)
+        if a + 2 > len(rom):
+            return False
+        lits['r%d' % n] = ops.lit16(rom, pc, op & 0xFF)   # sign_extend16
+    elif op & 0xF000 == 0xD000:                      # mov.l @(disp,PC),Rn
+        a = ((pc + 4) & ~3) + (op & 0xFF) * 4
+        if a + 4 > len(rom):
+            return False
+        lits['r%d' % n] = ops.lit32(rom, pc, op & 0xFF)
+    return True
+
+
+def _apply_mem_writes(m, written, lits):
+    """Track register side effects of an accepted mem op (dest of a load; base
+    reg of @Rn+ / @-Rn auto-forms)."""
+    if m['dir'] == 'load' and m.get('dest') is not None:
+        reg = 'r%d' % m['dest']
+        written.add(reg)
+        lits.pop(reg, None)
+    if m.get('auto') in ('post', 'pre'):
+        reg = 'r%d' % m['base_reg']
+        written.add(reg)
+        lits.pop(reg, None)
+
+
+_GBR_FORMS = {0xC000: (1, 'store'), 0xC100: (2, 'store'), 0xC200: (4, 'store'),
+              0xC400: (1, 'load'), 0xC500: (2, 'load'), 0xC600: (4, 'load')}
+
+
+def _decode_gbr(op):
+    """0xC0-C6 GBR-relative b/w/l movs -> (size, 'load'|'store', disp_scaled)
+    or None.  Address = GBR + disp (mov.b disp=lo, mov.w disp=lo*2, mov.l
+    disp=lo*4, as sh2emu).  The 0xCC-CF GBR bit-ops stay unmapped."""
+    hit = _GBR_FORMS.get(op & 0xFF00)
+    if hit is None:
+        return None
+    size, gdir = hit
+    return size, gdir, (op & 0xFF) * size
+
+
+_SIZE_NIB = {0: 1, 1: 2, 2: 4, 4: 1, 5: 2, 6: 4, 0xC: 1, 0xD: 2, 0xE: 4}
+
+
+def _mem_shape(op):
+    """Decode a b/w/l memory op's shape for ANY base register, mirroring
+    decode_mem and adding the 0x5nxx/0x1nxx 4-bit-disp mov.l forms (which the
+    mapper keeps unmapped but are needed for @(disp,r15)/@(disp,r14) stack
+    access).  Returns {size, dir, base, disp, auto, idx, dest, src} or None.
+    Used only for base r15 (stack) / r14 (frame) acceptance."""
+    n = (op >> 8) & 0xF
+    m = (op >> 4) & 0xF
+    n0 = op >> 12
+    nib = op & 0xF
+    if n0 == 0x6 and nib in (0, 1, 2, 4, 5, 6):        # loads @Rm / @Rm+
+        return {'size': _SIZE_NIB[nib], 'dir': 'load', 'base': m, 'disp': 0,
+                'auto': 'post' if nib >= 4 else None, 'idx': None,
+                'dest': n, 'src': None}
+    if n0 == 0x2 and nib in (0, 1, 2, 4, 5, 6):        # stores @Rn / @-Rn
+        size = _SIZE_NIB[nib]
+        auto = 'pre' if nib >= 4 else None
+        return {'size': size, 'dir': 'store', 'base': n,
+                'disp': -size if auto == 'pre' else 0, 'auto': auto,
+                'idx': None, 'dest': None, 'src': m}
+    f = op & 0xFF00
+    if f in (0x8000, 0x8100, 0x8200, 0x8400, 0x8500, 0x8600):   # R0-only disp
+        size = _SIZE_NIB[(op >> 8) & 0xF]
+        disp = (op & 0xF) * size
+        if f in (0x8000, 0x8100, 0x8200):
+            return {'size': size, 'dir': 'store', 'base': m, 'disp': disp,
+                    'auto': None, 'idx': None, 'dest': None, 'src': 0}
+        return {'size': size, 'dir': 'load', 'base': m, 'disp': disp,
+                'auto': None, 'idx': None, 'dest': 0, 'src': None}
+    if op & 0xF00F in (0x0004, 0x0005, 0x0006):        # stores @(R0,Rn)
+        return {'size': _SIZE_NIB[nib], 'dir': 'store', 'base': n, 'disp': 0,
+                'auto': None, 'idx': 'r0', 'dest': None, 'src': m}
+    if op & 0xF00F in (0x000C, 0x000D, 0x000E):        # loads @(R0,Rm)
+        return {'size': _SIZE_NIB[nib], 'dir': 'load', 'base': m, 'disp': 0,
+                'auto': None, 'idx': 'r0', 'dest': n, 'src': None}
+    if n0 == 0x5:                                       # mov.l @(disp,Rm),Rn
+        return {'size': 4, 'dir': 'load', 'base': m, 'disp': nib * 4,
+                'auto': None, 'idx': None, 'dest': n, 'src': None}
+    if n0 == 0x1:                                       # mov.l Rm,@(disp,Rn)
+        return {'size': 4, 'dir': 'store', 'base': n, 'disp': nib * 4,
+                'auto': None, 'idx': None, 'dest': None, 'src': m}
+    return None
+
+
+def _scan_mem_function(rom, c, end):
+    """Decode one classified function's span [addr,end) for mem mode.
+
+    Returns (entry, None) on success, or (None, reason) at the first rejecting
+    instruction.  reason is a plain string ('branch', 'call', ...) or the tuple
+    ('base_unresolved', detail) so select_mem can split the residual into
+    counters['motivo_dettaglio'].  entry = {name, addr, size, bases, ops,
+    literal_values}; each ops entry is a dict
+        {'pc', 'size', 'dir', 'kind': param|literal|stack|gbr,
+         'base_reg', 'disp', 'auto', 'idx', 'gbr'}
+    """
+    addr = c['addr']
+    bound = min(end, len(rom))
+    written = set()
+    lits = {}
+    tmp = [0]
+    gbr_known = False        # saw `ldc Rn,GBR` (0x4n1E) before any GBR use
+    gbr_value = None         # its literal value, if rN was a known literal
+    stack_ok = True          # r15 written only by @-r15/@r15+ auto forms
+    frame_live = False       # r14 established as frame ptr (mov r15,r14) & alive
+
+    def temp():
+        tmp[0] += 1
+        return 't%d' % tmp[0]
+
+    def resolve(reg):
+        # reg arrives as an int register index (0..15) from decode_mem's
+        # _resolve_base, but lits is keyed by 'r%d' strings -> normalize here.
+        v = lits.get('r%d' % reg)
+        if v is None:
+            return None
+        cls = ops.classify_addr(v)
+        if cls in ('RAM', 'ROM'):
+            return (cls, v)
+        return None
+
+    ctx = {'temp': temp, 'resolve': resolve}
+    bases = {}
+    ops_list = []
+    lit_vals = []
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        d = ops.translate(op, pc, rom)
+        if d is not None:
+            if d.get('kind') in ('branch', 'ret'):
+                return None, 'branch'
+            writes = _stmt_writes('\n'.join(d.get('c') or []))
+            if op == 0x6E3F:                 # mov r15,r14 -> frame pointer
+                if stack_ok and 'r14' not in written:
+                    frame_live = True
+            else:
+                if 'r15' in writes:          # r15 rewritten non-stack -> taint
+                    stack_ok = False
+                if 'r14' in writes:          # r14 clobbered -> frame dead
+                    frame_live = False
+            if not _apply_stmt(rom, pc, op, d, written, lits):
+                return None, 'unmapped'
+            pc += 2
+            continue
+        # ---- not a pure statement ----
+        if op & 0xF0FF == 0x401E:            # ldc Rn,GBR (rN may be a literal)
+            gbr_known = True
+            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            pc += 2
+            continue
+        if is_call_op(op):
+            return None, 'call'
+        if is_branch_op(op):
+            return None, 'branch'
+        m = ops.decode_mem(op, None, ctx)
+        if m is not None:
+            base_reg = m['base_reg']
+            # @(R0,Rn) indexed forms: the r0 index must itself be a known
+            # literal — r0 loaded from memory (or unknown) is unresolvable.
+            if m.get('idx') == 'r0' and 'r0' not in lits:
+                return None, ('base_unresolved', 'altro')
+            if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                kind = ('PARAM', None)
+                bkind = 'param'
+            elif 'r%d' % base_reg in lits:
+                kind = ('LITERAL', lits['r%d' % base_reg])
+                bkind = 'literal'
+            else:
+                return None, ('base_unresolved', 'altro')
+            bases.setdefault('r%d' % base_reg, kind)
+            if kind[0] == 'LITERAL' and kind[1] not in lit_vals:
+                lit_vals.append(kind[1])
+            ops_list.append({'pc': pc, 'size': m['size'], 'dir': m['dir'],
+                             'kind': bkind, 'base_reg': base_reg,
+                             'disp': m.get('disp', 0), 'auto': m.get('auto'),
+                             'idx': m.get('idx'), 'gbr': False})
+            _apply_mem_writes(m, written, lits)
+            pc += 2
+            continue
+        # ---- v2 extensions: GBR and stack/frame bases ----
+        g = _decode_gbr(op)
+        if g is not None:
+            size, gdir, disp = g
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                return None, ('base_unresolved', 'r0-non-literal')
+            abs_addr = (gbr_value + lits['r0'] + disp) & MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
+                  'src': 0 if gdir == 'store' else None}
+            ops_list.append({'pc': pc, 'size': size, 'dir': gdir, 'kind': 'gbr',
+                             'base_reg': None, 'disp': disp, 'auto': None,
+                             'idx': None, 'gbr': True})
+            _apply_mem_writes(gm, written, lits)   # GBR load writes r0
+            pc += 2
+            continue
+        sh = _mem_shape(op)
+        if sh is not None and sh['base'] in (14, 15):
+            breg = sh['base']
+            if sh['idx'] is not None:            # @(R0,r15/r14): not mappable
+                return None, ('base_unresolved', 'altro')
+            if breg == 15:
+                if not stack_ok or sh['dest'] == 15:
+                    # r15 rewritten (or loaded into) non-stack-wise: untracked
+                    return None, ('base_unresolved', 'r15-non-tracked')
+            else:                                   # base r14 -> needs frame
+                if not frame_live or sh['dest'] == 14:
+                    return None, ('base_unresolved', 'r14-non-frame')
+            bases.setdefault('r%d' % breg, ('STACK', None))
+            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                  'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
+            ops_list.append({'pc': pc, 'size': sh['size'], 'dir': sh['dir'],
+                             'kind': 'stack', 'base_reg': breg, 'disp': sh['disp'],
+                             'auto': sh['auto'], 'idx': sh.get('idx'), 'gbr': False})
+            _apply_mem_writes(sm, written, lits)   # @-r15/@r15+ side effects
+            pc += 2
+            continue
+        if is_mem_opcode(op):
+            return None, ('base_unresolved', 'altro')
+        if is_fpu_op(op):
+            return None, 'fpu/altre'
+        return None, 'unmapped'
+
+    if not ops_list:
+        return None, 'no_mem_op'
+    return ({'name': c['name'], 'addr': addr, 'size': end - addr,
+             'bases': bases, 'ops': ops_list, 'literal_values': lit_vals}, None)
+
+
+def select_mem(cats, max_n, seed, rom, catalog, root=ROOT):
+    """Select classified functions (span known, size 8..160) for --mode mem.
+
+    Returns (selected, counters):
+      selected:  list of {name, addr, size, bases, ops, literal_values},
+                 size-sorted then capped at max_n by a deterministic sample.
+      counters:  {'selected', 'rejected': {reason: n},
+                  'motivo_dettaglio': {base_unresolved detail: n},
+                  'base_param'/'base_literal'/'base_stack'/'base_gbr' (selected
+                  mem ops by base kind), 'skipped_no_span', 'skipped_size',
+                  'skipped_dedup', 'by_category': {cat: {'selected','rejected'}}}
+    """
+    counters = {'selected': 0, 'rejected': Counter(),
+                'motivo_dettaglio': Counter(),
+                'base_param': 0, 'base_literal': 0, 'base_stack': 0, 'base_gbr': 0,
+                'skipped_no_span': 0, 'skipped_size': 0, 'skipped_dedup': 0,
+                'by_category': {}}
+    pool = []
+    for c in cats:
+        cat = c['category']
+        catstat = counters['by_category'].setdefault(cat, {'selected': 0, 'rejected': 0})
+        end = catalog.get(c['addr'])
+        if end is None:
+            counters['skipped_no_span'] += 1
+            continue
+        size = end - c['addr']
+        if not (MEM_MIN <= size <= MEM_MAX):
+            counters['skipped_size'] += 1
+            continue
+        # dedup: skip if c/<name>_<addr>.c already exists (or addr already lifted)
+        base = sanitize(c['name'])
+        out_c = os.path.join(root, 'c', '%s_%x.c' % (base, c['addr']))
+        out_t = os.path.join(root, 'c', 'tests', 'test_%s_%x.py' % (base, c['addr']))
+        if os.path.exists(out_c) or os.path.exists(out_t) or \
+                glob.glob(os.path.join(root, 'c', '*_%x.c' % c['addr'])):
+            counters['skipped_dedup'] += 1
+            continue
+        entry, reason = _scan_mem_function(rom, c, end)
+        if entry is None:
+            if isinstance(reason, tuple):
+                r, det = reason
+                counters['rejected'][r] += 1
+                counters['motivo_dettaglio'][det] += 1
+            else:
+                counters['rejected'][reason] += 1
+            catstat['rejected'] += 1
+            continue
+        pool.append(entry)
+        counters['selected'] += 1
+        for o in entry['ops']:
+            k = o['kind']
+            if k == 'param':
+                counters['base_param'] += 1
+            elif k == 'literal':
+                counters['base_literal'] += 1
+            elif k == 'stack':
+                counters['base_stack'] += 1
+            elif k == 'gbr':
+                counters['base_gbr'] += 1
+        catstat['selected'] += 1
+
+    pool.sort(key=lambda x: x['size'])                 # stable
+    if max_n is not None and max_n < len(pool):
+        pool = random.Random(seed).sample(pool, max_n)
+    return pool, counters
+
+
+_REASONS = ('unmapped', 'branch', 'call', 'base_unresolved', 'fpu/altre', 'no_mem_op')
+
+
+def print_mem_report(selected, counters, args):
+    """--dryrun report: totals by reason, per-category top-8, base breakdown
+    of the selected pool, residual base_unresolved detail, first 15 picks."""
+    rej = counters['rejected']
+    print('=== mem selection (--mode mem --dryrun): no files written ===')
+    print('selected=%d' % counters['selected'])
+    print('rejected_total=%d' % sum(rej.values()))
+    for r in _REASONS:
+        print('  rejected_%-15s %d' % (r, rej.get(r, 0)))
+    print('skipped_no_span=%d skipped_size=%d skipped_dedup=%d'
+          % (counters['skipped_no_span'], counters['skipped_size'], counters['skipped_dedup']))
+    print('--- selected mem ops by base ---')
+    print('  base_param=%d base_literal=%d base_stack=%d base_gbr=%d'
+          % (counters['base_param'], counters['base_literal'],
+             counters['base_stack'], counters['base_gbr']))
+    print('--- base_unresolved residual (motivo_dettaglio) ---')
+    det = counters['motivo_dettaglio']
+    for d in ('r15-non-tracked', 'r14-non-frame', 'GBR-non-risolto',
+              'r0-non-literal', 'altro'):
+        print('  base_unresolved_%-16s %d' % (d, det.get(d, 0)))
+    print('  base_unresolved_total     %d (== rejected_base_unresolved %d)'
+          % (sum(det.values()), rej.get('base_unresolved', 0)))
+    print('--- per-category (top-8 by selected) ---')
+    top = sorted(counters['by_category'].items(),
+                 key=lambda kv: (kv[1]['selected'], kv[1]['rejected']), reverse=True)[:8]
+    for cat, st in top:
+        print('  %-24s selected=%4d rejected=%4d' % (cat, st['selected'], st['rejected']))
+    print('--- first 15 selected ---')
+    for e in selected[:15]:
+        bb = ', '.join('%s:%s%s' % (r, k, '' if v is None else '=0x%X' % v)
+                       for r, (k, v) in sorted(e['bases'].items()))
+        print('  0x%06X %-32s size=%3d bases={%s} ops=%d'
+              % (e['addr'], e['name'], e['size'], bb, len(e['ops'])))
+    print('options: --mode mem --dryrun --n %d --seed %d' % (args.n, args.seed))
 
 
 def sanitize(name):
@@ -253,6 +670,480 @@ def emit(addr, name, size, instrs, rom, seed, out_c, out_t):
     return True
 
 
+# ---------------------------------------------------------------------------
+# v2 --mode mem emission.  Additive: the pure flow above is untouched.
+# For an accepted mem entry we RE-WALK the span with the same acceptance
+# tracking (written/lits/gbr/stack/frame) as _scan_mem_function so the emitted
+# instruction stream resolves bases identically, and emit:
+#   - a C lift: register locals (r15 is the stack pointer -> implicit) plus one
+#     uint32_t local_<off> per used stack offset; stack accesses become local
+#     reads/writes (r15 inc/dec is implicit in the offsets), param/literal
+#     accesses use decode_mem fragments (with sign-extension for b/w loads);
+#   - a differential test: spec_mirror vs the sh2emu oracle over 2000 random
+#     inputs with deterministic RAM prefill + a synthetic stack.
+# ---------------------------------------------------------------------------
+_SIZE_CH = {1: 'b', 2: 'w', 4: 'l'}
+_CTYPE = {1: 'uint8_t', 2: 'uint16_t', 4: 'uint32_t'}
+_SEXT_C = {1: '(uint32_t)(int32_t)(int8_t)', 2: '(uint32_t)(int32_t)(int16_t)'}
+_SEXT_PY = {1: 's8', 2: 's16'}
+STACK_BASE = 0xFFFFD000
+STACK_TOP = STACK_BASE + 0x400
+
+
+def _stack_mnem(sh):
+    """Disassembly-style annotation for a stack/frame mem op."""
+    d = _SIZE_CH[sh['size']]
+    base = 'r15' if sh['base'] == 15 else 'r14'
+    if sh['dir'] == 'load':
+        if sh['auto'] == 'post':
+            return 'mov.%s @%s+,r%d' % (d, base, sh['dest'])
+        if sh['disp']:
+            return 'mov.%s @(0x%X,%s),r%d' % (d, sh['disp'], base, sh['dest'])
+        return 'mov.%s @%s,r%d' % (d, base, sh['dest'])
+    if sh['auto'] == 'pre':
+        return 'mov.%s r%d,@-%s' % (d, sh['src'], base)
+    if sh['disp']:
+        return 'mov.%s r%d,@(0x%X,%s)' % (d, sh['src'], sh['disp'], base)
+    return 'mov.%s r%d,@%s' % (d, sh['src'], base)
+
+
+def _mem_record(pc, op, m, bkind, abs_addr, temp):
+    """C + py emission for one param/literal mem op (decode_mem output m).
+
+    bkind 'param' -> effective address `(rN + disp)` (runtime); 'literal' ->
+    baked absolute address.  b/w loads sign-extend (emulator does s8/s16).
+    """
+    size, gdir = m['size'], m['dir']
+    breg = m['base_reg']
+    disp = m.get('disp') or 0
+    idx = m.get('idx')
+    auto = m.get('auto')
+    if bkind == 'literal':
+        a = (abs_addr + disp) & MASK
+        eff_c = '0x%08X' % a
+        eff_py = '0x%08X' % a
+        if idx is not None:
+            eff_c = '(%s + %s)' % (eff_c, idx)
+            eff_py = '(%s + r[0])' % eff_py
+        note = ' /* RAM 0x%08X */' % a if ops.classify_addr(a) == 'RAM' else ' /* ROM */'
+    else:
+        base_c, base_py = 'r%d' % breg, 'r[%d]' % breg
+        if idx is not None:
+            eff_c = '(%s + %s)' % (base_c, idx)
+            eff_py = '(%s + r[0])' % (base_py, idx)
+        elif disp < 0:
+            eff_c, eff_py = '(%s - %d)' % (base_c, -disp), '(%s - %d)' % (base_py, -disp)
+        elif disp > 0:
+            eff_c, eff_py = '(%s + %d)' % (base_c, disp), '(%s + %d)' % (base_py, disp)
+        else:
+            eff_c, eff_py = base_c, base_py
+        note = ''
+    if gdir == 'load':
+        t = temp()
+        if m.get('sext'):
+            c = ['uint32_t %s = %s*(volatile %s*)%s;%s' % (t, _SEXT_C[size], _CTYPE[size], eff_c, note),
+                 'r%d = %s;' % (m['dest'], t)]
+            py = ['r[%d] = %s(_rdw(ram, %s, %d))' % (m['dest'], _SEXT_PY[size], eff_py, size)]
+        else:
+            c = ['uint32_t %s = *(volatile %s*)%s;%s' % (t, _CTYPE[size], eff_c, note),
+                 'r%d = %s;' % (m['dest'], t)]
+            py = ['r[%d] = _rdw(ram, %s, %d)' % (m['dest'], eff_py, size)]
+        if auto == 'post':
+            c.append('r%d = r%d + %d;' % (breg, breg, size))
+            py.append('r[%d] = (r[%d] + %d) & 0xFFFFFFFF' % (breg, breg, size))
+    else:
+        c = ['*(volatile %s*)%s = r%d;%s' % (_CTYPE[size], eff_c, m['src'], note)]
+        py = ['_wrw(ram, %s, %d, r[%d])' % (eff_py, size, m['src'])]
+        if auto == 'pre':
+            c.append('r%d = r%d - %d;' % (breg, breg, size))
+            py.append('r[%d] = (r[%d] - %d) & 0xFFFFFFFF' % (breg, breg, size))
+    return c, py
+
+
+def _gbr_record(pc, op, size, gdir, abs_addr, temp):
+    """C + py for a 0xC0-C6 GBR-relative b/w/l op (baked abs address)."""
+    note = ' /* RAM 0x%08X */' % abs_addr if ops.classify_addr(abs_addr) == 'RAM' else ' /* ROM */'
+    if gdir == 'load':
+        t = temp()
+        if size < 4:
+            c = ['uint32_t %s = %s*(volatile %s*)0x%08X;%s' % (t, _SEXT_C[size], _CTYPE[size], abs_addr, note),
+                 'r0 = %s;' % t]
+            py = ['r[0] = %s(_rdw(ram, 0x%08X, %d))' % (_SEXT_PY[size], abs_addr, size)]
+        else:
+            c = ['uint32_t %s = *(volatile %s*)0x%08X;%s' % (t, _CTYPE[size], abs_addr, note),
+                 'r0 = %s;' % t]
+            py = ['r[0] = _rdw(ram, 0x%08X, %d)' % (abs_addr, size)]
+    else:
+        c = ['*(volatile %s*)0x%08X = r0;%s' % (_CTYPE[size], abs_addr, note)]
+        py = ['_wrw(ram, 0x%08X, %d, r[0])' % (abs_addr, size)]
+    return c, py
+
+
+def _stack_record(pc, op, sh, off):
+    """C + py for one stack/frame mem op.  off is the absolute offset from
+    STACK_BASE (after decrement for @-r15 stores, before increment for @r15+
+    loads); r15/r14 movement is implicit in the local_<off> model."""
+    size, gdir = sh['size'], sh['dir']
+    if gdir == 'load':
+        if size < 4:
+            c = ['r%d = %s(local_%x & 0x%Xu);' % (sh['dest'], _SEXT_C[size], off, (1 << (8 * size)) - 1)]
+            py = ['r[%d] = %s(_rdw(ram, STACK_BASE + 0x%X, %d))' % (sh['dest'], _SEXT_PY[size], off, size)]
+        else:
+            c = ['r%d = local_%x;' % (sh['dest'], off)]
+            py = ['r[%d] = _rdw(ram, STACK_BASE + 0x%X, %d)' % (sh['dest'], off, size)]
+        if sh['auto'] == 'post':
+            py.append('sp = (sp + %d) & 0xFFFFFFFF' % size)
+    else:
+        c = ['local_%x = r%d;' % (off, sh['src'])]
+        py = ['local[0x%X] = r[%d]' % (off, sh['src']),
+              '_wrw(ram, STACK_BASE + 0x%X, %d, r[%d])' % (off, size, sh['src'])]
+        if sh['auto'] == 'pre':
+            py.append('sp = (sp - %d) & 0xFFFFFFFF' % size)
+    return c, py
+
+
+def _walk_mem_span(rom, addr, end):
+    """Re-decode an accepted mem span for emission.  Mirrors _scan_mem_function's
+    acceptance tracking (written/lits/gbr/stack_ok/frame_live) exactly, so the
+    resolved bases agree with selection.  Returns (records, info) or None on any
+    divergence (caller drops the function):
+      records: [{'pc', 'op', 'kind', 'c': [C lines], 'py': [py lines], 'mnem'}]
+      info:    {'stack_offs': set, 'ram_addrs': set, 'has_stack', 'has_literal'}
+    """
+    bound = min(end, len(rom))
+    written = set()
+    lits = {}
+    tmp = [0]
+    gbr_known = False
+    gbr_value = None
+    stack_ok = True
+    frame_live = False
+    frame_off = None
+    sp_off = STACK_TOP - STACK_BASE      # init r15 offset (== 0x400)
+    records = []
+    info = {'stack_offs': set(), 'ram_addrs': set(),
+            'has_stack': False, 'has_literal': False}
+
+    def temp():
+        tmp[0] += 1
+        return 't%d' % tmp[0]
+
+    def resolve(reg):
+        v = lits.get('r%d' % reg)
+        if v is None:
+            return None
+        cls = ops.classify_addr(v)
+        if cls in ('RAM', 'ROM'):
+            return (cls, v)
+        return None
+
+    ctx = {'temp': temp, 'resolve': resolve}
+    pc = addr
+    while pc + 1 < bound:
+        op = (rom[pc] << 8) | rom[pc + 1]
+        d = ops.translate(op, pc, rom)
+        if d is not None:
+            if d.get('kind') in ('branch', 'ret'):
+                return None
+            ctext = '\n'.join(d.get('c') or [])
+            if op == 0x6E3F:                       # mov r15,r14 -> frame pointer
+                if stack_ok and 'r14' not in written:
+                    frame_live = True
+                    frame_off = sp_off
+                records.append({'pc': pc, 'op': op, 'kind': 'frame',
+                                'c': ['/* 0x%06X: mov r15,r14 (frame pointer — implicit) */' % pc],
+                                'py': ['r[14] = sp'], 'mnem': 'mov r15,r14'})
+            else:
+                writes = _stmt_writes(ctext)
+                if 'r15' in writes:
+                    stack_ok = False
+                if 'r14' in writes:
+                    frame_live = False
+                if not _apply_stmt(rom, pc, op, d, written, lits):
+                    return None
+                records.append({'pc': pc, 'op': op, 'kind': 'st',
+                                'c': list(d.get('c') or []),
+                                'py': list(d.get('py') or []),
+                                'mnem': d.get('ann') or ('op 0x%04X' % op)})
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x401E:                  # ldc Rn,GBR
+            gbr_known = True
+            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            records.append({'pc': pc, 'op': op, 'kind': 'ldc',
+                            'c': ['/* 0x%06X: ldc r%d,GBR (GBR = 0x%08X) */'
+                                  % (pc, (op >> 8) & 0xF, gbr_value or 0)],
+                            'py': [], 'mnem': 'ldc r%d,GBR' % ((op >> 8) & 0xF)})
+            pc += 2
+            continue
+        if is_call_op(op) or is_branch_op(op):
+            return None
+        m = ops.decode_mem(op, None, ctx)
+        if m is not None:
+            base_reg = m['base_reg']
+            if m.get('idx') == 'r0' and 'r0' not in lits:
+                return None
+            if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                bkind, abs_addr = 'param', None
+            elif 'r%d' % base_reg in lits:
+                bkind, abs_addr = 'literal', lits['r%d' % base_reg]
+            else:
+                return None
+            if bkind == 'literal':
+                info['has_literal'] = True
+                info['ram_addrs'].add(abs_addr)
+            c, py = _mem_record(pc, op, m, bkind, abs_addr, temp)
+            records.append({'pc': pc, 'op': op, 'kind': 'mem',
+                            'c': c, 'py': py, 'mnem': m['ann']})
+            _apply_mem_writes(m, written, lits)
+            pc += 2
+            continue
+        g = _decode_gbr(op)
+        if g is not None:
+            size, gdir, disp = g
+            if not gbr_known or gbr_value is None or 'r0' not in lits:
+                return None
+            abs_addr = (gbr_value + lits['r0'] + disp) & MASK
+            info['has_literal'] = True
+            info['ram_addrs'].add(abs_addr)
+            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
+                  'src': 0 if gdir == 'store' else None}
+            c, py = _gbr_record(pc, op, size, gdir, abs_addr, temp)
+            if gdir == 'store':
+                mnem = 'mov.%s r0,@(0x%X,gbr)' % (_SIZE_CH[size], disp)
+            else:
+                mnem = 'mov.%s @(0x%X,gbr),r0' % (_SIZE_CH[size], disp)
+            records.append({'pc': pc, 'op': op, 'kind': 'gbr',
+                            'c': c, 'py': py, 'mnem': mnem})
+            _apply_mem_writes(gm, written, lits)
+            pc += 2
+            continue
+        sh = _mem_shape(op)
+        if sh is not None and sh['base'] in (14, 15):
+            breg = sh['base']
+            if breg == 15:
+                if not stack_ok or sh['dest'] == 15:
+                    return None
+            else:
+                if not frame_live or sh['dest'] == 14:
+                    return None
+            if sh['idx'] is not None:              # dynamic r0 index: not mappable
+                return None
+            if breg == 15:
+                if sh['auto'] == 'pre':
+                    sp_off -= sh['size']
+                    off = sp_off
+                elif sh['auto'] == 'post':
+                    off = sp_off
+                    sp_off += sh['size']
+                else:
+                    off = sp_off + sh['disp']
+            else:
+                off = (frame_off if frame_off is not None else sp_off) + sh['disp']
+            info['has_stack'] = True
+            info['stack_offs'].add(off)
+            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                  'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
+            c, py = _stack_record(pc, op, sh, off)
+            records.append({'pc': pc, 'op': op, 'kind': 'stack',
+                            'c': c, 'py': py, 'mnem': _stack_mnem(sh)})
+            _apply_mem_writes(sm, written, lits)
+            pc += 2
+            continue
+        if is_mem_opcode(op) or is_fpu_op(op):
+            return None
+        return None
+    return records, info
+
+
+def emit_mem(addr, name, size, entry, rom, seed, out_c, out_t):
+    """--mode mem emission: lift one accepted mem function.
+
+    Writes c/<name>_<addr>.c (compile-gated: dropped if `cc -O2 -c` fails, no
+    test written) and c/tests/test_<name>_<addr>.py.  The test differentials a
+    Python spec_mirror against the sh2emu oracle over 2000 random inputs with
+    deterministic RAM prefill around the literal addresses and a synthetic
+    0x400-byte stack at STACK_BASE (r15 init = STACK_TOP, passed via regs=).
+    """
+    fn = sanitize(name)
+    span = _walk_mem_span(rom, addr, addr + size)
+    if span is None:
+        print('WARNING: lift 0x%X %-40s re-walk diverged from selection; dropped'
+              % (addr, fn))
+        return False
+    records, info = span
+
+    # ---- C body: locals (registers + stack slots) + statements ----
+    stmts = []
+    for rec in records:
+        stmts.append('/* 0x%06X: %s */' % (rec['pc'], rec['mnem']))
+        stmts.extend(rec['c'])
+    body_text = '\n'.join(stmts)
+    refs = set()
+    for m_ in re.finditer(r'\br(?:[0-9]|1[0-5])\b', body_text):
+        refs.add(m_.group(0))
+    for tok in ('T', 'Q', 'M', 'macl', 'mach', 'sr', 'pr'):
+        if re.search(r'\b%s\b' % tok, body_text):
+            refs.add(tok)
+    refs.add('r0')
+
+    lines = []
+    if any('r%d' % n in refs for n in range(4, 8)):
+        lines.append('    /* params (possibly) */')
+    # r15 is the stack pointer (implicit in local_<off>) and is never declared.
+    for n in list(range(0, 4)) + list(range(8, 15)):
+        if 'r%d' % n in refs:
+            lines.append('    uint32_t r%d = 0;' % n)
+    for t in ('T', 'Q', 'M', 'macl', 'mach', 'sr', 'pr'):
+        if t in refs:
+            if t == 'pr':
+                lines.append('    uint32_t pr = 0xEEEE0000u;')
+            else:
+                lines.append('    uint32_t %s = 0;' % t)
+    for off in sorted(info['stack_offs']):
+        lines.append('    uint32_t local_%x = 0;' % off)
+    lines.extend('    ' + s for s in stmts)
+    lines.append('    return r0;')
+    cbody = '\n'.join(lines)
+
+    raw = rom[addr:addr + size]
+    flat = ' '.join('%02X' % b for b in raw)
+
+    banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
+              ' * Auto-generated by tools/gen_c_lift.py - not human-verified.\n'
+              ' * Mode: mem (RAM-only, straight-line) */') % (ROM_LABEL, addr, size)
+    c_text = (banner + '\n'
+              '#include <stdint.h>\n'
+              'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
+              '{\n%s\n}\n') % (fn, addr, cbody)
+    with open(out_c, 'w') as f:
+        f.write(c_text)
+
+    # ---- compile gate (same gate as the pure path) ----
+    tmp_obj = os.path.join(tempfile.gettempdir(),
+                           'gen_c_lift_%d.o' % os.getpid())
+    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
+                          capture_output=True, text=True)
+    if os.path.exists(tmp_obj):
+        os.remove(tmp_obj)
+    if gate.returncode != 0:
+        os.remove(out_c)
+        print('WARNING: lift 0x%X %-40s failed `cc -O2 -c`; .c dropped, no test written'
+              % (addr, fn))
+        return False
+
+    # ---- test harness: spec_mirror vs sh2emu, 2000 random cases ----
+    py_stmts = []
+    for rec in records:
+        py_stmts.append('    # 0x%06X: %s' % (rec['pc'], rec['mnem']))
+        for s in rec['py']:
+            joined = '\n    '.join(ln.strip() for ln in s.split('\n') if ln.strip())
+            py_stmts.append('    ' + joined)
+
+    offs_list = sorted(info['stack_offs'])
+    stack_offs = ', '.join('0x%X' % o for o in offs_list)
+    if len(offs_list) == 1:
+        stack_offs += ','                 # (0x414,) must stay a tuple, not an int
+    ram_addrs = [v for v in info['ram_addrs'] if ops.classify_addr(v) == 'RAM']
+    ram_min = min(ram_addrs) if ram_addrs else None
+    ram_max = max(ram_addrs) if ram_addrs else None
+
+    test = (
+        '#!/usr/bin/env python3\n'
+        '"""Differential test for %s (0x%X) — mem lift (RAM-only, straight-line), %d bytes.\n'
+        'Auto-generated by tools/gen_c_lift.py — not human-verified.\n'
+        'Compares a Python spec_mirror against the sh2emu oracle (which runs the\n'
+        'actual ROM bytes) over %d random inputs: deterministic RAM prefill around\n'
+        'the literal addresses plus a synthetic 0x400-byte stack at STACK_BASE.\n'
+        'Run from repo root: python3 c/tests/test_%s_%x.py\n'
+        '"""\n'
+        'import os, random, sys\n\n'
+        'ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n'
+        'sys.path.insert(0, os.path.join(ROOT, "tools"))\n'
+        'from sh2emu import SH2\n'
+        'from c_lift_ops import s8, s16, s32\n\n'
+        'ROM = os.path.join(ROOT, "roms", "stock", "60E1D400.bin")\n'
+        'ROM_BYTES = open(ROM, "rb").read()\n'
+        'ENTRY = 0x%X\n'
+        'RAW = bytes.fromhex("%s")\n'
+        'SEED = %d\n'
+        'N = 2000\n'
+        'STACK_BASE = 0xFFFFD000\n'
+        'STACK_TOP = STACK_BASE + 0x400\n'
+        'STACK_OFFS = (%s)\n'
+        'RAM_MIN = %s\n'
+        'RAM_MAX = %s\n\n'
+        'def _rd(ram, a):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    v = ram.get(a)\n'
+        '    if v is not None:\n'
+        '        return v\n'
+        '    return ROM_BYTES[a] if a < len(ROM_BYTES) else 0\n\n'
+        'def _rdw(ram, a, n):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    return int.from_bytes(bytes(_rd(ram, (a + i) & 0xFFFFFFFF) for i in range(n)), "big")\n\n'
+        'def _wrw(ram, a, n, v):\n'
+        '    a &= 0xFFFFFFFF\n'
+        '    for i in range(n):\n'
+        '        ram[(a + i) & 0xFFFFFFFF] = (v >> (8 * (n - 1 - i))) & 0xFF\n\n'
+        'def spec_mirror(r4, r5, r6, r7, ram, stack_top):\n'
+        '    r = [0] * 16\n'
+        '    r[4], r[5], r[6], r[7] = r4 & 0xFFFFFFFF, r5 & 0xFFFFFFFF, r6 & 0xFFFFFFFF, r7 & 0xFFFFFFFF\n'
+        '    T = 0; Q = 0; M = 0; mach = 0; macl = 0; pr = 0xEEEE0000\n'
+        '    sp = stack_top & 0xFFFFFFFF\n'
+        '    local = {off: int.from_bytes(bytes(_rd(ram, STACK_BASE + off + i) for i in range(4)), "big") for off in STACK_OFFS}\n'
+        '    ns = {"r": r, "T": T, "Q": Q, "M": M, "mach": mach, "macl": macl, "pr": pr,\n'
+        '          "s8": s8, "s16": s16, "s32": s32}\n'
+        '%s\n'
+        '    r[15] = sp\n'
+        '    return r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in r], ram, local\n\n'
+        'def run(cpu, ram, a, b, c_, d):\n'
+        '    end = ENTRY + len(RAW)\n'
+        '    ram = dict(ram)\n'
+        '    ram[end] = 0x00; ram[end + 1] = 0x0B; ram[end + 2] = 0x00; ram[end + 3] = 0x09\n'
+        '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram, regs={15: STACK_TOP})\n'
+        '    out = dict(cpu.ram)\n'
+        '    for i in range(4):\n'
+        '        out.pop(end + i, None)\n'
+        '    return cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out\n\n'
+        'def main():\n'
+        '    rnd = random.Random(SEED)\n'
+        '    cpu = SH2(ROM_BYTES)\n'
+        '    for caso in range(N):\n'
+        '        ram = {}\n'
+        '        if RAM_MIN is not None:\n'
+        '            for a in range(RAM_MIN - 0x400, RAM_MAX + 0x401):\n'
+        '                ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        for a in range(STACK_BASE, STACK_BASE + 0x400):\n'
+        '            ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        a = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        b = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        c_ = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        d = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        exp_r0, exp_regs, exp_ram, exp_local = spec_mirror(a, b, c_, d, dict(ram), STACK_TOP)\n'
+        '        got_r0, got_regs, got_ram = run(cpu, ram, a, b, c_, d)\n'
+        '        if exp_regs != got_regs:\n'
+        '            for i in range(16):\n'
+        '                if exp_regs[i] != got_regs[i]:\n'
+        '                    print("MISMATCH case=%%d reg=r%%d mirror=%%08X emu=%%08X" %% (caso, i, exp_regs[i], got_regs[i]))\n'
+        '                    sys.exit(1)\n'
+        '        for ad in sorted(set(exp_ram) | set(got_ram)):\n'
+        '            if exp_ram.get(ad, 0) != got_ram.get(ad, 0):\n'
+        '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
+        '                sys.exit(1)\n'
+        '    print("PASS 2000/2000")\n\n'
+        'if __name__ == "__main__":\n'
+        '    main()\n'
+    ) % (fn, addr, size, N_CASES, fn, addr, addr, flat, seed, stack_offs,
+         'None' if ram_min is None else '0x%X' % ram_min,
+         'None' if ram_max is None else '0x%X' % ram_max,
+         '\n'.join(py_stmts).rstrip())
+
+    with open(out_t, 'w') as f:
+        f.write(test)
+    return True
+
+
 def compute_stats():
     """unique lift addrs from existing c/*.c banners + catalog totals."""
     unique = set()
@@ -280,6 +1171,10 @@ def main():
     ap.add_argument('--category', default=None, help='filter by FUNCTION_CATEGORIES category')
     ap.add_argument('--n', type=int, default=1, help='number of functions to lift')
     ap.add_argument('--seed', type=int, default=0, help='RNG seed (deterministic)')
+    ap.add_argument('--mode', choices=('pure', 'mem'), default='mem',
+                    help='pure = v1 straight-line lift; mem = memory-op selection (additive)')
+    ap.add_argument('--dryrun', action='store_true',
+                    help='select/count only, write no files (mem mode default report)')
     ap.add_argument('--addr', default=None, help='lift only this addr (hex, e.g. 0x1234)')
     ap.add_argument('--stats', action='store_true', help='print lift stats and exit')
     ap.add_argument('--rom', default=os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin'))
@@ -305,6 +1200,29 @@ def main():
         cands = categories
         if args.category:
             cands = [c for c in cands if c['category'] == args.category]
+
+    # ---- --mode mem: selection + emission ----
+    if args.mode == 'mem':
+        selected, counters = select_mem(cands, args.n, args.seed, rom, catalog)
+        if args.dryrun:
+            print_mem_report(selected, counters, args)
+            return
+        emitted = 0
+        dropped = 0
+        for e in selected:
+            base = sanitize(e['name'])
+            lf = '%s_%x' % (base, e['addr'])
+            out_c = os.path.join(ROOT, 'c', lf + '.c')
+            out_t = os.path.join(ROOT, 'c', 'tests', 'test_' + lf + '.py')
+            if emit_mem(e['addr'], e['name'], e['size'], e, rom, args.seed,
+                        out_c, out_t):
+                emitted += 1
+                print('lifted 0x%X %-40s size=%3d -> %s'
+                      % (e['addr'], e['name'], e['size'], out_c))
+            else:
+                dropped += 1
+        print('emitted=%d dropped_compile=%d' % (emitted, dropped))
+        return
 
     # decode + purity + length filter, keep stable (size) order for selection
     pool = []
@@ -340,6 +1258,11 @@ def main():
             skipped += 1
             continue
 
+        if args.dryrun:
+            emitted += 1
+            print('would_lift 0x%X %-40s size=%3d -> %s (dry-run, no file written)'
+                  % (c['addr'], c['name'], size, out_c))
+            continue
         if not emit(c['addr'], c['name'], size, span, rom, args.seed, out_c, out_t):
             dropped += 1
             continue
