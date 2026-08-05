@@ -6,6 +6,9 @@ Obiettivo PLANS.md:155-156: chiudere il residuo documentato
 
 Stato: COMPILATO (2026-08-03). Tutti gli indirizzi verificati su ROM `60E1D400.bin`
 con `tools/disasm_sh2e.py`. Test suite `c/tests/test_security_access.py`: EXIT=0, tutti PASS.
+2026-08-04: merge del cluster seed-key — questo file è ora il **canonico** per
+SecurityAccess (assorbiti `REQUEST_SEED_EVIDENCE.md`, `CROSS_VALIDATION_SEEDKEY.md`,
+`SENDKEY_RECONCILIATION.md`, che sono stati rimossi; fatti unici in §7).
 
 ---
 
@@ -20,7 +23,8 @@ con `tools/disasm_sh2e.py`. Test suite `c/tests/test_security_access.py`: EXIT=0
 
 ### Dispatch interno del handler `0x584A0` (SecurityAccess)
 
-Ingresso: `r4` = buffer/len, `r5` = subfunction byte.
+Ingresso: `r4` = msg_len (16-bit value, NON puntatore), `r5` = subfunction byte
+(RESOLVED 2026-08-04 — dispatcher @`0x697E8`-`0x69840`; v. §7.1).
 
 1. `r4 = extu.b r5`; `cmp/eq #0x01` — **solo subfunction == 1 prosegue**
    (≠1 → `0x5862C`, exit senza risposta). Fonte: `0x584A6`-`0x584B8`.
@@ -29,9 +33,11 @@ Ingresso: `r4` = buffer/len, `r5` = subfunction byte.
 3. **La parità di `[r15]` seleziona l'operazione** (`0x584FE`-`0x58516`):
    - `[r15]` dispari → RequestSeed (`0x5851A`)
    - `[r15]` pari   → SendKey   (`0x58592`)
-4. SendKey: in `0x58594` c'è un `cmp/eq #0x04` sullo stesso valore; il significato
-   esatto del 4 non è chiuso (v. Sezione 6 — il C usa `SF_SEND_KEY=0x04`,
-   librx8 usa `0x02`; entrambi pari, entrambi cadono nel ramo SendKey).
+ 4. SendKey: in `0x58594` c'è un `cmp/eq #0x04` sullo stesso valore; il significato
+    esatto del 4 non è chiuso (v. Sezione 6 — il C usa `SF_SEND_KEY=0x04`,
+    librx8 usa `0x02`; entrambi pari, entrambi cadono nel ramo SendKey).
+    **Poi risolto**: il ramo SendKey è dead code in 9/9 ROM (verdict (b), §7.3) —
+    il `cmp/eq #0x04` non è mai raggiungibile.
 
 ### Il "level" NON è derivato dalla subfunction linearmente
 
@@ -204,11 +210,21 @@ segnalate; il file è sotto test):
 4. **SF_SEND_KEY = 0x04** vs librx8 `MAZDA_SBF_CHECK_KEY = 0x02`; il `cmp/eq
    #0x04` a `0x58594` non è risolto (buffer/len vs subfunction: ambiguità sulla
    convention di `r4` in ingresso).
+   **RESOLVED (2026-08-04, §7.3)**: il body SendKey è **dead code in tutte e 9 le
+   ROM stock** (verdict (b)) — il `cmp/eq #0x04` a `0x58594` non è mai raggiungibile
+   (solo `subfunc==1`, dispari, entra nel body; `subfunc!=1` va all'else path).
+   La convention di `r4` è chiusa da §7.1: `r4` = msg_len, `r5` = subfunction.
 5. **seed_key_related(4, …) nel ramo SendKey (riga 236)**: la ROM passa
    `r4 = r12` (result data_copy/state), non 4.
+   **RESOLVED (2026-08-04, §7.3)**: ramo SendKey morto in 9/9 ROM — il valore di
+   `r4` lì non è mai osservabile a runtime; il C mantiene il body come ricostruzione
+   fedele della shared-codebase remnant (nessuna rimozione di codice).
 6. `0x68BC0` e `0x688B4` (dispatch SID per-subfunction): struttura verificata
    solo a grandi linee; la convention esatta `r4`/`r5` dell'handler 0x584A0
    (buffer vs length) non è chiusa.
+   **RESOLVED (2026-08-04, §7.1)**: dispatcher `0x697E8`-`0x69840` → `r4` = msg_len
+   (16-bit, `mov.w @r15,r4` @`0x69840`; il payload è letto da `0x68BC0`),
+   `r5` = subfunction (8-bit @`0x6983A`-`0x6983C`).
 
 Storia: i residui 1-3 (key_validate table 10-entry, middle byte = SECURITY_STATE_2,
 word_tab[2]=0xFFFC) sono stati **corretti e VERIFIED** nel C (commit `b483523`),
@@ -217,7 +233,138 @@ restano aperti.
 
 Open item esplicito per PLANS.md:155-156: verificare se `0x584A0` riceve
 `r5`=subfunction UDS o `r5`=primo byte payload (impatto su §1 e §6.4).
+**RESOLVED 2026-08-04 (v. §7.1)**: `r5` = subfunction byte; `r4` = msg_len (16-bit
+value, NON puntatore). Il flusso RequestSeed è ora confermato riga-per-riga.
 Stato attuale: il handler `0x584A0` è **strutturalmente ricostruito** e il core
 (seed_gen, key_validate, position_check, seed_key_related/lfsr) è **VERIFIED**
-(vedi `docs/functions/security_access_handler.md`); resta da confermare in
-dettaglio il **flusso RequestSeed** (`c/security_access.c` ~riga 203-248).
+(vedi `docs/functions/security_access_handler.md`); il **flusso RequestSeed** è
+**ROM-CONFIRMED 2026-08-04** (evidenza riga-per-riga in §7.1).
+
+---
+
+## 7. Evidence consolidata (2026-08-04, merge dei 3 note cluster)
+
+I tre note `REQUEST_SEED_EVIDENCE.md`, `CROSS_VALIDATION_SEEDKEY.md`,
+`SENDKEY_RECONCILIATION.md` sono state assorbite in questo file (fatti unici qui
+sotto) e rimosse dal repo (`git rm`) — i referenti esterni (README, ECU_CAPTURE_PLAN,
+AUX_HANDLERS_COMPARISON, c/security_access.c) ora puntano a questo file.
+
+### 7.1 RequestSeed flow — evidenza ROM riga-per-riga (ex REQUEST_SEED_EVIDENCE)
+
+- Metodo: disasm byte-exact `tools/disasm_sh2e.py` + `src/60E1D400_annotated.s`
+  (flat image: file offset == VA). **Status CONFIRMED 2026-08-04** (era PENDING).
+- **Convention di chiamata RISOLTA** (chiude §6.6): dispatcher @`0x697E8`-`0x69840`
+  chiama l'handler con `r4` = **msg_len** (16-bit, `mov.w @r15,r4` @`0x69840`,
+  payload length escluso il byte SID) e `r5` = **subfunction** (8-bit,
+  `mov.b @(0x04,r15),r0; mov r0,r5` @`0x6983A`-`0x6983C`). Il C
+  `msg_len = (msg[0]<<8)|msg[1]` è semanticamente equivalente.
+- **Callee identities** via literal pool handler @`0x58690`-`0x586C4`:
+  0x68BC0 (read payload), 0x56866 (state_check1 @0xFFFFD20B), 0x568E6 (state_check2
+  @0xFFFFD20C), 0x553AA (udsErrorResponse `[0x7F,sid,nrc]` → 0x68B60), 0x5699A
+  (seed_gen), 0x56892 (position_check), 0x56928 (key_validate), 0x56AC0 (data_copy,
+  SEED_RAM @0xFFFFD211 → dst, return level @0xFFFFD214), 0x5698A (level-slot
+  resolver, SendKey), 0x56ADA (seed_key_related), 0x56720 (unlock), 0x55362 (UDS
+  response/notification helper), 0x55386 (response helper, subfunc==0 path), 0x68B60
+  (UDS send).
+- **Response builder `0x5864A`**: `mov #103,r3` (0x67) @`0x5864A`;
+  `resp = [0x67, subfunc, 3 seed bytes]` → send `0x68B60`. Il C inline il builder.
+- **Common epilogue** `0x58622`: `jsr @0x55362` (r4=0x27, r5=helper return) — UDS
+  framework notification, non modellato dal C.
+- **NRC table** (unici literal NRC in tutto il body 0x584A0-0x58648:
+  {0x12, 0x31, 0x22, 0x35}; 0x22/0x35 appartengono al body SendKey morto; **NRC
+  0x11 MAI emesso**):
+
+  | NRC | Condizione            | ROM addr                    |
+  |-----|-----------------------|-----------------------------|
+  | 0x12 | `msg_len == 0`        | `0x584E8` → `0x5861A`       |
+  | 0x12 | `msg_len != 1` (discr a) | `0x5851E` → `0x58588`     |
+  | 0x31 | `subfunc == 0`        | `0x584F6` → `0x5861C`       |
+  | 0x31 | `chk == 3` (position_check sentinel) | `0x58534` → `0x5857E` |
+  | 0x31 | `key_validate(...) != 0` | `0x58548` → `0x58574`    |
+
+- **Discrepanze C vs ROM (documentate; logica C NON toccata)**:
+  - **(a) `msg_len == 1` check mancante nel C**: ROM `0x5851A`-`0x5851E`
+    `cmp/eq #0x01`; `msg_len != 1` → NRC 0x12 @`0x58588`. Il C rigetta solo `==0`.
+  - **(b) Seed write condizionale**: ROM `0x5854C`-`0x58566` — `state2 == chk` → i 3
+    byte seed risposta sono **zero-filled** (no copy); `state2 != chk` → rigenera con
+    `seed_gen(chk)` (@`0x5855E`-`0x58560`, il `seed_gen(3)` @`0x58522` è solo
+    side-effect finalization) e **poi** copia. Il C fa `data_copy` incondizionato
+    → risposta C porterebbe seed level-3 in tutti i casi, la ROM livello-`chk`
+    (o `{0,0,0}`).
+  - **(c) State reads incondizionate nel C**: la ROM legge SECURITY_STATE_1/2 solo
+    nel ramo `subfunc==1` (benigno, le read sono side-effect-free).
+  - **(d) Calling convention**: `r4` = msg_len (value), non puntatore.
+  - **(e) SendKey unreachable in 60E1D400** → risolto da §7.3 (dead in 9/9).
+- L'abs-trick (`abs_sub` @`0x584FE`-`0x58516`) ESISTE ma è **vestigiale**: instrada
+  odd→RequestSeed / even→SendKey, ma è raggiungibile solo per `subfunc==1` (sempre
+  dispari) → sempre RequestSeed. **NON esiste guardia "level must be 1"**: il `==1`
+  è su `msg_len`, il sentinel `==3` viene da `position_check`.
+
+### 7.2 Cross-validation community (ex CROSS_VALIDATION_SEEDKEY)
+
+- **Status CONFIRMED-CROSS 2026-08-04** vs ConnorRigby/rx8-ecu-dump `src/librx8.cpp`
+  `calculateKey()`, commit `5c784eccd5d399c8593cecd13a6fcf0dcd973ae1` (main v0.9.0,
+  2022-11-05, Apache-2.0, reference only — no code copied).
+- Transform identica: **24-bit Galois LFSR**, init `0xC541A9` (= level-1 entry
+  @`0x5FAC8`), taps `0x909028` (bit {23,20,15,12,5,3}; mask community `0xEF6FD7`
+  clears {3,5,12,15,20}), 64 clock (32+32), stream LSB-first
+  `seed[0..2] + "MazdA"` (phase1: seed[0]|seed[1]<<8|seed[2]<<16|secret[0]<<24;
+  phase2: secret[4]<<24|secret[3]<<16|secret[2]<<8|secret[1]), key extraction
+  nibble-interleave `[b2,b1,b0]`.
+- **Nessun XOR**: il secret è alimentato come stream di input LFSR (byte 0 phase 1,
+  byte 1-4 phase 2), non XORato col seed.
+- **Vettori: 0 divergenze** — 100 000 clock random (0 mismatches), 400 seed random
+  (0 mismatches), 3 vettori ROM level-1 (45820A→A07258, CBFED4→75491A,
+  123456→86CA06), live capture seed **0x464E7F → key 0xFAFDD8**.
+  Livelli 2-4: init table @`0x5FAC5` (level1 C5 41 A9, level2 A3 95 82, …) — solo il
+  nostro modello ROM-derivato li copre (12/12); community hardcoda level-1.
+- Live capture: rnd-ash wiki, bench RX-8 **ICM** (0x720→0x728) `27 01` →
+  `67 01 46 4E 7F` — **non PCM** (0x7E0→0x7E8); PCM atteso stesso transform (stessa
+  famiglia ROM). Expected future capture: `27 01` → `67 01 46 4E 7F` →
+  `27 02 FA FD D8` → `67 02`.
+- NRC: community {0x22, 0x35, 0x36} nel suo path diag/programming (0x81/0x85 +
+  bootloader); nostro handler run-mode {0x12, 0x31, 0x22, 0x35} — differenza
+  handler/session-level, non transform.
+- Artifacts: `tools/mazda_security.py` (compute_key, 400 seed), `c/security_access.c`
+  (lfsr_clock, seed_key_related), `c/tests/test_security_access.py` (12/12 ROM
+  vectors), `c/tests/test_seed_gen_5699A.py` (0 mismatches),
+  `tools/tests/test_cross_seedkey.py` (cross-validation, community_clock trascritta
+  nel docstring).
+
+### 7.3 SendKey — dead code in 9/9 ROM (ex SENDKEY_RECONCILIATION, verdict (b))
+
+- **Status RESOLVED 2026-08-04 — verdict (b): il body SendKey è dead code in TUTTE
+  e 9 le ROM stock pubbliche** (baseline + 8 aux). Scan: flat image ⇒ file offset ==
+  VA; signature 8 byte `60 43 88 04 8f 3b 00 09` (= `mov r4,r0; cmp/eq #0x04,r0;
+  bf/s <fail>; nop`) — 1 hit esatta per immagine.
+- **Tabella per-ROM** (handler SID 0x27 presente; body identico; unico incoming =
+  `bf/s` abs-trick mai preso):
+
+  | ROM | SendKey block VA | incoming |
+  |-----|------------------|----------|
+  | 60E0E500 | 0x056F3E | 1× `bf/s` @0x56EC2 |
+  | 60E0E700_N3YLEE | 0x057196 | 1× `bf/s` @0x5711A |
+  | 60E0FB00 | 0x056026 | 1× `bf/s` @0x55FAA |
+  | 60E0FC00 | 0x056026 | 1× `bf/s` @0x55FAA |
+  | 60E15120_N3J1E | 0x057B56 | 1× `bf/s` @0x57ADA |
+  | 60E1B900 | 0x0562BE | 1× `bf/s` @0x56242 |
+  | 60E1C500_N3J6EB | 0x057202 | 1× `bf/s` @0x57186 |
+  | **60E1D400** (baseline) | 0x058592 | 1× `bf/s` @0x58516 |
+  | 60E32000_N3M5E | 0x05D4D2 | 1× `bf/s` @0x5D456 |
+
+- **Perché unreachable (3 check indipendenti)**: (1) entry dispatch ammette solo
+  `subfunc==1` (`cmp/eq #1`; ≠1 → else: `tst r4,r4` → subfunc==0 → resp helper
+  0x55386; subfunc≠0 → silent return); (2) unico branch entrante = abs-trick `bf/s`
+  (preso solo se `subfunc & 1 == 0`; subfunc==1 è dispari → mai preso); (3) nessun
+  ref indiretto (block address non appare come literal in nessuna immagine).
+- Le 8 aux ROM hanno un **re-check `msg_len==1`/`subfunc==1` extra** in entry
+  (es. 60E0E500 `0x5590A`/`0x55922`) e response-SID `#62`/0x3E sul else-path (vs
+  baseline `#39`/0x27) — layout handler leggermente diverso, regola di ammissione
+  identica.
+- **Conseguenza**: `c/security_access.c` tiene il branch SendKey come ricostruzione
+  fedele del body ROM (NO code removal), commento esteso col verdetto + VAs.
+- Commit history: `fd56201` (SeedKeyRelated VERIFIED — vector 0xA07258 emulator-
+  verified, level 1, 12/12 keys + 400 seeds), `31bb0ac` (handler flow allineato al
+  body ROM @0x58592-0x58610: gate `msg_len==4` @0x58592, data_copy→level,
+  seed_key_related, unlock), `d4313d2` (SendKey flagged unreachable in 60E1D400),
+  poi scan cross-ROM → verdict (b).

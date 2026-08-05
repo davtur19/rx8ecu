@@ -65,8 +65,8 @@ Base timing is a 3D table (RPM × Load). Corrections:
 ```
 engineControlTASK (0x11E94)
   └── engineControlCalculateTiming (0x14584)
-        ├── calc_combustion_efficiency_metric (0x121F0)
-        ├── calc_combustion_load_factor (0x1237C)
+        ├── calc_spark_advance (0x121F0)
+        ├── calc_spark_advance (0x1237C)
         ├── getKnockControlAllowed (0x13A0E)
         ├── getKnockSensorFaultedStatus (0x13A5E)
         ├── getKnockControlActive (0x13A86)
@@ -260,7 +260,7 @@ Data: `L_00ca78`=0xFFFF9F34 · `L_00ca7c`=0x71AC (adc_read_and_merge_flags) · `
 
 > STATUS 2026-08-01: Lifted and VERIFIED against the ROM emulator (500,000 random inputs, 0 mismatches; see c/rotor_sync_gate_state_ctrl_2100A.c and c/tests/test_rotor_sync_gate_state_ctrl_2100A.py). Despite the IDA name, this function does NOT compute a split angle and does NOT touch A734/A738. It manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as max(state − 0.0667, 0.0), or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, and the shared max helper @0x23E4. A734 == A738 in practice (written identically by calc_ignition_all_rotors_13C2C). The actual lead/trail split is NOT implemented here; see split_selector_state_ctrl_487DC for further analysis.
 
-> **NOTA (verificata, provenienza emulatore):** Split site `0x19220` (`calc_spark_lead_trail_split_19220`, chiamato da `engineControlCalculateTiming` @0x14584 dispatch 0x147D0): A9A0=leading, A9AC=trailing (selector @0xBCEF: 1/3→byte 0x6ED98/0x6ED99 costante=126 *0.5-50; 2→ThreeD(desc 0x69F14 TrailingA); 0→ThreeD(desc 0x69EF8 TrailingB)), minSplit=ThreeD(desc 0x69F30 MinSplit, load, RPM); A9A8=max(A9A0,A9AC); A9A4=A9A8+minSplit; A9C0=(lead>trail)?0:1. NOTA: alcuni doc vecchi chiamano "dwell" il desc 0x69F30 (MinSplit) — il nome corretto è MinSplit (verificato emulatore), dwell va ancora identificato.
+> **NOTA (verificata, provenienza emulatore):** Split site `0x19220` (`calc_spark_lead_trail_split_19220`, chiamato da `engineControlCalculateTiming` @0x14584 dispatch 0x147D0): A9A0=leading, A9AC=trailing (selector @0xBCEF: 1/3→byte 0x6ED98/0x6ED99 costante=126 *0.5-50; 2→ThreeD(desc 0x69F14 TrailingA); 0→ThreeD(desc 0x69EF8 TrailingB)), minSplit=ThreeD(desc 0x69F30 MinSplit, load, RPM); A9A8=max(A9A0,A9AC); A9A4=A9A8+minSplit; A9C0=(lead>trail)?0:1. NOTA: alcuni doc vecchi chiamano "dwell" il desc 0x69F30 (MinSplit) — il nome corretto è MinSplit (verificato emulatore); il **dwell** vero è identificato in **§6.2** (`getIgnitionDwellTime` 0x94C8, desc 0x6C1C0, dati 0x7CB20).
 
 Otherwise checks engine-running, temperature, load, AC, knock conditions to enable lead/trail split; if not met (cold start, overrun, knock) both plugs fire same angle. **Confidence: medium**.
 
@@ -452,7 +452,7 @@ Lookup fns @0x2068 (1D) and 0x20DC (3D): binary-search axis intervals, linear in
 
 1. **Precise table addresses** — cal_tables.csv addresses are J-line variant layout; verify vs 60E1D400.
 2. **Coil fire helper (0xAA74)** — may be PWM duty write or compare-register update; needs analysis.
-3. **Ion sense detection** — `spark_plug_monitor_0x50A54` may relate (separate code region).
+3. **Ion sense detection** — `coil_correction_write_0x50A54` may relate (separate code region).
 4. **Split angle formula** — precise lead/trail split not fully verified; `rotor_sync_gate_state_ctrl_2100A` deeper analysis needed.
 5. **DSC interaction** — EBCM torque reduction via `dscRelatedTiming` (0x19220); CAN message format unanalyzed.
 6. **Check engine light** — `ignition_fault_monitor_458F4` DTC trigger conditions need analysis.

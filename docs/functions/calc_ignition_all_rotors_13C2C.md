@@ -203,8 +203,8 @@ The function writes final timing values to:
 
 ```
 engineControlCalculateTiming (0x14584)
-  ├── calc_combustion_efficiency_metric (0x121F0)
-  ├── calc_combustion_load_factor (0x1237C)
+  ├── calc_spark_advance (0x121F0)
+  ├── calc_spark_advance (0x1237C)
   ├── getKnockControlAllowed (0x13A0E)
   ├── getKnockSensorFaultedStatus (0x13A5E)
   ├── getKnockControlActive (0x13A86)

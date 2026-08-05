@@ -592,7 +592,9 @@ States: PURGE_OFF, PURGE_RAMP_UP, PURGE_ACTIVE, PURGE_RAMP_DOWN, PURGE_DIAG. Ena
 
 ## Appendix A: Design Patterns
 
-Hysteresis comparator (`input > threshold → ON; input < threshold-band → OFF; else hold`), alternating sensor state machines (0x5D3E8, 0x5D800, ...) requiring N stable samples before output change to prevent actuator oscillation, and atomic SR save/restore (`stc sr`,`ldc r0,sr` with 0xe0) around register writes.
+- **Hysteresis comparator** — `input > threshold → ON; input < threshold-band → OFF; else hold` (SSV, VFAD, fans).
+- **Alternating sensor state machines** (0x5D3E8, 0x5D800, …) — require N stable samples before output change, to prevent actuator oscillation.
+- **Atomic SR save/restore** — `stc sr`, `ldc r0,sr` (with `0xe0`) around register writes — the standard critical-section idiom used by the aux drivers.
 
 ## Appendix B: Common Calibration Constants
 

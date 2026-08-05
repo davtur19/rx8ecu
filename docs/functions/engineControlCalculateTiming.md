@@ -29,8 +29,8 @@ tick from `engineControlTASK` (0x11E94).
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │ getSR(16)           save SR to stack                    │  │
 │  │ incomplete_stack_save_r14_r13  save r14, r13 to stack   │  │
-│  │ calc_combustion_efficiency_metric                       │  │
-│  │ calc_combustion_load_factor                             │  │
+│  │ calc_spark_advance                       │  │
+│  │ calc_spark_advance                             │  │
 │  │ getKnockControlAllowed                                │  │
 │  │ getKnockSensorFaultedStatus                            │  │
 │  │ getKnockControlActive                                   │  │
@@ -160,10 +160,10 @@ engineControlCalculateTiming:
   0x14592: mov.l r0,@r15         ; delay slot: store SR on stack
 
   ; === Phase 1 subsystem calls (8 calls) ===
-  0x14594: mov.l 0x1478c,r2  ; -> calc_combustion_efficiency_metric
+  0x14594: mov.l 0x1478c,r2  ; -> calc_spark_advance
   0x14596: jsr @r2
   0x14598: nop
-  0x1459A: mov.l 0x14790,r3  ; -> calc_combustion_load_factor
+  0x1459A: mov.l 0x14790,r3  ; -> calc_spark_advance
   ... (7 more calls, each 4 bytes: mov.l; jsr; nop)
 
   ; === Phase 1 barrier (restore + re-save SR) ===
@@ -194,8 +194,8 @@ engineControlCalculateTiming:
 |------|--------|--------|------|
 | 0 | 0x14784 | 0x003920 | **getSR** |
 | 1 | 0x14788 | 0x014B04 | incomplete_stack_save_r14_r13 |
-| 2 | 0x1478C | 0x0121F0 | calc_combustion_efficiency_metric |
-| 3 | 0x14790 | 0x01237C | calc_combustion_load_factor |
+| 2 | 0x1478C | 0x0121F0 | calc_spark_advance |
+| 3 | 0x14790 | 0x01237C | calc_spark_advance |
 | 4 | 0x14794 | 0x013A0E | getKnockControlAllowed |
 | 5 | 0x14798 | 0x013A5E | getKnockSensorFaultedStatus |
 | 6 | 0x1479C | 0x013A86 | getKnockControlActive |
@@ -266,7 +266,7 @@ engineControlCalculateTiming:
 | **Context mgmt** | 3 | getSR, setSR, incomplete_stack_save_r14_r13 |
 | **Knock detection / control** | 9 | getKnockControlAllowed, getKnockSensorFaultedStatus, getKnockControlActive, updateKnockMaxRAM, knock_sensor_threshold_43E90, knock_control_calc_44824, calc_combustion_chamber_temp, write_knock_detected_flag, calc_rotor_B_knock_flag, write_rotor_A_knock_flag |
 | **Fuel control** | 9 | calc_adaptive_fuel_trim, calc_accel_fuel_enrichment, calc_barometric_pressure_trim, read_fuel_pressure_feedback_status, calc_closed_loop_fuel_status, read_o2_sensor_voltage_trim, fuel_enable_logic_44AB2, fuel_cut_logic_4490A, fuel_correction_update_44370 |
-| **Combustion / load** | 4 | calc_combustion_efficiency_metric, calc_combustion_load_factor, calc_rotor_A_pressure_load, calc_rotor_B_pressure_load |
+| **Combustion / load** | 4 | calc_spark_advance, calc_spark_advance, calc_rotor_A_pressure_load, calc_rotor_B_pressure_load |
 | **Fuel pressure / injection** | 3 | fuel_pressure_calc_4409E, add_fuel_pressure_correction, calc_intake_pressure_pid_output_1252C |
 | **Throttle lift / fuel cut** | 2 | calc_decel_fuel_cut_445AA, FUN_0443A2 |
 | **Air control** | 2 | air_bypass_control_43E4A, air_bleed_control_43F20 |
@@ -328,8 +328,8 @@ void engineControlCalculateTiming(void)
     uint32_t saved_sr = getSR(16);             // save status register (intr mask)
     incomplete_stack_save_r14_r13();            // push r14, r13
 
-    calc_combustion_efficiency_metric();
-    calc_combustion_load_factor();
+    calc_spark_advance();
+    calc_spark_advance();
     getKnockControlAllowed();
     getKnockSensorFaultedStatus();
     getKnockControlActive();
