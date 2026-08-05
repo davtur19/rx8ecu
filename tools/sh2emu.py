@@ -229,8 +229,9 @@ class SH2:
             f = op & 0xF0FF
             if f == 0x400B:                                             # jsr @Rn
                 m = (op >> 8) & 0xF; self.pr = (self.pc + 4) & MASK; return (self.r[m] & MASK, True)
-            if f == 0x402B:                                             # jmp @Rn
-                m = (op >> 8) & 0xF; return (self.r[m] & MASK, True)
+            # NB: jmp @Rn (0x402B) is NOT a delay-slot branch on SH-2 — the
+            # instruction after the jmp is never executed.  It is handled in
+            # _exec below (non-delayed), not here.
             return None
         if n0 == 0xA:                                                   # bra
             d = op & 0xFFF; d -= 0x1000 if d & 0x800 else 0; return ((self.pc + 4 + d * 2) & MASK, True)
@@ -249,6 +250,9 @@ class SH2:
     def _exec(self, op, pc):
         r = self.r; n = (op >> 8) & 0xF; m = (op >> 4) & 0xF; n0 = op >> 12
         lo = op & 0xFF; nib = op & 0xF
+        if n0 == 0x4 and (op & 0xF0FF) == 0x402B:               # jmp @Rn (non-delayed)
+            self.pc = (r[n] - 2) & MASK                         # loop re-adds +2
+            return
         if n0 == 0x6:
             if nib == 0x3: r[n] = r[m]; return
             if nib == 0xC: r[n] = r[m] & 0xFF; return              # extu.b
