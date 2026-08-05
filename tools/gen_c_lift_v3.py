@@ -12,8 +12,8 @@ that have at least one admitted branch are lifted (v3 = branch/delay-slot
 lifts).  Output is a single C file per function plus a differential test
 (c/tests/test_<name>_<addr>.py) that runs a Python pc-interpreter spec_mirror
 (exec'ing the mapper py fragments over a CODE dict, with sh2emu's branch/delay-
-slot T-sampling) against the sh2emu oracle over 2000 random inputs; the tests
-are run at generation time and summarized in a report.
+slot T-sampling) against the sh2emu oracle over N random inputs (--cases,
+default 2000); the tests are run at generation time and summarized in a report.
 
 Emission rules (v3):
   - instructions in linear order; every branch-target address gets a
@@ -456,7 +456,8 @@ def _code_literal(records):
     return 'CODE = {\n%s}\n' % '\n'.join(lines)
 
 
-def emit_v3_test(addr, name, size, rom, records, info, seed, out_t):
+def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
+                 cases=2000):
     """Write c/tests/test_<name>_<addr>.py for one compile-gated v3 lift."""
     fn = gcl.sanitize(name)
     raw = rom[addr:addr + size]
@@ -492,7 +493,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t):
         'ENTRY = 0x%X\n'
         'RAW = bytes.fromhex("%s")\n'
         'SEED = %d\n'
-        'N = 2000\n'
+        'N = %d\n'
         'MAXSTEPS = 100000\n'
         'STACK_BASE = 0xFFFFD000\n'
         'STACK_TOP = STACK_BASE + 0x400\n'
@@ -621,7 +622,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t):
         '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'
         'if __name__ == "__main__":\n'
         '    main()\n'
-    ) % (fn, addr, size, 2000, fn, addr, addr, flat, seed, stack_offs,
+    ) % (fn, addr, size, cases, fn, addr, addr, flat, seed, cases, stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
          _code_literal(records))
@@ -686,6 +687,9 @@ def main():
                     help='number of functions to lift')
     ap.add_argument('--seed', type=int, default=0,
                     help='RNG seed (deterministic selection)')
+    ap.add_argument('--cases', type=int, default=2000,
+                    help='number of random test cases N in each generated test '
+                         '(default 2000)')
     ap.add_argument('--addr', default=None,
                     help='lift only this addr (hex, e.g. 0x1234)')
     ap.add_argument('--rom', default=DEFAULT_ROM,
@@ -743,7 +747,7 @@ def main():
             continue
         records, info, labels = walked
         if emit_v3_test(e['addr'], e['name'], e['size'], rom, records, info,
-                        args.seed, out_t):
+                        args.seed, out_t, cases=args.cases):
             res = run_test(out_t)
             report.append((lf, res))
             print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
