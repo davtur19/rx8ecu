@@ -12,8 +12,9 @@
 #                 c/tests/test_*.py and tools/tests/test_*.py suite (decode
 #                 families incl. the GNU-as bulk round-trip, emulator families,
 #                 per-function suites), so new suites are picked up without
-#                 editing CI.  -j 2 uses the runner's 2 vCPUs (its default
-#                 cpu_count-1 would be 1 worker = serial on this runner).
+#                 editing CI.  -j 4 uses the runner's 4 vCPUs (ubuntu-latest
+#                 standard runner on a public repo; its default cpu_count-1
+#                 would be 3 workers).
 #
 # The three jobs run in parallel and each fails the workflow on any failing step.
 # (catalog job: determinism gate for tools/classify_functions.py + gen_catalog.py.)
@@ -106,7 +107,7 @@ jobs:
   tests:
     name: Tests (Python suites)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -143,7 +144,7 @@ jobs:
       - name: Python suites (parallel runner, auto-discovery)
         run: |
           export PATH="$PWD/tools/toolchain/usr/bin:$PATH"
-          python3 tools/run_tests_parallel.py -j 2
+          python3 tools/run_tests_parallel.py -j 4
 
   # ---------------------------------------------------------------------------
   # catalog: determinism gate for the classifier + master-catalog generators.
