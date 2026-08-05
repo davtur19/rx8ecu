@@ -163,6 +163,297 @@ def _merge_nospan_cands(cands, no_spans, bounds, bank):
 
 
 # ---------------------------------------------------------------------------
+# copy+arith register tracker (a "what the base register equals at the mem
+# access" model) for the v3/v4 SELECTION scanner `_scan_mem_v3`.  Tracks each of
+# r0..r14 as one of:
+#   None                       -> UNKNOWN (any non-foldable write)
+#   ('lit', val)              -> known constant value
+#   ('expr', base_reg, off)   -> r<base_reg> + off
+# Rules (write to rN):
+#   mov rM->rN         copy   trk[rN] = trk[rM]
+#   mov #imm,rN        -> ('lit', imm)
+#   mov.w/l @(d,PC)    -> ('lit', literal)          (mov.b @(d,PC) does not exist)
+#   mova @(d,PC)       -> trk[r0] = ('lit', address)
+#   add #imm,rN        -> fold literal / bump expr off
+#   shll/shll2/shlr(& 8/16)   evaluate on a literal, else UNKNOWN
+#   any other write (RAM load, two-register arith, auto post/pre, ...) -> UNKNOWN
+# `fold` (rN): chase ['expr'] through copy/add edges back to a literal root
+# ('lit', val) or an unwritten param root ('param', off); None if unreolvable.
+# ---------------------------------------------------------------------------
+def _trk_fold(trk, written, reg, depth=0):
+    if depth > 10:
+        return None
+    st = trk.get('r%d' % reg)
+    if st is None:
+        return None
+    if st[0] == 'lit':
+        return ('lit', st[1])
+    base, off = st[1], st[2]
+    if 4 <= base <= 7 and 'r%d' % base not in written:
+        return ('param', off)
+    r = _trk_fold(trk, written, base, depth + 1)
+    if r is None:
+        return None
+    if r[0] == 'lit':
+        return ('lit', (r[1] + off) & 0xFFFFFFFF)
+    if r[0] == 'param':
+        return ('param', r[1] + off)
+    return None
+
+
+# opcodes whose fold must EVALUATE a literal (shll/shll2/shlr, shll8/16, shlr8/16)
+_TRK_SHIFTS = {0x4000: 1, 0x4008: 2, 0x4018: 8, 0x4028: 16,
+               0x4009: 1, 0x4019: 8, 0x4029: 16}
+_TRK_SHIFT_LEFT = frozenset((0x4000, 0x4008, 0x4018, 0x4028))
+
+
+def _trk_apply_stmt(trk, op, rom, pc):
+    """Apply the tracker write-rules for a translated pure statement op.
+    Returns True if `op` is an r15 stack allocation we should KEEP stack_ok.
+    Mirrors a MOV/ADD/IMM/lit/shift subset; everything else -> UNKNOWN."""
+    n = (op >> 8) & 0xF
+    m = (op >> 4) & 0xF
+    regN = 'r%d' % n
+    if op & 0xF000 == 0x6000 and (op & 0xF) == 0x3:       # mov rM,rN
+        src = trk.get('r%d' % m)
+        trk[regN] = list(src) if src else None
+    elif op & 0xF000 == 0x7000:                            # add #imm,rN
+        imm = ops.s8(op & 0xFF)
+        st = trk.get(regN)
+        if st and st[0] == 'lit':
+            trk[regN] = ('lit', (st[1] + imm) & 0xFFFFFFFF)
+        elif st and st[0] == 'expr':
+            trk[regN] = ('expr', st[1], st[2] + imm)
+    elif op & 0xF000 == 0xE000:                          # mov #imm,rN
+        trk[regN] = ('lit', ops.s8(op & 0xFF) & 0xFFFFFFFF)
+    elif op & 0xF000 == 0xD000:                          # mov.l @(d,PC),rN
+        trk[regN] = ('lit', ops.lit32(rom, pc, op & 0xFF))
+    elif op & 0xF000 == 0x9000:                          # mov.w @(d,PC),rN
+        trk[regN] = ('lit', ops.lit16(rom, pc, op & 0xFF))
+    elif op & 0xFF00 == 0xC700:                          # mova @(d,PC),r0
+        trk['r0'] = ('lit', ops.mova_target(pc, op & 0xFF))
+    elif op & 0xF0FF in _TRK_SHIFTS:                     # shifts
+        st = trk.get(regN)
+        if st and st[0] == 'lit':
+            v = st[1]; f = op & 0xF0FF; sh = _TRK_SHIFTS[f]
+            if f in _TRK_SHIFT_LEFT:
+                trk[regN] = ('lit', (v << sh) & 0xFFFFFFFF)
+            else:
+                trk[regN] = ('lit', v >> sh)
+        else:
+            trk[regN] = None
+    else:
+        trk[regN] = None
+    return (op & 0xF000 == 0x7000 and n == 15)           # add #imm,r15
+
+
+def _scan_mem_v3(rom, c, end, branch_stats=None):
+    """v3 selection scan mirroring gcl._scan_mem_function VERBATIM (same
+    decision order, param/literal/GBR/stack/frame rules, branch admission,
+    'no_mem_op' gate) but with the copy+arith register tracker wired into the
+    base-resolution path.  `_trk_apply` fold gives a base register a LITERAL
+    (or param-rooted expr) value through mov/add/#imm/lit-pool loads — cases the
+    old scan rejected as ('base_unresolved', 'altro'); 'r15' stack/allocation
+    model and the 'r14' frame rule stay otherwise untouched.  Returns
+    (entry, None) | (None, reason) with the identical contract as
+    gcl._scan_mem_function."""
+    addr = c['addr']
+    bound = min(end, len(rom))
+    written = set()
+    lits = {}
+    trk = {}
+    tmp = [0]
+    gbr_known = False
+    gbr_value = None
+    stack_ok = True
+    frame_live = False
+
+    def temp():
+        tmp[0] += 1
+        return 't%d' % tmp[0]
+
+    def resolve(reg):
+        # literal base via lits (trusted) OR the tracker's literal fold.
+        v = lits.get('r%d' % reg)
+        if v is None:
+            r = _trk_fold(trk, written, reg)
+            if r and r[0] == 'lit':
+                v = r[1]
+            else:
+                return None
+        cls = ops.classify_addr(v)
+        if cls in ('RAM', 'ROM'):
+            return (cls, v)
+        return None
+
+    ctx = {'temp': temp, 'resolve': resolve}
+    bases = {}
+    ops_list = []
+    lit_vals = []
+    brs = []
+    pool_words = gcl._pcrel_pool_words(rom, addr, end)
+    pc = addr
+    while pc + 1 < bound:
+        if pc in pool_words:              # literal-pool data — not an instruction
+            pc += 2
+            continue
+        op = (rom[pc] << 8) | rom[pc + 1]
+        d = ops.translate(op, pc, rom)
+        if d is not None:
+            if d.get('kind') in ('branch', 'ret'):
+                target = d.get('target')
+                admit, det = gcl._v3_branch_rule(rom, op, target, pc, addr, end)
+                gcl._count_branch(branch_stats, det)
+                if admit:
+                    brs.append((det, pc, target))
+                    pc += 2
+                    continue
+                return None, ('branch_v3', det)
+            writes = gcl._stmt_writes('\n'.join(d.get('c') or []))
+            is_stack_alloc = False
+            if op == 0x6EF3:
+                if 'r14' not in written:
+                    frame_live = True
+            else:
+                if 'r15' in writes:
+                    # r15 stack model: `add #imm,r15` is an allocation that keeps
+                    # stack_ok; anything else writing r15 leaves it untracked.
+                    is_stack_alloc = (op & 0xF000 == 0x7000
+                                      and ((op >> 8) & 0xF) == 15)
+                    if not is_stack_alloc:
+                        stack_ok = False
+                if 'r14' in writes:
+                    frame_live = False
+                # tracker folds every pure-statement write (exactly once)
+                _trk_apply_stmt(trk, op, rom, pc)
+            if not gcl._apply_stmt(rom, pc, op, d, written, lits):
+                return None, 'unmapped'
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x401E:            # ldc Rn,GBR
+            gbr_known = True
+            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            pc += 2
+            continue
+        if gcl.is_call_op(op):
+            return None, 'call'
+        if op == 0x002B:
+            return None, 'rte'
+        if gcl.is_branch_op(op):
+            return None, 'branch'
+        m = ops.decode_mem(op, None, ctx)
+        if m is not None:
+            base_reg = m['base_reg']
+            if m.get('idx') == 'r0' and 'r0' not in lits:
+                if not _trk_fold(trk, written, 0):
+                    return None, ('base_unresolved', 'altro')
+            if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
+                kind = ('PARAM', None)
+                bkind = 'param'
+            elif 'r%d' % base_reg in lits:
+                kind = ('LITERAL', lits['r%d' % base_reg])
+                bkind = 'literal'
+            else:
+                r = _trk_fold(trk, written, base_reg)
+                if not r:
+                    return None, ('base_unresolved', 'altro')
+                if r[0] == 'lit':
+                    kind = ('LITERAL', r[1]); bkind = 'literal'
+                else:
+                    kind = ('PARAM', None); bkind = 'param'
+            bases.setdefault('r%d' % base_reg, kind)
+            if kind[0] == 'LITERAL' and kind[1] not in lit_vals:
+                lit_vals.append(kind[1])
+            ops_list.append({'pc': pc, 'size': m['size'], 'dir': m['dir'],
+                             'kind': bkind, 'base_reg': base_reg,
+                             'disp': m.get('disp', 0), 'auto': m.get('auto'),
+                             'idx': m.get('idx'), 'gbr': False})
+            gcl._apply_mem_writes(m, written, lits)
+            if m['dir'] == 'load' and m.get('dest') is not None:
+                trk['r%d' % m['dest']] = None
+            if m.get('auto') in ('post', 'pre'):
+                trk['r%d' % m['base_reg']] = None
+            pc += 2
+            continue
+        g = gcl._decode_gbr(op)
+        if g is not None:
+            size, gdir, disp = g
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                r0 = _trk_fold(trk, written, 0)
+                if not r0 or r0[0] != 'lit':
+                    return None, ('base_unresolved', 'r0-non-literal')
+                lits['r0'] = r0[1]
+            abs_addr = (gbr_value + lits['r0'] + disp) & gcl.MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
+                  'src': 0 if gdir == 'store' else None}
+            ops_list.append({'pc': pc, 'size': size, 'dir': gdir, 'kind': 'gbr',
+                             'base_reg': None, 'disp': disp, 'auto': None,
+                             'idx': None, 'gbr': True})
+            gcl._apply_mem_writes(gm, written, lits)
+            if gdir == 'load':
+                trk['r0'] = None
+            pc += 2
+            continue
+        gb = ops.decode_gbr_bit(op, pc, rom, None)
+        if gb is not None:
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                return None, ('base_unresolved', 'r0-non-literal')
+            abs_addr = (gbr_value + lits['r0']) & gcl.MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            ops_list.append({'pc': pc, 'size': 1,
+                             'dir': 'load' if gb['dir'] == 'load' else 'store',
+                             'kind': 'gbr_bit', 'base_reg': None, 'disp': 0,
+                             'auto': None, 'idx': None, 'gbr': True,
+                             'family': gb['family'], 'imm': gb['imm']})
+            pc += 2
+            continue
+        sh = gcl._mem_shape(op)
+        if sh is not None and sh['base'] in (14, 15):
+            breg = sh['base']
+            if sh['idx'] is not None:
+                return None, ('base_unresolved', 'altro')
+            if breg == 15:
+                if not stack_ok or sh['dest'] == 15:
+                    return None, ('base_unresolved', 'r15-non-tracked')
+            else:
+                if not frame_live or sh['dest'] == 14:
+                    return None, ('base_unresolved', 'r14-non-frame')
+            bases.setdefault('r%d' % breg, ('STACK', None))
+            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                  'auto': sh.get('auto'), 'dest': sh.get('dest'), 'src': sh.get('src')}
+            ops_list.append({'pc': pc, 'size': sh['size'], 'dir': sh['dir'],
+                             'kind': 'stack', 'base_reg': breg, 'disp': sh.get('disp', 0),
+                             'auto': sh.get('auto'), 'idx': sh.get('idx'), 'gbr': False})
+            gcl._apply_mem_writes(sm, written, lits)
+            if sh['dir'] == 'load' and sh.get('dest') is not None:
+                trk['r%d' % sh['dest']] = None
+            if sh.get('auto') in ('post', 'pre'):
+                trk['r%d' % breg] = None
+            pc += 2
+            continue
+        if gcl.is_mem_opcode(op):
+            return None, ('base_unresolved', 'altro')
+        if gcl.is_fpu_op(op):
+            return None, 'fpu/altre'
+        return None, 'unmapped'
+
+    if not ops_list:
+        return None, 'no_mem_op'
+    return ({'name': c['name'], 'addr': addr, 'size': end - addr,
+             'bases': bases, 'ops': ops_list, 'literal_values': lit_vals,
+             'branches': brs}, None)
+
+
+# ---------------------------------------------------------------------------
 def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT, end_bounds=None):
     """Returns (selected, counters) — see gen_c_lift.select_mem; extra counter
     'skipped_no_branch' for functions that pass the mem scan but have no
@@ -213,7 +504,7 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT, end_bounds=Non
                 glob.glob(os.path.join(outdir, '*_%x.c' % c['addr'])):
             counters['skipped_dedup'] += 1
             continue
-        entry, reason = gcl._scan_mem_function(rom, c, end_s, branch_stats)
+        entry, reason = _scan_mem_v3(rom, c, end_s, branch_stats)
         if entry is None:
             if isinstance(reason, tuple):
                 r, det = reason
@@ -385,7 +676,7 @@ def select_v4_sanitized(cats, rom, catalog, outdir, root=ROOT, v3_pool=None):
                 glob.glob(os.path.join(outdir, '*_%x.c' % addr)):
             counters['skipped_dedup'] += 1
             continue
-        entry, reason = gcl._scan_mem_function(rom, c, end_s, None)
+        entry, reason = _scan_mem_v3(rom, c, end_s, None)
         if entry is None:
             if isinstance(reason, tuple):
                 r, det = reason
@@ -442,6 +733,7 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
     bound = min(end, len(rom))
     written = set()
     lits = {}
+    trk = {}
     tmp = [0]
     gbr_known = False
     gbr_value = None
@@ -455,7 +747,11 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
     def resolve(reg):
         v = lits.get('r%d' % reg)
         if v is None:
-            return None
+            r = _trk_fold(trk, written, reg)
+            if r and r[0] == 'lit':
+                v = r[1]
+            else:
+                return None
         cls = ops.classify_addr(v)
         if cls in ('RAM', 'ROM'):
             return (cls, v)
@@ -490,9 +786,11 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                     frame_live = True
             else:
                 if 'r15' in writes:
-                    stack_ok = False
+                    if not (op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15):
+                        stack_ok = False
                 if 'r14' in writes:
                     frame_live = False
+                _trk_apply_stmt(trk, op, rom, pc)
             if not gcl._apply_stmt(rom, pc, op, d, written, lits):
                 return None, 'unmapped'
             pc += 2
@@ -512,7 +810,8 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
         if m is not None:
             base_reg = m['base_reg']
             if m.get('idx') == 'r0' and 'r0' not in lits:
-                return None, ('base_unresolved', 'altro')
+                if not _trk_fold(trk, written, 0):
+                    return None, ('base_unresolved', 'altro')
             if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
                 kind = ('PARAM', None)
                 bkind = 'param'
@@ -520,7 +819,13 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                 kind = ('LITERAL', lits['r%d' % base_reg])
                 bkind = 'literal'
             else:
-                return None, ('base_unresolved', 'altro')
+                r = _trk_fold(trk, written, base_reg)
+                if not r:
+                    return None, ('base_unresolved', 'altro')
+                if r[0] == 'lit':
+                    kind = ('LITERAL', r[1]); bkind = 'literal'
+                else:
+                    kind = ('PARAM', None); bkind = 'param'
             bases.setdefault('r%d' % base_reg, kind)
             if kind[0] == 'LITERAL' and kind[1] not in lit_vals:
                 lit_vals.append(kind[1])
@@ -529,6 +834,10 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                              'disp': m.get('disp', 0), 'auto': m.get('auto'),
                              'idx': m.get('idx'), 'gbr': False})
             gcl._apply_mem_writes(m, written, lits)
+            if m['dir'] == 'load' and m.get('dest') is not None:
+                trk['r%d' % m['dest']] = None
+            if m.get('auto') in ('post', 'pre'):
+                trk['r%d' % m['base_reg']] = None
             pc += 2
             continue
         g = gcl._decode_gbr(op)
@@ -537,7 +846,10 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
             if not gbr_known or gbr_value is None:
                 return None, ('base_unresolved', 'GBR-non-risolto')
             if 'r0' not in lits:
-                return None, ('base_unresolved', 'r0-non-literal')
+                r0 = _trk_fold(trk, written, 0)
+                if not r0 or r0[0] != 'lit':
+                    return None, ('base_unresolved', 'r0-non-literal')
+                lits['r0'] = r0[1]
             abs_addr = (gbr_value + lits['r0'] + disp) & gcl.MASK
             bases.setdefault('gbr', ('LITERAL', abs_addr))
             if abs_addr not in lit_vals:
@@ -548,6 +860,8 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                              'base_reg': None, 'disp': disp, 'auto': None,
                              'idx': None, 'gbr': True})
             gcl._apply_mem_writes(gm, written, lits)
+            if gdir == 'load':
+                trk['r0'] = None
             pc += 2
             continue
         # ---- v6: GBR byte bit-ops (0xCC-CF) — same contract as the 0xC0-C6
@@ -600,13 +914,21 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                     return None, ('base_unresolved', 'altro')
                 base_reg = f['base_reg']
                 if f.get('idx') == 'r0' and 'r0' not in lits:
-                    return None, ('base_unresolved', 'altro')
+                    if not _trk_fold(trk, written, 0):
+                        return None, ('base_unresolved', 'altro')
                 if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in written:
                     bkind = 'param'
                 elif 'r%d' % base_reg in lits:
                     bkind = 'literal'
                 else:
-                    return None, ('base_unresolved', 'altro')
+                    r = _trk_fold(trk, written, base_reg)
+                    if not r:
+                        return None, ('base_unresolved', 'altro')
+                    if r[0] == 'lit':
+                        bkind = 'literal'
+                        lits.setdefault('r%d' % base_reg, r[1])
+                    else:
+                        bkind = 'param'
                 bases.setdefault('r%d' % base_reg, ('LITERAL', lits['r%d' % base_reg])
                                  if bkind == 'literal' else ('PARAM', None))
                 ops_list.append({'pc': pc, 'size': 4, 'dir': f['dir'],
@@ -617,11 +939,15 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                     reg = 'r%d' % base_reg
                     written.add(reg)
                     lits.pop(reg, None)
+                    trk[reg] = None
+                elif f.get('dir') == 'load' and f.get('dest') is not None:
+                    trk['r%d' % f['dest']] = None
             else:                       # pure fpu op: track any integer-RN write
                 # (fmul/fadd/etc write frN only; sts fpul,Rn / fcmp set rN / T)
                 for reg in gcl._stmt_writes('\n'.join(f.get('c') or [])):
                     written.add(reg)
                     lits.pop(reg, None)
+                    trk[reg] = None
             pc += 2
             continue
         if ops.is_fpu_op(op):
@@ -1308,7 +1634,7 @@ def scan_unmapped_reali(cats, rom, catalog, outdir, root=ROOT):
 # ---------------------------------------------------------------------------
 def walk_v3(rom, addr, end):
     bound = min(end, len(rom))
-    st = {'written': set(), 'lits': {}, 'tmp': [0],
+    st = {'written': set(), 'lits': {}, 'tmp': [0], 'trk': {},
           'gbr_known': False, 'gbr_value': None,
           'stack_ok': True, 'frame_live': False, 'frame_off': None,
           'sp_off': 0x400}
@@ -1325,7 +1651,11 @@ def walk_v3(rom, addr, end):
     def resolve(reg):
         v = st['lits'].get('r%d' % reg)
         if v is None:
-            return None
+            r = _trk_fold(st['trk'], st['written'], reg)
+            if r and r[0] == 'lit':
+                v = r[1]
+            else:
+                return None
         cls = ops.classify_addr(v)
         if cls in ('RAM', 'ROM'):
             return (cls, v)
@@ -1349,9 +1679,11 @@ def walk_v3(rom, addr, end):
                         'c': [], 'py': [], 'target': None, 'slot': None,
                         'mnem': 'mov r15,r14 (frame pointer — implicit)'}
             if 'r15' in writes:
-                st['stack_ok'] = False
+                if not (op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15):
+                    st['stack_ok'] = False
             if 'r14' in writes:
                 st['frame_live'] = False
+            _trk_apply_stmt(st['trk'], op, rom, pc)
             if not gcl._apply_stmt(rom, pc, op, d, st['written'], st['lits']):
                 return None
             return {'pc': pc, 'op': op, 'kind': 'st',
@@ -1379,7 +1711,13 @@ def walk_v3(rom, addr, end):
             elif 'r%d' % srn in st['lits']:
                 bkind, abs_addr = 'literal', st['lits']['r%d' % srn]
             else:
-                return None
+                r = _trk_fold(st['trk'], st['written'], srn)
+                if not r:
+                    return None
+                if r[0] == 'lit':
+                    bkind, abs_addr = 'literal', r[1]
+                else:
+                    bkind, abs_addr = 'param', None
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
@@ -1412,31 +1750,49 @@ def walk_v3(rom, addr, end):
                 mnem = 'ldc.l @r%d+,SR' % srn
             st['written'].add('r%d' % srn)         # auto side-effect kills literal
             st['lits'].pop('r%d' % srn, None)
+            st['trk']['r%d' % srn] = None
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
         m = ops.decode_mem(op, None, ctx)
         if m is not None:
             base_reg = m['base_reg']
             if m.get('idx') == 'r0' and 'r0' not in st['lits']:
-                return None
+                if not _trk_fold(st['trk'], st['written'], 0):
+                    return None
             if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in st['written']:
                 bkind, abs_addr = 'param', None
             elif 'r%d' % base_reg in st['lits']:
                 bkind, abs_addr = 'literal', st['lits']['r%d' % base_reg]
             else:
-                return None
+                r = _trk_fold(st['trk'], st['written'], base_reg)
+                if not r:
+                    return None
+                if r[0] == 'lit':
+                    bkind, abs_addr = 'literal', r[1]
+                else:
+                    bkind, abs_addr = 'param', None
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
-            c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp)
+            c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                    dynbase=(pc in reentry))
             gcl._apply_mem_writes(m, st['written'], st['lits'])
+            if m['dir'] == 'load' and m.get('dest') is not None:
+                st['trk']['r%d' % m['dest']] = None
+            if m.get('auto') in ('post', 'pre'):
+                st['trk']['r%d' % m['base_reg']] = None
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': m['ann']}
         g = gcl._decode_gbr(op)
         if g is not None:
             size, gdir, disp = g
-            if not st['gbr_known'] or st['gbr_value'] is None or 'r0' not in st['lits']:
+            if not st['gbr_known'] or st['gbr_value'] is None:
                 return None
+            if 'r0' not in st['lits']:
+                r0 = _trk_fold(st['trk'], st['written'], 0)
+                if not r0 or r0[0] != 'lit':
+                    return None
+                st['lits']['r0'] = r0[1]
             abs_addr = (st['gbr_value'] + st['lits']['r0'] + disp) & gcl.MASK
             info['has_literal'] = True
             info['ram_addrs'].add(abs_addr)
@@ -1448,12 +1804,20 @@ def walk_v3(rom, addr, end):
             else:
                 mnem = 'mov.%s @(0x%X,gbr),r0' % (gcl._SIZE_CH[size], disp)
             gcl._apply_mem_writes(gm, st['written'], st['lits'])
+            if gdir == 'load':
+                st['trk']['r0'] = None
             return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
         gb = ops.decode_gbr_bit(op, pc, rom, None)
         if gb is not None:
-            if not st['gbr_known'] or st['gbr_value'] is None or 'r0' not in st['lits']:
+            if not st['gbr_known'] or st['gbr_value'] is None:
                 return None
+            if 'r0' not in st['lits']:
+                r0 = _trk_fold(st['trk'], st['written'], 0)
+                if not r0 or r0[0] != 'lit':
+                    return None
+                else:
+                    st['lits']['r0'] = r0[1]
             abs_addr = (st['gbr_value'] + st['lits']['r0']) & gcl.MASK
             info['has_literal'] = True
             info['ram_addrs'].add(abs_addr)
@@ -1490,6 +1854,10 @@ def walk_v3(rom, addr, end):
                   'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
             c, py = gcl._stack_record(pc, op, sh, off)
             gcl._apply_mem_writes(sm, st['written'], st['lits'])
+            if sh['dir'] == 'load' and sh.get('dest') is not None:
+                st['trk']['r%d' % sh['dest']] = None
+            if sh.get('auto') in ('post', 'pre'):
+                st['trk']['r%d' % breg] = None
             return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
         # ---- v4 FPU (additive): decode_fpu-able ops are emitted verbatim ----
@@ -1500,16 +1868,25 @@ def walk_v3(rom, addr, end):
                     return None
                 base_reg = f['base_reg']
                 if f.get('idx') == 'r0' and 'r0' not in st['lits']:
-                    return None
+                    if not _trk_fold(st['trk'], st['written'], 0):
+                        return None
                 if f['base'] == 'literal':
                     info['has_literal'] = True
                     v = st['lits'].get('r%d' % base_reg)
+                    if v is None:
+                        r = _trk_fold(st['trk'], st['written'], base_reg)
+                        v = r[1] if r and r[0] == 'lit' else None
+                        if v is not None:
+                            st['lits']['r%d' % base_reg] = v
                     if v is not None and ops.classify_addr(v) == 'RAM':
                         info['ram_addrs'].add(v)
                 if f.get('auto') in ('post', 'pre'):
                     reg = 'r%d' % base_reg
                     st['written'].add(reg)       # auto-update kills any literal
                     st['lits'].pop(reg, None)
+                    st['trk'][reg] = None
+                elif f.get('dir') == 'load' and f.get('dest') is not None:
+                    st['trk']['r%d' % f['dest']] = None
                 return {'pc': pc, 'op': op, 'kind': 'fpu_mem',
                         'c': list(f.get('c') or []),
                         'py': list(f.get('py') or []),
@@ -1518,6 +1895,7 @@ def walk_v3(rom, addr, end):
             for reg in gcl._stmt_writes('\n'.join(f.get('c') or [])):
                 st['written'].add(reg)           # sts/lds write rN (frN too)
                 st['lits'].pop(reg, None)
+                st['trk'][reg] = None
             return {'pc': pc, 'op': op, 'kind': 'fpu',
                     'c': list(f.get('c') or []),
                     'py': list(f.get('py') or []),
@@ -1527,6 +1905,25 @@ def walk_v3(rom, addr, end):
 
     pc = addr
     pool_words = gcl._pcrel_pool_words(rom, addr, end)
+    # Pre-pass: every static branch target in the span.  A literal-base mem whose
+    # PC is a re-entry point may be reached again with the base register already
+    # modified (loop counter / duplicate entry) — such mems must emit the runtime
+    # register (dynbase) instead of baking the first-pass literal address.
+    reentry = set()
+    _p = addr
+    while _p + 1 < bound:
+        if _p in pool_words or _p in skip:
+            _p += 2
+            continue
+        _op = (rom[_p] << 8) | rom[_p + 1]
+        _d = ops.translate(_op, _p, rom)
+        if _d is not None and _d.get('kind') in ('branch', 'ret'):
+            _bi = ops.branch_info(_op)
+            if _bi and _bi['kind'] not in ('rte', 'rts', 'bsrf', 'braf'):
+                _t = (_p + 4 + _bi['target_disp'] * 2) & gcl.MASK
+                if addr <= _t < end:
+                    reentry.add(_t)
+        _p += 2
     while pc + 1 < bound:
         if pc in pool_words:                     # literal-pool data word
             pc += 2

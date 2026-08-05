@@ -880,11 +880,17 @@ def _stack_mnem(sh):
     return 'mov.%s r%d,@%s' % (d, sh['src'], base)
 
 
-def _mem_record(pc, op, m, bkind, abs_addr, temp):
+def _mem_record(pc, op, m, bkind, abs_addr, temp, dynbase=False):
     """C + py emission for one param/literal mem op (decode_mem output m).
 
-    bkind 'param' -> effective address `(rN + disp)` (runtime); 'literal' ->
+    bkind 'param' -> effective address (rN + disp) (runtime); 'literal' ->
     baked absolute address.  b/w loads sign-extend (emulator does s8/s16).
+
+    dynbase=True: base register was folded to a literal but the mem op sits at a
+    re-entered (= branch-target) PC, so the base can hold a different runtime
+    value on re-entry (loop counter / duplicate entry).  Address must then be
+    emitted register-relative (rN + disp) exactly like 'param' — the literal is
+    still reported (note/RAM tag) but never baked into c/py.
     """
     size, gdir = m['size'], m['dir']
     breg = m['base_reg']
@@ -893,17 +899,28 @@ def _mem_record(pc, op, m, bkind, abs_addr, temp):
     auto = m.get('auto')
     if bkind == 'literal':
         a = (abs_addr + disp) & MASK
-        eff_c = '0x%08X' % a
-        eff_py = '0x%08X' % a
-        if idx is not None:
-            eff_c = '(%s + %s)' % (eff_c, idx)
-            eff_py = '(%s + r[0])' % eff_py
         note = ' /* RAM 0x%08X */' % a if ops.classify_addr(a) == 'RAM' else ' /* ROM */'
+        if dynbase:
+            base_c, base_py = 'r%d' % breg, 'r[%d]' % breg
+            if idx is not None:
+                eff_c, eff_py = '(%s + %s)' % (base_c, idx), '(%s + r[%s])' % (base_py, idx.lstrip('r'))
+            elif disp < 0:
+                eff_c, eff_py = '(%s - %d)' % (base_c, -disp), '(%s - %d)' % (base_py, -disp)
+            elif disp > 0:
+                eff_c, eff_py = '(%s + %d)' % (base_c, disp), '(%s + %d)' % (base_py, disp)
+            else:
+                eff_c, eff_py = base_c, base_py
+        else:
+            eff_c = '0x%08X' % a
+            eff_py = '0x%08X' % a
+            if idx is not None:
+                eff_c = '(%s + %s)' % (eff_c, idx)
+                eff_py = '(%s + r[0])' % eff_py
     else:
         base_c, base_py = 'r%d' % breg, 'r[%d]' % breg
         if idx is not None:
             eff_c = '(%s + %s)' % (base_c, idx)
-            eff_py = '(%s + r[0])' % (base_py, idx)
+            eff_py = '(%s + r[%s])' % (base_py, idx.lstrip('r'))
         elif disp < 0:
             eff_c, eff_py = '(%s - %d)' % (base_c, -disp), '(%s - %d)' % (base_py, -disp)
         elif disp > 0:
