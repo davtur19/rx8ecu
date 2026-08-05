@@ -563,22 +563,35 @@ def _call_records(entry, rom, end, cat, end_bounds, use_est=False):
         tgt, kind, ret = seg_map[pc]
         mnem = {'jsr': 'jsr @0x%X' % (tgt or 0), 'bsr': 'bsr 0x%X' % (tgt or 0),
                 'jmp': 'jmp @0x%X' % (tgt or 0)}.get(kind, kind)
+        # jmp @Rm is a DELAYED branch on SH-2 (SH-1/SH-2 Programming Manual
+        # Table 4.2 lists JMP among the delayed-branch instructions): the P+2
+        # slot executes BEFORE the branch, so a tail jmp's slot (typically the
+        # last-arg setup, e.g. `mov #imm,r5`) runs and is visible to the
+        # callee.  Emit it into the call record so the C caller and the test
+        # mirror both execute it (the earlier "no delay slot" model only
+        # matched the buggy emulator and silently dropped the slot).
         slot_c = []
-        if kind != 'jmp' and pc + 2 < end:        # jmp @Rm has NO delay slot
+        slot_rec = None
+        if pc + 2 < end:
             sop = (rom[pc + 2] << 8) | rom[pc + 3]
             d = ops.translate(sop, pc + 2, rom)
             if d is not None:
                 slot_c = list(d.get('c') or [])
+                slot_rec = {'pc': pc + 2, 'kind': 'st', 'op': None,
+                            'c': slot_c, 'py': list(d.get('py') or []),
+                            'mnem': d.get('ann') or ('op 0x%04X' % sop),
+                            'target': None, 'slot': None}
         if tgt is None:
             c = ['/* %s @0x%X: target not literal-resolvable */' % (kind, pc),
                  'return s->r[0]; /* UNLINKED (DRAFT) */']
         elif kind in ('jsr', 'bsr'):
             # real HW: PR := P+4, THEN delay slot runs, THEN branch to callee.
             c = ['s->pr = 0x%08X;' % ret] + slot_c + ['f_%X(s);' % tgt]
-        else:                                # jmp: tail call, never returns
+        else:                                # jmp: tail call — slot first, then callee; never returns
             c = ['f_%X(s);' % tgt, 'return;']
         records.append({'pc': pc, 'kind': 'call', 'mnem': mnem,
-                        'slot': None, 'target': tgt, 'c': c,
+                        'slot': slot_rec if kind == 'jmp' else None,
+                        'target': tgt, 'c': c,
                         'ret_pc': ret, 'set_pr': kind in ('jsr', 'bsr'),
                         'py': [], 'op': None})
         seg_start = pc + 2

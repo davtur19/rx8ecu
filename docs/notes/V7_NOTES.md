@@ -77,3 +77,25 @@ ST callee lib + caller composition + composition differential test).
   link wiring in user tree, unrelated).
 - Evidence: `c/lib/f_3EE58.c`, `c/lib/f_3EE68.c`, `c/tests/test_caller_*.py`
   (28 files), all in git status as untracked; NO commits made.
+
+## 2026-08-05 follow-up — sh2emu jmp correction (CI gate)
+
+The "jmp @Rm is non-delayed" change above was WRONG and is reverted.  The
+Hitachi SH-1/SH-2 Programming Manual (3rd ed.) Table 4.2 lists **JMP @Rm and
+JSR @Rm among the DELAYED-branch instructions** — the P+2 slot executes before
+the branch (the only non-delayed return is `rts/n`).  Evidence in this ROM:
+setSR@0x3934 (`jmp @r6` / `ldc r4,SR` — SR would never be set if the slot were
+skipped), and every tail-dispatch caller (`jmp @r3` / `mov #imm,r5` — the slot
+is the last-arg setup).
+
+Consequences found by the full CI (run_tests_parallel.py, 1125 suites):
+- the "non-delayed" change broke 11 existing emulator tests
+  (test_calc_fuel_trims_adaptive_117B4, test_calc_lambda_feedback_pid[2],
+  test_dtc_code_set_clear, test_dtc_handler_*x2, test_engineControlCalculateTiming,
+  test_idle_speed_control, test_init_main_3E10, test_obd_freezeframe_uds01,
+  test_omp_accessors) — all pass again with the delayed model;
+- the v7 caller tests only passed because the lift AND the buggy emulator both
+  dropped the tail-jmp delay slot.  `gen_c_lift_v7.py` `_call_records` now
+  emits the jmp P+2 slot (C: slot stmts before `f_<callee>(s); return;`;
+  test mirror: `slot_py` on the call record) — 28/28 `test_caller_*` PASS
+  against the corrected emulator.
