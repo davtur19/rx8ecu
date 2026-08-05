@@ -3,18 +3,6 @@
 > ⚠️ **AI-Generated Content — Feasibility Experiment**
 > Everything in this repository is AI-generated unless explicitly stated otherwise (e.g., the community contributions credited below). Content without an explicit verification marker is a hypothesis to be confirmed, not ground truth.
 
-<!-- BADGES:START -->
-![ROMs byte-exact](https://img.shields.io/badge/ROMs%20byte--exact-9%2F9-brightgreen)
-![Code window](https://img.shields.io/badge/Code%20window-93.6%25%20SH--2%20lift-green)
-![C reimplemented](https://img.shields.io/badge/C%20reimplemented-185%20functions-blue)
-![Emulator-verified](https://img.shields.io/badge/Emulator--verified-270%20addresses-yellowgreen)
-![Calibration tables](https://img.shields.io/badge/Calibration%20tables-1210-blue)
-![Table defs](https://img.shields.io/badge/Table%20defs-37121%20%2813%20ROMs%29-blue)
-![Call graph](https://img.shields.io/badge/Call%20graph-6953%20edges-blue)
-![Functions mapped](https://img.shields.io/badge/Functions%20mapped-50%2C676-blue)
-![Regression checks](https://img.shields.io/badge/Regression%20checks-38008%2B83%20%E2%9C%93-green)
-<!-- BADGES:END -->
-
 Complete, byte-exact reverse engineering of the **Mazda RX-8 PCM firmware** —
 Denso **279700-3313**, Renesas **SH-2E** (**SH7055 / HD64F7055**) 32-bit CPU,
 **512 KB** program flash, big-endian. Ships tools, annotated assembly, verified
@@ -38,9 +26,8 @@ labeled `AI draft` / `unverified` / `DRAFT` / `TBD`.
   regions), gap audit (9,239 gaps, no hidden code). **9/9 CERTIFIED**,
   deterministic (two runs → byte-identical output), CI-gated via `make cert`.
   Evidence: [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
-- **L3 — Determinism gates.** Badges, master catalog, and category CSVs are
-  derived from live repo data by scripts; drift breaks CI (badge URLs only
-  change when the underlying data changes).
+- **L3 — Determinism gates.** Master catalog and category CSVs are derived
+  from live repo data by scripts; drift breaks CI.
 - **L4 — Differential & emulator tests.** 203 Python + 26 C host suites; every
   C lift is proven against the *actual ROM bytes* on `tools/sh2emu.py`
   (SH-2E integer + single-precision FPU emulator), **270 emulator-verified
