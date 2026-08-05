@@ -430,6 +430,41 @@ _MIRROR_KIND = {'st': 'reg', 'mem': 'mem', 'gbr': 'mem', 'stack': 'mem',
 _BRANCH_COND = {'bt': 'T', 'bts': 'T', 'bf': 'notT', 'bfs': 'notT', 'bra': 'always'}
 
 
+def _pool_end(records, fallback):
+    """Byte-exclusive end of the PC-relative literal pool region that is
+    SHADOWED by the stop-sentinel, or `fallback` (normally `end`) when nothing
+    is shadowed.  Uses the exact sh2emu EA formulas: mov.l @(disp,PC) ->
+    ((pc+4)&~3)+disp*4 (4 bytes); mov.w @(disp,PC) -> pc+4+disp*2 (2 bytes).
+
+    The harness writes the 4-byte stop-sentinel (00 0B 00 09 = rts+nop) at
+    `end`; a Denso literal pool sits immediately after the span, so [end, end+4)
+    can shadow real ROM literals the function reads via @(disp,PC) — the
+    emulator then reads 00 0B/00 09 where the mirror reads the true literal
+    (spurious FFFFxxxx vs 00000009/0B mismatches).  We only relocate the
+    sentinel when the first pool byte actually falls in the shadow window, and
+    place it past the last shadowed byte."""
+    pool_start = None
+    pool_end = fallback
+    def consider(pc, op):
+        nonlocal pool_start, pool_end
+        if op >> 12 == 0xD:                       # mov.l @(disp,PC),Rn
+            ea = ((pc + 4) & ~3) + (op & 0xFF) * 4
+            pool_start = ea if pool_start is None else min(pool_start, ea)
+            pool_end = max(pool_end, ea + 4)
+        elif op >> 12 == 0x9:                     # mov.w @(disp,PC),Rn
+            ea = (pc + 4) + (op & 0xFF) * 2
+            pool_start = ea if pool_start is None else min(pool_start, ea)
+            pool_end = max(pool_end, ea + 2)
+    for rec in records:
+        consider(rec['pc'], rec['op'])
+        slot = rec.get('slot')
+        if slot is not None:
+            consider(slot['pc'], slot['op'])
+    if pool_start is not None and pool_start < fallback + 4:
+        return pool_end                       # sentinel would shadow a pool byte
+    return fallback
+
+
 def _code_literal(records):
     """Render the interpreter's CODE = {addr: inst} dict as Python source."""
     lines = []
@@ -471,6 +506,14 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
     ram_min = min(ram_addrs) if ram_addrs else None
     ram_max = max(ram_addrs) if ram_addrs else None
 
+    end_addr = addr + size
+    # Stop-sentinel address: past the last instruction (end) AND past any real
+    # PC-relative literal-pool byte the function reads.  Writing it at `end`
+    # shadows literals that live right after the span (mov.w/mov.l @(dis,PC)),
+    # so the emulator would read 00 0B/00 09 sentinel bytes where the mirror
+    # reads the true ROM literal -> spurious FFFFxxxx vs 00000009/0B mismatches.
+    sent_addr = _pool_end(records, end_addr)
+
     test = (
         '#!/usr/bin/env python3\n'
         '"""Differential test for %s (0x%X) — v3 lift (branches + delay slots), %d bytes.\n'
@@ -499,7 +542,9 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         'STACK_TOP = STACK_BASE + 0x400\n'
         'STACK_OFFS = (%s)\n'
         'RAM_MIN = %s\n'
-        'RAM_MAX = %s\n\n'
+        'RAM_MAX = %s\n'
+        'SPAN_END = 0x%X\n'
+        'SENT = 0x%X     # stop-sentinel, placed past the literal pool\n\n'
         '_WRITES = []\n\n'
         'def _rd(ram, a):\n'
         '    a &= 0xFFFFFFFF\n'
@@ -569,14 +614,13 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '                exec(py, ns)\n'
         '            pc = pc + 2\n\n'
         'def run(cpu, ram, a, b, c_, d):\n'
-        '    end = ENTRY + len(RAW)\n'
         '    ram = dict(ram)\n'
-        '    ram[end] = 0x00; ram[end + 1] = 0x0B; ram[end + 2] = 0x00; ram[end + 3] = 0x09\n'
+        '    ram[SENT] = 0x00; ram[SENT + 1] = 0x0B; ram[SENT + 2] = 0x00; ram[SENT + 3] = 0x09\n'
         '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram, regs={15: STACK_TOP},\n'
         '             max_steps=MAXSTEPS)\n'
         '    out = dict(cpu.ram)\n'
         '    for i in range(4):\n'
-        '        out.pop(end + i, None)\n'
+        '        out.pop(SENT + i, None)\n'
         '    return cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out, cpu.pr & 0xFFFFFFFF\n\n'
         'def main():\n'
         '    rnd = random.Random(SEED)\n'
@@ -625,6 +669,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
     ) % (fn, addr, size, cases, fn, addr, addr, flat, seed, cases, stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
+         end_addr, sent_addr,
          _code_literal(records))
 
     with open(out_t, 'w') as f:
