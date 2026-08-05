@@ -35,6 +35,8 @@ Usage:
     python3 tools/gen_c_lift_v3.py --addr 0x1234
 """
 import argparse
+import bisect
+import csv
 import glob
 import os
 import random
@@ -88,7 +90,80 @@ BRANCH_MNEM = {
 # emission path (emit_v3 / emit_v3_test / walk_v3 / banner / sentinel) decodes
 # exactly the sanitized span.
 # ---------------------------------------------------------------------------
-def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
+# v5 (additive, no-span end estimation): a function with NO known catalog end
+# (no_span) gets an estimated end = the next known catalog address strictly
+# greater than its addr, from the SAME bank (NOISE rows and the 0xFFFFFFFF
+# sentinel are excluded).  The estimate only feeds the existing selection gate
+# (sanitize_span + size 8..176 + _scan_mem_function/_scan_fpu_function +
+# >=1 branch + dedup) — it never loosens any criterion.  Selected entries carry
+# `estimated_end` (the next-addr used) so the .c banner can flag them.
+# ---------------------------------------------------------------------------
+def _next_addr(addr, addrs):
+    """Smallest element of sorted `addrs` strictly greater than `addr`, or None."""
+    i = bisect.bisect_right(addrs, addr)
+    return addrs[i] if i < len(addrs) else None
+
+
+def load_catalog_nospans(path):
+    """Parse CATALOG_MASTER.csv once -> (catalog_bank, no_spans, bounds).
+
+      catalog_bank : {bank: {addr: end_or_None}}  (NOISE excluded; addr
+                     0xFFFFFFFF excluded; end 0xFFFFFFFF treated as no-end).
+                     KEY: the catalog stores each function once PER BANK and
+                     some banks legitimately lack the end (e.g. 60E0FC00 rows
+                     with flag GHIDRA-EQX and an empty end) — lookups must use
+                     the FUNCTION'S OWN BANK, not a global addr->end dict.
+      no_spans     : [{addr,bank,name}]  rows (bank-specific) with no real end
+      bounds       : {bank: sorted addrs of that bank}  (estimation boundaries)
+    """
+    catalog_bank, no_spans = {}, []
+    with open(path) as f:
+        for row in csv.DictReader(f):
+            if (row.get('flag') or '').strip() == 'NOISE':
+                continue
+            try:
+                addr = int(row['addr'].strip(), 16)
+            except (ValueError, TypeError):
+                continue
+            if addr == 0xFFFFFFFF:                  # HUDI sentinel: not a boundary
+                continue
+            bank = (row.get('bank') or '').strip()
+            try:
+                end = int((row.get('end') or '').strip(), 16)
+            except (ValueError, TypeError):
+                end = None
+            if end == 0xFFFFFFFF:                      # "unknown end" sentinel
+                end = None
+            cat = catalog_bank.setdefault(bank, {})
+            cat[addr] = end
+            if end is None:
+                no_spans.append({'addr': addr, 'bank': bank,
+                                 'name': (row.get('src_name')
+                                          or row.get('name') or '').strip()})
+    bounds = {b: sorted(c) for b, c in catalog_bank.items()}
+    return catalog_bank, no_spans, bounds
+
+
+def _merge_nospan_cands(cands, no_spans, bounds, bank):
+    """Append the catalog no-span functions of `bank` (module-side estimation) to
+    the candidate list.  Only addresses NOT already present are added (the FC
+    rows keep their nicer name; catalog-only no_span rows get src_name/start).
+    Order is deterministic: existing cats first, then sorted by addr.
+    Returns a NEW list (input not mutated)."""
+    existing = {c['addr'] for c in cands}
+    out = list(cands)
+    if bounds is None or bank not in bounds:
+        return out
+    for e in sorted(no_spans, key=lambda x: x['addr']):
+        if e['bank'] == bank and e['addr'] not in existing:
+            out.append({'addr': e['addr'], 'name': e['name'],
+                        'category': 'Other / Unclassified'})
+            existing.add(e['addr'])
+    return out
+
+
+# ---------------------------------------------------------------------------
+def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT, end_bounds=None):
     """Returns (selected, counters) — see gen_c_lift.select_mem; extra counter
     'skipped_no_branch' for functions that pass the mem scan but have no
     admitted internal branch.  v4: spans are sanitized (sanitize_span) and the
@@ -99,6 +174,8 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
                 'skipped_no_span': 0, 'skipped_size': 0, 'skipped_dedup': 0,
                 'skipped_no_branch': 0, 'by_category': {},
                 'n_trimmed': 0, 'n_extended': 0, 'n_entrambi': 0,
+                # v5: no-span end-estimation pool members (additive)
+                'pool_no_span': 0,
                 # ---- additive dryrun counters (never affect selection) ----
                 'fuori_vicini_8': 0, 'fuori_vicini_16': 0,   # A: span-end
                 'chain_resolvable': 0,                       # B: copy-chain
@@ -112,9 +189,15 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
         cat = c['category']
         catstat = counters['by_category'].setdefault(cat, {'selected': 0, 'rejected': 0})
         end = catalog.get(c['addr'])
+        estimated_end = None
         if end is None:
-            counters['skipped_no_span'] += 1
-            continue
+            # v5: no known end -> estimate next known catalog addr > addr.
+            if end_bounds is not None:
+                end = _next_addr(c['addr'], end_bounds)
+                estimated_end = end
+            if end is None:
+                counters['skipped_no_span'] += 1
+                continue
         # v4: sanitized span — addr_s == addr; size/scan/emission use end_s.
         _addr_s, end_s, reasons = sanitize_span(c['addr'], end, rom)
         size = end_s - c['addr']
@@ -153,6 +236,9 @@ def select_v3(cats, max_n, seed, rom, catalog, outdir, root=ROOT):
             catstat['rejected'] += 1
             continue
         entry['end_s'] = end_s                      # sanitized end for emission
+        if estimated_end is not None:               # v5: no-span (next_addr)
+            entry['estimated_end'] = estimated_end
+            counters['pool_no_span'] += 1
         trimmed = 'trimmed_padding' in reasons
         extended = 'extended_end' in reasons
         if trimmed and extended:
@@ -526,7 +612,7 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
 
 
 def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
-               rescue_trailing_rts=True):
+               rescue_trailing_rts=True, end_bounds=None):
     """pool_fpu selection (v4: now the REAL selector when emission lands — FPU
     opcodes decode_fpu() maps are admitted; every other criterion is identical
     to select_v3/select_v4_sanitized: sanitized span, size gate, dedup,
@@ -561,13 +647,21 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
                 'rejected': Counter(),
                 'skipped_size': 0, 'skipped_dedup': 0, 'skipped_no_branch': 0,
                 'n_over_160': 0, 'n_trimmed': 0, 'n_extended': 0,
-                'n_entrambi': 0, 'examples': []}
+                'n_entrambi': 0, 'examples': [],
+                # v5: no-span end-estimation pool members (additive)
+                'pool_no_span': 0}
     pool = []
     for c in cats:
         addr = c['addr']
         end = catalog.get(c['addr'])
+        estimated_end = None
         if end is None:
-            continue
+            # v5: no known end -> estimate next known catalog addr > addr.
+            if end_bounds is not None:
+                end = _next_addr(c['addr'], end_bounds)
+                estimated_end = end
+            if end is None:
+                continue
 
         def _gate(end_cand):
             """Full pool_fpu gate sequence on [addr, sanitize(end_cand)):
@@ -591,6 +685,8 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
             if not _entry['branches']:
                 return None, 'skipped_no_branch', _e, _r
             _entry['end_s'] = _e
+            if estimated_end is not None:      # v5: no-span (next_addr)
+                _entry['estimated_end'] = estimated_end
             return _entry, None, _e, _r
 
         # ---- sanitized-span selection ----
@@ -666,6 +762,8 @@ def select_fpu(cats, rom, catalog, outdir, root=ROOT, max_n=None, seed=0,
         elif extended:
             counters['n_extended'] += 1
         entry['end_s'] = end_s            # sanitized end for emission
+        if estimated_end is not None:     # v5: no-span (next_addr)
+            counters['pool_no_span'] += 1
         pool.append(entry)
         counters['pool_fpu'] += 1
         if has_fpu:
@@ -1524,9 +1622,11 @@ def _records_have_fpu(records):
     return False
 
 
-def emit_v3(addr, name, size, rom, out_c):
+def emit_v3(addr, name, size, rom, out_c, rom_label=None, estimated_end=None):
     """Lift one accepted v3 function: write c/<name>_<addr>.c, compile-gate it
-    with `cc -O2 -c`, and delete the file if the gate fails."""
+    with `cc -O2 -c`, and delete the file if the gate fails.  `rom_label` (e.g.
+    '60E0FC00') overrides the hardcoded default for the banner ROM field;
+    `estimated_end` (next-addr) marks a no-span lift whose end was estimated."""
     fn = gcl.sanitize(name)
     walked = walk_v3(rom, addr, addr + size)
     if walked is None:
@@ -1544,8 +1644,11 @@ def emit_v3(addr, name, size, rom, out_c):
     banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
               ' * Auto-generated by tools/gen_c_lift_v3.py — not human-verified.\n'
               ' * v3: branches + delay slots%s. */') % (
-        gcl.ROM_LABEL, addr, size,
+        rom_label or gcl.ROM_LABEL, addr, size,
         ' + v4 FPU (frN bit-pattern locals; fpul/fpscr)' if has_fpu else '')
+    if estimated_end is not None:
+        banner = banner.replace(
+            ' * v3: branches + delay slots', ' * End: estimated (next_addr 0x%06X)\n * v3: branches + delay slots' % estimated_end)
     c_text = (banner + '\n'
               '#include <stdint.h>\n'
               + ('#include <math.h>\n' if has_fpu else '')
@@ -1659,8 +1762,10 @@ def _code_literal(records):
 
 
 def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
-                 cases=2000):
-    """Write c/tests/test_<name>_<addr>.py for one compile-gated v3 lift."""
+                 cases=2000, rom_path=None):
+    """Write c/tests/test_<name>_<addr>.py for one compile-gated v3 lift.
+    `rom_path` lets the generated harness read the correct ROM bank (the
+    standalone harness needs the real bytes; default 60E1D400)."""
     fn = gcl.sanitize(name)
     raw = rom[addr:addr + size]
     flat = ' '.join('%02X' % b for b in raw)
@@ -1842,11 +1947,14 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         'if __name__ == "__main__":\n'
         '    main()\n'
     ) % (fn, addr, size, cases, fn, addr, addr, flat, seed, cases, stack_offs,
-         'None' if ram_min is None else '0x%X' % ram_min,
-         'None' if ram_max is None else '0x%X' % ram_max,
-         end_addr, sent_addr,
-         _code_literal(records))
+'None' if ram_min is None else '0x%X' % ram_min,
+          'None' if ram_max is None else '0x%X' % ram_max,
+          end_addr, sent_addr,
+          _code_literal(records))
 
+    rom_label = os.path.splitext(os.path.basename(rom_path))[0] if rom_path \
+        else '60E1D400'
+    test = test.replace('"60E1D400.bin"', '"%s.bin"' % rom_label)
     with open(out_t, 'w') as f:
         f.write(test)
     return True
@@ -1875,7 +1983,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
 # branch of **0.5 / the C sqrtf domain) -> those cases are counted as skips.
 # ---------------------------------------------------------------------------
 def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
-                  cases=2000):
+                  cases=2000, rom_path=None):
     """Write c/tests/test_<name>_<addr>.py for a v3 lift whose span holds FPU
     ops (mirror + oracle both track FR)."""
     fn = gcl.sanitize(name)
@@ -2089,8 +2197,11 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
          end_addr, sent_addr,
-         _code_literal(records))
+          _code_literal(records))
 
+    rom_label = os.path.splitext(os.path.basename(rom_path))[0] if rom_path \
+        else '60E1D400'
+    test = test.replace('"60E1D400.bin"', '"%s.bin"' % rom_label)
     with open(out_t, 'w') as f:
         f.write(test)
     return True
@@ -2114,6 +2225,8 @@ def print_dryrun(pool, counters, args, rom):
     rej = counters['rejected']
     print('=== v3 selection (--dryrun): no files written ===')
     print('pool_v3=%d' % counters['selected'])
+    print('  pool_no_span=%d (end estimated as next known catalog addr)'
+          % counters.get('pool_no_span', 0))
     print('rejected_total=%d' % sum(rej.values()))
     for r in ('unmapped', 'branch', 'delay_slot_ctrl', 'target_fuori', 'rte',
               'call', 'base_unresolved', 'fpu/altre', 'no_mem_op'):
@@ -2290,7 +2403,13 @@ def main():
     args = ap.parse_args()
 
     rom = open(args.rom, 'rb').read()
-    catalog = gcl.load_catalog_end(os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv'))
+    rom_label = os.path.splitext(os.path.basename(args.rom))[0]
+    cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
+    catalog_bank, no_spans, bounds = load_catalog_nospans(cat_path)
+    # v5: the catalog stores each function PER BANK; a 60E0FC00 row may lack the
+    # end its 60E1D400 twin has.  Lookups use THIS bank's table + boundaries.
+    catalog = catalog_bank.get(rom_label, {})
+    end_bounds = bounds.get(rom_label)
     categories = gcl.load_categories(os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'))
 
     if args.addr is not None:
@@ -2303,20 +2422,26 @@ def main():
         cands = categories
         if args.category:
             cands = [c for c in cands if c['category'] == args.category]
+        else:
+            # v5 (additive): catalog no-span functions of the ROM's bank are
+            # candidates too (they have no catalog end; end gets estimated).
+            cands = _merge_nospan_cands(cands, no_spans, bounds, rom_label)
 
     outdir = args.outdir if os.path.isabs(args.outdir) else os.path.join(ROOT, args.outdir)
     # v4: the FPU-aware scan is now the REAL selector — functions whose span
     # holds decode_fpu-mappable FPU ops are admitted (call/unmapped/base rules
     # unchanged); non-FPU functions take the identical v3 path.
     selected, counters = select_fpu(cands, rom, catalog, outdir=outdir,
-                                    max_n=args.n, seed=args.seed)
+                                    max_n=args.n, seed=args.seed,
+                                    end_bounds=end_bounds)
     if args.dryrun:
         # "pool attuale" baseline = the classic v3 selection (counters carry
         # the rejected/skipped/branch breakdown print_dryrun reports); the
         # sanitized-span, FPU, trailing-rts and unmapped-reali pools are
         # ADDITIVE dryrun-only measurements that never affect selection.
         v3_pool, v3_counters = select_v3(cands, args.n, args.seed, rom, catalog,
-                                         outdir=outdir, root=ROOT)
+                                         outdir=outdir, root=ROOT,
+                                         end_bounds=end_bounds)
         # v4 additive measurement: sanitized-span pool (never affects emission)
         v4_pool, v4_counters = select_v4_sanitized(
             cands, rom, catalog, outdir=outdir, root=ROOT, v3_pool=v3_pool)
@@ -2325,7 +2450,8 @@ def main():
         # FPU additive measurement: pool_fpu if mapped FPU ops were allowed
         # (rescue disabled so the additive pool reflects the baseline criteria)
         fpu_pool, fpu_counters = select_fpu(cands, rom, catalog, outdir=outdir,
-                                            root=ROOT, rescue_trailing_rts=False)
+                                            root=ROOT, rescue_trailing_rts=False,
+                                            end_bounds=end_bounds)
         v3_counters['fpu_pool'] = fpu_pool
         v3_counters['fpu'] = fpu_counters
         # additive (a): TRAILING-RTS — trailing rts rescue with end extended
@@ -2352,7 +2478,8 @@ def main():
         base = gcl.sanitize(e['name'])
         lf = '%s_%x' % (base, e['addr'])
         out_c = os.path.join(outdir, lf + '.c')
-        if not emit_v3(e['addr'], e['name'], e['size'], rom, out_c):
+        if not emit_v3(e['addr'], e['name'], e['size'], rom, out_c,
+                       rom_label=rom_label, estimated_end=e.get('estimated_end')):
             dropped += 1
             report.append((lf, 'dropped_compile'))
             continue
@@ -2368,7 +2495,7 @@ def main():
         has_fpu = _records_have_fpu(records)     # includes delay-slot FPU ops
         if has_fpu:
             if emit_fpu_test(e['addr'], e['name'], e['size'], rom, records, info,
-                             args.seed, out_t, cases=args.cases):
+                             args.seed, out_t, cases=args.cases, rom_path=args.rom):
                 res = run_test(out_t)
                 report.append((lf, res))
                 print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
@@ -2376,13 +2503,17 @@ def main():
                 report.append((lf, 'test_write_failed'))
         else:
             if emit_v3_test(e['addr'], e['name'], e['size'], rom, records, info,
-                            args.seed, out_t, cases=args.cases):
+                            args.seed, out_t, cases=args.cases, rom_path=args.rom):
                 res = run_test(out_t)
                 report.append((lf, res))
                 print('test 0x%X %-40s -> %s %s' % (e['addr'], e['name'], res, out_t))
             else:
                 report.append((lf, 'test_write_failed'))
     print('emitted=%d dropped_compile=%d' % (emitted, dropped))
+    n_nospan = sum(1 for e in selected if e.get('estimated_end'))
+    if n_nospan:
+        print('no-span lifts in batch=%d (end estimated as next known catalog addr)'
+              % n_nospan)
     tr_ = (counters.get('n_trimmed', 0) + counters.get('n_extended', 0)
            + counters.get('n_entrambi', 0))
     print('sanitized-span (of selected): trimmed=%d extended=%d both=%d untouched=%d'
