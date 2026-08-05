@@ -639,3 +639,318 @@ def branch_info(opcode_hi):
             d12 -= 0x1000
         return {'kind': 'bra', 'delayed': True, 'target_disp': d12}
     return None
+
+
+# ---------------------------------------------------------------------------
+# v4 (additive): SH-2E FPU decode — decode_fpu().  translate() is untouched and
+# still returns None for every FPU opcode, so v1/v2/v3 consumers see no change;
+# gen_c_lift_v3.py's dryrun-only pool_fpu counter is the first consumer.
+#
+# Every opcode's semantics mirrors tools/sh2emu.py's 0xF___ block EXACTLY:
+#   fadd/fsub/fmul/fdiv FRm,FRn        F0n0..F0n3  frn = ts(frn op frm)
+#   fcmp/eq / fcmp/gt Fm,Fn            F0n4/F0n5   T = (frn==frm) / (frn>frm)
+#   fmov.s @(R0,Rm),FRn                F0n6        frn = rdf(r0+rm)   (mem)
+#   fmov.s FRm,@(R0,Rn)                F0n7        wrf(r0+rn, frm)    (mem)
+#   fmov.s @Rm,FRn                     F0n8        (mem)
+#   fmov.s @Rm+,FRn                    F0n9        (mem, rm += 4)
+#   fmov.s FRm,@Rn                     F0nA        (mem)
+#   fmov.s FRm,@-Rn                    F0nB        (mem, rn -= 4)
+#   fmov FRm,FRn                       F0nC        frn = frm
+#   fsts FPUL,FRn / flds FRn,FPUL      F0nD0/F0nD1 bit pattern <-> fpul
+#   float FPUL,FRn / ftrc FRn,FPUL     F0nD2/F0nD3 int32 <-> trunc
+#   fneg FRn / fabs FRn                F0nD4/F0nD5
+#   fsqrt FRn                          F0nD6
+#   fldi0 FRn / fldi1 FRn              F0nD8/F0nD9  0.0 / 1.0
+#   fmac FR0,FRm,FRn                   F0nE        frn = ts(fr0*frm+frn)
+#   sts fpul/fpscr,Rn / lds Rn,fpul/fpscr            0x005A/0x006A/0x405A/0x406A
+#   sts.l fpul/fpscr,@-Rn / lds.l @Rn+,fpul/fpscr    0x4052/0x4062/0x4056/0x4066
+# Reserved encodings sh2emu raises NotImplementedError for (0xFnnF, the
+# F0nD7/F0nDA-F sub-slots) decode to None — they count as fpu/altre rejects.
+#
+# Register model: FR0..FR15 are uint32_t frN C locals holding the IEEE-754
+# single-precision BIT PATTERN; the Python mirror holds FRs as float32 values
+# (sh2emu semantics).  The mirror fragments are float32-exact via struct and
+# need `ts`, `bits2f`, `f2bits` in the exec ns (c_lift_ops exports them; a
+# future FPU emission adds them to the `from c_lift_ops import ...` line) plus
+# the existing `_rdw`/`_wrw`/`ram` for the fmov.s memory forms.
+#
+# Known limits (documented, not modeled):
+#   - FPSCR flags (V/ZD/IM/...) and the RM rounding-mode bits are NOT modeled
+#     (sh2emu doesn't either): every op is round-to-nearest-even single.
+#   - NaN payloads/signaling behavior are best-effort (Python float vs the
+#     hardware FPU differ); fcmp/eq and fcmp/gt use plain == / > as sh2emu.
+#   - Denormals are kept (ts() does not flush; hardware may).
+#   - ftrc NaN -> 0x80000000 and the +/-overflow saturation match sh2emu.
+#   - fmov.s memory forms read/write 4 big-endian bytes == the frN bit pattern.
+#   - C arithmetic uses an anonymous union with `float` ops; fmac promotes its
+#     operands to double so the result rounds exactly once (SH-2E/s hm2emu
+#     single-rounding semantics: frn = ts(fr0*frm+frn)).  The Python mirror
+#     computes in double then rounds via ts(), matching sh2emu bit-for-bit
+#     (the mirror is the differential oracle; the C is a human-verifiable
+#     draft).  fsqrt C needs <math.h> (future emission adds it next to
+#     <stdint.h>).
+# ---------------------------------------------------------------------------
+
+def ts(x):
+    """Round a Python float to IEEE-754 single precision (identical to sh2emu)."""
+    try:
+        return struct.unpack('>f', struct.pack('>f', x))[0]
+    except OverflowError:
+        return float('inf') if x > 0 else float('-inf')
+
+
+def f2bits(v):
+    """float32 value -> 32-bit IEEE-754 bit pattern (big-endian), as sh2emu."""
+    return struct.unpack('>I', struct.pack('>f', ts(v)))[0]
+
+
+def bits2f(b):
+    """32-bit IEEE-754 bit pattern -> float32 value, as sh2emu."""
+    return struct.unpack('>f', struct.pack('>I', b & MASK))[0]
+
+
+def is_fpu_op(op):
+    """SH-2E FPU block (0xF___) or the FPUL/FPSCR system transfers."""
+    return (op & 0xF000 == 0xF000 or
+            op & 0xF0FF in (0x005A, 0x006A, 0x405A, 0x406A,
+                            0x4052, 0x4056, 0x4062, 0x4066))
+
+
+def decode_fpu(op, pc, rom, ctx=None):
+    """Decode a SH-2E FPU opcode -> semantic dict (additive v4 API).
+
+    Returns None when `op` is not an FPU opcode, or is an FPU encoding sh2emu
+    does NOT execute (reserved sub-slots — the caller rejects fpu/altre).
+    Pure register/FPUL ops return {'kind': 'fpu', 'c': [...], 'py': [...],
+    'uses': set, 'ann': ...}; the fmov.s / sts.l / lds.l memory forms return
+    {'kind': 'fpu_mem', ...} mirroring decode_mem's contract ('dir', 'size',
+    'base': 'param'|'literal'|'unresolved', 'base_reg', 'idx', 'auto',
+    'dest'/'src' as FR index or 'fpul'/'fpscr', plus 'c'/'py'/'uses'/'ann').
+    Memory-form base resolution uses ctx['resolve'] exactly like decode_mem;
+    an unresolvable base yields {'kind': 'fpu_mem', 'unresolved': True, ...}
+    so the caller can reject base_unresolved (not fpu/altre).
+    """
+    op &= 0xFFFF
+    n = (op >> 8) & 0xF
+    m = (op >> 4) & 0xF
+    n0 = op >> 12
+    nib = op & 0xF
+
+    def pure(c, py, uses, mnem):
+        return {'kind': 'fpu', 'c': [c], 'py': [py],
+                'uses': set(uses), 'ann': mnem}
+
+    if n0 == 0xF:
+        frn, frm = 'fr%d' % n, 'fr%d' % m
+        # ---- binary arithmetic (round-to-nearest single) ----
+        if nib == 0x0:
+            return pure('{ union { uint32_t u; float f; } _a, _b, _r;'
+                        ' _a.u = %s; _b.u = %s; _r.f = _a.f + _b.f; %s = _r.u; }'
+                        % (frn, frm, frn),
+                        'fr[%d] = ts(fr[%d] + fr[%d])' % (n, n, m),
+                        ['fr%d' % n, 'fr%d' % m], 'fadd %s,%s' % (frm, frn))
+        if nib == 0x1:
+            return pure('{ union { uint32_t u; float f; } _a, _b, _r;'
+                        ' _a.u = %s; _b.u = %s; _r.f = _a.f - _b.f; %s = _r.u; }'
+                        % (frn, frm, frn),
+                        'fr[%d] = ts(fr[%d] - fr[%d])' % (n, n, m),
+                        ['fr%d' % n, 'fr%d' % m], 'fsub %s,%s' % (frm, frn))
+        if nib == 0x2:
+            return pure('{ union { uint32_t u; float f; } _a, _b, _r;'
+                        ' _a.u = %s; _b.u = %s; _r.f = _a.f * _b.f; %s = _r.u; }'
+                        % (frn, frm, frn),
+                        'fr[%d] = ts(fr[%d] * fr[%d])' % (n, n, m),
+                        ['fr%d' % n, 'fr%d' % m], 'fmul %s,%s' % (frm, frn))
+        if nib == 0x3:
+            return pure('{ union { uint32_t u; float f; } _a, _b, _r;'
+                        ' _a.u = %s; _b.u = %s; _r.f = _a.f / _b.f; %s = _r.u; }'
+                        % (frn, frm, frn),
+                        'fr[%d] = ts(fr[%d] / fr[%d])' % (n, n, m),
+                        ['fr%d' % n, 'fr%d' % m], 'fdiv %s,%s' % (frm, frn))
+        # ---- compare (T-flag only, as sh2emu) ----
+        if nib == 0x4:
+            return pure('{ union { uint32_t u; float f; } _a, _b;'
+                        ' _a.u = %s; _b.u = %s;'
+                        ' T = (_a.f == _b.f) ? 1u : 0u; }' % (frn, frm),
+                        'T = 1 if fr[%d] == fr[%d] else 0' % (n, m),
+                        ['T', 'fr%d' % n, 'fr%d' % m], 'fcmp/eq %s,%s' % (frm, frn))
+        if nib == 0x5:
+            return pure('{ union { uint32_t u; float f; } _a, _b;'
+                        ' _a.u = %s; _b.u = %s;'
+                        ' T = (_a.f > _b.f) ? 1u : 0u; }' % (frn, frm),
+                        'T = 1 if fr[%d] > fr[%d] else 0' % (n, m),
+                        ['T', 'fr%d' % n, 'fr%d' % m], 'fcmp/gt %s,%s' % (frm, frn))
+        # ---- fmov.s memory forms ----
+        if nib == 0x6:
+            return _fpu_mem(op, 'load', m, 'r0', None, n, None, 0,
+                            'fmov.s @(r0,r%d),%s' % (m, frn), ctx)
+        if nib == 0x7:
+            return _fpu_mem(op, 'store', n, 'r0', None, None, m, 0,
+                            'fmov.s %s,@(r0,r%d)' % (frm, n), ctx)
+        if nib == 0x8:
+            return _fpu_mem(op, 'load', m, None, None, n, None, 0,
+                            'fmov.s @r%d,%s' % (m, frn), ctx)
+        if nib == 0x9:
+            return _fpu_mem(op, 'load', m, None, 'post', n, None, 0,
+                            'fmov.s @r%d+,%s' % (m, frn), ctx)
+        if nib == 0xA:
+            return _fpu_mem(op, 'store', n, None, None, None, m, 0,
+                            'fmov.s %s,@r%d' % (frm, n), ctx)
+        if nib == 0xB:
+            return _fpu_mem(op, 'store', n, None, 'pre', None, m, -4,
+                            'fmov.s %s,@-r%d' % (frm, n), ctx)
+        # ---- register transfers ----
+        if nib == 0xC:
+            return pure('%s = %s;' % (frn, frm),
+                        'fr[%d] = fr[%d]' % (n, m),
+                        ['fr%d' % n, 'fr%d' % m], 'fmov %s,%s' % (frm, frn))
+        if nib == 0xE:
+            return pure('{ union { uint32_t u; float f; } _a, _b, _c, _r;'
+                        ' _a.u = fr0; _b.u = %s; _c.u = %s;'
+                        ' _r.f = (float)((double)_a.f * (double)_b.f + (double)_c.f);'
+                        ' %s = _r.u; }'
+                        % (frm, frn, frn),
+                        'fr[%d] = ts(fr[0] * fr[%d] + fr[%d])' % (n, m, n),
+                        ['fr0', 'fr%d' % m, 'fr%d' % n],
+                        'fmac fr0,%s,%s' % (frm, frn))
+        # ---- F0nD sub-encodings (m = sub-opcode) ----
+        if nib == 0xD:
+            if m == 0x0:    # fsts FPUL,FRn
+                return pure('%s = fpul;' % frn, 'fr[%d] = bits2f(fpul)' % n,
+                            ['fr%d' % n, 'fpul'], 'fsts fpul,%s' % frn)
+            if m == 0x1:    # flds FRn,FPUL
+                return pure('fpul = %s;' % frn, 'fpul = f2bits(fr[%d])' % n,
+                            ['fr%d' % n, 'fpul'], 'flds %s,fpul' % frn)
+            if m == 0x2:    # float FPUL,FRn (int32 -> float32)
+                return pure('{ union { uint32_t u; float f; } _r;'
+                            ' _r.f = (float)(int32_t)fpul; %s = _r.u; }' % frn,
+                            'fr[%d] = ts(float(s32(fpul)))' % n,
+                            ['fr%d' % n, 'fpul'], 'float fpul,%s' % frn)
+            if m == 0x3:    # ftrc FRn,FPUL (trunc, NaN->0x80000000, saturate)
+                return pure('{ union { uint32_t u; float f; } _a; _a.u = %s;'
+                            ' if (_a.f != _a.f) fpul = 0x80000000u;'
+                            ' else if (_a.f >= 2147483648.0f) fpul = 0x7FFFFFFFu;'
+                            ' else if (_a.f < -2147483648.0f) fpul = 0x80000000u;'
+                            ' else fpul = (uint32_t)(int32_t)_a.f; }' % frn,
+                            'fpul = (0x80000000 if fr[%d] != fr[%d]'
+                            ' else (0x7FFFFFFF if fr[%d] >= 2147483648.0'
+                            ' else (0x80000000 if fr[%d] < -2147483648.0'
+                            ' else int(fr[%d])))) & 0xFFFFFFFF' % (n, n, n, n, n),
+                            ['fr%d' % n, 'fpul'], 'ftrc %s,fpul' % frn)
+            if m == 0x4:    # fneg (bit sign flip == float negation)
+                return pure('%s = %s ^ 0x80000000u;' % (frn, frn),
+                            'fr[%d] = -fr[%d]' % (n, n),
+                            ['fr%d' % n], 'fneg %s' % frn)
+            if m == 0x5:    # fabs (clear sign bit == float abs)
+                return pure('%s = %s & 0x7FFFFFFFu;' % (frn, frn),
+                            'fr[%d] = abs(fr[%d])' % (n, n),
+                            ['fr%d' % n], 'fabs %s' % frn)
+            if m == 0x6:    # fsqrt (needs <math.h> in the lift)
+                return pure('{ union { uint32_t u; float f; } _a, _r;'
+                            ' _a.u = %s; _r.f = sqrtf(_a.f); %s = _r.u; }'
+                            % (frn, frn),
+                            'fr[%d] = ts(fr[%d] ** 0.5)' % (n, n),
+                            ['fr%d' % n], 'fsqrt %s' % frn)
+            if m == 0x8:    # fldi0
+                return pure('%s = 0u;' % frn, 'fr[%d] = 0.0' % n,
+                            ['fr%d' % n], 'fldi0 %s' % frn)
+            if m == 0x9:    # fldi1
+                return pure('%s = 0x3F800000u;' % frn, 'fr[%d] = 1.0' % n,
+                            ['fr%d' % n], 'fldi1 %s' % frn)
+        return None         # reserved sub-encoding: sh2emu raises (fpu/altre)
+    # ---- FPUL / FPSCR system transfers (integer-value ops) ----
+    f = op & 0xF0FF
+    if f == 0x005A:
+        return pure('r%d = fpul;' % n, 'r[%d] = fpul' % n,
+                    ['r%d' % n, 'fpul'], 'sts fpul,r%d' % n)
+    if f == 0x006A:
+        return pure('r%d = fpscr;' % n, 'r[%d] = fpscr' % n,
+                    ['r%d' % n, 'fpscr'], 'sts fpscr,r%d' % n)
+    if f == 0x405A:
+        return pure('fpul = r%d;' % n, 'fpul = r[%d]' % n,
+                    ['r%d' % n, 'fpul'], 'lds r%d,fpul' % n)
+    if f == 0x406A:
+        return pure('fpscr = r%d;' % n, 'fpscr = r[%d]' % n,
+                    ['r%d' % n, 'fpscr'], 'lds r%d,fpscr' % n)
+    if f in (0x4052, 0x4062):                       # sts.l fpul/fpscr,@-Rn
+        reg = 'fpul' if f == 0x4052 else 'fpscr'
+        return _fpu_mem(op, 'store', n, None, 'pre', None, reg, -4,
+                        'sts.l %s,@-r%d' % (reg, n), ctx)
+    if f in (0x4056, 0x4066):                       # lds.l @Rn+,fpul/fpscr
+        reg = 'fpul' if f == 0x4056 else 'fpscr'
+        return _fpu_mem(op, 'load', n, None, 'post', reg, None, 0,
+                        'lds.l @r%d+,%s' % (n, reg), ctx)
+    return None
+
+
+def _fpu_mem(op, dir_, base_reg, idx, auto, dest, src, off, mnem, ctx):
+    """Build the fpu_mem dict for one fmov.s / sts.l / lds.l memory form.
+
+    dest/src is an FR index (int) for fmov.s, or 'fpul'/'fpscr' for the system
+    transfers.  Base resolution and the C address expression reuse the v2
+    decode_mem helpers (_resolve_base / _eff_addr) so the base rules are
+    identical (param r4..r7 / literal via ctx['resolve']; caller checks the
+    'r0' index and the param-not-written condition)."""
+    rb = _resolve_base(ctx, base_reg)
+    if rb is None:
+        return {'kind': 'fpu_mem', 'unresolved': True, 'dir': dir_,
+                'base_reg': base_reg, 'idx': idx, 'auto': auto,
+                'dest': dest, 'src': src, 'ann': mnem, 'c': [], 'py': [],
+                'uses': set()}
+    base_kind, abs_addr = rb
+    eff, eff_abs = _eff_addr(base_kind, 'r%d' % base_reg, off, idx, abs_addr)
+    if idx is not None:
+        pyaddr = 'r[0] + r[%d]' % base_reg
+    elif base_kind == 'literal':
+        pyaddr = '0x%08X' % ((abs_addr + off) & MASK)
+    else:
+        pyaddr = 'r[%d]' % base_reg
+    if dir_ == 'load':
+        c = ['fr%d = *(volatile uint32_t*)%s;' % (dest, eff)] \
+            if isinstance(dest, int) else \
+            ['%s = *(volatile uint32_t*)%s;' % (dest, eff)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        if auto == 'post':
+            c.append('r%d = r%d + 4;' % (base_reg, base_reg))
+        if isinstance(dest, int):
+            py = ['fr[%d] = bits2f(_rdw(ram, %s, 4))' % (dest, pyaddr)]
+        else:
+            py = ['%s = _rdw(ram, %s, 4)' % (dest, pyaddr)]
+        if auto == 'post':
+            py.append('r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (base_reg, base_reg))
+    else:                                            # store
+        if isinstance(src, int):
+            c = ['*(volatile uint32_t*)%s = fr%d;' % (eff, src)]
+        else:
+            c = ['*(volatile uint32_t*)%s = %s;' % (eff, src)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        if auto == 'pre':                            # @-Rn: decrement then store
+            c.append('r%d = r%d - 4;' % (base_reg, base_reg))
+            py = ['r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (base_reg, base_reg)]
+            # sh2emu decrements r[n] FIRST and stores at the NEW address, so
+            # the mirror write must target the post-decrement register.
+            pyaddr = 'r[%d]' % base_reg
+        else:
+            py = []
+        if isinstance(src, int):
+            py.append('_wrw(ram, %s, 4, f2bits(fr[%d]))' % (pyaddr, src))
+        else:
+            py.append('_wrw(ram, %s, 4, %s)' % (pyaddr, src))
+    uses = {'r%d' % base_reg}
+    if idx is not None:
+        uses.add('r0')
+    if isinstance(dest, int):
+        uses.add('fr%d' % dest)
+    else:
+        uses.add(dest)
+    if isinstance(src, int):
+        uses.add('fr%d' % src)
+    else:
+        uses.add(src)
+    return {'kind': 'fpu_mem', 'dir': dir_, 'size': 4, 'base': base_kind,
+            'base_reg': base_reg, 'idx': idx, 'auto': auto,
+            'dest': dest if dir_ == 'load' else None,
+            'src': src if dir_ == 'store' else None,
+            'c': c, 'py': py, 'uses': uses, 'ann': mnem}
