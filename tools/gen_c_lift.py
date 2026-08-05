@@ -1297,7 +1297,9 @@ def compute_stats():
     of_classified = sum(1 for _ in csv.DictReader(
         open(os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'))))
     pct = 100.0 * len(unique) / total if total else 0.0
-    return len(unique), total, of_classified, pct
+    pct_of_classified = (100.0 * len(unique) / of_classified
+                         if of_classified else 0.0)
+    return len(unique), total, of_classified, pct, pct_of_classified
 
 
 def main():
@@ -1315,9 +1317,11 @@ def main():
     args = ap.parse_args()
 
     if args.stats:
-        n, total, ofc, pct = compute_stats()
+        n, total, ofc, pct, pct_of_classified = compute_stats()
         print('unique_lift_addrs=%d total=%d pct=%.2f' % (n, total, pct))
         print('of_classified=%d' % ofc)
+        print('pct_of_classified=%.2f  (coverage vs classified functions)'
+              % pct_of_classified)
         return
 
     rom = open(args.rom, 'rb').read()
