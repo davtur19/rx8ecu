@@ -107,10 +107,18 @@ src: symbols/symbols_60E1D400_merged.csv symbols/cal_tables.csv $(TOOLS)/organiz
 	  --regions analysis/data_regions_60E1D400.csv --out src/60E1D400_annotated.s
 
 # Track A: behavior-equivalence tests (host compiler; no SH toolchain needed)
+# checkFloatValidity (sqrt @0x46CC) links three soft-float helpers defined in
+# separate lifts: frexp @0x48C8 (bitfield_extract_merge), sqrt @0x4740
+# (div_4740), ldexp @0x481C (ldexp_481C).  The generic loop compiles c/<name>.c
+# alone, so this binary needs the helper sources listed explicitly.
 c-test:
 	@for t in c/tests/test_*.c; do \
 	  b=$$(basename $$t .c); s=$${b#test_}; echo "== $$s =="; \
-	  cc -O2 c/$$s.c $$t -o /tmp/$$b && /tmp/$$b || exit 1; \
+	  x=""; \
+	  if [ "$$s" = "checkFloatValidity" ]; then \
+	    x="c/bitfield_extract_merge.c c/div_4740.c c/ldexp_481C.c"; \
+	  fi; \
+	  cc -O2 c/$$s.c $$x $$t -o /tmp/$$b && /tmp/$$b || exit 1; \
 	done
 
 # verify each C lift against the emulated ROM (tools/sh2emu.py)
