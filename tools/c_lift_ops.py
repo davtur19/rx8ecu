@@ -22,6 +22,29 @@ Each translate() returns a dict:
 Registers r4..r7 are the function arguments (set once at entry); r0..r3 and
 r8..r15 are locals (initialized 0).  r0 holds the return value.  All arithmetic
 is 32-bit unsigned (uint32_t / & 0xFFFFFFFF) as in the emulator.
+
+Memory ops (b/w/l) are NOT handled by translate() — it still returns None for
+them, exactly as before — but by the v2 entry point decode_mem():
+
+    decode_mem(opcode_hi_word, opcode_lo_word_or_None, ctx)
+
+    ctx (optional dict):
+        ctx['resolve'](reg) -> ('RAM', abs_addr) | ('ROM', abs_addr) | None
+                               (resolves the runtime value of base register `reg`,
+                                e.g. a literal-pool address tracked by the caller)
+        ctx['temp']()       -> unique temp variable name ('t1', 't2', ...)
+    Returns None when `opcode_hi_word` is not a b/w/l memory op, or when its
+    base register is neither a function param (r4..r7) nor resolvable — the v2
+    generator then rejects the function.  Otherwise returns a dict:
+        {'kind': 'mem', 'size': 1|2|4, 'dir': 'load'|'store',
+         'base': 'param'|'literal', 'c': [C statements], ...}
+    For base='literal' the fragment embeds the resolved absolute address with a
+    `/* RAM 0x... */` / `/* ROM */` note (classify_addr); for base='param' the
+    address is written as `(rN + disp)` so the C uses the runtime r4..r7 value.
+    Covered SH-2 directions (b/w/l): loads  @(disp,Rn)->Rd (Rd==R0 only),
+    @Rn->Rd, @Rn+->Rd, @(R0,Rn)->Rd; stores Rs->@(disp,Rn) (Rs==R0 only),
+    Rs->@Rn, Rs->@-Rn, Rs->@(R0,Rn).  The SH-2 ISA has NO @-Rn load and NO
+    @Rn+ store, so those two directions are inherently undecodable (None).
 """
 import struct
 
@@ -204,7 +227,7 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x8:
             return _mk('T = ((r%d & r%d) == 0u) ? 1u : 0u;' % (n, m), 'T = 1 if (r[%d] & r[%d]) == 0 else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x9:
-            return _mk('r%d &= r%d;' % (n, m), 'r[%d] = (r[%d] & r[%d]) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
+            return _mk('r%d &= r%d;' % (n, m), 'r[%d] = (r[%d] & r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xA:
             return _mk('r%d ^= r%d;' % (n, m), 'r[%d] = (r[%d] ^ r[%d]) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xB:
@@ -337,3 +360,187 @@ def translate(op, pc, rom, ann=''):
                 'target': bra_target(pc, op & 0xFFF), 'cond_c': '1u', 'cond_py': '1', 'ann': ann}
 
     return None  # unsupported / impure opcode
+
+
+# ---------------------------------------------------------------------------
+# v2 generator: memory ops (b/w/l) — RAM/ROM accesses whose base register is a
+# function param (r4..r7) or resolves to a fixed address (literal pool).  The
+# existing translate() is untouched and still returns None for these opcodes;
+# decode_mem() is purely additive.  Encodings mirror tools/sh2emu.py:
+#   loads 0x6nxx (nib 0/1/2 = @Rn, nib 4/5/6 = @Rn+), R0-only disp 0x84/85/86,
+#          indexed 0x0nmC/D/E (@(R0,Rm))
+#   stores 0x2nxx (nib 0/1/2 = @Rn, nib 4/5/6 = @-Rn), R0-only disp 0x80/81/82,
+#          indexed 0x0nm4/5/6 (@(R0,Rn))
+# ---------------------------------------------------------------------------
+import itertools as _itertools
+
+_SIZE_NIB = {0: 1, 1: 2, 2: 4, 4: 1, 5: 2, 6: 4, 0xC: 1, 0xD: 2, 0xE: 4}
+# (lo|hi) nibble -> access size: 0x2/0x6 family low nibbles 0/1/2 (plain) and
+# 4/5/6 (@-/@+), R0-only 0x8nxx upper nibbles, indexed low nibbles 4/5/6 and
+# 0xC/D/E (@(R0,Rm) loads)
+_SIZE_CH = {1: 'b', 2: 'w', 4: 'l'}
+_CTYPE = {1: 'uint8_t', 2: 'uint16_t', 4: 'uint32_t'}
+_tmp = _itertools.count(1)
+
+
+def _default_temp():
+    return 't%d' % next(_tmp)
+
+
+def sign_extend16(v):
+    """16-bit value -> 32-bit two's-complement (unsigned form): 0xD3F0 -> 0xFFFFD3F0."""
+    v &= 0xFFFF
+    return (v - 0x10000 if v & 0x8000 else v) & MASK
+
+
+def classify_addr(v):
+    """'RAM' (0xFFFF0000..0xFFFFFFFF) | 'ROM' (0x00000000..0x000FFFFF) | 'OTHER'."""
+    v &= MASK
+    if 0xFFFF0000 <= v <= 0xFFFFFFFF:
+        return 'RAM'
+    if 0x00000000 <= v <= 0x000FFFFF:
+        return 'ROM'
+    return 'OTHER'
+
+
+def _c_addr(v):
+    return '0x%08X' % (v & MASK)
+
+
+def _ram_note(abs_addr):
+    """Trailing C comment for a literal-base access: RAM addr vs ROM."""
+    if classify_addr(abs_addr) == 'RAM':
+        return ' /* RAM %s */' % _c_addr(abs_addr)
+    return ' /* ROM */'
+
+
+def _resolve_base(ctx, reg):
+    """('param', None) for r4..r7; ('literal', addr) via ctx['resolve']; else None."""
+    if 4 <= reg <= 7:
+        return ('param', None)
+    res = (ctx or {}).get('resolve')
+    if res is None:
+        return None
+    hit = res(reg)
+    if not hit or hit[0] not in ('RAM', 'ROM'):
+        return None
+    addr = hit[1]
+    if isinstance(addr, str):
+        addr = int(addr, 0)
+    return ('literal', addr & MASK)
+
+
+def _eff_addr(base_kind, base_c, off, idx, abs_addr):
+    """C expression for the effective address.
+
+    base_kind 'literal': baked absolute constant (abs_addr + off); 'param':
+    runtime register expression `(rN + off)` (disp included, off may be 0).
+    idx (e.g. 'r0') adds a runtime index for the @(R0,Rn) forms.
+    """
+    if base_kind == 'literal':
+        a = (abs_addr + off) & MASK
+        expr = _c_addr(a)
+        if idx is not None:
+            expr = '(%s + %s)' % (expr, idx)
+        return expr, a
+    if idx is not None:
+        return '(%s + %s)' % (base_c, idx), None
+    if off < 0:
+        return '(%s - %d)' % (base_c, -off), None
+    return '(%s + %d)' % (base_c, off), None
+
+
+def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
+    """Decode a SH-2 b/w/l memory op into a C fragment (v2 generator).
+
+    See the module docstring for the full contract.  Returns None when the
+    opcode is not a covered memory op or its base register is neither a param
+    (r4..r7) nor resolvable via ctx['resolve'] — the generator then rejects the
+    function.  The returned dict always carries at least:
+        {'kind': 'mem', 'size': 1|2|4, 'dir': 'load'|'store',
+         'base': 'param'|'literal', 'c': [C statements], ...}
+    plus extra keys the generator may use: 'temp' (load temp name), 'dest' /
+    'src' (register index), 'base_reg', 'disp' (scaled byte offset), 'idx',
+    'auto' ('post'|'pre'|None), 'sext' (True for mov.b/mov.w loads, which the
+    emulator sign-extends), 'ann' (disassembly-style annotation), 'uses'.
+    `opcode_lo_word_or_None` is reserved for the generator's uniform two-word
+    decode interface; every SH-2 memory op here is single-word (displacements
+    live in the hi word), so it is accepted and ignored.
+    """
+    ctx = ctx or {}
+    temp = ctx.get('temp') or _default_temp
+    op = opcode_hi_word & 0xFFFF
+    n = (op >> 8) & 0xF
+    m = (op >> 4) & 0xF
+    n0 = op >> 12
+    nib = op & 0xF
+
+    def mem(kind, size, base_reg, src, dest, disp_off, idx, auto, ann):
+        rb = _resolve_base(ctx, base_reg)
+        if rb is None:
+            return None
+        base_kind, abs_addr = rb
+        eff, eff_abs = _eff_addr(base_kind, 'r%d' % base_reg, disp_off, idx, abs_addr)
+        if kind == 'load':
+            t = temp()
+            c = ['uint32_t %s = *(volatile %s*)%s;' % (t, _CTYPE[size], eff)]
+            if eff_abs is not None:
+                c[0] += _ram_note(eff_abs)
+            if auto == 'post':
+                c.append('r%d = r%d + %d;' % (base_reg, base_reg, size))
+            return {'kind': 'mem', 'size': size, 'dir': 'load', 'base': base_kind,
+                    'c': c, 'temp': t, 'dest': dest, 'base_reg': base_reg,
+                    'disp': disp_off, 'idx': idx, 'auto': auto,
+                    'sext': size < 4, 'ann': ann,
+                    'uses': {t} | {'r%d' % base_reg} | ({'r0'} if idx else set())}
+        c = ['*(volatile %s*)%s = r%d;' % (_CTYPE[size], eff, src)]
+        if eff_abs is not None:
+            c[0] += _ram_note(eff_abs)
+        if auto == 'pre':
+            c.append('r%d = r%d - %d;' % (base_reg, base_reg, size))
+        return {'kind': 'mem', 'size': size, 'dir': 'store', 'base': base_kind,
+                'c': c, 'src': src, 'base_reg': base_reg,
+                'disp': disp_off, 'idx': idx, 'auto': auto,
+                'sext': False, 'ann': ann,
+                'uses': {'r%d' % src, 'r%d' % base_reg} | ({'r0'} if idx else set())}
+
+    # ---- loads @Rn / @Rn+ -> Rd  (0x6n00/10/20, 0x6n40/50/60) ----
+    if n0 == 0x6 and nib in (0, 1, 2, 4, 5, 6):
+        size = _SIZE_NIB[nib]
+        auto = 'post' if nib >= 4 else None
+        ann = 'mov.%s @r%d%s,r%d' % (_SIZE_CH[size], m, '+' if auto else '', n)
+        return mem('load', size, m, None, n, 0, None, auto, ann)
+
+    # ---- stores Rs -> @Rn / @-Rn  (0x2n00/10/20, 0x2n40/50/60) ----
+    if n0 == 0x2 and nib in (0, 1, 2, 4, 5, 6):
+        size = _SIZE_NIB[nib]
+        # @-Rn: sh2emu captures the value first, then r[n]-=size and writes to
+        # the decremented address -> bake -size into the address expression and
+        # append the register update AFTER the store (src==base stays correct).
+        auto = 'pre' if nib >= 4 else None
+        disp_off = -size if auto == 'pre' else 0
+        ann = 'mov.%s r%d,@%sr%d' % (_SIZE_CH[size], m, '-' if auto else '', n)
+        return mem('store', size, n, m, None, disp_off, None, auto, ann)
+
+    # ---- R0-only 4-bit displacement forms  (stores 0x80/81/82, loads 0x84/85/86) ----
+    f = op & 0xFF00
+    if f in (0x8000, 0x8100, 0x8200, 0x8400, 0x8500, 0x8600):
+        size = _SIZE_NIB[(op >> 8) & 0xF]
+        disp_off = (op & 0xF) * size
+        if f in (0x8000, 0x8100, 0x8200):
+            ann = 'mov.%s r0,@(0x%X,r%d)' % (_SIZE_CH[size], disp_off, m)
+            return mem('store', size, m, 0, None, disp_off, None, None, ann)
+        ann = 'mov.%s @(0x%X,r%d),r0' % (_SIZE_CH[size], disp_off, m)
+        return mem('load', size, m, None, 0, disp_off, None, None, ann)
+
+    # ---- indexed @(R0,Rn): stores 0x0nm4/5/6, loads 0x0nmC/D/E ----
+    if op & 0xF00F in (0x0004, 0x0005, 0x0006):
+        size = _SIZE_NIB[nib]
+        ann = 'mov.%s r%d,@(r0,r%d)' % (_SIZE_CH[size], m, n)
+        return mem('store', size, n, m, None, 0, 'r0', None, ann)
+    if op & 0xF00F in (0x000C, 0x000D, 0x000E):
+        size = _SIZE_NIB[nib]
+        ann = 'mov.%s @(r0,r%d),r%d' % (_SIZE_CH[size], m, n)
+        return mem('load', size, m, None, n, 0, 'r0', None, ann)
+
+    return None  # not a covered memory op
