@@ -1,20 +1,20 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **3169 entries, 78.8M.** Regenerated 2026-08-02 for the
+in the working repository. **3176 entries, 78.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 543.4K |
+| (root) | 11 | 547.8K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 31 | 9.1M |
-| c/ | 1099 | 2.2M |
-| c/tests/ | 1166 | 7.6M |
-| tools/ | 28 | 551.4K |
+| c/ | 1102 | 2.2M |
+| c/tests/ | 1169 | 7.7M |
+| tools/ | 29 | 623.6K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 860.4K |
 | hardware/ | 1 | 2.0K |
@@ -23,7 +23,7 @@ in the working repository. **3169 entries, 78.8M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 18.2K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **3169** | 78.8M |
+| **Total** | **3176** | 78.9M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `9249d7e6bf79e21b0a12759f196fd0ae1d51be94dd522433ea40f8d2667210f1` | 10.6K | Project README |
+| `README.md` | `bc55f16859a102ac55460e3653c31dc72f6143f46a0200e525c13956ac429d57` | 10.6K | Project README |
 | `REPLICATION.md` | `83c8ed09e1d59b0d3d4436718315d4648f723fb1324d5083ef86b63dbde68ee7` | 7.4K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `84272372890ce56be9519a6e0a60abeeb8781d92e2331c737ce7d6368335446e` | 9.2K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -353,6 +353,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/atu_clock_prescaler_select_5292.c` | `a30529e65314029790d11f8b2d208f772a2e6a9435bb3c04091dfb6dd104eb69` | 1.5K | Tracked file |
 | `c/atu_fpu_control_wrapper.c` | `37355cb7ffad034546299758572983a814c83daae3ee519cac8d25f59af77f82` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/atu_read_capture_value_1dfa.c` | `b31c2bb9410a88ad413aec2de4c9e6353539070127def8cf4b6f9ae69358f15c` | 1.2K | Tracked file |
+| `c/atu_set_channel_mode_1e1c.c` | `b4f5af85ffc39cc339117ea48f74a1ff2a93672ead9866d3afb4ab072be7972f` | 1.4K | Tracked file |
 | `c/atu_write_compare_value_1dd4.c` | `5aa181d054f080ca40b931f5795b311a84c7eea214768963daf6b5c5fabb1ee6` | 1.6K | Tracked file |
 | `c/aux_condition_duration_counters_27da8.c` | `2a0757c19bfd8f7924ae7d96e352bcbbe8712bb72ea98f510676800492513e92` | 1.9K | Tracked file |
 | `c/baro_sensor_value.c` | `ff3fb8099c49013535c2c72a2cd9be211b2643580a487ebdf14570efcebc2e70` | 6.5K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -1147,6 +1148,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/spark_timing_limit_40A64_40a54.c` | `3690a518b8a08793d6a6ac2178e9955b8006cc1482561542c8e8b14a7ef24fab` | 4.3K | Tracked file |
 | `c/speedometer_0x5A9DC_5a9dc.c` | `a87913df3da30f2bb82833e26ac45db23c5d986f399dd418d93b49d0c3e368e4` | 2.9K | Tracked file |
 | `c/spi_eeprom_verify_49778_49778.c` | `bb73af4a91dcc3d75d2ec6d7b875e38184f2a4e91cb13c7a508769f8a99216d9` | 2.6K | Tracked file |
+| `c/spi_set_clk_high_wait_9c0.c` | `5b1fedd6a2b6569547d70c84ddf1c657c4fd530e5afdfcb9a8382ccc2d8337e2` | 1.4K | Tracked file |
 | `c/spi_set_clk_low_wait_9de.c` | `6872374433138644b93a949f7a226ccfc08e685f2d23c9cef69d1a4d23ff49d2` | 1.4K | Tracked file |
 | `c/split_selector_decoder_48C12.c` | `e0595630405959c50e4d870b210b8c2caba06d6920c8407a5c2ff7f4bdff490f` | 2.2K | Tracked file |
 | `c/split_selector_state_ctrl_487DC.c` | `ecf291ec65c34fe8791fb5f2e59dd621ae4b6839f6e9687b3972adcdbbf3a1e1` | 9.3K | Tracked file |
@@ -1173,6 +1175,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/task_execute_by_index.c` | `a433cad7cc85bce936bdeed450ff31bcb2c9c6659d11ae7628ce98e13cdc3c76` | 6.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/task_flag_run_C.c` | `b3bba6c41b80255a326d45bd486a8a2572f78dd8bf7bd17fb09ad0a65384f70c` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/task_full_context_save.c` | `bbdac4e17b6fa65e3756aa86b39b95e7ae6c8c9139a6174a7e9d2df3e9bc3e6c` | 3.6K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/task_queue_get_next_3b0.c` | `ddbbdfabf179d6f203f50b3b859be5dbdb9f7fbd95aff98e998b36aae56b10a4` | 1.7K | Tracked file |
 | `c/task_queue_pending_count_3e0.c` | `bbd991210fc73bf3a1185c9dcb2fd90f52b8bd6f73aa680860f0db4bf7f3435d` | 1.3K | Tracked file |
 | `c/task_resume_4C4A8_4c4a8.c` | `f99beccefabafdf2c98a23c5a89638a68a3b9c560edf7e5d05cf5d907333dac4` | 1.8K | Tracked file |
 | `c/temperature_gauge_0x5AA5C.c` | `b2774efa881d7673fd62c8fd53d94f900c3a2bdbf2121f6b5885afb556864b51` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -1463,6 +1466,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_atu_fpu_control_wrapper.py` | `c042db681d34a842025844855c83e18434a9ad9f923f0749e21560a650070ef8` | 5.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_atu_fpu_control_wrapper_70AC.py` | `14aa2c2a8724a9cf7d71cd6e0fc05a32940ebb1738e280f54dddd43c11f7c850` | 4.2K | Tracked file |
 | `c/tests/test_atu_read_capture_value_1dfa.py` | `2ee52e3f6cf6702d7cfed4f4c50dc518f27604feddd1941194b2d2530cfc8abb` | 7.6K | Tracked file |
+| `c/tests/test_atu_set_channel_mode_1e1c.py` | `b3220b81dde4fd09346170fb84a2b1841efddfac2dc08d5e38c7daf931e6cb9c` | 7.7K | Tracked file |
 | `c/tests/test_atu_write_compare_value_1dd4.py` | `289e766bc058de5fb2e69b86f632efec46882892f1922ec079e1a2e4e8887f08` | 7.8K | Tracked file |
 | `c/tests/test_aux_condition_duration_counters_27da8.py` | `8c0e31619c3f90ba3c35e1604bc24eafe2d8954cb4cb590883f69cbf91d272d0` | 8.1K | Tracked file |
 | `c/tests/test_battery_voltage_monitor_26766.py` | `cd41e63530a13a8b234a2357255d4f7d157deb24222cdfdf41e580f2a9d2df0b` | 5.0K | Tracked file |
@@ -2315,6 +2319,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_spark_timing_limit_40A64_40a54.py` | `58ddc3b4e52d02a656f8273d499b35d366da90cde7e807ecb749c45cd31b79fa` | 13.3K | Tracked file |
 | `c/tests/test_speedometer_0x5A9DC_5a9dc.py` | `31efbe7de0e75da68afad8e7b56245831af5e03b48f835333799709eda94e174` | 10.5K | Tracked file |
 | `c/tests/test_spi_eeprom_verify_49778_49778.py` | `d4589af7c1cdeb476a792da69081971a7abd682bc40f6dd734ba349534423f1f` | 10.2K | Tracked file |
+| `c/tests/test_spi_set_clk_high_wait_9c0.py` | `d19372d29f160ea17243a1335143c9f99a16be44bf777272af1d114e1f86ef4a` | 7.6K | Tracked file |
 | `c/tests/test_spi_set_clk_low_wait_9de.py` | `3d48bf9f0caa0517ec086bfd39268e2abe1d5d44de05514ab7a601de2db2a79e` | 7.2K | Tracked file |
 | `c/tests/test_split_selector_decoder_48C12.py` | `db9b9cc3daaed739277b99dfa9c28cf513f5159c4eb49d1fdd31eba9bda66851` | 4.0K | Tracked file |
 | `c/tests/test_split_selector_state_ctrl_487DC.py` | `29311eaca1dbf2e0ccd4dc972f47d882a392e1a2ac881e971c714c93df6fa9f9` | 7.7K | Tracked file |
@@ -2343,6 +2348,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_task_flag_run_C.py` | `ecbaa12aef78ef9ca8349a329fa9c3ec247225530f80116d8204bbff6f541ade` | 2.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_task_full_context_save.py` | `b7a89b0c4a72bff97db11a8917047867522276322f4e52ec46355da9fc1e4339` | 8.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_task_full_context_save_3BF4.py` | `31eeed31ed877a96c6ee7bec0e3757c4901f26a994be0b2ff1cdb3b401cbe175` | 7.7K | Tracked file |
+| `c/tests/test_task_queue_get_next_3b0.py` | `5eab716dfe7bbb73613093fd7c6d1374ffd76f6c2810e60053f46aac8fcf6331` | 8.0K | Tracked file |
 | `c/tests/test_task_queue_pending_count_3e0.py` | `1506d6767d571ac522b8b22a619e121591f667bda5d6ae50e38bac9558f06fc9` | 6.9K | Tracked file |
 | `c/tests/test_task_resume_4C4A8_4c4a8.py` | `89e01bf446a4d6064d0af0cc793beea9869b98d979e9271fc6174409cac49987` | 9.2K | Tracked file |
 | `c/tests/test_temperature_gauge_0x5AA5C.c` | `c062994160aa2bb9f6837586beef0db5add165c6daf9e83bb26b22ff4f0aae9f` | 1.8K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -2420,7 +2426,7 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `tools/ASM_BASELINE.md` | `9d44b22cedc71a4fda4000e7bdd93a071b8778a4c00fd1838bee5414b811977c` | 4.3K | Method, byte-exact proof, coverage, limits, next steps |
 | `tools/README.md` | `bfb2018e4b0d9e7fe187ecd6cc6b9a5217a82c0dfbb7e9d4635ada77b7bfc071` | 3.2K | Directory README |
-| `tools/c_lift_ops.py` | `0a1a587a6d35fde5240c8910ceb51f29c722df38a6e691ae14a33f70b15dbb80` | 60.8K | Tracked file |
+| `tools/c_lift_ops.py` | `ce1fd64c795c4cc73b25a71dadb6e83f4ce7610cb50a7aabd59ea947dd79f944` | 67.3K | Tracked file |
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
 | `tools/classify_functions.py` | `8a8fed345454482ef296379cdcd087b38e1c9da396ea3511d1a5b5992165c41c` | 29.3K | Tracked file |
 | `tools/cross_decode.py` | `3a6532e07091d41fc4f4f94d3890bec87cb37726f7fb0bb8c3a6c9e32cf028c8` | 12.2K | RE tool (see tools/README.md) |
@@ -2428,9 +2434,10 @@ or the toolchain install (git-ignored; re-create with
 | `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
 | `tools/fix_romcodes.py` | `a4ac233c37e70a09e297a246fdd016e69c0d824486a8a9e15cb9dd0be530a007` | 3.0K | Tracked file |
-| `tools/gen_c_lift.py` | `1c4d33ef1cfdf8f6669e0f01745de64686998cadcee1bfe2f3542377d0764772` | 64.4K | Tracked file |
-| `tools/gen_c_lift_v3.py` | `4077e04a33fc63f0513be9ddff7b5ed445cc3e4f6c984118f80668ab9bf5e6b1` | 121.3K | Tracked file |
+| `tools/gen_c_lift.py` | `ef9eb77ded99ab403a62ff5379c7ebde50dbdc4b01b8dd316fd643a66f40d7fa` | 65.4K | Tracked file |
+| `tools/gen_c_lift_v3.py` | `1d90bd64f4992a52d1f9eae611eabf94c119af9aa17f8a5ac37011d40c4ef3c6` | 139.3K | Tracked file |
 | `tools/gen_c_lift_v7.py` | `2419c84b963496f2a255e310f7ee43391f93ea050b3c88aa0ef2f8d16e9cf587` | 41.2K | Tracked file |
+| `tools/gen_c_lift_v8.py` | `172a9470a207d0471a57b62e1e4440597263ea3c90fc78904abbe09fd9f803fe` | 46.7K | Tracked file |
 | `tools/gen_catalog.py` | `13440ac2ec6b7bd770c4705c1d4242daf23e6928bf7390ea3c89ea31d123a555` | 39.7K | Tracked file |
 | `tools/gen_manifest.py` | `2154966f6530667e55ae6189a6554b0e244d091dff9cf2d7bf213f4383c70e75` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
@@ -2758,7 +2765,7 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
 | `.github/workflows/README.md` | `4ba420eb633f9177d6a5f5500289c905cfa6b312c4c0e861ad2db6ee93878f6d` | 5.4K | CI documentation (GitHub Actions) |
-| `.github/workflows/ci.yml` | `7cbe603f5f43dda693c62922585c874ec4813303ce7d482dab9bdfc75b5714de` | 9.3K | CI workflow (GitHub Actions) |
+| `.github/workflows/ci.yml` | `fa24f6c3d9f33265095a749b873d3b9d43c8718abc00587b1d2b65e194769fcf` | 9.4K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `8cea71e76a9b2e7617727d4f4ef54447f8d47f48ddc5d193b986c66ce4b753ef` | 2.9K | CI workflow (GitHub Actions) |
 
 ## reconstructed/experiments/match
