@@ -43,8 +43,12 @@ them, exactly as before — but by the v2 entry point decode_mem():
     address is written as `(rN + disp)` so the C uses the runtime r4..r7 value.
     Covered SH-2 directions (b/w/l): loads  @(disp,Rn)->Rd (Rd==R0 only),
     @Rn->Rd, @Rn+->Rd, @(R0,Rn)->Rd; stores Rs->@(disp,Rn) (Rs==R0 only),
-    Rs->@Rn, Rs->@-Rn, Rs->@(R0,Rn).  The SH-2 ISA has NO @-Rn load and NO
-    @Rn+ store, so those two directions are inherently undecodable (None).
+    Rs->@Rn, Rs->@-Rn, Rs->@(R0,Rn).  v6 adds the 4-bit-displacement mov.l
+    forms the SH-2 emulator runs but the mapper used to leave 'unmapped':
+    loads 0x5nmd mov.l @(disp,Rm),Rn and stores 0x1nmd mov.l Rn,@(disp,Rm)
+    with disp = nib*4 (0,4,..,60) — same param/literal base rule, size 4,
+    no sign-extend, no auto.  The SH-2 ISA has NO @-Rn load and NO @Rn+
+    store, so those two directions are inherently undecodable (None).
 
 v3 (additive, same module): the T-flag templates and the branch/return decode
 API, ready for the generator's branch emission (translate() above is untouched
@@ -58,6 +62,19 @@ for branch/ret opcodes and gen_c_lift.py still rejects them):
     generator must reject it).  The C never reads T for branches — the generator
     emits `if (T) goto L_...;` / `if (!T) goto L_...;` and places the delay slot
     BEFORE the branch when delayed; the mirror uses T as its internal flag.
+
+v6 (additive, this module): GBR byte bit-ops — decode_gbr_bit() decodes the
+0xCC-CF forms sh2emu runs but _decode_gbr (0xC0-C6) and decode_mem leave
+'unmapped': tst.b/and.b/xor.b/or.b #imm,@(r0,GBR) — address = GBR + R0 (both
+must resolve to constants, passed as ctx['gbr']), size 1, tst.b sets T only,
+the others read-modify-write the byte.  translate() additionally gains the
+real lds Rn,mach/macl/pr (0x4n0A/0x4n1A/0x4n2A, previously dead-code 'unmapped')
+and xtrct (0x2nmD).  NOT implemented (documented, remain 'unmapped'):
+mac.l/mac.w @Rm+,@Rn+ (two memory reads + S-bit 64/32-bit accumulate — not
+replicable 1:1 without a ram model for dynamic bases), sts.l/lds.l
+mach/macl/pr stack forms (need generator dest support beyond rN/sr; bases are
+usually r15), stc/ldc VBR/SSR/SPC and stc GBR (system regs not a lift state),
+tas.b @Rn (byte RMW at a dynamic rN base).
 """
 import struct
 
@@ -258,6 +275,10 @@ def translate(op, pc, rom, ann=''):
             return _mk('Q = (r%d >> 31) & 1u; M = (r%d >> 31) & 1u; T = Q ^ M;' % (n, m),
                        'Q = (r[%d] >> 31) & 1\n            M = (r[%d] >> 31) & 1\n            T = Q ^ M' % (n, m),
                        ['Q', 'M', 'T', 'r%d' % n, 'r%d' % m])
+        if nib == 0xD:   # xtrct Rm,Rn  (mirror sh2emu: (Rm<<16)|(Rn>>16))
+            return _mk('r%d = ((r%d << 16) | (r%d >> 16));' % (n, m, n),
+                       'r[%d] = ((r[%d] << 16) | (r[%d] >> 16)) & 0xFFFFFFFF' % (n, m, n),
+                       ['r%d' % n, 'r%d' % m])
         if nib == 0xF:   # muls.w
             return _mk('macl = (uint32_t)((int32_t)(int16_t)(r%d & 0xFFFFu) * (int32_t)(int16_t)(r%d & 0xFFFFu));' % (m, n),
                        'macl = (s16(r[%d]) * s16(r[%d])) & 0xFFFFFFFF' % (m, n),
@@ -338,9 +359,15 @@ def translate(op, pc, rom, ann=''):
         if f == 0x4010: return _mk('r%d = r%d - 1u; T = (r%d == 0u) ? 1u : 0u;' % (n, n, n),
                                    'r[%d] = (r[%d] - 1) & 0xFFFFFFFF\n            T = 1 if r[%d] == 0 else 0' % (n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x000A: return _mk('mach = r%d;' % n, 'mach = r[%d] & 0xFFFFFFFF' % n, ['mach', 'r%d' % n])
-        if f == 0x001A: return _mk('macl = r%d;' % n, 'macl = r[%d] & 0xFFFFFFFF' % n, ['macl', 'r%d' % n])
-        if f == 0x002A: return _mk('pr = r%d;' % n, 'pr = r[%d] & 0xFFFFFFFF' % n, ['pr', 'r%d' % n])
+        # lds Rn,mach/macl/pr = 0x4n0A/0x4n1A/0x4n2A (mirror sh2emu n0==0x4).
+        # The pre-v6 entries here checked f == 0x000A/0x001A/0x002A — dead code
+        # inside the n0==0x4 block (f is always 0x40xx there), so the real lds
+        # forms fell through to None as 'unmapped'; the n0==0x0 sts block below
+        # owns the 0x000A/0x001A/0x002A encodings.  All three are pure register
+        # writes, 1:1 with the oracle.
+        if f == 0x400A: return _mk('mach = r%d;' % n, 'mach = r[%d] & 0xFFFFFFFF' % n, ['mach', 'r%d' % n])
+        if f == 0x401A: return _mk('macl = r%d;' % n, 'macl = r[%d] & 0xFFFFFFFF' % n, ['macl', 'r%d' % n])
+        if f == 0x402A: return _mk('pr = r%d;' % n, 'pr = r[%d] & 0xFFFFFFFF' % n, ['pr', 'r%d' % n])
         # memory / stack / sr ops under n0==4 are NOT pure -> None (caller filters)
 
     # ---- misc system ops ----
@@ -567,6 +594,19 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
         ann = 'mov.%s r%d,@%sr%d' % (_SIZE_CH[size], m, '-' if auto else '', n)
         return mem('store', size, n, m, None, disp_off, None, auto, ann)
 
+    # ---- 4-bit-displacement mov.l forms (additive v6): 0x5nmd loads and
+    # 0x1nmd stores with disp = nib*4 (0,4,..,60), exactly sh2emu n0==0x5
+    # (`r[n] = rd(r[m] + nib*4, 4)`) and n0==0x1 (`wr(r[n] + nib*4, 4, r[m])`).
+    # These were previously 'unmapped' (only _mem_shape knew their shape for
+    # the r15/r14 stack path).  Size is always 4, no sign-extend, no auto;
+    # base resolution is the standard param/literal rule. ----
+    if n0 == 0x5:
+        ann = 'mov.l @(0x%X,r%d),r%d' % (nib * 4, m, n)
+        return mem('load', 4, m, None, n, nib * 4, None, None, ann)
+    if n0 == 0x1:
+        ann = 'mov.l r%d,@(0x%X,r%d)' % (m, nib * 4, n)
+        return mem('store', 4, n, m, None, nib * 4, None, None, ann)
+
     # ---- R0-only 4-bit displacement forms  (stores 0x80/81/82, loads 0x84/85/86) ----
     f = op & 0xFF00
     if f in (0x8000, 0x8100, 0x8200, 0x8400, 0x8500, 0x8600):
@@ -630,6 +670,74 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
                 'sr_dest': True}
 
     return None  # not a covered memory op
+
+
+# ---------------------------------------------------------------------------
+# v6 (additive): GBR byte bit-ops — decode_gbr_bit().  These are the 0xCC-CF
+# forms sh2emu executes but gen_c_lift._decode_gbr (0xC0-C6 only) and
+# decode_mem leave 'unmapped':  the address is GBR + R0 (indexed, not a
+# displacement), and the op reads/writes ONE byte with an 8-bit immediate:
+#   0xCC00 tst.b #imm,@(r0,GBR):  T = (rd(gbr+r0,1) & imm) == 0
+#   0xCD00 and.b #imm,@(r0,GBR):  wr(gbr+r0,1, rd(gbr+r0,1) & imm)
+#   0xCE00 xor.b #imm,@(r0,GBR):  wr(gbr+r0,1, rd(gbr+r0,1) ^ imm)
+#   0xCF00 or.b  #imm,@(r0,GBR):  wr(gbr+r0,1, rd(gbr+r0,1) | imm)
+# (semantics verbatim from sh2emu._exec n0==0xC).  The caller (gen_c_lift scan
+# / walk_v3) resolves GBR and R0 to a constant absolute address — both must be
+# known literals at scan time — and passes it via ctx['gbr'] = int; the C/py
+# fragments bake that address (RAM note like the other literal-base ops), which
+# is 1:1 with sh2emu when the literals are genuinely constant (same contract as
+# the 0xC0-C6 GBR mov forms).  tst.b sets T only; and/xor/or read-modify-write
+# the byte and touch no integer register.  Returns None for any non-0xCC-CF
+# opcode; returns {'kind':'gbr_bit','unresolved':True,...} when ctx['gbr'] is
+# missing/None (encoding recognized, base not yet resolved — the caller
+# rejects).  The mirror fragments need `_rdw`/`_wrw`/`ram` (+ T for tst.b) in
+# the exec ns, exactly like decode_mem's py cousins.
+# ---------------------------------------------------------------------------
+_GBR_BIT_FAMILY = {0xCC00: ('tst', 'load', 'tst.b #0x%02X,@(r0,gbr)'),
+                   0xCD00: ('and', 'rmw', 'and.b #0x%02X,@(r0,gbr)'),
+                   0xCE00: ('xor', 'rmw', 'xor.b #0x%02X,@(r0,gbr)'),
+                   0xCF00: ('or',  'rmw', 'or.b  #0x%02X,@(r0,gbr)')}
+
+
+def decode_gbr_bit(op, pc, rom, ctx=None):
+    """Decode a 0xCC-CF GBR byte bit-op -> semantic dict (additive v6 API).
+
+    `ctx['gbr']` is the resolved constant absolute address (GBR literal + R0
+    literal) baked into the C/py fragments; without it the dict is returned
+    with 'unresolved': True (encoding recognized, base unresolved).  The dict:
+        {'kind': 'gbr_bit', 'family': 'tst'|'and'|'xor'|'or',
+         'dir': 'load'|'rmw', 'size': 1, 'imm': int,
+         'c': [C statements], 'py': [mirror statements], 'uses': set,
+         'ann': mnemonic}
+    """
+    fam = _GBR_BIT_FAMILY.get(op & 0xFF00)
+    if fam is None:
+        return None
+    family, gdir, mnem = fam
+    lo = op & 0xFF
+    ann = mnem % lo
+    gbr = (ctx or {}).get('gbr')
+    if gbr is None:
+        return {'kind': 'gbr_bit', 'family': family, 'dir': gdir, 'size': 1,
+                'imm': lo, 'unresolved': True, 'c': [], 'py': [],
+                'uses': set(), 'ann': ann}
+    gbr &= MASK
+    note = ' /* RAM 0x%08X */' % gbr if classify_addr(gbr) == 'RAM' else ' /* ROM */'
+    addr_c = '0x%08X' % gbr
+    addr_py = '0x%08X' % gbr
+    if family == 'tst':
+        c = ['T = ((*(volatile uint8_t*)%s & 0x%02Xu) == 0u) ? 1u : 0u;%s'
+             % (addr_c, lo, note)]
+        py = ['T = 1 if (_rdw(ram, %s, 1) & 0x%02X) == 0 else 0' % (addr_py, lo)]
+        uses = {'T'}
+    else:
+        c = ['*(volatile uint8_t*)%s %s= 0x%02Xu;%s'
+             % (addr_c, {'and': '&', 'xor': '^', 'or': '|'}[family], lo, note)]
+        py = ['_wrw(ram, %s, 1, _rdw(ram, %s, 1) %s 0x%02X)'
+              % (addr_py, addr_py, {'and': '&', 'xor': '^', 'or': '|'}[family], lo)]
+        uses = set()
+    return {'kind': 'gbr_bit', 'family': family, 'dir': gdir, 'size': 1,
+            'imm': lo, 'c': [c], 'py': py, 'uses': uses, 'ann': ann}
 
 
 # ---------------------------------------------------------------------------

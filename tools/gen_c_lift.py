@@ -458,6 +458,28 @@ def _scan_mem_function(rom, c, end, branch_stats=None):
             _apply_mem_writes(gm, written, lits)   # GBR load writes r0
             pc += 2
             continue
+        # ---- v6: GBR byte bit-ops (0xCC-CF) — decode_gbr_bit recognizes the
+        # encoding; acceptance needs the same gbr_known/r0-literal contract as
+        # the 0xC0-C6 movs (address = GBR + R0, both constants).  tst.b sets T
+        # only, and/xor/or RMW the byte — no rN side effects, so no
+        # _apply_mem_writes. ----
+        gb = ops.decode_gbr_bit(op, pc, rom, None)
+        if gb is not None:
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                return None, ('base_unresolved', 'r0-non-literal')
+            abs_addr = (gbr_value + lits['r0']) & MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            ops_list.append({'pc': pc, 'size': 1,
+                             'dir': 'load' if gb['dir'] == 'load' else 'store',
+                             'kind': 'gbr_bit', 'base_reg': None, 'disp': 0,
+                             'auto': None, 'idx': None, 'gbr': True,
+                             'family': gb['family'], 'imm': gb['imm']})
+            pc += 2
+            continue
         sh = _mem_shape(op)
         if sh is not None and sh['base'] in (14, 15):
             breg = sh['base']

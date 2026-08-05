@@ -546,6 +546,26 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
             gcl._apply_mem_writes(gm, written, lits)
             pc += 2
             continue
+        # ---- v6: GBR byte bit-ops (0xCC-CF) — same contract as the 0xC0-C6
+        # movs (GBR + R0 both constants); tst.b sets T only, and/xor/or RMW
+        # the byte (no rN side effects). ----
+        gb = ops.decode_gbr_bit(op, pc, rom, None)
+        if gb is not None:
+            if not gbr_known or gbr_value is None:
+                return None, ('base_unresolved', 'GBR-non-risolto')
+            if 'r0' not in lits:
+                return None, ('base_unresolved', 'r0-non-literal')
+            abs_addr = (gbr_value + lits['r0']) & gcl.MASK
+            bases.setdefault('gbr', ('LITERAL', abs_addr))
+            if abs_addr not in lit_vals:
+                lit_vals.append(abs_addr)
+            ops_list.append({'pc': pc, 'size': 1,
+                             'dir': 'load' if gb['dir'] == 'load' else 'store',
+                             'kind': 'gbr_bit', 'base_reg': None, 'disp': 0,
+                             'auto': None, 'idx': None, 'gbr': True,
+                             'family': gb['family'], 'imm': gb['imm']})
+            pc += 2
+            continue
         sh = gcl._mem_shape(op)
         if sh is not None and sh['base'] in (14, 15):
             breg = sh['base']
@@ -1196,6 +1216,8 @@ def _v3_unmapped_op(rom, op, pc):
         return False
     if gcl._decode_gbr(op) is not None:
         return False
+    if ops.decode_gbr_bit(op, pc, rom, {'gbr': 0}) is not None:
+        return False
     sh = gcl._mem_shape(op)
     if sh is not None and sh['base'] in (14, 15):
         return False
@@ -1412,6 +1434,17 @@ def walk_v3(rom, addr, end):
             gcl._apply_mem_writes(gm, st['written'], st['lits'])
             return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
+        gb = ops.decode_gbr_bit(op, pc, rom, None)
+        if gb is not None:
+            if not st['gbr_known'] or st['gbr_value'] is None or 'r0' not in st['lits']:
+                return None
+            abs_addr = (st['gbr_value'] + st['lits']['r0']) & gcl.MASK
+            info['has_literal'] = True
+            info['ram_addrs'].add(abs_addr)
+            gbd = ops.decode_gbr_bit(op, pc, rom, {'gbr': abs_addr})
+            return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': list(gbd['c']),
+                    'py': list(gbd['py']), 'target': None, 'slot': None,
+                    'mnem': gbd['ann']}
         sh = gcl._mem_shape(op)
         if sh is not None and sh['base'] in (14, 15):
             breg = sh['base']
