@@ -4,10 +4,13 @@
 #include <stdint.h>
 uint32_t rtos_task_register_a140_96de(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    uint32_t r8=0, r9=0, r11=0, r14=0;
-    // r4..r7 are possible function arguments (set at entry)
+    /* params (possibly) */
+    uint32_t r0 = 0;
+    uint32_t r3 = 0;
+    uint32_t r8 = 0;
+    uint32_t r9 = 0;
+    uint32_t r11 = 0;
+    uint32_t r14 = 0;
     /* 0x0096DE: op 0x64B3 */
     r4 = r11;
     /* 0x0096E0: op 0xD82C */

@@ -4,10 +4,10 @@
 #include <stdint.h>
 uint32_t hcan_mbox_word_byteswap_write_cec8(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    uint32_t r14=0;
-    // r4..r7 are possible function arguments (set at entry)
+    uint32_t r0 = 0;
+    uint32_t r2 = 0;
+    uint32_t r3 = 0;
+    uint32_t r14 = 0;
     /* 0x00CEC8: op 0x63E3 */
     r3 = r14;
     /* 0x00CECA: op 0x4319 */

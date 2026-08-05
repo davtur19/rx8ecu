@@ -4,9 +4,9 @@
 #include <stdint.h>
 uint32_t fuel_intercooler_4387a_4387a(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    // r4..r7 are possible function arguments (set at entry)
+    /* params (possibly) */
+    uint32_t r0 = 0;
+    uint32_t r3 = 0;
     /* 0x04387A: op 0x9713 */
     r7 = (uint32_t)(int32_t)(int16_t)0x0000C9DDu;
     /* 0x04387C: op 0x9613 */

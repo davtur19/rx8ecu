@@ -4,9 +4,10 @@
 #include <stdint.h>
 uint32_t math_complement_2420_2420(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    // r4..r7 are possible function arguments (set at entry)
+    /* params (possibly) */
+    uint32_t r0 = 0;
+    uint32_t r2 = 0;
+    uint32_t r3 = 0;
     /* 0x002420: op 0x634C */
     r3 = r4 & 0xFFu;
     /* 0x002422: op 0x4318 */

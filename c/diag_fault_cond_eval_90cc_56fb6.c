@@ -4,10 +4,10 @@
 #include <stdint.h>
 uint32_t diag_fault_cond_eval_90cc_56fb6(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
 {
-    // locals; r0..r3 and r8..r15 start as 0
-    uint32_t r0=0, r1=0, r2=0, r3=0;
-    uint32_t T=0;
-    // r4..r7 are possible function arguments (set at entry)
+    /* params (possibly) */
+    uint32_t r0 = 0;
+    uint32_t r3 = 0;
+    uint32_t T = 0;
     /* 0x056FB6: op 0xE43E */
     r4 = (uint32_t)(int32_t)(int8_t)0x3E;
     /* 0x056FB8: op 0x6503 */
