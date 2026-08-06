@@ -1,60 +1,36 @@
 # REPLICATION — reproduce byte-perfect RX-8 ECU ROMs from scratch
 
-Exact, copy-paste-able steps from a fresh clone to byte-perfect (1:1,
-sha256-verified) copies of all 9 shipped stock firmware ROMs, plus the RE
-deliverables (annotated assembly, verified C lifts, docs, analysis). The
-procedure applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
+Copy-paste-able steps from a fresh clone to byte-perfect (sha256-verified) copies of all 9 stock ROMs, plus RE deliverables (annotated assembly, verified C lifts, docs, analysis). Applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
 
-Self-contained: the only external pieces are Python 3, the `capstone` pip
-package, and the sh-elf binutils toolchain — **not shipped**: a fresh clone must
-run `tools/get_toolchain.sh` once (internet required) to install it into
-`tools/toolchain/` (git-ignored). No root, no `~/.bashrc` exports. Requirements:
-Linux/macOS, Python 3, `make`, `cc` (C test suites only); ~2 GB disk is plenty.
+Self-contained: only Python 3, `capstone` pip, and the sh-elf binutils toolchain — **not shipped**; fresh clone runs `tools/get_toolchain.sh` once (internet required) into `tools/toolchain/` (git-ignored). No root, no `~/.bashrc` exports. Requires: Linux/macOS, Python 3, `make`, `cc` (C test suites only); ~2 GB disk.
 
-> **Note (toolchain):** `tools/get_toolchain.sh` downloads via Debian/Ubuntu
-> `apt-get`; on macOS the sh-elf binutils (`sh-elf-as`/`ld`/`objcopy`) must be
-> preinstalled (e.g. local build) for the rebuild/verify steps.
-
----
+> **Toolchain:** `get_toolchain.sh` uses Debian/Ubuntu `apt-get`; on macOS the sh-elf binutils must be preinstalled for rebuild/verify.
 
 ## Step 1 — Prerequisites
 
 ```bash
-# Python 3 (check)
 python3 --version          # any 3.x (tested on 3.14)
-
-# capstone (SH-2 disassembly backend) — the ONLY pip dependency
-python3 -m pip install capstone --break-system-packages
-
-# (optional, only for the host test suites) a C compiler
-cc --version               # gcc/clang, any recent version
+python3 -m pip install capstone --break-system-packages   # ONLY pip dependency
+cc --version               # gcc/clang (optional, host test suites only)
 ```
 
 ## Step 2 — Toolchain (one-time, idempotent)
 
 ```bash
-cd <repo root>
 ./tools/get_toolchain.sh
 ```
 
-Installs GNU **sh-elf binutils 2.46** (`sh-elf-as -big`, `sh-elf-ld -Ttext=0`,
-`sh-elf-objcopy -O binary`) locally at `tools/toolchain/usr/bin` (git-ignored).
-First run downloads/unpacks without root (Debian/Ubuntu `apt-get download` +
-`dpkg-deb -x`; any other `sh-elf` binutils also works); later runs fast-path
-"already installed", exit 0. Required before `make verify-all`.
+Installs GNU **sh-elf binutils 2.46** (`sh-elf-as -big`, `sh-elf-ld -Ttext=0`, `sh-elf-objcopy -O binary`) at `tools/toolchain/usr/bin` (git-ignored). First run downloads without root (`apt-get download` + `dpkg-deb -x`); later runs fast-path "already installed". Required before `make verify-all`.
 
-The Makefile and `verify_all.sh` resolve the toolchain path themselves — **no
-`PATH` export needed** for make-driven steps. Standalone `tools/tests/` scripts
-(e.g. `python3 tools/tests/test_decode_families.py`) invoke `sh-elf-as` directly;
-if it isn't installed system-wide: `export PATH=$PWD/tools/toolchain/usr/bin:$PATH`.
+Makefile and `verify_all.sh` resolve the toolchain path themselves — no `PATH` export for make steps. Standalone `tools/tests/` scripts invoke `sh-elf-as` directly; if not system-wide: `export PATH=$PWD/tools/toolchain/usr/bin:$PATH`.
 
-## Step 3 — Bulk verify: rebuild + byte-compare all 9 public stock ROMs
+## Step 3 — Bulk verify: rebuild + byte-compare all 9 ROMs
 
 ```bash
 make verify-all
 ```
 
-Expected output (the repo's core claim):
+Expected output (repo's core claim):
 
 ```
 Rebuilding and byte-exact-verifying 9 stock ROMs (code window 0x800..0x60000)...
@@ -73,9 +49,7 @@ ROM                            sha256 match                    cov%    raw  STAT
 OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
-Each ROM ~1.5 s; whole run under 20 s. Exit status 0. `BYTE-EXACT` means
-`sha256(rebuilt) == sha256(source)` — a 100% 1:1 copy, not an approximation
-(see "What the rebuilt ROM is" below for the pipeline).
+Each ROM ~1.5 s; whole run under 20 s; exit 0. `BYTE-EXACT` = `sha256(rebuilt) == sha256(source)` — 100% 1:1 copy (see "What the rebuilt ROM is" below).
 
 ## Step 4 — Verify a single ROM
 
@@ -83,21 +57,17 @@ Each ROM ~1.5 s; whole run under 20 s. Exit status 0. `BYTE-EXACT` means
 make ROM=roms/stock/60E1D400.bin verify    # any image in the dataset
 ```
 
-Rebuilds `build/out.bin` from `60E1D400.bin`, `cmp`s them, prints
-`OK: byte-exact rebuild of roms/stock/60E1D400.bin` on success.
+Rebuilds `build/out.bin`, `cmp`s, prints `OK: byte-exact rebuild of roms/stock/60E1D400.bin` on success.
 
 ## Step 5 — Regenerate an annotated source
 
-The annotated sources in `src/` (9 ROMs; table in `src/ANNOTATED_SOURCES.md`)
-are generated by `tools/organize_src.py` (function labels + calibration/
-data-region comments; bytes unchanged):
+The annotated sources in `src/` (9 ROMs; table in `src/ANNOTATED_SOURCES.md`) are generated by `tools/organize_src.py` (function labels + calibration/data-region comments; bytes unchanged):
 
 ```bash
-make src          # 60E1D400 baseline (equinox+IDA names, D400 data-region comments)
+make src          # 60E1D400 baseline (equinox+IDA names, D400 comments)
 ```
 
-Output is `src/60E1D400_annotated.s`, byte-identical to the shipped file
-(verified). Direct equivalent:
+Output `src/60E1D400_annotated.s`, byte-identical to shipped (verified). Direct equivalent:
 
 ```bash
 python3 tools/organize_src.py \
@@ -108,16 +78,13 @@ python3 tools/organize_src.py \
   --out src/60E1D400_annotated.s
 ```
 
-> **Note (regenerability):** only `src/60E1D400_annotated.s` is regenerable from
-> a clone (`make src`). The other 8 require the private xmap CSVs (equinox hand
-> names / `_xmap.csv` / `_idamap.csv`, private storage) and cannot be
-> regenerated from this public tree.
+> **Regenerability:** only `src/60E1D400_annotated.s` is regenerable from a clone. The other 8 require private xmap CSVs; not regenerable from this public tree.
 
 ## Step 6 — Emulator / Track A (verified C lifts)
 
 ```bash
 make c-test        # host-compiled behavior-equivalence suites (26 C suites)
-python3 c/tests/verify_emu.py    # 5 functions x 100k random vs the emulated ROM
+python3 c/tests/verify_emu.py    # 5 functions × 100k random vs emulated ROM
 ```
 
 `verify_emu.py` output:
@@ -130,8 +97,7 @@ OK  seed_mixer           C == emulated ROM @0x366B8  (100k random)
 OK  calculateImmoSeed    C == emulated ROM @0x3675C  (100k random)
 ```
 
-Full Python suite (112 per-function suites in `c/tests/`, 115 with
-`tools/tests/` + `verify_emu.py`) and the SH-2E family regressions:
+Full Python suite (112 per-function suites in `c/tests/`, 115 with `tools/tests/` + `verify_emu.py`) and SH-2E family regressions:
 
 ```bash
 python3 tools/tests/test_decode_families.py      # 38,008 checks (disassembler, GNU-as cross-checked)
@@ -145,35 +111,16 @@ for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 112 per-function
 python3 tools/denso_ck.py roms/stock/60E1D400.bin
 ```
 
-Expected: `OK — checksum corretto` (the Denso additive checksum descriptor at
-`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
+Expected: `OK — checksum corretto` (Denso additive checksum descriptor @`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
 
-Modified (tuned) images are NOT shipped (kept private); for such images a
-non-OK result is expected — tuned images legitimately bypass the Denso checksum,
-so `denso_ck.py` reports `ERRATO` and exits 1.
-
----
+Modified (tuned) images NOT shipped (kept private); those legitimately bypass the Denso checksum → `denso_ck.py` reports `ERRATO` and exits 1.
 
 ## What the rebuilt ROM is (and the ~6.4% `.word` regions)
 
-Byte-identical 1:1 copy of the original firmware, sha256-verified by
-`make verify-all`. The annotated sources lift **93.46–93.8%** of the code
-window (`0x800..0x60000`, 195,584 words) to real SH-2 instructions; the rest is
-raw `.word` data (~6.4%: literal pools, jump tables, calibration, padding).
-Byte-exactness is by construction: every even offset is independently a decoded
-instruction or a raw `.word`, and a self-correcting loop forces anything GNU-as
-rejects or re-encodes differently back to `.word` until `cmp == 0`; outside the
-window everything is `.word` verbatim.
+Byte-identical 1:1 copy, sha256-verified by `make verify-all`. Annotated sources lift **93.46–93.8%** of the code window (`0x800..0x60000`, 195,584 words) to real SH-2 instructions; the rest is raw `.word` data (~6.4%: literal pools, jump tables, calibration, padding). Byte-exact by construction: every even offset is a decoded instruction or raw `.word`, and a self-correcting loop forces anything GNU-as rejects/re-encodes differently back to `.word` until `cmp == 0`; outside the window everything is `.word` verbatim.
 
-**Coverage honesty caveat.** The figure is *round-trip* coverage — every
-in-window word that decodes/re-encodes to valid bytes counts. ~6% of counted
-words are data tables that decode as valid instructions (the `0x0007`
-`mul.l r0,r0` marker appears 2,427× — more than `rts`), so the true code
-fraction is ~88–91%, data ~9–12%.
+**Coverage honesty caveat.** Figures are *round-trip* coverage. ~6% of counted words are data tables that decode as valid instructions (`0x0007` `mul.l r0,r0` ×2427 — more than `rts`); true code ≈88–91%, data ≈9–12%.
 
 ## Verifying the deliverables end-to-end
 
-Every check above is summarized with results in [VERIFICATION.md](VERIFICATION.md).
-Complete file inventory: [MANIFEST.md](MANIFEST.md). Methodology: [PLANS.md](PLANS.md),
-`src/ANNOTATED_SOURCES.md`, `docs/subsystems/OVERVIEW.md`, `c/README.md`,
-`roms/ROMS.md`.
+Every check summarized with results in [VERIFICATION.md](VERIFICATION.md). Complete file inventory: [MANIFEST.md](MANIFEST.md). Methodology: [PLANS.md](PLANS.md), `src/ANNOTATED_SOURCES.md`, `docs/subsystems/OVERVIEW.md`, `c/README.md`, `roms/ROMS.md`.

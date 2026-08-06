@@ -3,8 +3,6 @@
 Non-discoverable confirmed facts only. Load every session.
 Active RE notes: `ECU.md`. Findings history: `FINDINGS.md`.
 
----
-
 ## ECU Identity
 
 | Field | Value |
@@ -24,7 +22,7 @@ Series II (2009+) uses SH7058 — different CPU, not compatible.
 
 ## UDS Protocol Quirks
 
-These are non-standard. Getting any of them wrong causes silent failure or NRC.
+Non-standard. Wrong → silent failure or NRC.
 
 | What | Correct | Wrong (and why) |
 |---|---|---|
@@ -52,10 +50,7 @@ Flash reprogramming SIDs: 0x34→0x1A70, 0x36→0x1B8C, 0x37→0x1CB8. SecurityA
 LFSR: init=`0xC541A9`, taps=`0x909028`. Per-level LFSR INIT table starts at
 `0x5FAC8` in 60E1D400 (`0x5FAC5`–`0x5FAC7` is `FF FF FF` padding after the
 5-byte secret) — **unchanged across all variants**.  
-The tuned-ECU secret was a capture-verified RX-8 UDS SecurityAccess
-secret on a flashed/tuned ECU; its literal and capture vectors are removed for
-privacy (see `tools/mazda_security.py` — the stock `MazdA` vectors are the
-shipped, ROM-verified reference).
+Tuned-ECU secret was capture-verified; its vectors removed for privacy (stock `MazdA` vectors in `tools/mazda_security.py` are the shipped, ROM-verified reference).
 RESOLVED 2026-08-01 (commit `a84eaba`): `mazda_security.py` self-test + `test_security_access.py` pass — ROM-verified stock vector is seed `0x45820A` / `"MazdA"` / level 1 → `0xA07258` (12 ROM vectors).
 
 If the ECU responds **NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expects ROM's actual key. Fix: set correct 5-byte key for the ROM installed in the ECU.

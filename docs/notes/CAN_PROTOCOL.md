@@ -2,21 +2,19 @@
 
 ## Overview
 
-The RX-8 uses **two CAN buses**:
+**Two CAN buses**:
 - **HS-CAN** (OBD-II pins 6/14): ECU diagnostics, UDS
 - **MS-CAN** (OBD-II pins 3/11): accessories (not used for ECU access)
 
-Mazda RX-8 CAN messages are **proprietary broadcast** — they are NOT standard OBD2. A generic ELM327/OBD2 reader only sees 0x7DF/0x7E0/0x7E8 (UDS diagnostic). All engine-data messages use Mazda-specific IDs.
-
----
+Messages are **proprietary broadcast** — NOT standard OBD2. A generic ELM327/OBD2 reader only sees 0x7DF/0x7E0/0x7E8 (UDS diagnostic). All engine-data messages use Mazda-specific IDs.
 
 ## CAN Controller Configuration Tables
 
-In ROM 60E1D400, three CAN mailbox configuration tables exist:
+In ROM 60E1D400, three CAN mailbox configuration tables:
 - **CAN0 TX Config**: `0x4EA60` (primary), `0x4EB60` (alternate, used when 0xB5A4==0)
 - **CAN1 RX Config**: `0x4EC60`
 
-These tables configure the HCAN mailboxes (CAN ID, DLC, RX/TX direction). They are **not** runtime dispatch tables — the runtime dispatch is done by direct function calls.
+Configure HCAN mailboxes (CAN ID, DLC, RX/TX direction). **Not** runtime dispatch tables — dispatch is direct function calls.
 
 ### Entry Format (16 bytes)
 
@@ -66,17 +64,13 @@ Offset  Size  Endian Description
 | 0x04C0 | MB6     | 1   | RX  | 0x01BC64   | Short message |
 | 0x0047 | MB7     | 8   | RX  | 0x01C520   | KCM keyless/immobiliser request (field-verified — see "Field vs firmware") |
 
-**Note**: The "Buffer Ptr" fields are mailbox data buffer offsets in RAM, not function pointers. They point into the HCAN mailbox register space (0xFFFFExxx).
-
----
+**Buffer Ptr** = mailbox data buffer offsets in RAM (HCAN mailbox register space 0xFFFFExxx), not function pointers.
 
 ## Run-time CAN Dispatch (60E1D400)
 
-Unlike the configuration tables, the actual run-time dispatch is done by two functions:
-
 ### CAN TX: `CANTX_Main` (0xDDF0)
 
-Called periodically from the main loop. Uses counter-based rate limiting:
+Called periodically from the main loop. Counter-based rate limiting:
 
 ```
 CANTX_Main:
@@ -115,15 +109,9 @@ secondary_system_controller:
   CAN47RX_Main(0x3939C)         → CAN ID 0x47 (KCM/immobiliser request, CAN1 MB7)
 ```
 
----
-
 ## Known Proprietary Broadcast IDs
 
-> Description column: **field-verified meanings** (per
-> `can_protocol/verification/field_vs_firmware.md` and
-> `can_protocol/rx8club_thread_276101_CAN_map.txt`) replace
-> earlier firmware-guess labels. DLC/dir/ID come from the firmware mailbox
-> config and are unchanged. See "Field vs firmware" at the end of this file.
+> Description column: **field-verified meanings** (per `can_protocol/verification/field_vs_firmware.md` and `can_protocol/rx8club_thread_276101_CAN_map.txt`); DLC/dir/ID from firmware mailbox config, unchanged.
 
 | ID | Mailbox | TX/RX | Content |
 |----|---------|-------|---------|
@@ -149,41 +137,28 @@ secondary_system_controller:
 | 0x7E0 | CAN0 MB14| RX    | UDS physical request |
 | 0x7E8 | CAN0 MB15| TX    | UDS diagnostic response |
 
----
-
 ## Rotarytronics CAN Patch
 
-A known third-party patch that modifies CAN frame content to make normally-hidden parameters visible to dataloggers:
+Third-party patch modifying CAN frame content to expose normally-hidden parameters to dataloggers:
 
 - **0x630 handler** (`0x1C044` in the J-line variant): adds fan status byte
 - **0x250 handler** (`0x1CEB8` in the J-line variant): adds injection pulse width byte
 
-These handlers are **not** accessible via standard OBD2 — a custom CAN logger (e.g., OBDX Pro or Tactrix in raw CAN mode) is required to read them.
-
----
+Not accessible via standard OBD2 — needs a raw-CAN logger (OBDX Pro or Tactrix in raw CAN mode).
 
 ## OBD2 / UDS (Standard Diagnostic)
 
-- ECU responds to 0x7DF (broadcast) and 0x7E0 (unicast)
-- Physical response address: 0x7E8
+- ECU responds to 0x7DF (broadcast) and 0x7E0 (unicast); response 0x7E8
 - Mailbox config at 0x4EA60 entries 13-15
-- All UDS communication goes through `udsHandler` (0x697E8) dispatched via table at 0x5F57C
-- UDS entry point from CAN: `udsEntryPoint` (0x69702) → `udsHandler`
-- Known DIDs (SID 0x22): `0xF190` VIN, `0xF18C` Calibration ID, `0xE611` Calibration
-  Hex File (ASCII) — full DID/SID detail in `docs/hardware/RX8_OBD_UDS_Protocol.txt`.
-
----
+- All UDS through `udsHandler` (0x697E8) dispatched via table @0x5F57C
+- UDS entry from CAN: `udsEntryPoint` (0x69702) → `udsHandler`
+- Known DIDs (SID 0x22): `0xF190` VIN, `0xF18C` Calibration ID, `0xE611` Calibration Hex File (ASCII) — full detail in `docs/hardware/RX8_OBD_UDS_Protocol.txt`.
 
 ## Field vs firmware (cross-check summary)
 
-Cross-check of the firmware mailbox configuration (ID sets above, ROM 60E1D400)
-against **field-observed** RX-8 HS-CAN frame decodes from public captures/blogs
-(topolittle, Antipixel, rusEFI, majbthrd.kcd, Blackhurst, cham, jimkoeh, CC3301…).
+Firmware mailbox config (ID sets above, ROM 60E1D400) vs **field-observed** RX-8 HS-CAN decodes from public captures/blogs (topolittle, Antipixel, rusEFI, majbthrd.kcd, Blackhurst, cham, jimkoeh, CC3301…).
 
-**Bottom line:** the ID sets agree exactly; the disagreements are in the
-*byte-level semantics* / frame purpose, not in which IDs exist. The firmware
-table's earlier "Description" column was written from guesses about the mailbox
-buffers, not from traced packing functions.
+**Bottom line:** ID sets agree exactly; disagreements are in *byte-level semantics* / frame purpose, not which IDs exist.
 
 | Verdict | IDs |
 |---------|-----|
@@ -192,10 +167,6 @@ buffers, not from traced packing functions.
 | **PARTIAL / byte-level** (3) | 0x231 (content / MT-AT split), 0x240 (byte3), 0x250 (byte3) |
 | **UNKNOWN** (2) | 0x216, 0x4B1 |
 
-Field-decoded meanings for the 7 disagreements are marked with confidence
-tier **[A]** (≥2 independent sources; 0x041/0x047 confirmed on two cars). The 3
-"PARTIAL" rows are **OPEN — need bench/Ghidra verification** (see the open
-conflicts in the verification file).
+Field-decoded meanings for the 7 disagreements: confidence tier **[A]** (≥2 independent sources; 0x041/0x047 confirmed on two cars). The 3 "PARTIAL" rows are **OPEN — need bench/Ghidra verification**.
 
-Source: `can_protocol/verification/field_vs_firmware.md`
-(+ `can_protocol/rx8club_thread_276101_CAN_map.txt`).
+Source: `can_protocol/verification/field_vs_firmware.md` (+ `can_protocol/rx8club_thread_276101_CAN_map.txt`).

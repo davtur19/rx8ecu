@@ -1,7 +1,7 @@
 # RX-8 ECU — Hardware (PCB Analysis)
 
 Active hardware RE notes. Non-discoverable facts: `KNOWLEDGE.md`. ROM/software: `ECU.md`.
-Board fully inspected by user, front and back — the IC list below is closed/authoritative.
+IC list closed/authoritative (board fully inspected front+back).
 
 Unit: N3J1 6-port MT ECU, PCB silk P/N **279721-3210** (board-level; differs from
 Denso unit-level P/N 279700-3313 in `KNOWLEDGE.md` — likely board-only vs. full-unit
@@ -33,8 +33,7 @@ numbering, unconfirmed).
 | **IC675** | Toshiba logo (`T`) + `0551H` / `AX00-H` (final reading, confirmed twice by user) | Toshiba, exact P/N unresolved | Unknown | Near R820/C675, next to CN490 and the IC820/IC830 pair. Checked against markingcodes.com — no hits for this or other candidate readings (`NC00-H`, `AC00-H`). Likely too worn/glare-affected to be in any public database, or it's a fab/lot code rather than the searchable part number. |
 | **IC190** | `3029012` / `452KPM5` | ST Microelectronics, SOP-8 — customer-specific part number (family `3029xxx` also seen assigned to Bosch), no functional datasheet found | Unknown | Near IC020/L190. |
 
-`L190` (TDK, `1272`/`R2X`) is a filter/choke inductor, not an IC — noted here since it was
-originally mistaken for one.
+`L190` (TDK, `1272`/`R2X`) is a filter/choke inductor, not an IC — originally mistaken for one.
 
 ---
 
@@ -71,8 +70,8 @@ filtering/pull-ups for the front-side driver ICs) plus:
 
 ## Open items
 
-1. Clean, glare-free (angled/polarized light) re-shoot of IC675 to try for a full part number.
-2. Multimeter continuity check on CN400 before ever applying voltage for BOOT mode recovery.
-3. IC400 (`SE555`) and IC020 (`SE585`) function undocumented publicly — may only be resolvable by tracing copper to known signals.
-4. Denso ASIC functions are all unconfirmed guesses (IC404: timing ASIC; IC840, IC780/IC820/IC830 — 3 identical `151821-1280` instances: ignition coil driver) — would need continuity tracing to the coil/injector connector pins to verify. 3 identical instances is an odd count for "leading+trailing × 2 rotors" (4 coils); worth reconsidering what exactly these drive once traced.
-5. `IC190` (`3029012`) and `IC675` still have no functional identification, just manufacturer/package.
+1. Glare-free (angled/polarized light) re-shoot of IC675 for a full part number.
+2. Multimeter continuity check on CN400 before applying voltage for BOOT mode.
+3. IC400 (`SE555`) and IC020 (`SE585`) functions undocumented publicly — may need tracing copper to known signals.
+4. Denso ASIC functions all unconfirmed guesses (IC404: timing ASIC; IC840, IC780/IC820/IC830 — 3 identical `151821-1280`: ignition coil driver) — need continuity tracing to the coil/injector connector pins. 3 identical instances is odd for "leading+trailing × 2 rotors" (4 coils).
+5. `IC190` (`3029012`) and `IC675` — no functional identification, just manufacturer/package.

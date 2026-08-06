@@ -1,20 +1,16 @@
 # Auxiliary Bank UDS Handler — Entry-Dispatch Comparison
 
-Status: **RESOLVED 2026-08-04** — all 9 images (60E1D400 baseline + 8 aux) share a **byte-identical SecurityAccess (SID 0x27) handler body**; the only per-image deltas are code/data relocations (handler VA, literal pool values, RAM addresses, dispatch-table VA) plus two data-level table variants.
+Status: **RESOLVED 2026-08-04** — all 9 images (60E1D400 baseline + 8 aux) share a **byte-identical SecurityAccess (SID 0x27) handler body**; per-image deltas only: code/data relocations (handler VA, literal pool values, RAM addresses, dispatch-table VA) + two data-level table variants.
 
-Comparison target: the UDS dispatch entry of the SecurityAccess handler (reconstructed in `c/security_access.c` for the 60E1D400 baseline).
-
----
+Target: UDS dispatch entry of the SecurityAccess handler (reconstructed in `c/security_access.c` for the 60E1D400 baseline).
 
 ## Method
 
-- All images are flat ROMs (`-Ttext=0x0`, file offset == VA; byte-exact reassembly, see `src/ANNOTATED_SOURCES.md`).
+- All images flat ROMs (`-Ttext=0x0`, file offset == VA; byte-exact reassembly, `src/ANNOTATED_SOURCES.md`).
 - Handler localised per image by scanning the shared 12-byte prologue `2F E6 60 43 2F D6 64 5C 2F C6 2F B6` (mov.l r14,@-r15; mov r4,r0; mov.l r13,@-r15; extu.b r5,r4; ...) immediately followed by dispatch `81 F2 60 43 88 01 8D 02` (mov.w r0,@(4,r15); mov r4,r0; cmp/eq #1,r0; bt/s). Exactly **one** hit per image.
-- SID confirmed from the **dispatch table** (16-bit SID word 4 bytes before the handler literal, 12-byte stride) AND from the handler's `mov #0x27,r4` immediates (`E4 27`).
-- Subroutine VAs read from each handler's literal pool at `entry+0x1F0` (14 words, positional mapping — identical code layout ⇒ identical role order; baseline order confirmed against `docs/notes/REQUEST_SEED_EVIDENCE.md` literal table).
+- SID confirmed from the **dispatch table** (16-bit SID word 4 bytes before the handler literal, 12-byte stride) AND the handler's `mov #0x27,r4` immediates (`E4 27`).
+- Subroutine VAs read from each handler's literal pool at `entry+0x1F0` (14 words, positional mapping — identical code layout ⇒ identical role order).
 - Data addresses extracted by disassembling each per-ROM subroutine and reading its literal pool (`tools/disasm_sh2e.py`).
-
----
 
 ## Per-ROM table (entry-dispatch)
 
@@ -32,7 +28,7 @@ All offsets relative to the handler entry (identical body ⇒ identical offsets)
 | **60E1D400** (baseline) | 0x584A0 | 0x5F5F4 | **0x27** | 0x1000000E | ==0→NRC 0x12 (@0x584E2); ==1 (@0x5851C); ==4 (@0x58592) | only 1 (bt/s @0x584BA) | 0x58592 (bf/s @0x58516) | 0x5864A | 0x5862C |
 | 60E32000_N3M5E | 0x5D3E0 | 0x64BCC | **0x27** | 0x1000000E | ==0→NRC 0x12 (@0x5D422); ==1 (@0x5D45C); ==4 (@0x5D4D2) | only 1 (bt/s @0x5D3FA) | 0x5D4D2 (bf/s @0x5D456) | 0x5D58A | 0x5D56C |
 
-Fixed gate addresses (identical offsets, shown for the baseline):
+Fixed gate addresses (identical offsets, baseline):
 
 | gate | offset | 60E1D400 VA | NRC |
 |------|--------|-------------|-----|
@@ -44,8 +40,6 @@ Fixed gate addresses (identical offsets, shown for the baseline):
 | SendKey msg_len == 4 | +0xF2 | 0x58592 | 0x12 @0x58610 |
 | else path | +0x18C | 0x5862C | subfunc==0 → resp helper (0x55386); else silent |
 | resp builder | +0x1AA | 0x5864A | [0x67, subfunc, n bytes] → uds_send |
-
----
 
 ## Subroutine VAs per ROM (handler literal pool @ entry+0x1F0)
 
@@ -66,9 +60,7 @@ Fixed gate addresses (identical offsets, shown for the baseline):
 | uds_resp_subfunc0 | 0x53D32 | 0x53F8A | 0x52A36 | 0x5494A | 0x52CCE | 0x53FF6 | 0x55386 | 0x59DFE |
 | uds_send | 0x67500 | 0x67758 | 0x66A14 | 0x68124 | 0x66CAC | 0x677D0 | 0x68B60 | 0x6E458 |
 
-The key-transform helper `0x42B0` (used by key_validate) is at the **same VA in every image** (code before the relocated regions is identical too).
-
----
+Key-transform helper `0x42B0` (used by key_validate) at the **same VA in every image**.
 
 ## Data / RAM addresses per ROM
 
@@ -88,48 +80,39 @@ Data-table contents (verbatim ROM bytes):
 - **position word_tab** (2nd stage, `pos_table+4 + i*6`): `{0x0000, 0xFFFD, 0xFFFC, 0x0001}` — 60E0E500, 60E0E700, 60E15120, 60E1C500, 60E1D400, 60E32000; `{0x0000, 0xFFFF, 0xFFFE, 0x0001}` — **60E0FB00, 60E0FC00, 60E1B900** (variant; behaviourally equivalent for the mask test).
 - **key_validate table** (10×3 @ key table base) — byte-identical everywhere (verified 60E0E500, 60E0FB00, 60E1D400, 60E32000): `00 00 00 01 00 01 01 01 01 01 02 00 01 02 01 01 03 00 02 03 02 02 04 00 01 04 01 01 05 03`.
 - **secret "MazdA" + per-level LFSR init** — present in every image, e.g. `60E0E500 @0x5E460`, `60E0FB00 @0x5D90C`, `60E1D400 @0x5FAC0`, `60E32000 @0x65134`; identical init bytes `FF FF FF | C5 41 A9 | A3 95 82` (level 1 = 0xC541A9, level 2 = 0xA39582 — same as baseline).
-- **free-running entropy counter** `0xFFFFF430` — same VA in every image (loaded as sign-extended 16-bit literal `0xF430`).
-
----
+- **free-running entropy counter** `0xFFFFF430` — same VA in every image (sign-extended 16-bit literal `0xF430`).
 
 ## Structural findings
 
-1. **SID 0x3E claim for aux is REFUTED — every aux image dispatches the SecurityAccess handler with SID 0x27, mask 0x1000000E**, identical to the baseline (dispatch-table SID word `0x2700` verified at 0x5DF98 / 0x5E1F0 / 0x5D3E4 / 0x5EBBC / 0x5D67C / 0x5E268 / 0x5F5F4 / 0x64BCC). **0x3E is the separate TesterPresent service** (baseline handler @0x56F44) in every image's dispatch table — the earlier "aux = 0x3E" note in `docs/notes/SENDKEY_RECONCILIATION.md` (§Follow-up) was a misreading.
-2. **Handler body (entry .. entry+0x1E8) is byte-identical across all 9 images** (sha256 `147f610c…`, 0 bytes differ vs baseline). Entry dispatch, the vestigial abs-trick, all msg_len gates, the conditional seed write-back, the response builder and the else path are the *same instructions* at the *same relative offsets*.
-3. **Subfunction admission is `subfunc==1` only, in every image.** The else path (`entry+0x18C`) is identical: `tst r4,r4` → `subfunc==0` → response helper (`uds_resp_subfunc0`); `subfunc!=0` → **silent no-response**. SendKey (`subfunc==0x04`) unreachable in all 9 (only incoming branch = the never-taken abs-trick `bf/s`; see UDS_SECURITY_MAPPING §7.3 verdict (b)).
+1. **SID 0x3E claim for aux is REFUTED** — every aux image dispatches SecurityAccess with SID 0x27, mask 0x1000000E, identical to baseline (dispatch-table SID word `0x2700` verified at 0x5DF98 / 0x5E1F0 / 0x5D3E4 / 0x5EBBC / 0x5D67C / 0x5E268 / 0x5F5F4 / 0x64BCC). **0x3E is the separate TesterPresent service** (baseline handler @0x56F44) in every image's dispatch table.
+2. **Handler body (entry .. entry+0x1E8) byte-identical across all 9 images** (sha256 `147f610c…`, 0 bytes differ vs baseline).
+3. **Subfunction admission `subfunc==1` only, every image.** Else path (`entry+0x18C`) identical: `tst r4,r4` → `subfunc==0` → response helper (`uds_resp_subfunc0`); `subfunc!=0` → **silent no-response**. SendKey (`subfunc==0x04`) unreachable in all 9 (only incoming branch = never-taken abs-trick `bf/s`; see UDS_SECURITY_MAPPING §7.3 verdict (b)).
 4. **msg_len gates identical**: `==0 → NRC 0x12`, `==1 → NRC 0x12` (RequestSeed), `==4 → NRC 0x12` (SendKey body), plus `subfunc==0 → NRC 0x31`, `position_check==3 → NRC 0x31`, `key_validate!=0 → NRC 0x31`. NRC 0x11 never appears.
-5. **Per-image relocation model**: the only real differences are (a) handler / subroutine / dispatch-table VAs, (b) RAM addresses for state bytes, seed RAM and the position_check 2nd-stage mask pointer, (c) the two data-table variants (word_tab), and (d) the helper `0x42B0`/counter `0xFFFFF430` being build-invariant.
-6. **Correction — position_check 2nd-stage mask**: the baseline C (`c/security_access.c` `mask = 0x61F2`, comment "mask word 0x61F2 @0x56CB0") is not what the ROM does: the mask is loaded **indirectly** via a sign-extended 16-bit RAM pointer (`mov.w <lit>,r1; mov.w @r1,r6`), e.g. baseline `0xD3F0 → 0xFFFFD3F0`; the literal at 0x56CB0 (`0x61F2 = mov.l @r15,r1`) is an *instruction*, not data. The mask word is runtime-written RAM ⇒ not statically visible; behaviourally irrelevant for the actual word_tab entries (`0xFFFD/0xFFFC` are dense → the AND is always nonzero for levels 1/2).
-
----
+5. **Per-image relocation model**: only real differences are (a) handler/subroutine/dispatch-table VAs, (b) RAM addresses (state bytes, seed RAM, position_check mask pointer), (c) the word_tab variant, (d) helper `0x42B0`/counter `0xFFFFF430` build-invariant.
+6. **Correction — position_check 2nd-stage mask**: baseline C (`c/security_access.c` `mask = 0x61F2`, comment "mask word 0x61F2 @0x56CB0") is not what the ROM does: mask loaded **indirectly** via sign-extended 16-bit RAM pointer (`mov.w <lit>,r1; mov.w @r1,r6`), e.g. baseline `0xD3F0 → 0xFFFFD3F0`; literal @0x56CB0 (`0x61F2 = mov.l @r15,r1`) is an *instruction*, not data. Mask word runtime-written ⇒ not statically visible; behaviourally irrelevant for the actual word_tab entries (`0xFFFD/0xFFFC` dense → AND always nonzero for levels 1/2).
 
 ## Per-ROM peculiarities
 
 - **60E0FB00 == 60E0FC00**: same handler entry (0x55F34), dispatch-table VA (0x5D3E4), subroutine pool, RAM region (0xFFFFCFEx), word_tab variant — differ only outside the security area.
 - **60E0FB00 / 60E0FC00 / 60E1B900**: RAM window 0xFFFFCFE3..0xFFFFCFEC, word_tab variant `{0, 0xFFFF, 0xFFFE, 1}` (vs baseline `{0, 0xFFFD, 0xFFFC, 1}`); mask ptr 0xFFFFD1C8.
-- **60E0E500 == 60E1C500**: RAM window 0xFFFFD147..0xFFFFD150, mask ptr 0xFFFFD32C (but different table VAs 0x5E430 vs 0x5E700).
+- **60E0E500 == 60E1C500**: RAM window 0xFFFFD147..0xFFFFD150, mask ptr 0xFFFFD32C (different table VAs 0x5E430 vs 0x5E700).
 - **60E32000**: security code relocated deepest (entry 0x5D3E0, tables 0x65104/0x65116, mask ptr 0xFFFFD438).
-- All 9: `"MazdA"` secret + identical LFSR init ⇒ same seed↔key algorithm (seed_key_related / ECOMcat core) — confirmed at data level for E500, FB00, D400, E32000 (spot-checked).
-
----
+- All 9: `"MazdA"` secret + identical LFSR init ⇒ same seed↔key algorithm (seed_key_related / ECOMcat core) — confirmed at data level for E500, FB00, D400, E32000.
 
 ## Relationship to the C reconstructions
 
 - `c/security_access.c` (baseline, 60E1D400): VERIFIED for RequestSeed; SendKey kept as documented dead code; position_check mask constant `0x61F2` is a **known misread** (finding 6) — not corrected here (out of scope; logic untouched rule).
-- `c/security_access_aux.c` (NEW): models the *shared* aux entry dispatch using the 60E0E500 layout as primary bank (clearest structure, full RequestSeed flow confirmed), per-bank deltas in comments (RAM addresses, subroutine VAs, word_tab variants), mask loaded from per-ROM RAM pointer. `[AUX-EVIDENCE]` = confirmed with VA; `[AUX-TBD]` = runtime-only (mask word value, `DIAG_SESSION` semantics). **Not wired into any harness** (`c/security_access.c` isn't compiled by `make c-test` either; only `c/tests/test_security_access.py`/`test_security_statecheck.py`) — stays a source artifact.
-
----
+- `c/security_access_aux.c` (NEW): models the *shared* aux entry dispatch using the 60E0E500 layout as primary bank (clearest structure, full RequestSeed flow confirmed), per-bank deltas in comments (RAM addresses, subroutine VAs, word_tab variants), mask loaded from per-ROM RAM pointer. `[AUX-EVIDENCE]` = confirmed with VA; `[AUX-TBD]` = runtime-only. **Not wired into any harness** — stays a source artifact.
 
 ## Open / TBD items
 
 - Exact runtime value of the position_check mask word (RAM @ per-ROM pointer); behaviourally irrelevant for the stock tables.
-- `DIAG_SESSION` (0xFFFFDE5C) usage in aux images not re-verified — the aux handler flow doesn't gate on it in entry dispatch.
+- `DIAG_SESSION` (0xFFFFDE5C) usage in aux images not re-verified — aux handler flow doesn't gate on it in entry dispatch.
 - Live-ECU capture (private tooling) to confirm `subfunc==0x04` behaviour (expected: no response / NRC, never the SendKey flow).
 
 ## References
 
-- `docs/notes/REQUEST_SEED_EVIDENCE.md` — baseline handler literal table, gate/VA evidence, discrepancies (a)-(e).
-- `docs/notes/SENDKEY_RECONCILIATION.md` — SendKey dead-code verdict (all 9 images) + the now-refuted "0x3E" follow-up note.
+- `docs/notes/UDS_SECURITY_MAPPING.md` — baseline handler evidence, gate/VA table, discrepancies (a)-(e), SendKey dead-code verdict.
 - `c/security_access.c` — baseline reconstruction.
 - `c/security_access_aux.c` — this task's aux entry-dispatch reconstruction.
 - Scan tooling (transient, kept out of git): `tmp/aux_handlers/`.
