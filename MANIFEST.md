@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4249 entries, 85.8M.** Regenerated 2026-08-02 for the
+in the working repository. **4253 entries, 85.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 679.3K |
+| (root) | 11 | 679.6K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1638 | 3.6M |
-| c/tests/ | 1705 | 12.8M |
+| c/ | 1640 | 3.6M |
+| c/tests/ | 1707 | 12.8M |
 | tools/ | 29 | 678.3K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4249 entries, 85.8M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4249** | 85.8M |
+| **Total** | **4253** | 85.9M |
 
 ## External dependencies
 
@@ -109,8 +109,8 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `symbols/CATALOG_MASTER.csv` | `da2e2be520ac4fa37b5c3c2dfa77b1f8957c1dd67494d6fe9a5264f187dc1ac8` | 3.2M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `5d6e688036ce234b53b85b1981a98968744aae66740b3c7424101651d105db81` | 3.2K | Tracked file |
-| `symbols/FUNCTION_CATEGORIES.csv` | `44c785fc8cecf94b03c186f355074ddc05f981e6016770c6e1c79e2af4e55b3d` | 396.5K | Tracked file |
-| `symbols/FUNCTION_RENAMES.csv` | `60cf24cd03259368bb83daf2aa5dbfc35f478d98fac013b2405bdde4d5419c87` | 511.2K | Tracked file |
+| `symbols/FUNCTION_CATEGORIES.csv` | `6a0cd773049d678b0065882b40be50d96aa5555b4ea57faab5720f04d2d0cce1` | 397.9K | Tracked file |
+| `symbols/FUNCTION_RENAMES.csv` | `da6bd28d9bf42379630cc6f55b26dd6f399b9f80a827915aba6fe0d291c928c1` | 526.2K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `c45aa6301c32e9975f16be449942274a0e6b6570e712dc9c566cc531c3001ef3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
 | `symbols/UNCLASSIFIED_RESIDUE.csv` | `abe9401d09e6344c51eb39e9b57b2991cada07ec2fb9dbc5d2403993214daa83` | 9.9K | Tracked file |
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `076b8cc7926b912dcf212dafb55f7dcf27e8a3f6aea9fb36abf8143398329a93` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `d013ce169016af21db2fa15fc734109567b073a3a2c9a751222d7dc171ac8880` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `3381b24c380cd568cfe00f8a498f3c9974f04502f3c0335e2b18cc37dc38254a` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `bc18ec6cf5490d127b9f4c09d44146be6ff8ba9cfdb2a9e6a7eef5a9e30427e8` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -1013,6 +1013,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/ign_init_timing_batch_1410e.c` | `0c9998ebab25b66e4c841a4539696d99c9c7ce6581246053000fda3316f1bec6` | 1.5K | Tracked file |
 | `c/ign_manager_513d8_513d8.c` | `ff69a4b3bdbc11c621b063eaca4c79ccdad1b4ea47a7eacb73ee4fc074646c86` | 1.1K | Tracked file |
 | `c/ignitionDwellOutputInit.c` | `274bffc2616fe66194bea1f3439360c9f71fc839a83a359e9ba704d3fa9d116e` | 3.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/ignition_advance_interp_446BC.c` | `58d8622f7df86c9eb2c3cfd123026bccece85599430817f004421984ba785382` | 4.5K | Tracked file |
 | `c/ignition_load_copy_44D8E_44d8e.c` | `104bdc2e3fe4052caef6077f73e6ece78a5de50fd14887c03bcf5270f69e9fef` | 838B | Tracked file |
 | `c/ignition_something_calc_0x91FE.c` | `8fe109c103ef29524132dcb974df9b952f60e9d2a9bdda3e6923e9a52d96e5db` | 6.1K | Tracked file |
 | `c/ignition_timing_calc_2DB8A_2db8a.c` | `2b449015cb7a1b4279a4bda4730417300cab20038f84080bbe884a52e163091d` | 1.5K | Tracked file |
@@ -1077,6 +1078,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/knockRelatedInit_c3c8.c` | `6fa7fb8c14240a0ef008846f310655814ced3bc4ec7d0021775ec2e9e9be95c4` | 5.3K | Tracked file |
 | `c/knockSensorADCFault.c` | `0e2da1ebe60ff44a0428f7778b02e5a96e6204e055a3278aedb8b96c6daab5c8` | 2.0K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/knockSensorADCFault_c460.c` | `77f8590e108a4f1629f235e6540bb8d1f31e66bfc8f4613f7ae5fc15dd540021` | 2.2K | Tracked file |
+| `c/knock_control_calc_44824.c` | `c0de6fc840be952197fd87a85fa48817fbea8bed36470727fb1ef233fcbfe25e` | 4.7K | Tracked file |
 | `c/knock_control_state_check_2AA1A_2aa1a.c` | `4571771096cc6e928b1ed68a02b37fd2446b360a8aa81fcae2b114d9049dccba` | 2.5K | Tracked file |
 | `c/knock_counter_reset_check_13d1c.c` | `51f02c5b5d5ce2f378d724890181bdde4a17f1404fcc5f5b796f3ebddd2e6131` | 5.6K | Tracked file |
 | `c/knock_flag_copy_b5c4_a788_146b4.c` | `f3591c00e8bc5b18c9bb8ac86e738262bba25a714bbcac514318f76500b7344d` | 1.4K | Tracked file |
@@ -2928,6 +2930,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_ign_init_timing_batch_1410e.py` | `896bd65669effa3549186f700adf8b5a3e9f387dc5da3bd2a734d22cd28d8122` | 9.2K | Tracked file |
 | `c/tests/test_ign_manager_513d8_513d8.py` | `bd0d56036aa5fb5c7522ef0ca098d26ea15c1cb0d506beae299d0a935b563d66` | 7.7K | Tracked file |
 | `c/tests/test_ignitionDwellOutputInit.py` | `cafc80009806d27c3546601870e7843f5348620885dc47c25031f973c6c67c5d` | 6.4K | Python per-function behavior-equivalence test |
+| `c/tests/test_ignition_advance_interp_446BC.py` | `d9f9a189f700b9b9973330190ceb9b7b983959289c79fa77a4ccbeaa5a9e2a97` | 8.7K | Tracked file |
 | `c/tests/test_ignition_load_copy_44D8E_44d8e.py` | `6933b56c1dac2a9031a50b648afc79bb7e85dbd8a354b3fcb5d170b6b077139f` | 8.0K | Tracked file |
 | `c/tests/test_ignition_something_calc_0x91FE.py` | `032ec0b7afe31a437e0458ddb4a275daf6c99638ff7d4191eaf156d5f9f540d0` | 8.1K | Tracked file |
 | `c/tests/test_ignition_timing_calc_2DB8A_2db8a.py` | `87a3674265854926a0d30a0507f0fdf6654375fd784ed98351326695de9f0464` | 8.8K | Tracked file |
@@ -2991,6 +2994,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_knockRelatedInit_c3c8.py` | `c724c4b426b75cd3aaada81a29afd2e10ff337030feb993f01bc89aad9fa645f` | 15.4K | Tracked file |
 | `c/tests/test_knockSensorADCFault.py` | `3b426011b3fc93d37a3f778c21ccd04e9bc244caa3fa0155d226ef8279a4d7a4` | 1.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_knockSensorADCFault_c460.py` | `a8fa0cf233909f2b0701e1c9492b25ca920b19d4931720e96cce266c9b5efaf9` | 8.1K | Tracked file |
+| `c/tests/test_knock_control_calc_44824.py` | `dca60574e134797610a3758b343378deaa67e934f34830180f6cd7ad97102574` | 7.9K | Tracked file |
 | `c/tests/test_knock_control_state_check_2AA1A_2aa1a.py` | `6b0fda1cb30aabadc69b68711b54c699a6b35bca9d3c858dc31b4498c18ec5bb` | 10.0K | Tracked file |
 | `c/tests/test_knock_counter_reset_check_13d1c.py` | `2c96780ebb3a0cd6097f30c49a9df1c41270d721555d239f36f4d8964f017186` | 15.0K | Tracked file |
 | `c/tests/test_knock_flag_copy_b5c4_a788_146b4.py` | `bc899742264c5f547da097dc147ba4ee7613243505ca3ea1a03ea107ad234beb` | 8.2K | Tracked file |
