@@ -7,7 +7,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E0E500,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E0E500,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E0E500,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E0E500,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E0E500,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0E500,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E0E500,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -25,7 +25,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0015a6,0x001624,FUN_0015a6,derived,,kwp_session_frame_init,,,OBD / UDS
 60E0E500,0x001624,0x001654,FUN_001624,derived,,,,connor-xmap,
 60E0E500,0x001654,0x0016DC,FUN_001654,derived,,,,,
-60E0E500,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,
+60E0E500,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,Boot & Init
 60E0E500,0x001e4c,0x001E72,FUN_001e4c,derived,,be_bytes4_to_u32,,,Utilities
 60E0E500,0x001e72,0x001E94,FUN_001e72,derived,,,,,
 60E0E500,0x001e94,0x001EB2,FUN_001e94,derived,,,,,
@@ -45,7 +45,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E0E500,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E0E500,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E0E500,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E0E500,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E0E500,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E0E500,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E0E500,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -83,12 +83,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E0E500,0x003848,0x003854,FUN_003848,derived,,,,,
 60E0E500,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E0E500,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E0E500,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E0E500,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E0E500,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E0E500,0x003954,0x003964,FUN_003954,derived,,,,,
 60E0E500,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E0E500,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E0E500,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E0E500,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E0E500,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E0E500,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E0E500,0x003bf4,0x003C2A,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -97,7 +97,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E0E500,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E0E500,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E0E500,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E0E500,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E0E500,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E0E500,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E0E500,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -111,7 +111,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E0E500,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E0E500,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E0E500,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E0E500,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E0E500,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E0E500,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E0E500,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -127,7 +127,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0044ec,0x00450A,FUN_0044ec,derived,,,,,
 60E0E500,0x00450a,0x00467A,FUN_00450a,derived,,,,,
 60E0E500,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E0E500,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E0E500,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E0E500,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E0E500,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E0E500,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -168,7 +168,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x004f00,0x004FD6,FUN_004f00,derived,,FUN_00004f00,,,
 60E0E500,0x004fd6,0x005020,FUN_004fd6,derived,,,,,Utilities
 60E0E500,0x005020,0x005024,FUN_005020,derived,,noOpFun3,,,RTOS
-60E0E500,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,
+60E0E500,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,RTOS
 60E0E500,0x005032,0x005036,FUN_005032,derived,,writeWatchdog_disable_,,,
 60E0E500,0x005036,0x00503A,FUN_005036,derived,NOISE,,,,
 60E0E500,0x00503a,0x00503E,FUN_00503a,derived,NOISE,,,,
@@ -379,7 +379,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x007b90,0x007BDC,FUN_007b90,derived,,crank_state_timeout_countdown,,,Sensors
 60E0E500,0x007bdc,0x007BE4,FUN_007bdc,derived,,crank_angle_set_ff,,,Sensors
 60E0E500,0x007be4,0x007C0C,FUN_007be4,derived,,crank_angle_timeout_calc,,,Sensors
-60E0E500,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,
+60E0E500,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,Sensors
 60E0E500,0x007e3c,0x007EB4,FUN_007e3c,derived,,,,,
 60E0E500,0x007eb4,0x007ECA,FUN_007eb4,derived,,crank_irq_flags_force_set,,,Peripherals & ISR
 60E0E500,0x007eca,0x007F22,FUN_007eca,derived,,FUN_00007eca,,,
@@ -410,7 +410,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x008814,0x008D30,FUN_008814,derived,,,,,
 60E0E500,0x008d30,0x008D86,FUN_008d30,derived,,,,,
 60E0E500,0x008d86,0x008DAE,FUN_008d86,derived,,,,,
-60E0E500,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,
+60E0E500,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,Ignition & Knock
 60E0E500,0x008de8,0x008E28,FUN_008de8,derived,,,,,
 60E0E500,0x008e28,0x008EE6,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0E500,0x008ee6,0x008F2A,FUN_008ee6,derived,,,,,
@@ -615,9 +615,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x00d9ac,0x00D9BC,FUN_00d9ac,derived,,,,,
 60E0E500,0x00d9bc,0x00D9F4,FUN_00d9bc,derived,,,,,
 60E0E500,0x00d9f4,0x00DA94,canSetup,ghidra-hand-xmap,,,,,CAN Bus
-60E0E500,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,
+60E0E500,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,CAN Bus
 60E0E500,0x00dade,0x00DAE8,FUN_00dade,derived,,,,,
-60E0E500,0x00dae8,0x00DAF0,canTimerInit??,ghidra-hand-xmap,,canTimerInit__,,,
+60E0E500,0x00dae8,0x00DAF0,canTimerInit??,ghidra-hand-xmap,,canTimerInit__,,,CAN Bus
 60E0E500,0x00daf0,0x00DB58,handleCANReset,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x00db58,0x00DBF6,CANTX_Main,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x00dbf6,0x00DCC0,FUN_00dbf6,derived,,,,,
@@ -656,7 +656,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x00e454,0x00E458,FUN_00e454,derived,NOISE,,,,
 60E0E500,0x00e458,0x00E468,FUN_00e458,derived,,UnknownFueling1,,,Fuel & Lambda
 60E0E500,0x00e468,0x00E4A2,FUN_00e468,derived,,,,,
-60E0E500,0x00e4a2,0x00E508,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E0E500,0x00e4a2,0x00E508,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E0E500,0x00e508,0x00E50E,FUN_00e508,derived,,,,,
 60E0E500,0x00e50e,0x00E574,FUN_00e50e,derived,,,,,
 60E0E500,0x00e574,0x00E5EA,FUN_00e574,derived,,,,,
@@ -778,7 +778,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x01141c,0x0114F6,FUN_01141c,derived,,,,,
 60E0E500,0x0114f6,0x011514,FUN_0114f6,derived,,,,,
 60E0E500,0x011514,0x011534,FUN_011514,derived,,,,,
-60E0E500,0x011534,0x011578,someMainFunction,ghidra-hand-xmap,,,,,
+60E0E500,0x011534,0x011578,someMainFunction,ghidra-hand-xmap,,,,,RTOS
 60E0E500,0x011578,0x01159E,FUN_011578,derived,,,,,
 60E0E500,0x01159e,0x0117B4,FUN_01159e,derived,,,,,
 60E0E500,0x0117b4,0x011816,engineControlTASK2,ghidra-hand-xmap,,calc_fuel_trims_adaptive,YES,,Fuel & Lambda
@@ -3720,7 +3720,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0300da,0x030108,FUN_0300da,derived,,,,,
 60E0E500,0x030108,0x03010E,FUN_030108,derived,,,,,
 60E0E500,0x03010e,0x03014C,FUN_03010e,derived,,,,,
-60E0E500,0x03014c,0x030174,getACSwitchStatus,ghidra-hand-xmap,,,,,
+60E0E500,0x03014c,0x030174,getACSwitchStatus,ghidra-hand-xmap,,,,,Sensors
 60E0E500,0x030174,0x03017E,FUN_030174,derived,,,,,
 60E0E500,0x03017e,0x0301A8,FUN_03017e,derived,,,,,
 60E0E500,0x0301a8,0x0301B2,FUN_0301a8,derived,,,,,
@@ -4236,7 +4236,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0367e2,0x0368A8,FUN_0367e2,derived,,,,,
 60E0E500,0x0368a8,0x0368FE,FUN_0368a8,derived,,,,,
 60E0E500,0x0368fe,0x0369C8,FUN_0368fe,derived,,,,,
-60E0E500,0x0369c8,0x036A8C,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E0E500,0x0369c8,0x036A8C,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x036a8c,0x036BD0,checkImmoStatus?,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x036bd0,0x036BF0,FUN_036bd0,derived,,,,,
 60E0E500,0x036bf0,0x036C6A,FUN_036bf0,derived,,,,,
@@ -4255,15 +4255,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0373d2,0x037418,FUN_0373d2,derived,,,,,
 60E0E500,0x037418,0x037430,FUN_037418,derived,,,,,
 60E0E500,0x037430,0x0375F4,FUN_037430,derived,,,,,
-60E0E500,0x0375f4,0x037764,afterImmo_1,ghidra-hand-xmap,,,,,
-60E0E500,0x037764,0x0378D6,afterImmo_2,ghidra-hand-xmap,,,,,
+60E0E500,0x0375f4,0x037764,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E0E500,0x037764,0x0378D6,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x0378d6,0x03791A,FUN_0378d6,derived,,,,,
 60E0E500,0x03791a,0x0379FC,FUN_03791a,derived,,,,,
-60E0E500,0x0379fc,0x037B64,afterImmo_3,ghidra-hand-xmap,,,,,
+60E0E500,0x0379fc,0x037B64,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x037b64,0x037BAA,FUN_037b64,derived,,,,,
 60E0E500,0x037baa,0x037C5C,FUN_037baa,derived,,,,,
 60E0E500,0x037c5c,0x037DB4,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E0E500,0x037db4,0x037E80,afterImmo_7,ghidra-hand-xmap,,,,,
+60E0E500,0x037db4,0x037E80,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x037e80,0x037E9A,FUN_037e80,derived,,,,,
 60E0E500,0x037e9a,0x037FE6,FUN_037e9a,derived,,,,,
 60E0E500,0x037fe6,0x038062,FUN_037fe6,derived,,,,,
@@ -4504,9 +4504,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x03e5ae,0x03E61C,FUN_03e5ae,derived,,,,,
 60E0E500,0x03e61c,0x03E64C,FUN_03e61c,derived,,,,,
 60E0E500,0x03e64c,0x03E67C,FUN_03e64c,derived,,,,,
-60E0E500,0x03e67c,0x03E6BC,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E0E500,0x03e6bc,0x03E6FC,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E0E500,0x03e6fc,0x03E74A,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E0E500,0x03e67c,0x03E6BC,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E0E500,0x03e6bc,0x03E6FC,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E0E500,0x03e6fc,0x03E74A,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E0E500,0x03e74a,0x03E798,FUN_03e74a,derived,,,,,
 60E0E500,0x03e798,0x03E7A8,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E0E500,0x03e7a8,0x03E7B8,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
@@ -7312,7 +7312,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E0E700,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E0E700,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E0E700,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E0E700,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E0E700,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0E700,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E0E700,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -7330,7 +7330,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0015a6,0x001624,FUN_0015a6,derived,,kwp_session_frame_init,,,OBD / UDS
 60E0E700,0x001624,0x001654,FUN_001624,derived,,,,connor-xmap,
 60E0E700,0x001654,0x0016DC,FUN_001654,derived,,,,,
-60E0E700,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,
+60E0E700,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,Boot & Init
 60E0E700,0x001e4c,0x001E72,FUN_001e4c,derived,,be_bytes4_to_u32,,,Utilities
 60E0E700,0x001e72,0x001E94,FUN_001e72,derived,,,,,
 60E0E700,0x001e94,0x001EB2,FUN_001e94,derived,,,,,
@@ -7350,7 +7350,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E0E700,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E0E700,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E0E700,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E0E700,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E0E700,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E0E700,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E0E700,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -7388,12 +7388,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E0E700,0x003848,0x003854,FUN_003848,derived,,,,,
 60E0E700,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E0E700,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E0E700,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E0E700,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E0E700,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E0E700,0x003954,0x003964,FUN_003954,derived,,,,,
 60E0E700,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E0E700,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E0E700,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E0E700,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E0E700,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E0E700,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E0E700,0x003bf4,0x003C2A,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -7402,7 +7402,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E0E700,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E0E700,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E0E700,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E0E700,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E0E700,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E0E700,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E0E700,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -7416,7 +7416,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E0E700,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E0E700,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E0E700,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E0E700,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E0E700,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E0E700,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E0E700,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -7432,7 +7432,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0044ec,0x00450A,FUN_0044ec,derived,,,,,
 60E0E700,0x00450a,0x00467A,FUN_00450a,derived,,,,,
 60E0E700,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E0E700,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E0E700,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E0E700,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E0E700,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E0E700,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -7473,7 +7473,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x004f00,0x004FD6,FUN_004f00,derived,,FUN_00004f00,,,
 60E0E700,0x004fd6,0x005020,FUN_004fd6,derived,,,,,Utilities
 60E0E700,0x005020,0x005024,FUN_005020,derived,,noOpFun3,,,RTOS
-60E0E700,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,
+60E0E700,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,RTOS
 60E0E700,0x005032,0x005036,FUN_005032,derived,,writeWatchdog_disable_,,,
 60E0E700,0x005036,0x00503A,FUN_005036,derived,NOISE,,,,
 60E0E700,0x00503a,0x00503E,FUN_00503a,derived,NOISE,,,,
@@ -7684,7 +7684,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x007b90,0x007BDC,FUN_007b90,derived,,crank_state_timeout_countdown,,,Sensors
 60E0E700,0x007bdc,0x007BE4,FUN_007bdc,derived,,crank_angle_set_ff,,,Sensors
 60E0E700,0x007be4,0x007C0C,FUN_007be4,derived,,crank_angle_timeout_calc,,,Sensors
-60E0E700,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,
+60E0E700,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,Sensors
 60E0E700,0x007e3c,0x007EB4,FUN_007e3c,derived,,,,,
 60E0E700,0x007eb4,0x007ECA,FUN_007eb4,derived,,crank_irq_flags_force_set,,,Peripherals & ISR
 60E0E700,0x007eca,0x007F22,FUN_007eca,derived,,FUN_00007eca,,,
@@ -7715,7 +7715,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x008814,0x008D30,FUN_008814,derived,,,,,
 60E0E700,0x008d30,0x008D86,FUN_008d30,derived,,,,,
 60E0E700,0x008d86,0x008DAE,FUN_008d86,derived,,,,,
-60E0E700,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,
+60E0E700,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,Ignition & Knock
 60E0E700,0x008de8,0x008E28,outputSpark2,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0E700,0x008e28,0x008EE6,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0E700,0x008ee6,0x008F2A,FUN_008ee6,derived,,,,,
@@ -7920,7 +7920,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x00d9ac,0x00D9BC,FUN_00d9ac,derived,,,,,
 60E0E700,0x00d9bc,0x00D9F4,FUN_00d9bc,derived,,,,,
 60E0E700,0x00d9f4,0x00DA94,canSetup,ghidra-hand-xmap,,,,,CAN Bus
-60E0E700,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,
+60E0E700,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,CAN Bus
 60E0E700,0x00dade,0x00DAE8,FUN_00dade,derived,,,,,
 60E0E700,0x00dae8,0x00DAF0,FUN_00dae8,derived,,canTimerInit__,,,
 60E0E700,0x00daf0,0x00DB58,handleCANReset,ghidra-hand-xmap,,,,,CAN Bus
@@ -7962,7 +7962,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x00e454,0x00E458,FUN_00e454,derived,NOISE,,,,
 60E0E700,0x00e458,0x00E468,FUN_00e458,derived,,UnknownFueling1,,,Fuel & Lambda
 60E0E700,0x00e468,0x00E4A2,FUN_00e468,derived,,,,,
-60E0E700,0x00e4a2,0x00E508,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E0E700,0x00e4a2,0x00E508,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E0E700,0x00e508,0x00E526,FUN_00e508,derived,,,,,
 60E0E700,0x00e526,0x00E574,FUN_00e526,derived,,,,,
 60E0E700,0x00e574,0x00E602,FUN_00e574,derived,,,,,
@@ -11520,7 +11520,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x036966,0x036A14,FUN_036966,derived,,,,,
 60E0E700,0x036a14,0x036A82,FUN_036a14,derived,,,,,
 60E0E700,0x036a82,0x036B34,FUN_036a82,derived,,,,,
-60E0E700,0x036b34,0x036BF8,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E0E700,0x036b34,0x036BF8,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x036bf8,0x036D3C,checkImmoStatus?,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x036d3c,0x036D5C,FUN_036d3c,derived,,,,,
 60E0E700,0x036d5c,0x036DD6,FUN_036d5c,derived,,,,,
@@ -11539,15 +11539,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x03753e,0x037584,FUN_03753e,derived,,,,,
 60E0E700,0x037584,0x03759C,FUN_037584,derived,,,,,
 60E0E700,0x03759c,0x037760,FUN_03759c,derived,,,,,
-60E0E700,0x037760,0x0378D0,afterImmo_1,ghidra-hand-xmap,,,,,
-60E0E700,0x0378d0,0x037A42,afterImmo_2,ghidra-hand-xmap,,,,,
+60E0E700,0x037760,0x0378D0,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E0E700,0x0378d0,0x037A42,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x037a42,0x037A9E,FUN_037a42,derived,,,,,
 60E0E700,0x037a9e,0x037B68,FUN_037a9e,derived,,,,,
-60E0E700,0x037b68,0x037CD0,afterImmo_3,ghidra-hand-xmap,,,,,
+60E0E700,0x037b68,0x037CD0,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x037cd0,0x037D2E,FUN_037cd0,derived,,,,,
 60E0E700,0x037d2e,0x037DC8,FUN_037d2e,derived,,,,,
 60E0E700,0x037dc8,0x037F20,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E0E700,0x037f20,0x037FEC,afterImmo_7,ghidra-hand-xmap,,,,,
+60E0E700,0x037f20,0x037FEC,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x037fec,0x038006,FUN_037fec,derived,,,,,
 60E0E700,0x038006,0x038152,FUN_038006,derived,,,,,
 60E0E700,0x038152,0x0381CE,FUN_038152,derived,,,,,
@@ -11791,9 +11791,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x03e806,0x03E874,FUN_03e806,derived,,,,,
 60E0E700,0x03e874,0x03E8A4,FUN_03e874,derived,,,,,
 60E0E700,0x03e8a4,0x03E8D4,FUN_03e8a4,derived,,,,,
-60E0E700,0x03e8d4,0x03E914,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E0E700,0x03e914,0x03E954,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E0E700,0x03e954,0x03E9A2,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E0E700,0x03e8d4,0x03E914,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E0E700,0x03e914,0x03E954,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E0E700,0x03e954,0x03E9A2,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E0E700,0x03e9a2,0x03E9F0,FUN_03e9a2,derived,,,,,
 60E0E700,0x03e9f0,0x03EA00,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E0E700,0x03ea00,0x03EA10,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
@@ -12998,7 +12998,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x053830,0x053926,FUN_053830,derived,,,,,
 60E0E700,0x053926,0x0539F6,FUN_053926,derived,,,,,
 60E0E700,0x0539f6,0x053A24,FUN_0539f6,derived,,,,,
-60E0E700,0x053a24,0x053A66,getTireSizeChecksumthing?,ghidra-hand-xmap,,caller,,,
+60E0E700,0x053a24,0x053A66,getTireSizeChecksumthing?,ghidra-hand-xmap,,caller,,,Memory & CRC
 60E0E700,0x053a66,0x053AC6,FUN_053a66,derived,,,,,
 60E0E700,0x053ac6,0x053B04,FUN_053ac6,derived,,,,,
 60E0E700,0x053b04,0x053B9E,FUN_053b04,derived,,,,,
@@ -14618,7 +14618,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E0FB00,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E0FB00,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E0FB00,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E0FB00,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E0FB00,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0FB00,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E0FB00,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -14636,7 +14636,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0015a6,0x001624,FUN_0015a6,derived,,kwp_session_frame_init,,,OBD / UDS
 60E0FB00,0x001624,0x001654,FUN_001624,derived,,,,connor-xmap,
 60E0FB00,0x001654,0x0016DC,FUN_001654,derived,,,,,
-60E0FB00,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,
+60E0FB00,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,Boot & Init
 60E0FB00,0x001e4c,0x001E72,FUN_001e4c,derived,,be_bytes4_to_u32,,,Utilities
 60E0FB00,0x001e72,0x001E94,FUN_001e72,derived,,,,,
 60E0FB00,0x001e94,0x001EB2,FUN_001e94,derived,,,,,
@@ -14656,7 +14656,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E0FB00,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E0FB00,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E0FB00,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E0FB00,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E0FB00,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E0FB00,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E0FB00,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -14694,12 +14694,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E0FB00,0x003848,0x003854,FUN_003848,derived,,,,,
 60E0FB00,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E0FB00,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E0FB00,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E0FB00,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E0FB00,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E0FB00,0x003954,0x003964,FUN_003954,derived,,,,,
 60E0FB00,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E0FB00,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E0FB00,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E0FB00,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E0FB00,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E0FB00,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E0FB00,0x003bf4,0x003C2A,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -14708,7 +14708,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E0FB00,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E0FB00,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E0FB00,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E0FB00,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E0FB00,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E0FB00,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E0FB00,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -14722,7 +14722,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E0FB00,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E0FB00,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E0FB00,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E0FB00,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E0FB00,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E0FB00,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E0FB00,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -14738,7 +14738,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0044ec,0x00450A,FUN_0044ec,derived,,,,,
 60E0FB00,0x00450a,0x00467A,FUN_00450a,derived,,,,,
 60E0FB00,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E0FB00,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E0FB00,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E0FB00,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E0FB00,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E0FB00,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -14779,7 +14779,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x004f00,0x004FD6,FUN_004f00,derived,,FUN_00004f00,,,
 60E0FB00,0x004fd6,0x005020,FUN_004fd6,derived,,,,,Utilities
 60E0FB00,0x005020,0x005024,FUN_005020,derived,,noOpFun3,,,RTOS
-60E0FB00,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,
+60E0FB00,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,RTOS
 60E0FB00,0x005032,0x005036,FUN_005032,derived,,writeWatchdog_disable_,,,
 60E0FB00,0x005036,0x00503A,FUN_005036,derived,NOISE,,,,
 60E0FB00,0x00503a,0x00503E,FUN_00503a,derived,NOISE,,,,
@@ -14990,7 +14990,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x007b90,0x007BDC,FUN_007b90,derived,,crank_state_timeout_countdown,,,Sensors
 60E0FB00,0x007bdc,0x007BE4,FUN_007bdc,derived,,crank_angle_set_ff,,,Sensors
 60E0FB00,0x007be4,0x007C0C,FUN_007be4,derived,,crank_angle_timeout_calc,,,Sensors
-60E0FB00,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,
+60E0FB00,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,Sensors
 60E0FB00,0x007e3c,0x007EB4,FUN_007e3c,derived,,,,,
 60E0FB00,0x007eb4,0x007ECA,FUN_007eb4,derived,,crank_irq_flags_force_set,,,Peripherals & ISR
 60E0FB00,0x007eca,0x007F22,FUN_007eca,derived,,FUN_00007eca,,,
@@ -15023,7 +15023,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x008cb2,0x008D30,FUN_008cb2,derived,,,,,
 60E0FB00,0x008d30,0x008D86,FUN_008d30,derived,,,,,
 60E0FB00,0x008d86,0x008DAE,FUN_008d86,derived,,,,,
-60E0FB00,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,
+60E0FB00,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,Ignition & Knock
 60E0FB00,0x008de8,0x008E28,FUN_008de8,derived,,,,,
 60E0FB00,0x008e28,0x008EE6,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0FB00,0x008ee6,0x008F2A,FUN_008ee6,derived,,,,,
@@ -15228,7 +15228,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x00d9ac,0x00D9BC,FUN_00d9ac,derived,,,,,
 60E0FB00,0x00d9bc,0x00D9F4,FUN_00d9bc,derived,,,,,
 60E0FB00,0x00d9f4,0x00DA94,canSetup,ghidra-hand-xmap,,,,,CAN Bus
-60E0FB00,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x00da94,0x00DADE,resetCANTimers,ghidra-hand-xmap,,caller,,,CAN Bus
 60E0FB00,0x00dade,0x00DAE8,FUN_00dade,derived,,,,,
 60E0FB00,0x00dae8,0x00DAF0,FUN_00dae8,derived,,canTimerInit__,,,
 60E0FB00,0x00daf0,0x00DB58,handleCANReset,ghidra-hand-xmap,,,,,CAN Bus
@@ -15261,8 +15261,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x00e0f8,0x00E1B4,FUN_00e0f8,derived,,fuel_engine_run_mode_select,,,Fuel & Lambda
 60E0FB00,0x00e1b4,0x00E1BC,FUN_00e1b4,derived,,injectorsOffFlagInit,,,Fuel & Lambda
 60E0FB00,0x00e1bc,0x00E1DC,FUN_00e1bc,derived,,flag_mirror_9f8c_a41c,,,Boot & Init
-60E0FB00,0x00e1dc,0x00E1FE,calculateEngineRunningTimer2,ghidra-hand-xmap,,caller,,,
-60E0FB00,0x00e1fe,0x00E220,getEngineOnTimeForOilMetering,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x00e1dc,0x00E1FE,calculateEngineRunningTimer2,ghidra-hand-xmap,,caller,,,Peripherals & ISR
+60E0FB00,0x00e1fe,0x00E220,getEngineOnTimeForOilMetering,ghidra-hand-xmap,,caller,,,Oil Metering
 60E0FB00,0x00e220,0x00E244,FUN_00e220,derived,,caller,,,
 60E0FB00,0x00e244,0x00E278,FUN_00e244,derived,,,,,
 60E0FB00,0x00e278,0x00E2AC,FUN_00e278,derived,,calculateEngineRunning,,,Sensors
@@ -15271,7 +15271,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x00e444,0x00E448,FUN_00e444,derived,NOISE,,,,Fuel & Lambda
 60E0FB00,0x00e448,0x00E458,FUN_00e448,derived,,flag_set_coil_event,,,Oil Metering
 60E0FB00,0x00e458,0x00E492,FUN_00e458,derived,,UnknownFueling1,,,Fuel & Lambda
-60E0FB00,0x00e492,0x00E4A6,intake_temp_increase_step,ghidra-hand-xmap,,caller,YES,,
+60E0FB00,0x00e492,0x00E4A6,intake_temp_increase_step,ghidra-hand-xmap,,caller,YES,,Sensors
 60E0FB00,0x00e4a6,0x00E4F8,FUN_00e4a6,derived,,,,,
 60E0FB00,0x00e4f8,0x00E564,FUN_00e4f8,derived,,,,,
 60E0FB00,0x00e564,0x00E59A,FUN_00e564,derived,,,,,
@@ -15370,7 +15370,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x010136,0x010174,FUN_010136,derived,,,,,
 60E0FB00,0x010174,0x0101B0,FUN_010174,derived,,injector_cfg_ptr_select,,,Fuel & Lambda
 60E0FB00,0x0101b0,0x01020C,FUN_0101b0,derived,,FUN_000101b0,,,
-60E0FB00,0x01020c,0x010234,setAllInjectorto0?,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x01020c,0x010234,setAllInjectorto0?,ghidra-hand-xmap,,caller,,,Fuel & Lambda
 60E0FB00,0x010234,0x01024C,FUN_010234,derived,,,,,
 60E0FB00,0x01024c,0x0102BA,FUN_01024c,derived,,,,,
 60E0FB00,0x0102ba,0x0102E6,FUN_0102ba,derived,,,,,
@@ -15400,9 +15400,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x010a8c,0x010B34,FUN_010a8c,derived,,FUN_00010a8c,,,
 60E0FB00,0x010b34,0x010EAC,FUN_010b34,derived,,,,,
 60E0FB00,0x010eac,0x010ED2,FUN_010eac,derived,,fuel_cut_bits_merge,,,Fuel & Lambda
-60E0FB00,0x010ed2,0x010EE6,getEngineCrankingStatusEnum??,ghidra-hand-xmap,,getEngineCrankingStatusEnum__,,,
+60E0FB00,0x010ed2,0x010EE6,getEngineCrankingStatusEnum??,ghidra-hand-xmap,,getEngineCrankingStatusEnum__,,,Ignition & Knock
 60E0FB00,0x010ee6,0x010F04,getEngineCrankingStatus?,ghidra-hand-xmap,,,,,Ignition & Knock
-60E0FB00,0x010f04,0x010F72,setTimingArrayValuesForOutput?,ghidra-hand-xmap,,setTimingArrayValuesForOutput_,,,
+60E0FB00,0x010f04,0x010F72,setTimingArrayValuesForOutput?,ghidra-hand-xmap,,setTimingArrayValuesForOutput_,,,Ignition & Knock
 60E0FB00,0x010f72,0x010F76,FUN_010f72,derived,,returnOne,,,Ignition & Knock
 60E0FB00,0x010f76,0x010F84,returnDwellTime_fp,ghidra-hand-xmap,,returnDwellTime_fp,,,Ignition & Knock
 60E0FB00,0x010f84,0x010FEA,outputPerRotorIgnitionDwell,ghidra-hand-xmap,,,,,Ignition & Knock
@@ -15415,7 +15415,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x01141c,0x0114FC,FUN_01141c,derived,,,,,
 60E0FB00,0x0114fc,0x01151A,FUN_0114fc,derived,,,,,
 60E0FB00,0x01151a,0x011540,FUN_01151a,derived,,,,,
-60E0FB00,0x011540,0x011584,someMainFunction,ghidra-hand-xmap,,,,,
+60E0FB00,0x011540,0x011584,someMainFunction,ghidra-hand-xmap,,,,,RTOS
 60E0FB00,0x011584,0x0115AA,FUN_011584,derived,,,,,
 60E0FB00,0x0115aa,0x01168A,FUN_0115aa,derived,,,,,
 60E0FB00,0x01168a,0x0117C8,FUN_01168a,derived,,,,,
@@ -15495,8 +15495,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x01363e,0x013674,FUN_01363e,derived,,,,,
 60E0FB00,0x013674,0x01367E,FUN_013674,derived,,,,,
 60E0FB00,0x01367e,0x013686,FUN_01367e,derived,,,,,
-60E0FB00,0x013686,0x0136D6,getKnockControlAllowed??,ghidra-hand-xmap,,getKnockControlAllowed__,,,
-60E0FB00,0x0136d6,0x0136FE,getKnockSensorFaultedStatus?,ghidra-hand-xmap,,getKnockSensorFaultedStatus_,,,
+60E0FB00,0x013686,0x0136D6,getKnockControlAllowed??,ghidra-hand-xmap,,getKnockControlAllowed__,,,Ignition & Knock
+60E0FB00,0x0136d6,0x0136FE,getKnockSensorFaultedStatus?,ghidra-hand-xmap,,getKnockSensorFaultedStatus_,,,Faults & DTC
 60E0FB00,0x0136fe,0x013736,getKnockControlActive,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0FB00,0x013736,0x013760,FUN_013736,derived,,,,,
 60E0FB00,0x013760,0x0137B2,FUN_013760,derived,,caller,,,
@@ -15559,7 +15559,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0146c2,0x0146D4,FUN_0146c2,derived,,,,,
 60E0FB00,0x0146d4,0x01470A,FUN_0146d4,derived,,setPerRotorTimingValuesLeading,,,Ignition & Knock
 60E0FB00,0x01470a,0x01476C,FUN_01470a,derived,,,,,Ignition & Knock
-60E0FB00,0x01476c,0x01477C,engineCrankingConditionsInit??,ghidra-hand-xmap,,engineCrankingConditionsInit__,,,
+60E0FB00,0x01476c,0x01477C,engineCrankingConditionsInit??,ghidra-hand-xmap,,engineCrankingConditionsInit__,,,Boot & Init
 60E0FB00,0x01477c,0x014780,FUN_01477c,derived,NOISE,,,,
 60E0FB00,0x014780,0x0147AC,FUN_014780,derived,,,,,
 60E0FB00,0x0147ac,0x0147D0,FUN_0147ac,derived,,,,,
@@ -15765,7 +15765,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x019a6a,0x019A76,FUN_019a6a,derived,,,,,
 60E0FB00,0x019a76,0x019A80,FUN_019a76,derived,,coolantTempRAMWrite,,,Sensors
 60E0FB00,0x019a80,0x019AB2,FUN_019a80,derived,,coolant_temp_default_select_a80,,,Sensors
-60E0FB00,0x019ab2,0x019ADC,decrementTempForCatModel??,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x019ab2,0x019ADC,decrementTempForCatModel??,ghidra-hand-xmap,,caller,,,Sensors
 60E0FB00,0x019adc,0x019B40,FUN_019adc,derived,,,,,
 60E0FB00,0x019b40,0x019B5C,FUN_019b40,derived,,,,,
 60E0FB00,0x019b5c,0x019B82,FUN_019b5c,derived,,o2_front_raw_clamp_store,,,Fuel & Lambda
@@ -15791,7 +15791,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x01a276,0x01A27E,FUN_01a276,derived,,,,,
 60E0FB00,0x01a27e,0x01A29E,FUN_01a27e,derived,,,,,
 60E0FB00,0x01a29e,0x01A2E8,FUN_01a29e,derived,,,,,
-60E0FB00,0x01a2e8,0x01A310,calculateKeyOnTime,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x01a2e8,0x01A310,calculateKeyOnTime,ghidra-hand-xmap,,caller,,,Utilities
 60E0FB00,0x01a310,0x01A340,calculateKeyOffTime,ghidra-hand-xmap,,,,,Utilities
 60E0FB00,0x01a340,0x01A34E,FUN_01a340,derived,,,,,
 60E0FB00,0x01a34e,0x01A35C,FUN_01a34e,derived,,,,,
@@ -16814,7 +16814,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x025320,0x025324,FUN_025320,derived,NOISE,,,,
 60E0FB00,0x025324,0x025388,FUN_025324,derived,,,,,
 60E0FB00,0x025388,0x0253CC,FUN_025388,derived,,,,,
-60E0FB00,0x0253cc,0x0253EC,getAutoTransCal??,ghidra-hand-xmap,,getAutoTransCal__,,,
+60E0FB00,0x0253cc,0x0253EC,getAutoTransCal??,ghidra-hand-xmap,,getAutoTransCal__,,,Math / FPU
 60E0FB00,0x0253ec,0x0253F2,FUN_0253ec,derived,,hwfault_reg_9ecd_bit0_latch_b587,,,Faults & DTC
 60E0FB00,0x0253f2,0x0253F6,FUN_0253f2,derived,NOISE,,,,
 60E0FB00,0x0253f6,0x0253FC,FUN_0253f6,derived,,,,,
@@ -16870,7 +16870,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x025708,0x02570C,FUN_025708,derived,,float_copy_b594_to_b5a0,,,Ignition & Knock
 60E0FB00,0x02570c,0x025722,FUN_02570c,derived,,,,,
 60E0FB00,0x025722,0x02572E,FUN_025722,derived,,FUN_00025722,,,
-60E0FB00,0x02572e,0x025752,getEngineSpeed,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x02572e,0x025752,getEngineSpeed,ghidra-hand-xmap,,caller,,,Sensors
 60E0FB00,0x025752,0x0257D6,FUN_025752,derived,,,,,
 60E0FB00,0x0257d6,0x0257F2,calculatePredictedEngineSpeed?,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0FB00,0x0257f2,0x0257F6,FUN_0257f2,derived,NOISE,,,,
@@ -16977,7 +16977,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0261f2,0x026204,FUN_0261f2,derived,,,,,
 60E0FB00,0x026204,0x026212,FUN_026204,derived,,,,,
 60E0FB00,0x026212,0x026298,FUN_026212,derived,,,,,
-60E0FB00,0x026298,0x0262DC,getAlternatorFaultStatus,ghidra-hand-xmap,,,,,
+60E0FB00,0x026298,0x0262DC,getAlternatorFaultStatus,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x0262dc,0x026308,FUN_0262dc,derived,,calculateECMOverVolt,,,Memory & CRC
 60E0FB00,0x026308,0x026332,FUN_026308,derived,,getAlternatorSpeedConditonal,,,Sensors
 60E0FB00,0x026332,0x02633E,FUN_026332,derived,,,,,
@@ -17967,7 +17967,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x02cdce,0x02CDD0,FUN_02cdce,derived,NOISE,,,,
 60E0FB00,0x02cdd0,0x02CDD8,FUN_02cdd0,derived,,can_231_buf_set_bc98_ffff,,,CAN Bus
 60E0FB00,0x02cdd8,0x02CE0C,FUN_02cdd8,derived,,,,,
-60E0FB00,0x02ce0c,0x02CE24,dscDerateInit?,ghidra-hand-xmap,,dscDerateInit_,,,
+60E0FB00,0x02ce0c,0x02CE24,dscDerateInit?,ghidra-hand-xmap,,dscDerateInit_,,,Boot & Init
 60E0FB00,0x02ce24,0x02CE6A,FUN_02ce24,derived,,dsc_torque_derate_calc,,,Throttle & Torque
 60E0FB00,0x02ce6a,0x02CEB8,FUN_02ce6a,derived,,,,,
 60E0FB00,0x02ceb8,0x02CEE6,getCondtionsForSomething,ghidra-hand-xmap,,,,,Fuel & Lambda
@@ -17992,7 +17992,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x02d11a,0x02D122,FUN_02d11a,derived,,,,,
 60E0FB00,0x02d122,0x02D132,FUN_02d122,derived,,,,,
 60E0FB00,0x02d132,0x02D1C0,FUN_02d132,derived,,,,,
-60E0FB00,0x02d1c0,0x02D204,arbitrateDSCFuelCut?,ghidra-hand-xmap,,arbitrateDSCFuelCut_,,,
+60E0FB00,0x02d1c0,0x02D204,arbitrateDSCFuelCut?,ghidra-hand-xmap,,arbitrateDSCFuelCut_,,,Fuel & Lambda
 60E0FB00,0x02d204,0x02D208,FUN_02d204,derived,NOISE,,,,
 60E0FB00,0x02d208,0x02D22A,FUN_02d208,derived,,calculateTorqueRelatedParams,,,Throttle & Torque
 60E0FB00,0x02d22a,0x02D242,FUN_02d22a,derived,,,,,
@@ -18456,7 +18456,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0305fa,0x030600,FUN_0305fa,derived,,,,,
 60E0FB00,0x030600,0x030618,FUN_030600,derived,,,,,
 60E0FB00,0x030618,0x0306B4,FUN_030618,derived,,,,,
-60E0FB00,0x0306b4,0x030700,calcInjectorCrankingTime??,ghidra-hand-xmap,,calcInjectorCrankingTime__,,,
+60E0FB00,0x0306b4,0x030700,calcInjectorCrankingTime??,ghidra-hand-xmap,,calcInjectorCrankingTime__,,,Fuel & Lambda
 60E0FB00,0x030700,0x030728,getCrankingInjectorPulseTime,ghidra-hand-xmap,,,,,Fuel & Lambda
 60E0FB00,0x030728,0x03076A,getDiagnosticFuelPulseCranking?,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x03076a,0x030780,FUN_03076a,derived,,,,,
@@ -18482,7 +18482,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x030aae,0x030AB6,FUN_030aae,derived,,,,,
 60E0FB00,0x030ab6,0x030AC2,FUN_030ab6,derived,,,,,
 60E0FB00,0x030ac2,0x030B14,FUN_030ac2,derived,,,,,
-60E0FB00,0x030b14,0x030B44,diagCrankingInjectorPulseAdder?,ghidra-hand-xmap,,,,,
+60E0FB00,0x030b14,0x030B44,diagCrankingInjectorPulseAdder?,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x030b44,0x030B4C,FUN_030b44,derived,,,,,
 60E0FB00,0x030b4c,0x030B4E,FUN_030b4c,derived,NOISE,,,,
 60E0FB00,0x030b4e,0x030B58,FUN_030b4e,derived,,,,,
@@ -18609,7 +18609,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x031dbe,0x031DC0,FUN_031dbe,derived,NOISE,,,,
 60E0FB00,0x031dc0,0x031DC8,FUN_031dc0,derived,,sas_latch_engine_state_bf9c,,,Sensors
 60E0FB00,0x031dc8,0x031DCA,FUN_031dc8,derived,NOISE,,,,
-60E0FB00,0x031dca,0x031DF2,getEngineOffTimer,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x031dca,0x031DF2,getEngineOffTimer,ghidra-hand-xmap,,caller,,,Peripherals & ISR
 60E0FB00,0x031df2,0x031E7C,FUN_031df2,derived,,,,,
 60E0FB00,0x031e7c,0x031E96,FUN_031e7c,derived,,,,,
 60E0FB00,0x031e96,0x031EBC,FUN_031e96,derived,,,,,
@@ -18814,7 +18814,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x033da4,0x033F20,throttlePedalParameters,ghidra-hand-xmap,,,,,Throttle & Torque
 60E0FB00,0x033f20,0x033F48,detectDriverIntentKnockControl?,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0FB00,0x033f48,0x033FA4,FUN_033f48,derived,,,,,
-60E0FB00,0x033fa4,0x034110,calculateKnockConditionA,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x033fa4,0x034110,calculateKnockConditionA,ghidra-hand-xmap,,caller,,,Ignition & Knock
 60E0FB00,0x034110,0x03417E,FUN_034110,derived,,caller,,,
 60E0FB00,0x03417e,0x0341D0,FUN_03417e,derived,,,,,
 60E0FB00,0x0341d0,0x0341DA,FUN_0341d0,derived,,resetCounter,,,Boot & Init
@@ -18933,15 +18933,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x036fca,0x037010,FUN_036fca,derived,,,,,
 60E0FB00,0x037010,0x037028,FUN_037010,derived,,FUN_00037010,,,
 60E0FB00,0x037028,0x0371EC,afterImmoMain,ghidra-hand-xmap,,,,,OBD / UDS
-60E0FB00,0x0371ec,0x03735C,afterImmo_1,ghidra-hand-xmap,,,,,
-60E0FB00,0x03735c,0x0374CE,afterImmo_2,ghidra-hand-xmap,,,,,
+60E0FB00,0x0371ec,0x03735C,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E0FB00,0x03735c,0x0374CE,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E0FB00,0x0374ce,0x0374EA,FUN_0374ce,derived,,,,,
 60E0FB00,0x0374ea,0x0375F4,FUN_0374ea,derived,,,,,
-60E0FB00,0x0375f4,0x03775C,afterImmo_3,ghidra-hand-xmap,,,,,
+60E0FB00,0x0375f4,0x03775C,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E0FB00,0x03775c,0x03777A,FUN_03775c,derived,,,,,
 60E0FB00,0x03777a,0x037854,FUN_03777a,derived,,,,,
 60E0FB00,0x037854,0x0379AC,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E0FB00,0x0379ac,0x037A78,afterImmo_7,ghidra-hand-xmap,,,,,
+60E0FB00,0x0379ac,0x037A78,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E0FB00,0x037a78,0x037A92,FUN_037a78,derived,,,,,
 60E0FB00,0x037a92,0x037BDE,FUN_037a92,derived,,,,,
 60E0FB00,0x037bde,0x037C5A,FUN_037bde,derived,,,,,
@@ -19169,9 +19169,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x03e00e,0x03E07C,FUN_03e00e,derived,,,,,
 60E0FB00,0x03e07c,0x03E0AC,FUN_03e07c,derived,,byte_change_flag_c634_latch,,,Utilities
 60E0FB00,0x03e0ac,0x03E0DC,FUN_03e0ac,derived,,floatDivideDiv0errCheck_SIG_DIVISOR,,,Math / FPU
-60E0FB00,0x03e0dc,0x03E11C,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,
-60E0FB00,0x03e11c,0x03E15C,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,
-60E0FB00,0x03e15c,0x03E1AA,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,
+60E0FB00,0x03e0dc,0x03E11C,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,Memory & CRC
+60E0FB00,0x03e11c,0x03E15C,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,Memory & CRC
+60E0FB00,0x03e15c,0x03E1AA,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,YES,,Memory & CRC
 60E0FB00,0x03e1aa,0x03E1F8,FUN_03e1aa,derived,,,YES,,
 60E0FB00,0x03e1f8,0x03E208,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,uds_protocol_3e1f8,YES,,OBD / UDS
 60E0FB00,0x03e208,0x03E218,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,updateMemoryAtAddress_16bit_ADDR_VAL,YES,,Memory & CRC
@@ -19285,7 +19285,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0418ac,0x0418BE,FUN_0418ac,derived,,,,,
 60E0FB00,0x0418be,0x0418EA,FUN_0418be,derived,,,,,
 60E0FB00,0x0418ea,0x041A40,FUN_0418ea,derived,,,,,
-60E0FB00,0x041a40,0x041AA4,lambdaRelated,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x041a40,0x041AA4,lambdaRelated,ghidra-hand-xmap,,caller,,,Fuel & Lambda
 60E0FB00,0x041aa4,0x041AAE,FUN_041aa4,derived,,caller,,,
 60E0FB00,0x041aae,0x041AC2,FUN_041aae,derived,,,,,
 60E0FB00,0x041ac2,0x041AD2,FUN_041ac2,derived,,,,,
@@ -19726,7 +19726,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0498d8,0x0498E0,FUN_0498d8,derived,,set_flag_cc9e,,,Boot & Init
 60E0FB00,0x0498e0,0x0498F2,FUN_0498e0,derived,,fuelCutVariableInit,,,Fuel & Lambda
 60E0FB00,0x0498f2,0x049920,FUN_0498f2,derived,,,,,
-60E0FB00,0x049920,0x04997C,fuelCutRelated_Something?,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x049920,0x04997C,fuelCutRelated_Something?,ghidra-hand-xmap,,caller,,,Fuel & Lambda
 60E0FB00,0x04997c,0x04999A,FUN_04997c,derived,,caller,,,
 60E0FB00,0x04999a,0x0499B8,FUN_04999a,derived,,,,,
 60E0FB00,0x0499b8,0x0499C6,FUN_0499b8,derived,,,,,
@@ -19734,7 +19734,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0499d2,0x0499DA,FUN_0499d2,derived,,,,,
 60E0FB00,0x0499da,0x0499FE,FUN_0499da,derived,,,,,
 60E0FB00,0x0499fe,0x049A1C,FUN_0499fe,derived,,,,,
-60E0FB00,0x049a1c,0x049A6C,fuelCutTimerAfterReset,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x049a1c,0x049A6C,fuelCutTimerAfterReset,ghidra-hand-xmap,,caller,,,Fuel & Lambda
 60E0FB00,0x049a6c,0x049A8E,FUN_049a6c,derived,,fuel_cut_flag_cc8a_clear,,,Fuel & Lambda
 60E0FB00,0x049a8e,0x049AA2,FUN_049a8e,derived,,resetFuelCutCondition7,,,Fuel & Lambda
 60E0FB00,0x049aa2,0x049ABA,FUN_049aa2,derived,,,,,
@@ -20302,7 +20302,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x051cfc,0x051D78,FUN_051cfc,derived,,,,,
 60E0FB00,0x051d78,0x051D9C,FUN_051d78,derived,,,,,
 60E0FB00,0x051d9c,0x051DDE,FUN_051d9c,derived,,,,,
-60E0FB00,0x051dde,0x051E06,calcAPVCounter,ghidra-hand-xmap,,caller,,,
+60E0FB00,0x051dde,0x051E06,calcAPVCounter,ghidra-hand-xmap,,caller,,,Peripherals & ISR
 60E0FB00,0x051e06,0x051E5C,FUN_051e06,derived,,,,,
 60E0FB00,0x051e5c,0x051ED2,FUN_051e5c,derived,,,,,
 60E0FB00,0x051ed2,0x051EFA,FUN_051ed2,derived,,fault_flag_or_eval_cfab_cfac_to_cfa9,,,Faults & DTC
@@ -20349,7 +20349,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x0528da,0x05295C,updateCANFaults,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x05295c,0x052970,FUN_05295c,derived,,,,,
 60E0FB00,0x052970,0x0529AE,FUN_052970,derived,,,,,Math / FPU
-60E0FB00,0x0529ae,0x0529BC,updateRAM??,ghidra-hand-xmap,,,,,
+60E0FB00,0x0529ae,0x0529BC,updateRAM??,ghidra-hand-xmap,,,,,Memory & CRC
 60E0FB00,0x0529bc,0x0529D8,FUN_0529bc,derived,,,,,
 60E0FB00,0x0529d8,0x052A12,FUN_0529d8,derived,,,,,
 60E0FB00,0x052a12,0x052A36,udsResponseRelated??,ghidra-hand-xmap,,,,,OBD / UDS
@@ -20589,7 +20589,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x057f98,0x057FC4,FUN_057f98,derived,,,,,
 60E0FB00,0x057fc4,0x05800A,FUN_057fc4,derived,,FUN_00057fc4,,,
 60E0FB00,0x05800a,0x058060,FUN_05800a,derived,,,,,
-60E0FB00,0x058060,0x0580F0,calcBatteryRelatedFaults??,ghidra-hand-xmap,,,,,
+60E0FB00,0x058060,0x0580F0,calcBatteryRelatedFaults??,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x0580f0,0x058128,FUN_0580f0,derived,,,,,
 60E0FB00,0x058128,0x058210,FUN_058128,derived,,,,,
 60E0FB00,0x058210,0x058268,FUN_058210,derived,,,,,
@@ -20814,7 +20814,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x05e414,0x05E474,FUN_05e414,derived,,,,,
 60E0FB00,0x05e474,0x05E4DE,FUN_05e474,derived,,,,,
 60E0FB00,0x05e4de,0x05E524,FUN_05e4de,derived,,,,,
-60E0FB00,0x05e524,0x05E54C,checkIfDeviceControl?,ghidra-hand-xmap,,,,,
+60E0FB00,0x05e524,0x05E54C,checkIfDeviceControl?,ghidra-hand-xmap,,,,,Boot & Init
 60E0FB00,0x05e54c,0x05E578,FUN_05e54c,derived,,,,,
 60E0FB00,0x05e578,0x05E57E,FUN_05e578,derived,,,,,Math / FPU
 60E0FB00,0x05e57e,0x05E584,FUN_05e57e,derived,,returnEngineRPM,,,Rev Limit
@@ -20847,7 +20847,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x05ebd0,0x05EBEC,FUN_05ebd0,derived,,,,,
 60E0FB00,0x05ebec,0x05EC08,FUN_05ebec,derived,,,,,
 60E0FB00,0x05ec08,0x05EC68,FUN_05ec08,derived,,,,,
-60E0FB00,0x05ec68,0x05ECA2,setFaultEvalState?,ghidra-hand-xmap,,,,,
+60E0FB00,0x05ec68,0x05ECA2,setFaultEvalState?,ghidra-hand-xmap,,,,,Faults & DTC
 60E0FB00,0x05eca2,0x05ED68,FUN_05eca2,derived,,,,,Faults & DTC
 60E0FB00,0x05ed68,0x05EDB2,FUN_05ed68,derived,,,,,
 60E0FB00,0x05edb2,0x05EDE8,FUN_05edb2,derived,,,,,
@@ -21811,29 +21811,29 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00004c,0x000064,FUN_0000004c,ghidra-auto,,,,ghidra-auto,
 60E0FC00,0x000064,0x00007C,FUN_00000064,ghidra-auto,,,,ghidra-auto,
 60E0FC00,0x00007c,0x00031C,FUN_0000007c,ghidra-auto,,,,ghidra-auto,
-60E0FC00,0x00031c,,checkClearWDT,equinox311,GHIDRA-EQX,watchdogTimerRead_31c,,connor-xmap|ghidra-hand,
-60E0FC00,0x0003b0,0x0003D4,task_queue_get_next,ida-ai-xmap,DUBIOUS,task_queue_get_next_3b0,,ghidra-auto,
-60E0FC00,0x0003d4,0x0003E0,hw_init_3,ida-ai-xmap,DUBIOUS,hw_init_3_3d4,,ghidra-auto,
-60E0FC00,0x0003e0,0x00041C,task_queue_pending_count,ida-ai-xmap,DUBIOUS,task_queue_pending_count_3e0,,ghidra-auto,
-60E0FC00,0x00041c,0x000450,hw_init_2,ida-ai-xmap,DUBIOUS,hw_init_2_41c,,ghidra-auto,
-60E0FC00,0x000450,0x0004E0,eeprom_read_validate,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x0004e0,0x000572,main_init,ghidra-hand,,,YES,connor-xmap|equinox311:resetHandler?|ghidra-hand,
-60E0FC00,0x000572,0x0005B0,serviceWDT,equinox311,GHIDRA-EQX,wdt_init_572,,connor-xmap|ghidra-hand,
-60E0FC00,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,equinox311,GHIDRA-EQX,,,ghidra-hand,
-60E0FC00,0x000624,0x000636,is_eeprom_valid,ida-ai-xmap,DUBIOUS,is_eeprom_valid_624,,ghidra-auto,
-60E0FC00,0x000636,0x0006C8,validate_data_block_header,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
+60E0FC00,0x00031c,,checkClearWDT,equinox311,GHIDRA-EQX,watchdogTimerRead_31c,,connor-xmap|ghidra-hand,Peripherals & ISR
+60E0FC00,0x0003b0,0x0003D4,task_queue_get_next,ida-ai-xmap,DUBIOUS,task_queue_get_next_3b0,,ghidra-auto,RTOS
+60E0FC00,0x0003d4,0x0003E0,hw_init_3,ida-ai-xmap,DUBIOUS,hw_init_3_3d4,,ghidra-auto,Boot & Init
+60E0FC00,0x0003e0,0x00041C,task_queue_pending_count,ida-ai-xmap,DUBIOUS,task_queue_pending_count_3e0,,ghidra-auto,RTOS
+60E0FC00,0x00041c,0x000450,hw_init_2,ida-ai-xmap,DUBIOUS,hw_init_2_41c,,ghidra-auto,Boot & Init
+60E0FC00,0x000450,0x0004E0,eeprom_read_validate,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
+60E0FC00,0x0004e0,0x000572,main_init,ghidra-hand,,,YES,connor-xmap|equinox311:resetHandler?|ghidra-hand,Boot & Init
+60E0FC00,0x000572,0x0005B0,serviceWDT,equinox311,GHIDRA-EQX,wdt_init_572,,connor-xmap|ghidra-hand,Peripherals & ISR
+60E0FC00,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,equinox311,GHIDRA-EQX,,,ghidra-hand,Peripherals & ISR
+60E0FC00,0x000624,0x000636,is_eeprom_valid,ida-ai-xmap,DUBIOUS,is_eeprom_valid_624,,ghidra-auto,Memory & CRC
+60E0FC00,0x000636,0x0006C8,validate_data_block_header,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
 60E0FC00,0x0006c8,,somethingWDTRelated??,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Boot & Init
-60E0FC00,0x0007c0,0x000806,serial_data_write_handler,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x000806,0x00087C,data_transfer_setup,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x00087c,0x0008B4,memset_ram_bounded,ida-ai-xmap,DUBIOUS,memset_ram_bounded_87c,,ghidra-auto,
+60E0FC00,0x0007c0,0x000806,serial_data_write_handler,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Peripherals & ISR
+60E0FC00,0x000806,0x00087C,data_transfer_setup,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
+60E0FC00,0x00087c,0x0008B4,memset_ram_bounded,ida-ai-xmap,DUBIOUS,memset_ram_bounded_87c,,ghidra-auto,Memory & CRC
 60E0FC00,0x0008b4,,Illegal_instr,equinox311,GHIDRA-EQX,,,connor-xmap|ghidra-hand,Boot & Init
-60E0FC00,0x0008b8,,Manual_Reset,equinox311,GHIDRA-EQX,,,connor-xmap|ghidra-hand,
-60E0FC00,0x0008cc,0x0008F6,bsc_init,ida-ai-xmap,DUBIOUS,,,connor-xmap|ghidra-auto,
+60E0FC00,0x0008b8,,Manual_Reset,equinox311,GHIDRA-EQX,,,connor-xmap|ghidra-hand,Boot & Init
+60E0FC00,0x0008cc,0x0008F6,bsc_init,ida-ai-xmap,DUBIOUS,,,connor-xmap|ghidra-auto,Boot & Init
 60E0FC00,0x0008f6,0x0009FC,FUN_000008f6,ghidra-auto,,gpio_init_8f6,,ghidra-auto,
-60E0FC00,0x0009fc,0x000ACE,INT_ATU102_IMI10AG,equinox311,GHIDRA-EQX,,,ghidra-hand,
+60E0FC00,0x0009fc,0x000ACE,INT_ATU102_IMI10AG,equinox311,GHIDRA-EQX,,,ghidra-hand,Peripherals & ISR
 60E0FC00,0x000ace,0x001008,FUN_00000ace,ghidra-auto,,sensor_sequential_ace_ace,,ghidra-auto,
-60E0FC00,0x001008,0x001038,validate_rom_calibration_id,ida-ai-xmap,DUBIOUS,validate_rom_calibration_id,,ghidra-auto,
-60E0FC00,0x001038,0x001090,reset_ZERO,ghidra-hand,,,,equinox311:runResetConditon_UDSorPowerOn?|ghidra-hand,
+60E0FC00,0x001008,0x001038,validate_rom_calibration_id,ida-ai-xmap,DUBIOUS,validate_rom_calibration_id,,ghidra-auto,Memory & CRC
+60E0FC00,0x001038,0x001090,reset_ZERO,ghidra-hand,,,,equinox311:runResetConditon_UDSorPowerOn?|ghidra-hand,Memory & CRC
 60E0FC00,0x001090,,runFunc,equinox311,GHIDRA-EQX,,,ghidra-auto,RTOS
 60E0FC00,0x00109c,0x0010FE,resetOBDCAN?,ghidra-hand,,,,equinox311:resetOBDCAN?|ghidra-hand,OBD / UDS
 60E0FC00,0x0010fe,0x001150,FUN_000010fe,ghidra-auto,,can_rx_mailbox_ready_process,,ghidra-auto,CAN Bus
@@ -21875,130 +21875,130 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x001fa2,0x001FBC,FUN_00001fa2,ghidra-auto,,atu_get_rx_byte_count,,ghidra-auto,
 60E0FC00,0x001fbc,0x001FE2,copy_bytes_readback_verify,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x001fe2,0x002034,can_mailbox_reg_byte_nibble,ghidra-auto,,,,ghidra-auto,CAN Bus
-60E0FC00,0x002034,0x002044,checksum_complement_add,ida-ai-xmap,DUBIOUS,checksum_complement_add,YES,ghidra-auto,
-60E0FC00,0x002044,0x002054,invertAndReturn_8bit_ADDR,equinox311,GHIDRA-EQX,diag_invertandreturn_2044,YES,ghidra-hand,
-60E0FC00,0x002054,0x002064,setSR_PARAM,equinox311,GHIDRA-EQX,setSR_PARAM,YES,ghidra-hand,
-60E0FC00,0x002064,0x002068,loadStatusRegister_ADDR,equinox311,GHIDRA-EQX,loadStatusRegister_ADDR,YES,ghidra-hand,
+60E0FC00,0x002034,0x002044,checksum_complement_add,ida-ai-xmap,DUBIOUS,checksum_complement_add,YES,ghidra-auto,Memory & CRC
+60E0FC00,0x002044,0x002054,invertAndReturn_8bit_ADDR,equinox311,GHIDRA-EQX,diag_invertandreturn_2044,YES,ghidra-hand,Memory & CRC
+60E0FC00,0x002054,0x002064,setSR_PARAM,equinox311,GHIDRA-EQX,setSR_PARAM,YES,ghidra-hand,Memory & CRC
+60E0FC00,0x002064,0x002068,loadStatusRegister_ADDR,equinox311,GHIDRA-EQX,loadStatusRegister_ADDR,YES,ghidra-hand,Peripherals & ISR
 60E0FC00,0x002068,0x0020AC,2DLookup,equinox311,GHIDRA-EQX,2DLookup_type0,YES,ghidra-hand,
 60E0FC00,0x0020ac,0x0020C4,2DLookup_FP_8bit,equinox311,GHIDRA-EQX,2DLookup_FP_8bit,YES,ghidra-hand,
 60E0FC00,0x0020c4,0x0020DC,2DLookup_FP_16bit,equinox311,GHIDRA-EQX,2DLookup_FP_16bit,YES,ghidra-hand,
 60E0FC00,0x0020dc,0x002120,3dLookup,equinox311,GHIDRA-EQX,3dlookup_type8,YES,ghidra-hand,
 60E0FC00,0x002120,0x00213C,3DLookup_FP_8bit,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
 60E0FC00,0x00213c,0x002158,3DLookup_FP_16bit,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x002158,0x002304,LongFunc,ghidra-hand,,,,equinox311:fp_Divide?|ghidra-hand,
-60E0FC00,0x002304,0x00231C,addS32Saturate,ida-ai-xmap,DUBIOUS,add_s32_saturate,YES,ghidra-auto,
-60E0FC00,0x00231c,0x00239C,mul32_saturated,ghidra-hand,,mul32_saturated,YES,equinox311:multiply32Bit??|ghidra-hand,
-60E0FC00,0x00239c,0x0023B0,delay_loop_n8,ida-ai-xmap,DUBIOUS,delay_loop_n8,YES,ghidra-auto,
-60E0FC00,0x0023b0,0x0023DC,firstOrderFilter_SIG_SIGPREV_MIN_FF,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x0023dc,0x0023E4,subtractAbsolute,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x0023e4,0x0023F4,saturateLow_SIGNAL_LOWERBOUND,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x0023f4,0x002404,minValue,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x002404,0x002420,saturate_SIGNAL_LOWER_UPPER,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x002420,0x002430,complement_shift_u8,ghidra-hand,,math_complement_2420,YES,equinox311:encode??|ghidra-hand,
-60E0FC00,0x002430,0x002440,complement_shift_u16,ida-ai-xmap,DUBIOUS,complement_shift_u16,YES,ghidra-auto,
-60E0FC00,0x002440,0x002460,isNotZero_wDivideByZero_Protect,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x002460,0x002478,add16bitSaturate_ADD1_ADD2,equinox311,GHIDRA-EQX,add16bitSaturate_ADD1_ADD2,YES,ghidra-hand,
-60E0FC00,0x002478,0x002490,addSaturate8Bit,equinox311,GHIDRA-EQX,addSaturate8Bit,YES,ghidra-hand,
-60E0FC00,0x002490,0x0024C0,floatToFP_16bit_NUMBER_SCALAR_OFFSET,equinox311,GHIDRA-EQX,axis_lookup_float_to_index,YES,ghidra-hand,
-60E0FC00,0x0024c0,0x0024D0,fixedPointToFloat_16bit_MULT_OFF_SIG,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x0024d0,0x002500,floatToInt_SIGNAL_MULT_OFFSET,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
+60E0FC00,0x002158,0x002304,LongFunc,ghidra-hand,,,,equinox311:fp_Divide?|ghidra-hand,Math / FPU
+60E0FC00,0x002304,0x00231C,addS32Saturate,ida-ai-xmap,DUBIOUS,add_s32_saturate,YES,ghidra-auto,Math / FPU
+60E0FC00,0x00231c,0x00239C,mul32_saturated,ghidra-hand,,mul32_saturated,YES,equinox311:multiply32Bit??|ghidra-hand,Math / FPU
+60E0FC00,0x00239c,0x0023B0,delay_loop_n8,ida-ai-xmap,DUBIOUS,delay_loop_n8,YES,ghidra-auto,Utilities
+60E0FC00,0x0023b0,0x0023DC,firstOrderFilter_SIG_SIGPREV_MIN_FF,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0023dc,0x0023E4,subtractAbsolute,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0023e4,0x0023F4,saturateLow_SIGNAL_LOWERBOUND,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0023f4,0x002404,minValue,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002404,0x002420,saturate_SIGNAL_LOWER_UPPER,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002420,0x002430,complement_shift_u8,ghidra-hand,,math_complement_2420,YES,equinox311:encode??|ghidra-hand,Math / FPU
+60E0FC00,0x002430,0x002440,complement_shift_u16,ida-ai-xmap,DUBIOUS,complement_shift_u16,YES,ghidra-auto,Math / FPU
+60E0FC00,0x002440,0x002460,isNotZero_wDivideByZero_Protect,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002460,0x002478,add16bitSaturate_ADD1_ADD2,equinox311,GHIDRA-EQX,add16bitSaturate_ADD1_ADD2,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002478,0x002490,addSaturate8Bit,equinox311,GHIDRA-EQX,addSaturate8Bit,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002490,0x0024C0,floatToFP_16bit_NUMBER_SCALAR_OFFSET,equinox311,GHIDRA-EQX,axis_lookup_float_to_index,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0024c0,0x0024D0,fixedPointToFloat_16bit_MULT_OFF_SIG,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0024d0,0x002500,floatToInt_SIGNAL_MULT_OFFSET,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
 60E0FC00,0x002500,0x002510,fixedPointToFloat_8bit_MULT_OFF_SIG,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
-60E0FC00,0x002510,0x00253C,interp_bilinear_weight_calc,ghidra-hand,,,YES,equinox311:fixedPointScaling?|ghidra-hand,
+60E0FC00,0x002510,0x00253C,interp_bilinear_weight_calc,ghidra-hand,,,YES,equinox311:fixedPointScaling?|ghidra-hand,Math / FPU
 60E0FC00,0x00253c,,interpolate_floatTable,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
 60E0FC00,0x00256c,,lookup_char,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
 60E0FC00,0x002598,,lookup_short,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
-60E0FC00,0x0025c8,0x0025F4,interpolate_8bitTable,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x0025f4,0x002624,interpolate_3d_uint16,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x002624,0x002658,dataLookup,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x002658,0x002678,indexLookupSomething,equinox311,GHIDRA-EQX,interp_leaves,YES,ghidra-hand,
-60E0FC00,0x002678,0x002690,interpolate_floatTable,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x002690,0x0026B0,interpolate_shortTable,equinox311,GHIDRA-EQX,,,ghidra-hand,
-60E0FC00,0x0026b0,0x0026D0,interpolate_uint8Table,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x0026d0,0x0026F4,interpolate_uint16Table,equinox311,GHIDRA-EQX,,YES,ghidra-hand,
-60E0FC00,0x0026f4,0x003238,interpolate_charTable,equinox311,GHIDRA-EQX,,,ghidra-hand,
-60E0FC00,0x002710,,ISR_100,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002728,,ISR_104,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002740,,ISR_108,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002758,,ISR_10C,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002770,,ISR_110,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002788,,ISR_114,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0027a0,,ISR_118,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0027b8,,ISR_11C,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0027d0,,ISR_120,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0027e8,,ISR_128,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002938,,ISR_194,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002980,,ISR_1A0,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0029e0,,ISR_1BC,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002b18,,ISR_208,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002bd8,,ISR_240,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002c50,,ISR_254,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002f20,,ISR_300,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x002fc8,,ISR_350,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0031f0,,ISR_37C,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x003220,,WDT_ITI,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x003238,0x003280,incrementCounter,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,
+60E0FC00,0x0025c8,0x0025F4,interpolate_8bitTable,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0025f4,0x002624,interpolate_3d_uint16,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002624,0x002658,dataLookup,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002658,0x002678,indexLookupSomething,equinox311,GHIDRA-EQX,interp_leaves,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002678,0x002690,interpolate_floatTable,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x002690,0x0026B0,interpolate_shortTable,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
+60E0FC00,0x0026b0,0x0026D0,interpolate_uint8Table,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0026d0,0x0026F4,interpolate_uint16Table,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Math / FPU
+60E0FC00,0x0026f4,0x003238,interpolate_charTable,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
+60E0FC00,0x002710,,ISR_100,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002728,,ISR_104,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002740,,ISR_108,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002758,,ISR_10C,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002770,,ISR_110,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002788,,ISR_114,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0027a0,,ISR_118,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0027b8,,ISR_11C,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0027d0,,ISR_120,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0027e8,,ISR_128,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002938,,ISR_194,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002980,,ISR_1A0,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0029e0,,ISR_1BC,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002b18,,ISR_208,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002bd8,,ISR_240,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002c50,,ISR_254,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002f20,,ISR_300,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x002fc8,,ISR_350,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0031f0,,ISR_37C,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x003220,,WDT_ITI,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x003238,0x003280,incrementCounter,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,RTOS
 60E0FC00,0x003280,0x0033B6,rtos_context_switch_restore,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x0033b6,0x003490,cal_learned_value_update,ghidra-auto,,,,ghidra-auto,Other / Unclassified
 60E0FC00,0x003490,0x003588,rtos_swtimer_expire_check,ghidra-auto,,,,ghidra-auto,RTOS
-60E0FC00,0x003588,0x0035CC,callsAReset,equinox311,GHIDRA-EQX,,,ghidra-auto,
-60E0FC00,0x0035cc,0x0035EE,task_flag_run_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x0035ee,0x003610,notCalled??,equinox311,GHIDRA-EQX-UNCERTAIN,task_flag_run_C,YES,ghidra-auto,
-60E0FC00,0x003610,0x00366E,checkISRCounter_NotCalled?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,
+60E0FC00,0x003588,0x0035CC,callsAReset,equinox311,GHIDRA-EQX,,,ghidra-auto,Boot & Init
+60E0FC00,0x0035cc,0x0035EE,task_flag_run_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
+60E0FC00,0x0035ee,0x003610,notCalled??,equinox311,GHIDRA-EQX-UNCERTAIN,task_flag_run_C,YES,ghidra-auto,Boot & Init
+60E0FC00,0x003610,0x00366E,checkISRCounter_NotCalled?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,RTOS
 60E0FC00,0x0036d4,0x00375C,flag_priority_dispatch_lock,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x00375c,0x003854,rtos_task_start,ghidra-auto,,,,ghidra-auto,RTOS
-60E0FC00,0x003854,0x003920,engineControlFunctionDispatcher,equinox311,GHIDRA-EQX,task_execute_by_index,YES,ghidra-auto|ida-ai-xmap,
-60E0FC00,0x003920,0x003934,getSR,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,
-60E0FC00,0x003934,0x003954,setSR,equinox311,GHIDRA-EQX,setSR,YES,ghidra-hand,
+60E0FC00,0x003854,0x003920,engineControlFunctionDispatcher,equinox311,GHIDRA-EQX,task_execute_by_index,YES,ghidra-auto|ida-ai-xmap,RTOS
+60E0FC00,0x003920,0x003934,getSR,equinox311,GHIDRA-EQX,caller,YES,ghidra-hand,Memory & CRC
+60E0FC00,0x003934,0x003954,setSR,equinox311,GHIDRA-EQX,setSR,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x003954,0x003964,copy_ram_word_763c_to_buf,ghidra-auto,,,,ghidra-auto,Memory & CRC
-60E0FC00,0x003964,0x0039BA,task_queue_init,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
+60E0FC00,0x003964,0x0039BA,task_queue_init,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
 60E0FC00,0x0039ba,0x003A28,learn_table_bucket_insert,ghidra-auto,,,,ghidra-auto,Memory & CRC
-60E0FC00,0x003a28,0x003AC0,consistencyCheck,equinox311,GHIDRA-EQX,consistencyCheck,YES,ghidra-hand,
-60E0FC00,0x003ac0,0x003AD8,task_set_current_ptr,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x003ad8,0x003BF4,task_context_switch,ida-ai-xmap,DUBIOUS,task_context_switch,YES,ghidra-auto,
-60E0FC00,0x003bf4,0x003C2A,task_full_context_save,ida-ai-xmap,DUBIOUS,task_full_context_save,YES,ghidra-auto,
+60E0FC00,0x003a28,0x003AC0,consistencyCheck,equinox311,GHIDRA-EQX,consistencyCheck,YES,ghidra-hand,Memory & CRC
+60E0FC00,0x003ac0,0x003AD8,task_set_current_ptr,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
+60E0FC00,0x003ad8,0x003BF4,task_context_switch,ida-ai-xmap,DUBIOUS,task_context_switch,YES,ghidra-auto,RTOS
+60E0FC00,0x003bf4,0x003C2A,task_full_context_save,ida-ai-xmap,DUBIOUS,task_full_context_save,YES,ghidra-auto,RTOS
 60E0FC00,0x003c2a,0x003C68,rtos_task_context_restore,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x003c68,0x003C80,os_task_context_save_schedule_tail,ghidra-auto,,,,ghidra-auto,RTOS
-60E0FC00,0x003c80,0x003D58,task_priority_scheduler,ghidra-hand,,,,equinox311:handleHUDIException??|ghidra-hand,
-60E0FC00,0x003d58,0x003DAC,task_completion_handler,ghidra-hand,,taskEndRoutine,YES,equinox311:taskEndRoutine?|ghidra-hand,
+60E0FC00,0x003c80,0x003D58,task_priority_scheduler,ghidra-hand,,,,equinox311:handleHUDIException??|ghidra-hand,RTOS
+60E0FC00,0x003d58,0x003DAC,task_completion_handler,ghidra-hand,,taskEndRoutine,YES,equinox311:taskEndRoutine?|ghidra-hand,RTOS
 60E0FC00,0x003dac,0x003DB0,hang_loop_infinite,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x003db0,0x003E10,FUN_00003db0,ghidra-auto,,os_context_switch,YES,ghidra-auto,RTOS
 60E0FC00,0x003e10,0x003EC0,FUN_00003e10,ghidra-auto,,init_main,YES,ghidra-auto,Boot & Init
-60E0FC00,0x003ec0,0x003F10,task_table_scan_init,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x003f10,0x003F88,task_dependency_handler,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
+60E0FC00,0x003ec0,0x003F10,task_table_scan_init,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
+60E0FC00,0x003f10,0x003F88,task_dependency_handler,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
 60E0FC00,0x003f88,0x003F8C,FUN_00003f88,ghidra-auto,,,,ghidra-auto,
 60E0FC00,0x003f8c,0x003F90,FUN_00003f8c,ghidra-auto,,rtos_noop_stub_3f8c,,ghidra-auto,
 60E0FC00,0x003f90,0x003F9C,FUN_00003f90,ghidra-auto,,clear_task_flag_dc,,ghidra-auto,
 60E0FC00,0x003f9c,0x003FA8,FUN_00003f9c,ghidra-auto,,clear_task_flag_dd,,ghidra-auto,
 60E0FC00,0x003fa8,0x003FB0,FUN_00003fa8,ghidra-auto,,,,ghidra-auto,
-60E0FC00,0x003fb0,0x003FE8,task_ready_check,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x003fe8,0x00409C,div32_signed,ida-ai-xmap,DUBIOUS,div32_signed,YES,ghidra-auto,
-60E0FC00,0x00409c,0x004144,div32_unsigned,ida-ai-xmap,DUBIOUS,div32_unsigned,YES,ghidra-auto,
-60E0FC00,0x004144,0x00420C,mod32_signed,ghidra-hand,,caller,YES,equinox311:engineSomethingConditonCheckAndSet?|ghidra-hand,
-60E0FC00,0x00420c,0x004218,div_trampoline_A,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x004218,0x0042B0,div_trampoline_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
-60E0FC00,0x0042b0,0x004308,memcpy_bytewise_unroll4,ida-ai-xmap,DUBIOUS,memcpy_bytewise_unroll4,YES,ghidra-auto,
+60E0FC00,0x003fb0,0x003FE8,task_ready_check,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
+60E0FC00,0x003fe8,0x00409C,div32_signed,ida-ai-xmap,DUBIOUS,div32_signed,YES,ghidra-auto,Ignition & Knock
+60E0FC00,0x00409c,0x004144,div32_unsigned,ida-ai-xmap,DUBIOUS,div32_unsigned,YES,ghidra-auto,Ignition & Knock
+60E0FC00,0x004144,0x00420C,mod32_signed,ghidra-hand,,caller,YES,equinox311:engineSomethingConditonCheckAndSet?|ghidra-hand,Ignition & Knock
+60E0FC00,0x00420c,0x004218,div_trampoline_A,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
+60E0FC00,0x004218,0x0042B0,div_trampoline_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
+60E0FC00,0x0042b0,0x004308,memcpy_bytewise_unroll4,ida-ai-xmap,DUBIOUS,memcpy_bytewise_unroll4,YES,ghidra-auto,Memory & CRC
 60E0FC00,0x004308,0x0043C8,FUN_00004308,ghidra-auto,,shift_left_logical_r0,YES,ghidra-auto,
-60E0FC00,0x0043c8,0x0044E0,shift_right_arithmetic_r0,ida-ai-xmap,DUBIOUS,shift_right_arithmetic_r0,YES,ghidra-auto,
+60E0FC00,0x0043c8,0x0044E0,shift_right_arithmetic_r0,ida-ai-xmap,DUBIOUS,shift_right_arithmetic_r0,YES,ghidra-auto,Math / FPU
 60E0FC00,0x0044e0,0x00467A,FUN_000044e0,ghidra-auto,,shift_right_logical_r0,YES,ghidra-auto,
-60E0FC00,0x00467a,0x0046CC,shift_right_8_r0,ida-ai-xmap,DUBIOUS,shift_right_8_r0,YES,ghidra-auto,
+60E0FC00,0x00467a,0x0046CC,shift_right_8_r0,ida-ai-xmap,DUBIOUS,shift_right_8_r0,YES,ghidra-auto,Math / FPU
 60E0FC00,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand,,check_float_validity,YES,equinox311:checkFloatValidity?|ghidra-hand,Math / FPU
-60E0FC00,0x004740,0x004812,mul16_signed_saturated,ida-ai-xmap,DUBIOUS,div,YES,ghidra-auto,
+60E0FC00,0x004740,0x004812,mul16_signed_saturated,ida-ai-xmap,DUBIOUS,div,YES,ghidra-auto,Ignition & Knock
 60E0FC00,0x004812,0x00481C,math_fix16_scaled_to_float,ghidra-auto,,,,ghidra-auto,Math / FPU
-60E0FC00,0x00481c,0x0048C8,fixedpoint_scale_s16,ida-ai-xmap,DUBIOUS,ldexp,YES,ghidra-auto,
+60E0FC00,0x00481c,0x0048C8,fixedpoint_scale_s16,ida-ai-xmap,DUBIOUS,ldexp,YES,ghidra-auto,Math / FPU
 60E0FC00,0x0048c8,0x004B64,FUN_000048c8,ghidra-auto,,bitfield_extract_merge,YES,ghidra-auto,
 60E0FC00,0x004b64,0x004B7C,FUN_00004b64,ghidra-auto,,irq_atomic_bit_setclear_byte,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004b7c,0x004B84,FUN_00004b7c,ghidra-auto,,atomic_bit_set_byte_tail,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004b84,0x004B9C,FUN_00004b84,ghidra-auto,,irq_atomic_bit_setclear_word,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004b9c,0x004BB4,FUN_00004b9c,ghidra-auto,,atomic_bit_set_word_tail,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004bb4,0x004BBC,FUN_00004bb4,ghidra-auto,,atomic_bit_set_byte_tail_a,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x004bbc,0x004C14,setRegister_REG_BIT_VAL,equinox311,GHIDRA-EQX,diag_setregister_4bbc,YES,ghidra-hand,
+60E0FC00,0x004bbc,0x004C14,setRegister_REG_BIT_VAL,equinox311,GHIDRA-EQX,diag_setregister_4bbc,YES,ghidra-hand,Peripherals & ISR
 60E0FC00,0x004bcc,0x004BD4,FUN_00004bcc,ghidra-auto,,atomic_bit_set_word_tail_a,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004bd4,0x004BE4,FUN_00004bd4,ghidra-auto,,irq_atomic_xor_byte,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x004be4,0x004C14,FUN_00004be4,ghidra-auto,,irq_atomic_xor_word,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x004c14,0x004C70,delayFunc?,equinox311,GHIDRA-EQX-UNCERTAIN,caller,YES,ghidra-auto|ida-ai-xmap,
+60E0FC00,0x004c14,0x004C70,delayFunc?,equinox311,GHIDRA-EQX-UNCERTAIN,caller,YES,ghidra-auto|ida-ai-xmap,Utilities
 60E0FC00,0x004c70,0x004C76,FUN_00004c70,ghidra-auto,,,,ghidra-auto,
 60E0FC00,0x004c76,0x004C7A,FUN_00004c76,ghidra-auto,,,,ghidra-auto,
-60E0FC00,0x004c7a,0x004C80,stack_frame_set_sp,ghidra-hand,,,,equinox311:movePointerToR15?|ghidra-hand,
+60E0FC00,0x004c7a,0x004C80,stack_frame_set_sp,ghidra-hand,,,,equinox311:movePointerToR15?|ghidra-hand,Memory & CRC
 60E0FC00,0x004c80,0x004CB6,FUN_00004c80,ghidra-auto,,,,ghidra-auto,
 60E0FC00,0x004cb6,0x004CF0,boot_module_init_dispatch,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x004cf0,0x004D2E,sfr_init_dma_channels,ida-ai-xmap,DUBIOUS,,,connor-xmap|ghidra-auto,Boot & Init
@@ -22008,7 +22008,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x004e06,0x004E0A,thunk_FUN_00004dee,equinox311,GHIDRA-EQX-HEUR,thunk_FUN_00004dee,,ghidra-auto,RTOS
 60E0FC00,0x004e0a,0x004E0E,noOpFunc,equinox311,GHIDRA-EQX,,,ghidra-hand,RTOS
 60E0FC00,0x004e0e,0x004E12,FUN_00004e0e,ghidra-auto,,,,ghidra-auto,
-60E0FC00,0x004e12,0x004E6C,noOpFunc2,equinox311,GHIDRA-EQX,,,ghidra-hand,
+60E0FC00,0x004e12,0x004E6C,noOpFunc2,equinox311,GHIDRA-EQX,,,ghidra-hand,Utilities
 60E0FC00,0x004e6c,0x004F00,atu_channel_port_init,ida-ai-xmap,DUBIOUS,sfr_output_module_bulk_init,,ghidra-auto,Boot & Init
 60E0FC00,0x004f00,0x004FD6,atu_capture_compare_init,ida-ai-xmap,DUBIOUS,FUN_00004f00,,ghidra-auto,Boot & Init
 60E0FC00,0x004fd6,0x005020,FUN_00004fd6,ghidra-auto,,,,ghidra-auto,Utilities
@@ -22016,28 +22016,28 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand,,writeWatchdog_disable_,,equinox311:writeWatchdog_disable?|ghidra-hand,RTOS
 60E0FC00,0x005032,0x005036,writeWatchdog_disable?,ghidra-hand,,writeWatchdog_disable_,,equinox311:writeWatchdog_disable?|ghidra-hand,RTOS
 60E0FC00,0x005036,0x00503A,noop_return_stub_a,ghidra-auto,,,,ghidra-auto,Utilities
-60E0FC00,0x00503a,0x00503E,noOpFunc4,equinox311,GHIDRA-EQX,,,ghidra-hand,
-60E0FC00,0x00503e,0x005056,sci_all_channels_clock_async,ida-ai-xmap,DUBIOUS,rtos_noop_stub_503e,,ghidra-auto,
+60E0FC00,0x00503a,0x00503E,noOpFunc4,equinox311,GHIDRA-EQX,,,ghidra-hand,Utilities
+60E0FC00,0x00503e,0x005056,sci_all_channels_clock_async,ida-ai-xmap,DUBIOUS,rtos_noop_stub_503e,,ghidra-auto,CAN Bus
 60E0FC00,0x005056,0x00505A,noOpFunc5,equinox311,GHIDRA-EQX,,,ghidra-hand,RTOS
 60E0FC00,0x00505a,0x00505E,noop_stub,ghidra-auto,,,,ghidra-auto,Utilities
-60E0FC00,0x00505e,0x005062,noOpFunc6,equinox311,GHIDRA-EQX,,,ghidra-hand,
-60E0FC00,0x005062,0x0050A6,atu_channel_i_config_A,ida-ai-xmap,DUBIOUS,ctrl_nullsub_5062,,ghidra-auto,
+60E0FC00,0x00505e,0x005062,noOpFunc6,equinox311,GHIDRA-EQX,,,ghidra-hand,Utilities
+60E0FC00,0x005062,0x0050A6,atu_channel_i_config_A,ida-ai-xmap,DUBIOUS,ctrl_nullsub_5062,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x0050a6,0x0050AA,noOpFunc7,equinox311,GHIDRA-EQX,noOpFunc7,,ghidra-hand,RTOS
 60E0FC00,0x0050aa,0x0051C8,atu_channel_i_config_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
 60E0FC00,0x0051c8,0x00522A,atu_prescaler_mode_init,ida-ai-xmap,DUBIOUS,port_regs_bulk_config_f722,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x00522a,0x00527E,atu_channel_i_config_C,ida-ai-xmap,DUBIOUS,FUN_0000522a,,ghidra-auto,Boot & Init
 60E0FC00,0x00527e,0x00528E,callsFlash??,ghidra-hand,,callsFlash__,,equinox311:callsFlash??|ghidra-hand,Memory & CRC
-60E0FC00,0x00528e,0x005292,intc_clear_flag_trampoline,ghidra-hand,,,,equinox311:callsFlash??|ghidra-hand,
+60E0FC00,0x00528e,0x005292,intc_clear_flag_trampoline,ghidra-hand,,,,equinox311:callsFlash??|ghidra-hand,Memory & CRC
 60E0FC00,0x005292,0x0052B0,FUN_00005292,ghidra-auto,,atu_clock_prescaler_select,,ghidra-auto,
-60E0FC00,0x0052b0,0x005348,atu_status_check_and_branch,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
+60E0FC00,0x0052b0,0x005348,atu_status_check_and_branch,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x005348,0x0053C6,vectorNumberSomething,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
-60E0FC00,0x00535e,,NMICall?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,
-60E0FC00,0x0053a0,,defaultVector?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,
-60E0FC00,0x0053a6,,ISR_010,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0053aa,,ISR_018,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0053ae,,ISR_024,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0053b6,,UBCInterruptCall,equinox311,GHIDRA-EQX,,,,
-60E0FC00,0x0053c2,,ISR_0FC,equinox311,GHIDRA-EQX,,,,
+60E0FC00,0x00535e,,NMICall?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,Peripherals & ISR
+60E0FC00,0x0053a0,,defaultVector?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,Peripherals & ISR
+60E0FC00,0x0053a6,,ISR_010,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0053aa,,ISR_018,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0053ae,,ISR_024,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0053b6,,UBCInterruptCall,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
+60E0FC00,0x0053c2,,ISR_0FC,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
 60E0FC00,0x0053c6,0x0053D2,out_reg_ed1a_write_7f_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x0053d2,0x0053DE,out_reg_ed1a_write_bf_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x0053de,0x0053EA,out_reg_ed1a_write_df_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
@@ -22117,7 +22117,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x005b2e,0x005B3C,out_reg_f6e8_write_0e_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x005b3c,0x005B56,f6e8_write_0b_init_chain,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x005b56,0x005CC4,isr_flag_check_escalate,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x005be8,,ISR_2E0,equinox311,GHIDRA-EQX,,,,
+60E0FC00,0x005be8,,ISR_2E0,equinox311,GHIDRA-EQX,,,,Peripherals & ISR
 60E0FC00,0x005cc4,0x005CD2,out_reg_f5ca_write_03_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x005cd2,0x005CE2,out_reg_f712_bit7_clear_delay,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x005ce2,0x005CEE,adc_adcsr1_clear_adf_flag,ghidra-auto,,,,ghidra-auto,Sensors
@@ -22206,7 +22206,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x006fb0,0x006FFA,readADCResult,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x007070,0x007088,atu_control_bits_set,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
 60E0FC00,0x007088,0x0070AC,atu_fpu_control_wrapper,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
-60E0FC00,0x0070ac,0x007188,atu_fpu_control_wrapper,ghidra-hand,,atu_fpu_control_wrapper,YES,equinox311:getFromGPIO?|ghidra-hand,
+60E0FC00,0x0070ac,0x007188,atu_fpu_control_wrapper,ghidra-hand,,atu_fpu_control_wrapper,YES,equinox311:getFromGPIO?|ghidra-hand,Math / FPU
 60E0FC00,0x007188,0x0071EA,enableAndTXCoilDriverSerial?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,Ignition & Knock
 60E0FC00,0x0071ea,0x007280,transmitCoilDriverSPI?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,Sensors
 60E0FC00,0x007280,0x007290,sensor_state_reset_ch0,ida-ai-xmap,DUBIOUS,boot_init_ram_9f52,,ghidra-auto,Boot & Init
@@ -22227,7 +22227,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0075f4,0x00765A,crank_sensor_state_init,ghidra-auto,,,,ghidra-auto,Sensors
 60E0FC00,0x00765a,0x007668,crank_sensor_reinit_speed,ghidra-auto,,,,ghidra-auto,Sensors
 60E0FC00,0x007668,0x0076B8,rotor_phase_dispatch,ghidra-auto,,,,ghidra-auto,Fuel & Lambda
-60E0FC00,0x00768e,,callsEngineControlFunctionsWBool,equinox311,GHIDRA-EQX,,,,
+60E0FC00,0x00768e,,callsEngineControlFunctionsWBool,equinox311,GHIDRA-EQX,,,,RTOS
 60E0FC00,0x0076b8,0x007724,crank_timer_hw_reset,ida-ai-xmap,DUBIOUS,fueling_hw_port_regs_init,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x007724,0x007778,reInitCrankSensor??,ghidra-hand,,reInitCrankSensor__,,equinox311:reInitCrankSensor??|ghidra-hand,Sensors
 60E0FC00,0x007778,0x0077F0,setInterruptTimer,equinox311,GHIDRA-EQX,,,ghidra-hand,Peripherals & ISR
@@ -22356,7 +22356,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00a330,0x00A370,handleISR?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,Peripherals & ISR
 60E0FC00,0x00a370,0x00A3AC,req_mailbox_enqueue_c9_ff,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x00a3ac,0x00A438,can_periodic_task_handler,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x00a412,,resetEventBuffer?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,
+60E0FC00,0x00a412,,resetEventBuffer?,equinox311,GHIDRA-EQX-UNCERTAIN,,,,Memory & CRC
 60E0FC00,0x00a438,0x00A4B6,handleISRType?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,Peripherals & ISR
 60E0FC00,0x00a4b6,0x00A4BE,FUN_0000a4b6,ghidra-auto,,clear_counter_word_a188,,ghidra-auto,Throttle & Torque
 60E0FC00,0x00a4be,0x00A4F0,infiniteLoop,equinox311,GHIDRA-EQX,,,ghidra-auto,Peripherals & ISR
@@ -22386,7 +22386,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00b2c0,0x00B308,pwm_duty_store_scaled_f596,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x00b308,0x00B398,fuel_pulse_width_calc_saturated,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x00b398,0x00B3AA,sensor_value_copy_dispatch,ida-ai-xmap,DUBIOUS,sensor_pair_validity_check,,ghidra-auto,Sensors
-60E0FC00,0x00b3aa,0x00B4EC,rotor_fuel_calc_dispatcher,ida-ai-xmap,DUBIOUS,atu_injector_enable_update,,ghidra-auto,
+60E0FC00,0x00b3aa,0x00B4EC,rotor_fuel_calc_dispatcher,ida-ai-xmap,DUBIOUS,atu_injector_enable_update,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x00b4ec,0x00B5A0,hardware_init_serial_timers,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Sensors
 60E0FC00,0x00b5a0,0x00B5FA,serial_can_hardware_init,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
 60E0FC00,0x00b5fa,0x00B602,FUN_0000b5fa,ghidra-auto,,flag_a323_clear,,ghidra-auto,Other / Unclassified
@@ -22443,9 +22443,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00cf56,0x00CF74,can_clear_txpr_and_init_mailbox,ida-ai-xmap,DUBIOUS,shadow_a3d0_region_init,,ghidra-auto,CAN Bus
 60E0FC00,0x00cf74,0x00D13C,can_clear_txcr_and_init_mailbox,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x00d13c,0x00D142,getBaroSensorValue,equinox311,GHIDRA-EQX,getBaroSensorValue,,ghidra-hand,Sensors
-60E0FC00,0x00d144,0x00D1E0,getBaroSensorVal,equinox311,GHIDRA-EQX,baro_sensor_value,YES,ghidra-hand,
+60E0FC00,0x00d144,0x00D1E0,getBaroSensorVal,equinox311,GHIDRA-EQX,baro_sensor_value,YES,ghidra-hand,Sensors
 60E0FC00,0x00d1e0,0x00D21E,getRearO2Voltage,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x00d204,,setISRVectorStartANDFPUInit,equinox311,GHIDRA-EQX,can_clear_txcr_and_init_mailbox,,ghidra-auto,
+60E0FC00,0x00d204,,setISRVectorStartANDFPUInit,equinox311,GHIDRA-EQX,can_clear_txcr_and_init_mailbox,,ghidra-auto,Boot & Init
 60E0FC00,0x00d20c,0x00D21E,handleManualReset?,ghidra-hand,,handleManualReset_,,equinox311:handleManualReset?|ghidra-hand,Boot & Init
 60E0FC00,0x00d21e,0x00D262,main??,ghidra-hand,,,,equinox311:main??|ghidra-hand,CAN Bus
 60E0FC00,0x00d262,0x00D28E,interestingCANSomething,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
@@ -22462,7 +22462,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00d5ac,0x00D648,dmac_and_timer_controller_setup,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x00d648,0x00D674,memory_pattern_validator,ida-ai-xmap,DUBIOUS,ram_pattern_test_write_verify,,ghidra-auto,Memory & CRC
 60E0FC00,0x00d674,0x00D6E4,alignment_boundary_validator,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Utilities
-60E0FC00,0x00d6e4,0x00D70A,fpu_context_save_restore,ida-ai-xmap,DUBIOUS,,,ghidra-auto,
+60E0FC00,0x00d6e4,0x00D70A,fpu_context_save_restore,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Math / FPU
 60E0FC00,0x00d70a,0x00D712,FUN_0000d70a,ghidra-auto,,boot_clear_flag_a3fc,,ghidra-auto,Boot & Init
 60E0FC00,0x00d712,0x00D716,nullsub_0xd712,ghidra-auto,,nullsub_0xd712,,ghidra-auto,Boot & Init
 60E0FC00,0x00d716,0x00D72C,set_flag_byte_a3fc,ghidra-auto,,,,ghidra-auto,Other / Unclassified
@@ -22498,11 +22498,11 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00e244,0x00E278,calculateEngineOnTime??,ghidra-hand,,,,equinox311:calculateEngineOnTime??|ghidra-hand,Utilities
 60E0FC00,0x00e278,0x00E2AC,calculateEngineRunning,equinox311,GHIDRA-EQX,calculateEngineRunning,,ghidra-hand,Other / Unclassified
 60E0FC00,0x00e2ac,0x00E2D8,setEngineRunningInjectorsOffFlag,equinox311,GHIDRA-EQX,setEngineRunningInjectorsOffFlag,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x00e2d8,0x00E444,arbitrateFuelCut,equinox311,GHIDRA-EQX,mem_flag_e2d8,,ghidra-hand,
+60E0FC00,0x00e2d8,0x00E444,arbitrateFuelCut,equinox311,GHIDRA-EQX,mem_flag_e2d8,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x00e444,0x00E448,UnknownFueling1,ghidra-hand,,,,equinox311:getCrankingInjectionAngle?|ghidra-hand,Fuel & Lambda
-60E0FC00,0x00e448,0x00E458,getSomeValueBasedOnEngineSpeed,equinox311,GHIDRA-EQX,flag_set_coil_event,,ghidra-auto|ida-ai-xmap,
+60E0FC00,0x00e448,0x00E458,getSomeValueBasedOnEngineSpeed,equinox311,GHIDRA-EQX,flag_set_coil_event,,ghidra-auto|ida-ai-xmap,Sensors
 60E0FC00,0x00e458,0x00E492,UnknownFueling1,ghidra-hand,,UnknownFueling1,,equinox311:getCrankingInjectionAngle?|ghidra-hand,Fuel & Lambda
-60E0FC00,0x00e492,0x00E4F8,intake_temp_increase_step,ghidra-hand,,caller,YES,equinox311:injectionTimingMaybe?|ghidra-hand,
+60E0FC00,0x00e492,0x00E4F8,intake_temp_increase_step,ghidra-hand,,caller,YES,equinox311:injectionTimingMaybe?|ghidra-hand,Sensors
 60E0FC00,0x00e4f8,0x00E564,getFuelCutTimers,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,Fuel & Lambda
 60E0FC00,0x00e564,0x00E59A,getFuelResumeThresholds,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x00e914,0x00E91A,calculateOffThrottleFuelCut,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
@@ -22631,7 +22631,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x012ce8,0x012D30,getEngineLimitTimingDerates?,ghidra-hand,,,,equinox311:getEngineLimitTimingDerates?|ghidra-hand,Ignition & Knock
 60E0FC00,0x012d30,0x012D34,engineConditionDetectForTimingModification,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
 60E0FC00,0x012e94,0x013070,leadingAndTrailingSeperatorSomething,ghidra-hand,,sensor_tps_delta_lookup_store,,equinox311:decayLookupSomething?|ghidra-hand,Sensors
-60E0FC00,0x013070,0x01325C,roughKnockCorrection,ghidra-hand,,read_engine_speed_status,,equinox311:timingDerateLogic?|ghidra-hand,
+60E0FC00,0x013070,0x01325C,roughKnockCorrection,ghidra-hand,,read_engine_speed_status,,equinox311:timingDerateLogic?|ghidra-hand,Ignition & Knock
 60E0FC00,0x01325c,0x01326E,FUN_0001325c,ghidra-auto,,o2_sensor_raw_byte_shadow_copy,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x01326e,0x0132CA,finalLeadingTimingStuff?,ghidra-hand,,finalLeadingTimingStuff_,,equinox311:finalLeadingTimingStuff?|ghidra-hand,Ignition & Knock
 60E0FC00,0x0132ca,0x013368,finalTrailingTimingStuff?,ghidra-hand,,,,equinox311:finalTrailingTimingStuff?|ghidra-hand,Ignition & Knock
@@ -22722,7 +22722,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x016986,0x0169B8,rtos_task_gate_20,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x0169b8,0x0169EA,rtos_task_gate_30,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x0169ea,0x016A28,rtos_task_gate_40,ghidra-auto,,,,ghidra-auto,RTOS
-60E0FC00,0x016a28,0x016A5A,solenoid_control_branch_0x16F0C,ida-ai-xmap,DUBIOUS,init_unity_to_a8d8,,ghidra-auto,
+60E0FC00,0x016a28,0x016A5A,solenoid_control_branch_0x16F0C,ida-ai-xmap,DUBIOUS,init_unity_to_a8d8,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x016a5a,0x016A8C,solenoid_drive_status_record_validate,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x016a8c,0x016AC8,solenoid_control_branch_0x16F70,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
 60E0FC00,0x016ac8,0x016B30,fault_float_state_init,ghidra-auto,,,,ghidra-auto,Faults & DTC
@@ -22793,7 +22793,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x019bc6,0x019BE4,filterSomething2,equinox311,GHIDRA-EQX,caller,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x019be4,0x019F36,throttle_pedal_signal_calc,ghidra-auto,,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x019f36,0x19F82,validateThrottleInptuts?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Faults & DTC
-60E0FC00,0x019fc0,0x01A060,calculateThrottlePedalPercent,equinox311,GHIDRA-EQX,throttle_position_adc_reader,YES,ghidra-hand,
+60E0FC00,0x019fc0,0x01A060,calculateThrottlePedalPercent,equinox311,GHIDRA-EQX,throttle_position_adc_reader,YES,ghidra-hand,Throttle & Torque
 60E0FC00,0x01a27e,0x01A29E,protected_bank_reset_8090_a27e,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x01a29e,0x01A2E8,aux_input_copy_validate,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x01a2e8,0x01A310,calculateKeyOnTime,equinox311,GHIDRA-EQX,caller,,ghidra-hand,Utilities
@@ -22949,7 +22949,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0220d2,0x0220F8,getSSVControl,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x0220f8,0x022230,ssvControl,ghidra-hand,,,,equinox311:ssvControl??|ghidra-hand,Sensors
 60E0FC00,0x022230,0x222DC,throttlePlateControl_Related,equinox311,GHIDRA-EQX,,,ghidra-hand,Throttle & Torque
-60E0FC00,0x0222dc,0x0223EC,fpu_zero_init_routine_222DC,ghidra-hand,,,,equinox311:throttleMapDetermineBools?|ghidra-hand,
+60E0FC00,0x0222dc,0x0223EC,fpu_zero_init_routine_222DC,ghidra-hand,,,,equinox311:throttleMapDetermineBools?|ghidra-hand,Boot & Init
 60E0FC00,0x0223ec,0x022454,throttlePlatePosToTorqueOutput?,ghidra-hand,,,,equinox311:throttlePlatePosToTorqueOutput?|ghidra-hand,Throttle & Torque
 60E0FC00,0x022454,0x0224B4,getThrottleBasedTorque_Related,equinox311,GHIDRA-EQX,,,ghidra-hand,Throttle & Torque
 60E0FC00,0x0224b4,0x0224B8,nullsub_0x224b4,ghidra-auto,,,,ghidra-auto,Boot & Init
@@ -23161,7 +23161,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x029860,0x0298A4,can216RXUnpack,equinox311,GHIDRA-EQX,can216RXUnpack,,ghidra-hand,CAN Bus
 60E0FC00,0x0298a4,0x0299D0,can216RXParse?,ghidra-hand,,,,equinox311:can216RXParse?|ghidra-hand,CAN Bus
 60E0FC00,0x0299d0,0x0299DA,can216ResetTimer,equinox311,GHIDRA-EQX,can216ResetTimer,,ghidra-hand,CAN Bus
-60E0FC00,0x0299da,0x29A04,CANRX216TimeoutCount,equinox311,GHIDRA-EQX,incr_counter_saturated_299DA,YES,ghidra-hand,
+60E0FC00,0x0299da,0x29A04,CANRX216TimeoutCount,equinox311,GHIDRA-EQX,incr_counter_saturated_299DA,YES,ghidra-hand,CAN Bus
 60E0FC00,0x029a18,0x029A1C,thunk_FUN_00029adc,equinox311,GHIDRA-EQX-HEUR,,,ghidra-auto,Sensors
 60E0FC00,0x029a1c,0x029A46,CAN231TX_Main,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x029a46,0x29A6E,can231SetupTx,equinox311,GHIDRA-EQX,can231SetupTx,,ghidra-hand,CAN Bus
@@ -23177,7 +23177,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x029c1c,0x29C24,stubCAN201Byte2_3,equinox311,GHIDRA-EQX,stubCAN201Byte2_3,,ghidra-hand,CAN Bus
 60E0FC00,0x029c24,0x029CA0,can201_value_bb38,ghidra-auto,,FUN_00029c24,,ghidra-auto,CAN Bus
 60E0FC00,0x029ca0,0x029CE0,FUN_00029ca0,ghidra-auto,,caller,,ghidra-auto,CAN Bus
-60E0FC00,0x029ce0,,stubCAN201_byte7,equinox311,GHIDRA-EQX,can216RXUnpack,,ghidra-hand,
+60E0FC00,0x029ce0,,stubCAN201_byte7,equinox311,GHIDRA-EQX,can216RXUnpack,,ghidra-hand,CAN Bus
 60E0FC00,0x029ce8,0x029DBC,cal_filtered_float_update_bb3c,ghidra-auto,,FUN_00029ce8,,ghidra-auto,Math / FPU
 60E0FC00,0x029dbc,0x029DC2,can_periodic_torque_tx_tick,ghidra-auto,,,,ghidra-auto,CAN Bus
 60E0FC00,0x029dc2,0x029DEC,can203TX_getAndPack,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
@@ -23225,7 +23225,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x02aac8,0x02AAF2,veh_speed_filter_update_sr,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x02aaf2,0x02AB10,setOBDCANTXVars,equinox311,GHIDRA-EQX,,,ghidra-hand,OBD / UDS
 60E0FC00,0x02ab10,0x02AB28,obd_can_tx_irq_guard,ghidra-auto,,,,ghidra-auto,OBD / UDS
-60E0FC00,0x02ab28,0x02AB2E,thunk_FUN_00029758,equinox311,GHIDRA-EQX-HEUR,,,ghidra-auto,
+60E0FC00,0x02ab28,0x02AB2E,thunk_FUN_00029758,equinox311,GHIDRA-EQX-HEUR,,,ghidra-auto,Utilities
 60E0FC00,0x02ab2e,0x2AB34,thunk_FUN_00029760,equinox311,GHIDRA-EQX-HEUR,,,ghidra-auto,Memory & CRC
 60E0FC00,0x02ac4c,0x02AC68,canMessageSetup,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x02b14c,0x02B156,FUN_0002b14c,ghidra-auto,,copy_byte_a41c_to_bbd1,,ghidra-auto,CAN Bus
@@ -23407,7 +23407,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x03089a,0x308BE,setStartupInjectorPwMult,equinox311,GHIDRA-EQX,setStartupInjectorPwMult,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030904,0x030B14,handleDiagInjectorPulseSomething?,ghidra-hand,,,,equinox311:handleDiagInjectorPulseSomething?|ghidra-hand,Faults & DTC
 60E0FC00,0x030b14,0x030B84,diagCrankingInjectorPulseAdder?,ghidra-hand,,,,equinox311:diagCrankingInjectorPulseAdder?|ghidra-hand,Faults & DTC
-60E0FC00,0x030b84,0x030B9E,calcFuelVolumeRequest,equinox311,GHIDRA-EQX,fpu_interpolation_calc_30B84,,ghidra-hand,
+60E0FC00,0x030b84,0x030B9E,calcFuelVolumeRequest,equinox311,GHIDRA-EQX,fpu_interpolation_calc_30B84,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030c7c,0x030DE4,getClosedLoopTarget?,ghidra-hand,,,,equinox311:getClosedLoopTarget?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x030de4,0x030E36,calculateFuelAmountPerRotationMinMax,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030fa4,0x030FBA,calcFuelRequestConditons,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
@@ -23415,7 +23415,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0317a0,0x0317C0,getBrakeSwitchInput,equinox311,GHIDRA-EQX,hwfault_reg_9ecd_bit3_latch_bf59,,ghidra-auto,Faults & DTC
 60E0FC00,0x0317c0,0x317D8,getBrakeSwitchWithKeyOn,equinox311,GHIDRA-EQX,ssv_mode_gated_copy_bf59_to_bf58,,ghidra-auto,Memory & CRC
 60E0FC00,0x0317e4,0x031978,secondaryAirRelated??,ghidra-hand,,,,equinox311:secondaryAirRelated??|ghidra-hand,Fuel & Lambda
-60E0FC00,0x031978,0x031ACC,massive_fpu_control_calc_31978,ghidra-hand,,,,equinox311:calculateAirVolume??|ghidra-hand,
+60E0FC00,0x031978,0x031ACC,massive_fpu_control_calc_31978,ghidra-hand,,,,equinox311:calculateAirVolume??|ghidra-hand,Math / FPU
 60E0FC00,0x031acc,0x031AE4,calculateSecondaryAirPumpEnirchment,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x031ba0,0x031BE4,turnOnSecondaryAir??,ghidra-hand,,,,equinox311:turnOnSecondaryAir??|ghidra-hand,Peripherals & ISR
 60E0FC00,0x031be4,0x031BF2,battery_temp_conv_chain,ghidra-auto,,,,ghidra-auto,Sensors
@@ -23466,7 +23466,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x033098,0x0330B2,FUN_00033098,ghidra-auto,,can430_copy_bytes_c017_to_c014,,ghidra-auto,CAN Bus
 60E0FC00,0x0330b2,0x0330BC,FUN_000330b2,ghidra-auto,,byte_reg_copy_d483_to_c013,,ghidra-auto,Memory & CRC
 60E0FC00,0x0330bc,0x033124,can_fault_confirm_counter_c013,ghidra-auto,,FUN_000330bc,,ghidra-auto,Faults & DTC
-60E0FC00,0x033124,0x033200,fpu_threshold_condition_check_33124,ghidra-hand,,,,equinox311:coldEngineCompensation?|ghidra-hand,
+60E0FC00,0x033124,0x033200,fpu_threshold_condition_check_33124,ghidra-hand,,,,equinox311:coldEngineCompensation?|ghidra-hand,Math / FPU
 60E0FC00,0x033200,0x033264,coolantTempSubtractorsForCatModel,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x033264,0x03335C,getCrankEnrichment?,ghidra-hand,,,,equinox311:getCrankEnrichment?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x03335c,0x033366,FUN_0003335c,ghidra-auto,,init_float_c03c_set_const,,ghidra-auto,Boot & Init
@@ -23738,7 +23738,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x03e11c,0x03E15C,readValue_16bit_ADDRESS_VAL,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x03e15c,0x03E1AA,readValue_32bit_ADDRESS_VAL,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x03e1aa,0x03E1F8,readValue_float_DEFAULTVAL_ADDRESS,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Faults & DTC
-60E0FC00,0x03e1f8,0x03E208,updateMemoryAtAddress_8bit_ADDR_VAL,equinox311,GHIDRA-EQX,uds_protocol_3e1f8,YES,ghidra-hand,
+60E0FC00,0x03e1f8,0x03E208,updateMemoryAtAddress_8bit_ADDR_VAL,equinox311,GHIDRA-EQX,uds_protocol_3e1f8,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x03e208,0x03E218,updateMemoryAtAddress_16bit_ADDR_VAL,equinox311,GHIDRA-EQX,updateMemoryAtAddress_16bit_ADDR_VAL,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x03e218,0x03E258,updateMemoryAtAddress_32bit_ADDR_VAL,equinox311,GHIDRA-EQX,,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x03e258,0x03E29E,updateMemoryAtAddress_float_VAL_ADDR,equinox311,GHIDRA-EQX,,,ghidra-hand,Memory & CRC
@@ -24050,7 +24050,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x049c20,0x049CB6,FUN_00049c20,ghidra-auto,,caller,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x049cb6,0x049CEC,initFuelCutStuff,equinox311,GHIDRA-EQX,initFuelCutStuff,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x049cec,0x049D48,initFuelCutStuff2,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x049d48,0x049D80,setFuelCutRelatedFault,equinox311,GHIDRA-EQX,,,ghidra-auto,
+60E0FC00,0x049d48,0x049D80,setFuelCutRelatedFault,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
 60E0FC00,0x049d80,0x049DAC,flag_cca0_from_0xd6e4,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x049dac,0x049DB6,FUN_00049dac,ghidra-auto,,fault_flag_byte_copy_cca5_cca9,,ghidra-auto,Faults & DTC
 60E0FC00,0x049db6,0x049DE0,FUN_00049db6,ghidra-auto,,fault_cca7_cond_counter,,ghidra-auto,Faults & DTC
@@ -24058,7 +24058,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x049e20,0x049E60,FUN_00049e20,ghidra-auto,,fault_cca8_change_debounce,,ghidra-auto,Faults & DTC
 60E0FC00,0x049e60,0x049E82,FUN_00049e60,ghidra-auto,,fault_clear_flag_gated_copy_cca5_to_cca6,,ghidra-auto,Faults & DTC
 60E0FC00,0x049e82,0x049ED0,fault_flag_cca4_eval,ghidra-auto,,,,ghidra-auto,Faults & DTC
-60E0FC00,0x049ed0,0x049EE2,initStuff,equinox311,GHIDRA-EQX,flag_setter,YES,ghidra-hand,
+60E0FC00,0x049ed0,0x049EE2,initStuff,equinox311,GHIDRA-EQX,flag_setter,YES,ghidra-hand,Memory & CRC
 60E0FC00,0x049ee2,0x049F02,arbitratePlausibilityResumeEnrich,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x04a01c,0x04A0BC,getFuelCutPrevLoopVars,equinox311,GHIDRA-EQX,caller,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x04a0d8,0x04A13E,offThrottleFuelCutFuelResumeEnrichment,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
@@ -24154,7 +24154,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x04cbca,0x04CD74,driveCycleDetermination??,ghidra-hand,,,,equinox311:driveCycleDetermination??|ghidra-hand,Faults & DTC
 60E0FC00,0x04cd74,0x04CDAA,flag_threshold_2d_lookup,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x04cdaa,0x04CDE4,sensor_check_2d_interp,ghidra-auto,,,,ghidra-auto,Faults & DTC
-60E0FC00,0x04cde4,0x04CE40,transient_response_0x4FCA4,ida-ai-xmap,DUBIOUS,caller,,ghidra-auto,
+60E0FC00,0x04cde4,0x04CE40,transient_response_0x4FCA4,ida-ai-xmap,DUBIOUS,caller,,ghidra-auto,Fuel & Lambda
 60E0FC00,0x04ce40,0x04CE74,FUN_0004ce40,ghidra-auto,,caller,,ghidra-auto,Faults & DTC
 60E0FC00,0x04ce74,0x04CEB0,countdown_timer_flag_cdb1,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x04ceb0,0x04CECC,FUN_0004ceb0,ghidra-auto,,,,ghidra-auto,Boot & Init
@@ -24809,7 +24809,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x059c82,0x059CD8,quality_metric_0x5BECE,ida-ai-xmap,DUBIOUS,,,ghidra-auto,OBD / UDS
 60E0FC00,0x059cd8,0x059DA0,reliability_0x5BF24,ida-ai-xmap,DUBIOUS,,,ghidra-auto,OBD / UDS
 60E0FC00,0x059da0,0x059DC4,consistency_check_0x5BFEC,ida-ai-xmap,DUBIOUS,FUN_00059da0,,ghidra-auto,OBD / UDS
-60E0FC00,0x059dc4,,grablast28ByteFromE2,equinox311,GHIDRA-EQX,fuel_control_59dc4,,ghidra-hand,
+60E0FC00,0x059dc4,,grablast28ByteFromE2,equinox311,GHIDRA-EQX,fuel_control_59dc4,,ghidra-hand,Memory & CRC
 60E0FC00,0x059dfe,0x059E34,FUN_00059dfe,ghidra-auto,,uds_eeprom_read_64_len3,,ghidra-auto,OBD / UDS
 60E0FC00,0x059e34,0x059E88,uds_eeprom_read_respond_5e000,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x059e88,0x059EBE,uds_eeprom_read_6a_len2,ghidra-auto,,,,ghidra-auto,OBD / UDS
@@ -25010,7 +25010,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0603e4,0x0603F2,dtc_slot_alloc_wrap,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x0603f2,0x060418,dtc_bulk_store_9630,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x060418,0x060604,functionCallIf_DTC_enable3_mask4_is0,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
-60E0FC00,0x06047c,,calledBasedOnDTCEnable3Table,equinox311,GHIDRA-EQX,,,,
+60E0FC00,0x06047c,,calledBasedOnDTCEnable3Table,equinox311,GHIDRA-EQX,,,,Faults & DTC
 60E0FC00,0x060604,0x06060A,read_word_87a8,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x06060a,0x060618,dtc_gate_wrap_619a8,ghidra-auto,,FUN_0006060a,,ghidra-auto,Faults & DTC
 60E0FC00,0x060618,0x0607A0,dtc_active_ids_collect,ghidra-auto,,,,ghidra-auto,Faults & DTC
@@ -25156,7 +25156,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x064a62,0x064A8A,obd_clear_d768_send,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x064a8a,0x064ADC,rev_limit_poll_5e57e,ghidra-auto,,,,ghidra-auto,Rev Limit
 60E0FC00,0x064adc,0x064BB0,sensor_mode2_report_d710,ghidra-auto,,,,ghidra-auto,Sensors
-60E0FC00,0x064bb0,,OBDMode9Fuction,equinox311,GHIDRA-EQX,,,ghidra-hand,
+60E0FC00,0x064bb0,,OBDMode9Fuction,equinox311,GHIDRA-EQX,,,ghidra-hand,OBD / UDS
 60E0FC00,0x064d6c,0x064DB4,obd_mode9_report_d714,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x064db4,0x064DF0,in_range_0_6_check?,ghidra-hand,,,,equinox311:in_range_0_6_check?|ghidra-hand,Faults & DTC
 60E0FC00,0x064df0,0x064E16,obd_pid_gate_64fb8,ghidra-auto,,,,ghidra-auto,OBD / UDS
@@ -25305,7 +25305,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E15120,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E15120,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E15120,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E15120,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E15120,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E15120,0x000624,0x000630,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E15120,0x000630,0x000636,FUN_000630,derived,,,,,
@@ -25324,7 +25324,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0015a6,0x001624,FUN_0015a6,derived,,kwp_session_frame_init,,,OBD / UDS
 60E15120,0x001624,0x001654,FUN_001624,derived,,,,connor-xmap,
 60E15120,0x001654,0x0016DC,FUN_001654,derived,,,,,
-60E15120,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,
+60E15120,0x0016dc,0x001E4C,handleException?,ghidra-hand-xmap,,handleException_,,,Boot & Init
 60E15120,0x001e4c,0x001E72,FUN_001e4c,derived,,be_bytes4_to_u32,,,Utilities
 60E15120,0x001e72,0x001E94,FUN_001e72,derived,,,,,
 60E15120,0x001e94,0x001EB2,FUN_001e94,derived,,,,,
@@ -25344,7 +25344,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E15120,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E15120,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E15120,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E15120,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E15120,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E15120,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E15120,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -25382,12 +25382,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E15120,0x003848,0x003854,FUN_003848,derived,,,,,
 60E15120,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E15120,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E15120,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E15120,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E15120,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E15120,0x003954,0x003964,FUN_003954,derived,,,,,
 60E15120,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E15120,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E15120,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E15120,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E15120,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E15120,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E15120,0x003bf4,0x003C00,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -25397,7 +25397,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E15120,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E15120,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E15120,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E15120,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E15120,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E15120,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E15120,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -25411,7 +25411,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E15120,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E15120,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E15120,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E15120,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E15120,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E15120,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E15120,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -25427,7 +25427,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0044ec,0x00450A,FUN_0044ec,derived,,,,,
 60E15120,0x00450a,0x00467A,FUN_00450a,derived,,,,,
 60E15120,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E15120,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E15120,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E15120,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E15120,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E15120,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -25468,7 +25468,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x004f00,0x004FD6,FUN_004f00,derived,,FUN_00004f00,,,
 60E15120,0x004fd6,0x005020,FUN_004fd6,derived,,,,,Utilities
 60E15120,0x005020,0x005024,FUN_005020,derived,,noOpFun3,,,RTOS
-60E15120,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,
+60E15120,0x005024,0x005032,writeWatchdog_disable?,ghidra-hand-xmap,,writeWatchdog_disable_,,,RTOS
 60E15120,0x005032,0x005036,FUN_005032,derived,,writeWatchdog_disable_,,,
 60E15120,0x005036,0x00503A,FUN_005036,derived,NOISE,,,,
 60E15120,0x00503a,0x00503E,FUN_00503a,derived,NOISE,,,,
@@ -25679,7 +25679,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x007b90,0x007BDC,FUN_007b90,derived,,crank_state_timeout_countdown,,,Sensors
 60E15120,0x007bdc,0x007BE4,FUN_007bdc,derived,,crank_angle_set_ff,,,Sensors
 60E15120,0x007be4,0x007C0C,FUN_007be4,derived,,crank_angle_timeout_calc,,,Sensors
-60E15120,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,
+60E15120,0x007c0c,0x007E3C,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit_,,,Sensors
 60E15120,0x007e3c,0x007EB4,FUN_007e3c,derived,,,,,
 60E15120,0x007eb4,0x007ECA,FUN_007eb4,derived,,crank_irq_flags_force_set,,,Peripherals & ISR
 60E15120,0x007eca,0x007F22,FUN_007eca,derived,,FUN_00007eca,,,
@@ -25711,7 +25711,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x008c7a,0x008D30,FUN_008c7a,derived,,,,,
 60E15120,0x008d30,0x008D86,FUN_008d30,derived,,,,,
 60E15120,0x008d86,0x008DAE,FUN_008d86,derived,,,,,
-60E15120,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,
+60E15120,0x008dae,0x008DE8,outputSpark1,ghidra-hand-xmap,,output_spark,YES,,Ignition & Knock
 60E15120,0x008de8,0x008E28,FUN_008de8,derived,,,,,
 60E15120,0x008e28,0x008EE6,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E15120,0x008ee6,0x008F2A,FUN_008ee6,derived,,,,,
@@ -25962,7 +25962,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x00e444,0x00E454,FUN_00e444,derived,,,,,Fuel & Lambda
 60E15120,0x00e454,0x00E46A,FUN_00e454,derived,,,,,
 60E15120,0x00e46a,0x00E48E,FUN_00e46a,derived,,,,,
-60E15120,0x00e48e,0x00E4F4,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E15120,0x00e48e,0x00E4F4,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E15120,0x00e4f4,0x00E526,FUN_00e4f4,derived,,,,,
 60E15120,0x00e526,0x00E560,FUN_00e526,derived,,,,,
 60E15120,0x00e560,0x00E57A,FUN_00e560,derived,,,,,
@@ -28234,7 +28234,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0292b8,0x0292C0,FUN_0292b8,derived,,,,,
 60E15120,0x0292c0,0x0292F8,FUN_0292c0,derived,,,,,
 60E15120,0x0292f8,0x029338,FUN_0292f8,derived,,,,,
-60E15120,0x029338,0x029340,stubCAN201_byte7,ghidra-hand-xmap,,,,,
+60E15120,0x029338,0x029340,stubCAN201_byte7,ghidra-hand-xmap,,,,,CAN Bus
 60E15120,0x029340,0x029366,FUN_029340,derived,,,,,
 60E15120,0x029366,0x0293FA,FUN_029366,derived,,,,,
 60E15120,0x0293fa,0x029400,FUN_0293fa,derived,,,,,
@@ -29646,7 +29646,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x035bf0,0x035D0E,FUN_035bf0,derived,,,,,
 60E15120,0x035d0e,0x035D80,FUN_035d0e,derived,,,,,
 60E15120,0x035d80,0x035EA0,FUN_035d80,derived,,,,,
-60E15120,0x035ea0,0x035F64,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E15120,0x035ea0,0x035F64,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x035f64,0x0360A8,checkImmoStatus?,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x0360a8,0x0360C8,FUN_0360a8,derived,,,,,
 60E15120,0x0360c8,0x036142,FUN_0360c8,derived,,,,,
@@ -29665,15 +29665,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0368aa,0x0368F0,FUN_0368aa,derived,,,,,
 60E15120,0x0368f0,0x036908,FUN_0368f0,derived,,,,,
 60E15120,0x036908,0x036ACC,FUN_036908,derived,,,,,
-60E15120,0x036acc,0x036C3C,afterImmo_1,ghidra-hand-xmap,,,,,
-60E15120,0x036c3c,0x036D32,afterImmo_2,ghidra-hand-xmap,,,,,
+60E15120,0x036acc,0x036C3C,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E15120,0x036c3c,0x036D32,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x036d32,0x036DAE,FUN_036d32,derived,,,,,
 60E15120,0x036dae,0x036ED4,afterImmo_6,ghidra-hand-xmap,,,,,OBD / UDS
-60E15120,0x036ed4,0x036FC2,afterImmo_3,ghidra-hand-xmap,,,,,
+60E15120,0x036ed4,0x036FC2,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x036fc2,0x03703C,FUN_036fc2,derived,,,,,
-60E15120,0x03703c,0x037134,afterImmo_4,ghidra-hand-xmap,,,,,
+60E15120,0x03703c,0x037134,afterImmo_4,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x037134,0x03728C,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E15120,0x03728c,0x037358,afterImmo_7,ghidra-hand-xmap,,,,,
+60E15120,0x03728c,0x037358,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x037358,0x037372,FUN_037358,derived,,,,,
 60E15120,0x037372,0x0374BE,FUN_037372,derived,,,,,
 60E15120,0x0374be,0x03753A,FUN_0374be,derived,,,,,
@@ -29909,9 +29909,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x03da86,0x03DAF4,FUN_03da86,derived,,,,,
 60E15120,0x03daf4,0x03DB24,FUN_03daf4,derived,,,,,
 60E15120,0x03db24,0x03DB54,FUN_03db24,derived,,,,,
-60E15120,0x03db54,0x03DB94,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E15120,0x03db94,0x03DBD4,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E15120,0x03dbd4,0x03DC22,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E15120,0x03db54,0x03DB94,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E15120,0x03db94,0x03DBD4,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E15120,0x03dbd4,0x03DC22,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E15120,0x03dc22,0x03DC70,FUN_03dc22,derived,,,,,
 60E15120,0x03dc70,0x03DC80,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E15120,0x03dc80,0x03DC90,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
@@ -32778,7 +32778,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E1B900,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E1B900,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E1B900,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E1B900,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E1B900,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E1B900,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E1B900,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -32820,7 +32820,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E1B900,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E1B900,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E1B900,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E1B900,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E1B900,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E1B900,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E1B900,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -32858,12 +32858,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E1B900,0x003848,0x003854,FUN_003848,derived,,,,,
 60E1B900,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E1B900,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E1B900,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E1B900,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E1B900,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E1B900,0x003954,0x003964,FUN_003954,derived,,,,,
 60E1B900,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E1B900,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E1B900,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E1B900,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E1B900,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E1B900,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E1B900,0x003bf4,0x003C2A,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -32872,7 +32872,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E1B900,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E1B900,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E1B900,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E1B900,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E1B900,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E1B900,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E1B900,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -32886,7 +32886,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E1B900,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E1B900,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E1B900,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E1B900,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E1B900,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E1B900,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E1B900,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -32903,7 +32903,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00450a,0x004592,FUN_00450a,derived,,,,,
 60E1B900,0x004592,0x00467A,FUN_004592,derived,,,,,
 60E1B900,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E1B900,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E1B900,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E1B900,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E1B900,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E1B900,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -33119,7 +33119,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x007094,0x0070A6,FUN_007094,derived,,,,,
 60E1B900,0x0070a6,0x0070AC,FUN_0070a6,derived,,,,,
 60E1B900,0x0070ac,0x0070D0,FUN_0070ac,derived,,atu_fpu_control_wrapper,YES,,Math / FPU
-60E1B900,0x0070d0,0x007152,atu_fpu_control_wrapper,ghidra-hand-xmap,,getFromGPIO,YES,,
+60E1B900,0x0070d0,0x007152,atu_fpu_control_wrapper,ghidra-hand-xmap,,getFromGPIO,YES,,Math / FPU
 60E1B900,0x007152,0x0071AC,FUN_007152,derived,,,,,
 60E1B900,0x0071ac,0x00720E,FUN_0071ac,derived,,,,,
 60E1B900,0x00720e,0x0072A4,FUN_00720e,derived,,,,,
@@ -33128,7 +33128,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0072bc,0x0072BE,FUN_0072bc,derived,NOISE,,,,
 60E1B900,0x0072be,0x007354,FUN_0072be,derived,,,,,
 60E1B900,0x007354,0x00735C,FUN_007354,derived,,sensor_latch_ch1,,,Sensors
-60E1B900,0x00735c,0x0073BC,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,
+60E1B900,0x00735c,0x0073BC,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,Sensors
 60E1B900,0x0073bc,0x0073BE,FUN_0073bc,derived,,sensor_latch_ch2,,,Sensors
 60E1B900,0x0073be,0x0073C4,FUN_0073be,derived,,,,,
 60E1B900,0x0073c4,0x00745C,FUN_0073c4,derived,,,,,
@@ -33139,7 +33139,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0074f8,0x0074FE,FUN_0074f8,derived,,,,,
 60E1B900,0x0074fe,0x007504,FUN_0074fe,derived,,,,,
 60E1B900,0x007504,0x00753C,FUN_007504,derived,,,,,
-60E1B900,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,
+60E1B900,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,Fuel & Lambda
 60E1B900,0x00758c,0x0075C2,FUN_00758c,derived,,,,,
 60E1B900,0x0075c2,0x007618,FUN_0075c2,derived,,,,,
 60E1B900,0x007618,0x00767E,FUN_007618,derived,,,,,
@@ -33157,7 +33157,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x007bb4,0x007C00,FUN_007bb4,derived,,crank_event_process,,,Sensors
 60E1B900,0x007c00,0x007C08,FUN_007c00,derived,,crank_mode_write,,,Sensors
 60E1B900,0x007c08,0x007C30,FUN_007c08,derived,,crank_event_timeout_check,,,Sensors
-60E1B900,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,
+60E1B900,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,Sensors
 60E1B900,0x007e60,0x007ED8,FUN_007e60,derived,,,,,
 60E1B900,0x007ed8,0x007EEE,FUN_007ed8,derived,,crank_flags_enable,,,Sensors
 60E1B900,0x007eee,0x007F46,FUN_007eee,derived,,,,,
@@ -33188,7 +33188,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00884c,0x008D68,FUN_00884c,derived,,,,,
 60E1B900,0x008d68,0x008DBE,FUN_008d68,derived,,,,,
 60E1B900,0x008dbe,0x008DE6,FUN_008dbe,derived,,,,,
-60E1B900,0x008de6,0x008E20,outputSpark1,ghidra-hand-xmap,,output_spark,,,
+60E1B900,0x008de6,0x008E20,outputSpark1,ghidra-hand-xmap,,output_spark,,,Ignition & Knock
 60E1B900,0x008e20,0x008E60,FUN_008e20,derived,,output_spark2,YES,,
 60E1B900,0x008e60,0x008F1E,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E1B900,0x008f1e,0x008F5C,FUN_008f1e,derived,,sensor_value_scale,,,Sensors
@@ -33201,7 +33201,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x009090,0x009148,FUN_009090,derived,,,,,
 60E1B900,0x009148,0x00914C,FUN_009148,derived,NOISE,,,,
 60E1B900,0x00914c,0x0091FE,FUN_00914c,derived,,,,,
-60E1B900,0x0091fe,0x009306,ignitonSomethingCalc,ghidra-hand-xmap,,ignition_something_calc,,,
+60E1B900,0x0091fe,0x009306,ignitonSomethingCalc,ghidra-hand-xmap,,ignition_something_calc,,,Ignition & Knock
 60E1B900,0x009306,0x009316,FUN_009306,derived,,,,,
 60E1B900,0x009316,0x009478,FUN_009316,derived,,,,,
 60E1B900,0x009478,0x009528,FUN_009478,derived,,,,,
@@ -33297,7 +33297,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00c180,0x00C1FC,FUN_00c180,derived,,,,,
 60E1B900,0x00c1fc,0x00C2C0,FUN_00c1fc,derived,,sci4_rx_word_16bit_synchronous,,,CAN Bus
 60E1B900,0x00c2c0,0x00C2E6,store_knock_learn_buffer,ghidra-hand-xmap,,,YES,,Ignition & Knock
-60E1B900,0x00c2e6,0x00C31C,enableDisableCruiseControl??,ghidra-hand-xmap,,enableDisableCruiseControl,YES,,
+60E1B900,0x00c2e6,0x00C31C,enableDisableCruiseControl??,ghidra-hand-xmap,,enableDisableCruiseControl,YES,,Boot & Init
 60E1B900,0x00c31c,0x00C346,knockFunctionInit,ghidra-hand-xmap,,knockFunctionInit,YES,,Ignition & Knock
 60E1B900,0x00c346,0x00C350,FUN_00c346,derived,,,,,
 60E1B900,0x00c350,0x00C3C8,FUN_00c350,derived,,,,,
@@ -33325,7 +33325,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00d112,0x00D144,FUN_00d112,derived,,can_get_tx_acknowledge_flags,,,CAN Bus
 60E1B900,0x00d144,0x00D164,FUN_00d144,derived,,baro_sensor_value,YES,,Sensors
 60E1B900,0x00d164,0x00D198,FUN_00d164,derived,,caller,,,
-60E1B900,0x00d198,0x00D1AC,getHCANRegisterAddress,ghidra-hand-xmap,,caller,YES,,
+60E1B900,0x00d198,0x00D1AC,getHCANRegisterAddress,ghidra-hand-xmap,,caller,YES,,CAN Bus
 60E1B900,0x00d1ac,0x00D1C0,FUN_00d1ac,derived,,,,,
 60E1B900,0x00d1c0,0x00D1E6,FUN_00d1c0,derived,,,,,
 60E1B900,0x00d1e6,0x00D204,FUN_00d1e6,derived,,can_clear_txpr_and_init_mailbox,,,CAN Bus
@@ -33442,7 +33442,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x00e6dc,0x00E6E0,FUN_00e6dc,derived,,crank_gated_fuel_pressure_proc,,,Fuel & Lambda
 60E1B900,0x00e6e0,0x00E6F0,FUN_00e6e0,derived,,,,,
 60E1B900,0x00e6f0,0x00E72A,FUN_00e6f0,derived,,,,,
-60E1B900,0x00e72a,0x00E73E,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E1B900,0x00e72a,0x00E73E,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E1B900,0x00e73e,0x00E790,FUN_00e73e,derived,,,,,
 60E1B900,0x00e790,0x00E7FC,FUN_00e790,derived,,,,,
 60E1B900,0x00e7fc,0x00E832,FUN_00e7fc,derived,,,,,
@@ -33563,7 +33563,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0116b4,0x011794,FUN_0116b4,derived,,,,,
 60E1B900,0x011794,0x0117B2,FUN_011794,derived,,,,,
 60E1B900,0x0117b2,0x0117D8,FUN_0117b2,derived,,,,,
-60E1B900,0x0117d8,0x01181C,someMainFunction,ghidra-hand-xmap,,,,,
+60E1B900,0x0117d8,0x01181C,someMainFunction,ghidra-hand-xmap,,,,,RTOS
 60E1B900,0x01181c,0x011842,FUN_01181c,derived,,,,,
 60E1B900,0x011842,0x011A60,FUN_011842,derived,,,,,
 60E1B900,0x011a60,0x011AC2,engineControlTASK2,ghidra-hand-xmap,,,,,RTOS
@@ -35995,7 +35995,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02c112,0x02C124,FUN_02c112,derived,,,,,
 60E1B900,0x02c124,0x02C140,FUN_02c124,derived,,,,,
 60E1B900,0x02c140,0x02C174,DSC_checkIfMode_x40,ghidra-hand-xmap,,,,,Throttle & Torque
-60E1B900,0x02c174,0x02C192,DSC_checkIfMode_x20,ghidra-hand-xmap,,FUN_0002c174,,,
+60E1B900,0x02c174,0x02C192,DSC_checkIfMode_x20,ghidra-hand-xmap,,FUN_0002c174,,,Throttle & Torque
 60E1B900,0x02c192,0x02C1B0,DSC_checkIfMode_x10,ghidra-hand-xmap,,,,,Throttle & Torque
 60E1B900,0x02c1b0,0x02C1CE,FUN_02c1b0,derived,,,,,
 60E1B900,0x02c1ce,0x02C200,FUN_02c1ce,derived,,,,,
@@ -37004,7 +37004,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x034bfc,0x034C3C,FUN_034bfc,derived,,,,,
 60E1B900,0x034c3c,0x034C4E,FUN_034c3c,derived,,,,,
 60E1B900,0x034c4e,0x034C70,FUN_034c4e,derived,,,,,
-60E1B900,0x034c70,0x034CC8,resetStartupEnrich??,ghidra-hand-xmap,,caller,,,
+60E1B900,0x034c70,0x034CC8,resetStartupEnrich??,ghidra-hand-xmap,,caller,,,Boot & Init
 60E1B900,0x034cc8,0x034CD0,FUN_034cc8,derived,,,,,
 60E1B900,0x034cd0,0x034CE2,FUN_034cd0,derived,,,,,
 60E1B900,0x034ce2,0x034D1C,FUN_034ce2,derived,,,,,
@@ -37068,7 +37068,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x036640,0x036738,FUN_036640,derived,,,,,
 60E1B900,0x036738,0x03675E,FUN_036738,derived,,,,,
 60E1B900,0x03675e,0x036858,FUN_03675e,derived,,,,,
-60E1B900,0x036858,0x03691C,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E1B900,0x036858,0x03691C,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x03691c,0x036A60,checkImmoStatus?,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x036a60,0x036A80,FUN_036a60,derived,,,,,
 60E1B900,0x036a80,0x036AFA,FUN_036a80,derived,,,,,
@@ -37087,15 +37087,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x037262,0x0372A8,FUN_037262,derived,,,,,
 60E1B900,0x0372a8,0x0372C0,FUN_0372a8,derived,,,,,
 60E1B900,0x0372c0,0x037484,afterImmoMain,ghidra-hand-xmap,,,,,OBD / UDS
-60E1B900,0x037484,0x0375F4,afterImmo_1,ghidra-hand-xmap,,,,,
-60E1B900,0x0375f4,0x037766,afterImmo_2,ghidra-hand-xmap,,,,,
+60E1B900,0x037484,0x0375F4,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E1B900,0x0375f4,0x037766,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x037766,0x037782,FUN_037766,derived,,,,,
 60E1B900,0x037782,0x03788C,FUN_037782,derived,,,,,
-60E1B900,0x03788c,0x0379F4,afterImmo_3,ghidra-hand-xmap,,,,,
+60E1B900,0x03788c,0x0379F4,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x0379f4,0x037A12,FUN_0379f4,derived,,,,,
 60E1B900,0x037a12,0x037AEC,FUN_037a12,derived,,,,,
 60E1B900,0x037aec,0x037C44,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E1B900,0x037c44,0x037D10,afterImmo_7,ghidra-hand-xmap,,,,,
+60E1B900,0x037c44,0x037D10,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x037d10,0x037E76,FUN_037d10,derived,,,,,
 60E1B900,0x037e76,0x037EFE,afterImmo_8,ghidra-hand-xmap,,,,,OBD / UDS
 60E1B900,0x037efe,0x037F78,FUN_037efe,derived,,,,,
@@ -37315,9 +37315,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x03e2a6,0x03E314,FUN_03e2a6,derived,,,,,
 60E1B900,0x03e314,0x03E344,FUN_03e314,derived,,,,,
 60E1B900,0x03e344,0x03E374,FUN_03e344,derived,,,,,
-60E1B900,0x03e374,0x03E3B4,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E1B900,0x03e3b4,0x03E3F4,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E1B900,0x03e3f4,0x03E442,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E1B900,0x03e374,0x03E3B4,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E1B900,0x03e3b4,0x03E3F4,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E1B900,0x03e3f4,0x03E442,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E1B900,0x03e442,0x03E490,FUN_03e442,derived,,,,,
 60E1B900,0x03e490,0x03E4A0,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E1B900,0x03e4a0,0x03E4B0,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
@@ -38946,7 +38946,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x05e566,0x05E594,faultConfirmationSomething?,ghidra-hand-xmap,,,,,Faults & DTC
 60E1B900,0x05e594,0x05E618,FUN_05e594,derived,,,,,
 60E1B900,0x05e618,0x05E656,faultSomething0x2,ghidra-hand-xmap,,,,,Faults & DTC
-60E1B900,0x05e656,0x05E6AC,faultSomething0x0,ghidra-hand-xmap,,FUN_0005e656,,,
+60E1B900,0x05e656,0x05E6AC,faultSomething0x0,ghidra-hand-xmap,,FUN_0005e656,,,Faults & DTC
 60E1B900,0x05e6ac,0x05E70C,FUN_05e6ac,derived,,,,,
 60E1B900,0x05e70c,0x05E776,FUN_05e70c,derived,,,,,
 60E1B900,0x05e776,0x05E7BC,FUN_05e776,derived,,,,,
@@ -39951,7 +39951,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E1C500,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E1C500,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E1C500,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E1C500,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E1C500,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E1C500,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E1C500,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -39993,7 +39993,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E1C500,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E1C500,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E1C500,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E1C500,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E1C500,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E1C500,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E1C500,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -40031,12 +40031,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E1C500,0x003848,0x003854,FUN_003848,derived,,,,,
 60E1C500,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E1C500,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E1C500,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E1C500,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E1C500,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E1C500,0x003954,0x003964,FUN_003954,derived,,,,,
 60E1C500,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E1C500,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E1C500,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E1C500,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E1C500,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E1C500,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E1C500,0x003bf4,0x003C2A,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -40045,7 +40045,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E1C500,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E1C500,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E1C500,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E1C500,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E1C500,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E1C500,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E1C500,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -40059,7 +40059,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E1C500,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E1C500,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E1C500,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E1C500,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E1C500,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E1C500,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E1C500,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -40076,7 +40076,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00450a,0x004592,FUN_00450a,derived,,,,,
 60E1C500,0x004592,0x00467A,FUN_004592,derived,,,,,
 60E1C500,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E1C500,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E1C500,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E1C500,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E1C500,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E1C500,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -40292,7 +40292,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x007094,0x0070A6,FUN_007094,derived,,,,,
 60E1C500,0x0070a6,0x0070AC,FUN_0070a6,derived,,,,,
 60E1C500,0x0070ac,0x0070D0,FUN_0070ac,derived,,atu_fpu_control_wrapper,YES,,Math / FPU
-60E1C500,0x0070d0,0x007152,atu_fpu_control_wrapper,ghidra-hand-xmap,,getFromGPIO,YES,,
+60E1C500,0x0070d0,0x007152,atu_fpu_control_wrapper,ghidra-hand-xmap,,getFromGPIO,YES,,Math / FPU
 60E1C500,0x007152,0x0071AC,FUN_007152,derived,,,,,
 60E1C500,0x0071ac,0x00720E,FUN_0071ac,derived,,,,,
 60E1C500,0x00720e,0x0072A4,FUN_00720e,derived,,,,,
@@ -40301,7 +40301,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x0072bc,0x0072BE,FUN_0072bc,derived,NOISE,,,,
 60E1C500,0x0072be,0x007354,FUN_0072be,derived,,,,,
 60E1C500,0x007354,0x00735C,FUN_007354,derived,,sensor_latch_ch1,,,Sensors
-60E1C500,0x00735c,0x0073BC,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,
+60E1C500,0x00735c,0x0073BC,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,Sensors
 60E1C500,0x0073bc,0x0073BE,FUN_0073bc,derived,,sensor_latch_ch2,,,Sensors
 60E1C500,0x0073be,0x0073C4,FUN_0073be,derived,,,,,
 60E1C500,0x0073c4,0x00745C,FUN_0073c4,derived,,,,,
@@ -40312,7 +40312,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x0074f8,0x0074FE,FUN_0074f8,derived,,,,,
 60E1C500,0x0074fe,0x007504,FUN_0074fe,derived,,,,,
 60E1C500,0x007504,0x00753C,FUN_007504,derived,,,,,
-60E1C500,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,
+60E1C500,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,Fuel & Lambda
 60E1C500,0x00758c,0x0075C2,FUN_00758c,derived,,,,,
 60E1C500,0x0075c2,0x007618,FUN_0075c2,derived,,,,,
 60E1C500,0x007618,0x00767E,FUN_007618,derived,,,,,
@@ -40330,7 +40330,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x007bb4,0x007C00,FUN_007bb4,derived,,crank_event_process,,,Sensors
 60E1C500,0x007c00,0x007C08,FUN_007c00,derived,,crank_mode_write,,,Sensors
 60E1C500,0x007c08,0x007C30,FUN_007c08,derived,,crank_event_timeout_check,,,Sensors
-60E1C500,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,
+60E1C500,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,Sensors
 60E1C500,0x007e60,0x007ED8,FUN_007e60,derived,,,,,
 60E1C500,0x007ed8,0x007EEE,FUN_007ed8,derived,,crank_flags_enable,,,Sensors
 60E1C500,0x007eee,0x007F46,FUN_007eee,derived,,,,,
@@ -40361,7 +40361,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00884c,0x008D68,FUN_00884c,derived,,,,,
 60E1C500,0x008d68,0x008DBE,FUN_008d68,derived,,,,,
 60E1C500,0x008dbe,0x008DE6,FUN_008dbe,derived,,,,,
-60E1C500,0x008de6,0x008E20,outputSpark1,ghidra-hand-xmap,,output_spark,,,
+60E1C500,0x008de6,0x008E20,outputSpark1,ghidra-hand-xmap,,output_spark,,,Ignition & Knock
 60E1C500,0x008e20,0x008E60,FUN_008e20,derived,,output_spark2,YES,,
 60E1C500,0x008e60,0x008F1E,ignitionTimingHardwareTimerSomething,ghidra-hand-xmap,,,,,Ignition & Knock
 60E1C500,0x008f1e,0x008F5C,FUN_008f1e,derived,,sensor_value_scale,,,Sensors
@@ -40374,7 +40374,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x009090,0x009148,FUN_009090,derived,,,,,
 60E1C500,0x009148,0x00914C,FUN_009148,derived,NOISE,,,,
 60E1C500,0x00914c,0x0091FE,FUN_00914c,derived,,,,,
-60E1C500,0x0091fe,0x009478,ignitonSomethingCalc,ghidra-hand-xmap,,ignition_something_calc,,,
+60E1C500,0x0091fe,0x009478,ignitonSomethingCalc,ghidra-hand-xmap,,ignition_something_calc,,,Ignition & Knock
 60E1C500,0x009478,0x009528,FUN_009478,derived,,,,,
 60E1C500,0x009528,0x009534,FUN_009528,derived,,fuel_calc_entry,,,Fuel & Lambda
 60E1C500,0x009534,0x009668,FUN_009534,derived,,,,,
@@ -40472,7 +40472,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00c180,0x00C1FC,FUN_00c180,derived,,,,,
 60E1C500,0x00c1fc,0x00C2C0,FUN_00c1fc,derived,,sci4_rx_word_16bit_synchronous,,,CAN Bus
 60E1C500,0x00c2c0,0x00C2E6,store_knock_learn_buffer,ghidra-hand-xmap,,,YES,,Ignition & Knock
-60E1C500,0x00c2e6,0x00C31C,enableDisableCruiseControl??,ghidra-hand-xmap,,enableDisableCruiseControl,YES,,
+60E1C500,0x00c2e6,0x00C31C,enableDisableCruiseControl??,ghidra-hand-xmap,,enableDisableCruiseControl,YES,,Boot & Init
 60E1C500,0x00c31c,0x00C346,knockFunctionInit,ghidra-hand-xmap,,knockFunctionInit,YES,,Ignition & Knock
 60E1C500,0x00c346,0x00C350,FUN_00c346,derived,,,,,
 60E1C500,0x00c350,0x00C3C8,FUN_00c350,derived,,,,,
@@ -40500,7 +40500,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00d112,0x00D144,FUN_00d112,derived,,can_get_tx_acknowledge_flags,,,CAN Bus
 60E1C500,0x00d144,0x00D164,FUN_00d144,derived,,baro_sensor_value,YES,,Sensors
 60E1C500,0x00d164,0x00D198,FUN_00d164,derived,,caller,,,
-60E1C500,0x00d198,0x00D1AC,getHCANRegisterAddress,ghidra-hand-xmap,,caller,YES,,
+60E1C500,0x00d198,0x00D1AC,getHCANRegisterAddress,ghidra-hand-xmap,,caller,YES,,CAN Bus
 60E1C500,0x00d1ac,0x00D1C0,FUN_00d1ac,derived,,,,,
 60E1C500,0x00d1c0,0x00D1E6,FUN_00d1c0,derived,,,,,
 60E1C500,0x00d1e6,0x00D204,FUN_00d1e6,derived,,can_clear_txpr_and_init_mailbox,,,CAN Bus
@@ -40600,16 +40600,16 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00e448,0x00E450,FUN_00e448,derived,,flag_set_coil_event,,,Oil Metering
 60E1C500,0x00e450,0x00E470,FUN_00e450,derived,,coil_charge_enabled_query,,,Oil Metering
 60E1C500,0x00e470,0x00E492,calculateEngineRunningTimer2,ghidra-hand-xmap,,calculateEngineRunningTimer2,,,Peripherals & ISR
-60E1C500,0x00e492,0x00E4B4,getEngineOnTimeForOilMetering,ghidra-hand-xmap,,caller,YES,,
+60E1C500,0x00e492,0x00E4B4,getEngineOnTimeForOilMetering,ghidra-hand-xmap,,caller,YES,,Oil Metering
 60E1C500,0x00e4b4,0x00E4D8,FUN_00e4b4,derived,,caller,,,
 60E1C500,0x00e4d8,0x00E50C,FUN_00e4d8,derived,,caller,,,
 60E1C500,0x00e50c,0x00E540,FUN_00e50c,derived,,coolant_temp_out_of_range_check,YES,,Sensors
 60E1C500,0x00e540,0x00E56C,setEngineRunningInjectorsOffFlag,ghidra-hand-xmap,,setEngineRunningInjectorsOffFlag,,,Fuel & Lambda
-60E1C500,0x00e56c,0x00E6D8,arbitrateFuelCut,ghidra-hand-xmap,,caller,,,
+60E1C500,0x00e56c,0x00E6D8,arbitrateFuelCut,ghidra-hand-xmap,,caller,,,Fuel & Lambda
 60E1C500,0x00e6d8,0x00E6DC,FUN_00e6d8,derived,NOISE,,,,
 60E1C500,0x00e6dc,0x00E6EC,FUN_00e6dc,derived,,crank_gated_fuel_pressure_proc,,,Fuel & Lambda
 60E1C500,0x00e6ec,0x00E726,FUN_00e6ec,derived,,fuel_pressure_calc_with_interpolation,,,Fuel & Lambda
-60E1C500,0x00e726,0x00E78C,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E1C500,0x00e726,0x00E78C,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E1C500,0x00e78c,0x00E792,FUN_00e78c,derived,,,,,
 60E1C500,0x00e792,0x00E7F8,FUN_00e792,derived,,,,,
 60E1C500,0x00e7f8,0x00E86E,FUN_00e7f8,derived,,,,,
@@ -40723,7 +40723,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x011198,0x011206,setTimingArrayValuesForOutput?,ghidra-hand-xmap,,calc_sensor_pressure_value,,,Sensors
 60E1C500,0x011206,0x01120A,FUN_011206,derived,,sensor_return_11206,,,Sensors
 60E1C500,0x01120a,0x011218,returnDwellTime_fp,ghidra-hand-xmap,,returnDwellTime_fp,YES,,Ignition & Knock
-60E1C500,0x011218,0x01127E,outputPerRotorIgnitionDwell,ghidra-hand-xmap,,output_per_rotor_ignition_dwell,YES,,
+60E1C500,0x011218,0x01127E,outputPerRotorIgnitionDwell,ghidra-hand-xmap,,output_per_rotor_ignition_dwell,YES,,Ignition & Knock
 60E1C500,0x01127e,0x0112E8,calculatePerRotorIgnitionDwell,ghidra-hand-xmap,,,,,Ignition & Knock
 60E1C500,0x0112e8,0x01130E,FUN_0112e8,derived,,,,,
 60E1C500,0x01130e,0x01150E,FUN_01130e,derived,,,,,
@@ -43677,7 +43677,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x03037a,0x0303A8,FUN_03037a,derived,,,,,
 60E1C500,0x0303a8,0x0303AE,FUN_0303a8,derived,,,,,
 60E1C500,0x0303ae,0x0303EC,FUN_0303ae,derived,,,,,
-60E1C500,0x0303ec,0x030414,getACSwitchStatus,ghidra-hand-xmap,,,,,
+60E1C500,0x0303ec,0x030414,getACSwitchStatus,ghidra-hand-xmap,,,,,Sensors
 60E1C500,0x030414,0x03041E,FUN_030414,derived,,,,,
 60E1C500,0x03041e,0x030448,FUN_03041e,derived,,,,,
 60E1C500,0x030448,0x030452,FUN_030448,derived,,,,,
@@ -44191,7 +44191,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x036a9c,0x036B6C,FUN_036a9c,derived,,,,,
 60E1C500,0x036b6c,0x036BBA,FUN_036b6c,derived,,,,,
 60E1C500,0x036bba,0x036C8C,FUN_036bba,derived,,,,,
-60E1C500,0x036c8c,0x036D50,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E1C500,0x036c8c,0x036D50,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x036d50,0x036E94,checkImmoStatus?,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x036e94,0x036EB4,FUN_036e94,derived,,,,,
 60E1C500,0x036eb4,0x036F2E,FUN_036eb4,derived,,,,,
@@ -44210,15 +44210,15 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x037696,0x0376DC,FUN_037696,derived,,,,,
 60E1C500,0x0376dc,0x0376F4,FUN_0376dc,derived,,,,,
 60E1C500,0x0376f4,0x0378B8,FUN_0376f4,derived,,,,,
-60E1C500,0x0378b8,0x037A28,afterImmo_1,ghidra-hand-xmap,,,,,
-60E1C500,0x037a28,0x037B9A,afterImmo_2,ghidra-hand-xmap,,,,,
+60E1C500,0x0378b8,0x037A28,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
+60E1C500,0x037a28,0x037B9A,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x037b9a,0x037BDE,FUN_037b9a,derived,,,,,
 60E1C500,0x037bde,0x037CC0,FUN_037bde,derived,,,,,
-60E1C500,0x037cc0,0x037E28,afterImmo_3,ghidra-hand-xmap,,,,,
+60E1C500,0x037cc0,0x037E28,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x037e28,0x037E6E,FUN_037e28,derived,,,,,
 60E1C500,0x037e6e,0x037F20,FUN_037e6e,derived,,,,,
 60E1C500,0x037f20,0x038078,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E1C500,0x038078,0x038144,afterImmo_7,ghidra-hand-xmap,,,,,
+60E1C500,0x038078,0x038144,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x038144,0x0382AA,FUN_038144,derived,,,,,
 60E1C500,0x0382aa,0x038332,afterImmo_8,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x038332,0x0383AC,FUN_038332,derived,,,,,
@@ -44453,9 +44453,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x03e872,0x03E8E0,FUN_03e872,derived,,,,,
 60E1C500,0x03e8e0,0x03E910,FUN_03e8e0,derived,,,,,
 60E1C500,0x03e910,0x03E940,FUN_03e910,derived,,,,,
-60E1C500,0x03e940,0x03E980,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E1C500,0x03e980,0x03E9C0,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E1C500,0x03e9c0,0x03EA0E,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E1C500,0x03e940,0x03E980,readValue_8bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E1C500,0x03e980,0x03E9C0,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E1C500,0x03e9c0,0x03EA0E,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E1C500,0x03ea0e,0x03EA5C,FUN_03ea0e,derived,,,,,
 60E1C500,0x03ea5c,0x03EA6C,updateMemoryAtAddress_8bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E1C500,0x03ea6c,0x03EA7C,updateMemoryAtAddress_16bit_ADDR_VAL,ghidra-hand-xmap,,,,,Memory & CRC
@@ -47734,7 +47734,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1D400,0x010b96,0x010D20,sensor_rotor_pair_adaptive_select,ida-ai,,,,ida-ai,Sensors
 60E1D400,0x010d20,0x010DAC,sensor_rotor_A_process_and_filter,ida-ai,,,,ida-ai,Sensors
 60E1D400,0x010dc8,0x010F30,status_flags_byte_pack,ida-ai,,caller,YES,ida-ai,Ignition & Knock
-60E1D400,0x0110a8,0x01111A,coil_output_dispatcher_0x110A8,c-lift,,coil_output_dispatcher,,c-lift,
+60E1D400,0x0110a8,0x01111A,coil_output_dispatcher_0x110A8,c-lift,,coil_output_dispatcher,,c-lift,Ignition & Knock
 60E1D400,0x011140,0x011166,calc_fuel_cut_flags_merged,ida-ai,,calc_fuel_cut_flags_merged,,ida-ai,Fuel & Lambda
 60E1D400,0x011166,0x01117A,calc_traction_control_mode,ghidra-hand-xmap,,calc_traction_control_mode,,ida-ai,Throttle & Torque
 60E1D400,0x01117a,0x011198,init_rotor_status_flags,ghidra-hand-xmap,,init_rotor_status_flags,,ida-ai,Boot & Init
@@ -50048,11 +50048,11 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1D400,0x06bfe0,0x06C0AA,obd_service_handler_6BFE0,ida-ai,,,,ida-ai,OBD / UDS
 60E1D400,0x06c0aa,0x06C122,obd_service_handler_6C0AA,ida-ai,,,,ida-ai,OBD / UDS
 60E1D400,0x06c166,0x06C20A,obd_service_handler_6C166,ida-ai,,obd_service_handler_6C166,,ida-ai,OBD / UDS
-60E1D400,0x094C8,,get_ignition_dwell_time,lift,LIFT_ONLY,get_ignition_dwell_time,YES,,
-60E1D400,0x0D49C,,main_entry,lift,LIFT_ONLY,main_entry,YES,,
-60E1D400,0x360E8,,ImmoStateMachine,lift,LIFT_ONLY,ImmoStateMachine,YES,,
-60E1D400,0x584A0,,security_access,lift,LIFT_ONLY,security_access,,,
-60E1D400,0x6443E,,obd_dtc_find,lift,LIFT_ONLY,obd_dtc_find,YES,,
+60E1D400,0x094C8,,get_ignition_dwell_time,lift,LIFT_ONLY,get_ignition_dwell_time,YES,,Ignition & Knock
+60E1D400,0x0D49C,,main_entry,lift,LIFT_ONLY,main_entry,YES,,Boot & Init
+60E1D400,0x360E8,,ImmoStateMachine,lift,LIFT_ONLY,ImmoStateMachine,YES,,OBD / UDS
+60E1D400,0x584A0,,security_access,lift,LIFT_ONLY,security_access,,,OBD / UDS
+60E1D400,0x6443E,,obd_dtc_find,lift,LIFT_ONLY,obd_dtc_find,YES,,Faults & DTC
 60E32000,0x0000f4,0x000100,FUN_0000f4,derived,,build_be32_from_bytes_f4,,,
 60E32000,0x000100,0x00011A,FUN_000100,derived,,,,,
 60E32000,0x00011a,0x000250,FUN_00011a,derived,,,,,
@@ -50062,7 +50062,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x000450,0x00047C,FUN_000450,derived,,,,,
 60E32000,0x00047c,0x0004E0,FUN_00047c,derived,,,,,
 60E32000,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
-60E32000,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,
+60E32000,0x000572,0x0005B0,wdt_init,ghidra-hand-xmap,,wdt_init_572,,connor-xmap,Boot & Init
 60E32000,0x0005b0,0x000624,checkWatchdogTimer_OVRCOUNT,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E32000,0x000624,0x000636,FUN_000624,derived,,is_eeprom_valid_624,,,
 60E32000,0x000636,0x0007C0,FUN_000636,derived,,,,,
@@ -50105,7 +50105,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0020dc,0x002120,3dLookup,ghidra-hand-xmap,,3dlookup_type8,YES,,
 60E32000,0x002120,0x00213C,FUN_002120,derived,,,YES,,
 60E32000,0x00213c,0x002158,FUN_00213c,derived,,,YES,,
-60E32000,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,
+60E32000,0x002158,0x002304,LongFunc,ghidra-hand-xmap,,,,,Math / FPU
 60E32000,0x002304,0x00231C,FUN_002304,derived,,add_s32_saturate,YES,,
 60E32000,0x00231c,0x00239C,mul32_saturated,ghidra-hand-xmap,,mul32_saturated,YES,,Math / FPU
 60E32000,0x00239c,0x0023B0,FUN_00239c,derived,,delay_loop_n8,YES,,Utilities
@@ -50143,12 +50143,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x00375c,0x003848,FUN_00375c,derived,,,,,
 60E32000,0x003848,0x003854,FUN_003848,derived,,,,,
 60E32000,0x003854,0x003920,FUN_003854,derived,,task_execute_by_index,YES,,RTOS
-60E32000,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,
-60E32000,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,
+60E32000,0x003920,0x003934,getSR,ghidra-hand-xmap,,caller,YES,,Memory & CRC
+60E32000,0x003934,0x003954,setSR,ghidra-hand-xmap,,setSR,YES,,Memory & CRC
 60E32000,0x003954,0x003964,FUN_003954,derived,,,,,
 60E32000,0x003964,0x0039BA,FUN_003964,derived,,,,,
 60E32000,0x0039ba,0x003A28,FUN_0039ba,derived,,,,,
-60E32000,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,
+60E32000,0x003a28,0x003AC0,consistencyCheck,ghidra-hand-xmap,,consistencyCheck,YES,,Memory & CRC
 60E32000,0x003ac0,0x003AD8,FUN_003ac0,derived,,,,,
 60E32000,0x003ad8,0x003BF4,FUN_003ad8,derived,,task_context_switch,YES,,RTOS
 60E32000,0x003bf4,0x003C00,FUN_003bf4,derived,,task_full_context_save,YES,,RTOS
@@ -50158,7 +50158,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x003c80,0x003D48,task_priority_scheduler,ghidra-hand-xmap,,,,,RTOS
 60E32000,0x003d48,0x003D50,FUN_003d48,derived,,,,,
 60E32000,0x003d50,0x003D58,FUN_003d50,derived,,,,,
-60E32000,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,
+60E32000,0x003d58,0x003DAC,task_completion_handler,ghidra-hand-xmap,,taskEndRoutine,YES,,RTOS
 60E32000,0x003dac,0x003DB0,FUN_003dac,derived,NOISE,,,,
 60E32000,0x003db0,0x003E10,FUN_003db0,derived,,os_context_switch,YES,,
 60E32000,0x003e10,0x003EC0,FUN_003e10,derived,,init_main,YES,,Boot & Init
@@ -50172,7 +50172,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x003fb0,0x003FE8,FUN_003fb0,derived,,,,,
 60E32000,0x003fe8,0x00409C,FUN_003fe8,derived,,div32_signed,YES,,Ignition & Knock
 60E32000,0x00409c,0x004144,FUN_00409c,derived,,div32_unsigned,YES,,Ignition & Knock
-60E32000,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,
+60E32000,0x004144,0x00420C,mod32_signed,ghidra-hand-xmap,,caller,YES,,Ignition & Knock
 60E32000,0x00420c,0x004218,FUN_00420c,derived,,,,,
 60E32000,0x004218,0x00426C,FUN_004218,derived,,,,,
 60E32000,0x00426c,0x0042B0,FUN_00426c,derived,,,,,
@@ -50188,7 +50188,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x00450a,0x004582,FUN_00450a,derived,,,,,
 60E32000,0x004582,0x00467A,FUN_004582,derived,,,,,
 60E32000,0x00467a,0x0046CC,FUN_00467a,derived,,shift_right_8_r0,YES,,
-60E32000,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,
+60E32000,0x0046cc,0x004740,checkFloatValidity?,ghidra-hand-xmap,,check_float_validity,YES,,Math / FPU
 60E32000,0x004740,0x00481C,FUN_004740,derived,,div,YES,,
 60E32000,0x00481c,0x0048C8,FUN_00481c,derived,,ldexp,YES,,
 60E32000,0x0048c8,0x004938,FUN_0048c8,derived,,bitfield_extract_merge,YES,,
@@ -50413,7 +50413,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0072b4,0x0072BC,FUN_0072b4,derived,,sensor_latch_ch0,,,Sensors
 60E32000,0x0072bc,0x007354,FUN_0072bc,derived,,,,,
 60E32000,0x007354,0x00735C,FUN_007354,derived,,sensor_latch_ch1,,,Sensors
-60E32000,0x00735c,0x0073AE,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,
+60E32000,0x00735c,0x0073AE,readECMVoltage??,ghidra-hand-xmap,,readECMVoltage,YES,,Sensors
 60E32000,0x0073ae,0x0073BC,FUN_0073ae,derived,,,,,
 60E32000,0x0073bc,0x0073C4,FUN_0073bc,derived,,sensor_latch_ch2,,,Sensors
 60E32000,0x0073c4,0x00745C,FUN_0073c4,derived,,,,,
@@ -50424,7 +50424,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0074f8,0x0074FE,FUN_0074f8,derived,,,,,
 60E32000,0x0074fe,0x007504,FUN_0074fe,derived,,,,,
 60E32000,0x007504,0x00753C,FUN_007504,derived,,,,,
-60E32000,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,
+60E32000,0x00753c,0x00758C,fuelingInit??,ghidra-hand-xmap,,fuelingInit,YES,,Fuel & Lambda
 60E32000,0x00758c,0x0075C2,FUN_00758c,derived,,,,,
 60E32000,0x0075c2,0x007618,FUN_0075c2,derived,,,,,
 60E32000,0x007618,0x00767E,FUN_007618,derived,,,,,
@@ -50442,7 +50442,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x007bb4,0x007C00,FUN_007bb4,derived,,crank_event_process,,,Sensors
 60E32000,0x007c00,0x007C08,FUN_007c00,derived,,crank_mode_write,,,Sensors
 60E32000,0x007c08,0x007C30,FUN_007c08,derived,,crank_event_timeout_check,,,Sensors
-60E32000,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,
+60E32000,0x007c30,0x007E60,crankSensorInit?,ghidra-hand-xmap,,crankSensorInit,YES,,Sensors
 60E32000,0x007e60,0x007ED8,FUN_007e60,derived,,,,,
 60E32000,0x007ed8,0x007EEE,FUN_007ed8,derived,,crank_flags_enable,,,Sensors
 60E32000,0x007eee,0x007F46,FUN_007eee,derived,,,,,
@@ -50729,7 +50729,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x00e734,0x00E738,FUN_00e734,derived,NOISE,,,,
 60E32000,0x00e738,0x00E748,FUN_00e738,derived,,,,,
 60E32000,0x00e748,0x00E782,FUN_00e748,derived,,,,,
-60E32000,0x00e782,0x00E7E8,intake_temp_increase_step,ghidra-hand-xmap,,,,,
+60E32000,0x00e782,0x00E7E8,intake_temp_increase_step,ghidra-hand-xmap,,,,,Sensors
 60E32000,0x00e7e8,0x00E804,FUN_00e7e8,derived,,,,,
 60E32000,0x00e804,0x00E81C,FUN_00e804,derived,,,,,
 60E32000,0x00e81c,0x00E854,FUN_00e81c,derived,,,,,
@@ -51274,7 +51274,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x01abcc,0x01ACC6,FUN_01abcc,derived,,,,,
 60E32000,0x01acc6,0x01ACD2,FUN_01acc6,derived,,,,,
 60E32000,0x01acd2,0x01AD06,FUN_01acd2,derived,,,,,
-60E32000,0x01ad06,0x01AD4A,someMainFunction,ghidra-hand-xmap,,,,,
+60E32000,0x01ad06,0x01AD4A,someMainFunction,ghidra-hand-xmap,,,,,RTOS
 60E32000,0x01ad4a,0x01AD74,FUN_01ad4a,derived,,,,,
 60E32000,0x01ad74,0x01ADC2,FUN_01ad74,derived,,,,,
 60E32000,0x01adc2,0x01AF2C,FUN_01adc2,derived,,,,,
@@ -54565,7 +54565,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0383a8,0x0384C6,FUN_0383a8,derived,,,,,
 60E32000,0x0384c6,0x0384E8,FUN_0384c6,derived,,,,,
 60E32000,0x0384e8,0x038608,FUN_0384e8,derived,,,,,
-60E32000,0x038608,0x0386CC,ImmoUpdateRelated,ghidra-hand-xmap,,,,,
+60E32000,0x038608,0x0386CC,ImmoUpdateRelated,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x0386cc,0x038746,FUN_0386cc,derived,,,,,
 60E32000,0x038746,0x038810,FUN_038746,derived,,,,,
 60E32000,0x038810,0x038830,FUN_038810,derived,,,,,
@@ -54586,18 +54586,18 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x039058,0x039070,FUN_039058,derived,,,,,
 60E32000,0x039070,0x0390D8,FUN_039070,derived,,,,,
 60E32000,0x0390d8,0x039234,FUN_0390d8,derived,,,,,
-60E32000,0x039234,0x039300,afterImmo_1,ghidra-hand-xmap,,,,,
+60E32000,0x039234,0x039300,afterImmo_1,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x039300,0x0393A4,FUN_039300,derived,,,,,
-60E32000,0x0393a4,0x0394EA,afterImmo_2,ghidra-hand-xmap,,,,,
+60E32000,0x0393a4,0x0394EA,afterImmo_2,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x0394ea,0x039516,FUN_0394ea,derived,,,,,
 60E32000,0x039516,0x039566,FUN_039516,derived,,,,,
 60E32000,0x039566,0x03963C,FUN_039566,derived,,,,,
-60E32000,0x03963c,0x0396E0,afterImmo_3,ghidra-hand-xmap,,,,,
+60E32000,0x03963c,0x0396E0,afterImmo_3,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x0396e0,0x03977A,FUN_0396e0,derived,,,,,
 60E32000,0x03977a,0x0397A4,FUN_03977a,derived,,,,,
-60E32000,0x0397a4,0x03989C,afterImmo_4,ghidra-hand-xmap,,,,,
+60E32000,0x0397a4,0x03989C,afterImmo_4,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x03989c,0x0399F4,afterImmo_5,ghidra-hand-xmap,,,,,OBD / UDS
-60E32000,0x0399f4,0x039AC0,afterImmo_7,ghidra-hand-xmap,,,,,
+60E32000,0x0399f4,0x039AC0,afterImmo_7,ghidra-hand-xmap,,,,,OBD / UDS
 60E32000,0x039ac0,0x039C26,FUN_039ac0,derived,,,,,
 60E32000,0x039c26,0x039C4A,FUN_039c26,derived,,,,,
 60E32000,0x039c4a,0x039CAE,FUN_039c4a,derived,,,,,
@@ -54987,8 +54987,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x040d48,0x040D4A,FUN_040d48,derived,NOISE,,,,
 60E32000,0x040d4a,0x040D52,FUN_040d4a,derived,,,,,
 60E32000,0x040d52,0x040D88,FUN_040d52,derived,,,,,
-60E32000,0x040d88,0x040DC8,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
-60E32000,0x040dc8,0x040E16,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,
+60E32000,0x040d88,0x040DC8,readValue_16bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
+60E32000,0x040dc8,0x040E16,readValue_32bit_ADDRESS_VAL,ghidra-hand-xmap,,,,,Memory & CRC
 60E32000,0x040e16,0x040E3E,FUN_040e16,derived,,,,,
 60E32000,0x040e3e,0x040E4A,FUN_040e3e,derived,,,,,
 60E32000,0x040e4a,0x040E62,FUN_040e4a,derived,,,,,
@@ -56933,7 +56933,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x06c48a,0x06C4B2,FUN_06c48a,derived,,,,,
 60E32000,0x06c4b2,0x06C794,FUN_06c4b2,derived,,,,,
 60E32000,0x06c794,0x06C7DC,FUN_06c794,derived,,,,,
-60E32000,0x06c7dc,0x06C818,in_range_0_6_check?,ghidra-hand-xmap,,,,,
+60E32000,0x06c7dc,0x06C818,in_range_0_6_check?,ghidra-hand-xmap,,,,,Math / FPU
 60E32000,0x06c818,0x06C83E,FUN_06c818,derived,,,,,
 60E32000,0x06c83e,0x06C8E4,FUN_06c83e,derived,,,,,
 60E32000,0x06c8e4,0x06C938,FUN_06c8e4,derived,,,,,
