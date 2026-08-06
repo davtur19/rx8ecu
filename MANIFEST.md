@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4721 entries, 88.7M.** Regenerated 2026-08-02 for the
+in the working repository. **4725 entries, 88.8M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 680.1K |
+| (root) | 11 | 740.9K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1874 | 4.1M |
-| c/tests/ | 1941 | 15.0M |
+| c/ | 1876 | 4.2M |
+| c/tests/ | 1943 | 15.1M |
 | tools/ | 29 | 684.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4721 entries, 88.7M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4721** | 88.7M |
+| **Total** | **4725** | 88.8M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `300c68878758645d47dce36cc3bc54c9ca8e176aa25bded9b963f34e138aec24` | 6.9K | Project README |
+| `README.md` | `c2f1d283650e89c88931352569c5c25e7ce24f4e356cad621a78db33d958f8d5` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `3381b24c380cd568cfe00f8a498f3c9974f04502f3c0335e2b18cc37dc38254a` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `bc18ec6cf5490d127b9f4c09d44146be6ff8ba9cfdb2a9e6a7eef5a9e30427e8` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `8ecc3f88b8c41ebade4deef0d69006c7d5d61535bec8bc5340ddffe39076dca6` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `ceba4c9aee6dbabc880f157cbd7e307d6b73cd01ed416d29f656a85e9cd83912` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -1879,7 +1879,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/shift_right_arithmetic_r0.c` | `3becd54cd021015d718a5d9581e0c5c18f6a43816b2e9cf71bfcc530d375a22c` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/shift_right_logical_r0.c` | `abbd085e7dba393554ecc477f8c3525b3a04566511ec96975b8ffd36fb6b9ea8` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/somethingPIController____33460.c` | `a41dbbda5b2bb4bdfb8127b1f53fa01cd587a435e73032d3f788b741bb601596` | 2.4K | Tracked file |
+| `c/spark_advance_calc_0x16BE8.c` | `1b35d67bd1afc4e7c9c3d885545d82bb202094db1744cf60269dc50ecb20827b` | 5.5K | Tracked file |
 | `c/spark_output_enable_fault_mask_0x10DC8.c` | `a98c696195ce999ae02264f2e5ff4362ba0ea56c83dd3358c32c94d7658ad611` | 5.7K | Tracked file |
+| `c/spark_timing_boundary_limiter_0x162E4.c` | `6ee4bb1419fc216a2d8ab41340290afc977b19ba41ced0fba8c0eead15e0a3b0` | 8.7K | Tracked file |
 | `c/spark_timing_limit_40A64_40a54.c` | `3690a518b8a08793d6a6ac2178e9955b8006cc1482561542c8e8b14a7ef24fab` | 4.3K | Tracked file |
 | `c/speedometer_0x5A9DC_5a9dc.c` | `a87913df3da30f2bb82833e26ac45db23c5d986f399dd418d93b49d0c3e368e4` | 2.9K | Tracked file |
 | `c/spi_eeprom_verify_49778_49778.c` | `bb73af4a91dcc3d75d2ec6d7b875e38184f2a4e91cb13c7a508769f8a99216d9` | 2.6K | Tracked file |
@@ -3822,7 +3824,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_shift_right_arithmetic_r0.py` | `df0ab58bc1639666fdb4e224c83dbd554e6bce43d536618400ecc74cf86af279` | 3.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_shift_right_logical_r0.py` | `e557958f2eeecbc05b59ed87041570cc04eb2a8f8a7e1c39484a7ac0393627ac` | 3.2K | Python per-function behavior-equivalence test |
 | `c/tests/test_somethingPIController____33460.py` | `0faf4ca65880abb2e4133a2cc15d1ddcb5b16ea9f21d2edbe571d1173098638c` | 8.8K | Tracked file |
+| `c/tests/test_spark_advance_calc_0x16BE8.py` | `05b113ff7567098aeb0eb20b7fa6e1a051954ef7ee16a0a12069cf1bbbbcc868` | 8.2K | Tracked file |
 | `c/tests/test_spark_output_enable_fault_mask_0x10DC8.py` | `5679d944889a2b225f59e18983980fb6cdbbff76fd6822182e7d2ee6316690dd` | 6.2K | Tracked file |
+| `c/tests/test_spark_timing_boundary_limiter_0x162E4.py` | `54954b4967c4dce2947c435139d33911d37cf4bd816fdbd858bfd10d5f6ece23` | 13.8K | Tracked file |
 | `c/tests/test_spark_timing_limit_40A64_40a54.py` | `58ddc3b4e52d02a656f8273d499b35d366da90cde7e807ecb749c45cd31b79fa` | 13.3K | Tracked file |
 | `c/tests/test_speedometer_0x5A9DC_5a9dc.py` | `31efbe7de0e75da68afad8e7b56245831af5e03b48f835333799709eda94e174` | 10.5K | Tracked file |
 | `c/tests/test_spi_eeprom_verify_49778_49778.py` | `d4589af7c1cdeb476a792da69081971a7abd682bc40f6dd734ba349534423f1f` | 10.2K | Tracked file |
