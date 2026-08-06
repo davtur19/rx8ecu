@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5125 entries, 92.2M.** Regenerated 2026-08-02 for the
+in the working repository. **5129 entries, 92.2M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 793.0K |
+| (root) | 11 | 793.8K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2076 | 4.8M |
-| c/tests/ | 2142 | 17.0M |
+| c/ | 2078 | 4.8M |
+| c/tests/ | 2144 | 17.0M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5125 entries, 92.2M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5125** | 92.2M |
+| **Total** | **5129** | 92.2M |
 
 ## External dependencies
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `4f507388a88b699766075ef5225a7ba0811d16832aace13aa3c98ac0310740a8` | 166.9K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `5e32839ecdb43f7c678d9e16b5e3dbc5c2d97a28f78a9a885ca8d1eb1a98b5b1` | 166.9K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `8cbc845dd7263ce781fc84005c793d0168843e7f497d1ebd3a6746ed59d0acc0` | 163.0K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `20bf4a5f8746e67a993cd0d8e688432ef9835bdf2de10180b4ec0d5bf43a53ab` | 163.0K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -384,6 +384,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/add_rotor_timing_offset_0x126DA.c` | `443b62d4d24b7cf0e2b7fa41d6b88bb130044d566cf227c06932fc3a15217bc0` | 2.7K | Tracked file |
 | `c/add_rotor_timing_offset_126da.c` | `24301b0564a2207e7e40702faa9e86fd9c692327d7f1c6682e5f7b1780445ba2` | 1.1K | Tracked file |
 | `c/advance_retard_control_0x5027C_5027c.c` | `ea146b033be2fc1efa5d35c82dd383019279a86f5b70366df4af48f83d56352d` | 946B | Tracked file |
+| `c/aggregateFuelCutStatus_0x2C548.c` | `166dd856c74248bf702e695375e710c514b3c4a5f0ecbe1ff7ecd206d6a5553b` | 3.5K | Tracked file |
 | `c/airPerStroke_341e4.c` | `02874d083aa86f3292ba127ec66186e58d979f1c6d451baebd73ed07a3e31322` | 711B | Tracked file |
 | `c/air_bypass_control_43E4A_43e00.c` | `d5c157df86d621d612b88fb5cbc08a24b18570f5c57d7ce436877dc3781e61f7` | 4.3K | Tracked file |
 | `c/air_charge_calc_0x19190.c` | `e48bae9a88922b640a3b2819ece5a5f165df59402141bbf555cbdd6aa0a4eccd` | 4.4K | Tracked file |
@@ -528,6 +529,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateDSCTrailingTimingDerate_0x12294.c` | `d14e7503e704cb68e11b4833d5461b0bc6e26f87337f3197bb83c96320534d02` | 8.1K | Tracked file |
 | `c/calculateDiagSessionConditional_53fa4.c` | `78e85b370d958e53a7dff5569811519d7466cf7179112771bd07f1f7e4520f6d` | 1.8K | Tracked file |
 | `c/calculateDiagSessionConditional_566c4.c` | `2653c2534d24b27d96e37b7884225a73b369ff4b5996cddd8bb8576a109ca460` | 1.8K | Tracked file |
+| `c/calculateDriverConditions_0x42296.c` | `d3c483ce9061514a671c2d287a2e36f50918334d068a1dfe1017a14d3efb8ad5` | 5.7K | Tracked file |
 | `c/calculateDriverConditions_43c4a.c` | `0e3e6786b3ceba9244ef04c8f6bd453c8e14fba5b40000ed5364ff0cab465c2a` | 4.3K | Tracked file |
 | `c/calculateECMOverVolt_262dc.c` | `224197b8d52886bcfd89634dd1f8a4f9444397454e61577db22dfc6fdb4328b2` | 2.2K | Tracked file |
 | `c/calculateEngTorqueWithLosses_2d38c.c` | `d0050baef0c3f62e2202a1cc4c6e5815e5d726cd6794b51737fd2f336e3bcf44` | 1.6K | Tracked file |
@@ -2467,6 +2469,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_add_rotor_timing_offset_126da.py` | `71b9df3e542450bedd3adfa3a663cbd0a16448f19d4a910f0e53da12b33bb5b8` | 8.7K | Tracked file |
 | `c/tests/test_add_s32_saturate.py` | `5e72c86880bc7e6c53bb4affdda5f2e45c4122f78f64b360e4f6e25f51f0a71f` | 2.7K | Python per-function behavior-equivalence test |
 | `c/tests/test_advance_retard_control_0x5027C_5027c.py` | `37ce966f0ba50f8fbee7adbd768a3d96b988892bf2bf3c33468c1a2e2df2c37e` | 7.6K | Tracked file |
+| `c/tests/test_aggregateFuelCutStatus_0x2C548.py` | `47fe4c75d3e7a69f4e46f266b97f1d2e85ae7d7bdc4b28b889b5dbeb47386e34` | 4.4K | Tracked file |
 | `c/tests/test_airPerStroke_341e4.py` | `9107a03b1fc7a155d3c2cdd69e42412099b330c79f950a4044c6a7480ad5e961` | 2.2K | Tracked file |
 | `c/tests/test_air_bypass_control_43E4A_43e00.py` | `b371ce46de0fc800f5fa82d0458ba35eafd53d6c3227f15cde16ba5c349d4585` | 12.1K | Tracked file |
 | `c/tests/test_air_charge_calc_0x19190.py` | `fcd753ab391c527884dcefe1e60a63d86491b0965d504aa944f0e15f8a96fefc` | 6.0K | Tracked file |
@@ -2619,6 +2622,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateDSCTrailingTimingDerate_0x12294.py` | `ed2cb3095153036538630720e4c19a6b184372241f55ce611139a4d430d5280c` | 8.2K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_53fa4.py` | `03ccc9c46c9825dd885bbfaecc71c93f84d69e2f680b07b7ede13d988432400d` | 8.7K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_566c4.py` | `adb6ed2537451b9cdc94a0aeece6694ee34cdaffa63c0891ccda1a0032072e23` | 7.4K | Tracked file |
+| `c/tests/test_calculateDriverConditions_0x42296.py` | `1c4f1a277697b9e615e3529f293d34ba18449891ee0aeadcce08ee0eb7438f90` | 6.9K | Tracked file |
 | `c/tests/test_calculateDriverConditions_43c4a.py` | `6bc632ab29e95c1e87f4594c4bbd528cef00e49469310d5137927aff723bdf30` | 12.3K | Tracked file |
 | `c/tests/test_calculateECMOverVolt_262dc.py` | `9071105053a00a3e6642b437def825216dafe0a81828e252ad255a44ef99dcb7` | 10.5K | Tracked file |
 | `c/tests/test_calculateEngTorqueWithLosses_2d38c.py` | `59e44232044bcead681047ba793e98f78aa55832a1d7fd941a6ebb25a47bb797` | 9.7K | Tracked file |
