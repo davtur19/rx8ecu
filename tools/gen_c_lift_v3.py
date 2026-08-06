@@ -1844,6 +1844,7 @@ def walk_v3(rom, addr, end, relax_chain=False):
     info = {'stack_offs': set(), 'ram_addrs': set(),
             'has_stack': False, 'has_literal': False, 'gbr_input': False}
     labels = set()
+    visited = set()
     records = []
     skip = set()
 
@@ -2387,6 +2388,7 @@ def walk_v3(rom, addr, end, relax_chain=False):
         if pc in skip:                             # consumed delay slot
             pc += 2
             continue
+        visited.add(pc)
         op = (rom[pc] << 8) | rom[pc + 1]
         d = ops.translate(op, pc, rom)
         if d is not None and d.get('kind') in ('branch', 'ret'):
@@ -2427,7 +2429,12 @@ def walk_v3(rom, addr, end, relax_chain=False):
                             'c': [line], 'mnem': mnem,
                             'target': target, 'slot': slot})
             st['branches_seen'] = True
-            pc += 2
+            if kind == 'bra' and target is not None:
+                if target in visited:
+                    break
+                pc = target
+            else:
+                pc += 2
             continue
         # v8.10: resolve indirect jmp/jsr @Rn with a literal-loaded target
         if op & 0xF0FF in (0x402B, 0x400B):
