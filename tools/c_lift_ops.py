@@ -461,6 +461,9 @@ _SIZE_NIB = {0: 1, 1: 2, 2: 4, 4: 1, 5: 2, 6: 4, 0xC: 1, 0xD: 2, 0xE: 4}
 # 0xC/D/E (@(R0,Rm) loads)
 _SIZE_CH = {1: 'b', 2: 'w', 4: 'l'}
 _CTYPE = {1: 'uint8_t', 2: 'uint16_t', 4: 'uint32_t'}
+# sign-extension casts for b/w GBR/mem loads (C) and s8/s16 helpers (mirror)
+_SEXT_C = {1: '(uint32_t)(int32_t)(int8_t)', 2: '(uint32_t)(int32_t)(int16_t)'}
+_SEXT_PY = {1: 's8', 2: 's16'}
 _tmp = _itertools.count(1)
 
 
@@ -812,12 +815,39 @@ _GBR_BIT_FAMILY = {0xCC00: ('tst', 'load', 'tst.b #0x%02X,@(r0,gbr)'),
                    0xCF00: ('or',  'rmw', 'or.b  #0x%02X,@(r0,gbr)')}
 
 
+def gbr_mov_runtime(size, gdir, disp, temp):
+    """C + py for a 0xC0-C6 GBR-relative b/w/l op with GBR as a RUNTIME base
+    (caller-supplied register, not a baked literal): EA = gbr + r0 + disp.
+    `disp` is the already-scaled displacement (as gen_c_lift._decode_gbr
+    returns it).  The C uses the `gbr` parameter and `r0`; the mirror uses
+    ns['gbr'] and r[0].  Semantics match sh2emu exactly:
+      mov.b/w/l r0,@(disp,gbr) -> wr(gbr + r0 + disp, size, r0)
+      mov.b/w/l @(disp,gbr),r0 -> r0 = sext/rd(gbr + r0 + disp, size)"""
+    d = '0x%X' % disp
+    if gdir == 'load':
+        t = temp()
+        if size < 4:
+            c = ['uint32_t %s = %s*(volatile %s*)(gbr + r0 + %s);' % (t, _SEXT_C[size], _CTYPE[size], d),
+                 'r0 = %s;' % t]
+            py = ['r[0] = %s(_rdw(ram, (gbr + r[0] + %s), %d))' % (_SEXT_PY[size], d, size)]
+        else:
+            c = ['uint32_t %s = *(volatile %s*)(gbr + r0 + %s);' % (t, _CTYPE[size], d),
+                 'r0 = %s;' % t]
+            py = ['r[0] = _rdw(ram, (gbr + r[0] + %s), %d)' % (d, size)]
+    else:
+        c = ['*(volatile %s*)(gbr + r0 + %s) = r0;' % (_CTYPE[size], d)]
+        py = ['_wrw(ram, (gbr + r[0] + %s), %d, r[0])' % (d, size)]
+    return c, py
+
+
 def decode_gbr_bit(op, pc, rom, ctx=None):
     """Decode a 0xCC-CF GBR byte bit-op -> semantic dict (additive v6 API).
 
     `ctx['gbr']` is the resolved constant absolute address (GBR literal + R0
-    literal) baked into the C/py fragments; without it the dict is returned
-    with 'unresolved': True (encoding recognized, base unresolved).  The dict:
+    literal) baked into the C/py fragments; with `ctx['gbr_runtime']` truthy the
+    address is emitted as the runtime expression (gbr + r0) / (gbr + r[0])
+    (mirror ns carries `gbr`); without either the dict is returned with
+    'unresolved': True (encoding recognized, base unresolved).  The dict:
         {'kind': 'gbr_bit', 'family': 'tst'|'and'|'xor'|'or',
          'dir': 'load'|'rmw', 'size': 1, 'imm': int,
          'c': [C statements], 'py': [mirror statements], 'uses': set,
@@ -829,15 +859,25 @@ def decode_gbr_bit(op, pc, rom, ctx=None):
     family, gdir, mnem = fam
     lo = op & 0xFF
     ann = mnem % lo
-    gbr = (ctx or {}).get('gbr')
-    if gbr is None:
+    ctx = ctx or {}
+    gbr = ctx.get('gbr')
+    if gbr is None and not ctx.get('gbr_runtime'):
         return {'kind': 'gbr_bit', 'family': family, 'dir': gdir, 'size': 1,
                 'imm': lo, 'unresolved': True, 'c': [], 'py': [],
                 'uses': set(), 'ann': ann}
-    gbr &= MASK
-    note = ' /* RAM 0x%08X */' % gbr if classify_addr(gbr) == 'RAM' else ' /* ROM */'
-    addr_c = '0x%08X' % gbr
-    addr_py = '0x%08X' % gbr
+    if ctx.get('gbr_runtime'):
+        # runtime GBR: EA = gbr + r0 (both live registers).  sh2emu semantics:
+        #   tst.b #imm,@(r0,gbr): T = (rd(gbr + r0, 1) & imm) == 0
+        #   and/xor/or.b #imm,@(r0,gbr): RMW on rd/wr(gbr + r0, 1)
+        addr_c = '(gbr + r0)'
+        addr_py = '(gbr + r[0])'
+        note = ''
+    else:
+        gbr &= MASK
+        note = (' /* RAM 0x%08X */' % gbr if classify_addr(gbr) == 'RAM'
+                else ' /* ROM */')
+        addr_c = '0x%08X' % gbr
+        addr_py = '0x%08X' % gbr
     if family == 'tst':
         c = ['T = ((*(volatile uint8_t*)%s & 0x%02Xu) == 0u) ? 1u : 0u;%s'
              % (addr_c, lo, note)]
@@ -850,7 +890,7 @@ def decode_gbr_bit(op, pc, rom, ctx=None):
               % (addr_py, addr_py, {'and': '&', 'xor': '^', 'or': '|'}[family], lo)]
         uses = set()
     return {'kind': 'gbr_bit', 'family': family, 'dir': gdir, 'size': 1,
-            'imm': lo, 'c': [c], 'py': py, 'uses': uses, 'ann': ann}
+            'imm': lo, 'c': c, 'py': py, 'uses': uses, 'ann': ann}
 
 
 # ---------------------------------------------------------------------------

@@ -168,6 +168,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                 st['frame_live'] = False
             if not gcl._apply_stmt(rom, pc, op, d, st['written'], st['lits']):
                 return None
+            # extra literal pinning so jsr/jmp @Rn can resolve a register that
+            # was set by `mov #imm,Rn` (0xEnnn) or `mova` (0xC700) — the base
+            # tracker only pins mov.l/mov.w @(disp,PC) literal-pool loads.
+            if op & 0xF000 == 0xE000:                  # mov #imm,Rn (sign-ext8)
+                st['lits']['r%d' % ((op >> 8) & 0xF)] = _s8(op & 0xFF) & MASK
+            elif op & 0xFF00 == 0xC700:                # mova -> r0 = PC-rel EA
+                st['lits']['r0'] = ops.mova_target(pc, op & 0xFF) & MASK
             return {'pc': pc, 'op': op, 'kind': 'st',
                     'c': list(d.get('c') or []),
                     'py': list(d.get('py') or []),
@@ -222,6 +229,57 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
+                    'target': None, 'slot': None, 'mnem': mnem}
+        if op & 0xF0FF in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026):
+            # ---- sts.l/lds.l mach/macl/pr @-Rn/@Rn+ (sys_stack) ----
+            # base gcl._mem_shape cannot decode these (the transferred value is
+            # a system register, not an rN), so they used to die as 'unmapped' —
+            # yet `sts.l pr,@-r15` (0x4F22) / `lds.l @r15+,pr` (0x4F26) are an
+            # extremely common prologue/epilogue pair.  Admit the r15/r14 stack
+            # forms here with the same stack_ok/frame_live + auto-offset model as
+            # the r15/r14 mem block below (r15 mvnrment is that block's shared
+            # local_<off> slot addressing; it is implicit / offset-based).  c is
+            # emitted with bare system-reg names so v7.to_st_c rewrites them to
+            # s-><reg> exactly once.
+            _SYS = {0x4002: 'mach', 0x4012: 'macl', 0x4022: 'pr',
+                    0x4006: 'mach', 0x4016: 'macl', 0x4026: 'pr'}
+            sys_reg = _SYS[op & 0xF0FF]
+            sys_store = (op & 0xF) == 0x2    # low nibble: 2 = sts.l, 6 = lds.l
+            srn = (op >> 8) & 0xF
+            if srn == 15:
+                if not st['stack_ok']:
+                    return None
+            elif srn == 14:
+                if not st['frame_live']:
+                    return None
+            else:
+                return None
+            if srn == 15:
+                if sys_store:
+                    st['sp_off'] -= 4
+                    off = st['sp_off']
+                else:
+                    off = st['sp_off']
+                    st['sp_off'] += 4
+            else:
+                off = (st['frame_off'] if st['frame_off'] is not None
+                       else st['sp_off']) + (-4 if sys_store else 0)
+            info['has_stack'] = True
+            info['stack_offs'].add(off)
+            st['written'].add('r%d' % srn)
+            st['lits'].pop('r%d' % srn, None)
+            if sys_store:
+                c = ['local_%x = %s;' % (off, sys_reg)]
+                py = ['local[0x%X] = %s' % (off, sys_reg),
+                      '_wrw(ram, STACK_BASE + 0x%X, 4, %s)' % (off, sys_reg),
+                      'sp = (sp - 4) & 0xFFFFFFFF']
+                mnem = 'sts.l %s,@-r%d' % (sys_reg, srn)
+            else:
+                c = ['%s = local_%x;' % (sys_reg, off)]
+                py = ['%s = _rdw(ram, STACK_BASE + 0x%X, 4)' % (sys_reg, off),
+                      'sp = (sp + 4) & 0xFFFFFFFF']
+                mnem = 'lds.l @r%d+,%s' % (srn, sys_reg)
+            return {'pc': pc, 'op': op, 'kind': 'sys_stack', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
         m = ops.decode_mem(op, None, ctx)
         if m is not None:
@@ -453,6 +511,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                 if op & 0xF000 == 0xB000:               # bsr (delayed)
                     tgt = (pc + 4 + _s12(op & 0xFFF) * 2) & MASK
                     slot = slot_record(pc + 2) if pc + 2 < end else None
+                    if slot is not None and pc + 3 < bound and \
+                            (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                        res.reject = ('pr_loop', pc)
+                        return res
                     res.edges.append((pc, 'bsr', tgt))
                     if addr <= tgt < end:
                         labels.add(tgt)
@@ -483,6 +545,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                             labels.add(e)
                             pending.append(e)
                     slot = slot_record(pc + 2) if pc + 2 < end else None
+                    if slot is not None and pc + 3 < bound and \
+                            (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                        res.reject = ('pr_loop', pc)
+                        return res
                     res.jump_tables.append({'jmp_pc': pc, 'reg': rn,
                                             'base': base, 'entries': entries})
                     res.edges.append((pc, 'jt:%d' % len(entries), None))
@@ -506,7 +572,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                     continue
                 v = st['lits'].get('r%d' % rn)         # literal target
                 if v is None:
-                    res.reject = ('indirect_unresolved', pc)
+                    res.reject = (('jsr_unresolved' if kind == 'jsr'
+                                   else 'indirect_unresolved'), pc)
                     return res
                 tgt = v & MASK
                 res.edges.append((pc, kind, tgt))
@@ -514,6 +581,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                     labels.add(tgt)
                     pending.append(tgt)
                 slot = slot_record(pc + 2) if pc + 2 < end else None
+                # PR LOOP GUARD: a `lds.l @r15+,pr` delay slot (0x4F26) loads
+                # the callee's return address from the (random) stack, so the
+                # mirror's pr-return and sh2emu diverge (known case: 0x298F4).
+                if slot is not None and pc + 3 < bound and \
+                        (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                    res.reject = ('pr_loop', pc)
+                    return res
                 if kind == 'jsr':
                     rec = {'pc': pc, 'op': op, 'kind': 'call', 'mnem': 'jsr @r%d' % rn,
                            'c': ['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
@@ -579,6 +653,8 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
     jt_fns = []
     multi = []
     jsr_bsr = []
+    pool_jsr = []
+    missing_callees = Counter()
     call_rej_v3 = 0
     unblocked = 0          # previously rejected (data-mid-span / call) now admitted
     prev_reasons = Counter()
@@ -627,6 +703,17 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
                         'n_jt': n_jt, 'n_call': n_call, 'n_br': n_br,
                         'jt': res.jump_tables})
         by_cat[c['category']] += 1
+        jsrs = [r for r in res.records if r['kind'] == 'call'
+                and (r['mnem'] or '').startswith('jsr')]
+        if jsrs:                       # pool_jsr: caller with a resolved jsr @Rn
+            call_tgts = {r['target'] for r in res.records
+                         if r['kind'] == 'call' and r.get('target') is not None}
+            for t in call_tgts:
+                if not os.path.exists(os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)) \
+                        and t not in lifted:
+                    missing_callees[t] += 1
+            pool_jsr.append({'addr': addr, 'name': c['name'], 'size': size,
+                             'category': c['category'], 'n_jsr': len(jsrs)})
         if n_jt:
             jt_fns.append((addr, c['name'], size, res.jump_tables))
         if n_call:
@@ -648,6 +735,13 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
     print('  jump-table functions    : %d' % len(jt_fns))
     print('  multi-dispatch (>=2 jsr/jmp) : %d' % len(multi))
     print('  jsr/bsr sites resolved  : %d' % len(jsr_bsr))
+    print('  POOL_JSR (caller w/ >=1 resolved jsr @Rn) : %d' % len(pool_jsr))
+    print('  pool_jsr by category (top):')
+    for k, v_ in Counter(p['category'] for p in pool_jsr).most_common(6):
+        print('    %-28s %d' % (k, v_))
+    print('  missing callee libs (referenced by pool_jsr), top 8:')
+    for t, n in missing_callees.most_common(8):
+        print('    0x%06X  x%d' % (t, n))
     print('v8 rejections:')
     for k, v_ in reasons.most_common(12):
         print('    %-28s %d' % (k, v_))
@@ -701,41 +795,7 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
         return None, None, False, ('missing-callee-lib', missing)
 
     # ---- ST body: labels/goto + branch records + call records ----
-    labels = res.labels
-    stmts = []
-    for rec in res.records:
-        pc = rec['pc']
-        if pc in labels:
-            stmts.append('L_%X: ;' % pc)
-        stmts.append('/* 0x%06X: %s */' % (pc, rec['mnem']))
-        if rec['kind'] == 'call':
-            stmts.extend(rec['c'])           # already ST-form
-        elif rec['kind'] == 'jt':
-            stmts.extend(rec['c'])
-        else:
-            slot = rec.get('slot')
-            if slot is not None:
-                if slot['pc'] in labels:
-                    stmts.append('L_%X: ;' % slot['pc'])
-                stmts.append('/* 0x%06X: %s */' % (slot['pc'], slot['mnem']))
-                stmts.extend(v7.to_st_c(s) for s in slot['c'])
-            stmts.extend(v7.to_st_c(s) for s in rec['c'])
-    offs = set()
-    for m_ in re.finditer(r'local_([0-9a-f]+)\b', '\n'.join(stmts)):
-        offs.add(int(m_.group(1), 16))
-    frs = set()
-    for m_ in v7._FR.finditer('\n'.join(stmts)):
-        frs.add(m_.group(0))
-    body = ['void %s(ST *s)' % fn, '{']
-    for o in sorted(offs):
-        body.append('    uint32_t local_%x = 0;' % o)
-    for f in sorted(frs):
-        body.append('    uint32_t %s = 0;' % f)
-    for s in stmts:
-        body.append('    ' + s)
-    body.append('    return; /* fallthrough */')
-    body.append('}')
-    fwd = '\n'.join('void f_%X(ST *s);' % t for t in callees)
+    body, fwd = _render_st_body(fn, addr, res, callees)
     banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
               ' * Auto-generated by tools/gen_c_lift_v8.py — ST caller (CFG).\n'
               ' * jsr/bsr -> s->pr=<ret>; <delay slot>; f_<callee>(s);\n'
@@ -743,7 +803,7 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
               ' * jump table -> switch (s->rN) { case <addr>: goto L_<addr>; }\n'
               ' * Never replaces c/*.c. */\n') % (rom_label, addr, end_s - addr)
     c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + \
-        (fwd + '\n' if fwd else '') + '\n'.join(body) + '\n'
+        (fwd + '\n' if fwd else '') + body
     os.makedirs(outdir, exist_ok=True)
     out_c = os.path.join(outdir, '%s.c' % fn)
     with open(out_c, 'w') as f:
@@ -828,6 +888,209 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                 return None, ('trampoline', t, tgt, reason)
             records = records + sub
     return records, None
+
+
+def _render_st_body(fn, addr, res, callees):
+    """Render the ST-ABI function body (labels/goto + records) for a CFG
+    result, reusing the caller rendering.  Shared by emit_caller and
+    _emit_callee_cfg.  Returns the body text (no banner/header)."""
+    labels = res.labels
+    stmts = []
+    for rec in res.records:
+        pc = rec['pc']
+        if pc in labels:
+            stmts.append('L_%X: ;' % pc)
+        stmts.append('/* 0x%06X: %s */' % (pc, rec['mnem']))
+        if rec['kind'] == 'call':
+            stmts.extend(rec['c'])           # already ST-form
+        elif rec['kind'] == 'jt':
+            stmts.extend(rec['c'])
+        else:
+            slot = rec.get('slot')
+            if slot is not None:
+                if slot['pc'] in labels:
+                    stmts.append('L_%X: ;' % slot['pc'])
+                stmts.append('/* 0x%06X: %s */' % (slot['pc'], slot['mnem']))
+                stmts.extend(v7.to_st_c(s) for s in slot['c'])
+            stmts.extend(v7.to_st_c(s) for s in rec['c'])
+    offs = set()
+    for m_ in re.finditer(r'local_([0-9a-f]+)\b', '\n'.join(stmts)):
+        offs.add(int(m_.group(1), 16))
+    frs = set()
+    for m_ in v7._FR.finditer('\n'.join(stmts)):
+        frs.add(m_.group(0))
+    body = ['void %s(ST *s)' % fn, '{']
+    for o in sorted(offs):
+        body.append('    uint32_t local_%x = 0;' % o)
+    for f in sorted(frs):
+        body.append('    uint32_t %s = 0;' % f)
+    for s in stmts:
+        body.append('    ' + s)
+    body.append('    return; /* fallthrough */')
+    body.append('}')
+    fwd = '\n'.join('void f_%X(ST *s);' % t for t in callees)
+    return '\n'.join(body) + '\n', fwd
+
+
+def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
+    """Emit c/lib/f_<hex>.c via the CFG engine (build_cfg + ST renderer) — a
+    fallback for callees whose v3 walk-based leaf lib (v7.emit_callee) fails
+    on undefined branch labels.  Returns (path, None) or (None, reason)."""
+    end_c = _callee_span_end(t, catalog, bounds)
+    if end_c is None:
+        return None, ('callee-no-span', t)
+    lifted = _load_lifted()
+    res = build_cfg(rom, t, end_c, lifted, catalog)
+    if res.reject is not None:
+        return None, ('callee-cfg', t, res.reject)
+    if not res.records:
+        return None, ('callee-cfg', t, 'no_records')
+    callees = sorted({r['target'] for r in res.records
+                      if r['kind'] == 'call' and r.get('target') is not None})
+    body, fwd = _render_st_body('f_%X' % t, t, res, callees)
+    banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
+              ' * Auto-generated by tools/gen_c_lift_v8.py — ST callee (CFG).\n'
+              ' * Never replaces c/*.c. */\n') % (rom_label, t, end_c - t)
+    c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + \
+        (fwd + '\n' if fwd else '') + body
+    path = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
+    with open(path, 'w') as f:
+        f.write(c_text)
+    tmp_obj = os.path.join(tempfile.gettempdir(), 'gen_c_lift_v8_%d.o' % os.getpid())
+    gate = subprocess.run(['cc', '-O2', '-c', path, '-o', tmp_obj],
+                          capture_output=True, text=True)
+    if os.path.exists(tmp_obj):
+        os.remove(tmp_obj)
+    if gate.returncode != 0:
+        os.remove(path)
+        return None, ('callee-cfg-compile', t, gate.stderr[:200])
+    return path, None
+
+
+def _ensure_callee_lib(t, rom, catalog, bounds, rom_label=None):
+    """Make sure c/lib/f_<hex>.c exists for callee `t`; generate a DRAFT
+    leaf lib (v7.emit_callee) over the callee's walked span (first-rts stop,
+    or catalog end) when missing.  Returns (path, None) on success or
+    (None, reason)."""
+    path = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
+    if os.path.exists(path):
+        return path, None
+    end_c = _callee_span_end(t, catalog, bounds)
+    if end_c is None:
+        return None, ('callee-no-span', t)
+    rts = _callee_first_rts(rom, t, end_c)
+    size = (rts + 2 if rts is not None else end_c) - t
+    if size <= 0 or size > 512:
+        return None, ('callee-span', t, size)
+    ok, err = v7.emit_callee(t, size, rom, path, rom_label=rom_label)
+    if not ok:
+        if os.path.exists(path):
+            os.remove(path)
+        # v3 walk-based leaf lib failed (e.g. undefined branch label) — retry
+        # with the CFG engine, which defines every in-span branch label.
+        path2, err2 = _emit_callee_cfg(t, rom, catalog, bounds,
+                                       rom_label=rom_label)
+        if path2 is None:
+            return None, ('callee-lib', t, err2 if err2 else err)
+        return path2, None
+    return path, None
+
+
+def run_batch(rom, outdir, catalog, bounds, n=20, seed=42, cases=500,
+              rom_label=None, jobs=2, timeout=240):
+    """Emit + verify up to `n` callers from POOL_JSR (functions with >=1
+    resolved jsr @Rn that pass v8 selection).  For each: ensure the callee
+    libs exist (generate missing DRAFT f_<hex>.c), emit caller_<hex>.c +
+    test_caller_<hex>.py, run the differential test (cases cases); keep PASS,
+    delete the caller .c/.py on FAIL.  Returns the summary list."""
+    lifted = _load_lifted()
+    entries = []
+    categories = gcl.load_categories(
+        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'))
+    _, no_spans, _b = _load_catalog(
+        os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv'), rom_label)
+    cands = v3._merge_nospan_cands(categories, no_spans, bounds, rom_label)
+    for c in cands:
+        addr = c['addr']
+        end = catalog.get(addr)
+        if end is None:
+            end = v3._next_addr(addr, bounds)
+        if end is None:
+            continue
+        _a, end_s, _r = v3.sanitize_span(addr, end, rom)
+        size = end_s - addr
+        if not (SIZE_MIN <= size <= SIZE_MAX):
+            continue
+        base = gcl.sanitize(c['name'])
+        if os.path.exists(os.path.join(ROOT, 'c', '%s_%x.c' % (base, addr))) or \
+                glob.glob(os.path.join(ROOT, 'c', '*_%x.c' % addr)):
+            continue
+        if addr in lifted:
+            continue
+        ok, reason, res = scan_v8(rom, c, end_s, lifted, catalog)
+        if not ok:
+            continue
+        jsrs = [r for r in res.records if r['kind'] == 'call'
+                and (r['mnem'] or '').startswith('jsr')]
+        if not jsrs:
+            continue
+        callees = sorted({r['target'] for r in res.records
+                          if r['kind'] == 'call' and r.get('target') is not None})
+        entries.append({'addr': addr, 'name': c['name'], 'size': size,
+                        'callees': callees, 'n_jsr': len(jsrs)})
+    entries.sort(key=lambda e: e['addr'])
+    if not entries:
+        print('run_batch: pool_jsr is empty')
+        return []
+    print('run_batch: pool_jsr=%d, emitting first %d' % (len(entries), min(n, len(entries))))
+
+    summary = []
+    for e in entries[:n]:
+        addr = e['addr']
+        print('--- 0x%06X %s (size=%d, jsr=%d, callees=%s)' % (
+            addr, e['name'][:30], e['size'], e['n_jsr'],
+            ', '.join('0x%X' % t for t in e['callees'])))
+        fail = None
+        for t in e['callees']:
+            _p, err = _ensure_callee_lib(t, rom, catalog, bounds, rom_label=rom_label)
+            if err is not None:
+                fail = ('callee-lib 0x%X: %r' % (t, err))
+                break
+        if fail:
+            print('    SKIP (missing callee lib): %s' % fail)
+            summary.append((addr, 'skip', fail))
+            continue
+        out_c, out_t, ok, reason = emit_caller(
+            addr, rom, os.path.join(ROOT, 'c', 'lib'), catalog, bounds,
+            seed=seed, cases=cases, rom_label=rom_label)
+        if not ok:
+            print('    EMIT FAILED: %s' % (reason,))
+            summary.append((addr, 'skip', 'emit: %r' % (reason,)))
+            continue
+        # tests live in c/tests (the generated file's ROOT is 3 levels up, so
+        # running it from c/lib would misresolve ROOT and fail the sh2emu import)
+        test_p = os.path.join(ROOT, 'c', 'tests', 'test_caller_%X.py' % addr)
+        if os.path.abspath(out_t) != os.path.abspath(test_p):
+            if os.path.exists(test_p):
+                os.remove(test_p)
+            os.rename(out_t, test_p)
+            out_t = test_p
+        try:
+            p = subprocess.run([sys.executable, out_t], cwd=ROOT,
+                               capture_output=True, text=True, timeout=timeout)
+            line = (p.stdout or p.stderr or '').strip().splitlines()[-1:]
+            print('    test: rc=%d %s' % (p.returncode, line[0] if line else ''))
+        except subprocess.TimeoutExpired:
+            p = None
+            print('    test: TIMEOUT (>%ds)' % timeout)
+        if p is not None and p.returncode == 0:
+            summary.append((addr, 'PASS', line[0] if line else ''))
+        else:
+            summary.append((addr, 'FAIL', line[0] if (p and line) else 'rc=%s' % (p.returncode if p else 'timeout')))
+            for f in (out_c, out_t):
+                if f and os.path.exists(f):
+                    os.remove(f)
+    return summary
 
 
 def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
@@ -1082,6 +1345,10 @@ def main():
                     help='emit caller_<hex>.c + test for this address')
     ap.add_argument('--span', default=None, metavar='END',
                     help='force span end (overrides catalog) for --emit')
+    ap.add_argument('-n', '--n', type=int, default=0, metavar='N',
+                    help='batch-emit + verify up to N callers from pool_jsr')
+    ap.add_argument('--jobs', type=int, default=2,
+                    help='parallel test workers for --n batch (default 2)')
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--cases', type=int, default=500)
     ap.add_argument('--rom', default=DEFAULT_ROM)
@@ -1108,6 +1375,19 @@ def main():
         print('emitted %s' % out_c)
         print('emitted %s' % out_t)
         sys.exit(subprocess.run([sys.executable, out_t]).returncode)
+    if args.n:
+        cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
+        catalog, _, bounds = _load_catalog(cat_path, rom_label)
+        outdir = args.outdir or os.path.join(ROOT, 'tmp', 'v8')
+        summary = run_batch(rom, outdir, catalog, bounds, n=args.n,
+                            seed=args.seed, cases=args.cases,
+                            rom_label=rom_label, jobs=args.jobs)
+        kept = [s for s in summary if s[1] == 'PASS']
+        print('== batch summary: generated=%d passed=%d dropped=%d' %
+              (len(summary), len(kept), len(summary) - len(kept)))
+        for addr, status, why in summary:
+            print('    0x%06X %-5s %s' % (addr, status, why))
+        return 0 if len(kept) else 1
     ap.print_help()
     return 0
 
