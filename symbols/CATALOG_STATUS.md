@@ -4,15 +4,15 @@ Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift (`c/*.c`, `c
 
 | bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note |
 |-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|
-| 60E0E500 | symbols_60E0E500.csv<br/>symbols_60E0E500_connor.csv | 7312 | 7305 | 391 | 6914 | 159 | 59 | derivata over-segmentata |
-| 60E0E700 | symbols_60E0E700.csv<br/>symbols_60E0E700_connor.csv | 7313 | 7306 | 397 | 6909 | 157 | 62 | derivata over-segmentata |
-| 60E0FB00 | symbols_60E0FB00.csv<br/>symbols_60E0FB00_connor.csv | 7203 | 7197 | 567 | 6630 | 497 | 67 | derivata over-segmentata |
-| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9018 | 3490 | 1601 | 1889 | 524 | 64 | canonico affidabile (equiname) |
-| 60E15120 | symbols_60E15120.csv<br/>symbols_60E15120_connor.csv | 7480 | 7473 | 359 | 7114 | 147 | 59 | derivata over-segmentata |
-| 60E1B900 | symbols_60E1B900.csv<br/>symbols_60E1B900_connor.csv | 7185 | 7173 | 444 | 6729 | 202 | 72 | derivata over-segmentata |
-| 60E1C500 | symbols_60E1C500.csv<br/>symbols_60E1C500_connor.csv | 7327 | 7315 | 457 | 6858 | 231 | 82 | derivata over-segmentata |
-| 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5607 | 2794 | 2794 | 0 | 1019 | 193 | canonico affidabile (IDA-ai) |
-| 60E32000 | symbols_60E32000.csv<br/>symbols_60E32000_connor.csv | 6911 | 6899 | 372 | 6527 | 165 | 58 | derivata over-segmentata |
+| 60E0E500 | symbols_60E0E500.csv<br/>symbols_60E0E500_connor.csv | 7312 | 7305 | 431 | 6874 | 203 | 61 | derivata over-segmentata |
+| 60E0E700 | symbols_60E0E700.csv<br/>symbols_60E0E700_connor.csv | 7313 | 7306 | 438 | 6868 | 203 | 63 | derivata over-segmentata |
+| 60E0FB00 | symbols_60E0FB00.csv<br/>symbols_60E0FB00_connor.csv | 7203 | 7197 | 844 | 6353 | 814 | 69 | derivata over-segmentata |
+| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9018 | 3490 | 1767 | 1723 | 845 | 66 | canonico affidabile (equiname) |
+| 60E15120 | symbols_60E15120.csv<br/>symbols_60E15120_connor.csv | 7480 | 7473 | 398 | 7075 | 188 | 60 | derivata over-segmentata |
+| 60E1B900 | symbols_60E1B900.csv<br/>symbols_60E1B900_connor.csv | 7185 | 7173 | 466 | 6707 | 225 | 73 | derivata over-segmentata |
+| 60E1C500 | symbols_60E1C500.csv<br/>symbols_60E1C500_connor.csv | 7327 | 7315 | 477 | 6838 | 253 | 83 | derivata over-segmentata |
+| 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5609 | 2795 | 2795 | 0 | 1081 | 197 | canonico affidabile (IDA-ai) |
+| 60E32000 | symbols_60E32000.csv<br/>symbols_60E32000_connor.csv | 6911 | 6899 | 390 | 6509 | 184 | 59 | derivata over-segmentata |
 
 * `rows (incl. variants)` = righe CUMULATIVE da TUTTI i CSV della bank (varianti ridondanti incluse); `total (unique)` = righe uniche per (bank, addr) dopo il dedup — questa e' la cifra reale per bank.
 
@@ -24,13 +24,13 @@ Righe `source=derived` (banche derivate over-segmentate), non LIFT_ONLY, non nom
 
 | bank | unique | noise | real-estimate (unique - noise) |
 |-----:|-------:|------:|-------------------------------:|
-| 60E0E500 | 7305 | 887 | 6418 |
-| 60E0E700 | 7306 | 917 | 6389 |
-| 60E0FB00 | 7197 | 832 | 6365 |
-| 60E15120 | 7473 | 945 | 6528 |
+| 60E0E500 | 7305 | 885 | 6420 |
+| 60E0E700 | 7306 | 915 | 6391 |
+| 60E0FB00 | 7197 | 817 | 6380 |
+| 60E15120 | 7473 | 942 | 6531 |
 | 60E1B900 | 7173 | 838 | 6335 |
-| 60E1C500 | 7315 | 904 | 6411 |
+| 60E1C500 | 7315 | 903 | 6412 |
 | 60E32000 | 6899 | 864 | 6035 |
-| **TOT** | **56952** | **6187** | **50765** |
+| **TOT** | **56953** | **6164** | **50789** |
 
 

@@ -47,6 +47,13 @@ NAMES_STATUS_MD = os.path.join(SYMBOLS_DIR, "NAMES_STATUS.md")
 EQUINOX_FILE = os.path.join(SYMBOLS_DIR, "equinox311_60E0FC00_named.csv")
 EQUINOX_BANK = "60E0FC00"
 
+# bank binario usato dall'end-refinement (primo-return oltre end). Le banche
+# twin condividono lo stesso spazio di offset; l'FC00 e' quella con le righe
+# che il catalogo vuole correggere.
+REFINE_BANK = EQUINOX_BANK
+REFINE_ROM = os.path.join(ROOT, "roms", "stock", "60E0FC00.bin")
+REFINE_CAP = 64          # massimo avanzamento dell'end in byte
+
 # --- dedup precision sources (per (bank, addr)) ------------------------------
 # Priorita' crescente: le righe piu' autorevoli vincono il dedup per (bank,addr).
 # LIFT_ONLY e' sempre in cima (boundary autoritativi). Ordine (alto->basso):
@@ -568,6 +575,86 @@ def twin_end_backfill(records):
     return filled
 
 
+def _is_ret_word(op):
+    """True se e' un return SH-2: rts (0x000B) oppure jmp@Rn (0x4n2B)."""
+    return op == 0x000B or (op & 0xF0FF) == 0x402B
+
+
+def refine_fc00_ends(records):
+    """End-refinement SAFE per il banco FC00.
+
+    Il catalogo contiene span troncati a meta' epilogo: l'end attuale cade prima
+    del return reale (es. 0x25C40/0x292BA, il cui epilogo esteso contiene
+    0x64F6/0x6EF6 prima del `jmp @Rn` finale). Il detector, per ogni riga FC00
+    con end valido:
+
+      * prende il PRIMO return (rts / jmp@Rn) all'end o oltre, con cap
+        REFINE_CAP byte: new_end = pc_ret + 4 (include il delay slot del
+        return, che fa sempre parte della funzione — in sh2emu il delay esegue);
+      * se l'ultima parola in-span (end-2) e' gia' un return, il delay slot e'
+        fuori span: new_end = end + 2;
+      * prologue-guard: NESSUNA riga-catalogo FC00 deve avere start strettamente
+        dentro (addr, new_end) — protegge dall'inglobare la funzione successiva
+        (e lascia intatte le span gia' corrette: li' il primo return oltre end
+        appartiene alla funzione successiva e il guard rifiuta).
+
+    NON tocca le altre banche. Ritorna il numero di righe corrette."""
+    try:
+        rom = open(REFINE_ROM, "rb").read()
+    except OSError as exc:
+        print("  refine_fc00_ends: SKIP (%s)" % exc)
+        return 0
+    cap_end = REFINE_CAP - 4          # l'ultimo pc candidato (new_end - 4)
+    starts = set()
+    for r in records:
+        if r.get("bank") != REFINE_BANK:
+            continue
+        try:
+            starts.add(int(r["addr"], 16))
+        except (ValueError, TypeError):
+            pass
+    refined = 0
+    for r in records:
+        if r.get("bank") != REFINE_BANK:
+            continue
+        try:
+            a = int(r["addr"], 16)
+            e = int(r["end"], 16)
+        except (ValueError, TypeError):
+            continue
+        if e <= a or e + 1 >= len(rom):
+            continue
+        # boundary gia' valido: l'ultima parola in-span (end-2) e' il delay
+        # slot di un return in end-4 (rts/jmp@Rn + delay). Lo span termina
+        # esattamente su un return: non raffinare oltre. Senza questo guard il
+        # re-run scavalcherebbe data/tabelle o l'inizio della funzione
+        # successiva non catalogata (es. 0x45E26, 0x4607A) inghiottendo il
+        # primo return TROVATO dopo la tabella invece di quello della funzione.
+        if e - 4 >= 0 and _is_ret_word((rom[e - 4] << 8) | rom[e - 3]):
+            continue
+        end_new = None
+        # return come ultima parola in-span: il delay slot e' oltre end
+        if e - 2 >= 0 and _is_ret_word((rom[e - 2] << 8) | rom[e - 1]):
+            end_new = e + 2
+        else:
+            last = min(e + cap_end, len(rom) - 4)
+            for pc in range(e, last + 2, 2):
+                if pc + 1 >= len(rom):
+                    break
+                if _is_ret_word((rom[pc] << 8) | rom[pc + 1]):
+                    end_new = pc + 4
+                    break
+        if end_new is None or end_new == e or end_new - e > REFINE_CAP:
+            continue
+        if end_new > len(rom):
+            continue
+        if any(a < s < end_new for s in starts):
+            continue
+        r["end"] = "0x%05X" % end_new
+        refined += 1
+    return refined
+
+
 def is_noise_span(rec):
     """True se (end - addr) e' un valore intero valido e <= 4 (rumore di
     segmentazione: puntatori pooled / boundary falsi nelle banche derivate)."""
@@ -901,6 +988,9 @@ def main():
     # ---- twin-bank end backfill (FC00 <- FB00, same offset) ---------------
     n_backfilled = twin_end_backfill(out)
 
+    # ---- safe end-refinement (FC00: first-return beyond end, cap 64) ------
+    n_refined = refine_fc00_ends(out)
+
     write_master(out, load_category_map())
 
     agg = aggregate(out)
@@ -917,6 +1007,8 @@ def main():
     print("  CATALOG_MASTER.csv rows (UNIQUE post-dedup):", len(out))
     print("  twin-bank end backfill: filled=%d (bank without end <= twin end)"
           % n_backfilled)
+    print("  safe end-refinement (FC00, first-return+boundary, cap<=%d): "
+          "refined=%d" % (REFINE_CAP, n_refined))
     print("   rows cumulative (incl. variants):", sum(raw_per_bank.values()))
     for bank in sorted(raw_per_bank):
         g = agg.get(bank, {})
