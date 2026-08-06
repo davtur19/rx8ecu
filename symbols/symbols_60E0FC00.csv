@@ -925,7 +925,7 @@ addr,end,name,source,flag
 0x018BC2,0x018C58,FUN_00018bc2,ghidra-auto,
 0x018C58,0x018CAC,FUN_00018c58,ghidra-auto,
 0x018CAC,0x018D3C,FUN_00018cac,ghidra-auto,
-0x018D3C,0x018F3C,dscRelatedTiming?,ghidra-hand,
+0x018D3C,0x018F3C,dscRelatedTiming,c-lift,
 0x018F3C,0x018F6C,FUN_00018f3c,ghidra-auto,
 0x018F6C,0x018F9C,ram_flags_a9c0_zero_init,ghidra-auto,
 0x018F9C,0x018FD6,FUN_00018f9c,ghidra-auto,

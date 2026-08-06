@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5113 entries, 92.1M.** Regenerated 2026-08-02 for the
+in the working repository. **5115 entries, 92.2M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 791.9K |
+| (root) | 11 | 792.2K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2070 | 4.8M |
-| c/tests/ | 2136 | 16.9M |
+| c/ | 2071 | 4.8M |
+| c/tests/ | 2137 | 16.9M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5113 entries, 92.1M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5113** | 92.1M |
+| **Total** | **5115** | 92.2M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `de6bb5c28efdef2541781825b3d537f3bdcea01d50149d20758044425d45d96f` | 6.9K | Project README |
+| `README.md` | `30fe35e9baaf5ce81d2e9f9d14c4674dea8208bc31f5a9d13f24ede74f8065e8` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `13531f7314adbc47e889547ef5cdd67ca90f8d4c2fa23b7bc9e6ded8440753cd` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `da678c61e9d6b42b5a30d637a4a270ca330dcb7cbf4fde5d3349f92f5713a1b7` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `cfaf1d27b3a59a3f29ad421021bb409a3e648efdb9502702378dfdd255106b5a` | 163.0K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `e7f20e3d02e088ace9f60a598bcfac3a5d33ac8fd1adb7fde1ca95b0811c3294` | 163.0K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -871,6 +871,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/div_4740.c` | `9ed2b06608bd0b0fbbe355be7a36dc3c04e184b2a0bd5bb478ee3fe0577ff0fa` | 8.8K | Tracked file |
 | `c/driverOffThrottleSetPrevLoop_210a4.c` | `3fcae33888d02ee49c0ee52a84a1ded3ebf62138fc9f71a81268c3781d2d8e4f` | 1.2K | Tracked file |
 | `c/dscDerateInit__2ce0c.c` | `e314bb46e9472799b70ffd939f1cc05aaeec013fe2da046112dbc04367c84aa1` | 1.4K | Tracked file |
+| `c/dscRelatedTiming_0x18D3C.c` | `a1b2a5d58ea578272e71ecdd5b974c929fd09f6fbfddfd5ce7395a2dde7fb4da` | 8.6K | Tracked file |
 | `c/dsc_torque_derate_calc_2ce24.c` | `4732d2259c524a21bc2a1f0a27d3f7371cef4abe5e95cb97faaa6947388628b1` | 6.5K | Tracked file |
 | `c/dtcCodeTypeInit_5991e.c` | `2d2f6c9a7561946c3662638d0bcd407fd7377e138c3c85312a27be1c27bc85b6` | 847B | Tracked file |
 | `c/dtcCodeTypeInit_5bb6a.c` | `ab54941da4634b9e3c3b986eeb0a9665c0c057fe6176565cde74fb26f68220c1` | 808B | Tracked file |
@@ -3343,6 +3344,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_div_4740.py` | `f7508ae60dea1e7d0213fd8609c362c75fee3f77ce910aa6ed03e33c9abdeec8` | 9.3K | Tracked file |
 | `c/tests/test_driverOffThrottleSetPrevLoop_210a4.py` | `28b3b03d25d5cbdc6fd74f0b7b8df755531e178c4ace47eb76938b9726146888` | 8.0K | Tracked file |
 | `c/tests/test_dscDerateInit__2ce0c.py` | `1d318ac8f63d8cf88176981568d20b80c95c67d9fbf6d1e5d17a7a70f4b555d7` | 8.2K | Tracked file |
+| `c/tests/test_dscRelatedTiming_0x18D3C.py` | `ffca9f7b303bddab290d5a4789e38dd3e5019e2900b42a8c44700364a4957184` | 11.1K | Tracked file |
 | `c/tests/test_dsc_torque_derate_calc_2ce24.py` | `c613e9679e93baefd8a82a07fce555d1ab0fab32d0de832302d61d02a38b740d` | 15.6K | Tracked file |
 | `c/tests/test_dtcCodeTypeInit_5991e.py` | `08af7d1a97ab4ddc112bfd0ad686b83ac05fba371755b7f46cb5468e91036274` | 6.7K | Tracked file |
 | `c/tests/test_dtcCodeTypeInit_5bb6a.py` | `f573bfe7bff4127a636d5e895675d232d839ec129e67e002328e04c7f377deff` | 6.3K | Tracked file |
