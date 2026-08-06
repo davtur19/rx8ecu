@@ -295,7 +295,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 and _base is not None and _base < 0x10000
                 and _base + 4 <= len(rom)):
             return None
-        return int.from_bytes(rom[_base:_base + 4], 'big') & MASK
+        _out = int.from_bytes(rom[_base:_base + 4], 'big') & MASK
+        if _out == 0 or ops.classify_addr(_out) != 'ROM':
+            return None
+        return _out
 
     def temp():
         st['tmp'][0] += 1
