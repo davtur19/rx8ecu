@@ -1,20 +1,20 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5110 entries, 92.1M.** Regenerated 2026-08-02 for the
+in the working repository. **5113 entries, 92.1M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 791.3K |
+| (root) | 11 | 791.9K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2068 | 4.7M |
-| c/tests/ | 2135 | 16.9M |
-| tools/ | 29 | 695.3K |
+| c/ | 2070 | 4.8M |
+| c/tests/ | 2136 | 16.9M |
+| tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
 | hardware/ | 1 | 2.0K |
@@ -23,7 +23,7 @@ in the working repository. **5110 entries, 92.1M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5110** | 92.1M |
+| **Total** | **5113** | 92.1M |
 
 ## External dependencies
 
@@ -1399,6 +1399,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/lib/caller_2E2E8.c` | `c88877afa518ae2a64c815d203c82fe9ac8020ba1c60d3e36b003ec7f7525441` | 6.7K | Tracked file |
 | `c/lib/caller_2EB10.c` | `b851b72667eae5fb0e856c46ad59dda965ced254304bc94c0edc72059187efb0` | 1.0K | Tracked file |
 | `c/lib/caller_2ECB8.c` | `da92d041cf5fbeddfe2b7b8452653ad34319fa2f4a8e6cfbeeffa6f5801722a5` | 2.8K | Tracked file |
+| `c/lib/caller_2ECF8.c` | `c06b9677c25bb56ddfd25fce5bbdf65c865b2a9326c3502a030600ae81f70617` | 2.9K | Tracked file |
 | `c/lib/caller_2F418.c` | `e63935ef89daee91e1bc36a60c6ce1ca8e5d9af31d15d8b9204533c50e5c2aa5` | 1.0K | Tracked file |
 | `c/lib/caller_2F426.c` | `37dd72ead7741d57197f1b97d71f3d2dabb7a6248d223935b502ab3d9555e243` | 1.0K | Tracked file |
 | `c/lib/caller_2F640.c` | `bd7ed1eb896eabe9c81f8bc45a2a0da893647b16d5f9bd301d94e332c9ca92c3` | 3.5K | Tracked file |
@@ -1647,6 +1648,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/lib/caller_FC8A.c` | `a8b2ee58cdc4b465c9f48a80a863ac5cf6d57ad85d90ce66b6d7f20bde2d1f4c` | 1.4K | Tracked file |
 | `c/lib/f_3EE58.c` | `aa5d8174c978d4fc3617537d9521e6cb3a1c2f17f12def12dcbb0f95c8f135cb` | 1003B | Tracked file |
 | `c/lib/f_3EE68.c` | `fbff0061d61d05f68830ba3d3c6de7a6f994f127c167df37a75dad69690caadd` | 1008B | Tracked file |
+| `c/lib/f_5AD5C.c` | `d341fc6f604c56aff0792237b02b95ad7aa182415449f781cb6ba427efc8660a` | 7.6K | Tracked file |
 | `c/limitKnockRetardMax_ConditionalRPM.c` | `0cd5ecce7b0dcf470bbb23ea98cb4b8ad5ecddd460a443581d56742076f1a920` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/loadDatafromE2intoRAM.c` | `688e09298a8445190ada3ce00f18398defef7db140b9c99e305e9fc084a8d510` | 590B | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/loadStatusRegister_ADDR.c` | `726a3760492a53116a9d8f7a7e27110de3781958acdac71f5a020ab227fed3f8` | 1.3K | Tracked file |
@@ -2754,6 +2756,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_caller_2E2E8.py` | `ab3f523b52076d03003dd01964beb026a0bcb0b9192b7058a3f171ab908e51ce` | 13.8K | Tracked file |
 | `c/tests/test_caller_2EB10.py` | `ab76e53246ce6733c76739176cb9bf2cc24b38adc2fea3dc7a7fcda125c22351` | 10.2K | Tracked file |
 | `c/tests/test_caller_2ECB8.py` | `e3fbafbf528f072df5d8b2fe55ac68a50b9e8019e8fd2289b78527bcc89de120` | 11.0K | Tracked file |
+| `c/tests/test_caller_2ECF8.py` | `09b1e5c46a3cea7614b602c2be6ccd543a9cc2b9111f1a5c234126777ed4195b` | 19.9K | Tracked file |
 | `c/tests/test_caller_2F418.py` | `21456dbb5ee4c9bb6f6886d62997c4aace9ad61b51b1baaa2431573bc5eb9a48` | 10.2K | Tracked file |
 | `c/tests/test_caller_2F426.py` | `c129deed986d0588c056df890116613041252771930005da6f217d9a9635285a` | 8.5K | Tracked file |
 | `c/tests/test_caller_2F640.py` | `8df3e59d2a6c0b59a5700efdc65a0c557b610001a08baf2c63a56d3f3f9c762e` | 12.3K | Tracked file |
@@ -4360,12 +4363,12 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `tools/ASM_BASELINE.md` | `9d44b22cedc71a4fda4000e7bdd93a071b8778a4c00fd1838bee5414b811977c` | 4.3K | Method, byte-exact proof, coverage, limits, next steps |
 | `tools/README.md` | `bfb2018e4b0d9e7fe187ecd6cc6b9a5217a82c0dfbb7e9d4635ada77b7bfc071` | 3.2K | Directory README |
-| `tools/c_lift_ops.py` | `ea4d7656f2baae355f909ef58d7215d9c836fa62e55126bab7bf80dff844b8b6` | 71.3K | Tracked file |
+| `tools/c_lift_ops.py` | `c7d036380fa5e97cfd981a46c8424f34eb38db54f24afeef4a1048b39bb5bb50` | 73.2K | Tracked file |
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
 | `tools/classify_functions.py` | `8a8fed345454482ef296379cdcd087b38e1c9da396ea3511d1a5b5992165c41c` | 29.3K | Tracked file |
 | `tools/cross_decode.py` | `3a6532e07091d41fc4f4f94d3890bec87cb37726f7fb0bb8c3a6c9e32cf028c8` | 12.2K | RE tool (see tools/README.md) |
 | `tools/denso_ck.py` | `3b4f2f74ea4256bf2a16e667ee1e56af7220167d8ec04f3a3fa38ba15c26fb33` | 1.8K | RE tool (see tools/README.md) |
-| `tools/disasm_sh2e.py` | `8285f0540ba48534d4df9bafd6f1b2515caaf992133f8c1cdd3e78151f29452a` | 19.2K | RE tool (see tools/README.md) |
+| `tools/disasm_sh2e.py` | `92ebc88867daa1e59b10acfdd20b1951adadc2953743622a6b12f1d4282296df` | 19.6K | RE tool (see tools/README.md) |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
 | `tools/fix_romcodes.py` | `a4ac233c37e70a09e297a246fdd016e69c0d824486a8a9e15cb9dd0be530a007` | 3.0K | Tracked file |
 | `tools/gen_c_lift.py` | `ef9eb77ded99ab403a62ff5379c7ebde50dbdc4b01b8dd316fd643a66f40d7fa` | 65.4K | Tracked file |
@@ -4383,7 +4386,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/rom2asm.py` | `a0cc400125d3f3f913285fc873b73b784c1f2d3f2d07ed139fdb6a7112722da4` | 6.5K | RE tool (see tools/README.md) |
 | `tools/rom_rebuild.py` | `389f1044dda89555dd85b02c8f351b6371f02139763eb531af042365000c88a7` | 7.3K | RE tool (see tools/README.md) |
 | `tools/run_tests_parallel.py` | `c63d357fc7283b6a4d7e95ca1401c5983b2132a065a792d4480f1155722dcb7d` | 5.1K | Parallel test runner (pytest, all suites) |
-| `tools/sh2emu.py` | `04a8d469e76ecfd38ba5fab5d9310de4af64a529e3820c6ae4740459d07131bc` | 30.9K | RE tool (see tools/README.md) |
+| `tools/sh2emu.py` | `823b65386a720c8a5ccd014a34d3b8bbb36472523b7959848ae39e84a1fb03da` | 31.8K | RE tool (see tools/README.md) |
 | `tools/verify_all.sh` | `532ae54090d86461560542a95a19b9ed3f16654e84ccf0f0dc60531df0f5f53d` | 4.1K | RE tool script (see tools/README.md) |
 | `tools/verify_formal.py` | `eebf7f29d156405941f30c21d29398776e140a191a449262cdf9b0c144c28332` | 30.6K | Tracked file |
 | `tools/xmap_names.py` | `ee1bb9ec6bf9dc33695be8527fb4454a291732ae307a8d1ec696b0f77ce358a2` | 5.6K | RE tool (see tools/README.md) |
