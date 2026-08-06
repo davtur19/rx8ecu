@@ -437,9 +437,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x009b92,0x009C34,doSomethingIfByteIs1InCANSetup,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x009c34,0x009C40,FUN_009c34,derived,,,,,CAN Bus
 60E0E500,0x009c40,0x009C86,FUN_009c40,derived,,,,,CAN Bus
-60E0E500,0x009c86,0x009C8E,FUN_009c86,derived,,,,,
+60E0E500,0x009c86,0x009C8E,FUN_009c86,derived,,,,,Utilities
 60E0E500,0x009c8e,0x009C9C,FUN_009c8e,derived,,caller,,,CAN Bus
-60E0E500,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,
+60E0E500,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,Utilities
 60E0E500,0x009ca4,0x009CE0,FUN_009ca4,derived,,,,,CAN Bus
 60E0E500,0x009ce0,0x009D02,FUN_009ce0,derived,,,,,Peripherals & ISR
 60E0E500,0x009d02,0x009D24,FUN_009d02,derived,,FUN_00009d02,,,Peripherals & ISR
@@ -483,7 +483,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x00abd2,0x00ABDA,FUN_00abd2,derived,,,,,Boot & Init
 60E0E500,0x00abda,0x00ABEA,FUN_00abda,derived,,,,,Boot & Init
 60E0E500,0x00abea,0x00ABFA,FUN_00abea,derived,,,,,Boot & Init
-60E0E500,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,
+60E0E500,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,Memory & CRC
 60E0E500,0x00ac02,0x00AC08,FUN_00ac02,derived,,,,,Peripherals & ISR
 60E0E500,0x00ac08,0x00ACFC,FUN_00ac08,derived,,,,,Peripherals & ISR
 60E0E500,0x00acfc,0x00AD16,FUN_00acfc,derived,,,,,RTOS
@@ -561,7 +561,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x00d21e,0x00D262,main??,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x00d262,0x00D28E,interestingCANSomething,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x00d28e,0x00D2E8,FUN_00d28e,derived,,,,,Math / FPU
-60E0E500,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,
+60E0E500,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,Sensors
 60E0E500,0x00d2f6,0x00D3B8,FUN_00d2f6,derived,,,,connor-xmap,Boot & Init
 60E0E500,0x00d3b8,0x00D3CE,FUN_00d3b8,derived,,clear_a3f9_if_not_state_2,,,Faults & DTC
 60E0E500,0x00d3ce,0x00D408,FUN_00d3ce,derived,,,,,Boot & Init
@@ -856,7 +856,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x013504,0x013530,FUN_013504,derived,,,,,
 60E0E500,0x013530,0x013660,FUN_013530,derived,,,,,Fuel & Lambda
 60E0E500,0x013660,0x01366A,FUN_013660,derived,,,,,Fuel & Lambda
-60E0E500,0x01366a,0x013672,FUN_01366a,derived,,,,,
+60E0E500,0x01366a,0x013672,FUN_01366a,derived,,,,,Memory & CRC
 60E0E500,0x013672,0x0136C2,getKnockControlAllowed??,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0E500,0x0136c2,0x0136EA,getKnockSensorFaultedStatus?,ghidra-hand-xmap,,,,,Faults & DTC
 60E0E500,0x0136ea,0x01374A,getKnockControlActive,ghidra-hand-xmap,,,,,Ignition & Knock
@@ -956,7 +956,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x01598c,0x01599A,FUN_01598c,derived,,,,,Fuel & Lambda
 60E0E500,0x01599a,0x0159D2,FUN_01599a,derived,,,,,Fuel & Lambda
 60E0E500,0x0159d2,0x0159DC,FUN_0159d2,derived,,,,,
-60E0E500,0x0159dc,0x0159E6,FUN_0159dc,derived,,,,,
+60E0E500,0x0159dc,0x0159E6,FUN_0159dc,derived,,,,,Boot & Init
 60E0E500,0x0159e6,0x015BB2,FUN_0159e6,derived,,,,,Fuel & Lambda
 60E0E500,0x015bb2,0x015BBC,FUN_015bb2,derived,,,,,Fuel & Lambda
 60E0E500,0x015bbc,0x015C70,FUN_015bbc,derived,,,,,Fuel & Lambda
@@ -1159,7 +1159,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x01a40e,0x01A430,FUN_01a40e,derived,,,,,
 60E0E500,0x01a430,0x01A458,calculateKeyOnTime,ghidra-hand-xmap,,,,,Utilities
 60E0E500,0x01a458,0x01A488,calculateKeyOffTime,ghidra-hand-xmap,,,,,Utilities
-60E0E500,0x01a488,0x01A496,FUN_01a488,derived,,,,,
+60E0E500,0x01a488,0x01A496,FUN_01a488,derived,,,,,Rev Limit
 60E0E500,0x01a496,0x01A4A4,FUN_01a496,derived,,,,,Ignition & Knock
 60E0E500,0x01a4a4,0x01A4C2,FUN_01a4a4,derived,,,,,Ignition & Knock
 60E0E500,0x01a4c2,0x01A4FA,FUN_01a4c2,derived,,,,,Fuel & Lambda
@@ -1207,7 +1207,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x01af2e,0x01AF42,FUN_01af2e,derived,,,,,Peripherals & ISR
 60E0E500,0x01af42,0x01AFD2,FUN_01af42,derived,,,,,Peripherals & ISR
 60E0E500,0x01afd2,0x01B044,FUN_01afd2,derived,,,,,Ignition & Knock
-60E0E500,0x01b044,0x01B04E,FUN_01b044,derived,,,,,
+60E0E500,0x01b044,0x01B04E,FUN_01b044,derived,,,,,Ignition & Knock
 60E0E500,0x01b04e,0x01B058,FUN_01b04e,derived,,,,,Fuel & Lambda
 60E0E500,0x01b058,0x01B100,FUN_01b058,derived,,,,,Ignition & Knock
 60E0E500,0x01b100,0x01B114,FUN_01b100,derived,,,,,Ignition & Knock
@@ -1905,7 +1905,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x022f0c,0x022F5E,FUN_022f0c,derived,,,,,
 60E0E500,0x022f5e,0x022FB0,FUN_022f5e,derived,,,,,
 60E0E500,0x022fb0,0x022FB2,FUN_022fb0,derived,NOISE,,,,Math / FPU
-60E0E500,0x022fb2,0x022FBC,FUN_022fb2,derived,,,,,
+60E0E500,0x022fb2,0x022FBC,FUN_022fb2,derived,,,,,Math / FPU
 60E0E500,0x022fbc,0x022FBE,FUN_022fbc,derived,NOISE,,,,
 60E0E500,0x022fbe,0x022FCA,FUN_022fbe,derived,,,,,
 60E0E500,0x022fca,0x022FD8,FUN_022fca,derived,,,,,
@@ -2239,7 +2239,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x025926,0x02592A,FUN_025926,derived,NOISE,,,,
 60E0E500,0x02592a,0x02592E,FUN_02592a,derived,NOISE,,,,
 60E0E500,0x02592e,0x025936,FUN_02592e,derived,,,,,
-60E0E500,0x025936,0x025938,FUN_025936,derived,NOISE,,,,
+60E0E500,0x025936,0x025938,FUN_025936,derived,NOISE,,,,Sensors
 60E0E500,0x025938,0x025940,FUN_025938,derived,,,,,Sensors
 60E0E500,0x025940,0x025942,FUN_025940,derived,NOISE,,,,Fuel & Lambda
 60E0E500,0x025942,0x025946,FUN_025942,derived,NOISE,,,,Fuel & Lambda
@@ -2249,7 +2249,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x025952,0x025958,FUN_025952,derived,,,,,Fuel & Lambda
 60E0E500,0x025958,0x02595A,FUN_025958,derived,NOISE,,,,
 60E0E500,0x02595a,0x02595C,FUN_02595a,derived,NOISE,,,,Sensors
-60E0E500,0x02595c,0x025960,FUN_02595c,derived,NOISE,,,,
+60E0E500,0x02595c,0x025960,FUN_02595c,derived,NOISE,,,,Sensors
 60E0E500,0x025960,0x025964,FUN_025960,derived,NOISE,,,,Sensors
 60E0E500,0x025964,0x025966,FUN_025964,derived,NOISE,,,,Sensors
 60E0E500,0x025966,0x025968,FUN_025966,derived,NOISE,,,,Sensors
@@ -2319,9 +2319,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x025f50,0x025F5E,FUN_025f50,derived,,,,,Boot & Init
 60E0E500,0x025f5e,0x025F60,FUN_025f5e,derived,NOISE,,,,Fuel & Lambda
 60E0E500,0x025f60,0x025FD0,FUN_025f60,derived,,,,,Fuel & Lambda
-60E0E500,0x025fd0,0x025FD8,FUN_025fd0,derived,,,,,
+60E0E500,0x025fd0,0x025FD8,FUN_025fd0,derived,,,,,Boot & Init
 60E0E500,0x025fd8,0x025FE2,FUN_025fd8,derived,,,,,Fuel & Lambda
-60E0E500,0x025fe2,0x025FE4,FUN_025fe2,derived,NOISE,,,,
+60E0E500,0x025fe2,0x025FE4,FUN_025fe2,derived,NOISE,,,,Boot & Init
 60E0E500,0x025fe4,0x025FF2,FUN_025fe4,derived,,,,,Boot & Init
 60E0E500,0x025ff2,0x026038,FUN_025ff2,derived,,,,,
 60E0E500,0x026038,0x02603E,FUN_026038,derived,,,,,
@@ -2841,8 +2841,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x029698,0x02969E,FUN_029698,derived,,,,,Memory & CRC
 60E0E500,0x02969e,0x0296A2,FUN_02969e,derived,NOISE,,,,
 60E0E500,0x0296a2,0x0296A4,FUN_0296a2,derived,NOISE,,,,Memory & CRC
-60E0E500,0x0296a4,0x0296AA,FUN_0296a4,derived,,,,,
-60E0E500,0x0296aa,0x0296AC,FUN_0296aa,derived,NOISE,,,,
+60E0E500,0x0296a4,0x0296AA,FUN_0296a4,derived,,,,,Memory & CRC
+60E0E500,0x0296aa,0x0296AC,FUN_0296aa,derived,NOISE,,,,Memory & CRC
 60E0E500,0x0296ac,0x0296B6,FUN_0296ac,derived,,,,,Memory & CRC
 60E0E500,0x0296b6,0x0296BE,stubByte420TX,ghidra-hand-xmap,,,,,CAN Bus
 60E0E500,0x0296be,0x0296E6,setOilPressureGaugeStatus,ghidra-hand-xmap,,,,,Oil Metering
@@ -3231,7 +3231,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x02c444,0x02C448,FUN_02c444,derived,NOISE,,,,CAN Bus
 60E0E500,0x02c448,0x02C44A,FUN_02c448,derived,NOISE,,,,CAN Bus
 60E0E500,0x02c44a,0x02C474,can650TX_getAndPack,ghidra-hand-xmap,,,,,CAN Bus
-60E0E500,0x02c474,0x02C47C,FUN_02c474,derived,,,,,
+60E0E500,0x02c474,0x02C47C,FUN_02c474,derived,,,,,CAN Bus
 60E0E500,0x02c47c,0x02C48C,FUN_02c47c,derived,,,,,CAN Bus
 60E0E500,0x02c48c,0x02C4C8,FUN_02c48c,derived,,,,,CAN Bus
 60E0E500,0x02c4c8,0x02C4D2,FUN_02c4c8,derived,,,,,
@@ -3254,7 +3254,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x02c602,0x02C622,FUN_02c602,derived,,,,,Peripherals & ISR
 60E0E500,0x02c622,0x02C68C,FUN_02c622,derived,,,,,Peripherals & ISR
 60E0E500,0x02c68c,0x02C696,FUN_02c68c,derived,,,,,Utilities
-60E0E500,0x02c696,0x02C6A0,FUN_02c696,derived,,,,,
+60E0E500,0x02c696,0x02C6A0,FUN_02c696,derived,,,,,Ignition & Knock
 60E0E500,0x02c6a0,0x02C6C2,FUN_02c6a0,derived,,,,,Math / FPU
 60E0E500,0x02c6c2,0x02C6DC,FUN_02c6c2,derived,,,,,Math / FPU
 60E0E500,0x02c6dc,0x02C6E0,FUN_02c6dc,derived,NOISE,,,,Math / FPU
@@ -3476,12 +3476,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x02e072,0x02E09E,FUN_02e072,derived,,,,,Throttle & Torque
 60E0E500,0x02e09e,0x02E0A2,FUN_02e09e,derived,NOISE,,,,
 60E0E500,0x02e0a2,0x02E0B2,FUN_02e0a2,derived,,,,,
-60E0E500,0x02e0b2,0x02E0B4,FUN_02e0b2,derived,NOISE,,,,
+60E0E500,0x02e0b2,0x02E0B4,FUN_02e0b2,derived,NOISE,,,,Throttle & Torque
 60E0E500,0x02e0b4,0x02E0D2,FUN_02e0b4,derived,,,,,Throttle & Torque
 60E0E500,0x02e0d2,0x02E0FE,FUN_02e0d2,derived,,,,,Throttle & Torque
 60E0E500,0x02e0fe,0x02E104,FUN_02e0fe,derived,,,,,
 60E0E500,0x02e104,0x02E106,FUN_02e104,derived,NOISE,,,,
-60E0E500,0x02e106,0x02E108,FUN_02e106,derived,NOISE,,,,
+60E0E500,0x02e106,0x02E108,FUN_02e106,derived,NOISE,,,,Throttle & Torque
 60E0E500,0x02e108,0x02E10A,FUN_02e108,derived,NOISE,,,,Throttle & Torque
 60E0E500,0x02e10a,0x02E110,FUN_02e10a,derived,,,,,Throttle & Torque
 60E0E500,0x02e110,0x02E168,FUN_02e110,derived,,,,,Throttle & Torque
@@ -3590,8 +3590,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x02ef0a,0x02EF10,FUN_02ef0a,derived,,,,,Math / FPU
 60E0E500,0x02ef10,0x02EF16,FUN_02ef10,derived,,,,,Math / FPU
 60E0E500,0x02ef16,0x02EF3C,FUN_02ef16,derived,,,,,Math / FPU
-60E0E500,0x02ef3c,0x02EF4A,FUN_02ef3c,derived,,,,,
-60E0E500,0x02ef4a,0x02EF4E,FUN_02ef4a,derived,NOISE,,,,
+60E0E500,0x02ef3c,0x02EF4A,FUN_02ef3c,derived,,,,,Throttle & Torque
+60E0E500,0x02ef4a,0x02EF4E,FUN_02ef4a,derived,NOISE,,,,Boot & Init
 60E0E500,0x02ef4e,0x02EF6C,FUN_02ef4e,derived,,,,,Math / FPU
 60E0E500,0x02ef6c,0x02EFA6,FUN_02ef6c,derived,,,,,Throttle & Torque
 60E0E500,0x02efa6,0x02EFAA,FUN_02efa6,derived,NOISE,,,,Sensors
@@ -3971,7 +3971,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x03207c,0x0320FA,FUN_03207c,derived,,,,,Math / FPU
 60E0E500,0x0320fa,0x0321D4,FUN_0320fa,derived,,,,,Math / FPU
 60E0E500,0x0321d4,0x0321EC,FUN_0321d4,derived,,,,,Math / FPU
-60E0E500,0x0321ec,0x0321F6,FUN_0321ec,derived,,,,,
+60E0E500,0x0321ec,0x0321F6,FUN_0321ec,derived,,,,,Sensors
 60E0E500,0x0321f6,0x03221E,getEngineOffTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0E500,0x03221e,0x032222,FUN_03221e,derived,NOISE,,,,Peripherals & ISR
 60E0E500,0x032222,0x032242,FUN_032222,derived,,,,,Peripherals & ISR
@@ -4039,7 +4039,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x0328da,0x032954,FUN_0328da,derived,,,,,Math / FPU
 60E0E500,0x032954,0x032968,FUN_032954,derived,,,,,
 60E0E500,0x032968,0x03298E,FUN_032968,derived,,,,,Faults & DTC
-60E0E500,0x03298e,0x032990,FUN_03298e,derived,NOISE,,,,
+60E0E500,0x03298e,0x032990,FUN_03298e,derived,NOISE,,,,Math / FPU
 60E0E500,0x032990,0x03299A,FUN_032990,derived,,,,,Math / FPU
 60E0E500,0x03299a,0x0329C8,FUN_03299a,derived,,,,,Math / FPU
 60E0E500,0x0329c8,0x0329D0,FUN_0329c8,derived,,,,,Math / FPU
@@ -4583,7 +4583,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x03f70c,0x03F746,FUN_03f70c,derived,,,,,RTOS
 60E0E500,0x03f746,0x03F75A,FUN_03f746,derived,,,,,RTOS
 60E0E500,0x03f75a,0x03F764,FUN_03f75a,derived,,,,,
-60E0E500,0x03f764,0x03F770,FUN_03f764,derived,,,,,
+60E0E500,0x03f764,0x03F770,FUN_03f764,derived,,,,,Faults & DTC
 60E0E500,0x03f770,0x03F776,FUN_03f770,derived,,,,,Rev Limit
 60E0E500,0x03f776,0x03F7AE,FUN_03f776,derived,,,,,Rev Limit
 60E0E500,0x03f7ae,0x03F7B0,FUN_03f7ae,derived,NOISE,,,,Fuel & Lambda
@@ -5012,7 +5012,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x049052,0x049154,FUN_049052,derived,,,,,Throttle & Torque
 60E0E500,0x049154,0x049164,FUN_049154,derived,,,,,Boot & Init
 60E0E500,0x049164,0x049184,FUN_049164,derived,,,,,Boot & Init
-60E0E500,0x049184,0x04918C,FUN_049184,derived,,,,,
+60E0E500,0x049184,0x04918C,FUN_049184,derived,,,,,Boot & Init
 60E0E500,0x04918c,0x049194,FUN_04918c,derived,,,,,CAN Bus
 60E0E500,0x049194,0x04919C,FUN_049194,derived,,,,,CAN Bus
 60E0E500,0x04919c,0x0491A4,FUN_04919c,derived,,,,,Peripherals & ISR
@@ -5227,7 +5227,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x04c966,0x04C9AA,getOBDCANTXVars1,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x04c9aa,0x04C9C2,FUN_04c9aa,derived,,,,,OBD / UDS
 60E0E500,0x04c9c2,0x04C9F2,FUN_04c9c2,derived,,,,,OBD / UDS
-60E0E500,0x04c9f2,0x04C9F4,FUN_04c9f2,derived,NOISE,,,,
+60E0E500,0x04c9f2,0x04C9F4,FUN_04c9f2,derived,NOISE,,,,CAN Bus
 60E0E500,0x04c9f4,0x04C9FA,FUN_04c9f4,derived,,,,,CAN Bus
 60E0E500,0x04c9fa,0x04CA02,FUN_04c9fa,derived,,,,,CAN Bus
 60E0E500,0x04ca02,0x04CA10,FUN_04ca02,derived,,,,,RTOS
@@ -5300,7 +5300,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x04d14e,0x04D15E,FUN_04d14e,derived,,,,,
 60E0E500,0x04d15e,0x04D16E,FUN_04d15e,derived,,,,,
 60E0E500,0x04d16e,0x04D184,FUN_04d16e,derived,,,,,
-60E0E500,0x04d184,0x04D18C,FUN_04d184,derived,,,,,
+60E0E500,0x04d184,0x04D18C,FUN_04d184,derived,,,,,Ignition & Knock
 60E0E500,0x04d18c,0x04D25E,FUN_04d18c,derived,,,,,Math / FPU
 60E0E500,0x04d25e,0x04D276,FUN_04d25e,derived,,,,,Math / FPU
 60E0E500,0x04d276,0x04D282,FUN_04d276,derived,,,,,Math / FPU
@@ -6575,9 +6575,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E500,0x068132,0x068140,FUN_068132,derived,,,,,OBD / UDS
 60E0E500,0x068140,0x068146,FUN_068140,derived,,,,,OBD / UDS
 60E0E500,0x068146,0x06814C,FUN_068146,derived,,,,,OBD / UDS
-60E0E500,0x06814c,0x068152,FUN_06814c,derived,,,,,
+60E0E500,0x06814c,0x068152,FUN_06814c,derived,,,,,Boot & Init
 60E0E500,0x068152,0x068158,FUN_068152,derived,,,,,OBD / UDS
-60E0E500,0x068158,0x06815E,FUN_068158,derived,,,,,
+60E0E500,0x068158,0x06815E,FUN_068158,derived,,,,,Utilities
 60E0E500,0x06815e,0x068188,FUN_06815e,derived,,,,,OBD / UDS
 60E0E500,0x068188,0x06821A,udsHandler,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E500,0x06821a,0x0682B8,udsResponseRelated2,ghidra-hand-xmap,,,,,OBD / UDS
@@ -7742,9 +7742,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x009b92,0x009C34,doSomethingIfByteIs1InCANSetup,ghidra-hand-xmap,,,,,CAN Bus
 60E0E700,0x009c34,0x009C40,FUN_009c34,derived,,,,,CAN Bus
 60E0E700,0x009c40,0x009C86,FUN_009c40,derived,,,,,CAN Bus
-60E0E700,0x009c86,0x009C8E,FUN_009c86,derived,,,,,
+60E0E700,0x009c86,0x009C8E,FUN_009c86,derived,,,,,Utilities
 60E0E700,0x009c8e,0x009C9C,FUN_009c8e,derived,,caller,,,CAN Bus
-60E0E700,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,
+60E0E700,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,Utilities
 60E0E700,0x009ca4,0x009CE0,FUN_009ca4,derived,,,,,CAN Bus
 60E0E700,0x009ce0,0x009D02,FUN_009ce0,derived,,,,,Peripherals & ISR
 60E0E700,0x009d02,0x009D24,FUN_009d02,derived,,FUN_00009d02,,,Peripherals & ISR
@@ -7784,7 +7784,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x00aac4,0x00AB6C,FUN_00aac4,derived,,,,,RTOS
 60E0E700,0x00ab6c,0x00AB8A,FUN_00ab6c,derived,,,,,Ignition & Knock
 60E0E700,0x00ab8a,0x00ABFA,FUN_00ab8a,derived,,,,,Boot & Init
-60E0E700,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,
+60E0E700,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,Memory & CRC
 60E0E700,0x00ac02,0x00AC08,FUN_00ac02,derived,,,,,Peripherals & ISR
 60E0E700,0x00ac08,0x00AC3E,FUN_00ac08,derived,,,,,Peripherals & ISR
 60E0E700,0x00ac3e,0x00ACFC,FUN_00ac3e,derived,,,,,Peripherals & ISR
@@ -7865,7 +7865,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x00d21e,0x00D262,main??,ghidra-hand-xmap,,,,,CAN Bus
 60E0E700,0x00d262,0x00D28E,interestingCANSomething,ghidra-hand-xmap,,,,,CAN Bus
 60E0E700,0x00d28e,0x00D2E8,FUN_00d28e,derived,,,,,Math / FPU
-60E0E700,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,
+60E0E700,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,Sensors
 60E0E700,0x00d2f6,0x00D3B8,FUN_00d2f6,derived,,,,connor-xmap,Boot & Init
 60E0E700,0x00d3b8,0x00D3CE,FUN_00d3b8,derived,,clear_a3f9_if_not_state_2,,,Faults & DTC
 60E0E700,0x00d3ce,0x00D408,FUN_00d3ce,derived,,,,,Boot & Init
@@ -8171,7 +8171,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x013688,0x01369C,FUN_013688,derived,,,,,
 60E0E700,0x01369c,0x0137CC,FUN_01369c,derived,,,,,Fuel & Lambda
 60E0E700,0x0137cc,0x0137D6,FUN_0137cc,derived,,,,,Fuel & Lambda
-60E0E700,0x0137d6,0x0137DE,FUN_0137d6,derived,,,,,
+60E0E700,0x0137d6,0x0137DE,FUN_0137d6,derived,,,,,Memory & CRC
 60E0E700,0x0137de,0x01382E,getKnockControlAllowed??,ghidra-hand-xmap,,,,,Ignition & Knock
 60E0E700,0x01382e,0x013856,getKnockSensorFaultedStatus?,ghidra-hand-xmap,,,,,Faults & DTC
 60E0E700,0x013856,0x0138B8,getKnockControlActive,ghidra-hand-xmap,,,,,Ignition & Knock
@@ -8268,7 +8268,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0159fa,0x015AF8,FUN_0159fa,derived,,,,,Fuel & Lambda
 60E0E700,0x015af8,0x015B1E,FUN_015af8,derived,,,,,Fuel & Lambda
 60E0E700,0x015b1e,0x015B48,FUN_015b1e,derived,,,,,Fuel & Lambda
-60E0E700,0x015b48,0x015B52,FUN_015b48,derived,,,,,
+60E0E700,0x015b48,0x015B52,FUN_015b48,derived,,,,,Boot & Init
 60E0E700,0x015b52,0x015B56,FUN_015b52,derived,NOISE,,,,Fuel & Lambda
 60E0E700,0x015b56,0x015D36,FUN_015b56,derived,,,,,Fuel & Lambda
 60E0E700,0x015d36,0x015D40,FUN_015d36,derived,,,,,Fuel & Lambda
@@ -8470,7 +8470,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x01a59c,0x01A5C4,calculateKeyOnTime,ghidra-hand-xmap,,,,,Utilities
 60E0E700,0x01a5c4,0x01A5C6,FUN_01a5c4,derived,NOISE,,,,Utilities
 60E0E700,0x01a5c6,0x01A5F4,FUN_01a5c6,derived,,,,,Utilities
-60E0E700,0x01a5f4,0x01A5F6,FUN_01a5f4,derived,NOISE,,,,
+60E0E700,0x01a5f4,0x01A5F6,FUN_01a5f4,derived,NOISE,,,,Rev Limit
 60E0E700,0x01a5f6,0x01A602,FUN_01a5f6,derived,,,,,
 60E0E700,0x01a602,0x01A610,FUN_01a602,derived,,,,,Ignition & Knock
 60E0E700,0x01a610,0x01A63E,FUN_01a610,derived,,,,,Ignition & Knock
@@ -8517,7 +8517,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x01b12e,0x01B13E,FUN_01b12e,derived,,,,,Peripherals & ISR
 60E0E700,0x01b13e,0x01B18A,FUN_01b13e,derived,,,,,Ignition & Knock
 60E0E700,0x01b18a,0x01B1B0,FUN_01b18a,derived,,,,,
-60E0E700,0x01b1b0,0x01B1BA,FUN_01b1b0,derived,,,,,
+60E0E700,0x01b1b0,0x01B1BA,FUN_01b1b0,derived,,,,,Ignition & Knock
 60E0E700,0x01b1ba,0x01B1C4,FUN_01b1ba,derived,,,,,Fuel & Lambda
 60E0E700,0x01b1c4,0x01B1DE,FUN_01b1c4,derived,,,,,Ignition & Knock
 60E0E700,0x01b1de,0x01B26C,FUN_01b1de,derived,,,,,Ignition & Knock
@@ -9551,7 +9551,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x025a4c,0x025A4E,FUN_025a4c,derived,NOISE,,,,Sensors
 60E0E700,0x025a4e,0x025A90,FUN_025a4e,derived,,,,,Sensors
 60E0E700,0x025a90,0x025AA2,FUN_025a90,derived,,,,,
-60E0E700,0x025aa2,0x025AA4,FUN_025aa2,derived,NOISE,,,,
+60E0E700,0x025aa2,0x025AA4,FUN_025aa2,derived,NOISE,,,,Sensors
 60E0E700,0x025aa4,0x025AAA,FUN_025aa4,derived,,,,,Sensors
 60E0E700,0x025aaa,0x025AAC,FUN_025aaa,derived,NOISE,,,,Fuel & Lambda
 60E0E700,0x025aac,0x025AB2,FUN_025aac,derived,,,,,Fuel & Lambda
@@ -9575,7 +9575,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x025bea,0x025BEE,FUN_025bea,derived,NOISE,,,,
 60E0E700,0x025bee,0x025BF4,FUN_025bee,derived,,,,,
 60E0E700,0x025bf4,0x025BF6,FUN_025bf4,derived,NOISE,,,,
-60E0E700,0x025bf6,0x025BF8,FUN_025bf6,derived,NOISE,,,,
+60E0E700,0x025bf6,0x025BF8,FUN_025bf6,derived,NOISE,,,,Fuel & Lambda
 60E0E700,0x025bf8,0x025C02,FUN_025bf8,derived,,,,,Fuel & Lambda
 60E0E700,0x025c02,0x025C06,FUN_025c02,derived,NOISE,,,,Faults & DTC
 60E0E700,0x025c06,0x025C08,FUN_025c06,derived,NOISE,,,,Faults & DTC
@@ -9628,14 +9628,14 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x025ffc,0x026014,FUN_025ffc,derived,,,,,Faults & DTC
 60E0E700,0x026014,0x026028,FUN_026014,derived,,,,,Fuel & Lambda
 60E0E700,0x026028,0x026032,FUN_026028,derived,,,,,
-60E0E700,0x026032,0x026034,FUN_026032,derived,NOISE,,,,
+60E0E700,0x026032,0x026034,FUN_026032,derived,NOISE,,,,Peripherals & ISR
 60E0E700,0x026034,0x026064,FUN_026034,derived,,,,,Peripherals & ISR
 60E0E700,0x026064,0x0260CA,FUN_026064,derived,,,,,Peripherals & ISR
 60E0E700,0x0260ca,0x0260D4,FUN_0260ca,derived,,,,,Fuel & Lambda
 60E0E700,0x0260d4,0x0260E2,FUN_0260d4,derived,,,,,Fuel & Lambda
 60E0E700,0x0260e2,0x0260E4,FUN_0260e2,derived,NOISE,,,,Fuel & Lambda
 60E0E700,0x0260e4,0x02613C,FUN_0260e4,derived,,,,,Fuel & Lambda
-60E0E700,0x02613c,0x026144,FUN_02613c,derived,,,,,
+60E0E700,0x02613c,0x026144,FUN_02613c,derived,,,,,Boot & Init
 60E0E700,0x026144,0x026150,FUN_026144,derived,,,,,Fuel & Lambda
 60E0E700,0x026150,0x02615E,FUN_026150,derived,,,,,Boot & Init
 60E0E700,0x02615e,0x026166,FUN_02615e,derived,,,,,
@@ -9735,7 +9735,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0271f0,0x0271FE,FUN_0271f0,derived,,,,,
 60E0E700,0x0271fe,0x02721E,FUN_0271fe,derived,,,,,
 60E0E700,0x02721e,0x027228,FUN_02721e,derived,,,,,
-60E0E700,0x027228,0x02722A,FUN_027228,derived,NOISE,,,,
+60E0E700,0x027228,0x02722A,FUN_027228,derived,NOISE,,,,Math / FPU
 60E0E700,0x02722a,0x027230,FUN_02722a,derived,,,,,Math / FPU
 60E0E700,0x027230,0x02723A,FUN_027230,derived,,,,,Math / FPU
 60E0E700,0x02723a,0x027244,FUN_02723a,derived,,,,,Math / FPU
@@ -9937,7 +9937,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0281bc,0x0281D0,FUN_0281bc,derived,,,,,Math / FPU
 60E0E700,0x0281d0,0x0281D8,FUN_0281d0,derived,,,,,
 60E0E700,0x0281d8,0x028280,FUN_0281d8,derived,,,,,
-60E0E700,0x028280,0x028282,FUN_028280,derived,NOISE,,,,
+60E0E700,0x028280,0x028282,FUN_028280,derived,NOISE,,,,Boot & Init
 60E0E700,0x028282,0x028284,FUN_028282,derived,NOISE,,,,Boot & Init
 60E0E700,0x028284,0x028288,FUN_028284,derived,NOISE,,,,Boot & Init
 60E0E700,0x028288,0x0282A0,FUN_028288,derived,,,,,Boot & Init
@@ -10155,8 +10155,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0297e6,0x0297F4,FUN_0297e6,derived,,,,,CAN Bus
 60E0E700,0x0297f4,0x02980E,FUN_0297f4,derived,,,,,Memory & CRC
 60E0E700,0x02980e,0x029810,FUN_02980e,derived,NOISE,,,,Memory & CRC
-60E0E700,0x029810,0x029816,FUN_029810,derived,,,,,
-60E0E700,0x029816,0x029818,FUN_029816,derived,NOISE,,,,
+60E0E700,0x029810,0x029816,FUN_029810,derived,,,,,Memory & CRC
+60E0E700,0x029816,0x029818,FUN_029816,derived,NOISE,,,,Memory & CRC
 60E0E700,0x029818,0x02981C,FUN_029818,derived,NOISE,,,,Memory & CRC
 60E0E700,0x02981c,0x029822,FUN_02981c,derived,,,,,
 60E0E700,0x029822,0x029828,FUN_029822,derived,,,,,CAN Bus
@@ -10549,7 +10549,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x02c5b6,0x02C5B8,FUN_02c5b6,derived,NOISE,,,,CAN Bus
 60E0E700,0x02c5b8,0x02C5CC,FUN_02c5b8,derived,,,,,CAN Bus
 60E0E700,0x02c5cc,0x02C5E0,FUN_02c5cc,derived,,,,,CAN Bus
-60E0E700,0x02c5e0,0x02C5E8,FUN_02c5e0,derived,,,,,
+60E0E700,0x02c5e0,0x02C5E8,FUN_02c5e0,derived,,,,,CAN Bus
 60E0E700,0x02c5e8,0x02C5F8,FUN_02c5e8,derived,,,,,CAN Bus
 60E0E700,0x02c5f8,0x02C64C,FUN_02c5f8,derived,,calculateCruiseControlDriverRequest,,,CAN Bus
 60E0E700,0x02c64c,0x02C656,FUN_02c64c,derived,,,,,
@@ -10572,7 +10572,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x02c786,0x02C7A6,FUN_02c786,derived,,,,,Peripherals & ISR
 60E0E700,0x02c7a6,0x02C7F8,FUN_02c7a6,derived,,utility_bitfield_check_2C7A6,,,Utilities
 60E0E700,0x02c7f8,0x02C802,FUN_02c7f8,derived,,,,,Utilities
-60E0E700,0x02c802,0x02C80C,FUN_02c802,derived,,,,,
+60E0E700,0x02c802,0x02C80C,FUN_02c802,derived,,,,,Ignition & Knock
 60E0E700,0x02c80c,0x02C846,FUN_02c80c,derived,,,,,Math / FPU
 60E0E700,0x02c846,0x02C860,FUN_02c846,derived,,,,,Math / FPU
 60E0E700,0x02c860,0x02C864,FUN_02c860,derived,NOISE,,,,Math / FPU
@@ -10720,7 +10720,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x02dae6,0x02DAF4,FUN_02dae6,derived,,,,,
 60E0E700,0x02daf4,0x02DB14,FUN_02daf4,derived,,,,,
 60E0E700,0x02db14,0x02DB16,FUN_02db14,derived,NOISE,,,,Throttle & Torque
-60E0E700,0x02db16,0x02DB1E,FUN_02db16,derived,,,,,
+60E0E700,0x02db16,0x02DB1E,FUN_02db16,derived,,,,,Throttle & Torque
 60E0E700,0x02db1e,0x02DB38,FUN_02db1e,derived,,,,,Throttle & Torque
 60E0E700,0x02db38,0x02DB42,FUN_02db38,derived,,,,,Faults & DTC
 60E0E700,0x02db42,0x02DB5A,FUN_02db42,derived,,,,,Faults & DTC
@@ -10897,8 +10897,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x02f08e,0x02F094,FUN_02f08e,derived,,,,,
 60E0E700,0x02f094,0x02F09A,FUN_02f094,derived,,,,,
 60E0E700,0x02f09a,0x02F0A8,FUN_02f09a,derived,,,,,
-60E0E700,0x02f0a8,0x02F0B6,FUN_02f0a8,derived,,,,,
-60E0E700,0x02f0b6,0x02F0BA,FUN_02f0b6,derived,NOISE,,,,
+60E0E700,0x02f0a8,0x02F0B6,FUN_02f0a8,derived,,,,,Throttle & Torque
+60E0E700,0x02f0b6,0x02F0BA,FUN_02f0b6,derived,NOISE,,,,Boot & Init
 60E0E700,0x02f0ba,0x02F0D8,FUN_02f0ba,derived,,,,,Math / FPU
 60E0E700,0x02f0d8,0x02F12E,FUN_02f0d8,derived,,,,,Throttle & Torque
 60E0E700,0x02f12e,0x02F162,FUN_02f12e,derived,,,,,Sensors
@@ -11215,7 +11215,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0316f6,0x031762,FUN_0316f6,derived,,,,,Math / FPU
 60E0E700,0x031762,0x03176A,FUN_031762,derived,,,,,Math / FPU
 60E0E700,0x03176a,0x03176C,FUN_03176a,derived,NOISE,,,,Math / FPU
-60E0E700,0x03176c,0x031770,FUN_03176c,derived,NOISE,,,,
+60E0E700,0x03176c,0x031770,FUN_03176c,derived,NOISE,,,,Math / FPU
 60E0E700,0x031770,0x03178A,FUN_031770,derived,,,,,
 60E0E700,0x03178a,0x0317B0,FUN_03178a,derived,,,,,
 60E0E700,0x0317b0,0x031842,FUN_0317b0,derived,,,,,Math / FPU
@@ -11276,7 +11276,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x0321ae,0x0321E8,FUN_0321ae,derived,,,,,RTOS
 60E0E700,0x0321e8,0x03227E,FUN_0321e8,derived,,,,,Math / FPU
 60E0E700,0x03227e,0x032358,FUN_03227e,derived,,,,,Math / FPU
-60E0E700,0x032358,0x032362,FUN_032358,derived,,,,,
+60E0E700,0x032358,0x032362,FUN_032358,derived,,,,,Sensors
 60E0E700,0x032362,0x03238A,getEngineOffTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0E700,0x03238a,0x0323A2,getSecondaryAirOnTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E0E700,0x0323a2,0x0323A6,FUN_0323a2,derived,NOISE,,,,Peripherals & ISR
@@ -11376,11 +11376,11 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x033342,0x033374,FUN_033342,derived,,,,,
 60E0E700,0x033374,0x03337A,FUN_033374,derived,,,,,Boot & Init
 60E0E700,0x03337a,0x0333A2,FUN_03337a,derived,,,,,Peripherals & ISR
-60E0E700,0x0333a2,0x0333A4,FUN_0333a2,derived,NOISE,,,,
+60E0E700,0x0333a2,0x0333A4,FUN_0333a2,derived,NOISE,,,,Boot & Init
 60E0E700,0x0333a4,0x0333AC,FUN_0333a4,derived,,,,,Boot & Init
 60E0E700,0x0333ac,0x0333D6,FUN_0333ac,derived,,,,,CAN Bus
 60E0E700,0x0333d6,0x0333D8,FUN_0333d6,derived,NOISE,,,,Faults & DTC
-60E0E700,0x0333d8,0x0333E4,FUN_0333d8,derived,,,,,
+60E0E700,0x0333d8,0x0333E4,FUN_0333d8,derived,,,,,Faults & DTC
 60E0E700,0x0333e4,0x033430,FUN_0333e4,derived,,,,,Memory & CRC
 60E0E700,0x033430,0x033468,FUN_033430,derived,,,,,Memory & CRC
 60E0E700,0x033468,0x03346E,FUN_033468,derived,,,,,Boot & Init
@@ -11863,7 +11863,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x03f99a,0x03F9AE,FUN_03f99a,derived,,,,,RTOS
 60E0E700,0x03f9ae,0x03F9B6,FUN_03f9ae,derived,,,,,
 60E0E700,0x03f9b6,0x03F9BC,FUN_03f9b6,derived,,,,,
-60E0E700,0x03f9bc,0x03F9C8,FUN_03f9bc,derived,,,,,
+60E0E700,0x03f9bc,0x03F9C8,FUN_03f9bc,derived,,,,,Faults & DTC
 60E0E700,0x03f9c8,0x03F9CA,FUN_03f9c8,derived,NOISE,,,,Rev Limit
 60E0E700,0x03f9ca,0x03F9CE,FUN_03f9ca,derived,NOISE,,,,Rev Limit
 60E0E700,0x03f9ce,0x03F9D6,FUN_03f9ce,derived,,,,,Rev Limit
@@ -12162,7 +12162,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x045d7a,0x045D86,FUN_045d7a,derived,,,,,
 60E0E700,0x045d86,0x045D90,FUN_045d86,derived,,,,,
 60E0E700,0x045d90,0x045D92,FUN_045d90,derived,NOISE,,,,Math / FPU
-60E0E700,0x045d92,0x045DCC,FUN_045d92,derived,,,,,
+60E0E700,0x045d92,0x045DCC,FUN_045d92,derived,,,,,Math / FPU
 60E0E700,0x045dcc,0x045DDC,FUN_045dcc,derived,,,,,
 60E0E700,0x045ddc,0x045F92,FUN_045ddc,derived,,,,,
 60E0E700,0x045f92,0x045F98,FUN_045f92,derived,,,,,
@@ -12579,7 +12579,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x04d376,0x04D3A6,FUN_04d376,derived,,,,,Sensors
 60E0E700,0x04d3a6,0x04D3BA,FUN_04d3a6,derived,,,,,
 60E0E700,0x04d3ba,0x04D3DC,FUN_04d3ba,derived,,,,,
-60E0E700,0x04d3dc,0x04D3E4,FUN_04d3dc,derived,,,,,
+60E0E700,0x04d3dc,0x04D3E4,FUN_04d3dc,derived,,,,,Ignition & Knock
 60E0E700,0x04d3e4,0x04D3FA,FUN_04d3e4,derived,,,,,Math / FPU
 60E0E700,0x04d3fa,0x04D406,FUN_04d3fa,derived,,,,,Math / FPU
 60E0E700,0x04d406,0x04D412,FUN_04d406,derived,,,,,Math / FPU
@@ -12650,7 +12650,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x04db9c,0x04DBA6,FUN_04db9c,derived,,,,,Math / FPU
 60E0E700,0x04dba6,0x04DC22,FUN_04dba6,derived,,,,,Peripherals & ISR
 60E0E700,0x04dc22,0x04DC2E,FUN_04dc22,derived,,,,,
-60E0E700,0x04dc2e,0x04DC30,FUN_04dc2e,derived,NOISE,,,,
+60E0E700,0x04dc2e,0x04DC30,FUN_04dc2e,derived,NOISE,,,,Math / FPU
 60E0E700,0x04dc30,0x04DC3A,FUN_04dc30,derived,,,,,Math / FPU
 60E0E700,0x04dc3a,0x04DC42,FUN_04dc3a,derived,,,,,Math / FPU
 60E0E700,0x04dc42,0x04DC4A,FUN_04dc42,derived,,,,,Math / FPU
@@ -13871,9 +13871,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0E700,0x06838a,0x068398,FUN_06838a,derived,,,,,OBD / UDS
 60E0E700,0x068398,0x06839E,FUN_068398,derived,,,,,OBD / UDS
 60E0E700,0x06839e,0x0683A4,FUN_06839e,derived,,,,,OBD / UDS
-60E0E700,0x0683a4,0x0683AA,FUN_0683a4,derived,,,,,
+60E0E700,0x0683a4,0x0683AA,FUN_0683a4,derived,,,,,Boot & Init
 60E0E700,0x0683aa,0x0683B0,FUN_0683aa,derived,,,,,OBD / UDS
-60E0E700,0x0683b0,0x0683B6,FUN_0683b0,derived,,,,,
+60E0E700,0x0683b0,0x0683B6,FUN_0683b0,derived,,,,,Utilities
 60E0E700,0x0683b6,0x0683E0,FUN_0683b6,derived,,,,,OBD / UDS
 60E0E700,0x0683e0,0x068472,udsHandler,ghidra-hand-xmap,,,,,OBD / UDS
 60E0E700,0x068472,0x068510,udsResponseRelated2,ghidra-hand-xmap,,,,,OBD / UDS
@@ -14614,7 +14614,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x000100,0x00011A,FUN_000100,derived,,,,,Utilities
 60E0FB00,0x00011a,0x000338,FUN_00011a,derived,,,,,Memory & CRC
 60E0FB00,0x000338,0x00044E,FUN_000338,derived,,,,,Peripherals & ISR
-60E0FB00,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,
+60E0FB00,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,Memory & CRC
 60E0FB00,0x000450,0x00047C,FUN_000450,derived,,,,,Memory & CRC
 60E0FB00,0x00047c,0x0004E0,FUN_00047c,derived,,,,,Memory & CRC
 60E0FB00,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
@@ -17542,7 +17542,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x029b9e,0x029BAE,FUN_029b9e,derived,,,,,CAN Bus
 60E0FB00,0x029bae,0x029BB6,FUN_029bae,derived,,,,,CAN Bus
 60E0FB00,0x029bb6,0x029BB8,FUN_029bb6,derived,NOISE,,,,CAN Bus
-60E0FB00,0x029bb8,0x029BBC,FUN_029bb8,derived,NOISE,,,,
+60E0FB00,0x029bb8,0x029BBC,FUN_029bb8,derived,NOISE,,,,CAN Bus
 60E0FB00,0x029bbc,0x029BC2,FUN_029bbc,derived,,,,,
 60E0FB00,0x029bc2,0x029BC4,FUN_029bc2,derived,NOISE,,,,CAN Bus
 60E0FB00,0x029bc4,0x029BDE,FUN_029bc4,derived,,,,,CAN Bus
@@ -18111,7 +18111,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x02dc2e,0x02DC4E,FUN_02dc2e,derived,,,,,Throttle & Torque
 60E0FB00,0x02dc4e,0x02DC7A,FUN_02dc4e,derived,,,,,Throttle & Torque
 60E0FB00,0x02dc7a,0x02DC80,FUN_02dc7a,derived,,,,,
-60E0FB00,0x02dc80,0x02DC82,FUN_02dc80,derived,NOISE,,,,
+60E0FB00,0x02dc80,0x02DC82,FUN_02dc80,derived,NOISE,,,,Throttle & Torque
 60E0FB00,0x02dc82,0x02DC86,FUN_02dc82,derived,NOISE,,,,Throttle & Torque
 60E0FB00,0x02dc86,0x02DC88,FUN_02dc86,derived,NOISE,,,,Throttle & Torque
 60E0FB00,0x02dc88,0x02DC8C,FUN_02dc88,derived,NOISE,,,,Throttle & Torque
@@ -19588,7 +19588,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x047ec0,0x047EC6,FUN_047ec0,derived,,,,,Throttle & Torque
 60E0FB00,0x047ec6,0x047ECE,FUN_047ec6,derived,,,,,Throttle & Torque
 60E0FB00,0x047ece,0x047ED0,FUN_047ece,derived,NOISE,,,,Throttle & Torque
-60E0FB00,0x047ed0,0x047ED8,FUN_047ed0,derived,,,,,
+60E0FB00,0x047ed0,0x047ED8,FUN_047ed0,derived,,,,,Throttle & Torque
 60E0FB00,0x047ed8,0x047EF2,FUN_047ed8,derived,,,,,Throttle & Torque
 60E0FB00,0x047ef2,0x047EFA,FUN_047ef2,derived,,setPerRotorLevel1FuelCut,,,Fuel & Lambda
 60E0FB00,0x047efa,0x047F00,FUN_047efa,derived,,,,,Throttle & Torque
@@ -25738,9 +25738,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x009b92,0x009C34,doSomethingIfByteIs1InCANSetup,ghidra-hand-xmap,,,,,CAN Bus
 60E15120,0x009c34,0x009C40,FUN_009c34,derived,,,,,CAN Bus
 60E15120,0x009c40,0x009C86,FUN_009c40,derived,,,,,CAN Bus
-60E15120,0x009c86,0x009C8E,FUN_009c86,derived,,,,,
+60E15120,0x009c86,0x009C8E,FUN_009c86,derived,,,,,Utilities
 60E15120,0x009c8e,0x009C9C,FUN_009c8e,derived,,caller,,,CAN Bus
-60E15120,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,
+60E15120,0x009c9c,0x009CA4,FUN_009c9c,derived,,,,,Utilities
 60E15120,0x009ca4,0x009CE0,FUN_009ca4,derived,,,,,CAN Bus
 60E15120,0x009ce0,0x009D02,FUN_009ce0,derived,,,,,Peripherals & ISR
 60E15120,0x009d02,0x009D24,FUN_009d02,derived,,FUN_00009d02,,,Peripherals & ISR
@@ -25780,7 +25780,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x00aac4,0x00AB6C,FUN_00aac4,derived,,,,,RTOS
 60E15120,0x00ab6c,0x00AB8A,FUN_00ab6c,derived,,,,,Ignition & Knock
 60E15120,0x00ab8a,0x00ABFA,FUN_00ab8a,derived,,,,,Boot & Init
-60E15120,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,
+60E15120,0x00abfa,0x00AC02,FUN_00abfa,derived,,,,,Memory & CRC
 60E15120,0x00ac02,0x00AC08,FUN_00ac02,derived,,,,,Peripherals & ISR
 60E15120,0x00ac08,0x00ACFC,FUN_00ac08,derived,,,,,Peripherals & ISR
 60E15120,0x00acfc,0x00AD2A,FUN_00acfc,derived,,,,,RTOS
@@ -25861,7 +25861,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x00d21e,0x00D262,main??,ghidra-hand-xmap,,,,,CAN Bus
 60E15120,0x00d262,0x00D28E,interestingCANSomething,ghidra-hand-xmap,,,,,CAN Bus
 60E15120,0x00d28e,0x00D2E8,FUN_00d28e,derived,,,,,Math / FPU
-60E15120,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,
+60E15120,0x00d2e8,0x00D2F6,FUN_00d2e8,derived,,FUN_0000d2e8,,,Sensors
 60E15120,0x00d2f6,0x00D3B8,FUN_00d2f6,derived,,,,connor-xmap,Boot & Init
 60E15120,0x00d3b8,0x00D3CE,FUN_00d3b8,derived,,clear_a3f9_if_not_state_2,,,Faults & DTC
 60E15120,0x00d3ce,0x00D408,FUN_00d3ce,derived,,,,,Boot & Init
@@ -26034,7 +26034,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x00fea2,0x00FEB4,FUN_00fea2,derived,,,,,
 60E15120,0x00feb4,0x00FF00,FUN_00feb4,derived,,,,,Faults & DTC
 60E15120,0x00ff00,0x00FF02,FUN_00ff00,derived,NOISE,,,,
-60E15120,0x00ff02,0x00FF04,FUN_00ff02,derived,NOISE,,,,
+60E15120,0x00ff02,0x00FF04,FUN_00ff02,derived,NOISE,,,,Fuel & Lambda
 60E15120,0x00ff04,0x00FF0A,FUN_00ff04,derived,,,,,Fuel & Lambda
 60E15120,0x00ff0a,0x00FF10,FUN_00ff0a,derived,,,,,Idle Control
 60E15120,0x00ff10,0x00FF32,FUN_00ff10,derived,,,,,Fuel & Lambda
@@ -26132,7 +26132,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0123a2,0x0123BA,FUN_0123a2,derived,,,,,
 60E15120,0x0123ba,0x0123CA,FUN_0123ba,derived,,,,,
 60E15120,0x0123ca,0x0123D8,FUN_0123ca,derived,,,,,Fuel & Lambda
-60E15120,0x0123d8,0x0123DA,FUN_0123d8,derived,NOISE,,,,
+60E15120,0x0123d8,0x0123DA,FUN_0123d8,derived,NOISE,,,,Sensors
 60E15120,0x0123da,0x0124D6,FUN_0123da,derived,,,,,Sensors
 60E15120,0x0124d6,0x0125BC,FUN_0124d6,derived,,,,,Sensors
 60E15120,0x0125bc,0x0125F6,FUN_0125bc,derived,,,,,
@@ -26236,12 +26236,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0145c8,0x014628,FUN_0145c8,derived,,,,,Idle Control
 60E15120,0x014628,0x01465E,FUN_014628,derived,,,,,
 60E15120,0x01465e,0x01467C,FUN_01465e,derived,,,,,Fuel & Lambda
-60E15120,0x01467c,0x0146A0,FUN_01467c,derived,,,,,
+60E15120,0x01467c,0x0146A0,FUN_01467c,derived,,,,,Peripherals & ISR
 60E15120,0x0146a0,0x0146A6,FUN_0146a0,derived,,,,,
 60E15120,0x0146a6,0x0146B6,FUN_0146a6,derived,,,,,RTOS
-60E15120,0x0146b6,0x0146BC,FUN_0146b6,derived,,,,,
+60E15120,0x0146b6,0x0146BC,FUN_0146b6,derived,,,,,Utilities
 60E15120,0x0146bc,0x0146C2,FUN_0146bc,derived,,,,,
-60E15120,0x0146c2,0x0146C6,FUN_0146c2,derived,NOISE,,,,
+60E15120,0x0146c2,0x0146C6,FUN_0146c2,derived,NOISE,,,,Fuel & Lambda
 60E15120,0x0146c6,0x0146E2,FUN_0146c6,derived,,,,,
 60E15120,0x0146e2,0x014754,FUN_0146e2,derived,,,,,
 60E15120,0x014754,0x014774,FUN_014754,derived,,,,,Sensors
@@ -26281,7 +26281,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x01598e,0x0159C6,FUN_01598e,derived,,,,,Fuel & Lambda
 60E15120,0x0159c6,0x015A40,FUN_0159c6,derived,,,,,Fuel & Lambda
 60E15120,0x015a40,0x015A90,FUN_015a40,derived,,,,,Fuel & Lambda
-60E15120,0x015a90,0x015A9A,FUN_015a90,derived,,,,,
+60E15120,0x015a90,0x015A9A,FUN_015a90,derived,,,,,Boot & Init
 60E15120,0x015a9a,0x015BA6,FUN_015a9a,derived,,,,,Fuel & Lambda
 60E15120,0x015ba6,0x015BB0,FUN_015ba6,derived,,,,,
 60E15120,0x015bb0,0x015C64,FUN_015bb0,derived,,,,,
@@ -26344,9 +26344,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x016e90,0x016F30,FUN_016e90,derived,,,,,
 60E15120,0x016f30,0x016F3E,FUN_016f30,derived,,,,,
 60E15120,0x016f3e,0x016F80,FUN_016f3e,derived,,,,,
-60E15120,0x016f80,0x016F82,FUN_016f80,derived,NOISE,,,,
+60E15120,0x016f80,0x016F82,FUN_016f80,derived,NOISE,,,,Sensors
 60E15120,0x016f82,0x016F98,FUN_016f82,derived,,,,,
-60E15120,0x016f98,0x016FB6,FUN_016f98,derived,,,,,
+60E15120,0x016f98,0x016FB6,FUN_016f98,derived,,,,,Faults & DTC
 60E15120,0x016fb6,0x016FCE,FUN_016fb6,derived,,,,,
 60E15120,0x016fce,0x016FDC,FUN_016fce,derived,,,,,RTOS
 60E15120,0x016fdc,0x01702C,FUN_016fdc,derived,,,,,OBD / UDS
@@ -26467,7 +26467,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0195f4,0x0195F6,FUN_0195f4,derived,NOISE,,,,Utilities
 60E15120,0x0195f6,0x01960A,FUN_0195f6,derived,,,,,Utilities
 60E15120,0x01960a,0x019624,FUN_01960a,derived,,,,,Faults & DTC
-60E15120,0x019624,0x019632,FUN_019624,derived,,,,,
+60E15120,0x019624,0x019632,FUN_019624,derived,,,,,RTOS
 60E15120,0x019632,0x019640,FUN_019632,derived,,,,,
 60E15120,0x019640,0x01975C,FUN_019640,derived,,,,,
 60E15120,0x01975c,0x019794,FUN_01975c,derived,,,,,Fuel & Lambda
@@ -26484,7 +26484,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x019a02,0x019AA0,FUN_019a02,derived,,,,,Fuel & Lambda
 60E15120,0x019aa0,0x019ADE,FUN_019aa0,derived,,,,,
 60E15120,0x019ade,0x019AE8,FUN_019ade,derived,,,,,
-60E15120,0x019ae8,0x019AFA,FUN_019ae8,derived,,,,,
+60E15120,0x019ae8,0x019AFA,FUN_019ae8,derived,,,,,OBD / UDS
 60E15120,0x019afa,0x019B12,FUN_019afa,derived,,,,,Fuel & Lambda
 60E15120,0x019b12,0x019B2A,FUN_019b12,derived,,,,,Fuel & Lambda
 60E15120,0x019b2a,0x019B2E,FUN_019b2a,derived,NOISE,,,,Fuel & Lambda
@@ -26494,12 +26494,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x019b62,0x019BBA,FUN_019b62,derived,,,,,Fuel & Lambda
 60E15120,0x019bba,0x019CF4,FUN_019bba,derived,,,,,
 60E15120,0x019cf4,0x019D24,FUN_019cf4,derived,,,,,
-60E15120,0x019d24,0x019D5E,FUN_019d24,derived,,,,,
+60E15120,0x019d24,0x019D5E,FUN_019d24,derived,,,,,OBD / UDS
 60E15120,0x019d5e,0x019D8A,FUN_019d5e,derived,,,,,
-60E15120,0x019d8a,0x019DA2,FUN_019d8a,derived,,,,,
+60E15120,0x019d8a,0x019DA2,FUN_019d8a,derived,,,,,Throttle & Torque
 60E15120,0x019da2,0x019DB6,FUN_019da2,derived,,,,,
 60E15120,0x019db6,0x019DD2,FUN_019db6,derived,,,,,
-60E15120,0x019dd2,0x019E10,FUN_019dd2,derived,,,,,
+60E15120,0x019dd2,0x019E10,FUN_019dd2,derived,,,,,Memory & CRC
 60E15120,0x019e10,0x019E3C,FUN_019e10,derived,,,,,Fuel & Lambda
 60E15120,0x019e3c,0x019EDE,FUN_019e3c,derived,,,,,
 60E15120,0x019ede,0x019EF8,FUN_019ede,derived,,,,,
@@ -26943,7 +26943,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x01fd08,0x01FD0A,FUN_01fd08,derived,NOISE,,,,Ignition & Knock
 60E15120,0x01fd0a,0x01FD12,FUN_01fd0a,derived,,,,,Fuel & Lambda
 60E15120,0x01fd12,0x01FD14,FUN_01fd12,derived,NOISE,,,,Fuel & Lambda
-60E15120,0x01fd14,0x01FD1E,FUN_01fd14,derived,,,,,
+60E15120,0x01fd14,0x01FD1E,FUN_01fd14,derived,,,,,Fuel & Lambda
 60E15120,0x01fd1e,0x01FD48,FUN_01fd1e,derived,,,,,
 60E15120,0x01fd48,0x01FD9E,fuelingStateStuff??,ghidra-hand-xmap,,,,,Fuel & Lambda
 60E15120,0x01fd9e,0x01FDA0,FUN_01fd9e,derived,NOISE,,,,Ignition & Knock
@@ -27123,7 +27123,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x02145e,0x021460,FUN_02145e,derived,NOISE,,,,Fuel & Lambda
 60E15120,0x021460,0x021476,FUN_021460,derived,,,,,Sensors
 60E15120,0x021476,0x02148E,FUN_021476,derived,,,,,RTOS
-60E15120,0x02148e,0x02149C,FUN_02148e,derived,,,,,
+60E15120,0x02148e,0x02149C,FUN_02148e,derived,,,,,Memory & CRC
 60E15120,0x02149c,0x0214AA,FUN_02149c,derived,,,,,
 60E15120,0x0214aa,0x0214F8,FUN_0214aa,derived,,,,,Fuel & Lambda
 60E15120,0x0214f8,0x021584,acCompressorLeadingTimingRetard,ghidra-hand-xmap,,,,,Ignition & Knock
@@ -27304,7 +27304,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x022fd2,0x023076,FUN_022fd2,derived,,,,,RTOS
 60E15120,0x023076,0x023094,FUN_023076,derived,,,,,Fuel & Lambda
 60E15120,0x023094,0x0230AE,FUN_023094,derived,,,,,Memory & CRC
-60E15120,0x0230ae,0x0230B2,FUN_0230ae,derived,NOISE,,,,
+60E15120,0x0230ae,0x0230B2,FUN_0230ae,derived,NOISE,,,,Boot & Init
 60E15120,0x0230b2,0x0230B6,FUN_0230b2,derived,NOISE,,,,
 60E15120,0x0230b6,0x0230F4,FUN_0230b6,derived,,,,,
 60E15120,0x0230f4,0x023122,FUN_0230f4,derived,,,,,
@@ -27618,7 +27618,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x025492,0x02549E,FUN_025492,derived,,,,,Boot & Init
 60E15120,0x02549e,0x0254F4,FUN_02549e,derived,,,,,Fuel & Lambda
 60E15120,0x0254f4,0x025510,FUN_0254f4,derived,,,,,Fuel & Lambda
-60E15120,0x025510,0x025518,FUN_025510,derived,,,,,
+60E15120,0x025510,0x025518,FUN_025510,derived,,,,,Boot & Init
 60E15120,0x025518,0x025524,FUN_025518,derived,,,,,Fuel & Lambda
 60E15120,0x025524,0x025532,FUN_025524,derived,,,,,Boot & Init
 60E15120,0x025532,0x025568,FUN_025532,derived,,,,,Boot & Init
@@ -27771,7 +27771,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x026952,0x02695A,FUN_026952,derived,,,,,Math / FPU
 60E15120,0x02695a,0x026970,FUN_02695a,derived,,,,,Math / FPU
 60E15120,0x026970,0x026980,FUN_026970,derived,,,,,Math / FPU
-60E15120,0x026980,0x026982,FUN_026980,derived,NOISE,,,,
+60E15120,0x026980,0x026982,FUN_026980,derived,NOISE,,,,Memory & CRC
 60E15120,0x026982,0x02698E,FUN_026982,derived,,,,,Memory & CRC
 60E15120,0x02698e,0x026996,FUN_02698e,derived,,,,,Math / FPU
 60E15120,0x026996,0x026998,FUN_026996,derived,NOISE,,,,Math / FPU
@@ -28242,7 +28242,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x029406,0x029414,FUN_029406,derived,,,,,
 60E15120,0x029414,0x02941A,FUN_029414,derived,,,,,Memory & CRC
 60E15120,0x02941a,0x029442,FUN_02941a,derived,,,,,Peripherals & ISR
-60E15120,0x029442,0x029444,FUN_029442,derived,NOISE,,,,
+60E15120,0x029442,0x029444,FUN_029442,derived,NOISE,,,,Boot & Init
 60E15120,0x029444,0x02944C,FUN_029444,derived,,,,,Boot & Init
 60E15120,0x02944c,0x02944E,FUN_02944c,derived,NOISE,,,,CAN Bus
 60E15120,0x02944e,0x029456,FUN_02944e,derived,,,,,CAN Bus
@@ -28557,7 +28557,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x02b992,0x02B9D8,FUN_02b992,derived,,,,,Sensors
 60E15120,0x02b9d8,0x02B9DE,FUN_02b9d8,derived,,,,,CAN Bus
 60E15120,0x02b9de,0x02BA08,can650TX_getAndPack,ghidra-hand-xmap,,,,,CAN Bus
-60E15120,0x02ba08,0x02BA10,FUN_02ba08,derived,,,,,
+60E15120,0x02ba08,0x02BA10,FUN_02ba08,derived,,,,,CAN Bus
 60E15120,0x02ba10,0x02BA20,FUN_02ba10,derived,,,,,CAN Bus
 60E15120,0x02ba20,0x02BA4A,FUN_02ba20,derived,,,,,CAN Bus
 60E15120,0x02ba4a,0x02BA50,FUN_02ba4a,derived,,,,,CAN Bus
@@ -28579,7 +28579,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x02bb7c,0x02BB8A,FUN_02bb7c,derived,,,,,Peripherals & ISR
 60E15120,0x02bb8a,0x02BC20,FUN_02bb8a,derived,,,,,Peripherals & ISR
 60E15120,0x02bc20,0x02BC2A,FUN_02bc20,derived,,,,,Utilities
-60E15120,0x02bc2a,0x02BC34,FUN_02bc2a,derived,,,,,
+60E15120,0x02bc2a,0x02BC34,FUN_02bc2a,derived,,,,,Ignition & Knock
 60E15120,0x02bc34,0x02BC54,FUN_02bc34,derived,,,,,
 60E15120,0x02bc54,0x02BC5C,FUN_02bc54,derived,,,,,
 60E15120,0x02bc5c,0x02BCC0,FUN_02bc5c,derived,,,,,
@@ -28724,7 +28724,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x02ce64,0x02CE68,FUN_02ce64,derived,NOISE,,,,Math / FPU
 60E15120,0x02ce68,0x02CEA4,FUN_02ce68,derived,,,,,Math / FPU
 60E15120,0x02cea4,0x02CED6,FUN_02cea4,derived,,,,,
-60E15120,0x02ced6,0x02CED8,FUN_02ced6,derived,NOISE,,,,
+60E15120,0x02ced6,0x02CED8,FUN_02ced6,derived,NOISE,,,,Throttle & Torque
 60E15120,0x02ced8,0x02CEDC,FUN_02ced8,derived,NOISE,,,,Throttle & Torque
 60E15120,0x02cedc,0x02CEE2,FUN_02cedc,derived,,,,,Throttle & Torque
 60E15120,0x02cee2,0x02CEEA,FUN_02cee2,derived,,,,,Throttle & Torque
@@ -28909,7 +28909,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x02e54e,0x02E56E,FUN_02e54e,derived,,,,,Math / FPU
 60E15120,0x02e56e,0x02E58C,FUN_02e56e,derived,,,,,
 60E15120,0x02e58c,0x02E58E,FUN_02e58c,derived,NOISE,,,,Sensors
-60E15120,0x02e58e,0x02E594,FUN_02e58e,derived,,,,,
+60E15120,0x02e58e,0x02E594,FUN_02e58e,derived,,,,,Sensors
 60E15120,0x02e594,0x02E59A,FUN_02e594,derived,,,,,
 60E15120,0x02e59a,0x02E5A8,FUN_02e59a,derived,,,,,Fuel & Lambda
 60E15120,0x02e5a8,0x02E5C6,FUN_02e5a8,derived,,,,,RTOS
@@ -29168,7 +29168,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0305da,0x0305E6,FUN_0305da,derived,,,,,Math / FPU
 60E15120,0x0305e6,0x0305F4,FUN_0305e6,derived,,,,,Math / FPU
 60E15120,0x0305f4,0x030670,FUN_0305f4,derived,,,,,Math / FPU
-60E15120,0x030670,0x030672,FUN_030670,derived,NOISE,,,,
+60E15120,0x030670,0x030672,FUN_030670,derived,NOISE,,,,Math / FPU
 60E15120,0x030672,0x030678,FUN_030672,derived,,,,,Math / FPU
 60E15120,0x030678,0x03067C,FUN_030678,derived,NOISE,,,,Math / FPU
 60E15120,0x03067c,0x030688,FUN_03067c,derived,,,,,Math / FPU
@@ -29296,7 +29296,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x0318de,0x0318E8,FUN_0318de,derived,,,,,
 60E15120,0x0318e8,0x0318EA,FUN_0318e8,derived,NOISE,,,,
 60E15120,0x0318ea,0x031918,FUN_0318ea,derived,,,,,
-60E15120,0x031918,0x031922,FUN_031918,derived,,,,,
+60E15120,0x031918,0x031922,FUN_031918,derived,,,,,Sensors
 60E15120,0x031922,0x03194A,getEngineOffTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E15120,0x03194a,0x03199C,getSecondaryAirOnTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E15120,0x03199c,0x0319B6,FUN_03199c,derived,,,,,Peripherals & ISR
@@ -29749,7 +29749,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x039096,0x0390A2,FUN_039096,derived,,,,,
 60E15120,0x0390a2,0x0390AA,FUN_0390a2,derived,,,,,
 60E15120,0x0390aa,0x0390B6,FUN_0390aa,derived,,,,,
-60E15120,0x0390b6,0x0390B8,FUN_0390b6,derived,NOISE,,,,
+60E15120,0x0390b6,0x0390B8,FUN_0390b6,derived,NOISE,,,,Peripherals & ISR
 60E15120,0x0390b8,0x0390FC,FUN_0390b8,derived,,,,,Peripherals & ISR
 60E15120,0x0390fc,0x039242,FUN_0390fc,derived,,,,,Fuel & Lambda
 60E15120,0x039242,0x039276,FUN_039242,derived,,,,,Fuel & Lambda
@@ -29995,7 +29995,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x03ebe4,0x03EC0A,FUN_03ebe4,derived,,,,,RTOS
 60E15120,0x03ec0a,0x03EC0E,FUN_03ec0a,derived,NOISE,,,,RTOS
 60E15120,0x03ec0e,0x03EC3C,FUN_03ec0e,derived,,,,,RTOS
-60E15120,0x03ec3c,0x03EC48,FUN_03ec3c,derived,,,,,
+60E15120,0x03ec3c,0x03EC48,FUN_03ec3c,derived,,,,,Faults & DTC
 60E15120,0x03ec48,0x03EC88,FUN_03ec48,derived,,,,,Rev Limit
 60E15120,0x03ec88,0x03ED16,FUN_03ec88,derived,,,,,Fuel & Lambda
 60E15120,0x03ed16,0x03ED2A,FUN_03ed16,derived,,,,,
@@ -30499,7 +30499,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x048612,0x048618,FUN_048612,derived,,,,,Throttle & Torque
 60E15120,0x048618,0x048670,FUN_048618,derived,,,,,Throttle & Torque
 60E15120,0x048670,0x0486A0,FUN_048670,derived,,,,,Boot & Init
-60E15120,0x0486a0,0x0486A8,FUN_0486a0,derived,,,,,
+60E15120,0x0486a0,0x0486A8,FUN_0486a0,derived,,,,,Boot & Init
 60E15120,0x0486a8,0x0486B0,FUN_0486a8,derived,,,,,CAN Bus
 60E15120,0x0486b0,0x0486B8,FUN_0486b0,derived,,,,,CAN Bus
 60E15120,0x0486b8,0x0486C0,FUN_0486b8,derived,,,,,Peripherals & ISR
@@ -30727,7 +30727,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x04c44c,0x04C58E,FUN_04c44c,derived,,,,,
 60E15120,0x04c58e,0x04C598,FUN_04c58e,derived,,,,,
 60E15120,0x04c598,0x04C69C,FUN_04c598,derived,,,,,Sensors
-60E15120,0x04c69c,0x04C6A4,FUN_04c69c,derived,,,,,
+60E15120,0x04c69c,0x04C6A4,FUN_04c69c,derived,,,,,Ignition & Knock
 60E15120,0x04c6a4,0x04C80C,FUN_04c6a4,derived,,,,,Math / FPU
 60E15120,0x04c80c,0x04C828,FUN_04c80c,derived,,,,,Sensors
 60E15120,0x04c828,0x04C88C,FUN_04c828,derived,,,,,Faults & DTC
@@ -31272,7 +31272,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x057ee8,0x058168,FUN_057ee8,derived,,,,,Sensors
 60E15120,0x058168,0x0581AC,FUN_058168,derived,,,,,Math / FPU
 60E15120,0x0581ac,0x0581F0,FUN_0581ac,derived,,,,,Peripherals & ISR
-60E15120,0x0581f0,0x0581F8,FUN_0581f0,derived,,,,,
+60E15120,0x0581f0,0x0581F8,FUN_0581f0,derived,,,,,Utilities
 60E15120,0x0581f8,0x0581FC,FUN_0581f8,derived,NOISE,,,,Sensors
 60E15120,0x0581fc,0x05820E,FUN_0581fc,derived,,,,,Sensors
 60E15120,0x05820e,0x058256,FUN_05820e,derived,,,,,Ignition & Knock
@@ -31928,9 +31928,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E15120,0x068d56,0x068D64,FUN_068d56,derived,,,,,OBD / UDS
 60E15120,0x068d64,0x068D6A,FUN_068d64,derived,,,,,OBD / UDS
 60E15120,0x068d6a,0x068D70,FUN_068d6a,derived,,,,,OBD / UDS
-60E15120,0x068d70,0x068D76,FUN_068d70,derived,,,,,
+60E15120,0x068d70,0x068D76,FUN_068d70,derived,,,,,Boot & Init
 60E15120,0x068d76,0x068D7C,FUN_068d76,derived,,,,,OBD / UDS
-60E15120,0x068d7c,0x068D82,FUN_068d7c,derived,,,,,
+60E15120,0x068d7c,0x068D82,FUN_068d7c,derived,,,,,Utilities
 60E15120,0x068d82,0x068DAC,FUN_068d82,derived,,,,,OBD / UDS
 60E15120,0x068dac,0x068E3E,udsHandler,ghidra-hand-xmap,,,,,OBD / UDS
 60E15120,0x068e3e,0x068EDC,udsResponseRelated2,ghidra-hand-xmap,,,,,OBD / UDS
@@ -32774,7 +32774,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x000100,0x00011A,FUN_000100,derived,,,,,Utilities
 60E1B900,0x00011a,0x000338,FUN_00011a,derived,,,,,Memory & CRC
 60E1B900,0x000338,0x00044E,FUN_000338,derived,,,,,Peripherals & ISR
-60E1B900,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,
+60E1B900,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,Memory & CRC
 60E1B900,0x000450,0x00047C,FUN_000450,derived,,,,,Memory & CRC
 60E1B900,0x00047c,0x0004E0,FUN_00047c,derived,,,,,Memory & CRC
 60E1B900,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
@@ -32958,7 +32958,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0051d0,0x005232,FUN_0051d0,derived,,atu_prescaler_mode_init,,,Boot & Init
 60E1B900,0x005232,0x005286,FUN_005232,derived,,,,,Peripherals & ISR
 60E1B900,0x005286,0x00528E,FUN_005286,derived,,mem_clear_5286,,,Memory & CRC
-60E1B900,0x00528e,0x005292,FUN_00528e,derived,NOISE,,,,
+60E1B900,0x00528e,0x005292,FUN_00528e,derived,NOISE,,,,Memory & CRC
 60E1B900,0x005292,0x0052B0,FUN_005292,derived,,atu_clock_prescaler_select,,,Math / FPU
 60E1B900,0x0052b0,0x005360,FUN_0052b0,derived,,,,,Peripherals & ISR
 60E1B900,0x005360,0x0053DE,FUN_005360,derived,,,,,Faults & DTC
@@ -33082,7 +33082,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x005ef6,0x005F06,FUN_005ef6,derived,,,,,Peripherals & ISR
 60E1B900,0x005f06,0x005F0C,FUN_005f06,derived,,,,,Utilities
 60E1B900,0x005f0c,0x005F30,FUN_005f0c,derived,,,,,Peripherals & ISR
-60E1B900,0x005f30,0x005F34,FUN_005f30,derived,NOISE,,,,
+60E1B900,0x005f30,0x005F34,FUN_005f30,derived,NOISE,,,,RTOS
 60E1B900,0x005f34,0x006034,FUN_005f34,derived,,,,,RTOS
 60E1B900,0x006034,0x00614A,FUN_006034,derived,,,,,RTOS
 60E1B900,0x00614a,0x0062FA,FUN_00614a,derived,,,,,Sensors
@@ -34778,7 +34778,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x023c66,0x023C7E,FUN_023c66,derived,,,,,
 60E1B900,0x023c7e,0x023C86,FUN_023c7e,derived,,,,,
 60E1B900,0x023c86,0x023C92,FUN_023c86,derived,,,,,
-60E1B900,0x023c92,0x023C94,FUN_023c92,derived,NOISE,,,,
+60E1B900,0x023c92,0x023C94,FUN_023c92,derived,NOISE,,,,Boot & Init
 60E1B900,0x023c94,0x023C9C,FUN_023c94,derived,,,,,Boot & Init
 60E1B900,0x023c9c,0x023C9E,FUN_023c9c,derived,NOISE,,,,RTOS
 60E1B900,0x023c9e,0x023CAE,FUN_023c9e,derived,,,,,RTOS
@@ -35214,7 +35214,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x027324,0x02736A,FUN_027324,derived,,,,,Faults & DTC
 60E1B900,0x02736a,0x027374,FUN_02736a,derived,,,,,
 60E1B900,0x027374,0x027376,FUN_027374,derived,NOISE,,,,Sensors
-60E1B900,0x027376,0x027380,FUN_027376,derived,,,,,
+60E1B900,0x027376,0x027380,FUN_027376,derived,,,,,Sensors
 60E1B900,0x027380,0x027382,FUN_027380,derived,NOISE,,,,Sensors
 60E1B900,0x027382,0x027384,FUN_027382,derived,NOISE,,,,Sensors
 60E1B900,0x027384,0x027390,FUN_027384,derived,,,,,Sensors
@@ -35612,7 +35612,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x0297de,0x0297E0,FUN_0297de,derived,NOISE,,,,
 60E1B900,0x0297e0,0x0297E6,FUN_0297e0,derived,,,,,
 60E1B900,0x0297e6,0x0297EA,FUN_0297e6,derived,NOISE,,,,
-60E1B900,0x0297ea,0x0297EC,FUN_0297ea,derived,NOISE,,,,
+60E1B900,0x0297ea,0x0297EC,FUN_0297ea,derived,NOISE,,,,CAN Bus
 60E1B900,0x0297ec,0x0297F2,FUN_0297ec,derived,,,,,CAN Bus
 60E1B900,0x0297f2,0x029810,FUN_0297f2,derived,,,,,CAN Bus
 60E1B900,0x029810,0x029816,FUN_029810,derived,,,,,
@@ -35705,7 +35705,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x029ea2,0x029EAA,FUN_029ea2,derived,,,,,CAN Bus
 60E1B900,0x029eaa,0x029EAE,FUN_029eaa,derived,NOISE,,,,CAN Bus
 60E1B900,0x029eae,0x029EB2,FUN_029eae,derived,NOISE,,,,
-60E1B900,0x029eb2,0x029EB4,FUN_029eb2,derived,NOISE,,,,
+60E1B900,0x029eb2,0x029EB4,FUN_029eb2,derived,NOISE,,,,CAN Bus
 60E1B900,0x029eb4,0x029EB8,FUN_029eb4,derived,NOISE,,,,CAN Bus
 60E1B900,0x029eb8,0x029EBC,FUN_029eb8,derived,NOISE,,,,CAN Bus
 60E1B900,0x029ebc,0x029EE2,FUN_029ebc,derived,,,,,CAN Bus
@@ -35815,7 +35815,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02ad60,0x02AD8A,FUN_02ad60,derived,,,,,Math / FPU
 60E1B900,0x02ad8a,0x02ADA8,FUN_02ad8a,derived,,,,,OBD / UDS
 60E1B900,0x02ada8,0x02ADC0,FUN_02ada8,derived,,,,,OBD / UDS
-60E1B900,0x02adc0,0x02ADC6,FUN_02adc0,derived,,,,,
+60E1B900,0x02adc0,0x02ADC6,FUN_02adc0,derived,,,,,Fuel & Lambda
 60E1B900,0x02adc6,0x02ADCA,FUN_02adc6,derived,NOISE,,,,Memory & CRC
 60E1B900,0x02adca,0x02ADE2,FUN_02adca,derived,,,,,
 60E1B900,0x02ade2,0x02ADE6,FUN_02ade2,derived,NOISE,,,,
@@ -35866,7 +35866,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02b2c6,0x02B2E2,FUN_02b2c6,derived,,,,,CAN Bus
 60E1B900,0x02b2e2,0x02B3E0,FUN_02b2e2,derived,,,,,CAN Bus
 60E1B900,0x02b3e0,0x02B3E2,FUN_02b3e0,derived,NOISE,,,,
-60E1B900,0x02b3e2,0x02B3E4,FUN_02b3e2,derived,NOISE,,,,
+60E1B900,0x02b3e2,0x02B3E4,FUN_02b3e2,derived,NOISE,,,,CAN Bus
 60E1B900,0x02b3e4,0x02B3E6,FUN_02b3e4,derived,NOISE,,,,CAN Bus
 60E1B900,0x02b3e6,0x02B3EA,FUN_02b3e6,derived,NOISE,,,,
 60E1B900,0x02b3ea,0x02B3EC,FUN_02b3ea,derived,NOISE,,,,Math / FPU
@@ -36003,7 +36003,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02c202,0x02C234,checkTorqueRequestValidity,ghidra-hand-xmap,,,,,Throttle & Torque
 60E1B900,0x02c234,0x02C252,FUN_02c234,derived,,,,,Throttle & Torque
 60E1B900,0x02c252,0x02C2E0,FUN_02c252,derived,,,,,Throttle & Torque
-60E1B900,0x02c2e0,0x02C2EA,FUN_02c2e0,derived,,,,,
+60E1B900,0x02c2e0,0x02C2EA,FUN_02c2e0,derived,,,,,Utilities
 60E1B900,0x02c2ea,0x02C318,FUN_02c2ea,derived,,,,,Faults & DTC
 60E1B900,0x02c318,0x02C31C,FUN_02c318,derived,NOISE,,,,Faults & DTC
 60E1B900,0x02c31c,0x02C326,FUN_02c31c,derived,,,,,Faults & DTC
@@ -36043,9 +36043,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02c568,0x02C5FA,writeOilPressureGauge??,ghidra-hand-xmap,,,,,Oil Metering
 60E1B900,0x02c5fa,0x02C60C,FUN_02c5fa,derived,,,,,Oil Metering
 60E1B900,0x02c60c,0x02C614,FUN_02c60c,derived,,,,,Ignition & Knock
-60E1B900,0x02c614,0x02C616,FUN_02c614,derived,NOISE,,,,
+60E1B900,0x02c614,0x02C616,FUN_02c614,derived,NOISE,,,,Ignition & Knock
 60E1B900,0x02c616,0x02C618,FUN_02c616,derived,NOISE,,,,Ignition & Knock
-60E1B900,0x02c618,0x02C620,FUN_02c618,derived,,,,,
+60E1B900,0x02c618,0x02C620,FUN_02c618,derived,,,,,Ignition & Knock
 60E1B900,0x02c620,0x02C62E,FUN_02c620,derived,,,,,Ignition & Knock
 60E1B900,0x02c62e,0x02C63A,FUN_02c62e,derived,,,,,Ignition & Knock
 60E1B900,0x02c63a,0x02C64A,FUN_02c63a,derived,,,,,Math / FPU
@@ -36115,7 +36115,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02d04c,0x02D058,FUN_02d04c,derived,,,,,Faults & DTC
 60E1B900,0x02d058,0x02D060,FUN_02d058,derived,,,,,
 60E1B900,0x02d060,0x02D066,FUN_02d060,derived,,,,,CAN Bus
-60E1B900,0x02d066,0x02D068,FUN_02d066,derived,NOISE,,,,
+60E1B900,0x02d066,0x02D068,FUN_02d066,derived,NOISE,,,,CAN Bus
 60E1B900,0x02d068,0x02D070,FUN_02d068,derived,,,,,CAN Bus
 60E1B900,0x02d070,0x02D0A4,FUN_02d070,derived,,,,,CAN Bus
 60E1B900,0x02d0a4,0x02D0BC,dscDerateInit?,ghidra-hand-xmap,,,,,Boot & Init
@@ -36262,7 +36262,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x02dec6,0x02DEE6,FUN_02dec6,derived,,,,,Throttle & Torque
 60E1B900,0x02dee6,0x02DF12,FUN_02dee6,derived,,,,,Throttle & Torque
 60E1B900,0x02df12,0x02DF18,FUN_02df12,derived,,,,,
-60E1B900,0x02df18,0x02DF1A,FUN_02df18,derived,NOISE,,,,
+60E1B900,0x02df18,0x02DF1A,FUN_02df18,derived,NOISE,,,,Throttle & Torque
 60E1B900,0x02df1a,0x02DF1E,FUN_02df1a,derived,NOISE,,,,Throttle & Torque
 60E1B900,0x02df1e,0x02DF20,FUN_02df1e,derived,NOISE,,,,Throttle & Torque
 60E1B900,0x02df20,0x02DF24,FUN_02df20,derived,NOISE,,,,Throttle & Torque
@@ -36543,7 +36543,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x03031e,0x030324,FUN_03031e,derived,,,,,OBD / UDS
 60E1B900,0x030324,0x03033A,FUN_030324,derived,,,,,OBD / UDS
 60E1B900,0x03033a,0x03033E,FUN_03033a,derived,NOISE,,,,
-60E1B900,0x03033e,0x030340,FUN_03033e,derived,NOISE,,,,
+60E1B900,0x03033e,0x030340,FUN_03033e,derived,NOISE,,,,Boot & Init
 60E1B900,0x030340,0x030344,FUN_030340,derived,NOISE,,,,Boot & Init
 60E1B900,0x030344,0x030348,FUN_030344,derived,NOISE,,,,
 60E1B900,0x030348,0x03034E,FUN_030348,derived,,,,,Boot & Init
@@ -36760,7 +36760,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x031ff8,0x032032,FUN_031ff8,derived,,,,,Math / FPU
 60E1B900,0x032032,0x032036,FUN_032032,derived,NOISE,,,,Math / FPU
 60E1B900,0x032036,0x032056,FUN_032036,derived,,,,,Math / FPU
-60E1B900,0x032056,0x032058,FUN_032056,derived,NOISE,,,,
+60E1B900,0x032056,0x032058,FUN_032056,derived,NOISE,,,,Sensors
 60E1B900,0x032058,0x032060,FUN_032058,derived,,,,,Sensors
 60E1B900,0x032060,0x032062,FUN_032060,derived,NOISE,,,,Peripherals & ISR
 60E1B900,0x032062,0x03208A,getEngineOffTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
@@ -37700,7 +37700,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x047994,0x0479C4,FUN_047994,derived,,,,,Boot & Init
 60E1B900,0x0479c4,0x0479CC,FUN_0479c4,derived,,,,,Boot & Init
 60E1B900,0x0479cc,0x0479CE,FUN_0479cc,derived,NOISE,,,,Memory & CRC
-60E1B900,0x0479ce,0x0479D4,FUN_0479ce,derived,,,,,
+60E1B900,0x0479ce,0x0479D4,FUN_0479ce,derived,,,,,Memory & CRC
 60E1B900,0x0479d4,0x0479DC,FUN_0479d4,derived,,,,,Memory & CRC
 60E1B900,0x0479dc,0x0479E4,FUN_0479dc,derived,,,,,Memory & CRC
 60E1B900,0x0479e4,0x047A02,FUN_0479e4,derived,,,,,Memory & CRC
@@ -37734,7 +37734,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x048158,0x04815E,FUN_048158,derived,,,,,Throttle & Torque
 60E1B900,0x04815e,0x048166,FUN_04815e,derived,,,,,Throttle & Torque
 60E1B900,0x048166,0x048168,FUN_048166,derived,NOISE,,,,Throttle & Torque
-60E1B900,0x048168,0x048170,FUN_048168,derived,,,,,
+60E1B900,0x048168,0x048170,FUN_048168,derived,,,,,Throttle & Torque
 60E1B900,0x048170,0x04818A,FUN_048170,derived,,,,,Throttle & Torque
 60E1B900,0x04818a,0x048192,FUN_04818a,derived,,,,,Throttle & Torque
 60E1B900,0x048192,0x048198,FUN_048192,derived,,,,,Throttle & Torque
@@ -37836,7 +37836,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1B900,0x04934a,0x049370,FUN_04934a,derived,,,,,Faults & DTC
 60E1B900,0x049370,0x0493D8,FUN_049370,derived,,,,,Faults & DTC
 60E1B900,0x0493d8,0x049444,FUN_0493d8,derived,,,,,Faults & DTC
-60E1B900,0x049444,0x04944E,FUN_049444,derived,,,,,
+60E1B900,0x049444,0x04944E,FUN_049444,derived,,,,,RTOS
 60E1B900,0x04944e,0x0495AA,FUN_04944e,derived,,,,,Faults & DTC
 60E1B900,0x0495aa,0x049650,FUN_0495aa,derived,,,,,Faults & DTC
 60E1B900,0x049650,0x049672,FUN_049650,derived,,,,,Faults & DTC
@@ -39965,7 +39965,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x000ace,0x000AE8,FUN_000ace,derived,,sensor_sequential_ace_ace,,connor-xmap,Sensors
 60E1C500,0x000ae8,0x001008,FUN_000ae8,derived,,,,,Memory & CRC
 60E1C500,0x001008,0x001094,FUN_001008,derived,,validate_rom_calibration_id,,,Memory & CRC
-60E1C500,0x001094,0x001572,FUN_001094,derived,,,,,
+60E1C500,0x001094,0x001572,FUN_001094,derived,,,,,RTOS
 60E1C500,0x001572,0x0015CC,FUN_001572,derived,,,,connor-xmap,Faults & DTC
 60E1C500,0x0015cc,0x001648,FUN_0015cc,derived,,,,connor-xmap,Faults & DTC
 60E1C500,0x001648,0x001678,FUN_001648,derived,,,,connor-xmap,Faults & DTC
@@ -40389,9 +40389,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x009c40,0x009CC6,FUN_009c40,derived,,,,,CAN Bus
 60E1C500,0x009cc6,0x009D68,doSomethingIfByteIs1InCANSetup,ghidra-hand-xmap,,,,,CAN Bus
 60E1C500,0x009d68,0x009DBA,FUN_009d68,derived,,,,,CAN Bus
-60E1C500,0x009dba,0x009DC2,FUN_009dba,derived,,,,,
+60E1C500,0x009dba,0x009DC2,FUN_009dba,derived,,,,,Utilities
 60E1C500,0x009dc2,0x009DD0,FUN_009dc2,derived,,caller,,,CAN Bus
-60E1C500,0x009dd0,0x009DD8,FUN_009dd0,derived,,,,,
+60E1C500,0x009dd0,0x009DD8,FUN_009dd0,derived,,,,,Utilities
 60E1C500,0x009dd8,0x009E14,FUN_009dd8,derived,,,,,CAN Bus
 60E1C500,0x009e14,0x009E54,FUN_009e14,derived,,,,,CAN Bus
 60E1C500,0x009e54,0x009E94,FUN_009e54,derived,,,,,CAN Bus
@@ -40436,7 +40436,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00ada2,0x00ADAA,FUN_00ada2,derived,,,,,Boot & Init
 60E1C500,0x00adaa,0x00ADBA,FUN_00adaa,derived,,,,,Boot & Init
 60E1C500,0x00adba,0x00ADCA,FUN_00adba,derived,,,,,Boot & Init
-60E1C500,0x00adca,0x00ADD2,FUN_00adca,derived,,,,,
+60E1C500,0x00adca,0x00ADD2,FUN_00adca,derived,,,,,Memory & CRC
 60E1C500,0x00add2,0x00AECC,FUN_00add2,derived,,,,,Peripherals & ISR
 60E1C500,0x00aecc,0x00AEE6,FUN_00aecc,derived,,,,,RTOS
 60E1C500,0x00aee6,0x00AEFA,FUN_00aee6,derived,,,,,RTOS
@@ -40512,7 +40512,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x00d4b6,0x00D4FA,main??,ghidra-hand-xmap,,,,,CAN Bus
 60E1C500,0x00d4fa,0x00D526,interestingCANSomething,ghidra-hand-xmap,,,,,CAN Bus
 60E1C500,0x00d526,0x00D580,FUN_00d526,derived,,,,,Math / FPU
-60E1C500,0x00d580,0x00D58E,FUN_00d580,derived,,,,,
+60E1C500,0x00d580,0x00D58E,FUN_00d580,derived,,,,,Sensors
 60E1C500,0x00d58e,0x00D650,FUN_00d58e,derived,,,,connor-xmap,Boot & Init
 60E1C500,0x00d650,0x00D666,FUN_00d650,derived,,checksum_failure_flag_check,,,Memory & CRC
 60E1C500,0x00d666,0x00D6A0,FUN_00d666,derived,,reset_all_status_flags,,,Boot & Init
@@ -40818,7 +40818,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x013784,0x0137B0,FUN_013784,derived,,,,,
 60E1C500,0x0137b0,0x0138E0,FUN_0137b0,derived,,,,,Fuel & Lambda
 60E1C500,0x0138e0,0x0138EA,FUN_0138e0,derived,,,,,Fuel & Lambda
-60E1C500,0x0138ea,0x0138F2,FUN_0138ea,derived,,,,,
+60E1C500,0x0138ea,0x0138F2,FUN_0138ea,derived,,,,,Memory & CRC
 60E1C500,0x0138f2,0x013942,getKnockControlAllowed??,ghidra-hand-xmap,,,,,Ignition & Knock
 60E1C500,0x013942,0x01396A,getKnockSensorFaultedStatus?,ghidra-hand-xmap,,,,,Faults & DTC
 60E1C500,0x01396a,0x0139CA,getKnockControlActive,ghidra-hand-xmap,,,,,Ignition & Knock
@@ -40917,7 +40917,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x015c0c,0x015C1A,FUN_015c0c,derived,,,,,Fuel & Lambda
 60E1C500,0x015c1a,0x015C52,FUN_015c1a,derived,,,,,Fuel & Lambda
 60E1C500,0x015c52,0x015C5C,FUN_015c52,derived,,,,,
-60E1C500,0x015c5c,0x015C66,FUN_015c5c,derived,,,,,
+60E1C500,0x015c5c,0x015C66,FUN_015c5c,derived,,,,,Boot & Init
 60E1C500,0x015c66,0x015E32,FUN_015c66,derived,,,,,Fuel & Lambda
 60E1C500,0x015e32,0x015E3C,FUN_015e32,derived,,,,,Fuel & Lambda
 60E1C500,0x015e3c,0x015EF0,FUN_015e3c,derived,,,,,Fuel & Lambda
@@ -41112,7 +41112,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x01a6b0,0x01A6D8,calculateKeyOnTime,ghidra-hand-xmap,,,,,Utilities
 60E1C500,0x01a6d8,0x01A6DA,FUN_01a6d8,derived,NOISE,,,,Utilities
 60E1C500,0x01a6da,0x01A708,FUN_01a6da,derived,,,,,Utilities
-60E1C500,0x01a708,0x01A716,FUN_01a708,derived,,,,,
+60E1C500,0x01a708,0x01A716,FUN_01a708,derived,,,,,Rev Limit
 60E1C500,0x01a716,0x01A722,FUN_01a716,derived,,,,,Ignition & Knock
 60E1C500,0x01a722,0x01A724,FUN_01a722,derived,NOISE,,,,Ignition & Knock
 60E1C500,0x01a724,0x01A756,FUN_01a724,derived,,,,,Ignition & Knock
@@ -41164,7 +41164,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x01b216,0x01B252,FUN_01b216,derived,,,,,Peripherals & ISR
 60E1C500,0x01b252,0x01B26A,FUN_01b252,derived,,,,,Ignition & Knock
 60E1C500,0x01b26a,0x01B2C4,FUN_01b26a,derived,,,,,
-60E1C500,0x01b2c4,0x01B2CE,FUN_01b2c4,derived,,,,,
+60E1C500,0x01b2c4,0x01B2CE,FUN_01b2c4,derived,,,,,Ignition & Knock
 60E1C500,0x01b2ce,0x01B2D8,FUN_01b2ce,derived,,,,,Fuel & Lambda
 60E1C500,0x01b2d8,0x01B37E,FUN_01b2d8,derived,,,,,Ignition & Knock
 60E1C500,0x01b37e,0x01B380,FUN_01b37e,derived,NOISE,,,,Ignition & Knock
@@ -41866,7 +41866,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x02318c,0x0231DE,FUN_02318c,derived,,,,,
 60E1C500,0x0231de,0x023230,FUN_0231de,derived,,,,,
 60E1C500,0x023230,0x023232,FUN_023230,derived,NOISE,,,,Math / FPU
-60E1C500,0x023232,0x02323C,FUN_023232,derived,,,,,
+60E1C500,0x023232,0x02323C,FUN_023232,derived,,,,,Math / FPU
 60E1C500,0x02323c,0x02323E,FUN_02323c,derived,NOISE,,,,
 60E1C500,0x02323e,0x02324A,FUN_02323e,derived,,,,,
 60E1C500,0x02324a,0x023258,FUN_02324a,derived,,,,,
@@ -42200,7 +42200,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x025ba6,0x025BAA,FUN_025ba6,derived,NOISE,,,,
 60E1C500,0x025baa,0x025BAE,FUN_025baa,derived,NOISE,,,,
 60E1C500,0x025bae,0x025BB6,FUN_025bae,derived,,,,,
-60E1C500,0x025bb6,0x025BB8,FUN_025bb6,derived,NOISE,,,,
+60E1C500,0x025bb6,0x025BB8,FUN_025bb6,derived,NOISE,,,,Sensors
 60E1C500,0x025bb8,0x025BC0,FUN_025bb8,derived,,,,,Sensors
 60E1C500,0x025bc0,0x025BC2,FUN_025bc0,derived,NOISE,,,,Fuel & Lambda
 60E1C500,0x025bc2,0x025BC6,FUN_025bc2,derived,NOISE,,,,Fuel & Lambda
@@ -42210,7 +42210,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x025bd2,0x025BD8,FUN_025bd2,derived,,,,,Fuel & Lambda
 60E1C500,0x025bd8,0x025BDA,FUN_025bd8,derived,NOISE,,,,
 60E1C500,0x025bda,0x025BDC,FUN_025bda,derived,NOISE,,,,Sensors
-60E1C500,0x025bdc,0x025BE0,FUN_025bdc,derived,NOISE,,,,
+60E1C500,0x025bdc,0x025BE0,FUN_025bdc,derived,NOISE,,,,Sensors
 60E1C500,0x025be0,0x025BE4,FUN_025be0,derived,NOISE,,,,Sensors
 60E1C500,0x025be4,0x025BE6,FUN_025be4,derived,NOISE,,,,Sensors
 60E1C500,0x025be6,0x025BE8,FUN_025be6,derived,NOISE,,,,Sensors
@@ -42280,7 +42280,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x0261d0,0x0261DE,FUN_0261d0,derived,,,,,Boot & Init
 60E1C500,0x0261de,0x0261E0,FUN_0261de,derived,NOISE,,,,Fuel & Lambda
 60E1C500,0x0261e0,0x026250,FUN_0261e0,derived,,,,,Fuel & Lambda
-60E1C500,0x026250,0x026258,FUN_026250,derived,,,,,
+60E1C500,0x026250,0x026258,FUN_026250,derived,,,,,Boot & Init
 60E1C500,0x026258,0x026264,FUN_026258,derived,,,,,Fuel & Lambda
 60E1C500,0x026264,0x026272,FUN_026264,derived,,,,,Boot & Init
 60E1C500,0x026272,0x026282,FUN_026272,derived,,,,,Boot & Init
@@ -42799,8 +42799,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x029938,0x02993E,FUN_029938,derived,,caller,,,Memory & CRC
 60E1C500,0x02993e,0x029942,FUN_02993e,derived,NOISE,,,,
 60E1C500,0x029942,0x029944,FUN_029942,derived,NOISE,,,,Memory & CRC
-60E1C500,0x029944,0x02994A,FUN_029944,derived,,,,,
-60E1C500,0x02994a,0x02994C,FUN_02994a,derived,NOISE,,,,
+60E1C500,0x029944,0x02994A,FUN_029944,derived,,,,,Memory & CRC
+60E1C500,0x02994a,0x02994C,FUN_02994a,derived,NOISE,,,,Memory & CRC
 60E1C500,0x02994c,0x029956,FUN_02994c,derived,,,,,Memory & CRC
 60E1C500,0x029956,0x02995E,stubByte420TX,ghidra-hand-xmap,,,,,CAN Bus
 60E1C500,0x02995e,0x029986,setOilPressureGaugeStatus,ghidra-hand-xmap,,,,,Oil Metering
@@ -43186,7 +43186,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x02c6e4,0x02C6E8,FUN_02c6e4,derived,NOISE,,,,CAN Bus
 60E1C500,0x02c6e8,0x02C6EA,FUN_02c6e8,derived,NOISE,,,,CAN Bus
 60E1C500,0x02c6ea,0x02C714,can650TX_getAndPack,ghidra-hand-xmap,,,,,CAN Bus
-60E1C500,0x02c714,0x02C71C,FUN_02c714,derived,,,,,
+60E1C500,0x02c714,0x02C71C,FUN_02c714,derived,,,,,CAN Bus
 60E1C500,0x02c71c,0x02C72C,FUN_02c71c,derived,,ctrl_utility_2C71C,,,Utilities
 60E1C500,0x02c72c,0x02C768,FUN_02c72c,derived,,,,,CAN Bus
 60E1C500,0x02c768,0x02C772,FUN_02c768,derived,,,,,
@@ -43209,7 +43209,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x02c8a2,0x02C8C2,FUN_02c8a2,derived,,,,,Peripherals & ISR
 60E1C500,0x02c8c2,0x02C92C,FUN_02c8c2,derived,,,,,Peripherals & ISR
 60E1C500,0x02c92c,0x02C936,FUN_02c92c,derived,,,,,Utilities
-60E1C500,0x02c936,0x02C940,FUN_02c936,derived,,,,,
+60E1C500,0x02c936,0x02C940,FUN_02c936,derived,,,,,Ignition & Knock
 60E1C500,0x02c940,0x02C962,FUN_02c940,derived,,,,,Math / FPU
 60E1C500,0x02c962,0x02C97C,FUN_02c962,derived,,,,,Math / FPU
 60E1C500,0x02c97c,0x02C980,FUN_02c97c,derived,NOISE,,,,Math / FPU
@@ -43431,12 +43431,12 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x02e312,0x02E33E,FUN_02e312,derived,,,,,Throttle & Torque
 60E1C500,0x02e33e,0x02E342,FUN_02e33e,derived,NOISE,,,,
 60E1C500,0x02e342,0x02E352,FUN_02e342,derived,,,,,
-60E1C500,0x02e352,0x02E354,FUN_02e352,derived,NOISE,,,,
+60E1C500,0x02e352,0x02E354,FUN_02e352,derived,NOISE,,,,Throttle & Torque
 60E1C500,0x02e354,0x02E372,FUN_02e354,derived,,,,,Throttle & Torque
 60E1C500,0x02e372,0x02E39E,FUN_02e372,derived,,,,,Throttle & Torque
 60E1C500,0x02e39e,0x02E3A4,FUN_02e39e,derived,,,,,
 60E1C500,0x02e3a4,0x02E3A6,FUN_02e3a4,derived,NOISE,,,,
-60E1C500,0x02e3a6,0x02E3A8,FUN_02e3a6,derived,NOISE,,,,
+60E1C500,0x02e3a6,0x02E3A8,FUN_02e3a6,derived,NOISE,,,,Throttle & Torque
 60E1C500,0x02e3a8,0x02E3AA,FUN_02e3a8,derived,NOISE,,,,Throttle & Torque
 60E1C500,0x02e3aa,0x02E3B0,FUN_02e3aa,derived,,,,,Throttle & Torque
 60E1C500,0x02e3b0,0x02E408,FUN_02e3b0,derived,,,,,Throttle & Torque
@@ -43546,8 +43546,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x02f1aa,0x02F1B0,FUN_02f1aa,derived,,,,,Math / FPU
 60E1C500,0x02f1b0,0x02F1B6,FUN_02f1b0,derived,,,,,Math / FPU
 60E1C500,0x02f1b6,0x02F1DC,FUN_02f1b6,derived,,,,,Math / FPU
-60E1C500,0x02f1dc,0x02F1EA,FUN_02f1dc,derived,,,,,
-60E1C500,0x02f1ea,0x02F1EE,FUN_02f1ea,derived,NOISE,,,,
+60E1C500,0x02f1dc,0x02F1EA,FUN_02f1dc,derived,,,,,Throttle & Torque
+60E1C500,0x02f1ea,0x02F1EE,FUN_02f1ea,derived,NOISE,,,,Boot & Init
 60E1C500,0x02f1ee,0x02F20C,FUN_02f1ee,derived,,,,,Math / FPU
 60E1C500,0x02f20c,0x02F24A,FUN_02f20c,derived,,,,,Throttle & Torque
 60E1C500,0x02f24a,0x02F27E,FUN_02f24a,derived,,,,,Sensors
@@ -43926,7 +43926,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x03231c,0x03239A,FUN_03231c,derived,,,,,Math / FPU
 60E1C500,0x03239a,0x032474,FUN_03239a,derived,,,,,Math / FPU
 60E1C500,0x032474,0x03248C,FUN_032474,derived,,,,,Math / FPU
-60E1C500,0x03248c,0x032496,FUN_03248c,derived,,,,,
+60E1C500,0x03248c,0x032496,FUN_03248c,derived,,,,,Sensors
 60E1C500,0x032496,0x0324BE,getEngineOffTimer,ghidra-hand-xmap,,,,,Peripherals & ISR
 60E1C500,0x0324be,0x0324C2,FUN_0324be,derived,NOISE,,,,Peripherals & ISR
 60E1C500,0x0324c2,0x0324E2,FUN_0324c2,derived,,,,,Peripherals & ISR
@@ -43994,7 +43994,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x032b7a,0x032BF4,FUN_032b7a,derived,,,,,Math / FPU
 60E1C500,0x032bf4,0x032C08,FUN_032bf4,derived,,,,,
 60E1C500,0x032c08,0x032C2E,FUN_032c08,derived,,,,,Faults & DTC
-60E1C500,0x032c2e,0x032C30,FUN_032c2e,derived,NOISE,,,,
+60E1C500,0x032c2e,0x032C30,FUN_032c2e,derived,NOISE,,,,Math / FPU
 60E1C500,0x032c30,0x032C3A,FUN_032c30,derived,,,,,Math / FPU
 60E1C500,0x032c3a,0x032C68,FUN_032c3a,derived,,,,,Math / FPU
 60E1C500,0x032c68,0x032C70,FUN_032c68,derived,,,,,Math / FPU
@@ -44534,7 +44534,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x03f9d0,0x03FA0A,FUN_03f9d0,derived,,,,,RTOS
 60E1C500,0x03fa0a,0x03FA1E,FUN_03fa0a,derived,,,,,RTOS
 60E1C500,0x03fa1e,0x03FA28,FUN_03fa1e,derived,,,,,
-60E1C500,0x03fa28,0x03FA34,FUN_03fa28,derived,,,,,
+60E1C500,0x03fa28,0x03FA34,FUN_03fa28,derived,,,,,Faults & DTC
 60E1C500,0x03fa34,0x03FA3A,FUN_03fa34,derived,,,,,Rev Limit
 60E1C500,0x03fa3a,0x03FA72,FUN_03fa3a,derived,,,,,Rev Limit
 60E1C500,0x03fa72,0x03FA74,FUN_03fa72,derived,NOISE,,,,Fuel & Lambda
@@ -44963,7 +44963,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x049316,0x049418,FUN_049316,derived,,,,,Throttle & Torque
 60E1C500,0x049418,0x049428,FUN_049418,derived,,,,,Boot & Init
 60E1C500,0x049428,0x049448,FUN_049428,derived,,,,,Boot & Init
-60E1C500,0x049448,0x049450,FUN_049448,derived,,,,,
+60E1C500,0x049448,0x049450,FUN_049448,derived,,,,,Boot & Init
 60E1C500,0x049450,0x049458,FUN_049450,derived,,,,,CAN Bus
 60E1C500,0x049458,0x049460,FUN_049458,derived,,,,,CAN Bus
 60E1C500,0x049460,0x049468,FUN_049460,derived,,,,,Peripherals & ISR
@@ -45178,7 +45178,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x04cc2a,0x04CC6E,getOBDCANTXVars1,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x04cc6e,0x04CC86,FUN_04cc6e,derived,,,,,OBD / UDS
 60E1C500,0x04cc86,0x04CCB6,FUN_04cc86,derived,,,,,OBD / UDS
-60E1C500,0x04ccb6,0x04CCB8,FUN_04ccb6,derived,NOISE,,,,
+60E1C500,0x04ccb6,0x04CCB8,FUN_04ccb6,derived,NOISE,,,,CAN Bus
 60E1C500,0x04ccb8,0x04CCBE,FUN_04ccb8,derived,,,,,CAN Bus
 60E1C500,0x04ccbe,0x04CCC6,FUN_04ccbe,derived,,,,,CAN Bus
 60E1C500,0x04ccc6,0x04CCD4,FUN_04ccc6,derived,,,,,RTOS
@@ -45251,7 +45251,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x04d412,0x04D422,FUN_04d412,derived,,,,,
 60E1C500,0x04d422,0x04D432,FUN_04d422,derived,,,,,
 60E1C500,0x04d432,0x04D448,FUN_04d432,derived,,,,,
-60E1C500,0x04d448,0x04D450,FUN_04d448,derived,,,,,
+60E1C500,0x04d448,0x04D450,FUN_04d448,derived,,,,,Ignition & Knock
 60E1C500,0x04d450,0x04D522,FUN_04d450,derived,,,,,Math / FPU
 60E1C500,0x04d522,0x04D53A,FUN_04d522,derived,,,,,Math / FPU
 60E1C500,0x04d53a,0x04D546,FUN_04d53a,derived,,,,,Math / FPU
@@ -45893,7 +45893,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x05895c,0x0589AC,FUN_05895c,derived,,,,,OBD / UDS
 60E1C500,0x0589ac,0x0589C6,FUN_0589ac,derived,,,,,Utilities
 60E1C500,0x0589c6,0x058A32,FUN_0589c6,derived,,,,,Peripherals & ISR
-60E1C500,0x058a32,0x058A34,FUN_058a32,derived,NOISE,,,,
+60E1C500,0x058a32,0x058A34,FUN_058a32,derived,NOISE,,,,Fuel & Lambda
 60E1C500,0x058a34,0x058A3C,FUN_058a34,derived,,,,,Fuel & Lambda
 60E1C500,0x058a3c,0x058A44,FUN_058a3c,derived,,,,,Fuel & Lambda
 60E1C500,0x058a44,0x058A8E,FUN_058a44,derived,,,,,Peripherals & ISR
@@ -46529,9 +46529,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E1C500,0x068402,0x068410,FUN_068402,derived,,,,,OBD / UDS
 60E1C500,0x068410,0x068416,FUN_068410,derived,,,,,OBD / UDS
 60E1C500,0x068416,0x06841C,FUN_068416,derived,,,,,OBD / UDS
-60E1C500,0x06841c,0x068422,FUN_06841c,derived,,,,,
+60E1C500,0x06841c,0x068422,FUN_06841c,derived,,,,,Boot & Init
 60E1C500,0x068422,0x068428,FUN_068422,derived,,,,,OBD / UDS
-60E1C500,0x068428,0x06842E,FUN_068428,derived,,,,,
+60E1C500,0x068428,0x06842E,FUN_068428,derived,,,,,Utilities
 60E1C500,0x06842e,0x068458,FUN_06842e,derived,,,,,OBD / UDS
 60E1C500,0x068458,0x0684EA,udsHandler,ghidra-hand-xmap,,,,,OBD / UDS
 60E1C500,0x0684ea,0x068588,udsResponseRelated2,ghidra-hand-xmap,,,,,OBD / UDS
@@ -50058,7 +50058,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x00011a,0x000250,FUN_00011a,derived,,,,,Memory & CRC
 60E32000,0x000250,0x000338,FUN_000250,derived,,,,,Faults & DTC
 60E32000,0x000338,0x00044E,FUN_000338,derived,,,,,Peripherals & ISR
-60E32000,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,
+60E32000,0x00044e,0x000450,FUN_00044e,derived,NOISE,,,,Memory & CRC
 60E32000,0x000450,0x00047C,FUN_000450,derived,,,,,Memory & CRC
 60E32000,0x00047c,0x0004E0,FUN_00047c,derived,,,,,Memory & CRC
 60E32000,0x0004e0,0x000572,main_init,ghidra-hand-xmap,,,YES,connor-xmap,Boot & Init
@@ -50243,7 +50243,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0051d0,0x005232,FUN_0051d0,derived,,atu_prescaler_mode_init,,,Boot & Init
 60E32000,0x005232,0x005286,FUN_005232,derived,,,,,Peripherals & ISR
 60E32000,0x005286,0x00528E,FUN_005286,derived,,mem_clear_5286,,,Memory & CRC
-60E32000,0x00528e,0x005292,FUN_00528e,derived,NOISE,,,,
+60E32000,0x00528e,0x005292,FUN_00528e,derived,NOISE,,,,Memory & CRC
 60E32000,0x005292,0x0052B0,FUN_005292,derived,,atu_clock_prescaler_select,,,Math / FPU
 60E32000,0x0052b0,0x005360,FUN_0052b0,derived,,,,,Peripherals & ISR
 60E32000,0x005360,0x0053DE,FUN_005360,derived,,,,,Faults & DTC
@@ -50367,7 +50367,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x005ef6,0x005F06,FUN_005ef6,derived,,,,,Peripherals & ISR
 60E32000,0x005f06,0x005F0C,FUN_005f06,derived,,,,,Utilities
 60E32000,0x005f0c,0x005F30,FUN_005f0c,derived,,,,,Peripherals & ISR
-60E32000,0x005f30,0x005F34,FUN_005f30,derived,NOISE,,,,
+60E32000,0x005f30,0x005F34,FUN_005f30,derived,NOISE,,,,RTOS
 60E32000,0x005f34,0x006034,FUN_005f34,derived,,,,,RTOS
 60E32000,0x006034,0x00613A,FUN_006034,derived,,,,,RTOS
 60E32000,0x00613a,0x0062EA,FUN_00613a,derived,,,,,Sensors
@@ -50458,7 +50458,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0081cc,0x00828C,FUN_0081cc,derived,,,,,Boot & Init
 60E32000,0x00828c,0x0082DC,FUN_00828c,derived,,,,,Ignition & Knock
 60E32000,0x0082dc,0x00830A,FUN_0082dc,derived,,,,,Ignition & Knock
-60E32000,0x00830a,0x008358,FUN_00830a,derived,,,,,
+60E32000,0x00830a,0x008358,FUN_00830a,derived,,,,,Ignition & Knock
 60E32000,0x008358,0x008378,FUN_008358,derived,,,,,Fuel & Lambda
 60E32000,0x008378,0x00837C,FUN_008378,derived,NOISE,,,,Fuel & Lambda
 60E32000,0x00837c,0x008402,FUN_00837c,derived,,,,,Fuel & Lambda
@@ -50884,7 +50884,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0120f4,0x0120F8,FUN_0120f4,derived,NOISE,,,,
 60E32000,0x0120f8,0x012136,FUN_0120f8,derived,,,,,
 60E32000,0x012136,0x012196,FUN_012136,derived,,,,,Boot & Init
-60E32000,0x012196,0x0121C2,FUN_012196,derived,,,,,
+60E32000,0x012196,0x0121C2,FUN_012196,derived,,,,,Fuel & Lambda
 60E32000,0x0121c2,0x0121DC,FUN_0121c2,derived,,,,,Boot & Init
 60E32000,0x0121dc,0x012216,FUN_0121dc,derived,,,,,
 60E32000,0x012216,0x01222C,FUN_012216,derived,,,,,Faults & DTC
@@ -50923,7 +50923,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x012854,0x0128CA,FUN_012854,derived,,,,,Ignition & Knock
 60E32000,0x0128ca,0x01296C,FUN_0128ca,derived,,,,,
 60E32000,0x01296c,0x01296E,FUN_01296c,derived,NOISE,,,,Ignition & Knock
-60E32000,0x01296e,0x0129AE,FUN_01296e,derived,,,,,
+60E32000,0x01296e,0x0129AE,FUN_01296e,derived,,,,,Ignition & Knock
 60E32000,0x0129ae,0x012A36,FUN_0129ae,derived,,,,,
 60E32000,0x012a36,0x012A46,FUN_012a36,derived,,,,,
 60E32000,0x012a46,0x012A96,FUN_012a46,derived,,,,,
@@ -51030,7 +51030,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x014d2e,0x014D48,FUN_014d2e,derived,,,,,Ignition & Knock
 60E32000,0x014d48,0x014D58,FUN_014d48,derived,,,,,
 60E32000,0x014d58,0x014D5A,FUN_014d58,derived,NOISE,,,,Sensors
-60E32000,0x014d5a,0x014D68,FUN_014d5a,derived,,,,,
+60E32000,0x014d5a,0x014D68,FUN_014d5a,derived,,,,,Sensors
 60E32000,0x014d68,0x014D6E,FUN_014d68,derived,,,,,Ignition & Knock
 60E32000,0x014d6e,0x014D74,FUN_014d6e,derived,,,,,Math / FPU
 60E32000,0x014d74,0x014DA4,FUN_014d74,derived,,,,,Ignition & Knock
@@ -51269,8 +51269,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x01ab0e,0x01AB58,FUN_01ab0e,derived,,,,,Memory & CRC
 60E32000,0x01ab58,0x01AB80,calculateKeyOnTime,ghidra-hand-xmap,,,,,Utilities
 60E32000,0x01ab80,0x01ABB0,calculateKeyOffTime,ghidra-hand-xmap,,,,,Utilities
-60E32000,0x01abb0,0x01ABBE,FUN_01abb0,derived,,,,,
-60E32000,0x01abbe,0x01ABCC,FUN_01abbe,derived,,,,,
+60E32000,0x01abb0,0x01ABBE,FUN_01abb0,derived,,,,,Ignition & Knock
+60E32000,0x01abbe,0x01ABCC,FUN_01abbe,derived,,,,,Fuel & Lambda
 60E32000,0x01abcc,0x01ACC6,FUN_01abcc,derived,,,,,RTOS
 60E32000,0x01acc6,0x01ACD2,FUN_01acc6,derived,,,,,Sensors
 60E32000,0x01acd2,0x01AD06,FUN_01acd2,derived,,,,,Faults & DTC
@@ -51291,7 +51291,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x01b308,0x01B368,FUN_01b308,derived,,,,,OBD / UDS
 60E32000,0x01b368,0x01B380,FUN_01b368,derived,,,,,OBD / UDS
 60E32000,0x01b380,0x01B398,FUN_01b380,derived,,,,,Sensors
-60E32000,0x01b398,0x01B3B4,FUN_01b398,derived,,,,,
+60E32000,0x01b398,0x01B3B4,FUN_01b398,derived,,,,,Fuel & Lambda
 60E32000,0x01b3b4,0x01B3C6,FUN_01b3b4,derived,,,,,
 60E32000,0x01b3c6,0x01B3C8,FUN_01b3c6,derived,NOISE,,,,Boot & Init
 60E32000,0x01b3c8,0x01B406,FUN_01b3c8,derived,,,,,Boot & Init
@@ -51921,20 +51921,20 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x022adc,0x022AE8,FUN_022adc,derived,,,,,
 60E32000,0x022ae8,0x022AF2,FUN_022ae8,derived,,,,,
 60E32000,0x022af2,0x022B00,FUN_022af2,derived,,,,,
-60E32000,0x022b00,0x022B08,FUN_022b00,derived,,,,,
+60E32000,0x022b00,0x022B08,FUN_022b00,derived,,,,,RTOS
 60E32000,0x022b08,0x022B1E,FUN_022b08,derived,,,,,
 60E32000,0x022b1e,0x022B28,FUN_022b1e,derived,,,,,
 60E32000,0x022b28,0x022B3C,FUN_022b28,derived,,,,,
 60E32000,0x022b3c,0x022B62,FUN_022b3c,derived,,,,,
 60E32000,0x022b62,0x022B80,FUN_022b62,derived,,,,,Fuel & Lambda
-60E32000,0x022b80,0x022B9A,FUN_022b80,derived,,,,,
+60E32000,0x022b80,0x022B9A,FUN_022b80,derived,,,,,Fuel & Lambda
 60E32000,0x022b9a,0x022BAA,FUN_022b9a,derived,,,,,Throttle & Torque
 60E32000,0x022baa,0x022BAC,FUN_022baa,derived,NOISE,,,,Throttle & Torque
 60E32000,0x022bac,0x022BB8,FUN_022bac,derived,,,,,Throttle & Torque
 60E32000,0x022bb8,0x022BBE,FUN_022bb8,derived,,,,,
 60E32000,0x022bbe,0x022BC2,FUN_022bbe,derived,NOISE,,,,
 60E32000,0x022bc2,0x022BC4,FUN_022bc2,derived,NOISE,,,,Throttle & Torque
-60E32000,0x022bc4,0x022BCC,FUN_022bc4,derived,,,,,
+60E32000,0x022bc4,0x022BCC,FUN_022bc4,derived,,,,,Throttle & Torque
 60E32000,0x022bcc,0x022BD0,FUN_022bcc,derived,NOISE,,,,
 60E32000,0x022bd0,0x022BF8,FUN_022bd0,derived,,,,,
 60E32000,0x022bf8,0x022C2E,FUN_022bf8,derived,,,,,
@@ -51954,10 +51954,10 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x022dea,0x022DF4,FUN_022dea,derived,,,,,Fuel & Lambda
 60E32000,0x022df4,0x022E10,FUN_022df4,derived,,,,,Throttle & Torque
 60E32000,0x022e10,0x022E2E,FUN_022e10,derived,,,,,
-60E32000,0x022e2e,0x022E5E,FUN_022e2e,derived,,,,,
+60E32000,0x022e2e,0x022E5E,FUN_022e2e,derived,,,,,Faults & DTC
 60E32000,0x022e5e,0x022E76,FUN_022e5e,derived,,,,,Sensors
 60E32000,0x022e76,0x022E8E,FUN_022e76,derived,,,,,Sensors
-60E32000,0x022e8e,0x022E9C,FUN_022e8e,derived,,,,,
+60E32000,0x022e8e,0x022E9C,FUN_022e8e,derived,,,,,Ignition & Knock
 60E32000,0x022e9c,0x022EAA,FUN_022e9c,derived,,,,,Sensors
 60E32000,0x022eaa,0x022EB8,FUN_022eaa,derived,,,,,Fuel & Lambda
 60E32000,0x022eb8,0x022F1A,FUN_022eb8,derived,,,,,
@@ -52486,7 +52486,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x027466,0x02746C,FUN_027466,derived,,,,,Peripherals & ISR
 60E32000,0x02746c,0x027470,FUN_02746c,derived,NOISE,,,,
 60E32000,0x027470,0x027472,FUN_027470,derived,NOISE,,,,Peripherals & ISR
-60E32000,0x027472,0x02747A,FUN_027472,derived,,,,,
+60E32000,0x027472,0x02747A,FUN_027472,derived,,,,,Peripherals & ISR
 60E32000,0x02747a,0x027490,FUN_02747a,derived,,,,,Utilities
 60E32000,0x027490,0x0274B8,FUN_027490,derived,,,,,Utilities
 60E32000,0x0274b8,0x027534,FUN_0274b8,derived,,,,,Utilities
@@ -52646,7 +52646,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0289d4,0x0289E0,FUN_0289d4,derived,,,,,
 60E32000,0x0289e0,0x0289E8,FUN_0289e0,derived,,copy_calbyte_ba96_ba97_b,,,Boot & Init
 60E32000,0x0289e8,0x0289EA,FUN_0289e8,derived,NOISE,,,,Sensors
-60E32000,0x0289ea,0x0289F6,FUN_0289ea,derived,,,,,
+60E32000,0x0289ea,0x0289F6,FUN_0289ea,derived,,,,,Sensors
 60E32000,0x0289f6,0x028A3E,FUN_0289f6,derived,,,,,Sensors
 60E32000,0x028a3e,0x028A66,FUN_028a3e,derived,,,,,Sensors
 60E32000,0x028a66,0x028A7E,FUN_028a66,derived,,,,,Sensors
@@ -52666,7 +52666,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x028b70,0x028BAC,FUN_028b70,derived,,,,,Math / FPU
 60E32000,0x028bac,0x028BAE,FUN_028bac,derived,NOISE,,,,
 60E32000,0x028bae,0x028BB0,FUN_028bae,derived,NOISE,,,,
-60E32000,0x028bb0,0x028BB2,FUN_028bb0,derived,NOISE,,,,
+60E32000,0x028bb0,0x028BB2,FUN_028bb0,derived,NOISE,,,,Math / FPU
 60E32000,0x028bb2,0x028BBE,FUN_028bb2,derived,,,,,Math / FPU
 60E32000,0x028bbe,0x028BDA,FUN_028bbe,derived,,,,,RTOS
 60E32000,0x028bda,0x028BDE,FUN_028bda,derived,NOISE,,,,RTOS
@@ -53014,8 +53014,8 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02ab9a,0x02AB9E,FUN_02ab9a,derived,NOISE,,,,Faults & DTC
 60E32000,0x02ab9e,0x02ABB0,FUN_02ab9e,derived,,,,,Faults & DTC
 60E32000,0x02abb0,0x02ABEC,FUN_02abb0,derived,,,,,Sensors
-60E32000,0x02abec,0x02AC28,FUN_02abec,derived,,,,,
-60E32000,0x02ac28,0x02AC4C,FUN_02ac28,derived,,,,,
+60E32000,0x02abec,0x02AC28,FUN_02abec,derived,,,,,Fuel & Lambda
+60E32000,0x02ac28,0x02AC4C,FUN_02ac28,derived,,,,,Fuel & Lambda
 60E32000,0x02ac4c,0x02AC5C,FUN_02ac4c,derived,,,,,CAN Bus
 60E32000,0x02ac5c,0x02AC74,FUN_02ac5c,derived,,,,,Sensors
 60E32000,0x02ac74,0x02AC88,FUN_02ac74,derived,,,,,
@@ -53049,7 +53049,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02af52,0x02AF54,FUN_02af52,derived,NOISE,,,,
 60E32000,0x02af54,0x02AF58,FUN_02af54,derived,NOISE,,,,
 60E32000,0x02af58,0x02AF5A,FUN_02af58,derived,NOISE,,,,CAN Bus
-60E32000,0x02af5a,0x02AF5E,FUN_02af5a,derived,NOISE,,,,
+60E32000,0x02af5a,0x02AF5E,FUN_02af5a,derived,NOISE,,,,CAN Bus
 60E32000,0x02af5e,0x02AF62,FUN_02af5e,derived,NOISE,,,,CAN Bus
 60E32000,0x02af62,0x02AF6A,stubByte420TX,ghidra-hand-xmap,,,,,CAN Bus
 60E32000,0x02af6a,0x02AF84,FUN_02af6a,derived,,,,,Oil Metering
@@ -53066,7 +53066,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02b08e,0x02B094,FUN_02b08e,derived,,,,,
 60E32000,0x02b094,0x02B09A,FUN_02b094,derived,,,,,
 60E32000,0x02b09a,0x02B0A0,FUN_02b09a,derived,,,,,
-60E32000,0x02b0a0,0x02B0A2,FUN_02b0a0,derived,NOISE,,,,
+60E32000,0x02b0a0,0x02B0A2,FUN_02b0a0,derived,NOISE,,,,CAN Bus
 60E32000,0x02b0a2,0x02B0A4,FUN_02b0a2,derived,NOISE,,,,CAN Bus
 60E32000,0x02b0a4,0x02B0A8,FUN_02b0a4,derived,NOISE,,,,CAN Bus
 60E32000,0x02b0a8,0x02B0C8,canRX_216_stubs?,ghidra-hand-xmap,,,,,CAN Bus
@@ -53223,7 +53223,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02c4f8,0x02C53C,FUN_02c4f8,derived,,,,,
 60E32000,0x02c53c,0x02C5EC,FUN_02c53c,derived,,,,,Sensors
 60E32000,0x02c5ec,0x02C62A,FUN_02c5ec,derived,,utility_bitfield_check_2C5EC,,,Utilities
-60E32000,0x02c62a,0x02C63E,FUN_02c62a,derived,,,,,
+60E32000,0x02c62a,0x02C63E,FUN_02c62a,derived,,,,,Faults & DTC
 60E32000,0x02c63e,0x02C642,FUN_02c63e,derived,NOISE,,,,
 60E32000,0x02c642,0x02C646,FUN_02c642,derived,NOISE,,,,
 60E32000,0x02c646,0x02C654,FUN_02c646,derived,,,,,
@@ -53242,9 +53242,9 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02c7be,0x02C7C4,FUN_02c7be,derived,,,,,
 60E32000,0x02c7c4,0x02C832,FUN_02c7c4,derived,,,,,OBD / UDS
 60E32000,0x02c832,0x02C836,FUN_02c832,derived,NOISE,,,,
-60E32000,0x02c836,0x02C852,FUN_02c836,derived,,,,,
+60E32000,0x02c836,0x02C852,FUN_02c836,derived,,,,,Fuel & Lambda
 60E32000,0x02c852,0x02C860,FUN_02c852,derived,,,,,
-60E32000,0x02c860,0x02C86E,FUN_02c860,derived,,,,,
+60E32000,0x02c860,0x02C86E,FUN_02c860,derived,,,,,Faults & DTC
 60E32000,0x02c86e,0x02C872,FUN_02c86e,derived,NOISE,,,,
 60E32000,0x02c872,0x02C874,FUN_02c872,derived,NOISE,,,,
 60E32000,0x02c874,0x02C876,FUN_02c874,derived,NOISE,,,,
@@ -53432,7 +53432,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02dc58,0x02DC5E,FUN_02dc58,derived,,,,,
 60E32000,0x02dc5e,0x02DC64,FUN_02dc5e,derived,,,,,
 60E32000,0x02dc64,0x02DC66,FUN_02dc64,derived,NOISE,,,,
-60E32000,0x02dc66,0x02DC68,FUN_02dc66,derived,NOISE,,,,
+60E32000,0x02dc66,0x02DC68,FUN_02dc66,derived,NOISE,,,,CAN Bus
 60E32000,0x02dc68,0x02DC6E,FUN_02dc68,derived,,,,,CAN Bus
 60E32000,0x02dc6e,0x02DC98,can650TX_getAndPack,ghidra-hand-xmap,,,,,CAN Bus
 60E32000,0x02dc98,0x02DCA0,FUN_02dc98,derived,,,,,CAN Bus
@@ -53532,7 +53532,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x02e902,0x02E90C,FUN_02e902,derived,,,,,
 60E32000,0x02e90c,0x02E914,FUN_02e90c,derived,,,,,CAN Bus
 60E32000,0x02e914,0x02E916,FUN_02e914,derived,NOISE,,,,CAN Bus
-60E32000,0x02e916,0x02E950,FUN_02e916,derived,,,,,
+60E32000,0x02e916,0x02E950,FUN_02e916,derived,,,,,CAN Bus
 60E32000,0x02e950,0x02E968,dscDerateInit?,ghidra-hand-xmap,,,,,Boot & Init
 60E32000,0x02e968,0x02E9FC,FUN_02e968,derived,,,,,Throttle & Torque
 60E32000,0x02e9fc,0x02EA1A,getCondtionsForSomething,ghidra-hand-xmap,,,,,Fuel & Lambda
@@ -53783,7 +53783,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0306d2,0x0306D8,FUN_0306d2,derived,,,,,
 60E32000,0x0306d8,0x0306DE,FUN_0306d8,derived,,,,,
 60E32000,0x0306de,0x0306EC,FUN_0306de,derived,,,,,
-60E32000,0x0306ec,0x0306FA,FUN_0306ec,derived,,,,,
+60E32000,0x0306ec,0x0306FA,FUN_0306ec,derived,,,,,Fuel & Lambda
 60E32000,0x0306fa,0x030708,FUN_0306fa,derived,,,,,
 60E32000,0x030708,0x030726,FUN_030708,derived,,,,,
 60E32000,0x030726,0x030772,FUN_030726,derived,,,,,
@@ -54357,7 +54357,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x034d7a,0x034D88,FUN_034d7a,derived,,,,,
 60E32000,0x034d88,0x034D8A,FUN_034d88,derived,NOISE,,,,
 60E32000,0x034d8a,0x034D9E,FUN_034d8a,derived,,,,,
-60E32000,0x034d9e,0x034DA0,FUN_034d9e,derived,NOISE,,,,
+60E32000,0x034d9e,0x034DA0,FUN_034d9e,derived,NOISE,,,,Fuel & Lambda
 60E32000,0x034da0,0x034DA6,FUN_034da0,derived,,,,,Fuel & Lambda
 60E32000,0x034da6,0x034DE0,FUN_034da6,derived,,,,,
 60E32000,0x034de0,0x034E18,FUN_034de0,derived,,,,,
@@ -54452,7 +54452,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x03611e,0x03612A,FUN_03611e,derived,,,,,
 60E32000,0x03612a,0x036136,FUN_03612a,derived,,,,,
 60E32000,0x036136,0x036152,FUN_036136,derived,,,,,
-60E32000,0x036152,0x036154,FUN_036152,derived,NOISE,,,,
+60E32000,0x036152,0x036154,FUN_036152,derived,NOISE,,,,Boot & Init
 60E32000,0x036154,0x03615E,FUN_036154,derived,,,,,Boot & Init
 60E32000,0x03615e,0x036162,FUN_03615e,derived,NOISE,,,,Boot & Init
 60E32000,0x036162,0x036168,FUN_036162,derived,,,,,Fuel & Lambda
@@ -54655,14 +54655,14 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x03af82,0x03AFFE,FUN_03af82,derived,,,,,Faults & DTC
 60E32000,0x03affe,0x03B096,FUN_03affe,derived,,,,,Sensors
 60E32000,0x03b096,0x03B13E,FUN_03b096,derived,,,,,Boot & Init
-60E32000,0x03b13e,0x03B26A,FUN_03b13e,derived,,,,,
+60E32000,0x03b13e,0x03B26A,FUN_03b13e,derived,,,,,Boot & Init
 60E32000,0x03b26a,0x03B26E,FUN_03b26a,derived,NOISE,,,,
 60E32000,0x03b26e,0x03B27E,FUN_03b26e,derived,,,,,
 60E32000,0x03b27e,0x03B282,FUN_03b27e,derived,NOISE,,,,
 60E32000,0x03b282,0x03B2BC,FUN_03b282,derived,,,,,
 60E32000,0x03b2bc,0x03B2EA,FUN_03b2bc,derived,,,,,OBD / UDS
 60E32000,0x03b2ea,0x03B2FE,FUN_03b2ea,derived,,,,,
-60E32000,0x03b2fe,0x03B33A,FUN_03b2fe,derived,,,,,
+60E32000,0x03b2fe,0x03B33A,FUN_03b2fe,derived,,,,,Sensors
 60E32000,0x03b33a,0x03B358,FUN_03b33a,derived,,watchdog_handler_3b33a,,,RTOS
 60E32000,0x03b358,0x03B370,FUN_03b358,derived,,,,,
 60E32000,0x03b370,0x03B41E,evapRelated,ghidra-hand-xmap,,,,,Fuel & Lambda
@@ -54698,7 +54698,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x03c3d8,0x03C42E,FUN_03c3d8,derived,,,,,
 60E32000,0x03c42e,0x03C460,FUN_03c42e,derived,,,,,Faults & DTC
 60E32000,0x03c460,0x03C470,FUN_03c460,derived,,,,,
-60E32000,0x03c470,0x03C488,FUN_03c470,derived,,,,,
+60E32000,0x03c470,0x03C488,FUN_03c470,derived,,,,,Peripherals & ISR
 60E32000,0x03c488,0x03C4A6,FUN_03c488,derived,,,,,OBD / UDS
 60E32000,0x03c4a6,0x03C50A,FUN_03c4a6,derived,,,,,
 60E32000,0x03c50a,0x03C586,FUN_03c50a,derived,,,,,Fuel & Lambda
@@ -55093,7 +55093,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x041c8a,0x041D34,FUN_041c8a,derived,,,,,Sensors
 60E32000,0x041d34,0x041D4C,FUN_041d34,derived,,,,,
 60E32000,0x041d4c,0x041D6C,FUN_041d4c,derived,,,,,Fuel & Lambda
-60E32000,0x041d6c,0x041D8A,FUN_041d6c,derived,,,,,
+60E32000,0x041d6c,0x041D8A,FUN_041d6c,derived,,,,,Fuel & Lambda
 60E32000,0x041d8a,0x041DA2,FUN_041d8a,derived,,,,,
 60E32000,0x041da2,0x041DC0,FUN_041da2,derived,,,,,
 60E32000,0x041dc0,0x041DE4,FUN_041dc0,derived,,,,,OBD / UDS
@@ -55298,7 +55298,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x0460b4,0x046118,FUN_0460b4,derived,,,,,
 60E32000,0x046118,0x0461AC,FUN_046118,derived,,,,,
 60E32000,0x0461ac,0x0461AE,FUN_0461ac,derived,NOISE,,,,Sensors
-60E32000,0x0461ae,0x0461B6,FUN_0461ae,derived,,,,,
+60E32000,0x0461ae,0x0461B6,FUN_0461ae,derived,,,,,Sensors
 60E32000,0x0461b6,0x0461CE,FUN_0461b6,derived,,,,,Sensors
 60E32000,0x0461ce,0x0461D0,FUN_0461ce,derived,NOISE,,,,Sensors
 60E32000,0x0461d0,0x04620A,FUN_0461d0,derived,,,,,Sensors
@@ -55592,7 +55592,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x04bdfc,0x04BE64,FUN_04bdfc,derived,,,,,
 60E32000,0x04be64,0x04BECC,FUN_04be64,derived,,,,,Faults & DTC
 60E32000,0x04becc,0x04BF38,FUN_04becc,derived,,,,,Faults & DTC
-60E32000,0x04bf38,0x04BF42,FUN_04bf38,derived,,,,,
+60E32000,0x04bf38,0x04BF42,FUN_04bf38,derived,,,,,RTOS
 60E32000,0x04bf42,0x04C0B2,FUN_04bf42,derived,,,,,Faults & DTC
 60E32000,0x04c0b2,0x04C10A,FUN_04c0b2,derived,,,,,
 60E32000,0x04c10a,0x04C15A,FUN_04c10a,derived,,,,,
@@ -56404,7 +56404,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x05eabe,0x05EB1E,FUN_05eabe,derived,,,,,
 60E32000,0x05eb1e,0x05EB40,FUN_05eb1e,derived,,,,,
 60E32000,0x05eb40,0x05EB78,FUN_05eb40,derived,,,,,
-60E32000,0x05eb78,0x05EB88,FUN_05eb78,derived,,,,,
+60E32000,0x05eb78,0x05EB88,FUN_05eb78,derived,,,,,Boot & Init
 60E32000,0x05eb88,0x05EC6E,FUN_05eb88,derived,,,,,Faults & DTC
 60E32000,0x05ec6e,0x05EC8C,FUN_05ec6e,derived,,fault_condition_check_5EC6E,,,Faults & DTC
 60E32000,0x05ec8c,0x05ECAA,FUN_05ec8c,derived,,,,,Memory & CRC
@@ -56655,7 +56655,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x065196,0x0651BC,FUN_065196,derived,,,,,
 60E32000,0x0651bc,0x065424,FUN_0651bc,derived,,,,,
 60E32000,0x065424,0x065708,FUN_065424,derived,,,,,
-60E32000,0x065708,0x06570A,FUN_065708,derived,NOISE,,,,
+60E32000,0x065708,0x06570A,FUN_065708,derived,NOISE,,,,Faults & DTC
 60E32000,0x06570a,0x065776,FUN_06570a,derived,,,,,Faults & DTC
 60E32000,0x065776,0x0657E4,FUN_065776,derived,,,,,
 60E32000,0x0657e4,0x0657F4,FUN_0657e4,derived,,,,,
@@ -56810,7 +56810,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x068594,0x0686DC,FUN_068594,derived,,,,,
 60E32000,0x0686dc,0x068808,FUN_0686dc,derived,,,,,
 60E32000,0x068808,0x068874,FUN_068808,derived,,,,,
-60E32000,0x068874,0x068944,FUN_068874,derived,,,,,
+60E32000,0x068874,0x068944,FUN_068874,derived,,,,,OBD / UDS
 60E32000,0x068944,0x068A3E,FUN_068944,derived,,,,,Boot & Init
 60E32000,0x068a3e,0x068A5C,FUN_068a3e,derived,,,,,Faults & DTC
 60E32000,0x068a5c,0x068A7A,FUN_068a5c,derived,,,,,Faults & DTC
