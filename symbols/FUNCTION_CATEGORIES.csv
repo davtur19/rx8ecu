@@ -6078,6 +6078,6 @@
 60E1D400,0x6BFE0,obd_service_handler_6BFE0,OBD / UDS,1.000,name
 60E1D400,0x6C0AA,obd_service_handler_6C0AA,OBD / UDS,1.000,name
 60E1D400,0x6C166,obd_service_handler_6C166,OBD / UDS,1.000,name
-60E0FC00,0x770C7,f32_tbl_data_770c7,Other / Unclassified,0.900,assembly
-60E0FC00,0x770CD,f32_tbl_data_770cd,Other / Unclassified,0.900,assembly
+60E0FC00,0x770C7,f32_tbl_data_770c7,Memory & CRC,0.900,not_code:data
+60E0FC00,0x770CD,f32_tbl_data_770cd,Memory & CRC,0.900,not_code:data
 60E0FC00,0xFFFFFFFF,HUDI_excep,OBD / UDS,1.000,graph
