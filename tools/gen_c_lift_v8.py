@@ -875,8 +875,12 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 seen_pc.add(pc)
                 if slot is not None:
                     seen_pc.add(pc + 2)
-                pc += 4 if slot is not None else 2
-                continue
+                if kind == 'jsr':
+                    pc += 4 if slot is not None else 2
+                    continue
+                # tail jmp @Rn: no fallthrough -- stop the linear walk so it
+                # does not over-run into the literal pool (0x3D58 case).
+                break
             rec = emit_one(pc, op)
             if rec is None:
                 res.reject = ('unmapped', pc)
