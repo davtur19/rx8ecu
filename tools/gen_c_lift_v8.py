@@ -242,7 +242,14 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
           # with >=2 distinct literal def-sites may hold a different value on
           # another CFG path (e.g. a jsr delay slot on a sibling path), so the
           # access must be emitted register-relative (dynbase), never baked.
-          'litdefs': {}}
+          'litdefs': {},
+          # ENH1: stack-slot literal tracking.  'stacks' maps slot_offset (r15
+          # sp_off + disp at store time) -> literal value written by a
+          # `mov.l Rn,@(disp,r15)` / `mov.l Rn,@-r15` whose Rn holds a literal.
+          # A later `mov.l @(disp,r15),Rn` / `mov.l @r15+,Rn` of a tracked slot
+          # restores that literal into Rn so the runtime stack reload feeds
+          # subsequent resolve() (e.g. jsr/jmp @Rn dispatch tables).
+          'stacks': {}}
     info = res.info
     labels = res.labels
     data = set(gcl._pcrel_pool_words(rom, addr, end))
@@ -271,6 +278,23 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         st['lits']['r%d' % reg] = val
         st['litdefs'].setdefault('r%d' % reg, set()).add(pc)
         return val
+
+    def _rom_deref_value(mr):
+        """ENH2: for a `mov.l @Rn,Rn` deref whose base Rn holds a ROM literal
+        (address < 0x10000), return the big-endian 4-byte word at ROM[base] so
+        the caller can pin dest = that table entry.  Returns None otherwise.
+        Reads ONLY the pre-write literal (dest==base would otherwise be gone
+        after _apply_mem_writes pops it).  Scoped to plain @Rn derefs used for
+        indirect dispatch: dest == base, no index, no disp, load, size 4."""
+        _base = st['lits'].get('r%d' % mr['base_reg'])
+        if not (mr['dir'] == 'load' and mr.get('dest') is not None
+                and mr['dest'] == mr['base_reg']
+                and mr.get('idx') is None and not mr.get('disp')
+                and mr.get('size') == 4
+                and _base is not None and _base < 0x10000
+                and _base + 4 <= len(rom)):
+            return None
+        return int.from_bytes(rom[_base:_base + 4], 'big') & MASK
 
     def temp():
         st['tmp'][0] += 1
@@ -484,8 +508,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     or len(st['litdefs'].get('r%d' % base_reg, ())) > 1)
             c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
                                     dynbase=_dyn)
+            _rompin = _rom_deref_value(m)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
-            # jump-table base bookkeeping: indexed load @(r0,rB) with rB literal
+            if _rompin is not None:
+                _pin_lit(m['dest'], _rompin, pc)
+            # jump-table base bookkeeping: indexed load @n(r0,rB) with rB literal
             if m.get('idx') == 'r0' and m['dir'] == 'load' and m.get('dest') is not None:
                 if 'r%d' % base_reg in st['lits']:
                     tbl_base[m['dest']] = st['lits']['r%d' % base_reg]
@@ -514,7 +541,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                           'idx': sh.get('idx'), 'auto': sh.get('auto'),
                           'sext': sh['dir'] == 'load' and sh['size'] < 4}
                     c, py = gcl._mem_record(pc, op, m2, 'param', None, temp)
+                    _rompin = _rom_deref_value(m2)
                     gcl._apply_mem_writes(m2, st['written'], st['lits'])
+                    if _rompin is not None:
+                        _pin_lit(m2['dest'], _rompin, pc)
                     return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                             'target': None, 'slot': None,
                             'mnem': '%s (rt-base)' % _rt_mem_mnem(op, sh)}
@@ -601,7 +631,21 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
                   'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
             c, py = gcl._stack_record(pc, op, sh, off)
+            # ENH1: track/restore stack-slot literals for r15 slots (sp_off +
+            # disp addressing).  A store of a literal-holding Rn into an r15
+            # slot records stacks[slot]=value; a subsequent load of a tracked
+            # slot restores Rn's literal (AFTER _apply_mem_writes pops the
+            # ordinary dest-write).  Untracked slots behave as before.
+            if breg == 15 and sh['dir'] == 'store' and sh['size'] == 4:
+                _src = sh.get('src')
+                if _src is not None and 'r%d' % _src in st['lits']:
+                    st['stacks'][off] = st['lits']['r%d' % _src]
+                else:
+                    st['stacks'].pop(off, None)
             gcl._apply_mem_writes(sm, st['written'], st['lits'])
+            if breg == 15 and sh['dir'] == 'load' and sh.get('dest') is not None \
+                    and off in st['stacks']:
+                _pin_lit(sh['dest'], st['stacks'][off], pc)
             return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
         f = ops.decode_fpu(op, pc, rom, ctx)
