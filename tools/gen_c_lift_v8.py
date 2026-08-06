@@ -1078,6 +1078,47 @@ def _callee_first_rts(rom, t, end_c):
     return None
 
 
+def _callee_walk_end(rom, t, end_c):
+    """Walk bound for a callee's inline mirror.
+
+    Base = first `rts` (or catalog end).  A callee with a conditional branch
+    (bt/bf/bt.s/bf.s) whose target lies PAST that first rts has a SECOND return
+    path — the first rts belongs to the other path only.  The linear v3.walk_v3
+    would stop short, so the mirror hits `<no code>` at the branch target and
+    returns early while sh2emu keeps running (MISMATCH, e.g. callee 0x4BBC of
+    0x7094: bf@0x4BC2 -> 0x4BCC past rts@0x4BC8).  Extend the walk end, by
+    fixpoint, to the furthest in-span (<= catalog end) branch target so BOTH
+    return paths have records.  Bounded by `end_c` so it never crosses into the
+    next function."""
+    bound = min(end_c, len(rom))
+    pool = gcl._pcrel_pool_words(rom, t, end_c)
+    rts = _callee_first_rts(rom, t, end_c)
+    walk_end = rts + 2 if rts is not None else end_c
+    changed = True
+    while changed:
+        changed = False
+        _p = t
+        while _p + 1 < min(walk_end, bound):
+            if _p in pool:
+                _p += 2
+                continue
+            _bi = ops.branch_info((rom[_p] << 8) | rom[_p + 1])
+            if _bi is not None and _bi.get('target_disp') is not None \
+                    and _bi['kind'] not in ('rts', 'rte', 'bsrf', 'braf'):
+                _tgt = (_p + 4 + _bi['target_disp'] * 2) & MASK
+                if _tgt + 2 > walk_end:
+                    # extend past the target AND its linear continuation up to
+                    # the next rts (or the span bound), so the second return
+                    # path's records exist in the walk.
+                    _rx = _callee_first_rts(rom, _tgt, end_c)
+                    _new = (_rx + 2 if _rx is not None else end_c)
+                    if walk_end < _new <= bound:
+                        walk_end = _new
+                        changed = True
+            _p += 2
+    return walk_end
+
+
 def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     """Inline-walk a callee for the v8 mirror.  Returns (records, None) on
     success or (None, reason).
@@ -1104,8 +1145,8 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     if end_c is None:
         return None, ('no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
-    walk_end = rts + 2 if rts is not None else end_c
-    w = v3.walk_v3(rom, t, walk_end)
+    walk_end = _callee_walk_end(rom, t, end_c)
+    w = v3.walk_v3(rom, t, walk_end, relax_chain=True)
     if w is None:
         return None, ('walk-fail', t, '0x%X..0x%X' % (t, walk_end))
     records, _info, _lab = w
@@ -1442,6 +1483,14 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    pc = ENTRY\n'
         '    steps = 0\n'
         '    while True:\n'
+        '        # (v8.8) keep r[15] in lockstep with the runtime `sp` alias.  The\n'
+        '        # stack opcodes (sts.l pr,@-r15 / add #imm,r15 / mov.l @r15+,Rn)\n'
+        '        # are emitted sp-relative (sp updates only); any instruction that\n'
+        '        # COPIES r15 into another register (frame ptr / wrapper arg, e.g.\n'
+        '        # mov r15,r4) would otherwise read a stale r[15] one push ahead of\n'
+        '        # sp, making the callee store/load the WRONG stack slot (MISMATCH\n'
+        '        # case=0 reg=r0/r2/r3/r4 on caller wrappers).\n'
+        '        r[15] = ns["sp"] & 0xFFFFFFFF\n'
         '        steps += 1\n'
         '        if steps > MAXSTEPS:\n'
         '            return ("SKIP", None)\n'
