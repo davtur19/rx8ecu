@@ -280,15 +280,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         return val
 
     def _rom_deref_value(mr):
-        """ENH2: for a `mov.l @Rn,Rn` deref whose base Rn holds a ROM literal
-        (address < 0x10000), return the big-endian 4-byte word at ROM[base] so
-        the caller can pin dest = that table entry.  Returns None otherwise.
+        """ENH2: for a `mov.l @Rm,Rn` deref (either `mov.l @Rn,Rn` same-reg or
+        `mov.l @Rm,Rn` cross-reg) whose base Rm holds a ROM literal (address
+        < 0x10000), return the big-endian 4-byte word at ROM[base] so the
+        caller can pin dest = that table entry.  Returns None otherwise.
         Reads ONLY the pre-write literal (dest==base would otherwise be gone
         after _apply_mem_writes pops it).  Scoped to plain @Rn derefs used for
-        indirect dispatch: dest == base, no index, no disp, load, size 4."""
+        indirect dispatch: no index, no disp, load, size 4.  The base register
+        keeps its literal address (NOT the deref) when dest != base."""
         _base = st['lits'].get('r%d' % mr['base_reg'])
         if not (mr['dir'] == 'load' and mr.get('dest') is not None
-                and mr['dest'] == mr['base_reg']
                 and mr.get('idx') is None and not mr.get('disp')
                 and mr.get('size') == 4
                 and _base is not None and _base < 0x10000
