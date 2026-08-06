@@ -743,6 +743,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 seen_pc.add(pc)
                 if slot is not None:
                     seen_pc.add(pc + 2)
+                if kind == 'bra':
+                    # unconditional branch: no fallthrough edge — stop walking
+                    # this linear column (the target is reached via pending).
+                    break
                 pc += 4 if slot is not None else 2
                 continue
             if gcl.is_call_op(op):
@@ -1288,7 +1292,21 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
             if sub is None:
                 return None, ('trampoline', t, tgt, reason)
             records = records + sub
-    return records, None
+    # inline nested call targets so the mirror can execute them (a callee that
+    # jsr/jmp's another function needs that function's records in the mirror,
+    # or the mirror returns early at the call and diverges from sh2emu).
+    out = []
+    for rec in records:
+        out.append(rec)
+        if rec['kind'] == 'call' and rec.get('target') is not None:
+            tgt = rec['target']
+            if not (t <= tgt < walk_end):
+                sub, reason = _walk_callee(rom, tgt, catalog, bounds,
+                                           depth=depth + 1, seen=seen)
+                if sub is None:
+                    return None, ('nested-call', t, tgt, reason)
+                out.extend(sub)
+    return out, None
 
 
 def _render_st_body(fn, addr, res, callees):

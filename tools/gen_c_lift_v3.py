@@ -230,7 +230,12 @@ def _trk_apply_stmt(trk, op, rom, pc):
     regN = 'r%d' % n
     if op & 0xF000 == 0x6000 and (op & 0xF) == 0x3:       # mov rM,rN
         src = trk.get('r%d' % m)
-        trk[regN] = list(src) if src else None
+        if src:
+            trk[regN] = list(src)
+        elif 4 <= m <= 7:
+            trk[regN] = ('expr', m, 0)   # alias of param rM (mov rM,rN keeps param-ness)
+        else:
+            trk[regN] = None
     elif op & 0xF000 == 0x7000:                            # add #imm,rN
         imm = ops.s8(op & 0xFF)
         st = trk.get(regN)
@@ -2228,34 +2233,40 @@ def walk_v3(rom, addr, end, relax_chain=False):
                 if not st['stack_ok'] or sh['dest'] == 15:
                     return None
             else:
-                if not st['frame_live'] or sh['dest'] == 14:
+                if not st['frame_live']:
+                    # r14 is a runtime base (param pointer), not a frame
+                    # pointer — fall through to the generic mem path below.
+                    pass
+                elif sh['dest'] == 14:
                     return None
-            if sh['idx'] is not None:              # dynamic r0 index: not mappable
-                return None
-            if breg == 15:
-                if sh['auto'] == 'pre':
-                    st['sp_off'] -= sh['size']
-                    off = st['sp_off']
-                elif sh['auto'] == 'post':
-                    off = st['sp_off']
-                    st['sp_off'] += sh['size']
+            if breg == 15 or (breg == 14 and st['frame_live']):
+                if sh['idx'] is not None:          # dynamic r0 index: not mappable
+                    return None
+                if breg == 15:
+                    if sh['auto'] == 'pre':
+                        st['sp_off'] -= sh['size']
+                        off = st['sp_off']
+                    elif sh['auto'] == 'post':
+                        off = st['sp_off']
+                        st['sp_off'] += sh['size']
+                    else:
+                        off = st['sp_off'] + sh['disp']
                 else:
-                    off = st['sp_off'] + sh['disp']
-            else:
-                off = (st['frame_off'] if st['frame_off'] is not None
-                       else st['sp_off']) + sh['disp']
-            info['has_stack'] = True
-            info['stack_offs'].add(off)
-            sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
-                  'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
-            c, py = gcl._stack_record(pc, op, sh, off)
-            gcl._apply_mem_writes(sm, st['written'], st['lits'])
-            if sh['dir'] == 'load' and sh.get('dest') is not None:
-                st['trk']['r%d' % sh['dest']] = None
-            if sh.get('auto') in ('post', 'pre'):
-                st['trk']['r%d' % breg] = None
-            return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
-                    'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
+                    off = (st['frame_off'] if st['frame_off'] is not None
+                           else st['sp_off']) + sh['disp']
+                info['has_stack'] = True
+                info['stack_offs'].add(off)
+                sm = {'dir': sh['dir'], 'size': sh['size'], 'base_reg': breg,
+                      'auto': sh['auto'], 'dest': sh.get('dest'), 'src': sh.get('src')}
+                c, py = gcl._stack_record(pc, op, sh, off)
+                gcl._apply_mem_writes(sm, st['written'], st['lits'])
+                if sh['dir'] == 'load' and sh.get('dest') is not None:
+                    st['trk']['r%d' % sh['dest']] = None
+                if sh.get('auto') in ('post', 'pre'):
+                    st['trk']['r%d' % breg] = None
+                return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
+                        'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
+            # else: r14 runtime base (not a frame) — fall through to generic mem path
         # ---- v4 FPU (additive): decode_fpu-able ops are emitted verbatim ----
         f = ops.decode_fpu(op, pc, rom, ctx)
         if f is not None:
@@ -2418,6 +2429,27 @@ def walk_v3(rom, addr, end, relax_chain=False):
             st['branches_seen'] = True
             pc += 2
             continue
+        # v8.10: resolve indirect jmp/jsr @Rn with a literal-loaded target
+        if op & 0xF0FF in (0x402B, 0x400B):
+            rn = (op >> 8) & 0xF
+            tgt = _lit_of(rn, st['lits'], st['trk'], st['written'])
+            if tgt is not None:
+                is_tail = (op & 0xF0FF) == 0x402B
+                slot = None
+                spc = pc + 2
+                if spc + 1 < bound:
+                    sop = (rom[spc] << 8) | rom[spc + 1]
+                    slot = emit_one(spc, sop)
+                    if slot is None:
+                        return None
+                    skip.add(spc)
+                records.append({'pc': pc, 'op': op, 'kind': 'call',
+                                'mnem': ('jmp @r%d (tail)' if is_tail else 'jsr @r%d') % rn,
+                                'target': tgt, 'ret_pc': (pc + 4) & gcl.MASK,
+                                'set_pr': not is_tail, 'slot': slot})
+                st['branches_seen'] = True
+                pc += 2
+                continue
         rec = emit_one(pc, op)
         if rec is None:
             return None
