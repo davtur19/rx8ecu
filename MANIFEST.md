@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4725 entries, 88.8M.** Regenerated 2026-08-02 for the
+in the working repository. **4731 entries, 88.8M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 740.9K |
+| (root) | 11 | 741.5K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1876 | 4.2M |
-| c/tests/ | 1943 | 15.1M |
+| c/ | 1879 | 4.2M |
+| c/tests/ | 1946 | 15.1M |
 | tools/ | 29 | 684.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4725 entries, 88.8M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4725** | 88.8M |
+| **Total** | **4731** | 88.8M |
 
 ## External dependencies
 
@@ -114,7 +114,7 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
 | `symbols/UNCLASSIFIED_RESIDUE.csv` | `abe9401d09e6344c51eb39e9b57b2991cada07ec2fb9dbc5d2403993214daa83` | 9.9K | Tracked file |
-| `symbols/cal_tables.csv` | `73ccd6bd0c223b2dda934ec7a3603dd961b6376e03a9e42209eec1c7762d5432` | 52.6K | Calibration table descriptors (1,210 tables) |
+| `symbols/cal_tables.csv` | `b2fef6a02c07c95ab5345b3754212ea03f6a0e21b1fe6187cc77db334cbbbc61` | 63.1K | Calibration table descriptors (1,210 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
 | `symbols/romraider_rx8_tables.csv` | `fdbfc7f8afcca7581720166a0db103689847de25aaef944a6972859e94f8a05e` | 2.3M | Tracked file |
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `8ecc3f88b8c41ebade4deef0d69006c7d5d61535bec8bc5340ddffe39076dca6` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `ceba4c9aee6dbabc880f157cbd7e307d6b73cd01ed416d29f656a85e9cd83912` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `26c64a5406c6a72fb668cb1c8657827cdee542ac40b9abe488ad92a128f8b534` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `92d5b06ac1f32aa5faee927f0fbc69da833595d78afef712e0c3fc01a3e92bd5` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -488,6 +488,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_manifold_pressure_error_clamp_10A5C.c` | `398cdba1c84153835c91a882baeb3d7e7667accae00f198974c1a52520785393` | 2.7K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calc_manifold_pressure_error_clamp_10A5C_10a5c.c` | `90c7222145d6e7172e163db8c3104f00661181e88bc6a4cc37b8a0a265dd2832` | 1.7K | Tracked file |
 | `c/calc_manifold_pressure_error_diff_10A88_10a88.c` | `f0742520cf769a868f1e61b60365ac29d7a826a073f7e5eebff82f10a11e4bbe` | 721B | Tracked file |
+| `c/calc_rotor_B_knock_flag_0x12A48.c` | `771ad61086cf479be3af3938e178497268cb334e2f5cee09ded8b48a2451ea28` | 6.8K | Tracked file |
 | `c/calc_rotor_sync_base_A_13a5e.c` | `26d107cb616acbe14a1da44e9ab58f3f5d3cc7f517af5c4317a8da03ff201046` | 1.9K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_A_12b5e.c` | `e971bea7e9f35c2c6197ab264186a60261e8c6d8f730c4dfd8cd10a8e590e84e` | 1.1K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_B.c` | `278b71ed6ed92a40f55f5bb47cf4c541f3941cc4fdad0a4deaea82936c3c374b` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -2018,8 +2019,10 @@ or the toolchain install (git-ignored; re-create with
 | `c/writeWatchdog_disable__5032.c` | `25cb72382dcd8320d8ffabcb72a46ef2ed9b238adf031d0b15fa0ee7ec417120` | 645B | Tracked file |
 | `c/write_enable_flag_to_ram_a798_14a3c.c` | `8694d32a53bafe1eb467929d5ef75925843cbc70aca5168505b9cc61ad257c89` | 1.4K | Tracked file |
 | `c/write_iacv_neutral_status_109fa.c` | `2d50bdd002874ede3322d8d3378a066aad1721058b4e779f607f1d0459fc6d83` | 641B | Tracked file |
+| `c/write_knock_detected_flag_0x128C4.c` | `ba510881c1a411247ad3fe19328ff0d2a8a170d64f49c19dc1a3c42775bb85e2` | 3.9K | Tracked file |
 | `c/write_o2_sensor_trim_12b54.c` | `1a2f11eee084d9f17d05f8e66cc835caaf665cefdc2639bde846b04661360a55` | 810B | Tracked file |
 | `c/write_pressure_sensor_bias_13f58.c` | `4260b784590c60e922bffe9575d7ace2cc0432f9e9f2cf7e99185a678ee625f3` | 1.1K | Tracked file |
+| `c/write_rotor_A_knock_flag_0x128FE.c` | `07a244ebc26d47060bf031141e38cfa4e95f86d3183be83b4fbfe846a424c1e1` | 3.8K | Tracked file |
 
 ## c/tests
 
@@ -2377,6 +2380,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_manifold_pressure_error_clamp_10A5C.py` | `cdf6f3d5b71c66e7d8c927bb3074b847f53cd83cdeba37aa16779b45e9cc777b` | 3.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_calc_manifold_pressure_error_clamp_10A5C_10a5c.py` | `1311d433a1cd9074e6b8b9b506e69846397d69aa61dad3180ae37d5aa67a9079` | 7.8K | Tracked file |
 | `c/tests/test_calc_manifold_pressure_error_diff_10A88_10a88.py` | `5ec73468d277d6fff185e5435f114724b461d788615790d1448a9a8048830915` | 2.3K | Tracked file |
+| `c/tests/test_calc_rotor_B_knock_flag_0x12A48.py` | `5f98df45e376339842799d8b2c0dbbfcc74300b810f1b78b5d52e2f8d4019130` | 8.6K | Tracked file |
 | `c/tests/test_calc_rotor_sync_base_A_13a5e.py` | `0166b50a91c639032fe21f00637df935924073ecabbbdcd3fbf54c0bb437639b` | 7.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_A_12b5e.py` | `bcba0af60c36bf2d8856473e9fd9e5c65b9c73cfef9b144f67a811e218fad859` | 8.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_B.py` | `65a0233dcd3c4402409c337572772163edad160ea8ed1c5e8200f820f1e4fd23` | 4.1K | Python per-function behavior-equivalence test |
@@ -3965,8 +3969,10 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_writeWatchdog_disable__5032.py` | `36906a4bc535e314ec1858b444cf385bb12a7d812b7e25f049be68c5736d411a` | 6.4K | Tracked file |
 | `c/tests/test_write_enable_flag_to_ram_a798_14a3c.py` | `4125e5bfebfe74b7082154931e3f0e23ddb3cc3b3280f77852c0d3319485dd6a` | 7.0K | Tracked file |
 | `c/tests/test_write_iacv_neutral_status_109fa.py` | `66fabc952321128ae09b4b62d18ea623f1b0f4a2fbba45cffc60dcc86712d782` | 6.0K | Tracked file |
+| `c/tests/test_write_knock_detected_flag_0x128C4.py` | `74a686d9625acfc7066ee7cad5d40dcc7a2b311e45ac04b1af27289de1ee73c4` | 5.6K | Tracked file |
 | `c/tests/test_write_o2_sensor_trim_12b54.py` | `35f2c2b94c081861c721285eb0755fa0a3b02f25b78fe3fb4f75e8aadcd401e4` | 6.2K | Tracked file |
 | `c/tests/test_write_pressure_sensor_bias_13f58.py` | `424bf8bf2bdc5817886881c8935a153d6a5ba96e822e14df54fe0a9f028657d6` | 8.4K | Tracked file |
+| `c/tests/test_write_rotor_A_knock_flag_0x128FE.py` | `64057a3609ddb733bc926c95ed8478236bf0bd62aa095ad0672faf1e8a9e261c` | 5.6K | Tracked file |
 | `c/tests/verify_emu.py` | `f583e1d294b0966f7203a3eb0addfcbf2c9d828abfc3292a2965e3f8d526de51` | 3.0K | Python per-function behavior-equivalence test |
 
 ## tools
