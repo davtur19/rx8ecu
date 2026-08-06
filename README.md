@@ -18,8 +18,8 @@ Cascade L1→L6; each claim is machine-checked or tagged `AI draft` / `unverifie
 - **L3 — Determinism.** Master catalog/CSVs derived from scripts; drift breaks CI.
 - **L4 — Differential/emulator.** 1915 py + 26 C suites; each lift vs ROM bytes on
   `tools/sh2emu.py` — **295 emulator-verified** add, 100k+ random inputs/lift. [VERIFICATION.md](VERIFICATION.md) §3–4.
-- **L5 — Cross-validation.** Seed/key bit-identical to ConnorRigby (100k+400+3+1 vectors,
-  0 divergences); captured seed **0x464E7F → key 0xFAFDD8**. Tables vs RomRaider/GROM.
+- **L5 — Cross-validation.** Seed/key bit-identical to ConnorRigby (100k clock random +
+  400 random seeds + 3 ROM-verified vectors, 0 divergences). Tables vs RomRaider/GROM.
   [test_cross_seedkey.py](tools/tests/test_cross_seedkey.py), [UDS_SECURITY_MAPPING.md](docs/notes/UDS_SECURITY_MAPPING.md) §7.2, [CREDITS.md](CREDITS.md).
 - **L6 — Honesty.** Everything else tagged `AI draft` / `unverified` / `DRAFT` / `TBD`.
 
