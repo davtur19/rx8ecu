@@ -129,8 +129,83 @@ def _memo_sanitized_end(ca, ce, rom):
 _SPAN_END_MEMO = {}
 
 
-def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
+def _rt_mem_mnem(op, sh):
+    """A compact disassembly-style mnemonic for a rt-base (register-relative)
+    mem op decoded via gcl._mem_shape.  c_lift_ops.decode_mem is bypassed for
+    these (base unresolvable), so build a descriptive label."""
+    sz = {1: 'b', 2: 'w', 4: 'l'}[sh['size']]
+    b, i = sh['base'], sh['idx']
+    btxt = ('@(r0,r%d)' % b) if i else ('@r%d' % b)
+    if i:
+        btxt = '@(r%d+r0)' % b
+    if sh['auto'] == 'post':
+        btxt = '@r%d+' % b
+    elif sh['auto'] == 'pre':
+        btxt = '@-r%d' % b
+    if sh['dir'] == 'load':
+        return 'mov.%s %s,r%d' % (sz, btxt, sh['dest'])
+    return 'mov.%s r%d,%s' % (sz, sh['src'], btxt)
+
+
+def _fpu_mem_rt(pc, op, f, temp):
+    """Emit an fpu_mem record for a base register that decode_fpu left
+    unresolved (runtime register, not r4..r7 param / not a foldable literal).
+    Mirror _fpu_mem's param-base c/py exactly so the differential test stays
+    bit-consistent with sh2emu (rdf @rN / wrf).  Returns a record dict."""
+    breg = f['base_reg']
+    idx = f.get('idx')
+    auto = f.get('auto')
+    dest = f.get('dest')
+    src = f.get('src')
+    if idx:
+        caddr, pyaddr = '(r0 + r%d)' % breg, 'r[0] + r[%d]' % breg
+    else:
+        caddr, pyaddr = 'r%d' % breg, 'r[%d]' % breg
+    if f['dir'] == 'load':
+        if isinstance(dest, int):
+            tgt = 'fr%d' % dest
+            pyv = 'fr[%d] = bits2f(_rdw(ram, %s, 4))' % (dest, pyaddr)
+        else:
+            tgt = dest
+            pyv = '%s = _rdw(ram, %s, 4)' % (dest, pyaddr)
+        stmts = ['%s = *(volatile uint32_t*)%s;' % (tgt, caddr)]
+        if auto == 'post':
+            stmts.append('r%d = r%d + 4;' % (breg, breg))
+            py = [pyv, 'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (breg, breg)]
+        else:
+            py = [pyv]
+    else:
+        if isinstance(src, int):
+            val_c = 'fr%d' % src
+            val_py = 'f2bits(fr[%d])' % src
+        else:
+            val_c = src
+            val_py = src
+        stmts = []
+        if auto == 'pre':
+            # sh2emu decrements r[n] FIRST then stores at the new address.
+            stmts.append('r%d -= 4;' % breg)
+            stmts.append('*(volatile uint32_t*)r%d = %s;' % (breg, val_c))
+            py = ['r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (breg, breg),
+                  '_wrw(ram, r[%d], 4, %s)' % (breg, val_py)]
+        else:
+            stmts.append('*(volatile uint32_t*)%s = %s;' % (caddr, val_c))
+            py = ['_wrw(ram, %s, 4, %s)' % (pyaddr, val_py)]
+    return {'pc': pc, 'op': op, 'kind': 'fpu_mem', 'dir': f['dir'], 'size': 4,
+            'base_reg': breg, 'idx': idx, 'auto': auto,
+            'dest': dest, 'src': src, 'c': stmts, 'py': py,
+            'uses': set(f.get('uses') or {}), 'mnem': '%s (rt-base)' % f.get('ann', 'op')}
+
+
+def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
+              allow_runtime_base=False):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
+    allow_runtime_base=True: a LOAD/STORE whose base register cannot be folded
+    to a literal (or param-of-r4..r7) is emitted register-relative
+    (rt-base: `r[R] = _rdw(ram, s->r[N], size)` / `_wrw`, mirror==sh2emu) instead
+    of being rejected 'unmapped'.  Used ONLY by the caller/callee EMISSION path
+    (emit_caller / _emit_callee_cfg); the selection scanners keep the default
+    False so pool metrics / dryruns are unchanged.
 
     Returns CfgResult.  res.reject is None iff the CFG is complete (every
     indirect edge resolved).  Records mirror walk_v3's shape plus new kinds:
@@ -280,7 +355,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             elif 'r%d' % srn in st['lits']:
                 bkind, abs_addr = 'literal', st['lits']['r%d' % srn]
             else:
-                return None
+                if not allow_runtime_base:
+                    return None
+                # rt-base: stack/indirect SR transfer through an unresolvable
+                # runtime register -> emit r-register-relative.
+                bkind, abs_addr = 'param', None
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
@@ -370,13 +449,20 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
         if m is not None:
             base_reg = m['base_reg']
             if m.get('idx') == 'r0' and 'r0' not in st['lits']:
-                return None
+                if not allow_runtime_base:
+                    return None
+                # rt-base: @(r0,Rn) with an unknown (runtime) r0 index — emit
+                # the (base + r0) register-relative; mirror==sh2emu on r0.
             if base_reg in (4, 5, 6, 7) and 'r%d' % base_reg not in st['written']:
                 bkind, abs_addr = 'param', None
             elif 'r%d' % base_reg in st['lits']:
                 bkind, abs_addr = 'literal', st['lits']['r%d' % base_reg]
             else:
-                return None
+                if not allow_runtime_base:
+                    return None
+                # rt-base: base register holds a runtime (unfolded/pool- or
+                # param-derived) pointer — emit register-relative.
+                bkind, abs_addr = 'param', None
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
@@ -397,6 +483,33 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                     tbl_base[m['dest']] = st['lits']['r%d' % base_reg]
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': m['ann']}
+        # ---- rt-base fallback: mem op whose base register decode_mem could not
+        # resolve (not r4..r7 param, no foldable literal).  When the emission
+        # path allows it, emit register-relative instead of rejecting: the
+        # mirror reads/writes whatever runtime RAM register `rN` points at and
+        # sh2emu does the same from the seed — differential-consistent.  Same
+        # limits as walk_v3's relax_chain (simple single-op forms only): the
+        # live r15/r14 stack-slot forms keep their dedicated path below, and
+        # @-Rn/@Rn+ auto-forms keep their register updates via _mem_record.
+        if m is None and allow_runtime_base:
+            sh = gcl._mem_shape(op)
+            if sh is not None:
+                _breg = sh['base']
+                if sh.get('idx') is None and (
+                        (_breg == 15 and st['stack_ok']) or
+                        (_breg == 14 and st['frame_live'])):
+                    pass          # live stack/frame slot — handled below
+                else:
+                    m2 = {'dir': sh['dir'], 'size': sh['size'],
+                          'base_reg': _breg, 'dest': sh.get('dest'),
+                          'src': sh.get('src'), 'disp': sh.get('disp') or 0,
+                          'idx': sh.get('idx'), 'auto': sh.get('auto'),
+                          'sext': sh['dir'] == 'load' and sh['size'] < 4}
+                    c, py = gcl._mem_record(pc, op, m2, 'param', None, temp)
+                    gcl._apply_mem_writes(m2, st['written'], st['lits'])
+                    return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
+                            'target': None, 'slot': None,
+                            'mnem': '%s (rt-base)' % _rt_mem_mnem(op, sh)}
         g = gcl._decode_gbr(op)
         if g is not None:
             size, gdir, disp = g
@@ -487,10 +600,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
         if f is not None:
             if f.get('kind') == 'fpu_mem':
                 if f.get('unresolved'):
-                    return None
+                    if not allow_runtime_base:
+                        return None
+                    return _fpu_mem_rt(pc, op, f, temp)
                 base_reg = f['base_reg']
                 if f.get('idx') == 'r0' and 'r0' not in st['lits']:
-                    return None
+                    if not allow_runtime_base:
+                        return None
+                    # rt-base: @(R0,Rn) fmov.s with an unknown runtime r0 index.
+                    return _fpu_mem_rt(pc, op, f, temp)
                 if f['base'] == 'literal':
                     info['has_literal'] = True
                     v = st['lits'].get('r%d' % base_reg)
@@ -1008,7 +1126,7 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
         return None, None, False, 'no-span'
     _a, end_s, _r = v3.sanitize_span(addr, end, rom)
     lifted = _load_lifted()
-    res = build_cfg(rom, addr, end_s, lifted, catalog)
+    res = build_cfg(rom, addr, end_s, lifted, catalog, allow_runtime_base=True)
     if res.reject is not None:
         return None, None, False, res.reject
     if not res.records:
@@ -1222,8 +1340,14 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     end_c = _callee_span_end(t, catalog, bounds)
     if end_c is None:
         return None, ('callee-no-span', t)
+    # The callee leaf is bounded by its first `rts` (plus any conditional-branch
+    # target past it), NOT the full catalog span — same rule as _walk_callee.
+    # Using end_c here walked the CFG into the post-rts literal/data words
+    # (e.g. 0x5E2CE: rts@0x5E2DE, pool 0x00C0..@0x5E2E2) and rejected
+    # 'unmapped' on a data word, even though the walk of the same span succeeds.
+    cfg_end = min(_callee_walk_end(rom, t, end_c) + 2, end_c)
     lifted = _load_lifted()
-    res = build_cfg(rom, t, end_c, lifted, catalog)
+    res = build_cfg(rom, t, cfg_end, lifted, catalog, allow_runtime_base=True)
     if res.reject is not None:
         return None, ('callee-cfg', t, res.reject)
     if not res.records:
