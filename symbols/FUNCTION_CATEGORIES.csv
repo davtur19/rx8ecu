@@ -844,7 +844,7 @@
 60E1D400,0xCE34,can_set_mailbox_id_mode,CAN Bus,1.000,name
 60E0FC00,0xCE76,can_status_combine_byteswap,CAN Bus,1.000,name
 60E0FC00,0xCEC8,hcan_mbox_word_byteswap_write,CAN Bus,1.000,name
-60E0FC00,0xCEE8,FUN_0000cee8,CAN Bus,1.000,graph
+60E0FC00,0xCEE8,hcan_mbox_base_ge32_add200,CAN Bus,0.700,assembly
 60E1D400,0xCEF4,can_pack_tx_msg_copy,CAN Bus,1.000,name
 60E0FC00,0xCEFE,getHCANRegisterAddress,CAN Bus,1.000,name
 60E0FC00,0xCF12,can_table_word_lookup,CAN Bus,0.400,assembly
@@ -1460,7 +1460,7 @@
 60E1D400,0x19480,exhaust_oxygen_control_19480,Fuel & Lambda,1.000,name
 60E0FC00,0x194A0,getConditonalsFuelCutRelated?,Fuel & Lambda,1.000,name
 60E0FC00,0x195F4,fault_condition_flag_eval,Faults & DTC,0.400,assembly
-60E0FC00,0x196E6,FUN_000196e6,Faults & DTC,1.000,graph
+60E0FC00,0x196E6,clt_sensor_fault_flags_update,Faults & DTC,0.400,assembly
 60E1D400,0x197B8,fuel_rail_pressure_state_machine,Fuel & Lambda,1.000,name
 60E1D400,0x19898,getSecondaryAirPumpRequest,Fuel & Lambda,1.000,name
 60E0FC00,0x198FA,evaluateFuelCutCondtionUnknown,Fuel & Lambda,1.000,name
@@ -2205,7 +2205,7 @@
 60E1D400,0x29C42,set_ram_constant_29C42,Memory & CRC,1.000,name
 60E0FC00,0x29CA0,can201_value_bb3a,CAN Bus,0.600,assembly
 60E1D400,0x29CE0,can216RXUnpack,CAN Bus,1.000,name
-60E0FC00,0x29CE8,FUN_00029ce8,Math / FPU,0.850,cal
+60E0FC00,0x29CE8,cal_filtered_float_update_bb3c,Math / FPU,0.400,assembly
 60E1D400,0x29D24,update_ram_state_variable_29D24,Memory & CRC,1.000,name
 60E0FC00,0x29DBC,can_periodic_torque_tx_tick,CAN Bus,0.900,assembly
 60E0FC00,0x29DC2,can203TX_getAndPack,CAN Bus,1.000,name
@@ -3986,7 +3986,7 @@
 60E0FC00,0x4C03A,fault_flag_cd87_update,Faults & DTC,0.700,assembly
 60E1D400,0x4C0AC,priority_queue_enqueue_4C0AC,RTOS,1.000,name
 60E0FC00,0x4C0C4,float_copy_cd8c_to_cd90,Boot & Init,0.900,assembly
-60E0FC00,0x4C0CE,FUN_0004c0ce,Math / FPU,1.000,graph
+60E0FC00,0x4C0CE,float_cell_86a4_validate,Math / FPU,0.900,assembly
 60E0FC00,0x4C0D6,float_cell_86a4_zero_init,Boot & Init,1.000,name
 60E0FC00,0x4C0DE,byte_c014_to_float_cd8c,Math / FPU,1.000,name
 60E0FC00,0x4C0F6,dtc_fault_value_filter_snapshot,Faults & DTC,1.000,name
@@ -5211,7 +5211,7 @@
 60E1D400,0x5BB6A,dtcCodeTypeInit,Faults & DTC,1.000,name
 60E1D400,0x5BB76,diag_tolerance_5bb76,Faults & DTC,1.000,name
 60E0FC00,0x5BB78,uds_2f_iocontrol_entry_175d,OBD / UDS,0.700,assembly
-60E0FC00,0x5BC40,FUN_0005bc40,Sensors,1.000,graph
+60E0FC00,0x5BC40,sensor_word_latch_d177,Sensors,0.700,assembly
 60E0FC00,0x5BD18,sensor_word_latch_d179,Sensors,0.600,assembly
 60E1D400,0x5BD2E,writeDTCCodeType,Faults & DTC,1.000,name
 60E1D400,0x5BD76,ctrl_uncertainty_5bd76,Other / Unclassified,0.000,none
@@ -5706,7 +5706,7 @@
 60E0FC00,0x63E8C,dtc_status_normalize,Faults & DTC,0.900,assembly
 60E0FC00,0x63ED4,fault_flag_cell_8e9c_or_8e9e_validity,Faults & DTC,1.000,name
 60E1D400,0x63EF4,obd_service_handler_63EF4,OBD / UDS,1.000,name
-60E0FC00,0x63F06,FUN_00063f06,Ignition & Knock,1.000,graph
+60E0FC00,0x63F06,dtc_flag_checksum_init_8e9c,Boot & Init,0.900,assembly
 60E0FC00,0x63F20,rev_limit_flag_checksum_8e9c,Rev Limit,0.700,assembly
 60E0FC00,0x63F48,coolantTempPlausibilityCheck???,Sensors,1.000,name
 60E1D400,0x63F7C,obd_service_handler_63F7C,OBD / UDS,1.000,name
@@ -5827,7 +5827,7 @@
 60E0FC00,0x65BDC,obd_mode6_word_report_d760,OBD / UDS,0.900,assembly
 60E0FC00,0x65C00,obd_mode6_pid_range_valid_c00,OBD / UDS,0.900,assembly
 60E0FC00,0x65C16,obd_mode6_pid_gate_c16,OBD / UDS,0.900,assembly
-60E0FC00,0x65C3C,FUN_00065c3c,OBD / UDS,1.000,graph
+60E0FC00,0x65C3C,obd_mode6_send_dispatch,OBD / UDS,0.700,assembly
 60E1D400,0x65C42,obd_service_handler_65C42,OBD / UDS,1.000,name
 60E1D400,0x65CAC,obd_service_handler_65CAC,OBD / UDS,1.000,name
 60E0FC00,0x65CD0,dtc_region_checksum_validate_8ea0,Faults & DTC,1.000,name
