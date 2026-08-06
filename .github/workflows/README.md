@@ -10,10 +10,13 @@ repo root — CI keeps its own pin in `.github/requirements.txt`).
 | Job | Steps | Local equivalent |
 |-----|-------|------------------|
 | `verify` | `make verify-all` — byte-exact rebuild of **all 9 public stock ROMs** (sha256 match); `make c-test` — host-compiled behavior-equivalence suites (26/26); `make c-emu` — C lifts vs emulated ROM (5×100k random) | same three make targets |
-| `tests` | ONE step: `python3 tools/run_tests_parallel.py -j 2` — the project's parallel runner (same code as `make test-fast`). Auto-discovers every `c/tests/test_*.py` and `tools/tests/test_*.py` suite (decode families incl. the GNU-as bulk round-trip, emulator families, all per-function suites), so new test files are picked up without editing CI | `make test-fast` |
+| `tests` | ONE step: `python3 tools/run_tests_parallel.py -j 4` — the project's parallel runner (same code as `make test-fast`). Auto-discovers every `c/tests/test_*.py` and `tools/tests/test_*.py` suite (decode families incl. the GNU-as bulk round-trip, emulator families, all per-function suites), so new test files are picked up without editing CI | `make test-fast` |
+| `catalog` | Determinism gate: `python3 tools/classify_functions.py` + `python3 tools/gen_catalog.py` from a clean checkout, then `git diff --exit-code` on the four catalog artifacts — **fails on catalog drift** (steps skipped unless catalog-relevant paths changed, via `dorny/paths-filter`) | `make classify catalog` |
+| `formal-cert` | `make cert` — formal certification (`tools/verify_formal.py`) of **all 9 stock ROMs** against their per-ROM declared configs; **fails if any ROM is not CERTIFIED** (steps skipped unless `src/**`, the verifier, or the declared configs changed) | `make cert` |
 
-Both jobs run in **parallel**, each **fails the workflow** on any failing step
-(that's the point: verification must be green on every push/PR).
+All four jobs run in **parallel** (subject to their path triggers), each
+**fails the workflow** on any failing step (that's the point: verification
+must be green on every push/PR).
 
 ### Triggers
 
@@ -98,12 +101,12 @@ python3 tools/tests/test_emulator_families.py      # emulator families
 python3 tools/run_tests_parallel.py -j 2
 ```
 
-> **Why `-j 2` in CI?** `run_tests_parallel.py` defaults to `cpu_count-1`
-> workers, which is **1 (= serial)** on the 2-vCPU free-tier runner; passing
-> `-j 2` uses both vCPUs and roughly halves the ~3 min serial runtime of the
-> per-function suites. The parallel runner replaces the old serial `for` loop
-> and the two standalone family suites as the single canonical way to run the
-> Python battery (locally `make test-fast` is the same code without `-j`).
+> **Why `-j 4` in CI?** `run_tests_parallel.py` defaults to `cpu_count-1`
+> workers, which is **3** on the 4-vCPU `ubuntu-latest` standard runner;
+> passing `-j 4` uses all four vCPUs and roughly quarters the serial runtime of
+> the per-function suites. The parallel runner replaces the old serial `for`
+> loop and the two standalone family suites as the single canonical way to run
+> the Python battery (locally `make test-fast` is the same code without `-j`).
 
 On Debian/Ubuntu the toolchain can alternatively be installed system-wide with
 `sudo apt-get install binutils-sh-elf` (the Makefile picks it up from PATH if

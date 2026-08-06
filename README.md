@@ -28,9 +28,9 @@ labeled `AI draft` / `unverified` / `DRAFT` / `TBD`.
   Evidence: [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
 - **L3 — Determinism gates.** Master catalog and category CSVs are derived
   from live repo data by scripts; drift breaks CI.
-- **L4 — Differential & emulator tests.** 203 Python + 26 C host suites; every
+- **L4 — Differential & emulator tests.** 1486 Python + 26 C host suites; every
   C lift is proven against the *actual ROM bytes* on `tools/sh2emu.py`
-  (SH-2E integer + single-precision FPU emulator), **270 emulator-verified
+  (SH-2E integer + single-precision FPU emulator), **295 emulator-verified
   addresses**, 100k+ randomized inputs per key function (add16bitSaturate,
   addS32Saturate, addSaturate8Bit, seed_mixer, calculateImmoSeed).
   Evidence: [VERIFICATION.md](VERIFICATION.md) §3–4.
@@ -39,10 +39,39 @@ labeled `AI draft` / `unverified` / `DRAFT` / `TBD`.
   divergences over 100,000 + 400 + 3 + 1 vectors; real captured seed
   **0x464E7F → key 0xFAFDD8** (both agree). Calibration tables cross-checked
   against RomRaider/GROM defs; names credited (equinox311, connor).
-  Evidence: [CROSS_VALIDATION_SEEDKEY.md](docs/notes/CROSS_VALIDATION_SEEDKEY.md),
+  Evidence: [tools/tests/test_cross_seedkey.py](tools/tests/test_cross_seedkey.py)
+  and [UDS_SECURITY_MAPPING.md](docs/notes/UDS_SECURITY_MAPPING.md) §7.2,
   [CREDITS.md](CREDITS.md).
 - **L6 — Honesty layer.** Everything else is tagged `AI draft` / `unverified`
   / `DRAFT` / `TBD`, and the top banner applies.
+
+**Additional gates & regression suites** (compact checklist — every item is a
+hard, machine-checked gate with a command):
+
+- **Determinism gate (inventory):** `python3 tools/gen_manifest.py` —
+  MANIFEST.md regenerated from HEAD, deterministic (no timestamps).
+- **Host C behavior-equivalence suites:** `make c-test` — every `c/tests/test_*.c`
+  embeds a `main()` that compares the lift vs a reference `ref()` over edge
+  cases + random inputs (host compiler; no SH toolchain needed).
+- **Emulator oracle cross-check:** `make c-emu` (`python3 c/tests/verify_emu.py`)
+  — each lift C vs `tools/sh2emu.py` executing the real ROM bytes, 5 functions
+  × 100k random inputs each (add16bitSaturate, addSaturate8Bit, addS32Saturate,
+  seed_mixer, calculateImmoSeed).
+- **Soft-float oracle sqrt @0x46CC:** `python3 c/tests/test_check_float_validity_0x46CC.py`
+  — bit-pattern float differential vs the emulator across the
+  frexp@0x48C8 → sqrt@0x4740 → ldexp@0x481C chain, fault codes 0x044C/0x044D,
+  MMIO redirect for the host build.
+- **Python regression suites:** `python3 tools/run_tests_parallel.py -j 4`
+  (auto-discovers all `c/tests/test_*.py` + `tools/tests/test_*.py` suites);
+  serial gate: `make test`.
+- **Cross-validation seed/key (external):** `python3 tools/tests/test_cross_seedkey.py`
+  — 100k clock-equivalence + 12 ROM-verified vectors + 400 random seeds +
+  captured seed 0x464E7F → key 0xFAFDD8 against ConnorRigby/rx8-ecu-dump.
+- **Checksum Denso:** `python3 tools/denso_ck.py roms/stock/60E1D400.bin` —
+  additive checksum 0x5AA5A55A.
+- **CI gates:** 4 jobs on push/PR (`.github/workflows/ci.yml`): `verify`
+  (byte-exact + C + emulator), `tests` (Python suites, `-j 4`), `catalog`
+  (determinism gate), `formal-cert` (9 ROMs).
 
 **Not (yet) proven:** the *semantic meaning* of the firmware, and runtime
 behavior on real hardware. Plans: [RUNTIME_CERT_PLAN.md](docs/notes/RUNTIME_CERT_PLAN.md)
@@ -54,9 +83,10 @@ end-to-end validation).
 
 - **9/9 ROMs byte-exact + 9/9 formally certified** (`make verify-all`, `make cert`) — code window 0x800..0x60000, SH-2 lift 93.46–93.8% round-trip (true code ≈88–91%).
 - **Symbol catalog:** 56,952 deduped rows → **50,676 real-function estimate** (NOISE-filtered), **6,439 named**, **6,082 categorized** (`symbols/CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`).
-- **1186 C lifts** (unique_lift_addrs), 100k+ random vectors per key function (`c/`, `c/verified_addrs.txt`; note `c/*.c` also includes ~101 reference non-lift files).
+- **1186 C lifts** (unique_lift_addrs) across **1318 `c/*.c` files** (excl. `c/lib/`; ~132 reference non-lift files), 100k+ random vectors per key function, **295 emulator-verified addresses** (`c/`, `c/verified_addrs.txt`).
 - **Tables:** 1,210 calibration tables + 37,121 RomRaider/GROM defs across 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
-- **Docs:** 191 function + 15 subsystem docs; **tests:** 203 Python + 26 C suites, regressions 38,008 + 83 ✓.
+- **Docs:** 191 function + 15 subsystem docs; **tests:** 1486 Python + 26 C suites, regressions 38,008 + 83 ✓.
+- _Counters are a snapshot at commit `fa4d54b`; the authoritative source is `make catalog` / [MANIFEST.md](MANIFEST.md)._
 - **Explore:** [RX-8 ECU Firmware Explorer](https://davtur19.github.io/rx8ecu/) · evidence [VERIFICATION.md](VERIFICATION.md) · inventory [MANIFEST.md](MANIFEST.md) · [docs/README.md](docs/README.md) · formal cert [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
 
 ## Quickstart
@@ -69,6 +99,8 @@ python3 -m pip install capstone --break-system-packages
 ./tools/get_toolchain.sh        # one-time, idempotent: installs sh-elf binutils into tools/toolchain/ (no root)
 make verify-all                 # rebuild + byte-compare ALL 9 public stock ROMs -> 9/9 BYTE-EXACT
 make cert                       # formal certification (verify_formal.py) of all 9 ROMs -> 9/9 CERTIFIED
+make test                       # full regression gate (Python suites, ~21 s) — run before every commit
+make c-test && make c-emu       # daily gates: host C behavior-equivalence + emulator oracle cross-check
 ```
 
 `tools/gen_c_lift.py` — batch SH-2→C generator: pure-function lifts + mem mode (RAM-only: param/literal/stack bases), emulator-verified · v3: branch/delay-slot lifts (`tools/gen_c_lift_v3.py`), emulator-verified
@@ -83,7 +115,7 @@ File inventory: **[MANIFEST.md](MANIFEST.md)**.
 |------|----------|
 | `roms/stock/` | 9 stock factory ROM images (512 KB each) + `roms/ROMS.md` catalog with sha256 |
 | `src/` | Annotated, reassemblable assembly for each ROM (byte-exact rebuildable) |
-| `c/` | 1186 verified C lifts (unique_lift_addrs; `c/*.c` includes ~101 reference non-lift files), `eeprom_immo.h`, host test suites (1488 py + 26 c), `verified_addrs.txt` |
+| `c/` | 1186 verified C lifts (unique_lift_addrs; `c/*.c` = 1318 files excl. `c/lib/`, ~132 reference non-lift files), `eeprom_immo.h`, host test suites (1486 py + 26 c), `verified_addrs.txt` (295 unique) |
 | `tools/` | SH-2E disassembler, emulator, formal verifier, ROM rebuild/annotation scripts, `verify_all.sh`, `get_toolchain.sh`, test suites |
 | `symbols/` | Per-ROM symbol CSVs, CATALOG_MASTER.csv (56,952 rows), CATALOG_STATUS.md / NAMES_STATUS.md / TABLES_STATUS.md, cal_tables.csv (1,210), romraider_rx8_tables.csv (37,121 defs / 13 ROM codes), callgraph.csv |
 | `analysis/` | Code-window data-region classification + per-ROM declared configs for the formal verifier |
@@ -97,10 +129,20 @@ File inventory: **[MANIFEST.md](MANIFEST.md)**.
 > `docs/maps/`, `docs/analysis/`, `docs/pseudocode/`, `docs/renesis/` and `security/`
 > were moved to private storage (not shipped); `symbols/` ships the kept CSVs only.
 
-`make` targets: `verify-all` (9/9 byte-exact), `verify` (single ROM),
-`cert` (9/9 formal cert), `all` (rebuild `build/out.bin`), `src` (regenerate
-60E1D400 annotated source), `c-test` (host C suites), `c-emu` (emulator
-cross-checks), `clean`.
+`make` targets:
+- `build` — rebuild `roms/stock/60E1D400.bin` → `build/out.bin` (default target)
+- `verify` — byte-exact check: `cmp build/out.bin <ROM>`; any image with `make verify ROM=roms/stock/<id>.bin`
+- `verify-all` — rebuild + byte-exact check of **all 9 public stock ROMs** (`./tools/verify_all.sh`)
+- `cert` — formal certification (`tools/verify_formal.py`) of all 9 ROMs — hard gate (~31 s)
+- `all` — full catalog pipeline: `catalog classify test`
+- `catalog` — regen `symbols/CATALOG_MASTER.csv` + `CATALOG_STATUS.md` + `NAMES_STATUS.md`
+- `classify` — regen `symbols/FUNCTION_CATEGORIES.csv` (hybrid classifier)
+- `test` — Python regression suites (decode + emulator families + C↔emulator cross-check), serial gate (~21 s)
+- `test-fast` — the same suites via the parallel runner (`tools/run_tests_parallel.py`, incl. `c/tests/verify_emu.py`)
+- `c-test` — host-compiled C behavior-equivalence suites (`c/tests/test_*.c`)
+- `c-emu` — emulator cross-checks (`c/tests/verify_emu.py`, C lifts vs emulated ROM bytes)
+- `src` — regenerate the 60E1D400 annotated source into `src/`
+- `clean` — remove `build/` and build artifacts
 
 ## Project status
 
