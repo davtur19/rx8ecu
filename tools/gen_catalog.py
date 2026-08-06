@@ -526,6 +526,48 @@ def dedup_records(records):
     return out, examples, eqx_adopted
 
 
+# --- twin-bank end backfill ------------------------------------------------
+# Coppie di banche GEMELLE (stesso spazio offset, EDM4 -> stesso offset).
+# La banca con righe prive di `end` (es. 60E0FC00: le righe equinox311 non
+# hanno end) prende l'`end` della riga alla STESSA offset nella banca gemella
+# (es. 60E0FB00: derived, end presente). SOLO la banca senza-end viene
+# modificata; la gemella non viene mai toccata.
+TWIN_BANKS = {
+    "60E0FC00": "60E0FB00",
+}
+
+
+def twin_end_backfill(records):
+    """Riempi l'`end` mancante delle righe di una banca senza-end usando l'`end`
+    della riga gemella (stessa offset) nella banca con end.
+
+    Ritorna il numero di righe corrette (solo nel banco senza-end)."""
+    by_bank = {}
+    for r in records:
+        try:
+            a = int(r["addr"], 16)
+        except ValueError:
+            continue
+        by_bank.setdefault(r["bank"], {})[a] = r
+    filled = 0
+    for bank, twin in TWIN_BANKS.items():
+        twin_map = by_bank.get(twin)
+        if not twin_map:
+            continue
+        for r in records:
+            if r["bank"] != bank or r["end"]:
+                continue
+            try:
+                a = int(r["addr"], 16)
+            except ValueError:
+                continue
+            t = twin_map.get(a)
+            if t and t["end"]:
+                r["end"] = t["end"]
+                filled += 1
+    return filled
+
+
 def is_noise_span(rec):
     """True se (end - addr) e' un valore intero valido e <= 4 (rumore di
     segmentazione: puntatori pooled / boundary falsi nelle banche derivate)."""
@@ -589,7 +631,7 @@ def load_category_map():
         print(f"WARNING: {cat_file} mancante; output senza colonna category",
               file=sys.stderr)
         return cat
-    with open(cat_file, newline="", encoding="utf-8") as fh:
+    with open(cat_file, newline="", encoding="utf-8-sig") as fh:
         for row in csv.DictReader(fh):
             bank = (row.get("bank") or "").strip().upper()
             addr = row.get("addr") or ""
@@ -856,6 +898,9 @@ def main():
     # ---- NOISE flag: derived, span<=4 (after dedup) -----------------------
     out, noise_counts, noise_examples, kept_spanned = apply_noise_flags(out)
 
+    # ---- twin-bank end backfill (FC00 <- FB00, same offset) ---------------
+    n_backfilled = twin_end_backfill(out)
+
     write_master(out, load_category_map())
 
     agg = aggregate(out)
@@ -870,6 +915,8 @@ def main():
     print("  lift entries:", len(lift_index))
     print("  verified addrs:", len(verified))
     print("  CATALOG_MASTER.csv rows (UNIQUE post-dedup):", len(out))
+    print("  twin-bank end backfill: filled=%d (bank without end <= twin end)"
+          % n_backfilled)
     print("   rows cumulative (incl. variants):", sum(raw_per_bank.values()))
     for bank in sorted(raw_per_bank):
         g = agg.get(bank, {})
