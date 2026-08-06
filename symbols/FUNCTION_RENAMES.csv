@@ -1464,7 +1464,7 @@
 60E0FC00,0x43150,FUN_00043150,float_cell_dual_zero_c9a4_c99c,0.7,"fldi0 + store 0.0f to both 0xFFFFC9A4 and 0xC99C (checksummed pair); init/reset of float cell, called by update dispatcher 0x1410E"
 60E0FC00,0x55BA0,FUN_00055ba0,uds_mode22_byte_const_f0,0.7,"loads const 0xF0, bra 0x55EEE byteToUDS; UDS Mode-22 getter returning fixed byte 0xF0"
 60E0FC00,0x55BAC,FUN_00055bac,uds_mode22_byte_const_f0_a,0.7,identical to 0x55BA0: const 0xF0 -> byteToUDS; UDS Mode-22 getter returning fixed byte 0xF0
-60E0FC00,0x4812,FUN_00004812,FUN_00004812,0.1,"leading nop followed by literal data (0x0000/0x7FFF/0xFFFF...); mid-data misidentified as function, not real code"
+60E0FC00,0x4812,FUN_00004812,math_fix16_scaled_to_float,0.6,"exts.w scale + shlr/movt bit assembly, result returned in fr0; entry bytes at 0x4812 are data, real code at 0x481C"
 60E0FC00,0x5490,FUN_00005490,out_reg_f42c_write_001f_delay,0.7,"SFR out step: write 0x001F -> u16@0xF42C, tail-jmp busy-delay 0x5348 r4=0x50; P4small12 out_reg_*_delay family"
 60E0FC00,0x6648,FUN_00006648,obj_ptr_deref_callback_11cd4,0.4,thunk: r4=*(u32*)r4 then tail-jmp 0x11CD4 (placeholder rts); no-op callback-stub used via fn-ptr table (no callers in graph)
 60E0FC00,0x6652,FUN_00006652,obj_ptr_deref_callback_11cd8,0.4,"thunk: r4=*(u32*)r4 then tail-jmp 0x11CD8 (placeholder rts); no-op callback-stub, sibling of 0x6648"
@@ -1580,3 +1580,399 @@
 60E0FC00,0x5A1E,thunk_FUN_00005348,set_sr_delay_thunk_5348,0.4,4-byte tail-jump bra 0x5348; target sets SR via 0x2054 then calls delay 0xA330 and reads MMIO 0xF66A cluster; shared helper used after clearing 0xF66A bits by neighbor stubs 0x5A22+
 60E0FC00,0x48184,thunk_FUN_0004819e,batt_temp_delta_thunk_4819e,0.5,"4-byte bra 0x4819E; target reads battery temp ref 0xAE40 + 0xAA00, does |diff| via 0x23DC, flag-gated (0xC5EA/0xC5DB) cal override 0x7B000, deadband cal 0x7AFF4/8/C; called from getIOUpdates 0x1A35C"
 60E0FC00,0x5E69E,thunk_FUN_0005eaa2,clear_ram_d382_thunk,0.7,4-byte bra 0x5EAA2; target zero-fills 0x8C bytes at 0xFFFFD382 and word 0xFFFFD1D4 (RAM diagnostic block clear); called by 0x5E678
+60E0FC00,0x17F0,FUN_000017f0,boot_serial_mode_dispatch,0.4,"inits SRAM ctrl struct 0xFFFFDFC6, dispatches on 0x81/0x85 codes via handleException?, tail-jmps uds_resp_frame_build_send"
+60E0FC00,0x1E94,FUN_00001e94,uds_sci_flag_set_wait_clear,0.4,sets bit0 @r4 then polls bit3 of @r5 with 0x0FA0 timeout; ptr in UDS helper table 0x11AC
+60E0FC00,0x1EB2,FUN_00001eb2,uds_sci_flag_clear_wait_clear,0.4,clears bit0 @r4 then same 0x0FA0 poll loop on bit3; ptr in UDS helper table 0x11B4
+60E0FC00,0x1ED0,FUN_00001ed0,uds_frame_pack_bits_bytes,0.5,"packs bitfield words (and/mulu/or) + 8-byte payload, writes frame via r13; in UDS table 0x11B0"
+60E0FC00,0x4CB6,FUN_00004cb6,boot_module_init_dispatch,0.5,"calls 13 module-init stubs (0x4DEA,0x4F00,0x522A,0x528E...) then bra 0x52B0; called from boot master 0x62A0"
+60E0FC00,0x4CF0,FUN_00004cf0,boot_clear_atu_ed00_block,0.5,zeroes 14x16-bit ATU/SFR regs 0xED00-0xED1A
+60E0FC00,0x4DEA,FUN_00004dea,thunk_to_setRegisters,0.9,4-byte bra 0x04D9E (setRegisters)
+60E0FC00,0x4F00,FUN_00004f00,boot_pin_mux_config_f4xx,0.6,writes F4xx/F5xx pin-function bytes (0xFF/0x04/0x80/0x44) + and#0x77 clears; boot-time pin mux
+60E0FC00,0x522A,FUN_0000522a,boot_pin_mux_config_f7xx,0.6,"writes F7xx word constants (0x9F3F,0x6200,0xF484...) then falls into port_regs_bulk_config_f722"
+60E0FC00,0x5348,FUN_00005348,fault_exception_handler_halt,0.6,"saves ctx, calls setSR/0xA330 then infinite self-loop hang; stubs at 0x53A0+ pass exception codes"
+60E0FC00,0x53F6,FUN_000053f6,fault_vector_ack_ed1a_f7,0.4,writes ack mask 0xF7 to 0xED1A then tail-jumps 0xB6B2
+60E0FC00,0x59A4,FUN_000059a4,fuel_inj_pulse_cfg_bit0,0.4,clears bit0 of 0xF66A then injectorPulseSet?(0) via stub 0x2C98
+60E0FC00,0x59B2,FUN_000059b2,fuel_inj_pulse_cfg_bit1,0.4,clears bit1 of 0xF66A then injectorPulseSet?(3) via stub 0x2CB0
+60E0FC00,0x59C0,FUN_000059c0,fuel_inj_pulse_cfg_bit2,0.4,clears bit2 of 0xF66A then injectorPulseSet?(1) via stub 0x2CC8
+60E0FC00,0x5ADC,FUN_00005adc,fault_vector_ack_f69e,0.4,writes ack mask 0x3E to 0xF69E then hands r4=0xA8 to fatal handler 0x5348
+60E0FC00,0x5B56,FUN_00005b56,isr_flag_check_escalate,0.4,"checks F6E8/F6EA flag bits (0x02/0x08), conditionally escalates to 0x5348; full FPU ISR with rte"
+60E0FC00,0x5F1C,FUN_00005f1c,rtos_table_entry_update,0.4,"indexes 12B struct table at 0xD74C + RAM table 0xFFFF9304, copies 5 dwords, bumps counters, returns 0/1/2"
+60E0FC00,0x62A0,FUN_000062a0,boot_init_master_sequence,0.7,"F4xx port setup then calls many module inits (0x4CB6,0x7088,0x69E2,0x74B0,0x7568,0x8268,0x8F94...) in loop"
+60E0FC00,0x6372,FUN_00006372,sensor_chain_wrapper,0.3,thin wrapper: jsr 0xD408 then tail-jmp 0x11054; targets unclassified
+60E0FC00,0x64F6,FUN_000064f6,rtos_task_baro_engine_ctl,0.5,calls 0x6846(nullsub)+baro_sensor_value+engineControlTASK2 then task_completion_handler; entry in task table 0x4A38
+60E0FC00,0x6584,FUN_00006584,rtos_task3_wrapper,0.6,calls task3(0x1182A) then task_completion_handler
+60E0FC00,0x6592,FUN_00006592,rtos_task_throttle_pedal,0.5,calls 0xA4B6+throttlePedalADCRead?+cruiseControl?+0xB308 then task_completion_handler
+60E0FC00,0x65B2,FUN_000065b2,rtos_task_iat_coolant,0.7,calls readIATSensor+readCoolantTempSensor+diag_...main then task_completion_handler
+60E0FC00,0x65CC,FUN_000065cc,rtos_task_wrap_11b54,0.3,calls 0x11B54 then task_completion_handler; callee unclassified
+60E0FC00,0x65DA,FUN_000065da,rtos_task_wrap_11b80,0.3,calls 0x11B80 then task_completion_handler; callee unclassified
+60E0FC00,0x665C,FUN_0000665c,thunk_deref_call_11cdc,0.6,derefs object @r4 then tail-jmps 0x11CDC; handler in table 0xD958
+60E0FC00,0x6670,FUN_00006670,fuel_map_init_fill,0.6,calls 0xD712+bulkInits?? then tail-jmps fueling_array_fill_all_6
+60E0FC00,0x6684,FUN_00006684,knock_init_from_context,0.6,calls 0x9016+0xCF74+knockRelatedInit on struct from r4 then tail-jmps 0x11CA2
+60E0FC00,0x6846,FUN_00006846,nullsub_00006846,0.9,body is bare 'rts' (null stub); rest of symbol span is data
+60E0FC00,0x69E2,FUN_000069e2,intc_disable_irq_save_sr,0.5,critical section: setSR_PARAM(0xE0)+loadStatusRegister_ADDR
+60E0FC00,0x6A28,FUN_00006a28,sensor_3ch_status_any,0.3,returns 1 if any of bytes +1/+4/+7 of RAM 0xFFFF9F29 struct equals 1
+60E0FC00,0x7070,FUN_00007070,boot_init_port_f764_f74e,0.5,in boot-init ptr table 0x6228; writes F764+F74E via port helper 0x4B4C
+60E0FC00,0x7088,FUN_00007088,boot_init_port_f74e_guarded,0.5,SR-guarded F74E port write via 0x4B4C; called from boot master 0x62A0
+60E0FC00,0x7280,FUN_00007280,boot_init_ram_9f52,0.5,"in boot-init ptr table 0x6234; zeroes word 0xFFFF9F52, sets byte+0xA=1, returns 1"
+60E0FC00,0x74B0,FUN_000074b0,intc_disable_irq_save_sr,0.5,identical setSR/loadSR critical-section body; called from 0x62A0
+60E0FC00,0x7568,FUN_00007568,fuel_hw_port_regs_init,0.6,calls fueling_hw_port_regs_init(0x76B8) + conditional F6EA bit2 set if 0x9FC4==1
+60E0FC00,0x759E,FUN_0000759e,isr_timer_schedule_dispatch,0.5,getSR->setInterruptTimer(0x7778)->calls 0x7ECA->setSR
+60E0FC00,0x765A,FUN_0000765a,crank_sensor_reinit_speed,0.6,calls reInitCrankSensor(0x7724)+0x7B84 then bra engineSpeedInit
+60E0FC00,0x7668,FUN_00007668,rotor_phase_dispatch,0.4,"branch r4==1 -> 0x7FB0 else 0x7BDC, then jmp via fnptr 0xD8C8"
+60E0FC00,0x77F0,FUN_000077f0,crank_eshaft_angle_update,0.6,"reads timer longs 0xF434/0xF6D0, calls 0x787A, computes angle delta RAM 0x9FA8/0x9FAC, tails geteShaftAngle"
+60E0FC00,0x787A,FUN_0000787a,rotor_sync_state_machine,0.6,"crank table lookup 0xD76C/0xD76D, counters 0x9F95/0x9FC3/0x9FC5, state machine on 0x9FC1 (0..3), reInitCrankSensor paths"
+60E0FC00,0x7A86,FUN_00007a86,crank_sensor_state_reset,0.5,"sets 0x9FC0=1, clears 0x9FA1/0x9FA2, stores e-shaft angle if state!=2"
+60E0FC00,0x7AB2,FUN_00007ab2,float_scale_clamp_calc,0.5,"int->float w/ 2^32 offset, fmul fr4 scale, fcmp/gt clamp vs const table"
+60E0FC00,0x7B84,FUN_00007b84,crank_state_flags_clear,0.6,zeroes crank timeout flags 0xFFFF9FC7/0x9FC8
+60E0FC00,0x7BDC,FUN_00007bdc,crank_angle_set_ff,0.4,sets angle byte 0xFFFF9FC6=0xFF (max/reset marker)
+60E0FC00,0x7EB4,FUN_00007eb4,crank_irq_flags_force_set,0.4,forces 0x9FCE/0x9FA0/0x9F8C=1 and word 0x9FCC=0xFFFF
+60E0FC00,0x7ECA,FUN_00007eca,crank_edge_period_counter,0.5,"F6E8 edge-flag + word counter 0x9FCC vs table 0x6D460 threshold, sets 0x9FA0"
+60E0FC00,0x7FB0,FUN_00007fb0,crank_angle_state_reset,0.4,"zeroes 0x9FE8, copies angle float 0x9FBC->0x9F90, sets byte 0x9F94"
+60E0FC00,0x81A8,FUN_000081a8,boot_init_6ch_outputs,0.5,"6-iter loop over table 0xD7D4 poking port 0xF66C + mem_write16_sr_protected(0xA8A4), then F459 pin mux"
+60E0FC00,0x8268,FUN_00008268,boot_ports_cfg_f458_f45b,0.4,3x byte RMW config of 0xF458/0xF459/0xF45B (&0xF8|0x01 then &0x8F|0x10) bracketed by setSR_PARAM/loadStatusRegister_ADDR
+60E0FC00,0x82D8,FUN_000082d8,injector_pulse_remaining_dec_all6,0.7,loop i=0..5 calls 0x87A2 (injector pulse remaining decrement) per cylinder
+60E0FC00,0x8320,FUN_00008320,injector_state_timer_update_all6,0.9,loop i=0..5 calls fuel_injectorStateTimerUpdate per injector
+60E0FC00,0x8344,FUN_00008344,injector_fuel_correction_calc,0.7,"per-injector (idx*24 struct 0xFFFFA004): float table 0x844C * 0xFFFF9F98, ftrc, window-clamp, writes correction @+4, flag @+0x13, may call 0x8814"
+60E0FC00,0x84C6,FUN_000084c6,injector_pulse_per_cyl_write,0.7,"per-injector pulse: table 0xD7D4 ptrs, >>4 arithmetic, writes via mem_write16_sr_protected, calls fuel_injectorStateTimerUpdate/0x8814 on low value"
+60E0FC00,0x87A2,FUN_000087a2,injector_pulse_remaining_dec,0.7,"if flag@+0x13: subtract 0x1E0000 from pulse@+0x4, if below 0x230000 call 0x8814 and clear flag (pulse completion)"
+60E0FC00,0x8814,FUN_00008814,injector_pulse_width_calc,0.7,"core per-injector pulse compute: rpm 0xFFFF9F9C>>4, mul/div fixpoint via 0x2158/0x467A, SFR bitfields 0xF66A/0xF440/0xF666/0xF66C, writes via mem_write16_sr_protected"
+60E0FC00,0x8D30,FUN_00008d30,ignition_spark_cyl_dispatch,0.7,"if cyl flag@0xFFFFA0DC+idx*8 clear: call 0x9440, write word via 0xD81C+idx*24 ptr, clear flag"
+60E0FC00,0x8EE6,FUN_00008ee6,ignition_cyl_state_read,0.7,returns 0/1/2 from bytes @0x04/@0x05 of ign state struct 0xFFFFA0D8+idx*8
+60E0FC00,0x9016,FUN_00009016,ignition_state_clear_all,0.7,if r4==0: clear bytes 0x04/0x05 of 4 cyl state structs 0xFFFFA0D8 stride 8
+60E0FC00,0x9038,FUN_00009038,ignition_timing_update_all4,0.7,"copies 0xFFFF9F98->0xFFFFA0FC, rpm->0xFFFFA104, 0xFFFF9F88/6.0->0xFFFFA100, then per-cyl dispatch 0x91C6/0x9114 by state"
+60E0FC00,0x9114,FUN_00009114,ignition_cyl_timing_apply,0.7,"per-cyl float timing clamp (tables 0x9214-0x9224), calls 0x9440 with 0xC350 or resets cyl via mem_write16_sr_protected"
+60E0FC00,0x9440,FUN_00009440,ignition_spark_out_write,0.7,"writes 0x7FFF/+0x8000 offset words via 0xD81C+idx*24 SFR ptrs + mem_write16_sr_protected, marks cyl active byte@0x05"
+60E0FC00,0x94F0,FUN_000094f0,sensor_snapshot_copy_9ee4,0.4,copies 2 words @(0x08)/@(0x0A) of 0xFFFF9EE4 to 0xFFFFA112/+2 (sensor snapshot)
+60E0FC00,0x9AC4,FUN_00009ac4,can_channel_status_bit0_check,0.4,"getHCANRegisterAddress(ch,0xE401), returns bit0 of status byte"
+60E0FC00,0x9C34,FUN_00009c34,can_frame_byte5_lookup,0.4,"reads byte@0x05 of frame struct, passes to 0xCD40 (CAN slot table lookup)"
+60E0FC00,0x9C70,FUN_00009c70,can_frame_byte5_status_check,0.4,"reads byte@0x05 of frame struct, passes to 0xCD74 (CAN slot status check)"
+60E0FC00,0x9C8E,FUN_00009c8e,can_channel_word_byteswap,0.4,bare wrapper forwarding r4 to 0xCE24 (16-bit SFR byte-swap reader)
+60E0FC00,0x9CE0,FUN_00009ce0,can_flag_set_wait_ack,0.7,sets bit0 @r4 then polls bit3 @r5 with 0x0FA0 timeout (same pattern as uds_sci_flag_set_wait_clear)
+60E0FC00,0x9D02,FUN_00009d02,can_flag_clear_wait_ack,0.7,clears bit0 @r4 then polls bit3 @r5 with 0x0FA0 timeout (complement of 0x9CE0)
+60E0FC00,0x9DFC,FUN_00009dfc,can_msg_bytes_copy,0.4,byte copy loop src r7->dst r6 (CAN message data move)
+60E0FC00,0x9E26,FUN_00009e26,can_sfr_write_verify_loop,0.7,writes bytes @r6->@r7 with readback-compare spin (buffered SFR/CAN mailbox write)
+60E0FC00,0x9E68,FUN_00009e68,boot_init_clear_wait_f74e,0.4,"calls 0x4C80, boot_ram_selftest_relocate, setMainInitDoneBool(0), zeroes 8B @0xF74E, then delay(0x1388)+0xA850 poll; hangs in whileLoop if bit0 set"
+60E0FC00,0x9EA2,FUN_00009ea2,boot_clear_wait_f74e_sr_masked,0.4,"SR-masked entry, zeroes 8B @0xF74E via setRegister_REG_BIT_VAL, same poll/hang loop on bit0 (duplicate of 0x9E68 tail)"
+60E0FC00,0x9F12,FUN_00009f12,get_main_init_done_bool,0.9,6-byte getter: returns byte @0xFFFFA16C (complement of setMainInitDoneBool 0x9F0C)
+60E0FC00,0x9F5E,FUN_00009f5e,rtos_sched_wrapper_slot7,0.7,"calls 0x3854(7); if scheduled, tail-call 0xA2B6(7) (run counter)"
+60E0FC00,0x9F7A,FUN_00009f7a,rtos_sched_wrapper_slot8,0.7,"calls 0x3854(8); if scheduled, tail-call 0xA2B6(8)"
+60E0FC00,0x9F96,FUN_00009f96,rtos_sched_wrapper_slot9,0.7,"calls 0x3854(9); if scheduled, tail-call 0xA2B6(9)"
+60E0FC00,0x9FB2,FUN_00009fb2,rtos_sched_wrapper_slot18,0.7,"calls 0x3854(0x12); if scheduled, tail-call 0xA2B6(0x12)"
+60E0FC00,0x9FCE,FUN_00009fce,rtos_sched_wrapper_slot10,0.7,"calls 0x3854(0x0A); if scheduled, tail-call 0xA2B6(0x0A)"
+60E0FC00,0x9FEA,FUN_00009fea,rtos_sched_wrapper_slot11,0.7,"calls 0x3854(0x0B); if scheduled, tail-call 0xA2B6(0x0B)"
+60E0FC00,0xA006,FUN_0000a006,rtos_sched_wrapper_slot12,0.7,"calls 0x3854(0x0C); if scheduled, tail-call 0xA2B6(0x0C)"
+60E0FC00,0xA022,FUN_0000a022,rtos_sched_wrapper_slot13,0.7,"calls 0x3854(0x0D); if scheduled, tail-call 0xA2B6(0x0D)"
+60E0FC00,0xA03E,FUN_0000a03e,rtos_sched_wrapper_slot14,0.7,"calls 0x3854(0x0E); if scheduled, tail-call 0xA2B6(0x0E)"
+60E0FC00,0xA05A,FUN_0000a05a,rtos_sched_wrapper_slot15,0.7,"calls 0x3854(0x0F); if scheduled, tail-call 0xA2B6(0x0F)"
+60E0FC00,0xA076,FUN_0000a076,rtos_sched_wrapper_slot16,0.7,"calls 0x3854(0x10); if scheduled, tail-call 0xA2B6(0x10)"
+60E0FC00,0xA092,FUN_0000a092,rtos_rotor_evt_wrapper_slot5,0.7,"slot5 sched wrapper; if not due, fallback setupStructRotorNumber(0,r4) (rotor position event)"
+60E0FC00,0xA0B8,FUN_0000a0b8,rtos_rotor_evt_wrapper_slot6,0.7,"slot6 sched wrapper; if not due, fallback setupStructRotorNumber(1,r4) (rotor position event)"
+60E0FC00,0xA0DE,FUN_0000a0de,rtos_task_wrapper_slot6,0.7,"r5=6; calls osTaskScheduler(r4,6,stack); returns 1"
+60E0FC00,0xA0F6,FUN_0000a0f6,rtos_task_wrapper_slot7,0.7,"r5=7; calls osTaskScheduler(r4,7,stack); returns 1"
+60E0FC00,0xA126,FUN_0000a126,rtos_task_wrapper_slot5,0.7,"r5=5; calls osTaskScheduler(r4,5,stack); returns 1"
+60E0FC00,0xA156,FUN_0000a156,rtos_task_wrapper_slot9,0.7,"r5=9; calls osTaskScheduler(r4,9,stack); returns 1"
+60E0FC00,0xA16E,FUN_0000a16e,rtos_task_wrapper_slot10,0.7,"r5=0x0A; calls osTaskScheduler(r4,0x0A,stack); returns 1"
+60E0FC00,0xA186,FUN_0000a186,rtos_task_wrapper_slot12,0.7,"r5=0x0C; calls osTaskScheduler(r4,0x0C,stack); returns 1"
+60E0FC00,0xA19E,FUN_0000a19e,rtos_task_wrapper_slot11,0.7,"r5=0x0B; calls osTaskScheduler(r4,0x0B,stack); returns 1"
+60E0FC00,0xA1B6,FUN_0000a1b6,rtos_task_wrapper_slot0,0.7,"r5=0; calls osTaskScheduler(r4,0,stack); returns 1"
+60E0FC00,0xA1CE,FUN_0000a1ce,rtos_task_wrapper_slot1,0.7,"r5=1; calls osTaskScheduler(r4,1,stack); returns slot value (1)"
+60E0FC00,0xA200,FUN_0000a200,rtos_task_wrapper_slot2,0.7,"r5=2; calls osTaskScheduler(r4,2,stack); returns 1"
+60E0FC00,0xA218,FUN_0000a218,rtos_task_wrapper_slot3,0.7,"r5=3; calls osTaskScheduler(r4,3,stack); returns 1"
+60E0FC00,0xA2A8,FUN_0000a2a8,sensor_tick_flags_init,0.4,"resets word@0xFFFFA188=0 and byte@0xFFFFA18A=1, the tick-counter pair driven by the 0xA3AC timeout tick"
+60E0FC00,0xA2EC,FUN_0000a2ec,req_mailbox_enqueue_arg_ff,0.4,"SR-protected wrapper: enqueue(r4,0xFF) into request ring via 0xA438 then tail-spin 0xA4BE"
+60E0FC00,0xA30C,FUN_0000a30c,req_mailbox_enqueue_arg_arg,0.4,"SR-protected wrapper: enqueue(r4,r5) into request ring via 0xA438, restores SR (no spin)"
+60E0FC00,0xA330,FUN_0000a330,req_mailbox_enqueue_c8_arg,0.4,"SR-protected wrapper: enqueue(0xC8, r4) into request ring via 0xA438 then spin 0xA4BE"
+60E0FC00,0xA370,FUN_0000a370,req_mailbox_enqueue_c9_ff,0.4,"SR-protected wrapper: enqueue(0xC9,0xFF) into request ring via 0xA438 then spin 0xA4BE"
+60E0FC00,0xA3AC,FUN_0000a3ac,timeout_counter_flash_tick,0.4,"periodic tick: incr word@0xFFFFA188; over 0x12C enqueues (0xCA,0xFF) and (0xDC,0xFF if 0x6A28); countdown byte@0xFFFFA18A calls output toggle 0xA824 every 4"
+60E0FC00,0xA438,FUN_0000a438,req_mailbox_enqueue_ring4,0.7,"4-slot ring at 0xFFFF8004 (8B slots: long req+long param), index byte@0xFFFF802D wraps at 4, dedup vs head, clears flag 0xFFFF802C"
+60E0FC00,0xA4B6,FUN_0000a4b6,clear_counter_word_a188,0.4,writes 0 to word@0xFFFFA188 (clears the tick counter used by 0xA3AC)
+60E0FC00,0xA4BE,FUN_0000a4be,spinloop_hang_trap,0.7,"bra 0xA4BE infinite self-loop, reached unconditionally after enqueue in wrappers; deliberate hang/trap, callers never return"
+60E0FC00,0xA4F0,FUN_0000a4f0,sfr_timer_init_f710_f71c,0.4,"SFR init: 0xF710=2, 0xF718=0xC0, 0xF71C=0x09C3, 0xF71A=0 (timer/period-like registers)"
+60E0FC00,0xA50E,FUN_0000a50e,boot_sfr_init_f710_f71c,0.4,"SFR init variant: 0xF710=2, 0xF718=0xC0, 0xF71C=0x09C3 (no 0xF71A write)"
+60E0FC00,0xA824,FUN_0000a824,output_f738_bit15_toggle,0.7,"toggles bit15 of word@0xF738 via RMW arithmetic, SR-protected; called from timeout tick 0xA3AC"
+60E0FC00,0xA850,FUN_0000a850,output_f738_bit15_pulse,0.7,"pulses 0xF738 bit15: set 0x8000, delay 0x96 via 0x239C, clear 0x7FFF, delay 0x96; SR-protected; also called by updateIO 0xB99C"
+60E0FC00,0xA8DC,FUN_0000a8dc,boot_flags_port_f75e_init,0.4,"init flags 0xFFFFA1BC=3, A1BE=0xFFFF, A1C8=A1C9=0; setRegister 0xF75E bit0x20=1 and bit0x100=0"
+60E0FC00,0xAAC4,FUN_0000aac4,switch_state_mode_dispatch,0.4,"reads 0xF72C bits 0x1000/0x2000 gated by flags A1C8/A1C9 -> state 0-3 -> mode byte@0xFFFFA1BC, then tail-call handler pointer @0xD8D4 with r4=0"
+60E0FC00,0xAB6C,FUN_0000ab6c,learned_record_crc_check,0.7,verifies checksum of CRC-protected float record @0xFFFF8030 via 0x3E38A; returns nonzero when invalid
+60E0FC00,0xABFA,FUN_0000abfa,learned_record_crc_update,0.7,pure thunk: recompute+store checksum of record @0xFFFF8030 (jmp 0x3E258)
+60E0FC00,0xAC02,FUN_0000ac02,boot_port_init_f45a_f628_f632,0.4,"SR-protected RMW port cfg: 0xF45A (and 0xF8 or 1, and 0x8F or 0x10), 0xF628, 0xF462 and 0xFFBF, 0xF632 and 0xFF7F, 0xF464 and 0xFFFE"
+60E0FC00,0xAD40,FUN_0000ad40,learned_value_average_crc_store,0.4,"running average of raw word@0xFFFF9EFC vs cal 0x6D41C-0x6D437, acc@0xFFFFA1F4, count@0xFFFFA208; updates+validates CRC record 0xFFFF8030 (0x3E258/0x3E1AA); filters result to 0xFFFFA1D0"
+60E0FC00,0xB23C,FUN_0000b23c,boot_pwm_ports_init_f58e_f59e,0.4,"SR-protected: clears 0xFFFFA214/A210, 0xF400 bit7 toggle, PWM duty regs 0xF58E/F586/F596/F59E = 1"
+60E0FC00,0xB290,FUN_0000b290,pwm_duty_7d00_if_flag,0.4,if byte@0xFFFFA214==1: writes 0x7D00 to 0xF58E and 0xFFFF9F50 (SR-protected)
+60E0FC00,0xB2C0,FUN_0000b2c0,pwm_duty_store_scaled_f596,0.4,"scales fr4 by 65536.0, stores long into 0xFFFFA210[ch]; if ch0 active converts 0xFFFF9F50 via 0x231C and writes 0xF596"
+60E0FC00,0xB308,FUN_0000b308,throttle_pwm_default_7d00,0.4,if 0xFFFFA214==0: writes 0x7D00 default to 0xFFFF9F50 and PWM regs 0xF58E/F586/F596 via 0x231C conversion
+60E0FC00,0xB398,FUN_0000b398,sensor_pair_validity_check,0.4,copies words 0xFFFF9EE4+0x24/+0x26 to 0xFFFFA222; loop compares vs cal min/max tables 0x6FA04/0x6FA08 with counters at 0xFFFFA220/A226
+60E0FC00,0xB4EC,FUN_0000b4ec,adc_dma_scan_start_seq,0.4,"full ADC DMA scan start: DMA ctrl 0xF008=0x80,F00A and 0xFC,F00E=0xF8,F009=4, setRegister 0xF74E bit0x80, trigger 0xF72C bits 0x100/0x80, clears flags A229/A322/A320/A228"
+60E0FC00,0xB5A0,FUN_0000b5a0,boot_adc_dma_ctrl_init,0.4,"DMA controller init subset: 0xF008=0x80, 0xF00A and 0xFC, 0xF00E=0xF8, 0xF009=4, 0xF69C/0xF694/0xF68A cfg (SR-protected)"
+60E0FC00,0xB602,FUN_0000b602,adc_scan_timeout_tick,0.4,"periodic tick: timeout counter A323 vs cal byte@0x7AFD4 -> flag A229; if armed(A322): retry count A321, at >=4 calls trigger 0xBD28"
+60E0FC00,0xB6B2,FUN_0000b6b2,adc_dma_scan_step_handler,0.4,"programs DMA regs 0xECEx to fetch word from 0xF00D into staging 0xFFFFA2A2; on step complete copies staged to 0xFFFFA2DE, advances channel/step counters, re-arms via 0xBCCC"
+60E0FC00,0xB886,FUN_0000b886,adc_channel_data_store,0.4,"stores count and r5 words from r4 into per-channel table 0xFFFFA22A (60-byte stride), advances channel 0xFFFFA31D (wraps at 2), calls 0xBCCC when 0xFFFFA31F>1"
+60E0FC00,0xB958,FUN_0000b958,table_a2de_read_copy,0.4,"copies r5 words from 0xFFFFA2DE to r4 buffer, clears 0xFFFFA228, returns byte@0xFFFFA320"
+60E0FC00,0xBCCC,FUN_0000bccc,adc_scan_stop_rearm,0.4,"0xED1A=0xF7; sets A322=1, A31E=0, A321=0; clears 0xF72C trigger bits 0x100 and 0x80 (SR-protected)"
+60E0FC00,0xBD28,FUN_0000bd28,adc_scan_trigger_retry,0.4,"sets 0xF72C bits 0x100 and 0x80, delay 0x239C(4), then calls 0xBCCC re-arm (SR-protected)"
+60E0FC00,0xBDA0,FUN_0000bda0,sensor_port_init_f020_f026,0.4,"port cfg: 0xF020=0x80, 0xF022 and 0xFC, 0xF026=0xF8, 0xF021=6"
+60E0FC00,0xBDBC,FUN_0000bdbc,boot_port_init_f020_f026_sr,0.4,same port cfg as 0xBDA0 but SR-protected
+60E0FC00,0xBDFA,FUN_0000bdfa,serial_cmd_write_seq_2,0.4,calls 0xBF3A then 0xBFA0(count=2) then 0xC02C; setRegister 0xF74E len 0x400 val 0
+60E0FC00,0xBE30,FUN_0000be30,serial_cmd_write_seq_2b,0.4,same pattern as 0xBDFA with write count=2
+60E0FC00,0xBE5E,FUN_0000be5e,serial_cmd_write_seq_4a,0.4,same pattern as 0xBDFA with write count=4
+60E0FC00,0xBE8C,FUN_0000be8c,serial_cmd_write_seq_4b,0.4,same pattern as 0xBDFA with write count=4
+60E0FC00,0xBED8,FUN_0000bed8,serial_cmd_delay_loop,0.4,"SR-protected: 0xF74E writes (flag1 len 0x400 then flag0), checks 0xF738 bit 0x800, 0x239C delay loop"
+60E0FC00,0xBF3A,FUN_0000bf3a,serial_ctrl_setup_enable,0.4,"SR-protected: 0xF75C and 0xFDFF, 0xF732 and 0xFFCF, setRegister 0xF838 bit0x400 val0 and 0xF74E bit0x400 val1"
+60E0FC00,0xBFA0,FUN_0000bfa0,serial_dev_write_bytes,0.4,"writes r5 bytes from r4 to serial device: poll 0xF024 bit0x80, data byte->0xF023, ctrl 0xF024=(v and 0x7F) or 0x78, poll bit0x04"
+60E0FC00,0xC02C,FUN_0000c02c,serial_dev_read_status16,0.4,two command cycles reading status bytes from 0xF025 combined into (b1 shl 8 or b2); SR-protected
+60E0FC00,0xC176,FUN_0000c176,knock_ic_port_init_f629,0.4,"SR-protected RMW: 0xF629=(v and 0xF8) or 0x01, 0xF632 and 0xFFEF, 0xF630 and 0xFFEF (serial cfg for knock IC)"
+60E0FC00,0xCC46,FUN_0000cc46,can_mailbox_write_id32,0.4,splits 29-bit message ID (r5) into two 16-bit words written to HCAN mailbox regs 0xE41C and 0xE41E via 0xCEFE
+60E0FC00,0xCCA4,FUN_0000cca4,can_mailbox_copy_to_slot,0.4,"slot = base(0xE4B0 via 0xCEE8)+(ch and 0xF)*8; jmp 0x9DFC memcpy(r4, r5, r6)"
+60E0FC00,0xCCDA,FUN_0000ccda,can_mailbox_copy_to_slot_verify,0.4,same as 0xCCA4 but jmp 0x9E26 (copy with verify loop)
+60E0FC00,0xCD10,FUN_0000cd10,can_mailbox_nibble_store,0.4,[slot] = r5 and 0x0F with slot = base(0xE420)+(ch and 0xF)*8
+60E0FC00,0xCD40,FUN_0000cd40,can_mailbox_nibble_load,0.4,returns [slot] and 0x0F from mailbox data byte
+60E0FC00,0xCD74,FUN_0000cd74,can_mailbox_read_message_id,0.4,"reads 11/29-bit message ID from slot bytes (+4 status bit3, +5, +6, +7) with bit reassembly and masks"
+60E0FC00,0xCE24,FUN_0000ce24,can_channel_status16_read,0.4,"reads word 0xE414/0xE614 (ch0/1), inverts, ANDs mask 0xE40E/0xE60E, byte-swaps, returns 16-bit"
+60E0FC00,0xCF12,FUN_0000cf12,can_table_word_lookup,0.4,16-entry word table lookup @0xD914 indexed (r4&0xF)*2; called by placeCANRX/txCAN_EventBased/getHCANSomething
+60E0FC00,0xCF30,FUN_0000cf30,sr_protected_shadow_pair_write,0.4,"writes byte pair r4/r5 to 0xFFFFA3D6/A3D7 around getSR(0xB0)/setSR 0x3920/0x3934 critical section, tail-jump"
+60E0FC00,0xCF56,FUN_0000cf56,shadow_a3d0_region_init,0.4,mainInit-called init: sets 0xFFFFA3D7=9 and zeroes 0xFFFFA3D0..A3D6 (7-byte shadow state)
+60E0FC00,0xCF74,FUN_0000cf74,knock_event_process,0.1,"big FPU routine: 6-entry indexed ring (A3D0/A3B4/A390), float shift-chain, scaled division, fp handler call; called by 0x6684 alongside knockRelatedInit"
+60E0FC00,0xD28E,FUN_0000d28e,boot_ram_a3e8_validate,0.4,"main-called boot check: jsr 0x0450 then 0x0636 on ptr 0xFFFFA3E8, returns flag"
+60E0FC00,0xD2E8,FUN_0000d2e8,sensor_cal_flag_set_a3fb,0.4,single byte store r4 -> 0xFFFFA3FB (sensor-cal request flag; read by 0xD408/0xD44C)
+60E0FC00,0xD2F6,FUN_0000d2f6,sensor_cal_region_checksum,0.7,"sums longs [start,end) from 0x7FB80 record + 3rd long, compares to magic 0x5AA5A55A, stores flag->A3FA; clear checksum logic"
+60E0FC00,0xD3CE,FUN_0000d3ce,sensor_cal_state_clear,0.4,clears 0xFFFFA3F9/A3FA/A3FB (3-byte sensor-cal state); called by getSensorStuff??
+60E0FC00,0xD408,FUN_0000d408,sensor_cal_handshake_check,0.4,checks word@0xFFFF8000 vs 0xAA55; on mismatch sets A3FB then routes to 0x114FC/0xABFA (thunks)
+60E0FC00,0xD44C,FUN_0000d44c,sensor_cal_handshake_ack,0.4,if A3FB==1 call 0x1141C thunk then write 0xAA55 back to 0xFFFF8000 (acknowledge)
+60E0FC00,0xD46C,FUN_0000d46c,sensor_cal_checksum_apply,0.4,"if A3FA==2: index A3F8 into 0x7FB80, range-check 0xD674, sum+magic compare, set A3FA=0/1 (accept/reject)"
+60E0FC00,0xD674,FUN_0000d674,mem_range_align_check,0.7,"validates r4 4-aligned, r4<=r5, (r5&3)==3 or equal; shared by checksum/apply helpers"
+60E0FC00,0xD70A,FUN_0000d70a,boot_clear_flag_a3fc,0.4,clears byte 0xFFFFA3FC; called from mainInit
+60E0FC00,0xD712,FUN_0000d712,nullsub_0xd712,0.7,bare rts/nop stub - nullsub
+60E0FC00,0xDADE,FUN_0000dade,can_setup_and_reset_timers,0.7,wrapper: bsr canSetup(0xD9F4) then tail-bra resetCANTimers(0xDA94)
+60E0FC00,0xDE3C,FUN_0000de3c,can_init_copy_a400,0.4,copies byte 0x6D488 -> 0xFFFFA400; called from canInitVals
+60E0FC00,0xDE46,FUN_0000de46,can_fault_counter_update,0.4,CAN fault counter: if float@0x6D48C>float@0xB5DC reload A400 from 0x6D488 else decrement
+60E0FC00,0xDF6C,FUN_0000df6c,fault_status_a403_update,0.4,"checks AACC/B5C4/C013 flags + getFaultStatus(0x82) 0x652F0, sets/clears 0xFFFFA403"
+60E0FC00,0xE04C,FUN_0000e04c,can_rx_flag_a407_set,0.4,sets byte 0xFFFFA407=1; called from CAN430RX_Main
+60E0FC00,0xE1BC,FUN_0000e1bc,flag_mirror_9f8c_a41c,0.4,A41C := (byte@0xFFFF9F8C != 0); called from initOrNewLoopMAYBE
+60E0FC00,0xF0E0,FUN_0000f0e0,injector_event_process,0.4,"per-channel injector state machine (0x58-stride, 0x18 entries): 0x84C6/0x85E4/0xFA12/0x8344 injectorPulseSet dispatch"
+60E0FC00,0xF2A0,FUN_0000f2a0,fuel_state_flags_clear,0.4,clears 3 state bytes 0xFFFFA4B0/A4B1/A4B2
+60E0FC00,0xF2B0,FUN_0000f2b0,crank_fuel_mode_select,0.1,"reads crank byte 0xFFFF9F94 + config 0x78008-0x7800D via 0x10234 state, picks A4B1/A4B0 fuel mode"
+60E0FC00,0xF320,FUN_0000f320,fuel_mode_counter_update,0.4,if A4B2==1 decrement A4B0 counter else set A4B0=1; called by engineControlGetFueling
+60E0FC00,0xF348,FUN_0000f348,get_fuel_state_flag_a4b1,0.4,getter: returns byte 0xFFFFA4B1 (used by fuelInjectionTiming?)
+60E0FC00,0xF454,FUN_0000f454,fuel_channel_table_init,0.4,"inits 2x0x58 fuel channels at 0xFFFFA4B4: ptrs from 0x4BDB8, injector entries, tail jmp 0x1020C setAllInjectorto0?"
+60E0FC00,0xF4DC,FUN_0000f4dc,fuel_cut_per_rotor_process,0.4,"per-rotor fuel-cut: 0xF7FC/0xFA3E/0xFA52, setFuelCutDriver, getFuelCutRequestStatus, fuelInjectionRelated/Timing; called by perRotorFuelCut??"
+60E0FC00,0xF7FC,FUN_0000f7fc,fuel_channel_process,0.4,"processes both 0x58 fuel channels: injector update via 0xFA3E/0x85E4, timing 0xFFDA/0xFF36, per-channel state fn ptr @0x4BD98"
+60E0FC00,0xF8CC,FUN_0000f8cc,set_flag_a571,0.4,sets byte 0xFFFFA571=1 (fuel/ign state flag); called from 0x21A30
+60E0FC00,0xF8D4,FUN_0000f8d4,fuel_channel_state_reset,0.4,resets 2 fuel channels (0x85E4 per injector) then clears A564/A568/A56C accumulators
+60E0FC00,0xF922,FUN_0000f922,fuel_cut_apply_both_rotors,0.4,calls somethingFuelCutRelated(0xF964) twice with float arg for rotor 0/1
+60E0FC00,0xF9F6,FUN_0000f9f6,fuel_acc_long_increment_a568,0.4,"long@0xFFFFA568 += 1 via 0x2304 add helper, stores back (fuel accumulator)"
+60E0FC00,0xFA0A,FUN_0000fa0a,fuel_cut_flag_a56c_set,0.4,sets byte 0xFFFFA56C=1 (fuel-cut active flag); called by 0xF0E0/0xFB90
+60E0FC00,0xFA12,FUN_0000fa12,fuel_phase_diff_wrap_scaled,0.1,scaled fixed-point diff (A570*0x1E0000 - arg - 0x50000) wrapped mod 0x2D00000 - phase/slot math
+60E0FC00,0xFA3E,FUN_0000fa3e,angle_diff_wrap360,0.7,returns (r5-r4) adding 0x1680000(=360*0x10000) if negative - classic 360-degree wrap angle diff
+60E0FC00,0xFA52,FUN_0000fa52,fuel_injector_event_schedule,0.4,injector id match + angle-diff window (0xFA3E) then per-slot 0x85E4 dispatch and state write - injector firing scheduler
+60E0FC00,0xFE52,FUN_0000fe52,fuel_slot_window_contains,0.4,"iterates 0x18 injector slots; returns 1 if arg falls in [@slot+0x10, 0xFEB8-computed bound]"
+60E0FC00,0xFEB8,FUN_0000feb8,fuel_slot_angle_compute,0.4,"slot fire angle = @(0xC,slot) + 0xB4*LongFunc(0xFFFF9F88, 0x10174+@(0x8)+0x101B0) via 0x2158"
+60E0FC00,0xFF0E,FUN_0000ff0e,get_fuel_state_a574,0.4,getter: returns byte 0xFFFFA574 (fuel state); called by 0xF4DC
+60E0FC00,0xFF14,FUN_0000ff14,fuel_state_mode_a574_update,0.4,A574 := (A428!=0 && BE5C==0)?2:0 (fuel state mode); called from 0x21A30
+60E0FC00,0xFF9C,FUN_0000ff9c,fuel_cut_request_distribute,0.4,sets A574 mode then flags @(0x06) on both fuel channels (cut request broadcast); called by engineControlGetFueling
+60E0FC00,0x10101,FUN_00010101,fuel_injection_timing_tail_miscode,0.1,odd-aligned (0x10101): Ghidra mis-split tail of fuelInjectionTiming? 0xFFDA - disassembles cleanly from 0x10100; not a real entry (Peripherals & ISR reassigned)
+60E0FC00,0x10174,FUN_00010174,injector_cfg_ptr_select,0.4,"selects config ptr @0x6D498 (idx 0/3) or @0x6D49C (idx 1/2/4/5), else 0 - injector wiring cfg"
+60E0FC00,0x101B0,FUN_000101b0,injector_offset_select_trunc,0.4,"selects float @0xBE60/0xBE64 by injector idx, /0.25 then ftrc - per-injector latency/scale"
+60E0FC00,0x10234,FUN_00010234,get_flag_be84,0.4,getter: returns byte 0xFFFFBE84 (crank/state flag); called from 0xF2B0
+60E0FC00,0x1024C,FUN_0001024c,ign_dwell_init_per_rotor,0.4,"inits ign state A5D0/A5D2/A5D5 + 2x0x2C rotor records at A578 from 0x4BE3C, tail jmp calculatePerRotorIgnitionDwell 0x10FEA"
+60E0FC00,0x1031C,FUN_0001031c,ign_dwell_config_reload,0.4,"reloads 2 rotor dwell records A578 from 0x4BE34/0x4BE3C tables, jmp 0x10FEA; called from setEngineStatusRotor"
+60E0FC00,0x1038C,FUN_0001038c,ign_timing_dwell_compute,0.4,"main per-rotor ign scheduler: 0x107F4/0x107C8 dwell, event fn-ptr table 0x4BDFC, crank enum 0x10ED2, 0x10F04 output; SR-protected callers 0x14140"
+60E0FC00,0x10650,FUN_00010650,ign_timing_hw_output_update,0.4,writes ignition timing to hardware via 0x8E28 timer + 0x107C8/0x107F4/0x10F04 using cycle byte 0xFFFF9F97
+60E0FC00,0x10766,FUN_00010766,set_ign_flag_a5d5,0.4,sets byte 0xFFFFA5D5=1 (ign active flag consumed by 0x1038C); called from 0x1439A
+60E0FC00,0x1076E,FUN_0001076e,ign_obj_array_checksum_sweep,0.4,sweeps 8 obj structs @0xFFFFA578 (0x2C stride to 0xFFFFA5D0) calling 0x8E28 per byte; fnptr at 0x1450C used by fuelCutCondtionRelated
+60E0FC00,0x107C8,FUN_000107c8,eshaft_angle_byte_add_wrap,0.4,byte*0x1E0000+0xFFFB0000-r4 with wrap mod 0x2D00000 (360 deg x 2^17 e-shaft counts)
+60E0FC00,0x107F4,FUN_000107f4,angle_delta_wrap_180,0.4,(r5-r4) then add 0x1680000 if below -0x1E0000 (180 deg wrap); called by 0x1080A/0x10902
+60E0FC00,0x1080A,FUN_0001080a,ign_obj_state_dispatch,0.4,iterates 8 ign objects @0xFFFFA578 with fnptr dispatch via 0x10F04 slot +0xC; helpers 0x107F4/0x8EE6/0x8E28
+60E0FC00,0x10902,FUN_00010902,ign_obj_state_dispatch2,0.4,sibling of 0x1080A on same 0xFFFFA578 objects; 0x107F4 + 0x8E28 and writes obj fields 3/4
+60E0FC00,0x10A8C,FUN_00010a8c,ign_obj_array_fc_bits_update,0.4,0x10F72 gate then 0x10EAC fc-bits merge then 0x8D30 per obj @0xFFFFA578 with 0x4BDCC
+60E0FC00,0x10B34,FUN_00010b34,fuel_cut_condition_bits_build,0.7,ORs flags A9C1/A9C2/A9C3/A9C4 into bitmask stored to 0xA5D8/0xA5DA/0xA5DC; gates on A9C5/A788/BC60/BC61/C5CC/C1EC; called from fuelCutCondtionRelated
+60E0FC00,0x10CB4,FUN_00010cb4,ign_dwell_angle_advance,0.4,iterates objects using 0x107C8 angle math; ptr at 0x4BDF8 from calculateIgnitionDwellAdder
+60E0FC00,0x10EAC,FUN_00010eac,fuel_cut_bits_merge,0.7,returns 0xA5D8 OR 0xA5DA OR 0xA5DC depending on obj bytes @0xFFFFA578; used by 0x10A8C
+60E0FC00,0x11054,FUN_00011054,vehicle_cal_uds_tire_eeprom_chain,0.7,"seq uds_service_reader_383f8_w64_len9c 0x59C72 + tire_size_checksum_init_chain 0x38E5C + getTireSize 0x5C664 + eeprom_0x9f_once_flag_check + aux_vehicle_cfg_e2_restore, tail get_speed_limit_autotrans_cals"
+60E0FC00,0x1141C,FUN_0001141c,periodic_task_chain_knock_cat,0.4,"~40-call chain incl 0x14614 knock RAM + 0x16672 + cat_temp_float_store_chain 0x3F0FA + mem_zeroSignalCells16 0x57526, tail 0x3E78C"
+60E0FC00,0x114FC,FUN_000114fc,sensor_diag_bool_report_d2e8,0.4,calls 0x3E5B0 converts result to bool then tail 0xD2E8
+60E0FC00,0x1151A,FUN_0001151a,main_loop_task_chain,0.4,"seq maf_read_critical_section 0x1A534 + 0x39258 + can_keyOnHandlerAtomic 0x2A99C + omp_knock_periodic_dispatch 0x17A38 + 0x674D8, tail 0x66854; downstream fuelCutCondtionRelated/alternator/CANHandler"
+60E0FC00,0x11B54,FUN_00011b54,periodic_task_chain_11b54,0.4,"seq 0x1AA84 + 0x39F00 + 0x21DCA + alternatorControlMain 0x2718C + 0x22BBA + 0x58268, tail solenoid_drive_status_record_validate 0x16A5A"
+60E0FC00,0x11B80,FUN_00011b80,periodic_task_chain_11b80,0.4,"seq fuel_level_timer_task 0x3A0C8 + 0x14604 + catTempRelated 0x3F0D6, tail 0x17ACE"
+60E0FC00,0x11BF6,FUN_00011bf6,per_rotor_fuel_ign_chain,0.4,"sensor_throttle_maf_calc_protected 0x1A4BC + dealsWithFuelCutSetting 0x3905A + perRotorFuelCut 0x21762 + 0x14140, tail 0x2FE44 with r4 rotor arg"
+60E0FC00,0x11CA2,FUN_00011ca2,dual_task_dispatch_ign,0.4,r4==1 -> 0x1439A+0x21A30+tail 0x3A164 else 0x21A54+0x143BA+tail 0x3A174; static caller 0x11888 in task3
+60E0FC00,0x11CDC,FUN_00011cdc,nullsub_00011cdc,0.7,bare rts; slot in ptr table 0x6714 near noop_stub_thunk_11c6e
+60E0FC00,0x11CF0,FUN_00011cf0,fpu_sr_store_wrapper_f32,0.4,loads float@r4 then jmp 0x21A72 (getSR-protected float store chain to 0xF922)
+60E0FC00,0x11CFC,FUN_00011cfc,fpu_sr_store_wrapper_int,0.4,"long@(4,r4) to fpul then float then jmp 0x21A90 (getSR-protected store to 0xF964)"
+60E0FC00,0x11D10,FUN_00011d10,chain_2912e_3a4f0,0.4,jsr largeFunction 0x2912E then tail-jmp 0x3A4F0
+60E0FC00,0x11E00,FUN_00011e00,can_rx_frame_dispatch,0.7,word@0xFFFF9EC8 bits 0x2000/0x4000 select RX frame slots in 0x4BA14 table; placeCANRX 0x9890 + 0x9C34 then dispatch to 0x66990/0x669CE
+60E0FC00,0x127CC,FUN_000127cc,knock_flag_copy_b588_a692,0.4,byte@0xFFFFA692 = byte@0xB588
+60E0FC00,0x12840,FUN_00012840,knock_state_update,0.4,gates on B580/C94C/AAC6/A693/A694 + floats vs 0x72638/0x7263C -> 0xFFFFA680; stores A444/A445 to A693/A694 and fr4 to A684
+60E0FC00,0x13368,FUN_00013368,cal_change_detect_a704_a705,0.7,compares A415/A414 vs cal 0x6E0F2-0x6E0F5 and shadows A706/A707 -> change flags A704/A705; called from sensor_tps_delta_lookup_store and ptr 0x141E0
+60E0FC00,0x1367E,FUN_0001367e,csum_float_pair_store_8038,0.7,thunk jmp 0x3E38A (getSR-protected float-pair checksum write-verify) with r4=0x8038
+60E0FC00,0x13BD0,FUN_00013bd0,knock_counter_set_max_21,0.4,byte@0xA758=0x15 and float@0xFFFFA768 = float@0xC0D8; called by 0x140DC
+60E0FC00,0x13BE0,FUN_00013be0,knock_threshold_select_compare,0.4,selects float from 0x727C0/727C4/727C8/727CC by B586/BD88/B5FF -> A75C then compares vs A668 -> flag A764
+60E0FC00,0x13D04,FUN_00013d04,knock_word_load_a750,0.4,if float@0xA750>0 then word@0xFFFFA760 = word@0x727BC
+60E0FC00,0x13D1C,FUN_00013d1c,knock_counter_reset_check,0.4,B594 window vs 0x727D0/0x727D4 -> A777; multi-condition check clears A758; stores fr5 to A768
+60E0FC00,0x13DA2,FUN_00013da2,knock_counter_increment,0.7,if byte@0xA758 < 0x15 then 0x2478(r5=1) result written back to A758
+60E0FC00,0x140DC,FUN_000140dc,knock_init_chain,0.4,"seq 0x13BD0 + 0x127CC + 0x42404 + 0x12180 + 0x18F3C + 0x2C374 + ign_dwell_init_per_rotor 0x1024C, tail 0x4B894"
+60E0FC00,0x14140,FUN_00014140,ign_timing_fc_compute_sr,0.4,"getSR(0x10) -> 0x13368 then mode r4 in {0,6,0xC,0x12} -> 0x18F9C + 0x2C388 + 0x2C484 + 0x10B34 + ign_timing_dwell_compute 0x1038C, setSR"
+60E0FC00,0x1439A,FUN_0001439a,fuelcut_ign_compute_wrap_sr,0.4,getSR(0x10) wrapper calling 0x10B34 + 0x10766 then setSR
+60E0FC00,0x143BA,FUN_000143ba,ign_checksum_wrap_sr,0.4,getSR(0x10) wrapper calling 0x1076E then setSR
+60E0FC00,0x14520,FUN_00014520,knock_timing_compute_sr,0.4,getSR(0x10) chain: 0x146B4/0x13760/calculateKnockConditonActiveTimingDerate 0x139B4/0x178E8/0x13C44/0x13E04/0x13D1C/0x21E64/0x21F64/0x42330/0x42F2C/0x42230/0x42FD4/0x4305E then setSR
+60E0FC00,0x14604,FUN_00014604,sr_critical_section_wrapper,0.7,"getSR(0x10) then immediate setSR with r0 passthrough, no body calls"
+60E0FC00,0x14620,FUN_00014620,ign_compute_wrap_sr,0.4,getSR(0x10) wrapper calling 0x1031C then setSR
+60E0FC00,0x146B4,FUN_000146b4,knock_flag_copy_b5c4_a788,0.4,byte@0xA788 = (byte@0xB5C4 == 1) ? 1 : 0
+60E0FC00,0x14804,FUN_00014804,idle_2d_lookup_a7a0,0.4,2D lookup 0x2068 table 0x67A7C indexed by float@0xA7AC result stored to float@0xA7A0
+60E0FC00,0x14ECC,FUN_00014ecc,idle_target_update_timers,0.4,selects idle target float A7A8/A7C0 gated by A8A4/A41C/A7B4/A7B5 and word compare vs 0x6E2AE; 3D lookup 0x20DC(0x67BE4) + saturateLow; counters A814/A816 via 0x2460
+60E0FC00,0x15614,FUN_00015614,idle_correction_lookup_compute,0.4,2D lookups 0x2068 from 0x67B44/0x67B58/0x67B6C + saturateLow 0x23E4 + add16bitSaturate 0x2460 -> floats A7D8/A7DC/A7E0 keyed on word@0xA6A4
+60E0FC00,0x15726,FUN_00015726,idle_control_state_machine,0.4,state machine on bytes A428/AAC6/A7B8 + cals 0x6E29E/0x6E2A8 with 2D lookup 0x67B80 -> A7CC/A7D0; called from FUN_0001654c
+60E0FC00,0x15844,FUN_00015844,idle_lookup_gated_a82c,0.4,"if bytes A6A7/A6A8/A6A9 clear -> A82C=0 else lookup 0x2068(0x67EDC, A69C) -> A82C"
+60E0FC00,0x15894,FUN_00015894,idle_cal_byte_load_a880,0.7,byte@0xFFFFA880 = byte@0x6E6B1 cal copy
+60E0FC00,0x1589E,FUN_0001589e,idle_speed_control_process,0.7,"big idle algorithm: sums 10 correction floats -> A830, state machine A840/A88C, many 2D lookups 0x67C00-0x67C78, helpers 0x2440/0x23E4/0x2404/0x23B0/0x23F4, speed inputs AA00/B594/A7AC"
+60E0FC00,0x15D60,FUN_00015d60,idle_corr_sum_add_a884,0.4,float@0xA884 = float@0xA7A4 + float@0xA8C8
+60E0FC00,0x15D78,FUN_00015d78,store_zero_floats_8040_8048,0.4,calls 0x3E258 twice with r4=0x8040 and 0x8048 and fr4=0
+60E0FC00,0x15D92,FUN_00015d92,store_zero_floats_8040_8048_v2,0.4,calls checksum store 0x3E38A twice with r4=0x8040 then 0x8048 (tail)
+60E0FC00,0x15E00,FUN_00015e00,idle_condition_detect,0.95,confirms known symbol: reads byte 0xA7B4/0xA7B5
+60E0FC00,0x1615C,FUN_0001615c,idle_speed_trim_calc,0.4,cal-read 0x68D4C via 0x20DC with float@0xA830 + float@0xAD78
+60E0FC00,0x1622C,FUN_0001622c,state_byte_latch_a8bb,0.5,tiny: copies byte 0xBD89 to 0xFFFFA8BB
+60E0FC00,0x16236,FUN_00016236,idle_rpm_float_math,0.3,large float routine in idle cluster: reads 0xA428/0xAA00/0xB594/0xAE40
+60E0FC00,0x163DA,FUN_000163da,idle_state_guard_eval,0.4,if 0xBD89==0 and 0xFFFFA8BB==1 -> 0xFFFFA8B8=0; counter 0xA424 vs 0x80; writes 0xA8B0
+60E0FC00,0x16476,FUN_00016476,idle_feedback_condition_eval,0.4,reads float@0xA8A0 via 0x2440
+60E0FC00,0x16524,FUN_00016524,idle_trim_cal_lookup,0.4,cal lookup 0x68D68 via 0x2068 using 0xAE40
+60E0FC00,0x16544,FUN_00016544,set_float_one_a8c4,0.6,tiny: writes 1.0f to 0xFFFFA8C4
+60E0FC00,0x1654C,FUN_0001654c,idle_cal_select_apply,0.5,if byte@0xB580==1 -> cal 0x67CF0 via 0x2068 else 0x67D04 via 0x20DC with 0xAA08; writes 0xFFFFA8C4
+60E0FC00,0x165B0,FUN_000165b0,idle_init_call_chain,0.6,jsr 0x16544
+60E0FC00,0x16704,FUN_00016704,idle_sensor_state_update,0.4,reads 0xBDD8/0xBD89/0xB58C; if byte@0xB580==1 -> cal 0x67A04 via 0x2068 else 0x67A18; writes 0xA8CC
+60E0FC00,0x16820,FUN_00016820,rtos_task_state_set,0.4,writes state byte to 0xDF70+0x22 and 0xFF to +0x24
+60E0FC00,0x168A0,FUN_000168a0,sr_protected_hw_init,0.4,SR-protected 0x2054/0x2064 double write then 0x4BBC(0xF746
+60E0FC00,0x16954,FUN_00016954,rtos_task_gate_10,0.5,if 0xDFA0==0 and 0xDF70+0x28==0xA5 and (0xDF70+0x23 & 0x70)==0x10 -> tail-jmp 0x16820(r4=2)
+60E0FC00,0x16986,FUN_00016986,rtos_task_gate_20,0.5,same gate pattern as 0x16954 but mask value 0x20
+60E0FC00,0x169B8,FUN_000169b8,rtos_task_gate_30,0.5,same gate pattern as 0x16954 but mask value 0x30
+60E0FC00,0x169EA,FUN_000169ea,rtos_task_gate_40,0.5,same gate pattern as 0x16954 but mask value 0x40
+60E0FC00,0x16A8C,FUN_00016a8c,rtos_task_gate_70,0.5,same gate pattern as 0x16954 but mask value 0x70
+60E0FC00,0x16AC8,FUN_00016ac8,fault_float_state_init,0.6,inits 1.0f->0xFFFFA8EC
+60E0FC00,0x1702C,FUN_0001702c,float_window_compare_1702c,0.3,reads 0xAE40/0xA7B4/0xA7A8; window-compares 0xA426 vs cal 0x77B56
+60E0FC00,0x172C2,FUN_000172c2,float_window_compare_172c2,0.3,sibling of 0x1702C: reads 0xB586/0xB594/0xADA8/0xA9FC
+60E0FC00,0x17584,FUN_00017584,float_state_aggregate,0.3,868B; calls 0x3E0DC/0x3E1F8/0x2478
+60E0FC00,0x1793C,FUN_0001793c,checksum_float_read_batch,0.6,reads checksummed floats via 0x3E29E for 0xFFFF8070/72/74/76 and 0x3E38A for 0xFFFF8050/68/58/60
+60E0FC00,0x1797A,FUN_0001797a,checksum_float_clear_batch,0.6,clears same checksummed float set to 0.0 via 0x3E1F8(r5=0) and 0x3E258(fr4=0.0)
+60E0FC00,0x17ACE,FUN_00017ace,sr_wrap_fault_flag_check,0.7,critical-section wrapper: getSR(0x10) -> jsr 0x1890C -> setSR
+60E0FC00,0x17AE6,FUN_00017ae6,fault_ram_clear_chain,0.6,jsr 0x1797A
+60E0FC00,0x17AFA,FUN_00017afa,fault_ram_read_chain,0.6,jsr 0x1793C
+60E0FC00,0x17B70,FUN_00017b70,actuator_state_eval,0.4,evaluates state bytes 0xA428/0xAACC/0xA965/0xA984/0xA964/0xA958/0xA956
+60E0FC00,0x17D3E,FUN_00017d3e,checksum_float_clear_807x,0.6,clears 0xFFFF807C/8078/807A to 0 via 0x3E1F8(r5=0)
+60E0FC00,0x17D5C,FUN_00017d5c,checksum_float_read_807x,0.6,reads 0xFFFF807C/8078/807A via 0x3E29E
+60E0FC00,0x1806E,FUN_0001806e,stepper_step_coil_driver,0.6,dispatches on mode r4 0/1/2/3/4/6; step pattern @0xFFFFA968 &0x07
+60E0FC00,0x1837C,FUN_0001837c,stepper_state_guard,0.4,reads A968/A954
+60E0FC00,0x1850A,FUN_0001850a,stepper_pos_state_machine,0.5,compares target @0xA8DD vs current @0xA960
+60E0FC00,0x18662,FUN_00018662,stepper_state_driver,0.5,dispatches on state byte @0xFFFFA977 (0-4)
+60E0FC00,0x18724,FUN_00018724,stepper_home_pos_check,0.4,if 0xFFFFA96C==1: 0x3E1F8(0x807C
+60E0FC00,0x18778,FUN_00018778,stepper_mode6_wrapper,0.7,tiny stub: bsr 0x1806E(r4=6) then 0xFFFFA967=0x08
+60E0FC00,0x18788,FUN_00018788,stepper_step_select,0.4,compares byte@0xA960 vs 7
+60E0FC00,0x187DC,FUN_000187dc,stepper_pos_endstop_eval,0.3,reads A960/A955/A956/A961/A962
+60E0FC00,0x1890C,FUN_0001890c,stepper_fault_flag_check,0.6,checks 0xFFFF8080/8082/8084/8086 via 0x3E0DC and sets byte@0xA984 if any is 1
+60E0FC00,0x189A0,FUN_000189a0,stepper_fault_flag_clear,0.6,clears 0xFFFF8080/8082/8084/8086 to 0 via 0x3E1F8(r5=0)
+60E0FC00,0x189C4,FUN_000189c4,stepper_fault_flag_read,0.6,reads 0xFFFF8080/8082/8084/8086 via 0x3E29E
+60E0FC00,0x189E8,FUN_000189e8,stepper_fault_flag_set,0.5,sets 0xFFFF8080/8082/8084/8086 based on flags A97C/A97D
+60E0FC00,0x18AB4,FUN_00018ab4,stepper_fault_dtc_raise,0.6,if 0xFFFF8082/8084/8086 set -> 0x5E644(r4=0x4D/0x4E/0x4F
+60E0FC00,0x18B1C,FUN_00018b1c,throttle_sensor_delta_calc,0.4,float deltas from 0xBCD0/0xBC0C/0xBAFC sensors via 0x23DC/0x23E4
+60E0FC00,0x18BC2,FUN_00018bc2,throttle_learn_timer,0.3,copies word@0xA9A8 to 0xFFFFA9BC; if A9A8/A9AA==0 and float@A99C/A9A0>0 -> 0x213C(0x67D90) stored to A9A8
+60E0FC00,0x18C58,FUN_00018c58,throttle_home_condition,0.3,compares float@0xFFFFA9B8 and 0xA9A4 vs 0x3B800000; loads A9AA from cal 0x6E8DE or decrements; updates 0xFFFFA9B8
+60E0FC00,0x18CAC,FUN_00018cac,throttle_pos_learn_update,0.3,if word@0xA9A8>0: 0x20DC(0x67D20) into 0xFFFFA9B0
+60E0FC00,0x18F3C,FUN_00018f3c,clear_status_bytes_a9c,0.6,clears 11 bytes 0xA9C1/A9C2/A9C3/A9C4/A9C6-A9CC to 0
+60E0FC00,0x18F9C,FUN_00018f9c,status_counter_compare,0.3,jsr 0x5BDCA(0) into 0xA9C0
+60E0FC00,0x195F4,FUN_000195f4,fault_condition_flag_eval,0.4,float windows 0xBBE8 vs cal 0x6F3FC/0x6F400/0x6F40C/0x6F410 -> A9EE/A9EF; combines A401/A402/C5EA/CB61>=3/B586/B580 -> sets 0xFFFFA9DB
+60E0FC00,0x199B4,FUN_000199b4,fuel_cut_condition_output_b9b4,0.4,"reads fuel-cut flags A9D6/AACC, loads cal word 0x6F3DE into counter A9D8, writes A9D5; follows evaluateFuelCutCondtionUnknown at 0x198FA"
+60E0FC00,0x19A24,FUN_00019a24,coolant_temp_refresh_chain_a24,0.7,"calls adcCoolantTemp2Volts(0x19A5E) and coolantTempRAMWrite(0x19A76), then broadcasts float A9F8 to A9FC/AA00/AA04/AA08"
+60E0FC00,0x19A4C,FUN_00019a4c,checksummed_float_store_8088_a4c,0.6,tail-jmp 0x3E258: stores RAM float 0xFFFF9F70 to protected 0x8088 with not(sum) checksum word
+60E0FC00,0x19A56,FUN_00019a56,checksummed_float_read_verify_8088_a56,0.6,tail-jmp 0x3E38A: read+verify of protected float 0x8088 (read counterpart of 0x19A4C store); matches c/tests lift
+60E0FC00,0x19A80,FUN_00019a80,coolant_temp_default_select_a80,0.5,"if flag C5EA clear copies float A9F8 to A9FC/AA00/AA04, else loads fallback cal 0x6F534/0x6F538/0x6F53C (80.0/80.0/30.0)"
+60E0FC00,0x19ADC,FUN_00019adc,coolant_float_checksummed_store_adc,0.4,if word A424 (RPM) >= cal word 0x6F530 (125) stores float A9FC to protected 0x8088 via 0x3E258
+60E0FC00,0x19F36,FUN_00019f36,sensor_error_delta_store_f36,0.4,"reads protected floats 0x8090/0x8098 via 0x3E1AA, stores max(0, AA0C-prot)/max(0, AA14-prot) via 0x23E4 into AA1C/AA20 (rationality deltas)"
+60E0FC00,0x1A27E,FUN_0001a27e,protected_bank_reset_8090_a27e,0.6,"stores cal floats 0x6F59C/0x6F5A0 (10.856) to protected 0x8090/0x8098 and word 0 to 0x80A0, all checksummed"
+60E0FC00,0x1A478,FUN_0001a478,knock_sensor_state_init_chain_a478,0.4,"init chain: B5xx knock-ref floats 0x25700/0x25708/0x25722, AA70 broadcast 0x1AC80/0x1ACA0, cal->AABC 0x1AF06, then 0x341DA/0x3395A/0x3397A/0x33982/0x33992 status clears"
+60E0FC00,0x1A9EE,FUN_0001a9ee,irq_guarded_call_chain_a9ee,0.4,"getSR(0x10)/setSR guarded chain calling 0x3256E, 0x2D586, 0x2D5A0, 0x3399E, 0x33D2C"
+60E0FC00,0x1AA84,FUN_0001aa84,irq_guarded_sensor_update_aa84,0.4,getSR(0x10)/setSR guarded call to 0x34228 (writes C0E0/C0E4 float state)
+60E0FC00,0x1AACC,FUN_0001aacc,protected_float_bank_refresh_chain_aacc,0.7,"chains every checksummed-float refresh fn: 0x19A4C, 0x1C8D0, 0x1C7F4, 0x1C844, 0x1C84E, 0x1A27E, then 0x2C5E8/0x48188/0x4A74C/0x4A934"
+60E0FC00,0x1AB0A,FUN_0001ab0a,protected_float_verify_chain_ab0a,0.5,"chains verify/read fns 0x19A56, 0x1C8DA, 0x1BAEE, aux_input_copy_validate 0x1A29E, then 0x2C5F0/0x48192/0x4A94C (re-assigned from Math/FPU)"
+60E0FC00,0x1AC58,FUN_0001ac58,sensor_float_broadcast_fill_ac58,0.5,calls 0x1ACAE (MAF-related) then fills AA80..AA94 and AA98..AAAC (6+6 floats) from float AA70
+60E0FC00,0x1AC80,FUN_0001ac80,float_array_fill_from_aa70_ac80,0.6,fills AA80 and AA98 arrays (6 floats each) with float AA70
+60E0FC00,0x1ACA0,FUN_0001aca0,float_copy_aa70_to_aa74_aa7c_aca0,0.6,copies float AA70 to AA74 and AA7C (2-slot broadcast); matches c/FUN_0001aca0_1aca0.c
+60E0FC00,0x1AEFC,FUN_0001aefc,cal_float_store_aabc_aefc,0.7,stores cal float 0x6F7E0 (0.156006) to RAM float AABC
+60E0FC00,0x1AF06,FUN_0001af06,cal_float_store_aabc_af06,0.7,stores cal float 0x6F7E0 to AABC (byte-identical duplicate of 0x1AEFC)
+60E0FC00,0x1AFB8,FUN_0001afb8,cal_word_flag_init_afb8,0.6,copies cal word 0x6F7E4 (=19) to AAC4 and sets bytes AAC7/AAC6 to 1
+60E0FC00,0x1B088,FUN_0001b088,status_bit0_to_flag_b088,0.5,writes AACD = (word@0xFFFF9EC8 & 0x01) ? 1 : 0; matches c/FUN_0001b088_1b088.c
+60E0FC00,0x1B0B0,FUN_0001b0b0,flag_copy_aacd_to_aacc_b0b0,0.6,copies byte AACD to AACC
+60E0FC00,0x1B0C4,FUN_0001b0c4,sensor_status_aggregate_b0c4,0.3,"calls 0x5BADC/0x5BB78/0x5BC40/0x5BD18(r4=0) storing AD6C/AD6D/AD68/AD6A, then 0x5A7EE(0x15..0x18) OR-gate sets AD6E"
+60E0FC00,0x1B264,FUN_0001b264,knock_retard_history_calc_b264,0.3,"2D lookups 0x67F4C/0x67F58 by AD78/AAE0, byte clamp 0x7D, shifts 0x96-float history at AAFC, sets AAFA/AAFB, updates AAF0/AAF4/AAEC/AD64=AAD0"
+60E0FC00,0x1B6B0,FUN_0001b6b0,knock_threshold_flag_update_b6b0,0.3,"copies A1D4->AADC, range-checks AAD4/AE60 vs cal band 0.99/1.01 (0x6F810/0x6F814), writes flags AAE5/AD6F/AD70/AAE4, stores AD58/AD5C/AAE5"
+60E0FC00,0x1B7EC,FUN_0001b7ec,sensor_word_to_float_store_b7ec,0.4,"0x24C0 word->float conversion of word 0xFFFF9F18 with const 0x38A00000, stores result to AD74"
+60E0FC00,0x1B804,FUN_0001b804,coolant_temp_source_select_b804,0.5,AD78 (coolant temp float) = cal float 0x79788 if flag C5D7==1 else RAM float 0xFFFFA3DC
+60E0FC00,0x1B868,FUN_0001b868,condition_debounce_timer_b868,0.3,"if flag BD68: bit-0x20 test of 0xFFFF9EC8, reloads/decrements counter AD7D from cal 0x78540, writes AD7C; else AD7C = BC03"
+60E0FC00,0x1BAEE,FUN_0001baee,checksummed_float_verify_refresh_baee,0.6,"0x3E38A read+verify on protected floats 0x80A4/0x80AC/0x80B4/0x80BC/0x80CC/0x80D4/0x80DC, then 0x3E29E rewrites 0x80C4..0x80CA"
+60E0FC00,0x1C4D0,FUN_0001c4d0,protected_float_signal_check_c4d0,0.3,"maintains 5-slot float history AE14, jump detect |cur-hist[4]| via 0x23DC > 0.2442 within [15,25] band, clamps (0x2404), writes checksummed floats 0x80BC/0x80CC/ADE4"
+60E0FC00,0x1C7F4,FUN_0001c7f4,protected_float_bank_reset_c7f4,0.6,"writes cal float 0x6FA60 to ADBC/ADDC, zeroes protected words 0x80C4/0x80C6/0x80C8, stores to 0x80A4/0x80AC and 0.0 to 0x80D4/0x80DC"
+60E0FC00,0x1C844,FUN_0001c844,checksummed_float_store_b4_c844,0.6,tail-jmp 0x3E258: stores cal float 0x6FA84 to protected float 0x80B4
+60E0FC00,0x1C84E,FUN_0001c84e,checksummed_float_store_bc_cc_c84e,0.5,"sets ADC5=1, writes 0x80CA word=1 (0x3E1F8), stores cal float 0x6FA8C to 0x80BC and 0x80CC via 0x3E258"
+60E0FC00,0x1C8B0,FUN_0001c8b0,float_signal_broadcast_c8b0,0.5,calls 0x1C8E2 and 0x1C8FA then copies float AE3C to AE40/AE44/AE48
+60E0FC00,0x1C8D0,FUN_0001c8d0,checksummed_float_store_e4_c8d0,0.6,tail-jmp 0x3E258: stores RAM float 0xFFFF9F60 to protected float 0x80E4
+60E0FC00,0x1C8DA,FUN_0001c8da,checksummed_float_read_verify_e4_c8da,0.6,tail-jmp 0x3E38A: read+verify of protected float 0x80E4 (read counterpart of 0x1C8D0 store; re-assigned from Math/FPU)
+60E0FC00,0x1C8FA,FUN_0001c8fa,float_raw_copy_9f60_ae3c_c8fa,0.6,copies RAM float 0xFFFF9F60 to AE3C
+60E0FC00,0x1C904,FUN_0001c904,float_source_select_store_c904,0.5,"AE40 = float AE3C if flag C5DB clear, else cal float 0x6FB34"
+60E0FC00,0x1C91E,FUN_0001c91e,float_slew_filter_c91e,0.5,if A428==0: 0x23B0 slew-limited approach filter blends float AE40 into AE44 with cal 0x6FB38 and const 0x3727C5AC
+60E0FC00,0x1CA44,FUN_0001ca44,deadband_trim_state_machine_ca44,0.4,"deadband test C0D8 vs [cal0x6FB50, cal+0.04] sets AE4E/AE4F, saturating word counter 0x2460 on AE4C, max-hold AE48 via 0x23B0/0x23F4"
+60E0FC00,0x1CB58,FUN_0001cb58,rev_limit_lookup_refresh_cb58,0.4,"sets AE50/AE54/AE58=1.0 and B0C0/B0C1=0xFF, then 0x2068 2D lookup of table 0x68054 by float AA08 -> B064"
+60E0FC00,0x1CB84,FUN_0001cb84,float_array_zero_fill_aed0_cb84,0.7,zero-fills 21-float array at AED0 (fldi0 loop)
+60E0FC00,0x1CB9C,FUN_0001cb9c,float_array_reset_af30_cb9c,0.6,sets AE50/AE54/AE58=1.0 and zero-fills 21-float array at AF30
+60E0FC00,0x1CBC2,FUN_0001cbc2,float_arrays_zero_fill_b000_cbc2,0.6,zero-fills float arrays AFAC+4 and B000+4 (21 slots each)
+60E0FC00,0x1CBE0,FUN_0001cbe0,flag_word_clear_ae7c_cbe0,0.5,clears word AE7C and byte B080 (idle/fuel-cut state reset); matches c/FUN_0001cbe0_1cbe0.c
+60E0FC00,0x1CE34,FUN_0001ce34,float_table_filter_core_ce34,0.3,"large float core: 2D lookups 0x68114/0x67FEC/0x680AC/0x680B8/0x680C4/0x680D0/0x68130 on AA74 & B594, clamps byte B07E to [1,0x13], state machine fills AECC float history"
+60E0FC00,0x1D8CC,FUN_0001d8cc,fuel_trim_learn_update_d8cc,0.4,"O2/trim update: 2D lookups 0x6814C/0x68168/0x68184/0x68094/0x68088/0x680A0 on AA74/A9FC, saturating word counters B07C/B076/B078/B0B8, writes B064/B068/B070 and AE64/AE84/AF80"
+60E0FC00,0x1DD3E,FUN_0001dd3e,dual_counter_timer_logic_dd3e,0.3,"dual down-counter state machine on AE7E/AE80 vs B07A with cross-reload, stores float B05C, gated by B0C9/B0BE/AE85"
+60E0FC00,0x1E022,FUN_0001e022,fuel_cut_hysteresis_logic_e022,0.3,hysteresis compare AAD0 vs AE60+cal 0x6FCE0 sets B081/B080; ramps word AE7C vs cal 0x6FC3A/0x6FC3C and flag B126
+60E0FC00,0x1EAE8,FUN_0001eae8,protected_bank_zero_init_eae8,0.7,"4x loop: 0x3E258 stores 0.0 to 0xFFFF80EC+i*8, 0x3E1F8 writes word 0 to 0xFFFF810C+i*2"
+60E0FC00,0x1EB30,FUN_0001eb30,float_bank_params_validate_loop,0.6,loop over 0xFFFF80EC..810C validating protected float bank via validateAddressCopy_float 0x3E38A / 8-bit 0x3E29E
+60E0FC00,0x1F3FC,FUN_0001f3fc,lambda_enrich_engine_calc,0.7,reads lambda AE58 + B27C; 2DLookup_FP_16bit(0x20C4)@0x683AC; gates AE83/B132/B148; writes B154/B15B
+60E0FC00,0x1F4B6,FUN_0001f4b6,lambda_enrich_lean_guard,0.6,pure fsub 0x71550 vs AA08; word bounds 0x714CC/0x714CE vs B350; sets FFFFB13A lean guard flag
+60E0FC00,0x1F540,FUN_0001f540,lambda_rich_lookup_store,0.6,4x jsr@r14 2DLookup_FP_16bit(0x20C4)@0x683B8; thresholds 0x71554 vs B27C; gates B156/B352 -> B132/B130
+60E0FC00,0x1F5C4,FUN_0001f5c4,float_triple_reset_clear,0.8,updateMemoryAtAddress_float(0x3E258) to 0x8114/0x811C/0xFFFF8124 fldi0
+60E0FC00,0x1F5E8,FUN_0001f5e8,float_triple_read_verify,0.8,validateAddressCopy_float(0x3E38A) read+verify 0x8114/0x811C/0xFFFF8124
+60E0FC00,0x1F606,FUN_0001f606,lambda_state_cond_count,0.6,state machine gated B164/B0D9; 0x716A8/0x716AA/AE70/AA74 compares; add16bitSaturate 0x2460 counters
+60E0FC00,0x2010E,FUN_0002010e,lambda_threshold_table_calc,0.6,2DLookup(0x2068)@0x684F0/0x68504; floats 0x71728/2C/30/48; fsub chains -> B1E4/B1E8
+60E0FC00,0x20998,FUN_00020998,lambda_condition_flow,0.7,2DLookup(0x2068)@0x684A0/0x684B4 -> B1D4/B1D8; 0x71740; gates B215/B217; lambda condition
+60E0FC00,0x20CE8,FUN_00020ce8,mul_float_b278_b27c,0.7,8-byte float mult B288*B27C -> B278 (fuel multiplier)
+60E0FC00,0x20CF8,FUN_00020cf8,lambda_divide_store_calc,0.6,reads BED8/A444/A445 floats; isNotZeroDivide 0x2440; A6C gate; calls 0x21234/0x2122E; writes B294
+60E0FC00,0x21580,FUN_00021580,rtos_task_tables_poll,0.7,4x 2DLookup(0x2068)@0x67F9C/0x67FB0/0x67FC4/0x67FD8 -> B2D0..B2DC; gates B2E1/B2E0; compare B2C8
+60E0FC00,0x21730,FUN_00021730,boot_init_chain_21730,0.7,boot chain: 0x46144->0x2CE0C->0x49ED0->0x4A27C->0x1CB84->0x1CBE0->0x1CBC2->jmp 0x1CB9C
+60E0FC00,0x21A30,FUN_00021a30,atomic_knock_region_calc,1.0,SR wrapper getSR(0x3920)/setSR(0x3934) around knock helpers 0xFF14/0xF2B0/0xF8CC
+60E0FC00,0x21A72,FUN_00021a72,atomic_float_store_f922,1.0,SR wrapper storing fr4 float -> 0xF922
+60E0FC00,0x21A90,FUN_00021a90,atomic_bytefloat_store_f964,1.0,SR wrapper storing byte r4 + float fr4 -> 0xF964
+60E0FC00,0x21DA0,FUN_00021da0,fault_sync_fuel_chain,1.0,SR wrapper calling 0x30904 diag + 0x195F4/0x196E6/0x199B4 fuel_cut_condition_output_b9b4
+60E0FC00,0x21DCA,FUN_00021dca,atomic_calc_engine_temps,1.0,SR wrapper around calculateEngineTemperatures 0x301B0
+60E0FC00,0x21DE2,FUN_00021de2,atomic_get_baro_mult,1.0,SR wrapper around getBaroPressureMult 0x302F4
+60E0FC00,0x21DFA,FUN_00021dfa,init_bank_clear_chain,0.7,chain 0x1EAE8 -> jmp 0x1F5C4 float_triple_reset_clear (bank init+clear)
+60E0FC00,0x21E08,FUN_00021e08,bank_verify_read_chain,0.7,chain 0x1EB30 -> jmp 0x1F5E8 float_triple_read_verify (bank verify+read)
+60E0FC00,0x21E16,FUN_00021e16,atomic_0xf454_apply,1.0,SR wrapper calling 0xF454
+60E0FC00,0x22064,FUN_00022064,idle_speed_target_calc,0.7,2DLookup(0x2068)@0x68864/0x6888C/0x68878 (A834/A9FC) -> B304/B308; saturate 0x2404 -> B300
+60E0FC00,0x224B4,FUN_000224b4,nullsub_0x224b4,0.7,bare rts/nop stub (no operation)
+60E0FC00,0x22580,FUN_00022580,fuel_port_condition_collect,0.6,reads port bytes D077/D078/CDB2/CF4B/CD85/CEF3 + 0x7B818; r14=FFFFB378; fuel/air state
+60E0FC00,0x22638,FUN_00022638,misaligned_tail_of_0x22580,0.4,"no prologue, unset r14; jsr 0x5A8E0; store B34C; misaligned tail of FUN_00022580 (ends 0x22638)"
+60E0FC00,0x2264A,FUN_0002264a,evap_purge_threshold,0.7,lambda threshold A9FC vs 0x7317C+const fcmp/gt; gates B388/B384; evap_purge_flow_calc 0x22D20/0x22D18
+60E0FC00,0x226F6,FUN_000226f6,evap_purge_flow_cond,0.7,gates AE83/B38A/B389/B384/AAC6; floats 0x73180/0x73184/0x73188 vs B594/BE20; evap purge conditions
+60E0FC00,0x22AB0,FUN_00022ab0,throttle_load_index_calc,0.6,reads B374/AE83 flags; float 0x731A8 vs BE20; counters 0x73170/0x73176; B386
+60E0FC00,0x22BBA,FUN_00022bba,atomic_sensor_flow_chain,1.0,SR wrapper calling 0x22C00 + 0x22D20 + 0x22E7C + 0x25D26
+60E0FC00,0x22C00,FUN_00022c00,airflow_sensor_calc,0.7,2DLookup_FP_16bit(0x20C4)@0x688DC -> B3A8; 2DLookup(0x2068)@0x688E8 -> B3A0; stores B3AC; gates B32B/A9D6/B314
+60E0FC00,0x22E7C,FUN_00022e7c,accumulate_flow_b390,0.8,accumulate B390 = B390 + B38C (10-byte float sum)
+60E0FC00,0x22EA8,FUN_00022ea8,atomic_ramp_pair,1.0,SR wrapper calling 0x22EE0 + 0x22F9C
+60E0FC00,0x22EE0,FUN_00022ee0,float_ramp_rate_calc,0.7,fsub ramp A9FC/B5DC; readValue_float(0x3E1AA)@0xFFFF9F70; 3DLookup_FP_16bit(0x213C)@0x6898C; writes B3B8/B3E2/B3E4
+60E0FC00,0x22F9C,FUN_00022f9c,mapped_ramp_table_calc,0.6,AADC float vs 0x7370C/0x73708 tables; writes FFFFB3E5
+60E0FC00,0x23264,FUN_00023264,set_flag_b3f0,0.7,stores 1 to flag 0xB3F0 boot-ready latch
+60E0FC00,0x2361C,FUN_0002361c,torque_limit_calc,0.6,loads 0x6FA60 via readValue_float(0x3E1AA); B594 float; 0x74844/0x74850/0x74854 consts; writes FFFFB44C
+60E0FC00,0x23784,FUN_00023784,gated_saturatelow_b450,0.7,"if byte 0xCB8B==1 -> 0x23E4 saturateLow(0x7485C, 1.0) -> B450 else fldi0 -> B450"
+60E0FC00,0x237BC,FUN_000237bc,boot_init_chain_237bc,0.7,boot chain 0x3335C->0x476FC->0x465FC->0x475C4->0x23264->0x239FC->0x25A58->0x25A9E
+60E0FC00,0x238E4,FUN_000238e4,atomic_dtc_rtos_check,1.0,SR wrapper getSR/setSR calling 0x23A04 + 0x25A9E periodic DTC check
+60E0FC00,0x23902,FUN_00023902,boot_sub_chain_4773x,0.6,pure chain 0x47734/0x4773C/0x47744 -> jmp 0x4665E
+60E0FC00,0x2391C,FUN_0002391c,boot_sub_chain_4774c,0.6,pure chain 0x4774C -> jmp 0x46672
+60E0FC00,0x239FC,FUN_000239fc,set_dtc_enable_flag_b454,0.8,stores 1 to flag 0xB454
+60E0FC00,0x23A04,FUN_00023a04,dtc_enable_check,0.6,read 0x80C6/0x875E via read_value_8bit_redundant 0x3E0DC; B53A gate; 0xAA6A vs 0x7AE3A -> set B454
+60E0FC00,0x23C60,FUN_00023c60,torque_table_offset_calc,0.6,fadd B3E8+B300; 2DLookup(0x2068)@0x68A74 on A9FC -> B464; gates B32B/A9D6/B314; writes B478/B47C/B480
+60E0FC00,0x23DCC,FUN_00023dcc,float_delta_rate_calc,0.7,delta: if CB99==1 B460=0 else B460=B45C-B474; then B474<-B45C
+60E0FC00,0x23E3C,FUN_00023e3c,calblock_checksum_verify,0.6,0x23FEE then checksum 0xB99C over 0x1C bytes B48C->B4C4; sets B488 ok flag; jmp 0x23FE0
+60E0FC00,0x23E6C,FUN_00023e6c,tamper_counter_seed,0.5,byte 0xFFFFA228; B484 counter via add16bitSaturate 0x2460; B4C4 vs 0x5AA5 via 0xB958; seed B489/B48A
+60E0FC00,0x23FC2,FUN_00023fc2,atomic_tamper_wrap,1.0,SR wrapper calling 0x23E6C tamper counter
+60E0FC00,0x23FEE,FUN_00023fee,atomic_dtc_cal_init,1.0,SR wrapper two sections: 0x24B22 dtc_fault_status_flags + 0x24D3E fp_cal_table_b48c_init_alt
