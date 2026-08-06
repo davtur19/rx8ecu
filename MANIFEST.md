@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4731 entries, 88.8M.** Regenerated 2026-08-02 for the
+in the working repository. **4735 entries, 88.8M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
@@ -12,8 +12,8 @@ in the working repository. **4731 entries, 88.8M.** Regenerated 2026-08-02 for t
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1879 | 4.2M |
-| c/tests/ | 1946 | 15.1M |
+| c/ | 1881 | 4.2M |
+| c/tests/ | 1948 | 15.1M |
 | tools/ | 29 | 684.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4731 entries, 88.8M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4731** | 88.8M |
+| **Total** | **4735** | 88.8M |
 
 ## External dependencies
 
@@ -109,7 +109,7 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `symbols/CATALOG_MASTER.csv` | `1b30d3a21f42a2cf00dee633e63771465cfb8c854f291d3687133f7f00e5aa9c` | 3.2M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `a86ed8fad910b972d972c08f3c95199e7c2e205c9b2be8b515a7a7811804777d` | 3.2K | Tracked file |
-| `symbols/FUNCTION_CATEGORIES.csv` | `8a6bed1958633c3da57f87fdf83217318a5c8d88bfe67f19f5d67b3a55b3317c` | 398.0K | Tracked file |
+| `symbols/FUNCTION_CATEGORIES.csv` | `e797cd1fd0ccb265d408733e86d07480e17b1021e51699327ae9960a0bbb3983` | 397.4K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `4f554fe49c1eaeda7e9388b08856055c4925fb69ad2960e3050732489c161544` | 528.6K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `26c64a5406c6a72fb668cb1c8657827cdee542ac40b9abe488ad92a128f8b534` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `92d5b06ac1f32aa5faee927f0fbc69da833595d78afef712e0c3fc01a3e92bd5` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `d63dbd1aed2389b69f4e204bac80c9d849717bf651d56bbe441861cb56242604` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `c34d1ef0d15ebb51620d4a664ac6a076d9d6ffe1b5d94efe11d71ccabf505964` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -464,6 +464,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calcRelativePressure_302b8.c` | `aa3766bea3c4a558c491ab6a24c947dce0717c07c1f18b9ec96b56c308d28b34` | 1.8K | Tracked file |
 | `c/calc_adaptive_fuel_trim.c` | `e234b39f85e7c69ccf5d5aadcd5afc12be9b8c2350509b774397979f3c6f3a2f` | 9.0K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calc_barometric_pressure_trim_13f68.c` | `886db17d7f6e36b4130633d6b99062a8604d6f3c22ba4421d5b23dae7c2f5848` | 4.1K | Tracked file |
+| `c/calc_combustion_chamber_temp_0x12938.c` | `74e71e4b53d598722cce4aefa1a28465e6f2ee7514ffb599271b1c1e570c6f55` | 7.7K | Tracked file |
 | `c/calc_correction_delta_2DAE8_2dae8.c` | `9b9368c57b0c0a6a97325aa3559c7877fad4ebf1832d2ded8df4d577d32e7cb6` | 2.1K | Tracked file |
 | `c/calc_decel_fuel_cut_445AA.c` | `a5dcaba0a6506029caaee13de21f1f4a9885821494fd77f7680ddbbbd938b89c` | 8.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calc_evap_purge_duty_13652.c` | `77fd8c422da7360a4f47af5af9eb86af2df52abcb5c469cf963055d2e2ae60e2` | 4.2K | Tracked file |
@@ -1980,6 +1981,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/updateE2RAMBasedOnInput.c` | `a32f8af00398ecbc22a54f0c7b0a22d2cb05eb34f267a3fd2377a6bf32cd2b0d` | 6.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/updateEngineRunningLessThan60Timer_26340.c` | `8d5654e523155f0014ea805e103a97b2af7c6f5d2440a66870c2149fa8115b03` | 4.0K | Tracked file |
 | `c/updateFaultStatus_5e72c.c` | `78eff10f3abc068e91c342ce3e7d7bbafe132a25854b79cf7e373e79a5096858` | 732B | Tracked file |
+| `c/updateKnockMaxRAM_0x13B90.c` | `3c8c0903d1eab62090c481688b7bc0f78625529567ace06f7581617c62c87a99` | 6.9K | Tracked file |
 | `c/updateMemoryAtAddress_16bit_ADDR_VAL_3e208.c` | `293a5058bea0370480a889bd6adee44cf852c8a7b0bf6adc8c51ff7bc80bb4e2` | 889B | Tracked file |
 | `c/updateMemoryAtAddress_16bit_ADDR_VAL_3ee68.c` | `6e2f3f7842068150e9780a98815687a7496476c228ce82ab50dc807123c4a5a8` | 850B | Tracked file |
 | `c/updateMemoryAtAddress_8bit_ADDR_VAL_3ee58.c` | `b15545d72ec796215ff809f8876dc37452753f5294748307da94f8e2b5a105a8` | 844B | Tracked file |
@@ -2355,6 +2357,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_adaptive_fuel_trim_1379C.py` | `d47005be62b3f93aff4add1178e8cb233ebf8218c756eb3936c885c88d0acd0d` | 10.3K | Tracked file |
 | `c/tests/test_calc_barometric_pressure_trim_13F68.py` | `1656e9a9b592457a75eb645ac47a78e6fb02cd0e45ab673cedb04ce65b5ec099` | 3.6K | Tracked file |
 | `c/tests/test_calc_barometric_pressure_trim_13f68.py` | `2f8d85c79366902db5bbd9767468fa0387f3e74f117a3354c2325be86b8f0e13` | 12.2K | Tracked file |
+| `c/tests/test_calc_combustion_chamber_temp_0x12938.py` | `f360a5991e6bcb5faa28c52a6d144445a14418b9a038ffe919ad46023cc074ad` | 8.7K | Tracked file |
 | `c/tests/test_calc_correction_delta_2DAE8_2dae8.py` | `5701452d8b7470bc04695e85bc097e0fe5abf8569a4f37e641c3ddcdee25ce06` | 9.3K | Tracked file |
 | `c/tests/test_calc_decel_fuel_cut_445AA.py` | `4661c049c9b649c9f53c83670efb09df049715e12962990c308e6f6645452458` | 9.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_calc_evap_purge_duty_13652.py` | `9f6518310b6ee2403f9523ee8354fba8c4dfb6d112c6b5f582d88dfa4bccc0bf` | 12.4K | Tracked file |
@@ -3931,6 +3934,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_updateE2RAMBasedOnInput_0x36D0C.py` | `8658cb5c356726bc8b74e9dbdd4397e84a5d909de58e2984c24ca61785b5c758` | 5.2K | Tracked file |
 | `c/tests/test_updateEngineRunningLessThan60Timer_26340.py` | `5b0368f21452d9b89926b0e74412ee49f8688e54dccda8fe01cd1dc61db25dbc` | 12.2K | Tracked file |
 | `c/tests/test_updateFaultStatus_5e72c.py` | `715566309afd7b61b91ae78fd090195faa2961427ed0302dd92d0a7a25f337be` | 6.6K | Tracked file |
+| `c/tests/test_updateKnockMaxRAM_0x13B90.py` | `186b2cf893726c3227320974111e735f226fba046b9551d5b15e3912a6332dd7` | 8.9K | Tracked file |
 | `c/tests/test_updateMemoryAtAddress_16bit_ADDR_VAL_3e208.py` | `0ae12578e59210b09aaec7b670398bafc91fb7ee86bd50841f83d1241cae52f5` | 7.7K | Tracked file |
 | `c/tests/test_updateMemoryAtAddress_16bit_ADDR_VAL_3ee68.py` | `12aea447f8f2cbc11b396d395a1f75b186c1dab9c5751ecfab8a2c1b1cc2d9c8` | 6.5K | Tracked file |
 | `c/tests/test_updateMemoryAtAddress_8bit_ADDR_VAL_3ee58.py` | `5eca5292c678f9f8a078ab6d8c84e3f7a89f578d637af83282478b7aa31ae627` | 6.5K | Tracked file |
