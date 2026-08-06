@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4996 entries, 90.9M.** Regenerated 2026-08-02 for the
+in the working repository. **5000 entries, 90.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 777.1K |
+| (root) | 11 | 777.7K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 9.8M |
-| c/ | 2011 | 4.5M |
-| c/tests/ | 2078 | 16.3M |
+| c/ | 2013 | 4.5M |
+| c/tests/ | 2080 | 16.3M |
 | tools/ | 29 | 692.1K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **4996 entries, 90.9M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4996** | 90.9M |
+| **Total** | **5000** | 90.9M |
 
 ## External dependencies
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `0279310b8c78f167a097112876b5220ae61347e9d13b28905f0476abdf7d25f0` | 167.1K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `dcebd2bff80cd491ef258e4620cc00a7e9bb202f3306c49b965fb67330ae0d02` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `25512f00325a67f1886095eb372ebc4b9226ea48ce63b5e8c49d66ef3ab72b40` | 166.5K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `2af496dc24ae60e808ba4acfc95dd2dc4f7364f6636efec53419cdcfba35c7c9` | 163.1K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -523,6 +523,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateCruiseControlDriverRequest_2c5f8.c` | `b9772760fd43caa009d8c9cbec5f806c4c5c915e45017c23d2ad88aaf69ef77e` | 1007B | Tracked file |
 | `c/calculateCruiseControlSwitchVolt_2c5d0.c` | `6c1c2d6712f4f4e1350f24732dcf54c93df6e1eaf4be14bc30fb98dd5b5a17a4` | 1.4K | Tracked file |
 | `c/calculateDSCLeadingTimingDerate_0x121A4.c` | `1d48fe4336d90afe332cb018ab51e836b78bda3863d9e8a634e3b33af0b1ad61` | 7.8K | Tracked file |
+| `c/calculateDSCTrailingTimingDerate_0x12294.c` | `d14e7503e704cb68e11b4833d5461b0bc6e26f87337f3197bb83c96320534d02` | 8.1K | Tracked file |
 | `c/calculateDiagSessionConditional_53fa4.c` | `78e85b370d958e53a7dff5569811519d7466cf7179112771bd07f1f7e4520f6d` | 1.8K | Tracked file |
 | `c/calculateDiagSessionConditional_566c4.c` | `2653c2534d24b27d96e37b7884225a73b369ff4b5996cddd8bb8576a109ca460` | 1.8K | Tracked file |
 | `c/calculateDriverConditions_43c4a.c` | `0e3e6786b3ceba9244ef04c8f6bd453c8e14fba5b40000ed5364ff0cab465c2a` | 4.3K | Tracked file |
@@ -974,6 +975,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/filter_counter_init_c750_3fe08.c` | `1cceb2b1f18f8cf8fbb4dac549e36c6ce47cf66bbdc3aa82efeefeb70b1acf71` | 2.6K | Tracked file |
 | `c/filter_signal_adaptive_2CBBA_2cbba.c` | `25390cd200bec107f1c12334f18b526f05b1625f660d781578d2cfb721057a0a` | 4.2K | Tracked file |
 | `c/finalLeadingTimingStuff__1326e.c` | `b7ebaa27ce0ce5c68b726b87d05aa60c85f3f935b50a7080ebab8bd53d2cd35e` | 4.2K | Tracked file |
+| `c/finalTrailingTimingStuff_0x132CA.c` | `463f4df6a82813df3d1f945b29a85abfdce679f1b65ab93b0e31be5092783a58` | 6.4K | Tracked file |
 | `c/firstOrderFilter.c` | `edd2ae05d9b1f0c565eb731011eb8959375d59f189e61b27582f46c63f70202f` | 1.6K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/flag_a323_clear_b5fa.c` | `ea217989dad48bb10a33a9b18219d28f5df99b50d22f7d9cf612fd923703ae70` | 629B | Tracked file |
 | `c/flag_bb98_from_bddc_2b19a.c` | `ed91bec7a66358604501eb10ee93f3766cda9e305390ac305bc32c308ea6fc97` | 1.4K | Tracked file |
@@ -2549,6 +2551,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateCruiseControlDriverRequest_2c5f8.py` | `3b13359af4ddcc651da6f169637b911da1a47314e6a4c9bfcb9cab49b2e9c79a` | 6.8K | Tracked file |
 | `c/tests/test_calculateCruiseControlSwitchVolt_2c5d0.py` | `601add4d3db0222bc709679bc7240310e15168a52d6d2d8353a616fff5c12798` | 7.4K | Tracked file |
 | `c/tests/test_calculateDSCLeadingTimingDerate_0x121A4.py` | `c5ba10832c408f9eed49f3cf37c2aca5d532daa123184c7b2a059f10e8a7cc76` | 8.1K | Tracked file |
+| `c/tests/test_calculateDSCTrailingTimingDerate_0x12294.py` | `ed2cb3095153036538630720e4c19a6b184372241f55ce611139a4d430d5280c` | 8.2K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_53fa4.py` | `03ccc9c46c9825dd885bbfaecc71c93f84d69e2f680b07b7ede13d988432400d` | 8.7K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_566c4.py` | `adb6ed2537451b9cdc94a0aeece6694ee34cdaffa63c0891ccda1a0032072e23` | 7.4K | Tracked file |
 | `c/tests/test_calculateDriverConditions_43c4a.py` | `6bc632ab29e95c1e87f4594c4bbd528cef00e49469310d5137927aff723bdf30` | 12.3K | Tracked file |
@@ -3342,6 +3345,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_filter_counter_init_c750_3fe08.py` | `bb5f632969adae145197dc8563915907109d113c1f4ffd4af0d2b4ee7be39116` | 11.6K | Tracked file |
 | `c/tests/test_filter_signal_adaptive_2CBBA_2cbba.py` | `24aea32956841e102e7ceeac8f7c4e3eae72b7d514775dce76ea9f16c633333e` | 12.2K | Tracked file |
 | `c/tests/test_finalLeadingTimingStuff__1326e.py` | `6e294fa27d54cc43fe53c0f0b026120602245c27dc8b25add05041ad4403ad17` | 13.2K | Tracked file |
+| `c/tests/test_finalTrailingTimingStuff_0x132CA.py` | `830c8b5f1efba9265f08e2df1d5fc1061043530c158cd50698bf7333bfc621d9` | 6.1K | Tracked file |
 | `c/tests/test_flag_a323_clear_b5fa.py` | `406587c45d9559c658bfab275b53402b4b20e7a478c9150350c9b37dce61629f` | 6.4K | Tracked file |
 | `c/tests/test_flag_bb98_from_bddc_2b19a.py` | `6d9acc9e6d9a6f1332a0c80653f75cc44150f1a36460f28fb8ceaf75e72df71b` | 8.2K | Tracked file |
 | `c/tests/test_flag_bb99_gated_a4a6_2b1b6.py` | `55cc390018c1727b3d3cd6933274d53b1bd4c9398340c844d0237ac4eb274e0a` | 8.7K | Tracked file |
