@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5167 entries, 92.5M.** Regenerated 2026-08-02 for the
+in the working repository. **5171 entries, 92.5M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 795.0K |
+| (root) | 11 | 799.5K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2097 | 4.8M |
-| c/tests/ | 2163 | 17.2M |
+| c/ | 2099 | 4.9M |
+| c/tests/ | 2165 | 17.2M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5167 entries, 92.5M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5167** | 92.5M |
+| **Total** | **5171** | 92.5M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `30fe35e9baaf5ce81d2e9f9d14c4674dea8208bc31f5a9d13f24ede74f8065e8` | 6.9K | Project README |
+| `README.md` | `f6c222190373c78ea1d25a987061834f9dab8326f9cf39e31a8cd20ffd7fc61e` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -1144,6 +1144,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/getEngineLimitTimingDerates_0x12CE8.c` | `84b43f3cd61076677d95363a779839e4140ecb9e255737f54754e91d1e50db70` | 3.9K | Tracked file |
 | `c/getEngineOffTimer.c` | `a991304600b08d07a380e7f00a85fed24d87c062967fa14f753ed48a5797de7e` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getEngineOnTimeForOilMetering.c` | `95d8becab0ecb97d84a854059ae24330900a2a82c2f1aa3f9ee7d6fa813008e9` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/getEngineSpeedRateOfChange_0x429BC.c` | `b63e4d2e2327cb7eb6c7b274c3f3156db7ae4408a690449d89a5640dcca8b6cb` | 4.7K | Tracked file |
 | `c/getEngineTorqueMaxCal_2a264.c` | `ae58f0ea0d76f76ae868d7c9a6b65759d4aed7e67b28e5866a8b6863ee64ae07` | 824B | Tracked file |
 | `c/getFaultStatus.c` | `eee3ef06f93ec97147ffc1523eab94cca17c92dfb1bb30cacfd90b22cd2ee19b` | 1.9K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getFromE2.c` | `140f003bc3ab448cf23d0e127a38250d0bd9f8a4b37d097355069ced7d02a095` | 2.8K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -2138,6 +2139,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/threshold_counter_inc_latch_41cf2.c` | `4f1ffb907740aa63ee19a74b417bf74228c789b80935116595950f5006394315` | 608B | Tracked file |
 | `c/throttleLiftCountersandConditions_4244c.c` | `a2f0dd62f3b11588a87fc2f271d69a025a3d8e069242f271a1b5361d84263959` | 4.3K | Tracked file |
 | `c/throttleLiftInitStuff_4315c.c` | `67849bf2127473293dbf90e55f4dcac2fb6fd1a2cd05dae4cdbe1fe342719071` | 918B | Tracked file |
+| `c/throttleLiftoffRelated_0x425A2.c` | `ee6d883b434c4d46d113898218119a340a2b7f253882645e3c781a46c87e2508` | 8.1K | Tracked file |
 | `c/throttle_control_0x4F450_4f450.c` | `69c41742399566dafab32f31e6bdf3abdeffd81f6324de3effd4d49435fd1c67` | 4.8K | Tracked file |
 | `c/throttle_home_condition_18c58.c` | `2939d4695d60783506191dc93e66da733a957d3d3fd776a8575aca91b0715d0c` | 3.7K | Tracked file |
 | `c/throttle_position_fault_handler_45772_45772.c` | `f38a05683f7a2bdc2044c655c8997d82f7608495e7bb51693c5f7cae6605dd35` | 2.4K | Tracked file |
@@ -3643,6 +3645,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_getEngineLimitTimingDerates_0x12CE8.py` | `606411f0329f3e14a2610803a40afaf129cf7a30ff57b16b440ad8083b391f25` | 5.5K | Tracked file |
 | `c/tests/test_getEngineOffTimer.py` | `0e607655ce775e96f883f44a715a08c5e8fddf10a535b9ae5d926ca0805e78a8` | 1.2K | Python per-function behavior-equivalence test |
 | `c/tests/test_getEngineOnTimeForOilMetering.py` | `45871efee94a6cdddd9cf899ba9315149460aaa0058c6e227a33292a3d7f44bf` | 1.3K | Python per-function behavior-equivalence test |
+| `c/tests/test_getEngineSpeedRateOfChange_0x429BC.py` | `8d31099901fc3926302b36da18868b77a9b920f36258cc22f67c1bbe0b39aa58` | 7.2K | Tracked file |
 | `c/tests/test_getEngineTorqueMaxCal_2a264.py` | `663720ea42fcedcaf9ff46a8a80c39eec789932ce2fb285126a709dda97bef78` | 9.0K | Tracked file |
 | `c/tests/test_getFaultStatus.py` | `502aff16cdf362817810bb27e7373e9fec67fafa9a76e9bd49ede9e2a657ef9a` | 3.0K | Python per-function behavior-equivalence test |
 | `c/tests/test_getFromE2.py` | `b55f2f3d776ca0e5253fc0c371ff8544876c0c2a72c9e02fd421fab839ff48b0` | 4.2K | Python per-function behavior-equivalence test |
@@ -4306,6 +4309,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_threshold_counter_inc_latch_41cf2.py` | `1f1b7615f79b6c62ec4623f9c921a45643f2ee0fd761597427d9cfe073ad9033` | 2.2K | Tracked file |
 | `c/tests/test_throttleLiftCountersandConditions_4244c.py` | `336f31d80c08d23df4c162655bdc4ebc8917f90ec02300e579ef616502779b61` | 12.5K | Tracked file |
 | `c/tests/test_throttleLiftInitStuff_4315c.py` | `86000a8c71075f2b0cf7aef3cbff064f496ce38e2395b88801da8cdfb9794fca` | 8.5K | Tracked file |
+| `c/tests/test_throttleLiftoffRelated_0x425A2.py` | `a04decb5d3de43e3c303bb52257f6acbd7e723535dec9b92cefb056a94b3c21e` | 9.7K | Tracked file |
 | `c/tests/test_throttle_control_0x4F450_4f450.py` | `06b75152cc93f7cf9a8b389f8f087089b462557cab4a08748bc63d27ee75cadb` | 11.5K | Tracked file |
 | `c/tests/test_throttle_home_condition_18c58.py` | `7a1d4cdc6c8c8c4923c58eb870f6c335552cec85c49732104cfda91da9a1e3c8` | 12.4K | Tracked file |
 | `c/tests/test_throttle_position_adc_reader_19FC0.py` | `6f149fb1a02766e01d0c2691369c94aea5eb562ef185d83846ed60ec87c1dc98` | 4.6K | Tracked file |
