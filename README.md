@@ -40,10 +40,10 @@ Hard gates (each with a command):
 
 - **9/9 byte-exact + 9/9 formally certified**; code window 0x800..0x60000; SH-2 round-trip 93.46–93.8%.
 - Symbols: 56,953 rows → 50,789 real-fnc estimate, 8,006 named, 6,082 categorized.
-- 1578 C lifts / 1694 `c/*.c`; **295 emulator**-verified (`c/verified_addrs.txt`).
+- 1587 C lifts / 1704 `c/*.c`; **295 emulator**-verified (`c/verified_addrs.txt`).
 - Tables: 1,210 cal + 37,121 RomXR/GROM defs / 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
 - Docs: 191 function + 15 subsystem; **tests:** 1915 py + 26 C.
-- _Counters are snapshot at commit `d485fbb`; source of truth: `make catalog` / [MANIFEST.md](MANIFEST.md)._
+- _Counters are snapshot at commit `c12d8bb`; source of truth: `make catalog` / [MANIFEST.md](MANIFEST.md)._
 - Links: [Explorer](https://davtur19.github.io/rx8ecu/) · [VERIFICATION.md](VERIFICATION.md)
   · [MANIFEST.md](MANIFEST.md) · [docs/README.md](docs/README.md)
   · [FORMAL_CERT](docs/notes/FORMAL_CERT_60E1D400.md) · [REPLICATION.md](REPLICATION.md).
