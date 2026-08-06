@@ -8,7 +8,7 @@ in the working repository. **4921 entries, 89.9M.** Regenerated 2026-08-02 for t
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 744.7K |
+| (root) | 11 | 767.9K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `c2f1d283650e89c88931352569c5c25e7ce24f4e356cad621a78db33d958f8d5` | 6.9K | Project README |
+| `README.md` | `88c39274155396e37191d08a4bfdce1fd6dcb0fc017dd2de347d43cbbecb27b2` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
