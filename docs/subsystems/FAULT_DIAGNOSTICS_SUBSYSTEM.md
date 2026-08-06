@@ -1,8 +1,6 @@
 # RX-8 ECU Fault Handling & Diagnostics Subsystem (60E1D400.bin)
 
-## Overview
-
-OBD-II-compliant fault handling subsystem: fault detection, persistent DTC storage with debounce, DTC set/clear/report, readiness monitors, limp mode, recovery.
+OBD-II-compliant fault handling: fault detection, persistent DTC storage with debounce, DTC set/clear/report, readiness monitors, limp mode, recovery.
 
 ## Memory Map
 
@@ -58,7 +56,7 @@ Lower byte (bits 7-0) = severity/action: `0x04`=Standard (MIL on) · `0x06`=Seve
 
 ### 1. `getFaultStatus` (0x06743C)
 
-`uint8_t getFaultStatus(uint16_t faultCode)` — returns 1 if fault active; **0 = not active, 1 = active**. Primary fault status query, called by **78 callers**.
+`uint8_t getFaultStatus(uint16_t faultCode)` — 0 = not active, 1 = active. Primary fault status query, **78 callers**.
 
 Two-tier check: primary tests global fault mask against table entry (lower 16 bits); if no match, secondary condition checks (`getFaultStatus_subcheck` bitmask AND table upper word).
 

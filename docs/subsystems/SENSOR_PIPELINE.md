@@ -1,8 +1,6 @@
 # RX-8 ECU Sensor Processing Pipeline
 
-## Overview
-
-The RX-8 ECU (Renesas SH-2E, HD64F7055) reads analog sensors via the on-chip ADC peripheral, processes each channel through scaling/linearization, validates against fault thresholds, and stores results in global RAM for fuel/ignition use.
+The RX-8 ECU (Renesas SH-2E, HD64F7055) reads analog sensors via on-chip ADC, processes each channel through scaling/linearization, validates against fault thresholds, stores results in global RAM for fuel/ignition use.
 
 ```
 1. HW ADC READ     sensorADCRead (0x68A8) → readADCResult (0x6FD4) → RAM 0xFFFF9EE4 (32×u16)
