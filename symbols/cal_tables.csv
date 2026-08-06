@@ -1,4 +1,4 @@
-src,name,address,kind,dims,scale,offset,units,confidence
+src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Barometric Pressure Sensor Max ADC Count,0x06cf6c,table,,,,,low
 60E1D400,Barometric Pressure Sensor Min ADC Count,0x06cf6e,table,,,,,low
 60E1D400,Barometric Pressure Sensor Min Voltage,0x07a930,table,,,,,low
@@ -14,16 +14,16 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Maximum Throttle Angle,0x073f6c,table,,,,,low
 60E1D400,Auxillary Valve Close,0x078cc0,table,,,,,low
 60E1D400,VDI Open,0x07a5a4,table,,,,,low
-60E1D400,Table 2D - 0_,0x06cfe4,table,1D,,,,high
-60E1D400,Y,0x06cfa4,axis,1D,,,,high
-60E1D400,Table 2D - 1_,0x06d034,table,1D,,,,high
-60E1D400,Y,0x06cff4,axis,1D,,,,high
-60E1D400,Table 2D - 2_,0x06d084,table,1D,,,,high
-60E1D400,Y,0x06d044,axis,1D,,,,high
+60E1D400,Fuel Injector - Unknown - Max Injection Angle1???,0x06cfe4,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injector - Unknown - Max Injection Angle1??? Y Axis,0x06cfa4,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injector - Unknown - Max Injection Angle2???,0x06d034,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injector - Unknown - Max Injection Angle2??? Y Axis,0x06cff4,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injector - Unknown - Max Injection Angle3???,0x06d084,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injector - Unknown - Max Injection Angle3??? Y Axis,0x06d044,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 3_,0x06d114,table,1D,,,,high
 60E1D400,Y,0x06d0ec,axis,1D,,,,high
-60E1D400,Table 2D - 4_,0x06d138,table,1D,,,,high
-60E1D400,Y,0x06d120,axis,1D,,,,high
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - Engine Startup Base,0x06d138,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - Engine Startup Base Y Axis,0x06d120,axis,1D,,,,high,axis_propagation
 60E1D400,Idle Related,0x06d1e0,table,,,,,high
 60E1D400,Y,0x06d1a0,axis,1D,,,,high
 60E1D400,Ignition Maybe Idle Base,0x06d59c,table,,,,,high
@@ -34,18 +34,18 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x06d5d4,axis,1D,,,,high
 60E1D400,Ignition Leading 0,0x06d618,table,,,,,high
 60E1D400,Y,0x06d5f4,axis,1D,,,,high
-60E1D400,Table 2D - 10_,0x06e4bc,table,1D,,,,high
-60E1D400,Y,0x06e4a4,axis,1D,,,,high
-60E1D400,Table 2D - 11_,0x06e4e0,table,1D,,,,high
-60E1D400,Y,0x06e4c8,axis,1D,,,,high
-60E1D400,Table 2D - 12_,0x06e504,table,1D,,,,high
-60E1D400,Y,0x06e4ec,axis,1D,,,,high
-60E1D400,Table 2D - 13_,0x06e528,table,1D,,,,high
-60E1D400,Y,0x06e510,axis,1D,,,,high
-60E1D400,Table 2D - 14_,0x06e54c,table,1D,,,,high
-60E1D400,Y,0x06e534,axis,1D,,,,high
-60E1D400,Table 2D - 15_,0x06e570,table,1D,,,,high
-60E1D400,Y,0x06e558,axis,1D,,,,high
+60E1D400,Knock Correction - Light,0x06e4bc,table,1D,,,,high,docs_crossref
+60E1D400,Knock Correction - Light Y Axis,0x06e4a4,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Correction - Medium,0x06e4e0,table,1D,,,,high,docs_crossref
+60E1D400,Knock Correction - Medium Y Axis,0x06e4c8,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Correction - Heavy,0x06e504,table,1D,,,,high,docs_crossref
+60E1D400,Knock Correction - Heavy Y Axis,0x06e4ec,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Detection Sensitivity,0x06e528,table,1D,,,,high,docs_crossref
+60E1D400,Knock Detection Sensitivity Y Axis,0x06e510,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Retard,0x06e54c,table,1D,,,,high,docs_crossref
+60E1D400,Knock Retard Y Axis,0x06e534,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Retard 2,0x06e570,table,1D,,,,high,docs_crossref
+60E1D400,Knock Retard 2 Y Axis,0x06e558,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 16_,0x06e5bc,table,1D,,,,high
 60E1D400,Y,0x06e57c,axis,1D,,,,high
 60E1D400,Table 2D - 17_,0x06e6f0,table,1D,,,,high
@@ -62,8 +62,8 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x06e788,axis,1D,,,,high
 60E1D400,Table 2D - 23_,0x06e7f8,table,1D,,,,high
 60E1D400,Y,0x06e7ac,axis,1D,,,,high
-60E1D400,Table 2D - 24_,0x06e84c,table,1D,,,,high
-60E1D400,Y,0x06e820,axis,1D,,,,high
+60E1D400,Idle Target Filter Factor,0x06e84c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Idle Target Filter Factor Y Axis,0x06e820,axis,1D,,,,high,axis_propagation
 60E1D400,Idle Target,0x06e880,table,,,,,high
 60E1D400,Y,0x06e864,axis,1D,,,,high
 60E1D400,Idle Target 0,0x06e8c0,table,,,,,high
@@ -128,32 +128,32 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x06f804,axis,1D,,,,high
 60E1D400,Ignition 13,0x06f810,table,,,,,low
 60E1D400,Y,0x06f80c,axis,1D,,,,high
-60E1D400,Table 2D - 57_,0x06f878,table,1D,,,,high
-60E1D400,Y,0x06f848,axis,1D,,,,high
-60E1D400,Table 2D - 58_,0x06fab0,table,1D,,,,high
-60E1D400,Y,0x06fa9c,axis,1D,,,,high
-60E1D400,Table 2D - 59_,0x06fee4,table,1D,,,,high
-60E1D400,Y,0x06feb8,axis,1D,,,,high
-60E1D400,Table 2D - 60_,0x070084,table,1D,,,,high
-60E1D400,Y,0x07005c,axis,1D,,,,high
-60E1D400,Table 2D - 61_,0x0700b0,table,1D,,,,high
-60E1D400,Y,0x070090,axis,1D,,,,high
-60E1D400,Table 2D - 62_,0x0700e0,table,1D,,,,high
-60E1D400,Y,0x0700b8,axis,1D,,,,high
-60E1D400,Table 2D - 63_,0x070110,table,1D,,,,high
-60E1D400,Y,0x0700ec,axis,1D,,,,high
-60E1D400,Table 2D - 64_,0x070230,table,1D,,,,high
-60E1D400,Y,0x0701f0,axis,1D,,,,high
-60E1D400,Table 2D - 65_,0x070264,table,1D,,,,high
-60E1D400,Y,0x070240,axis,1D,,,,high
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold7 ,0x06f878,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold7  Y Axis,0x06f848,axis,1D,,,,high,axis_propagation
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold8 ,0x06fab0,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold8  Y Axis,0x06fa9c,axis,1D,,,,high,axis_propagation
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold9 ,0x06fee4,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold9  Y Axis,0x06feb8,axis,1D,,,,high,axis_propagation
+60E1D400,MAF Filter Frequency,0x070084,table,1D,,,,high,docs_crossref
+60E1D400,MAF Filter Frequency Y Axis,0x07005c,axis,1D,,,,high,axis_propagation
+60E1D400,IAT Filter,0x0700b0,table,1D,,,,high,docs_crossref
+60E1D400,IAT Filter Y Axis,0x070090,axis,1D,,,,high,axis_propagation
+60E1D400,CLT Filter,0x0700e0,table,1D,,,,high,docs_crossref
+60E1D400,CLT Filter Y Axis,0x0700b8,axis,1D,,,,high,axis_propagation
+60E1D400,Load Signal,0x070110,table,1D,,,,high,docs_crossref
+60E1D400,Load Signal Y Axis,0x0700ec,axis,1D,,,,high,axis_propagation
+60E1D400,Barometric Pressure Adjustment,0x070230,table,1D,,,,high,docs_crossref
+60E1D400,Barometric Pressure Adjustment Y Axis,0x0701f0,axis,1D,,,,high,axis_propagation
+60E1D400,O2 Switch,0x070264,table,1D,,,,high,docs_crossref
+60E1D400,O2 Switch Y Axis,0x070240,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 66_,0x07027c,table,1D,,,,high
 60E1D400,Y,0x070270,axis,1D,,,,high
-60E1D400,Table 2D - 67_,0x0702a4,table,1D,,,,high
-60E1D400,Y,0x070280,axis,1D,,,,high
+60E1D400,TPS Deadband,0x0702a4,table,1D,,,,high,docs_crossref
+60E1D400,TPS Deadband Y Axis,0x070280,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 68_,0x070334,table,1D,,,,high
 60E1D400,Y,0x0702f8,axis,1D,,,,high
-60E1D400,Table 2D - 69_,0x0703bc,table,1D,,,,high
-60E1D400,Y,0x0703a0,axis,1D,,,,high
+60E1D400,Load Smoothing,0x0703bc,table,1D,,,,high,docs_crossref
+60E1D400,Load Smoothing Y Axis,0x0703a0,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 70_,0x0715bc,table,1D,,,,high
 60E1D400,Y,0x07158c,axis,1D,,,,high
 60E1D400,Table 2D - 71_,0x0715f8,table,1D,,,,high
@@ -172,10 +172,10 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x071700,axis,1D,,,,high
 60E1D400,Table 2D - 78_,0x071754,table,1D,,,,high
 60E1D400,Y,0x071730,axis,1D,,,,high
-60E1D400,Table 2D - 79_,0x0717bc,table,1D,,,,high
-60E1D400,Y,0x071798,axis,1D,,,,high
-60E1D400,Table 2D - 80_,0x0717f4,table,1D,,,,high
-60E1D400,Y,0x0717d0,axis,1D,,,,high
+60E1D400,Lambda Integration Time Constant,0x0717bc,table,1D,,,,high,docs_crossref
+60E1D400,Lambda Integration Time Constant Y Axis,0x071798,axis,1D,,,,high,axis_propagation
+60E1D400,Lambda Parameter,0x0717f4,table,1D,,,,high,docs_crossref
+60E1D400,Lambda Parameter Y Axis,0x0717d0,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 81_,0x071828,table,1D,,,,high
 60E1D400,Y,0x071808,axis,1D,,,,high
 60E1D400,Table 2D - 82_,0x071868,table,1D,,,,high
@@ -204,10 +204,10 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x071de8,axis,1D,,,,high
 60E1D400,Fuelling 7,0x071e8c,table,,,,,high
 60E1D400,Y,0x071e44,axis,1D,,,,high
-60E1D400,Table 2D - 95_,0x071ed0,table,1D,,,,high
-60E1D400,Y,0x071ea0,axis,1D,,,,high
-60E1D400,Table 2D - 96_,0x071f28,table,1D,,,,high
-60E1D400,Y,0x071edc,axis,1D,,,,high
+60E1D400,Closed Loop Fuelling Threshold (Unknown A),0x071ed0,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Closed Loop Fuelling Threshold (Unknown A) Y Axis,0x071ea0,axis,1D,,,,high,axis_propagation
+60E1D400,Closed Loop Fuelling Threshold (Throttle Position) ,0x071f28,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Closed Loop Fuelling Threshold (Throttle Position)  Y Axis,0x071edc,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 97_,0x071f84,table,1D,,,,high
 60E1D400,Y,0x071f3c,axis,1D,,,,high
 60E1D400,Table 2D - 98_,0x071f9c,table,1D,,,,high
@@ -222,26 +222,26 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x072060,axis,1D,,,,high
 60E1D400,Fuelling 8,0x072084,table,,,,,high
 60E1D400,Y,0x072068,axis,1D,,,,high
-60E1D400,Table 2D - 104_,0x072c20,table,1D,,,,high
-60E1D400,Y,0x072bfc,axis,1D,,,,high
-60E1D400,Table 2D - 105_,0x072c50,table,1D,,,,high
-60E1D400,Y,0x072c2c,axis,1D,,,,high
-60E1D400,Table 2D - 106_,0x072cac,table,1D,,,,high
-60E1D400,Y,0x072c88,axis,1D,,,,high
-60E1D400,Table 2D - 107_,0x072cdc,table,1D,,,,high
-60E1D400,Y,0x072cb8,axis,1D,,,,high
-60E1D400,Table 2D - 108_,0x072d0c,table,1D,,,,high
-60E1D400,Y,0x072ce8,axis,1D,,,,high
-60E1D400,Table 2D - 109_,0x072d3c,table,1D,,,,high
-60E1D400,Y,0x072d18,axis,1D,,,,high
-60E1D400,Table 2D - 110_,0x072dd0,table,1D,,,,high
-60E1D400,Y,0x072d78,axis,1D,,,,high
-60E1D400,Table 2D - 111_,0x072e40,table,1D,,,,high
-60E1D400,Y,0x072de8,axis,1D,,,,high
-60E1D400,Table 2D - 112_,0x072e84,table,1D,,,,high
-60E1D400,Y,0x072e60,axis,1D,,,,high
-60E1D400,Table 2D - 113_,0x072eb4,table,1D,,,,high
-60E1D400,Y,0x072e90,axis,1D,,,,high
+60E1D400,Temp Correction A,0x072c20,table,1D,,,,high,docs_crossref
+60E1D400,Temp Correction A Y Axis,0x072bfc,axis,1D,,,,high,axis_propagation
+60E1D400,Temp Correction B,0x072c50,table,1D,,,,high,docs_crossref
+60E1D400,Temp Correction B Y Axis,0x072c2c,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Leading - Idle Error Timing Correction - Unknown Bool False,0x072cac,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Leading - Idle Error Timing Correction - Unknown Bool False Y Axis,0x072c88,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Leading - Idle Error Timing Correction - Unknown Bool True,0x072cdc,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Leading - Idle Error Timing Correction - Unknown Bool True Y Axis,0x072cb8,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Trailing - Idle Error Timing Correction - Unknown Bool False,0x072d0c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Trailing - Idle Error Timing Correction - Unknown Bool False Y Axis,0x072ce8,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Trailing - Idle Error Timing Correction - Unknown Bool True,0x072d3c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Trailing - Idle Error Timing Correction - Unknown Bool True Y Axis,0x072d18,axis,1D,,,,high,axis_propagation
+60E1D400,WOT Enrichment Threshold,0x072dd0,table,1D,,,,high,docs_crossref
+60E1D400,WOT Enrichment Threshold Y Axis,0x072d78,axis,1D,,,,high,axis_propagation
+60E1D400,Cold Start Enrichment Threshold,0x072e40,table,1D,,,,high,docs_crossref
+60E1D400,Cold Start Enrichment Threshold Y Axis,0x072de8,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Leading/Trailing - Intake Air Temperature Compensation - On Throttle,0x072e84,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Leading/Trailing - Intake Air Temperature Compensation - On Throttle Y Axis,0x072e60,axis,1D,,,,high,axis_propagation
+60E1D400,Warm-up Enrichment B,0x072eb4,table,1D,,,,high,docs_crossref
+60E1D400,Warm-up Enrichment B Y Axis,0x072e90,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 114_,0x072edc,table,1D,,,,high
 60E1D400,Y,0x072ec0,axis,1D,,,,high
 60E1D400,Table 2D - 115_,0x072f08,table,1D,,,,high
@@ -250,8 +250,8 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x072f18,axis,1D,,,,high
 60E1D400,Table 2D - 117_,0x072f64,table,1D,,,,high
 60E1D400,Y,0x072f4c,axis,1D,,,,high
-60E1D400,Table 2D - 118_,0x072fc8,table,1D,,,,high
-60E1D400,Y,0x072f7c,axis,1D,,,,high
+60E1D400,DSC Mode C - Max Throttle Plate Opening Allowed,0x072fc8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,DSC Mode C - Max Throttle Plate Opening Allowed Y Axis,0x072f7c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 119_,0x073778,table,1D,,,,high
 60E1D400,Y,0x073768,axis,1D,,,,high
 60E1D400,Table 2D - 120_,0x0737bc,table,1D,,,,high
@@ -270,14 +270,14 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x073c94,axis,1D,,,,high
 60E1D400,Table 2D - 127_,0x073d28,table,1D,,,,high
 60E1D400,Y,0x073cf8,axis,1D,,,,high
-60E1D400,Table 2D - 128_,0x073db4,table,1D,,,,high
-60E1D400,Y,0x073da0,axis,1D,,,,high
-60E1D400,Table 2D - 129_,0x073dd0,table,1D,,,,high
-60E1D400,Y,0x073dbc,axis,1D,,,,high
-60E1D400,Table 2D - 130_,0x073dec,table,1D,,,,high
-60E1D400,Y,0x073dd8,axis,1D,,,,high
-60E1D400,Table 2D - 131_,0x073fb8,table,1D,,,,high
-60E1D400,Y,0x073f98,axis,1D,,,,high
+60E1D400,Acceleration Fuel Enrichment - Cold,0x073db4,table,1D,,,,high,docs_crossref
+60E1D400,Acceleration Fuel Enrichment - Cold Y Axis,0x073da0,axis,1D,,,,high,axis_propagation
+60E1D400,Acceleration Fuel Enrichment - Warm,0x073dd0,table,1D,,,,high,docs_crossref
+60E1D400,Acceleration Fuel Enrichment - Warm Y Axis,0x073dbc,axis,1D,,,,high,axis_propagation
+60E1D400,Acceleration Fuel Enrichment - Hot,0x073dec,table,1D,,,,high,docs_crossref
+60E1D400,Acceleration Fuel Enrichment - Hot Y Axis,0x073dd8,axis,1D,,,,high,axis_propagation
+60E1D400,Throttle Pedal Percent Decreasing Filter Factor,0x073fb8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Throttle Pedal Percent Decreasing Filter Factor Y Axis,0x073f98,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 132_,0x073fe0,table,1D,,,,high
 60E1D400,Y,0x073fc0,axis,1D,,,,high
 60E1D400,Table 2D - 133_,0x074008,table,1D,,,,high
@@ -302,22 +302,22 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x074168,axis,1D,,,,high
 60E1D400,Table 2D - 143_,0x0741ac,table,1D,,,,high
 60E1D400,Y,0x074190,axis,1D,,,,high
-60E1D400,Table 2D - 144_,0x075054,table,1D,,,,high
-60E1D400,Y,0x075030,axis,1D,,,,high
-60E1D400,Table 2D - 145_,0x0750b0,table,1D,,,,high
-60E1D400,Y,0x075068,axis,1D,,,,high
-60E1D400,Table 2D - 146_,0x0750f8,table,1D,,,,high
-60E1D400,Y,0x0750d4,axis,1D,,,,high
-60E1D400,Table 2D - 147_,0x075130,table,1D,,,,high
-60E1D400,Y,0x07510c,axis,1D,,,,high
-60E1D400,Table 2D - 148_,0x0752e0,table,1D,,,,high
-60E1D400,Y,0x0752c4,axis,1D,,,,high
-60E1D400,Table 2D - 149_,0x07530c,table,1D,,,,high
-60E1D400,Y,0x0752e8,axis,1D,,,,high
-60E1D400,Table 2D - 150_,0x07534c,table,1D,,,,high
-60E1D400,Y,0x075320,axis,1D,,,,high
-60E1D400,Table 2D - 151_,0x075398,table,1D,,,,high
-60E1D400,Y,0x075364,axis,1D,,,,high
+60E1D400,MAP Requested Load,0x075054,table,1D,,,,high,docs_crossref
+60E1D400,MAP Requested Load Y Axis,0x075030,axis,1D,,,,high,axis_propagation
+60E1D400,MAP Requested Load Smoothing,0x0750b0,table,1D,,,,high,docs_crossref
+60E1D400,MAP Requested Load Smoothing Y Axis,0x075068,axis,1D,,,,high,axis_propagation
+60E1D400,Maximum Load Limit,0x0750f8,table,1D,,,,high,docs_crossref
+60E1D400,Maximum Load Limit Y Axis,0x0750d4,axis,1D,,,,high,axis_propagation
+60E1D400,Idle Load Multiplier,0x075130,table,1D,,,,high,docs_crossref
+60E1D400,Idle Load Multiplier Y Axis,0x07510c,axis,1D,,,,high,axis_propagation
+60E1D400,Battery Temperature Model - Decay Amount,0x0752e0,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Battery Temperature Model - Decay Amount Y Axis,0x0752c4,axis,1D,,,,high,axis_propagation
+60E1D400,Desired Charge Voltage,0x07530c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Desired Charge Voltage Y Axis,0x0752e8,axis,1D,,,,high,axis_propagation
+60E1D400,Alternator Duty Cycle Max,0x07534c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Alternator Duty Cycle Max Y Axis,0x075320,axis,1D,,,,high,axis_propagation
+60E1D400,Alternator Diagnostic Voltage Delta to DC,0x075398,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Alternator Diagnostic Voltage Delta to DC Y Axis,0x075364,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 152_,0x0753d8,table,1D,,,,high
 60E1D400,Y,0x0753b4,axis,1D,,,,high
 60E1D400,Table 2D - 153_,0x075410,table,1D,,,,high
@@ -330,10 +330,10 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x075594,axis,1D,,,,high
 60E1D400,Table 2D - 157_,0x0759cc,table,1D,,,,high
 60E1D400,Y,0x075984,axis,1D,,,,high
-60E1D400,Table 2D - 158_,0x075bf8,table,1D,,,,high
-60E1D400,Y,0x075bc4,axis,1D,,,,high
-60E1D400,Table 2D - 159_,0x075c48,table,1D,,,,high
-60E1D400,Y,0x075c14,axis,1D,,,,high
+60E1D400,Rotor 1 Ignition Dwell,0x075bf8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Rotor 1 Ignition Dwell Y Axis,0x075bc4,axis,1D,,,,high,axis_propagation
+60E1D400,Rotor 2 Ignition Dwell,0x075c48,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Rotor 2 Ignition Dwell Y Axis,0x075c14,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 160_,0x076034,table,1D,,,,high
 60E1D400,Y,0x075fec,axis,1D,,,,high
 60E1D400,Table 2D - 161_,0x07607c,table,1D,,,,high
@@ -354,8 +354,8 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x077a0c,axis,1D,,,,high
 60E1D400,Table 2D - 169_,0x077b44,table,1D,,,,high
 60E1D400,Y,0x077b34,axis,1D,,,,high
-60E1D400,Table 2D - 170_,0x077b90,table,1D,,,,high
-60E1D400,Y,0x077b4c,axis,1D,,,,high
+60E1D400,Injector Manifold Vacuum Multiplier,0x077b90,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Injector Manifold Vacuum Multiplier Y Axis,0x077b4c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 171_,0x07829c,table,1D,,,,high
 60E1D400,Y,0x078284,axis,1D,,,,high
 60E1D400,Table 2D - 172_,0x0782b8,table,1D,,,,high
@@ -364,24 +364,24 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x0782c0,axis,1D,,,,high
 60E1D400,Table 2D - 174_,0x0782d4,table,1D,,,,high
 60E1D400,Y,0x0782c8,axis,1D,,,,high
-60E1D400,Table 2D - 175_,0x078318,table,1D,,,,high
-60E1D400,Y,0x0782e8,axis,1D,,,,high
-60E1D400,Table 2D - 176_,0x078364,table,1D,,,,high
-60E1D400,Y,0x078330,axis,1D,,,,high
+60E1D400,Injector Deadtime Primary,0x078318,table,1D,,,,high,docs_crossref
+60E1D400,Injector Deadtime Primary Y Axis,0x0782e8,axis,1D,,,,high,axis_propagation
+60E1D400,Primary Fuel Injector Cranking Pulse Width,0x078364,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Primary Fuel Injector Cranking Pulse Width Y Axis,0x078330,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 177_,0x07845c,table,1D,,,,high
 60E1D400,Y,0x078418,axis,1D,,,,high
-60E1D400,Table 2D - 178_,0x078490,table,1D,,,,high
-60E1D400,Y,0x078470,axis,1D,,,,high
-60E1D400,Table 2D - 179_,0x07853c,table,1D,,,,high
-60E1D400,Y,0x078518,axis,1D,,,,high
+60E1D400,Primary Injector Max Barometric Pressure Correction,0x078490,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Primary Injector Max Barometric Pressure Correction Y Axis,0x078470,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary Fuel Injector Minimum Pulse Width,0x07853c,table,1D,,,,high,docs_crossref
+60E1D400,Secondary Fuel Injector Minimum Pulse Width Y Axis,0x078518,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 180_,0x07856c,table,1D,,,,high
 60E1D400,Y,0x078548,axis,1D,,,,high
 60E1D400,Table 2D - 181_,0x07859c,table,1D,,,,high
 60E1D400,Y,0x078578,axis,1D,,,,high
 60E1D400,Table 2D - 182_,0x0785f4,table,1D,,,,high
 60E1D400,Y,0x0785b0,axis,1D,,,,high
-60E1D400,Table 2D - 183_,0x07863c,table,1D,,,,high
-60E1D400,Y,0x078618,axis,1D,,,,high
+60E1D400,Secondary Injectors Allowed Threshold - Coolant Temperature Based,0x07863c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Secondary Injectors Allowed Threshold - Coolant Temperature Based Y Axis,0x078618,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 184_,0x078a00,table,1D,,,,high
 60E1D400,Y,0x0789d0,axis,1D,,,,high
 60E1D400,Table 2D - 185_,0x078a30,table,1D,,,,high
@@ -406,14 +406,14 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x078c4c,axis,1D,,,,high
 60E1D400,Table 2D - 195_,0x078c74,table,1D,,,,high
 60E1D400,Y,0x078c70,axis,1D,,,,high
-60E1D400,Table 2D - 196_,0x078dc0,table,1D,,,,high
-60E1D400,Y,0x078d9c,axis,1D,,,,high
-60E1D400,Table 2D - 197_,0x078df8,table,1D,,,,high
-60E1D400,Y,0x078dd4,axis,1D,,,,high
-60E1D400,Table 2D - 198_,0x078f90,table,1D,,,,high
-60E1D400,Y,0x078f84,axis,1D,,,,high
-60E1D400,Table 2D - 199_,0x079334,table,1D,,,,high
-60E1D400,Y,0x07930c,axis,1D,,,,high
+60E1D400,Max Load - Intake Temperature Compensation,0x078dc0,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Max Load - Intake Temperature Compensation Y Axis,0x078d9c,axis,1D,,,,high,axis_propagation
+60E1D400,Engine Torque Max - Barometric Pressure Compensation,0x078df8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Engine Torque Max - Barometric Pressure Compensation Y Axis,0x078dd4,axis,1D,,,,high,axis_propagation
+60E1D400,Load Based Oil Injection Temperature Correction,0x078f90,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Load Based Oil Injection Temperature Correction Y Axis,0x078f84,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling - Load Based Multiplier,0x079334,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injection - Warmup Fueling - Load Based Multiplier Y Axis,0x07930c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 200_,0x0794b0,table,1D,,,,high
 60E1D400,Y,0x079470,axis,1D,,,,high
 60E1D400,Table 2D - 201_,0x079510,table,1D,,,,high
@@ -422,30 +422,30 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x0796bc,axis,1D,,,,high
 60E1D400,Table 2D - 203_,0x079728,table,1D,,,,high
 60E1D400,Y,0x0796f4,axis,1D,,,,high
-60E1D400,Table 2D - 204_,0x079790,table,1D,,,,high
-60E1D400,Y,0x079770,axis,1D,,,,high
-60E1D400,Table 2D - 205_,0x0797c8,table,1D,,,,high
-60E1D400,Y,0x079798,axis,1D,,,,high
-60E1D400,Table 2D - 206_,0x079814,table,1D,,,,high
-60E1D400,Y,0x0797d4,axis,1D,,,,high
-60E1D400,Table 2D - 207_,0x0798b8,table,1D,,,,high
-60E1D400,Y,0x0798a4,axis,1D,,,,high
-60E1D400,Table 2D - 208_,0x0798d0,table,1D,,,,high
-60E1D400,Y,0x0798c0,axis,1D,,,,high
-60E1D400,Table 2D - 209_,0x0798e8,table,1D,,,,high
-60E1D400,Y,0x0798d4,axis,1D,,,,high
-60E1D400,Table 2D - 210_,0x079920,table,1D,,,,high
-60E1D400,Y,0x0798f0,axis,1D,,,,high
-60E1D400,Table 2D - 211_,0x07995c,table,1D,,,,high
-60E1D400,Y,0x07992c,axis,1D,,,,high
-60E1D400,Table 2D - 212_,0x0799a0,table,1D,,,,high
-60E1D400,Y,0x079980,axis,1D,,,,high
-60E1D400,Table 2D - 213_,0x0799b8,table,1D,,,,high
-60E1D400,Y,0x0799a8,axis,1D,,,,high
-60E1D400,Table 2D - 214_,0x0799f8,table,1D,,,,high
-60E1D400,Y,0x0799c0,axis,1D,,,,high
-60E1D400,Table 2D - 215_,0x079a1c,table,1D,,,,high
-60E1D400,Y,0x079a14,axis,1D,,,,high
+60E1D400,Secondary Fuel Blend Transition RPM,0x079790,table,1D,,,,high,docs_crossref
+60E1D400,Secondary Fuel Blend Transition RPM Y Axis,0x079770,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Leading - Cranking Timing Advance,0x0797c8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Leading - Cranking Timing Advance Y Axis,0x079798,axis,1D,,,,high,axis_propagation
+60E1D400,Rotor A/B Fuel Pulse Width Limiter,0x079814,table,1D,,,,high,docs_crossref
+60E1D400,Rotor A/B Fuel Pulse Width Limiter Y Axis,0x0797d4,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary Injectors Enable Temperature,0x0798b8,table,1D,,,,high,docs_crossref
+60E1D400,Secondary Injectors Enable Temperature Y Axis,0x0798a4,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary Injectors Disable Temperature,0x0798d0,table,1D,,,,high,docs_crossref
+60E1D400,Secondary Injectors Disable Temperature Y Axis,0x0798c0,axis,1D,,,,high,axis_propagation
+60E1D400,Knock Retard Max - Knock Sensor Faulted,0x0798e8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Knock Retard Max - Knock Sensor Faulted Y Axis,0x0798d4,axis,1D,,,,high,axis_propagation
+60E1D400,Rotor A/B Fuel Trim,0x079920,table,1D,,,,high,docs_crossref
+60E1D400,Rotor A/B Fuel Trim Y Axis,0x0798f0,axis,1D,,,,high,axis_propagation
+60E1D400,Rotor A/B Fuel Trim 2,0x07995c,table,1D,,,,high,docs_crossref
+60E1D400,Rotor A/B Fuel Trim 2 Y Axis,0x07992c,axis,1D,,,,high,axis_propagation
+60E1D400,Deceleration Fuel Cutoff Rate,0x0799a0,table,1D,,,,high,docs_crossref
+60E1D400,Deceleration Fuel Cutoff Rate Y Axis,0x079980,axis,1D,,,,high,axis_propagation
+60E1D400,Deceleration Fuel Cutoff Recovery,0x0799b8,table,1D,,,,high,docs_crossref
+60E1D400,Deceleration Fuel Cutoff Recovery Y Axis,0x0799a8,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Duty Low,0x0799f8,table,1D,,,,high,docs_crossref
+60E1D400,Fuel Pressure Regulator Duty Low Y Axis,0x0799c0,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Duty High,0x079a1c,table,1D,,,,high,docs_crossref
+60E1D400,Fuel Pressure Regulator Duty High Y Axis,0x079a14,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 216_,0x079c18,table,1D,,,,high
 60E1D400,Y,0x079bf0,axis,1D,,,,high
 60E1D400,Table 2D - 217_,0x079c48,table,1D,,,,high
@@ -458,12 +458,12 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x079cd0,axis,1D,,,,high
 60E1D400,Table 2D - 221_,0x079d5c,table,1D,,,,high
 60E1D400,Y,0x079d24,axis,1D,,,,high
-60E1D400,Table 2D - 222_,0x07a070,table,1D,,,,high
-60E1D400,Y,0x07a028,axis,1D,,,,high
+60E1D400,RPM Based Max Engine Load,0x07a070,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,RPM Based Max Engine Load Y Axis,0x07a028,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 223_,0x07a0b4,table,1D,,,,high
 60E1D400,Y,0x07a094,axis,1D,,,,high
-60E1D400,Table 2D - 224_,0x07a0e4,table,1D,,,,high
-60E1D400,Y,0x07a0c4,axis,1D,,,,high
+60E1D400,Max Load - Barometric Pressure Compensation,0x07a0e4,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Max Load - Barometric Pressure Compensation Y Axis,0x07a0c4,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 225_,0x07a118,table,1D,,,,high
 60E1D400,Y,0x07a0f4,axis,1D,,,,high
 60E1D400,Table 2D - 226_,0x07a150,table,1D,,,,high
@@ -524,14 +524,14 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x07d830,axis,1D,,,,high
 60E1D400,Table 2D - 254_,0x07a7f0,table,1D,,,,high
 60E1D400,Y,0x07a7c8,axis,1D,,,,high
-60E1D400,Table 2D - 255_,0x07a80c,table,1D,,,,high
-60E1D400,Y,0x07a7fc,axis,1D,,,,high
+60E1D400,Compensated Barometric Pressure,0x07a80c,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Compensated Barometric Pressure Y Axis,0x07a7fc,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 256_,0x07a8f8,table,1D,,,,high
 60E1D400,Y,0x07a8dc,axis,1D,,,,high
-60E1D400,Table 2D - 257_,0x07a9f8,table,1D,,,,high
-60E1D400,Y,0x07a9d4,axis,1D,,,,high
-60E1D400,Table 2D - 258_,0x07aa28,table,1D,,,,high
-60E1D400,Y,0x07aa04,axis,1D,,,,high
+60E1D400,Off Throttle Leading Timing Realted,0x07a9f8,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Leading Timing Realted Y Axis,0x07a9d4,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Trailing - Cranking Timing Advance,0x07aa28,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Trailing - Cranking Timing Advance Y Axis,0x07aa04,axis,1D,,,,high,axis_propagation
 60E1D400,Table 2D - 259_,0x07ae7c,table,1D,,,,high
 60E1D400,Y,0x07ae34,axis,1D,,,,high
 60E1D400,Injection Angle Related AFR Input,0x07af48,table,,,,,high
@@ -704,7 +704,7 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x077298,axis,1D,,,,high
 60E1D400,Table 2D - 344 Check DataType,0x07740c,intermediate,1D,,,,low
 60E1D400,Y,0x077390,axis,1D,,,,high
-60E1D400,Table 2D - 345 Check DataType,0x077920,intermediate,1D,,,,low
+60E1D400,Engine On Time Threshold,0x077920,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x0778fc,axis,1D,,,,high
 60E1D400,Table 2D - 346 Check DataType,0x0782e4,intermediate,1D,,,,low
 60E1D400,Y,0x0782d8,axis,1D,,,,high
@@ -714,19 +714,19 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x0784c8,axis,1D,,,,high
 60E1D400,Table 2D - 349 Check DataType,0x0784e4,intermediate,1D,,,,low
 60E1D400,Y,0x0784d8,axis,1D,,,,high
-60E1D400,Table 2D - 350 Check DataType,0x07850c,intermediate,1D,,,,low
+60E1D400,Primary Fuel Injector Pulse Width Control,0x07850c,intermediate,1D,,,,medium,docs_crossref
 60E1D400,Y,0x0784e8,axis,1D,,,,high
-60E1D400,Table 2D - 351 Check DataType,0x078c94,intermediate,1D,,,,low
+60E1D400,Secondary Air Pump On Time,0x078c94,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x078c78,axis,1D,,,,high
-60E1D400,Table 2D - 352 Check DataType,0x078f00,intermediate,1D,,,,low
+60E1D400,Minimum Oil Injection Amount,0x078f00,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x078edc,axis,1D,,,,high
-60E1D400,Table 2D - 353 Check DataType,0x078f24,intermediate,1D,,,,low
+60E1D400,Intake Air Temperature Based Oil Injection Amount,0x078f24,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x078f0c,axis,1D,,,,high
-60E1D400,Table 2D - 354 Check DataType,0x078f44,intermediate,1D,,,,low
+60E1D400,Manifold Pressure Based Oil Injection Amount,0x078f44,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x078f2c,axis,1D,,,,high
 60E1D400,Table 2D - 355 Check DataType,0x078f78,intermediate,1D,,,,low
 60E1D400,Y,0x078f4c,axis,1D,,,,high
-60E1D400,Table 2D - 356 Check DataType,0x078fb0,intermediate,1D,,,,low
+60E1D400,First Start Oil Injection Timer,0x078fb0,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x078f98,axis,1D,,,,high
 60E1D400,Table 2D - 357 Check DataType,0x078fd4,intermediate,1D,,,,low
 60E1D400,Y,0x078fbc,axis,1D,,,,high
@@ -786,7 +786,7 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x07c3e4,axis,1D,,,,high
 60E1D400,Table 2D - 385 Check DataType,0x07c550,intermediate,1D,,,,low
 60E1D400,Y,0x07c528,axis,1D,,,,high
-60E1D400,Table 2D - 386 Check DataType,0x07c588,intermediate,1D,,,,low
+60E1D400,Primary Fuel Injector Cranking Pulse Decay Time,0x07c588,intermediate,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Y,0x07c564,axis,1D,,,,high
 60E1D400,Table 2D - 387 Check DataType,0x07c61c,intermediate,1D,,,,low
 60E1D400,Y,0x07c5f8,axis,1D,,,,high
@@ -822,12 +822,12 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Y,0x07d024,axis,1D,,,,high
 60E1D400,Table 2D - 403 Check DataType,0x07d09c,intermediate,1D,,,,low
 60E1D400,Y,0x07d074,axis,1D,,,,high
-60E1D400,Table 3D - 0_,0x06d2ac,table,2D,,,,high
-60E1D400,X,0x06d254,axis,1D,,,,high
-60E1D400,Y,0x06d294,axis,1D,,,,high
-60E1D400,Table 3D - 1_,0x06d364,table,2D,,,,high
-60E1D400,X,0x06d30c,axis,1D,,,,high
-60E1D400,Y,0x06d34c,axis,1D,,,,high
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Gear Threshold,0x06d2ac,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Gear Threshold X Axis,0x06d254,axis,1D,,,,high,axis_propagation
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Gear Threshold Y Axis,0x06d294,axis,1D,,,,high,axis_propagation
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED,0x06d364,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED X Axis,0x06d30c,axis,1D,,,,high,axis_propagation
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED Y Axis,0x06d34c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 2_,0x06d41c,table,2D,,,,high
 60E1D400,X,0x06d3c4,axis,1D,,,,high
 60E1D400,Y,0x06d404,axis,1D,,,,high
@@ -891,9 +891,9 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Table 3D - 22_,0x0708a8,table,2D,,,,high
 60E1D400,X,0x070868,axis,1D,,,,high
 60E1D400,Y,0x070888,axis,1D,,,,high
-60E1D400,Table 3D - 23_,0x070924,table,2D,,,,high
-60E1D400,X,0x0708e8,axis,1D,,,,high
-60E1D400,Y,0x070918,axis,1D,,,,high
+60E1D400,Closed Loop WOT Enrichment??,0x070924,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Closed Loop WOT Enrichment?? X Axis,0x0708e8,axis,1D,,,,high,axis_propagation
+60E1D400,Closed Loop WOT Enrichment?? Y Axis,0x070918,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 24_,0x070998,table,2D,,,,high
 60E1D400,X,0x070948,axis,1D,,,,high
 60E1D400,Y,0x07097c,axis,1D,,,,high
@@ -981,9 +981,9 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Accel Pedal to Throttle Position #4,0x074d00,table,,,,,high
 60E1D400,X,0x074c64,axis,1D,,,,high
 60E1D400,Y,0x074cb8,axis,1D,,,,high
-60E1D400,Table 3D - 53_,0x0754f0,table,2D,,,,high
-60E1D400,X,0x075494,axis,1D,,,,high
-60E1D400,Y,0x0754c0,axis,1D,,,,high
+60E1D400,Alternator Voltage Delta - Diagnostic Request,0x0754f0,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Alternator Voltage Delta - Diagnostic Request X Axis,0x075494,axis,1D,,,,high,axis_propagation
+60E1D400,Alternator Voltage Delta - Diagnostic Request Y Axis,0x0754c0,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 54_,0x075630,table,2D,,,,high
 60E1D400,X,0x0755c4,axis,1D,,,,high
 60E1D400,Y,0x0755ec,axis,1D,,,,high
@@ -999,30 +999,30 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Table 3D - 58_,0x075f80,table,2D,,,,high
 60E1D400,X,0x075f30,axis,1D,,,,high
 60E1D400,Y,0x075f74,axis,1D,,,,high
-60E1D400,Table 3D - 59_,0x076144,table,2D,,,,high
-60E1D400,X,0x0760b0,axis,1D,,,,high
-60E1D400,Y,0x0760f8,axis,1D,,,,high
+60E1D400,Ignition Timing Leading - DSC Mode A - Base,0x076144,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Timing Leading - DSC Mode A - Base X Axis,0x0760b0,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Timing Leading - DSC Mode A - Base Y Axis,0x0760f8,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 60_,0x076330,table,2D,,,,high
 60E1D400,X,0x07629c,axis,1D,,,,high
 60E1D400,Y,0x0762e4,axis,1D,,,,high
-60E1D400,Table 3D - 61_,0x076670,table,2D,,,,high
-60E1D400,X,0x0765dc,axis,1D,,,,high
-60E1D400,Y,0x076624,axis,1D,,,,high
+60E1D400,Engine Torque,0x076670,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Engine Torque X Axis,0x0765dc,axis,1D,,,,high,axis_propagation
+60E1D400,Engine Torque Y Axis,0x076624,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 62_,0x076988,table,2D,,,,high
 60E1D400,X,0x07691c,axis,1D,,,,high
 60E1D400,Y,0x07693c,axis,1D,,,,high
 60E1D400,Table 3D - 63_,0x076ad8,table,2D,,,,high
 60E1D400,X,0x076ab8,axis,1D,,,,high
 60E1D400,Y,0x076acc,axis,1D,,,,high
-60E1D400,Table 3D - 64_,0x077a9c,table,2D,,,,high
-60E1D400,X,0x077a44,axis,1D,,,,high
-60E1D400,Y,0x077a70,axis,1D,,,,high
-60E1D400,Table 3D - 65_,0x077b20,table,2D,,,,high
-60E1D400,X,0x077b18,axis,1D,,,,high
-60E1D400,Y,0x077b1c,axis,1D,,,,high
-60E1D400,Table 3D - 66_,0x077b2c,table,2D,,,,high
-60E1D400,X,0x077b24,axis,1D,,,,high
-60E1D400,Y,0x077b28,axis,1D,,,,high
+60E1D400,Primary Injector Weighted Engine Temp Multiplier,0x077a9c,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Primary Injector Weighted Engine Temp Multiplier X Axis,0x077a44,axis,1D,,,,high,axis_propagation
+60E1D400,Primary Injector Weighted Engine Temp Multiplier Y Axis,0x077a70,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary 1 Injector Weighted Engine Temp Multiplier,0x077b20,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Secondary 1 Injector Weighted Engine Temp Multiplier X Axis,0x077b18,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary 1 Injector Weighted Engine Temp Multiplier Y Axis,0x077b1c,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary 2 Injector Weighted Engine Temp Multiplier,0x077b2c,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Secondary 2 Injector Weighted Engine Temp Multiplier X Axis,0x077b24,axis,1D,,,,high,axis_propagation
+60E1D400,Secondary 2 Injector Weighted Engine Temp Multiplier Y Axis,0x077b28,axis,1D,,,,high,axis_propagation
 60E1D400,Estimated Manifold Pressure,0x077c48,table,,,,,high
 60E1D400,X,0x077bb4,axis,1D,,,,high
 60E1D400,Y,0x077bf8,axis,1D,,,,high
@@ -1035,30 +1035,30 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Engine Load Compensation,0x0786e8,table,,,,,high
 60E1D400,X,0x078650,axis,1D,,,,high
 60E1D400,Y,0x078698,axis,1D,,,,high
-60E1D400,Table 3D - 71_,0x07938c,table,2D,,,,high
-60E1D400,X,0x079340,axis,1D,,,,high
-60E1D400,Y,0x079380,axis,1D,,,,high
-60E1D400,Table 3D - 72_,0x0793e4,table,2D,,,,high
-60E1D400,X,0x0793bc,axis,1D,,,,high
-60E1D400,Y,0x0793d0,axis,1D,,,,high
-60E1D400,Table 3D - 73_,0x079434,table,2D,,,,high
-60E1D400,X,0x079400,axis,1D,,,,high
-60E1D400,Y,0x07941c,axis,1D,,,,high
+60E1D400,Fuel Injection - Warmup Fueling,0x07938c,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injection - Warmup Fueling X Axis,0x079340,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling Y Axis,0x079380,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based,0x0793e4,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based X Axis,0x0793bc,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based Y Axis,0x0793d0,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault),0x079434,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault) X Axis,0x079400,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault) Y Axis,0x07941c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 74_,0x079584,table,2D,,,,high
 60E1D400,X,0x079530,axis,1D,,,,high
 60E1D400,Y,0x079570,axis,1D,,,,high
 60E1D400,Table 3D - 75_,0x079628,table,2D,,,,high
 60E1D400,X,0x0795d4,axis,1D,,,,high
 60E1D400,Y,0x079614,axis,1D,,,,high
-60E1D400,Table 3D - 76_,0x079a54,table,2D,,,,high
-60E1D400,X,0x079a20,axis,1D,,,,high
-60E1D400,Y,0x079a38,axis,1D,,,,high
-60E1D400,Table 3D - 77_,0x079ad4,table,2D,,,,high
-60E1D400,X,0x079aa8,axis,1D,,,,high
-60E1D400,Y,0x079ab8,axis,1D,,,,high
-60E1D400,Table 3D - 78_,0x079b48,table,2D,,,,high
-60E1D400,X,0x079b0c,axis,1D,,,,high
-60E1D400,Y,0x079b2c,axis,1D,,,,high
+60E1D400,Fuel Pressure Regulator (3D),0x079a54,table,2D,,,,high,docs_crossref
+60E1D400,Fuel Pressure Regulator (3D) X Axis,0x079a20,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator (3D) Y Axis,0x079a38,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Compensation (3D),0x079ad4,table,2D,,,,high,docs_crossref
+60E1D400,Fuel Pressure Regulator Compensation (3D) X Axis,0x079aa8,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Compensation (3D) Y Axis,0x079ab8,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Compensation 2 (3D),0x079b48,table,2D,,,,high,docs_crossref
+60E1D400,Fuel Pressure Regulator Compensation 2 (3D) X Axis,0x079b0c,axis,1D,,,,high,axis_propagation
+60E1D400,Fuel Pressure Regulator Compensation 2 (3D) Y Axis,0x079b2c,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 79_,0x079dac,table,2D,,,,high
 60E1D400,X,0x079d78,axis,1D,,,,high
 60E1D400,Y,0x079d90,axis,1D,,,,high
@@ -1140,9 +1140,9 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Ignition Minimum Maybe,0x06e3a4,table,,,,,high
 60E1D400,X,0x06e388,axis,1D,,,,high
 60E1D400,Y,0x06e398,axis,1D,,,,high
-60E1D400,Table 3D - 106_,0x06e474,table,2D,,,,high
-60E1D400,X,0x06e458,axis,1D,,,,high
-60E1D400,Y,0x06e464,axis,1D,,,,high
+60E1D400,Ignition Leading/Trailing - On Throttle Coolant Temp Compensation,0x06e474,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Ignition Leading/Trailing - On Throttle Coolant Temp Compensation X Axis,0x06e458,axis,1D,,,,high,axis_propagation
+60E1D400,Ignition Leading/Trailing - On Throttle Coolant Temp Compensation Y Axis,0x06e464,axis,1D,,,,high,axis_propagation
 60E1D400,Ignition 3,0x06f4cc,table,,,,,high
 60E1D400,X,0x06f454,axis,1D,,,,high
 60E1D400,Y,0x06f4a0,axis,1D,,,,high
@@ -1179,9 +1179,9 @@ src,name,address,kind,dims,scale,offset,units,confidence
 60E1D400,Oil Metering By Throttle,0x079264,table,,,,,high
 60E1D400,X,0x079208,axis,1D,,,,high
 60E1D400,Y,0x079254,axis,1D,,,,high
-60E1D400,Table 3D - 119_,0x0792dc,table,2D,,,,high
-60E1D400,X,0x0792b0,axis,1D,,,,high
-60E1D400,Y,0x0792c8,axis,1D,,,,high
+60E1D400,Barometric Pressure Based Oil Injection Amount,0x0792dc,table,2D,,,,high,rx8_defs_60E1D400
+60E1D400,Barometric Pressure Based Oil Injection Amount X Axis,0x0792b0,axis,1D,,,,high,axis_propagation
+60E1D400,Barometric Pressure Based Oil Injection Amount Y Axis,0x0792c8,axis,1D,,,,high,axis_propagation
 60E1D400,Table 3D - 120_,0x07d150,table,2D,,,,high
 60E1D400,X,0x07d108,axis,1D,,,,high
 60E1D400,Y,0x07d128,axis,1D,,,,high
