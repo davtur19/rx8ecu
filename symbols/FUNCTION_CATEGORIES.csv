@@ -393,7 +393,7 @@
 60E0FC00,0x5EF4,port_e612_bit0_set_dispatch_d8dc,Peripherals & ISR,1.000,name
 60E0FC00,0x5F18,noOp,Sensors,1.000,graph
 60E0FC00,0x5F1C,rtos_table_entry_update,RTOS,0.400,assembly
-60E1D400,0x5F30,ctrl_nullsub_5f30,Other / Unclassified,0.000,none
+60E1D400,0x5F30,ctrl_nullsub_5f30,RTOS,0.700,assembly
 60E1D400,0x5F34,task_handler_run_by_index,RTOS,1.000,name
 60E0FC00,0x6010,rtos_task_table_dispatch_load,RTOS,1.000,name
 60E1D400,0x6034,task_handler_init_and_run,RTOS,1.000,name
@@ -974,7 +974,7 @@
 60E1D400,0xE6DC,crank_gated_fuel_pressure_proc,Fuel & Lambda,1.000,name
 60E1D400,0xE6EC,fuel_pressure_calc_with_interpolation,Fuel & Lambda,1.000,name
 60E1D400,0xE726,multi_channel_fpu_accumulate,Math / FPU,1.000,name
-60E1D400,0xE78C,engine_load_correction_calc,Other / Unclassified,0.000,none
+60E1D400,0xE78C,engine_load_correction_calc,Fuel & Lambda,0.400,assembly
 60E1D400,0xE7F8,ignition_timing_calc_E7F8,Ignition & Knock,1.000,name
 60E0FC00,0xE914,throttlePlateSomethingFuelCut,Fuel & Lambda,1.000,name
 60E1D400,0xEBA8,throttlePlateSomethingFuelCut,Fuel & Lambda,1.000,name
@@ -1317,7 +1317,7 @@
 60E0FC00,0x1589E,idle_speed_control_process,Idle Control,0.700,assembly
 60E1D400,0x15B00,multi_table_fuel_compensation,Fuel & Lambda,1.000,name
 60E1D400,0x15C1C,channel_idle_fuel_controller,Fuel & Lambda,1.000,name
-60E1D400,0x15D28,rotary_chamber_balance_calc,Other / Unclassified,0.000,none
+60E1D400,0x15D28,rotary_chamber_balance_calc,Fuel & Lambda,0.400,assembly
 60E0FC00,0x15D60,idle_corr_sum_add_a884,Idle Control,0.400,assembly
 60E0FC00,0x15D78,store_zero_floats_8040_8048,Memory & CRC,0.400,assembly
 60E1D400,0x15D82,fuel_pressure_calc,Fuel & Lambda,1.000,name
@@ -1394,7 +1394,7 @@
 60E0FC00,0x17ACE,sr_wrap_fault_flag_check,Sensors,0.700,assembly
 60E0FC00,0x17AE6,fault_ram_clear_chain,Ignition & Knock,0.600,assembly
 60E0FC00,0x17AFA,fault_ram_read_chain,Memory & CRC,0.600,assembly
-60E1D400,0x17B24,ctrl_continuation_17b24,Other / Unclassified,0.000,none
+60E1D400,0x17B24,ctrl_continuation_17b24,Fuel & Lambda,0.400,assembly
 60E0FC00,0x17B70,actuator_state_eval,RTOS,0.400,assembly
 60E0FC00,0x17D30,aux_ctrl_flags_write_a968_a976,Other / Unclassified,0.000,none
 60E0FC00,0x17D3E,checksum_float_clear_807x,Ignition & Knock,0.600,assembly
@@ -1448,7 +1448,7 @@
 60E0FC00,0x18F9C,status_counter_compare,Ignition & Knock,0.300,assembly
 60E0FC00,0x18FD6,load_calc_state_machine,Other / Unclassified,0.000,none
 60E1D400,0x19000,knock_margin_limiter_primary,Ignition & Knock,1.000,name
-60E1D400,0x190A6,engine_load_estimator,Other / Unclassified,0.000,none
+60E1D400,0x190A6,engine_load_estimator,Fuel & Lambda,0.400,assembly
 60E1D400,0x1913C,air_fuel_ratio_feedback_calc,Fuel & Lambda,1.000,name
 60E1D400,0x19190,air_charge_calc_0x19190,Fuel & Lambda,1.000,name
 60E1D400,0x19220,calc_spark_lead_trail_split_19220,Ignition & Knock,1.000,name
@@ -1712,7 +1712,7 @@
 60E0FC00,0x1F8AA,calcOpenLoopFuelingTarget,Fuel & Lambda,1.000,name
 60E1D400,0x1F8E0,combustion_control_loop_1F8E0,Fuel & Lambda,1.000,name
 60E1D400,0x1F99A,coolant_temp_boundary_check_1F99A,Sensors,1.000,name
-60E1D400,0x1FA24,engine_load_control_1FA24,Other / Unclassified,0.000,none
+60E1D400,0x1FA24,engine_load_control_1FA24,Fuel & Lambda,0.400,assembly
 60E1D400,0x1FAEA,ignition_timing_safety_check_1FAEA,Ignition & Knock,1.000,name
 60E0FC00,0x1FB24,calcCLorOLControl,Fuel & Lambda,0.850,cal
 60E1D400,0x1FC32,oil_temp_burn_control_1FC32,Oil Metering,1.000,name
@@ -1846,7 +1846,7 @@
 60E1D400,0x23378,ignition_timing_control_task_23378,Ignition & Knock,1.000,name
 60E0FC00,0x233A4,calculateThrottlePlateRequest??,Throttle & Torque,1.000,name
 60E1D400,0x233B0,knock_sensor_filter_233B0,Ignition & Knock,1.000,name
-60E1D400,0x2346C,engine_load_calculation_2346C,Other / Unclassified,0.000,none
+60E1D400,0x2346C,engine_load_calculation_2346C,Fuel & Lambda,0.400,assembly
 60E0FC00,0x235CC,filterThrottlePlatePosRequest,Throttle & Torque,1.000,name
 60E0FC00,0x2361C,torque_limit_calc,Throttle & Torque,0.600,assembly
 60E1D400,0x23710,mem_mode_23710,Memory & CRC,1.000,name
@@ -1943,7 +1943,7 @@
 60E0FC00,0x25DAC,set_b5d4_then_25df0,Boot & Init,0.900,assembly
 60E0FC00,0x25DBA,irq_masked_25da0_call,Peripherals & ISR,1.000,name
 60E0FC00,0x25DF4,setImmoLight??,OBD / UDS,1.000,name
-60E1D400,0x25E28,engine_state_transition_25E28,Other / Unclassified,0.000,none
+60E1D400,0x25E28,engine_state_transition_25E28,Fuel & Lambda,0.100,assembly
 60E1D400,0x25E36,diag_detection_25e36,Faults & DTC,1.000,name
 60E1D400,0x25E4C,counter_decrement_logic_25E4C,Peripherals & ISR,1.000,name
 60E0FC00,0x25E88,fanout_float_9f68_to_b5d8_b5dc_b5e0,Sensors,1.000,name
@@ -2423,7 +2423,7 @@
 60E1D400,0x2CCA4,interp_ign_timing_sensor_2CCA4,Ignition & Knock,1.000,name
 60E1D400,0x2CCBC,injector_control_write_2CCBC,Fuel & Lambda,1.000,name
 60E1D400,0x2CCC4,canbus_checksum_task_2CCC4,CAN Bus,1.000,name
-60E1D400,0x2CCCC,calc_duty_cycle_state_2CCCC_29BE8,Other / Unclassified,0.000,none
+60E1D400,0x2CCCC,calc_duty_cycle_state_2CCCC_29BE8,Idle Control,0.400,assembly
 60E0FC00,0x2CD28,can_periodic_tx231_tick,CAN Bus,0.900,assembly
 60E0FC00,0x2CD2E,can231TX_getAndPack,CAN Bus,1.000,name
 60E0FC00,0x2CD58,can_reset_counter_bc9c,CAN Bus,0.900,assembly
@@ -2526,7 +2526,7 @@
 60E1D400,0x2E2E8,cruiseControlOvershootPlausibilityMon_a,Throttle & Torque,1.000,name
 60E1D400,0x2E3AC,brake_control_enable_2E3AC,Throttle & Torque,1.000,name
 60E1D400,0x2E412,brake_enable_dispatch_2E412,Throttle & Torque,1.000,name
-60E1D400,0x2E470,engine_load_integral_2E470,Other / Unclassified,0.000,none
+60E1D400,0x2E470,engine_load_integral_2E470,Fuel & Lambda,0.400,assembly
 60E1D400,0x2E4C4,torque_limit_multipoint_2E4C4,Throttle & Torque,1.000,name
 60E0FC00,0x2E50C,calculateCruiseControlFinalTorque,Throttle & Torque,1.000,name
 60E0FC00,0x2E580,cruise_float_match_flag_bd2e,Throttle & Torque,1.000,name
@@ -2581,7 +2581,7 @@
 60E1D400,0x2F728,uds_threshold_2f728,OBD / UDS,1.000,name
 60E0FC00,0x2F764,calcFanControlFaultRelated_MAYBE,Faults & DTC,1.000,name
 60E1D400,0x2F830,math_threshold_2f830,Math / FPU,1.000,name
-60E1D400,0x2F9A8,aux_monitor_confirm_counter,Other / Unclassified,0.000,none
+60E1D400,0x2F9A8,aux_monitor_confirm_counter,Faults & DTC,0.400,assembly
 60E0FC00,0x2F9D2,calcFan1Control,Sensors,0.850,cal
 60E1D400,0x2FA66,complex_fpu_calculations_thresholds_2FA66,Math / FPU,1.000,name
 60E0FC00,0x2FB14,calcFan2Control,Sensors,0.850,cal
@@ -2841,7 +2841,7 @@
 60E1D400,0x34D30,port_register_copy_simple_34D30,Memory & CRC,1.000,name
 60E1D400,0x34D3A,fpu_register_copy_simple_34D3A,Math / FPU,1.000,name
 60E1D400,0x34D44,fpu_multiply_calc_simple_34D44,Math / FPU,1.000,name
-60E1D400,0x34D54,calculateEngineLoadMax_a,Other / Unclassified,0.000,none
+60E1D400,0x34D54,calculateEngineLoadMax_a,Fuel & Lambda,0.400,assembly
 60E0FC00,0x34D70,idle_speed_control_calc,Idle Control,0.700,assembly
 60E1D400,0x34D88,fpu_pair_accumulate_calc_34D88,Math / FPU,1.000,name
 60E1D400,0x34DAA,fpu_sqrt_conditional_calc_34DAA,Math / FPU,1.000,name
@@ -3250,7 +3250,7 @@
 60E0FC00,0x3DD46,check_status_bit_c633,Fuel & Lambda,0.400,assembly
 60E0FC00,0x3DD66,dtc_0x47_0x48_monitor_debounce,Faults & DTC,0.900,assembly
 60E1D400,0x3DE22,diag_validator_3de22,Faults & DTC,1.000,name
-60E1D400,0x3DE7E,mode_handler_3DE7E,Other / Unclassified,0.000,none
+60E1D400,0x3DE7E,mode_handler_3DE7E,OBD / UDS,0.700,assembly
 60E1D400,0x3DED4,uds_request_3ded4,OBD / UDS,1.000,name
 60E0FC00,0x3DEDC,dtc_0x58_monitor_debounce,Faults & DTC,0.900,assembly
 60E1D400,0x3DEEE,ign_processor_3deee,Ignition & Knock,1.000,name
@@ -3286,7 +3286,7 @@
 60E1D400,0x3E5CE,fuel_o2_warmup_condition,Fuel & Lambda,1.000,name
 60E1D400,0x3E6A4,offset_calculator_3E6A4,Faults & DTC,0.4,assembly
 60E1D400,0x3E6D8,scale_converter_3E6D8,Math / FPU,1.000,name
-60E1D400,0x3E6FA,complex_calc_3E6FA,Other / Unclassified,0.000,none
+60E1D400,0x3E6FA,complex_calc_3E6FA,OBD / UDS,0.400,assembly
 60E0FC00,0x3E78C,sensor_plausibility_check,Faults & DTC,0.400,assembly
 60E0FC00,0x3E7B0,sensor_plausibility_check_c64a,Faults & DTC,0.700,assembly
 60E0FC00,0x3E80C,sensor_plausibility_check_c699,Faults & DTC,0.700,assembly
@@ -3301,9 +3301,9 @@
 60E1D400,0x3E904,uds_iteration_3e904,OBD / UDS,1.000,name
 60E0FC00,0x3E93A,catTempRelated?,Sensors,1.000,name
 60E1D400,0x3E95C,init_accumulation_3e95c,Boot & Init,1.000,name
-60E1D400,0x3E994,math_finalize_3e994,Other / Unclassified,0.000,none
+60E1D400,0x3E994,math_finalize_3e994,OBD / UDS,0.400,assembly
 60E1D400,0x3E9A6,math_formatter_3e9a6,Math / FPU,1.000,name
-60E1D400,0x3E9C6,extended_calc_3E9C6,Other / Unclassified,0.000,none
+60E1D400,0x3E9C6,extended_calc_3E9C6,OBD / UDS,0.400,assembly
 60E0FC00,0x3EABA,coolantTempModelBooleans,Sensors,1.000,name
 60E0FC00,0x3EAFC,calcEstimatedCatTemp,Sensors,1.000,name
 60E1D400,0x3EB3C,ign_processor_3eb3c,Ignition & Knock,1.000,name
@@ -3388,7 +3388,7 @@
 60E1D400,0x403CC,float_state_dispatch_dual_403CC,Math / FPU,1.000,name
 60E1D400,0x403DE,diag_dispatch_403de,Faults & DTC,1.000,name
 60E1D400,0x403F8,obd_validation_check_4040E,OBD / UDS,1.000,name
-60E1D400,0x40470,control_validation_calc_40678,Other / Unclassified,0.000,none
+60E1D400,0x40470,control_validation_calc_40678,Ignition & Knock,0.400,assembly
 60E1D400,0x406F8,fuel_interp_calc_40748,Fuel & Lambda,1.000,name
 60E1D400,0x407C8,fuel_rotor_sync_40820,Fuel & Lambda,1.000,name
 60E1D400,0x4086C,fuel_adaptive_trim_408F2,Fuel & Lambda,1.000,name
@@ -3463,7 +3463,7 @@
 60E0FC00,0x42DFC,ign_timing_corr_2d_lookup,Ignition & Knock,1.000,name
 60E0FC00,0x42E70,ign_timing_retard_2d_lookup,Ignition & Knock,0.400,assembly
 60E0FC00,0x42EDA,torque_req_ramp_c940,Throttle & Torque,0.400,assembly
-60E1D400,0x42F08,state_machine_threshold_update,Other / Unclassified,0.000,none
+60E1D400,0x42F08,state_machine_threshold_update,Fuel & Lambda,0.100,assembly
 60E0FC00,0x42F2C,getThrottleLessThanLookupTimer,Throttle & Torque,1.000,name
 60E0FC00,0x42F56,liftConditionSRLatch,Ignition & Knock,1.000,graph
 60E0FC00,0x42FD4,byte_ramp_c942,Ignition & Knock,0.400,assembly
@@ -3731,7 +3731,7 @@
 60E0FC00,0x4774C,checksummed_byte_verify_8784_8780_8782,Memory & CRC,0.700,assembly
 60E1D400,0x47754,adaptive_idle_47754,Idle Control,1.000,name
 60E0FC00,0x4776A,throttle_condition_count_cb84_cb86,Throttle & Torque,0.400,assembly
-60E1D400,0x477A4,adaptive_load_477A4,Other / Unclassified,0.000,none
+60E1D400,0x477A4,adaptive_load_477A4,Fuel & Lambda,0.400,assembly
 60E1D400,0x477C0,idle_speed_control_477C0,Idle Control,1.000,name
 60E1D400,0x477DA,idle_speed_calc_477DA,Idle Control,1.000,name
 60E0FC00,0x477F8,throttle_gate_set_8784_copy_cbb8,Throttle & Torque,0.400,assembly
@@ -3743,7 +3743,7 @@
 60E1D400,0x47978,load_calc_manifold_47978,Faults & DTC,0.4,assembly
 60E1D400,0x479BC,load_calc_maf_479BC,Sensors,1.000,name
 60E1D400,0x479DE,load_smooth_filter_479DE,Math / FPU,1.000,name
-60E1D400,0x479E6,load_hysteresis_479E6,Other / Unclassified,0.000,none
+60E1D400,0x479E6,load_hysteresis_479E6,Fuel & Lambda,0.400,assembly
 60E1D400,0x479EE,load_scale_479EE,Math / FPU,1.000,name
 60E1D400,0x47A2E,rpm_limiter_fuel_cut_47A2E,Fuel & Lambda,1.000,name
 60E1D400,0x47AF8,rpm_rev_limiter_47AF8,Rev Limit,1.000,name
@@ -3755,10 +3755,10 @@
 60E0FC00,0x47DFC,throttle_flags_cb92_cb95_update,Throttle & Torque,0.400,assembly
 60E0FC00,0x47ED8,throttle_learn_active_flag_cb96_update,Throttle & Torque,0.700,assembly
 60E1D400,0x47EF2,setPerRotorLevel1FuelCut,Fuel & Lambda,1.000,name
-60E1D400,0x47F3C,engine_state_machine_47F3C,Other / Unclassified,0.000,none
+60E1D400,0x47F3C,engine_state_machine_47F3C,Ignition & Knock,0.400,assembly
 60E0FC00,0x47F58,throttle_learn_delta_copy_cb9c,Math / FPU,0.400,assembly
-60E1D400,0x47FB0,engine_running_check_47FB0,Other / Unclassified,0.000,none
-60E1D400,0x48038,engine_load_hysteresis_48038,Other / Unclassified,0.000,none
+60E1D400,0x47FB0,engine_running_check_47FB0,Faults & DTC,0.400,assembly
+60E1D400,0x48038,engine_load_hysteresis_48038,Fuel & Lambda,0.400,assembly
 60E1D400,0x48050,engine_shutdown_cleanup_48050,Boot & Init,1.000,name
 60E0FC00,0x48074,throttle_delta_counter_cb9e_cb98,Throttle & Torque,0.400,assembly
 60E0FC00,0x480DE,throttle_condition_flag_8780,Throttle & Torque,0.700,assembly
@@ -3841,7 +3841,7 @@
 60E1D400,0x49B38,can_extract_49b38,CAN Bus,1.000,name
 60E1D400,0x49B3C,can_bit_49b3c,CAN Bus,1.000,name
 60E1D400,0x49B46,isr_clear_49b46,Peripherals & ISR,1.000,name
-60E1D400,0x49B4E,ctrl_toggle_49b4e,Other / Unclassified,0.000,none
+60E1D400,0x49B4E,ctrl_toggle_49b4e,Ignition & Knock,0.400,assembly
 60E0FC00,0x49B5A,fuel_cut_counter_cc90_update,Fuel & Lambda,0.700,assembly
 60E0FC00,0x49C20,fuel_cut_counter_cc91_update,Fuel & Lambda,0.700,assembly
 60E0FC00,0x49CB6,initFuelCutStuff,Fuel & Lambda,1.000,name
@@ -3920,7 +3920,7 @@
 60E0FC00,0x4AF64,canRX4B1Timer,CAN Bus,1.000,name
 60E0FC00,0x4AFC8,can240_timer_init_fffe,CAN Bus,0.900,assembly
 60E0FC00,0x4AFCE,can240TX_getAndPack,CAN Bus,1.000,name
-60E1D400,0x4AFEA,ctrl_invalidate_4afea,Other / Unclassified,0.000,none
+60E1D400,0x4AFEA,ctrl_invalidate_4afea,Math / FPU,0.400,assembly
 60E0FC00,0x4AFF4,can240_timer_reset,CAN Bus,0.900,assembly
 60E0FC00,0x4AFFC,can240TX_pack,CAN Bus,1.000,name
 60E0FC00,0x4B036,getOBDCANTXVars1,OBD / UDS,1.000,name
@@ -3929,7 +3929,7 @@
 60E0FC00,0x4B0F0,resetCAN250Timer,CAN Bus,1.000,name
 60E0FC00,0x4B0F8,can250TX_pack,CAN Bus,1.000,name
 60E0FC00,0x4B134,getOBDCANTXVars2,OBD / UDS,1.000,name
-60E1D400,0x4B1B0,ctrl_cache_4b1b0,Other / Unclassified,0.000,none
+60E1D400,0x4B1B0,ctrl_cache_4b1b0,Math / FPU,0.400,assembly
 60E0FC00,0x4B1D6,validity_flag_cd60_eval,Faults & DTC,0.900,assembly
 60E0FC00,0x4B20E,counterReset,Boot & Init,1.000,name
 60E1D400,0x4B23A,boot_loader_check_4B23A,Boot & Init,1.000,name
@@ -4045,12 +4045,12 @@
 60E0FC00,0x4CAB0,counterBooleanLookup,Peripherals & ISR,1.000,name
 60E0FC00,0x4CBCA,driveCycleDetermination??,Faults & DTC,1.000,graph
 60E1D400,0x4CC32,logger_level_set_4CC32,Utilities,1.000,name
-60E1D400,0x4CD2C,fuel_profiler_4cd2c,Other / Unclassified,0.000,none
+60E1D400,0x4CD2C,fuel_profiler_4cd2c,Fuel & Lambda,0.400,assembly
 60E0FC00,0x4CD74,flag_threshold_2d_lookup,Faults & DTC,0.600,assembly
 60E0FC00,0x4CDAA,sensor_check_2d_interp,Faults & DTC,0.500,assembly
 60E1D400,0x4CDE4,updateCounters,Peripherals & ISR,1.000,name
 60E0FC00,0x4CE40,counter_flag_increment_cda6,Faults & DTC,0.600,assembly
-60E1D400,0x4CE5C,ctrl_profiler_4ce5c,Other / Unclassified,0.000,none
+60E1D400,0x4CE5C,ctrl_profiler_4ce5c,Fuel & Lambda,0.100,assembly
 60E0FC00,0x4CE74,countdown_timer_flag_cdb1,Faults & DTC,0.600,assembly
 60E0FC00,0x4CEB0,init_float_constants_store,Boot & Init,0.600,assembly
 60E0FC00,0x4CECC,init_float_const_store_cdf0,Boot & Init,0.500,assembly
@@ -4221,7 +4221,7 @@
 60E1D400,0x5027C,advance_retard_control_0x5027C,Ignition & Knock,1.000,name
 60E0FC00,0x5028C,fault_monitor_flag_cf13,Faults & DTC,0.700,assembly
 60E0FC00,0x502F0,fault_monitor_86f4_86f8,Faults & DTC,0.700,assembly
-60E1D400,0x50326,load_compensation_0x50326,Other / Unclassified,0.000,none
+60E1D400,0x50326,load_compensation_0x50326,Fuel & Lambda,0.400,assembly
 60E1D400,0x50352,base_timing_lookup_0x50352,Ignition & Knock,1.000,name
 60E1D400,0x5035C,diag_octane_5035c,Faults & DTC,1.000,name
 60E1D400,0x503F2,engine_protection_0x503F2,Faults & DTC,1.000,name
@@ -4321,7 +4321,7 @@
 60E0FC00,0x51D9C,dtc_fault_flag_cell_pair_update,Faults & DTC,1.000,name
 60E1D400,0x51D9E,crc_calc_0x51D9E,Memory & CRC,1.000,name
 60E1D400,0x51DB0,diag_validate_51db0,Faults & DTC,1.000,name
-60E1D400,0x51DC6,ctrl_protocol_51dc6,Other / Unclassified,0.000,none
+60E1D400,0x51DC6,ctrl_protocol_51dc6,OBD / UDS,0.400,assembly
 60E0FC00,0x51DDE,fault_counter_cfa8_inc,Faults & DTC,0.500,assembly
 60E0FC00,0x51E06,fault_window_flag_cfac_eval,Faults & DTC,1.000,name
 60E1D400,0x51E0C,can_interface_0x51E0C,CAN Bus,1.000,name
@@ -4526,15 +4526,15 @@
 60E0FC00,0x541C6,readDiagMod??,Faults & DTC,1.000,name
 60E0FC00,0x541F0,securityNotUnlocked,OBD / UDS,0.800,graph
 60E0FC00,0x54208,obd_triple_lookup_5d8ee,OBD / UDS,0.700,assembly
-60E1D400,0x54210,ctrl_encrypt_54210,Other / Unclassified,0.000,none
-60E1D400,0x54248,ctrl_decrypt_54248,Other / Unclassified,0.000,none
+60E1D400,0x54210,ctrl_encrypt_54210,OBD / UDS,0.700,assembly
+60E1D400,0x54248,ctrl_decrypt_54248,OBD / UDS,0.700,assembly
 60E1D400,0x54250,fuel_compute_54250,Fuel & Lambda,1.000,name
-60E1D400,0x54258,ctrl_random_54258,Other / Unclassified,0.000,none
+60E1D400,0x54258,ctrl_random_54258,OBD / UDS,0.700,assembly
 60E0FC00,0x5426A,obd_svc_table_byte_5d8de,OBD / UDS,0.900,assembly
 60E0FC00,0x5427A,obd_challenge_seed_gen_cfe9,OBD / UDS,0.900,assembly
-60E1D400,0x542B8,isr_operator_542b8,Other / Unclassified,0.000,none
-60E1D400,0x542C0,math_operator_542c0,Other / Unclassified,0.000,none
-60E1D400,0x542C8,ctrl_operator_542c8,Other / Unclassified,0.000,none
+60E1D400,0x542B8,isr_operator_542b8,OBD / UDS,0.700,assembly
+60E1D400,0x542C0,math_operator_542c0,OBD / UDS,0.700,assembly
+60E1D400,0x542C8,ctrl_operator_542c8,OBD / UDS,0.700,assembly
 60E1D400,0x54310,modulo_calc_0x54310,Math / FPU,1.000,name
 60E1D400,0x5431C,mem_cellbank_flag_or_gate,Memory & CRC,1.000,name
 60E0FC00,0x543A0,obd_challenge_seed_read_cfe9,OBD / UDS,0.900,assembly
@@ -4594,7 +4594,7 @@
 60E0FC00,0x54B5E,obd_upload_tail_frag_54b04,OBD / UDS,0.400,assembly
 60E0FC00,0x54B72,mode22Hanlder,OBD / UDS,1.000,graph
 60E0FC00,0x54BAE,obd_emit_word_hi_lo_5d4c4,OBD / UDS,0.400,assembly
-60E1D400,0x54BC0,ctrl_measure_54bc0,Other / Unclassified,0.000,none
+60E1D400,0x54BC0,ctrl_measure_54bc0,OBD / UDS,0.400,assembly
 60E0FC00,0x54BD2,UDSServiceSomething,OBD / UDS,1.000,name
 60E0FC00,0x54C12,getMonitorStatusMode22,OBD / UDS,1.000,graph
 60E1D400,0x54C2C,ctrl_amplitude_54c2c,Faults & DTC,0.7,assembly
@@ -4650,15 +4650,15 @@
 60E1D400,0x55088,fuzzy_logic_0x55088,Utilities,1.000,name
 60E0FC00,0x550A4,uds_mode22_data_getter_aa38,OBD / UDS,1.000,name
 60E1D400,0x550BE,diag_flag_combine_or,Faults & DTC,1.000,name
-60E1D400,0x550E6,ctrl_predict_550e6,Other / Unclassified,0.000,none
+60E1D400,0x550E6,ctrl_predict_550e6,OBD / UDS,0.400,assembly
 60E0FC00,0x55120,uds_mode22_data_getter_aa3a,OBD / UDS,1.000,name
 60E1D400,0x55134,sensor_estimate_55134,Sensors,1.000,name
 60E0FC00,0x55152,uds_mode22_data_getter_adc0,OBD / UDS,1.000,name
 60E0FC00,0x55184,uds_signal_16bit_pack,OBD / UDS,1.000,name
-60E1D400,0x551AC,ctrl_observer_551ac,Other / Unclassified,0.000,none
+60E1D400,0x551AC,ctrl_observer_551ac,OBD / UDS,0.700,assembly
 60E1D400,0x551B4,fuel_controller_551b4,Fuel & Lambda,1.000,name
 60E0FC00,0x551B6,uds_mode22_get_b45c_16bit,OBD / UDS,1.000,name
-60E1D400,0x551BC,ctrl_regulator_551bc,Other / Unclassified,0.000,none
+60E1D400,0x551BC,ctrl_regulator_551bc,OBD / UDS,0.700,assembly
 60E0FC00,0x551D4,uds_mode22_get_ada8_16bit,OBD / UDS,1.000,name
 60E0FC00,0x551F2,getDesiredIdleRPMMode22,Idle Control,1.000,name
 60E0FC00,0x55210,uds_mode22_get_b5e8_16bit,OBD / UDS,1.000,name
@@ -4681,7 +4681,7 @@
 60E1D400,0x55386,ctrl_distribution_55386,Utilities,0.7,assembly
 60E1D400,0x553AA,udsErrorResponse,OBD / UDS,1.000,name
 60E0FC00,0x553B8,uds_mode22_data_getter_f32_ad74,OBD / UDS,1.000,name
-60E1D400,0x553D0,ctrl_reception_553d0,Other / Unclassified,0.000,none
+60E1D400,0x553D0,ctrl_reception_553d0,OBD / UDS,0.700,assembly
 60E0FC00,0x553D6,Mode22PIDAlternatorDC,OBD / UDS,1.000,name
 60E0FC00,0x553F4,uds_mode22_get_b690_16bit,OBD / UDS,1.000,name
 60E0FC00,0x55412,getTireSizeMode22,OBD / UDS,1.000,name
@@ -4699,7 +4699,7 @@
 60E0FC00,0x555A8,obd_pid_emit_16bit_86d0,OBD / UDS,0.700,assembly
 60E0FC00,0x555D2,uds_mode22_get_cee0_16bit,OBD / UDS,1.000,name
 60E0FC00,0x555F0,uds_fault_status_mask_getter_b600_bc6d,OBD / UDS,1.000,name
-60E1D400,0x55624,ctrl_demodulator_55624,Other / Unclassified,0.000,none
+60E1D400,0x55624,ctrl_demodulator_55624,OBD / UDS,0.400,assembly
 60E0FC00,0x55648,uds_fault_status_mask_getter_f754,OBD / UDS,1.000,name
 60E0FC00,0x55680,uds_fault_status_mask_getter_bf58_ad7c_cca4,OBD / UDS,0.700,assembly
 60E1D400,0x556A8,diag_modulator_556a8,Faults & DTC,1.000,name
@@ -4707,7 +4707,7 @@
 60E1D400,0x556E2,can_encoder_556e2,CAN Bus,1.000,name
 60E0FC00,0x556E4,getApvPosMode22,Memory & CRC,1.000,graph
 60E1D400,0x55734,fuel_decoder_55734,Fuel & Lambda,1.000,name
-60E1D400,0x55760,ctrl_synchronizer_55760,Other / Unclassified,0.000,none
+60E1D400,0x55760,ctrl_synchronizer_55760,OBD / UDS,0.400,assembly
 60E1D400,0x55764,math_clock_55764,Math / FPU,1.000,name
 60E0FC00,0x5576C,uds_fault_status_mask_getter_f76c_bf88,OBD / UDS,0.600,assembly
 60E0FC00,0x557AA,uds_fault_status_mask_getter_b5bc_b5d0,OBD / UDS,0.600,assembly
@@ -4734,7 +4734,7 @@
 60E0FC00,0x55BCC,obd_emit_status_c1ef_c1f0,OBD / UDS,0.700,assembly
 60E0FC00,0x55C00,uds_mode22_did_c124_getter,OBD / UDS,1.000,name
 60E0FC00,0x55C14,getMode22PID,OBD / UDS,1.000,graph
-60E1D400,0x55CB4,ctrl_oscillator_55cb4,Other / Unclassified,0.000,none
+60E1D400,0x55CB4,ctrl_oscillator_55cb4,OBD / UDS,0.400,assembly
 60E1D400,0x55CDC,ctrl_crystal_55cdc,Utilities,0.7,assembly
 60E1D400,0x55CE2,trimmer_0x55CE2,Fuel & Lambda,1.000,name
 60E1D400,0x55CE8,ctrl_divider_55ce8,Peripherals & ISR,0.4,assembly
@@ -4750,25 +4750,25 @@
 60E0FC00,0x55E3C,obd_emit_io_bytes_0ffb,OBD / UDS,0.600,assembly
 60E0FC00,0x55E5C,uds_word_getter_d1b4,OBD / UDS,1.000,name
 60E0FC00,0x55E62,uds_word_getter_ccf8,OBD / UDS,1.000,name
-60E1D400,0x55E66,page_table_0x55E66,Other / Unclassified,0.000,none
+60E1D400,0x55E66,page_table_0x55E66,Math / FPU,0.400,assembly
 60E0FC00,0x55E68,memory_match_accumulate_583E4,Memory & CRC,1.000,name
-60E1D400,0x55E7C,tlb_handler_0x55E7C,Other / Unclassified,0.000,none
+60E1D400,0x55E7C,tlb_handler_0x55E7C,Math / FPU,0.400,assembly
 60E1D400,0x55EA2,isr_config_55ea2,Peripherals & ISR,1.000,name
 60E1D400,0x55EC0,fuel_control_55ec0,Fuel & Lambda,1.000,name
 60E0FC00,0x55ECC,intToUDS_SERVICE_DATA,OBD / UDS,1.000,name
 60E1D400,0x55ED6,diag_privilege_55ed6,Faults & DTC,1.000,name
-60E1D400,0x55EEA,ctrl_protection_55eea,Other / Unclassified,0.000,none
+60E1D400,0x55EEA,ctrl_protection_55eea,Math / FPU,0.400,assembly
 60E0FC00,0x55EEE,byteToUDS_SERVICE_DATA,OBD / UDS,1.000,name
-60E1D400,0x55F02,ctrl_isolation_55f02,Other / Unclassified,0.000,none
+60E1D400,0x55F02,ctrl_isolation_55f02,Math / FPU,0.400,assembly
 60E0FC00,0x55F34,UDSService27Function,OBD / UDS,1.000,name
-60E1D400,0x55F64,ctrl_partition_55f64,Other / Unclassified,0.000,none
-60E1D400,0x55F7A,ctrl_segment_55f7a,Other / Unclassified,0.000,none
+60E1D400,0x55F64,ctrl_partition_55f64,Math / FPU,0.400,assembly
+60E1D400,0x55F7A,ctrl_segment_55f7a,Math / FPU,0.400,assembly
 60E1D400,0x55FA6,getSecondaryAirPumpRequestForMode22,Fuel & Lambda,1.000,name
 60E1D400,0x55FBC,module_loader_0x55FBC,Utilities,0.7,assembly
-60E1D400,0x55FC2,ctrl_linker_55fc2,Other / Unclassified,0.000,none
-60E1D400,0x55FE8,ctrl_relocation_55fe8,Other / Unclassified,0.000,none
+60E1D400,0x55FC2,ctrl_linker_55fc2,Ignition & Knock,0.400,assembly
+60E1D400,0x55FE8,ctrl_relocation_55fe8,Ignition & Knock,0.400,assembly
 60E1D400,0x56006,ctrl_resolve_56006,Utilities,0.7,assembly
-60E1D400,0x5600C,import_table_0x5600C,Other / Unclassified,0.000,none
+60E1D400,0x5600C,import_table_0x5600C,Ignition & Knock,0.400,assembly
 60E1D400,0x56034,axis_lookup_0x56034,Math / FPU,1.000,name
 60E1D400,0x56052,axis_interp_0x56052,Math / FPU,1.000,name
 60E1D400,0x56068,corner_lookup_0x56068,Math / FPU,1.000,name
@@ -4788,15 +4788,15 @@
 60E0FC00,0x561FC,udsResponseSOmething,OBD / UDS,1.000,name
 60E0FC00,0x56220,parseSubFunction,OBD / UDS,1.000,graph
 60E0FC00,0x56280,uds_svc_18_dispatch,OBD / UDS,0.600,assembly
-60E1D400,0x562A0,ctrl_laplacian_562a0,Other / Unclassified,0.000,none
+60E1D400,0x562A0,ctrl_laplacian_562a0,OBD / UDS,0.400,assembly
 60E0FC00,0x56342,obd_state_clear_d038,OBD / UDS,0.700,assembly
-60E1D400,0x5637E,ctrl_convolution_5637e,Other / Unclassified,0.000,none
+60E1D400,0x5637E,ctrl_convolution_5637e,OBD / UDS,0.700,assembly
 60E0FC00,0x56398,uds_service_dispatch,OBD / UDS,1.000,name
-60E1D400,0x563C4,ctrl_correlation_563c4,Other / Unclassified,0.000,none
+60E1D400,0x563C4,ctrl_correlation_563c4,OBD / UDS,0.700,assembly
 60E1D400,0x563CE,histogram_0x563CE,Memory & CRC,1.000,name
-60E1D400,0x56418,ctrl_statistics_56418,Other / Unclassified,0.000,none
+60E1D400,0x56418,ctrl_statistics_56418,OBD / UDS,0.700,assembly
 60E1D400,0x56442,fuel_variance_56442,Fuel & Lambda,1.000,name
-60E1D400,0x564B8,ctrl_covariance_564b8,Other / Unclassified,0.000,none
+60E1D400,0x564B8,ctrl_covariance_564b8,Memory & CRC,0.400,assembly
 60E0FC00,0x56638,obd_state_set_d03c,OBD / UDS,0.900,assembly
 60E0FC00,0x5667C,dtc_status_check_d1c8,Faults & DTC,0.500,assembly
 60E0FC00,0x566BC,noop_return_zero_stub,Utilities,1.000,name
@@ -4819,30 +4819,30 @@
 60E0FC00,0x567A0,diag_fault_cond_eval_9048,Faults & DTC,1.000,name
 60E0FC00,0x567B0,fault_record_verify_904c,Memory & CRC,0.700,assembly
 60E0FC00,0x567B8,fault_record_clear_904c,Memory & CRC,0.700,assembly
-60E1D400,0x567E8,ctrl_decomp_567e8,Other / Unclassified,0.000,none
+60E1D400,0x567E8,ctrl_decomp_567e8,OBD / UDS,0.400,assembly
 60E0FC00,0x56800,fault_monitor_sample_c6f0,Faults & DTC,0.700,assembly
 60E1D400,0x5681E,getDiagSessionSubFunction,Faults & DTC,1.000,name
 60E0FC00,0x56852,diag_fault_cond_eval_904c,Faults & DTC,1.000,name
 60E0FC00,0x5685A,diag_fault_cond_eval_9050,Faults & DTC,1.000,name
 60E0FC00,0x56862,diag_fault_cond_eval_9054,Faults & DTC,1.000,name
-60E1D400,0x56866,ctrl_decomp_56866,Other / Unclassified,0.000,none
+60E1D400,0x56866,ctrl_decomp_56866,OBD / UDS,0.400,assembly
 60E0FC00,0x5686A,diag_fault_cond_eval_9058,Faults & DTC,1.000,name
 60E1D400,0x5687A,diag_sentinel_5687a,Faults & DTC,1.000,name
 60E0FC00,0x5688C,fault_monitor_task_dispatch,Faults & DTC,0.600,assembly
-60E1D400,0x56892,position_check,Other / Unclassified,0.000,none
+60E1D400,0x56892,position_check,OBD / UDS,0.100,assembly
 60E0FC00,0x568DC,fault_record_verify_905c,Memory & CRC,0.700,assembly
 60E0FC00,0x568E2,fault_record_clear_905c,Memory & CRC,0.700,assembly
-60E1D400,0x568E6,ctrl_clustering_568e6,Other / Unclassified,0.000,none
+60E1D400,0x568E6,ctrl_clustering_568e6,Memory & CRC,0.400,assembly
 60E1D400,0x56910,securityNotUnlocked,OBD / UDS,0.800,graph
 60E0FC00,0x56920,fault_monitor_sample_7b138,Faults & DTC,0.700,assembly
-60E1D400,0x56928,ctrl_prediction_56928,Other / Unclassified,0.000,none
+60E1D400,0x56928,ctrl_prediction_56928,Memory & CRC,0.400,assembly
 60E0FC00,0x5695A,diag_fault_cond_eval_905c,Faults & DTC,1.000,name
 60E0FC00,0x56962,diag_fault_cond_eval_9060,Faults & DTC,1.000,name
 60E0FC00,0x5696A,diag_fault_cond_eval_9064,Faults & DTC,1.000,name
 60E0FC00,0x56972,diag_fault_cond_eval_9068,Faults & DTC,1.000,name
 60E0FC00,0x56982,fault_record_verify_906c,Memory & CRC,0.700,assembly
 60E0FC00,0x56988,fault_record_clear_906c,Memory & CRC,0.700,assembly
-60E1D400,0x5698A,ctrl_decision_5698a,Other / Unclassified,0.000,none
+60E1D400,0x5698A,ctrl_decision_5698a,OBD / UDS,0.400,assembly
 60E0FC00,0x5698E,fault_monitor_sample_7b13c,Faults & DTC,0.700,assembly
 60E1D400,0x5699A,diag_security_5699a,Faults & DTC,1.000,name
 60E0FC00,0x569C8,diag_fault_cond_eval_906c,Faults & DTC,1.000,name
@@ -4880,12 +4880,12 @@
 60E0FC00,0x56D20,fault_input_latch_ce4d,Faults & DTC,0.700,assembly
 60E0FC00,0x56D32,diag_fault_cond_eval_90ac,Faults & DTC,1.000,name
 60E1D400,0x56D5C,getSubFunctionMapping,OBD / UDS,1.000,graph
-60E1D400,0x56D66,ctrl_sigmoid_56d66,Other / Unclassified,0.000,none
+60E1D400,0x56D66,ctrl_sigmoid_56d66,OBD / UDS,0.700,assembly
 60E0FC00,0x56D8E,fault_record_verify_90ac,Memory & CRC,0.700,assembly
 60E0FC00,0x56D94,fault_record_clear_90ac,Memory & CRC,0.700,assembly
 60E0FC00,0x56DD8,fault_monitor_sample_86ac_86b4,Faults & DTC,0.700,assembly
-60E1D400,0x56E18,ctrl_relu_56e18,Other / Unclassified,0.000,none
-60E1D400,0x56E1A,ctrl_tanh_56e1a,Other / Unclassified,0.000,none
+60E1D400,0x56E18,ctrl_relu_56e18,Memory & CRC,0.400,assembly
+60E1D400,0x56E1A,ctrl_tanh_56e1a,Memory & CRC,0.400,assembly
 60E1D400,0x56E64,diag_o2_voltage_fault_check,Faults & DTC,1.000,name
 60E0FC00,0x56E68,fault_input_latch_cebd,Faults & DTC,0.700,assembly
 60E0FC00,0x56E7A,diag_fault_cond_eval_90bc,Faults & DTC,1.000,name
@@ -4897,7 +4897,7 @@
 60E0FC00,0x56F94,diag_fault_cond_eval_90C8,Faults & DTC,1.000,name
 60E0FC00,0x56FA4,fault_input_latch_cef5,Faults & DTC,0.700,assembly
 60E0FC00,0x56FB6,diag_fault_cond_eval_90cc,Faults & DTC,1.000,name
-60E1D400,0x56FEA,ctrl_optimization_56fea,Other / Unclassified,0.000,none
+60E1D400,0x56FEA,ctrl_optimization_56fea,OBD / UDS,0.400,assembly
 60E0FC00,0x57012,fault_record_verify_90cc,Memory & CRC,0.700,assembly
 60E0FC00,0x57018,fault_record_clear_90cc,Memory & CRC,0.700,assembly
 60E1D400,0x57020,immo_counter_state_tramp,OBD / UDS,1.000,name
@@ -4915,10 +4915,10 @@
 60E1D400,0x57186,runImmoRelatedCounter,Peripherals & ISR,1.000,name
 60E0FC00,0x571DA,diag_fault_cond_eval_90dc_a,Faults & DTC,1.000,name
 60E0FC00,0x571E2,diag_fault_cond_eval_90e0,Faults & DTC,1.000,name
-60E1D400,0x571E6,ctrl_nesterov_571e6,Other / Unclassified,0.000,none
+60E1D400,0x571E6,ctrl_nesterov_571e6,OBD / UDS,0.700,assembly
 60E0FC00,0x571EA,diag_fault_cond_eval_90e4,Faults & DTC,1.000,name
 60E0FC00,0x571F2,diag_fault_cond_eval_90E8,Faults & DTC,1.000,name
-60E1D400,0x571FE,ctrl_adagrad_571fe,Other / Unclassified,0.000,none
+60E1D400,0x571FE,ctrl_adagrad_571fe,OBD / UDS,0.700,assembly
 60E0FC00,0x57202,reset_flag_11f54_store_d052,Boot & Init,1.000,name
 60E0FC00,0x57212,dtc_fault_value_record_update,Faults & DTC,1.000,name
 60E1D400,0x57292,immo_security_state_reset,OBD / UDS,1.000,name
@@ -5000,7 +5000,7 @@
 60E0FC00,0x58538,uds_flag_set_80_d07b,OBD / UDS,0.700,assembly
 60E0FC00,0x58550,uds_service_flag_decoder,OBD / UDS,0.700,assembly
 60E0FC00,0x58648,uds_param_source_select_d058,OBD / UDS,0.700,assembly
-60E1D400,0x5864A,apex_seal_0x5864A,Other / Unclassified,0.000,none
+60E1D400,0x5864A,apex_seal_0x5864A,Fuel & Lambda,0.400,assembly
 60E0FC00,0x58666,uds_readiness_state_update,OBD / UDS,0.700,assembly
 60E0FC00,0x58758,uds_fault_compare_d084_d085,OBD / UDS,0.700,assembly
 60E1D400,0x58768,udsResponseSOmething,OBD / UDS,1.000,name
@@ -5027,33 +5027,33 @@
 60E1D400,0x58BE8,exhaust_port_0x58BE8,Peripherals & ISR,1.000,name
 60E1D400,0x58C38,intake_port_0x58C38,Sensors,1.000,name
 60E1D400,0x58C4A,dual_cellbank_selector_0x58C4A,Ignition & Knock,1.000,name
-60E1D400,0x58C92,output_shaft_0x58C92,Other / Unclassified,0.000,none
-60E1D400,0x58C98,eccentric_shaft_0x58C98,Other / Unclassified,0.000,none
+60E1D400,0x58C92,output_shaft_0x58C92,Sensors,0.400,assembly
+60E1D400,0x58C98,eccentric_shaft_0x58C98,Sensors,0.400,assembly
 60E1D400,0x58C9E,oil_circulation_0x58C9E,Oil Metering,1.000,name
-60E1D400,0x58D16,cooling_jacket_0x58D16,Other / Unclassified,0.000,none
+60E1D400,0x58D16,cooling_jacket_0x58D16,Sensors,0.400,assembly
 60E1D400,0x58D1C,fuel_lubrication_58d1c,Fuel & Lambda,1.000,name
 60E0FC00,0x58D5E,fault_rec_latch_d0f0,Faults & DTC,0.700,assembly
-60E1D400,0x58DD0,ctrl_vibration_58dd0,Other / Unclassified,0.000,none
+60E1D400,0x58DD0,ctrl_vibration_58dd0,Fuel & Lambda,0.400,assembly
 60E0FC00,0x58DD4,fault_recs_shadow_copy_916c,Faults & DTC,0.700,assembly
-60E1D400,0x58DE2,ctrl_resonance_58de2,Other / Unclassified,0.000,none
+60E1D400,0x58DE2,ctrl_resonance_58de2,Fuel & Lambda,0.400,assembly
 60E0FC00,0x58DF2,fault_recs_clear_916c_area,Memory & CRC,0.900,assembly
 60E0FC00,0x58E1A,fault_recs_clear_all_resync,Faults & DTC,0.700,assembly
-60E1D400,0x58E3A,ctrl_harmonics_58e3a,Other / Unclassified,0.000,none
+60E1D400,0x58E3A,ctrl_harmonics_58e3a,Sensors,0.400,assembly
 60E1D400,0x58E40,torque_output_0x58E40,Throttle & Torque,1.000,name
 60E0FC00,0x58E50,someOBDFunctionCaller,OBD / UDS,1.000,name
 60E1D400,0x58E7C,fuel_output_58e7c,Fuel & Lambda,1.000,name
 60E0FC00,0x58ECC,uds_fault_response_build,OBD / UDS,0.700,assembly
-60E1D400,0x58EDE,efficiency_calc_0x58EDE,Other / Unclassified,0.000,none
+60E1D400,0x58EDE,efficiency_calc_0x58EDE,Sensors,0.400,assembly
 60E1D400,0x58EE4,fuel_economy_0x58EE4,Fuel & Lambda,1.000,name
 60E1D400,0x58EEA,emission_calc_0x58EEA,Fuel & Lambda,1.000,name
 60E1D400,0x58F4C,fuel_control_58f4c,Fuel & Lambda,1.000,name
-60E1D400,0x58F52,particulate_filter_0x58F52,Other / Unclassified,0.000,none
-60E1D400,0x58F58,ctrl_catalytic_58f58,Other / Unclassified,0.000,none
+60E1D400,0x58F52,particulate_filter_0x58F52,Fuel & Lambda,0.400,assembly
+60E1D400,0x58F58,ctrl_catalytic_58f58,Fuel & Lambda,0.400,assembly
 60E0FC00,0x58FBA,obd_status_calc,OBD / UDS,1.000,name
 60E1D400,0x58FF8,lambda_sensor_0x58FF8,Fuel & Lambda,1.000,name
 60E1D400,0x58FFE,air_fuel_ratio_0x58FFE,Fuel & Lambda,1.000,name
-60E1D400,0x59098,ctrl_stoichiometric_59098,Other / Unclassified,0.000,none
-60E1D400,0x590AA,ctrl_strength_590aa,Other / Unclassified,0.000,none
+60E1D400,0x59098,ctrl_stoichiometric_59098,Fuel & Lambda,0.400,assembly
+60E1D400,0x590AA,ctrl_strength_590aa,Fuel & Lambda,0.400,assembly
 60E1D400,0x59130,omp_lean_59130,Oil Metering,1.000,name
 60E1D400,0x59136,fuel_rich_59136,Fuel & Lambda,1.000,name
 60E1D400,0x591BA,acceleration_enrich_0x591BA,Throttle & Torque,1.000,name
@@ -5064,8 +5064,8 @@
 60E0FC00,0x59250,diag_fault_cond_eval_d0b4,Faults & DTC,1.000,name
 60E0FC00,0x592E0,diag_fault_cond_eval_d0b5,Faults & DTC,1.000,name
 60E1D400,0x592F8,deceleration_fuel_cut_0x592F8,Fuel & Lambda,1.000,name
-60E1D400,0x5930A,ctrl_coast_5930a,Other / Unclassified,0.000,none
-60E1D400,0x59366,ctrl_overrun_59366,Other / Unclassified,0.000,none
+60E1D400,0x5930A,ctrl_coast_5930a,Fuel & Lambda,0.400,assembly
+60E1D400,0x59366,ctrl_overrun_59366,Fuel & Lambda,0.400,assembly
 60E1D400,0x5936C,engine_braking_0x5936C,Throttle & Torque,1.000,name
 60E0FC00,0x593D2,diag_fault_cond_eval_d0b7,Faults & DTC,1.000,name
 60E1D400,0x59440,rev_limit_0x59440,Rev Limit,1.000,name
@@ -5088,28 +5088,28 @@
 60E0FC00,0x59808,delay?,Utilities,1.000,name
 60E0FC00,0x59866,uds_setup_sid_51,OBD / UDS,0.900,assembly
 60E0FC00,0x59884,uds_sid_12_dispatch,OBD / UDS,0.900,assembly
-60E1D400,0x598D2,distance_calc_0x598D2,Other / Unclassified,0.000,none
+60E1D400,0x598D2,distance_calc_0x598D2,Sensors,0.400,assembly
 60E1D400,0x598D8,fuel_elapsed_598d8,Fuel & Lambda,1.000,name
 60E1D400,0x598DE,average_speed_0x598DE,Math / FPU,1.000,name
 60E0FC00,0x5991E,dtcCodeTypeInit,Faults & DTC,1.000,name
 60E0FC00,0x5992A,uds_sid_callback_dispatch,OBD / UDS,0.700,assembly
 60E1D400,0x59966,fuel_consumption_0x59966,Fuel & Lambda,1.000,name
-60E1D400,0x5996C,ctrl_distance_5996c,Other / Unclassified,0.000,none
+60E1D400,0x5996C,ctrl_distance_5996c,Sensors,0.400,assembly
 60E0FC00,0x59A56,uds_sid_handler_59a56,OBD / UDS,0.700,assembly
-60E1D400,0x59A86,ctrl_odometer_59a86,Other / Unclassified,0.000,none
+60E1D400,0x59A86,ctrl_odometer_59a86,Memory & CRC,0.400,assembly
 60E0FC00,0x59AE2,writeDTCCodeType,Faults & DTC,1.000,name
 60E0FC00,0x59B2A,uds_sid_handler_59b2a,OBD / UDS,0.700,assembly
 60E1D400,0x59B60,service_timer_0x59B60,Peripherals & ISR,1.000,name
-60E1D400,0x59B68,ctrl_maintenance_59b68,Other / Unclassified,0.000,none
+60E1D400,0x59B68,ctrl_maintenance_59b68,OBD / UDS,0.400,assembly
 60E1D400,0x59BA0,fuel_fluid_59ba0,Utilities,0.7,assembly
-60E1D400,0x59BCC,battery_health_0x59BCC,Other / Unclassified,0.000,none
+60E1D400,0x59BCC,battery_health_0x59BCC,OBD / UDS,0.400,assembly
 60E0FC00,0x59C04,UDSService21Function,OBD / UDS,1.000,name
 60E1D400,0x59C24,isr_charging_59c24,Peripherals & ISR,1.000,name
 60E1D400,0x59C36,udsCheckMode31Conditions,OBD / UDS,1.000,name
 60E0FC00,0x59C72,uds_service_reader_383f8_w64_len9c,OBD / UDS,1.000,name
 60E0FC00,0x59C82,uds_sid_handler_59c82,OBD / UDS,0.700,assembly
 60E0FC00,0x59CD8,uds_sid21_subfunc_access_check,OBD / UDS,1.000,name
-60E1D400,0x59CEC,starter_motor_0x59CEC,Other / Unclassified,0.000,none
+60E1D400,0x59CEC,starter_motor_0x59CEC,OBD / UDS,0.400,assembly
 60E1D400,0x59D3C,util_headlight_59d3c,Utilities,0.7,assembly
 60E1D400,0x59D56,util_taillight_59d56,Peripherals & ISR,0.4,assembly
 60E0FC00,0x59DA0,uds_sid_handler_59da0,OBD / UDS,0.700,assembly
@@ -5127,7 +5127,7 @@
 60E0FC00,0x59F3C,uds_service_dispatch_59f3e,OBD / UDS,0.700,assembly
 60E0FC00,0x59F40,UDSMode23Function,OBD / UDS,1.000,name
 60E0FC00,0x59FDC,getMemoryFromRAMForUDS23,OBD / UDS,1.000,name
-60E1D400,0x5A044,fuel_climate_5a044,Other / Unclassified,0.000,none
+60E1D400,0x5A044,fuel_climate_5a044,OBD / UDS,0.700,assembly
 60E1D400,0x5A098,util_heating_5a098,Peripherals & ISR,0.4,assembly
 60E0FC00,0x5A0AE,checkIfAddressInRange,OBD / UDS,1.000,graph
 60E0FC00,0x5A174,uds_routing_range_check,OBD / UDS,0.700,assembly
@@ -5138,27 +5138,27 @@
 60E1D400,0x5A214,fuel_control_5a214,Fuel & Lambda,1.000,name
 60E1D400,0x5A248,fuel_defrost_5a248,Peripherals & ISR,0.4,assembly
 60E1D400,0x5A28E,filter_monitor_0x5A28E,Math / FPU,1.000,name
-60E1D400,0x5A2E4,air_quality_0x5A2E4,Other / Unclassified,0.000,none
+60E1D400,0x5A2E4,air_quality_0x5A2E4,OBD / UDS,0.700,assembly
 60E0FC00,0x5A2F0,uds_sid_switch_d122_d124,OBD / UDS,0.700,assembly
 60E0FC00,0x5A338,rtos_setSR_restore_ret,RTOS,1.000,name
 60E0FC00,0x5A346,timeout_counter_inc_sr_atomic_a,Peripherals & ISR,1.000,name
-60E1D400,0x5A374,fuel_humidity_5a374,Other / Unclassified,0.000,none
+60E1D400,0x5A374,fuel_humidity_5a374,OBD / UDS,0.700,assembly
 60E0FC00,0x5A382,uds_sid_dispatch_d120,OBD / UDS,0.700,assembly
 60E0FC00,0x5A3B6,uds_sid_tail_dispatch_d120,OBD / UDS,0.700,assembly
 60E0FC00,0x5A3DE,uds_setup_sid_68,OBD / UDS,0.900,assembly
 60E0FC00,0x5A41C,uds_sid_guard_625,OBD / UDS,0.700,assembly
 60E0FC00,0x5A43C,udsService2FFunc,OBD / UDS,1.000,name
-60E1D400,0x5A494,ctrl_compartment_5a494,Other / Unclassified,0.000,none
-60E1D400,0x5A4EC,cabin_air_filter_0x5A4EC,Other / Unclassified,0.000,none
-60E1D400,0x5A530,pollen_filter_0x5A530,Other / Unclassified,0.000,none
+60E1D400,0x5A494,ctrl_compartment_5a494,OBD / UDS,0.700,assembly
+60E1D400,0x5A4EC,cabin_air_filter_0x5A4EC,OBD / UDS,0.700,assembly
+60E1D400,0x5A530,pollen_filter_0x5A530,OBD / UDS,0.700,assembly
 60E0FC00,0x5A65C,uds_2f_iocontrol_dispatch,OBD / UDS,0.700,assembly
 60E0FC00,0x5A740,uds_iocontrol_table_init,OBD / UDS,0.900,assembly
 60E0FC00,0x5A78C,diagControlModeSomething,Faults & DTC,1.000,name
 60E1D400,0x5A7BC,fuel_control_5a7bc,Fuel & Lambda,1.000,name
-60E1D400,0x5A7D4,ctrl_ionizer_5a7d4,Other / Unclassified,0.000,none
+60E1D400,0x5A7D4,ctrl_ionizer_5a7d4,OBD / UDS,0.700,assembly
 60E0FC00,0x5A7EE,uds_2f_iocontrol_idx_supported,OBD / UDS,0.700,assembly
 60E0FC00,0x5A814,diagnosticModeFuelPulseWidthModify,Faults & DTC,1.000,name
-60E1D400,0x5A8CC,ctrl_display_5a8cc,Other / Unclassified,0.000,none
+60E1D400,0x5A8CC,ctrl_display_5a8cc,OBD / UDS,0.700,assembly
 60E0FC00,0x5A8E0,uds_2f_iocontrol_entry_e909,OBD / UDS,0.700,assembly
 60E1D400,0x5A8EA,isr_dashboard_5a8ea,Peripherals & ISR,0.7,assembly
 60E1D400,0x5A9DC,speedometer_0x5A9DC,Rev Limit,1.000,name
@@ -5186,9 +5186,9 @@
 60E0FC00,0x5AF14,obd_control_pid_fan1_enable,OBD / UDS,1.000,name
 60E1D400,0x5AFE2,cruise_status_0x5AFE2,Throttle & Torque,1.000,name
 60E0FC00,0x5AFF0,diagAlternatorSignalthing,Faults & DTC,1.000,name
-60E1D400,0x5B058,ctrl_parking_5b058,Other / Unclassified,0.000,none
+60E1D400,0x5B058,ctrl_parking_5b058,Sensors,0.400,assembly
 60E1D400,0x5B076,collision_warning_0x5B076,Faults & DTC,1.000,name
-60E1D400,0x5B09E,ctrl_departure_5b09e,Other / Unclassified,0.000,none
+60E1D400,0x5B09E,ctrl_departure_5b09e,Sensors,0.400,assembly
 60E1D400,0x5B0D4,someOBDFunctionCaller,OBD / UDS,1.000,name
 60E0FC00,0x5B100,diagMeteringPumpPositionControl,Faults & DTC,1.000,name
 60E1D400,0x5B150,diag_calibration_5b150,Faults & DTC,1.000,name
@@ -5214,13 +5214,13 @@
 60E0FC00,0x5BC40,sensor_word_latch_d177,Sensors,0.700,assembly
 60E0FC00,0x5BD18,sensor_word_latch_d179,Sensors,0.600,assembly
 60E1D400,0x5BD2E,writeDTCCodeType,Faults & DTC,1.000,name
-60E1D400,0x5BD76,ctrl_uncertainty_5bd76,Other / Unclassified,0.000,none
+60E1D400,0x5BD76,ctrl_uncertainty_5bd76,OBD / UDS,0.400,assembly
 60E0FC00,0x5BDCA,obd_control_pid_17df_handler,OBD / UDS,1.000,name
 60E0FC00,0x5BE92,uds_2f_iocontrol_find_index,OBD / UDS,0.900,assembly
-60E1D400,0x5BEBE,fuel_confidence_5bebe,Other / Unclassified,0.000,none
+60E1D400,0x5BEBE,fuel_confidence_5bebe,Faults & DTC,0.400,assembly
 60E0FC00,0x5BEC8,uds_2f_iocontrol_validate_value,OBD / UDS,0.800,assembly
-60E1D400,0x5BECE,ctrl_quality_5bece,Other / Unclassified,0.000,none
-60E1D400,0x5BF24,ctrl_reliability_5bf24,Other / Unclassified,0.000,none
+60E1D400,0x5BECE,ctrl_quality_5bece,Faults & DTC,0.400,assembly
+60E1D400,0x5BF24,ctrl_reliability_5bf24,Faults & DTC,0.400,assembly
 60E0FC00,0x5BF6C,status_mask_d180_from_flags,Sensors,0.700,assembly
 60E0FC00,0x5BFAC,UDSMode34Func,OBD / UDS,1.000,name
 60E1D400,0x5BFEC,diag_consistency_5bfec,Faults & DTC,1.000,name
@@ -5234,20 +5234,20 @@
 60E1D400,0x5C3C0,math_combine_5c3c0,Math / FPU,1.000,name
 60E0FC00,0x5C3CA,uds_response_7b_build,OBD / UDS,0.700,assembly
 60E0FC00,0x5C3F6,uds_3b_subdispatch_nrc_22,OBD / UDS,0.700,assembly
-60E1D400,0x5C41C,ctrl_aggregate_5c41c,Other / Unclassified,0.000,none
-60E1D400,0x5C420,ctrl_summarize_5c420,Other / Unclassified,0.000,none
+60E1D400,0x5C41C,ctrl_aggregate_5c41c,OBD / UDS,0.700,assembly
+60E1D400,0x5C420,ctrl_summarize_5c420,OBD / UDS,0.700,assembly
 60E0FC00,0x5C430,thunk_to_5c4e8,OBD / UDS,0.900,assembly
 60E0FC00,0x5C434,UDSMode85Func,OBD / UDS,1.000,name
 60E0FC00,0x5C4E8,uds_mode85_control,OBD / UDS,0.700,assembly
-60E1D400,0x5C53C,ctrl_report_5c53c,Other / Unclassified,0.000,none
+60E1D400,0x5C53C,ctrl_report_5c53c,OBD / UDS,0.400,assembly
 60E0FC00,0x5C568,timeout_counter_inc_sr_atomic_b,Peripherals & ISR,1.000,name
 60E1D400,0x5C592,logging_0x5C592,Utilities,1.000,name
 60E0FC00,0x5C5A4,setDiagMode85Bool?,Faults & DTC,1.000,name
-60E1D400,0x5C5CE,ctrl_archive_5c5ce,Other / Unclassified,0.000,none
+60E1D400,0x5C5CE,ctrl_archive_5c5ce,OBD / UDS,0.400,assembly
 60E0FC00,0x5C5D8,setDiagMode85Bool2,Faults & DTC,1.000,name
-60E1D400,0x5C602,ctrl_finalize_5c602,Other / Unclassified,0.000,none
+60E1D400,0x5C602,ctrl_finalize_5c602,OBD / UDS,0.400,assembly
 60E0FC00,0x5C608,uds_85_response_build,OBD / UDS,0.700,assembly
-60E1D400,0x5C62A,ctrl_cleanup_5c62a,Other / Unclassified,0.000,none
+60E1D400,0x5C62A,ctrl_cleanup_5c62a,OBD / UDS,0.400,assembly
 60E0FC00,0x5C62C,can_retry_counter_below_625,Faults & DTC,0.700,assembly
 60E0FC00,0x5C664,getTireSize,Sensors,1.000,name
 60E1D400,0x5C668,can_timeout_check_5C668,CAN Bus,1.000,name
