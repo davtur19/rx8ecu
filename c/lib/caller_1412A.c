@@ -42,7 +42,7 @@ void caller_1412A(ST *s)
     /* 0x014140: op 0x9206 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000A768u;
     /* 0x014142: mov.b r0,@r2 */
-    *(volatile uint8_t*)0xFFFFA768 = s->r[0]; /* RAM 0xFFFFA768 */
+    *(volatile uint8_t*)s->r[2] = s->r[0]; /* RAM 0xFFFFA768 */
     L_14144: ;
     /* 0x014144: lds.l @r15+,pr */
     s->pr = local_3fc;

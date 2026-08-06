@@ -77,7 +77,7 @@ void caller_130B8(ST *s)
     /* 0x0130E8: op 0x935E */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000BFD4u;
     /* 0x0130EA: mov.b @r3,r0 */
-    uint32_t t6 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFBFD4; /* RAM 0xFFFFBFD4 */
+    uint32_t t6 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFBFD4 */
     s->r[0] = t6;
     /* 0x0130EC: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -111,7 +111,7 @@ void caller_130B8(ST *s)
     /* 0x013108: op 0xD12B */
     s->r[1] = 0x0006F6FCu;
     /* 0x01310A: mov.b @r1,r0 */
-    uint32_t t10 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0x0006F6FC; /* ROM */
+    uint32_t t10 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[1]; /* ROM */
     s->r[0] = t10;
     /* 0x01310C: op 0x2008 */
     s->T = ((s->r[0] & s->r[0]) == 0u) ? 1u : 0u;
@@ -120,7 +120,7 @@ void caller_130B8(ST *s)
     
     if (s->T) goto L_13126;
     /* 0x013112: mov.b @r1,r0 */
-    uint32_t t12 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0x0006F6FC; /* ROM */
+    uint32_t t12 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[1]; /* ROM */
     s->r[0] = t12;
     /* 0x013114: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -133,7 +133,7 @@ void caller_130B8(ST *s)
     /* 0x01311C: op 0x9345 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CE6Fu;
     /* 0x01311E: mov.b @r3,r0 */
-    uint32_t t14 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFCE6F; /* RAM 0xFFFFCE6F */
+    uint32_t t14 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFCE6F */
     s->r[0] = t14;
     /* 0x013120: op 0x2008 */
     s->T = ((s->r[0] & s->r[0]) == 0u) ? 1u : 0u;
@@ -148,7 +148,7 @@ void caller_130B8(ST *s)
     goto L_1312C;
     L_1312A: ;
     /* 0x01312A: mov.b r12,@r14 */
-    *(volatile uint8_t*)0xFFFFA6B6 = s->r[12]; /* RAM 0xFFFFA6B6 */
+    *(volatile uint8_t*)s->r[14] = s->r[12]; /* RAM 0xFFFFA6B6 */
     L_1312C: ;
     /* 0x01312C: op 0xD723 */
     s->r[7] = 0xFFFFA6E0u;
@@ -177,11 +177,11 @@ void caller_130B8(ST *s)
     if (!s->T) goto L_13148;
     /* 0x013144: bra 0x01315E */
     /* 0x013146: mov.b r12,@r5 */
-    *(volatile uint8_t*)0xFFFFA6DC = s->r[12]; /* RAM 0xFFFFA6DC */
+    *(volatile uint8_t*)s->r[5] = s->r[12]; /* RAM 0xFFFFA6DC */
     goto L_1315E;
     L_13148: ;
     /* 0x013148: mov.b @r7,r3 */
-    uint32_t t18 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA6E0; /* RAM 0xFFFFA6E0 */
+    uint32_t t18 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[7]; /* RAM 0xFFFFA6E0 */
     s->r[3] = t18;
     /* 0x01314A: op 0x2338 */
     s->T = ((s->r[3] & s->r[3]) == 0u) ? 1u : 0u;
@@ -192,7 +192,7 @@ void caller_130B8(ST *s)
     /* 0x013150: op 0x9229 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000A6B6u;
     /* 0x013152: mov.b @r2,r0 */
-    uint32_t t20 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA6B6; /* RAM 0xFFFFA6B6 */
+    uint32_t t20 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[2]; /* RAM 0xFFFFA6B6 */
     s->r[0] = t20;
     /* 0x013154: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -203,10 +203,10 @@ void caller_130B8(ST *s)
     
     if (!s->T) goto L_1315E;
     /* 0x01315C: mov.b r13,@r5 */
-    *(volatile uint8_t*)0xFFFFA6DC = s->r[13]; /* RAM 0xFFFFA6DC */
+    *(volatile uint8_t*)s->r[5] = s->r[13]; /* RAM 0xFFFFA6DC */
     L_1315E: ;
     /* 0x01315E: mov.b r4,@r6 */
-    *(volatile uint8_t*)0xFFFFA6DE = s->r[4]; /* RAM 0xFFFFA6DE */
+    *(volatile uint8_t*)s->r[6] = s->r[4]; /* RAM 0xFFFFA6DE */
     /* 0x013160: mov.b @r14,r2 */
     uint32_t t22 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA6B6; /* RAM 0xFFFFA6B6 */
     s->r[2] = t22;
@@ -226,7 +226,7 @@ void caller_130B8(ST *s)
     goto L_13184;
     L_13170: ;
     /* 0x013170: mov.b @r5,r0 */
-    uint32_t t24 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA6DC; /* RAM 0xFFFFA6DC */
+    uint32_t t24 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[5]; /* RAM 0xFFFFA6DC */
     s->r[0] = t24;
     /* 0x013172: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -264,10 +264,10 @@ void caller_130B8(ST *s)
     /* 0x013190: op 0xD00E */
     s->r[0] = 0x0006F6FEu;
     /* 0x013192: mov.w @r2,r1 */
-    uint32_t t30 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFA6B4; /* RAM 0xFFFFA6B4 */
+    uint32_t t30 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[2]; /* RAM 0xFFFFA6B4 */
     s->r[1] = t30;
     /* 0x013194: mov.w @r0,r3 */
-    uint32_t t32 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0x0006F6FE; /* ROM */
+    uint32_t t32 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[0]; /* ROM */
     s->r[3] = t32;
     /* 0x013196: op 0x3136 */
     s->T = (s->r[1] > s->r[3]) ? 1u : 0u;
@@ -282,7 +282,7 @@ void caller_130B8(ST *s)
     goto L_131D2;
     L_131D0: ;
     /* 0x0131D0: mov.b r13,@r4 */
-    *(volatile uint8_t*)0xFFFFA6B7 = s->r[13]; /* RAM 0xFFFFA6B7 */
+    *(volatile uint8_t*)s->r[4] = s->r[13]; /* RAM 0xFFFFA6B7 */
     L_131D2: ;
     /* 0x0131D2: op 0x9559 */
     s->r[5] = (uint32_t)(int32_t)(int16_t)0x0000A6B8u;
@@ -297,11 +297,11 @@ void caller_130B8(ST *s)
     if (!s->T) goto L_131E0;
     /* 0x0131DC: bra 0x0131EA */
     /* 0x0131DE: mov.b r12,@r5 */
-    *(volatile uint8_t*)0xFFFFA6B8 = s->r[12]; /* RAM 0xFFFFA6B8 */
+    *(volatile uint8_t*)s->r[5] = s->r[12]; /* RAM 0xFFFFA6B8 */
     goto L_131EA;
     L_131E0: ;
     /* 0x0131E0: mov.b @r4,r2 */
-    uint32_t t36 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA6B7; /* RAM 0xFFFFA6B7 */
+    uint32_t t36 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[4]; /* RAM 0xFFFFA6B7 */
     s->r[2] = t36;
     /* 0x0131E2: op 0x2228 */
     s->T = ((s->r[2] & s->r[2]) == 0u) ? 1u : 0u;
@@ -310,7 +310,7 @@ void caller_130B8(ST *s)
     
     if (!s->T) goto L_131EA;
     /* 0x0131E8: mov.b r13,@r5 */
-    *(volatile uint8_t*)0xFFFFA6B8 = s->r[13]; /* RAM 0xFFFFA6B8 */
+    *(volatile uint8_t*)s->r[5] = s->r[13]; /* RAM 0xFFFFA6B8 */
     L_131EA: ;
     /* 0x0131EA: op 0x944E */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000A6B9u;
@@ -328,7 +328,7 @@ void caller_130B8(ST *s)
     /* 0x0131F6: op 0x9349 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000AADAu;
     /* 0x0131F8: mov.b @r3,r2 */
-    uint32_t t40 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFAADA; /* RAM 0xFFFFAADA */
+    uint32_t t40 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFAADA */
     s->r[2] = t40;
     /* 0x0131FA: op 0x2228 */
     s->T = ((s->r[2] & s->r[2]) == 0u) ? 1u : 0u;
@@ -339,7 +339,7 @@ void caller_130B8(ST *s)
     /* 0x013200: op 0x9145 */
     s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000B5AAu;
     /* 0x013202: mov.b @r1,r0 */
-    uint32_t t42 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFB5AA; /* RAM 0xFFFFB5AA */
+    uint32_t t42 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[1]; /* RAM 0xFFFFB5AA */
     s->r[0] = t42;
     /* 0x013204: op 0x2008 */
     s->T = ((s->r[0] & s->r[0]) == 0u) ? 1u : 0u;
@@ -350,11 +350,11 @@ void caller_130B8(ST *s)
     L_1320A: ;
     /* 0x01320A: bra 0x013210 */
     /* 0x01320C: mov.b r13,@r4 */
-    *(volatile uint8_t*)0xFFFFA6B9 = s->r[13]; /* RAM 0xFFFFA6B9 */
+    *(volatile uint8_t*)s->r[4] = s->r[13]; /* RAM 0xFFFFA6B9 */
     goto L_13210;
     L_1320E: ;
     /* 0x01320E: mov.b r12,@r4 */
-    *(volatile uint8_t*)0xFFFFA6B9 = s->r[12]; /* RAM 0xFFFFA6B9 */
+    *(volatile uint8_t*)s->r[4] = s->r[12]; /* RAM 0xFFFFA6B9 */
     L_13210: ;
     /* 0x013210: lds.l @r15+,pr */
     s->pr = local_3ec;

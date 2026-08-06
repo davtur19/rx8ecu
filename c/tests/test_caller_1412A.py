@@ -51,7 +51,7 @@ def _wrw(ram, a, n, v):
 
 CODE = {
     0x1412a: {"kind": 'reg', "py": 'r[1] = s8(0x15)', "slot_py": None, "target": None, "cond": None},
-    0x1412c: {"kind": 'st', "py": 'local[0x3FC] = pr\n_wrw(ram, STACK_BASE + 0x3FC, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x1412c: {"kind": 'st', "py": '_wrw(ram, (sp - 4) & 0xFFFFFFFF, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x1412e: {"kind": 'reg', "py": 'r[2] = 0xFFFFA768', "slot_py": None, "target": None, "cond": None},
     0x14130: {"kind": 'mem', "py": 'r[4] = s8(_rdw(ram, 0xFFFFA768, 1))', "slot_py": None, "target": None, "cond": None},
     0x14132: {"kind": 'reg', "py": 'r[3] = r[4] & 0xFF', "slot_py": None, "target": None, "cond": None},
@@ -60,8 +60,8 @@ CODE = {
     0x1413a: {"kind": 'reg', "py": 'r[3] = 0x00002478', "slot_py": None, "target": None, "cond": None},
     0x1413c: {"kind": "call", "py": None, "slot_py": 'r[5] = s8(0x01)', "target": 0x2478, "ret_pc": 0x14140, "set_pr": True, "cond": None},
     0x14140: {"kind": 'reg', "py": 'r[2] = 0xFFFFA768', "slot_py": None, "target": None, "cond": None},
-    0x14142: {"kind": 'mem', "py": '_wrw(ram, 0xFFFFA768, 1, r[0])', "slot_py": None, "target": None, "cond": None},
-    0x14144: {"kind": 'st', "py": 'pr = _rdw(ram, STACK_BASE + 0x3FC, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x14142: {"kind": 'mem', "py": '_wrw(ram, r[2], 1, r[0])', "slot_py": None, "target": None, "cond": None},
+    0x14144: {"kind": 'st', "py": 'pr = _rdw(ram, sp, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x14146: {"kind": "ret", "py": None, "slot_py": '', "target": None, "cond": None},
     0x2478: {"kind": 'reg', "py": 'r[4] = r[4] & 0xFF', "slot_py": None, "target": None, "cond": None},
     0x247a: {"kind": 'reg', "py": 'r[5] = r[5] & 0xFF', "slot_py": None, "target": None, "cond": None},

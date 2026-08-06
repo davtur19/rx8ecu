@@ -50,13 +50,13 @@ def _wrw(ram, a, n, v):
         _WRITES.append(ad)
 
 CODE = {
-    0x13ed2: {"kind": 'st', "py": 'local[0x3FC] = pr\n_wrw(ram, STACK_BASE + 0x3FC, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x13ed2: {"kind": 'st', "py": '_wrw(ram, (sp - 4) & 0xFFFFFFFF, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x13ed4: {"kind": 'reg', "py": 'r[3] = 0x000798A0', "slot_py": None, "target": None, "cond": None},
     0x13ed6: {"kind": 'fpu', "py": 'fr[6] = bits2f(_rdw(ram, 0x000798A0, 4))', "slot_py": None, "target": None, "cond": None},
     0x13ed8: {"kind": 'reg', "py": 'r[2] = 0x0007989C', "slot_py": None, "target": None, "cond": None},
     0x13eda: {"kind": 'reg', "py": 'r[1] = 0x00002404', "slot_py": None, "target": None, "cond": None},
     0x13edc: {"kind": "call", "py": None, "slot_py": 'fr[5] = bits2f(_rdw(ram, 0x0007989C, 4))', "target": 0x2404, "ret_pc": 0x13ee0, "set_pr": True, "cond": None},
-    0x13ee0: {"kind": 'st', "py": 'pr = _rdw(ram, STACK_BASE + 0x3FC, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x13ee0: {"kind": 'st', "py": 'pr = _rdw(ram, sp, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x13ee2: {"kind": "ret", "py": None, "slot_py": '', "target": None, "cond": None},
     0x2404: {"kind": 'fpu', "py": 'T = 1 if fr[4] > fr[5] else 0', "slot_py": None, "target": None, "cond": None},
     0x2406: {"kind": "branch", "py": None, "slot_py": '', "target": 0x240e, "cond": 'T'},
