@@ -110,6 +110,24 @@ def _load_lifted():
     return lifted
 
 
+def _memo_sanitized_end(ca, ce, rom):
+    """Cached sanitize_span end for the (ca, ce) catalog pair.  sanitize_span is
+    a pure function of the ROM bytes, so the result is stable per process; the
+    cache makes the mid-function nesting guard O(1) per candidate instead of
+    re-scanning every outer span on every scan_v8 call."""
+    key = (id(rom), ca, ce)
+    es = _SPAN_END_MEMO.get(key)
+    if es is None:
+        _s, es, _r = v3.sanitize_span(ca, ce, rom)
+        if len(_SPAN_END_MEMO) > 20000:
+            _SPAN_END_MEMO.clear()
+        _SPAN_END_MEMO[key] = es
+    return es
+
+
+_SPAN_END_MEMO = {}
+
+
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
 
@@ -122,10 +140,33 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
     catalog = catalog or {}
     res = CfgResult()
     bound = min(end, len(rom))
+    # ---- mid-function-entry guard (bug a) ---------------------------------
+    # A candidate that begins on a delay-slot nop (0x0009) or strictly inside
+    # another catalog candidate's sanitized span is a spurious mid-function
+    # entry: it has no prologue, its `lds.l @r15+,pr` epilogue pops the random
+    # stack -> rts -> pr=0 -> emulator pc=0 (NotImplementedError @0x0), so
+    # every test case is skipped (FAIL 0/400).  Reject before walking.
+    if addr + 1 < len(rom) and rom[addr] == 0x00 and rom[addr + 1] == 0x09:
+        res.reject = ('midfunc_nop', addr)
+        return res
+    if catalog:
+        for _ca, _ce in catalog.items():
+            if _ca >= addr or _ce is None:
+                continue
+            _cs = _memo_sanitized_end(_ca, _ce, rom)
+            if _ca < addr < _cs:
+                res.reject = ('midfunc_nested', addr)
+                return res
     st = {'written': set(), 'lits': {}, 'tmp': [0],
           'gbr_known': False, 'gbr_value': None,
           'stack_ok': True, 'frame_live': False, 'frame_off': None,
-          'sp_off': 0x400}
+          'sp_off': 0x400,
+          # bug b: path-sensitivity for literal bases.  litdefs maps 'rN' ->
+          # set of pcs that wrote a LITERAL to that register.  A base register
+          # with >=2 distinct literal def-sites may hold a different value on
+          # another CFG path (e.g. a jsr delay slot on a sibling path), so the
+          # access must be emitted register-relative (dynbase), never baked.
+          'litdefs': {}}
     info = res.info
     labels = res.labels
     data = set(gcl._pcrel_pool_words(rom, addr, end))
@@ -133,6 +174,27 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
         data |= set(data_extra)
     mova_lits = {}
     tbl_base = {}       # reg index -> table base literal (set by indexed load)
+
+    # v3-style re-entry pre-scan: every static branch target in-span.  A mem at
+    # a re-entry pc may be reached again with the base register already modified
+    # on another path — emit the runtime register instead of the folded literal.
+    reentry = set()
+    for _rp in range(addr, bound, 2):
+        if _rp in data:
+            continue
+        _ro = (rom[_rp] << 8) | rom[_rp + 1]
+        _rb = ops.branch_info(_ro)
+        if _rb is not None and _rb.get('target_disp') is not None \
+                and _rb['kind'] not in ('rte', 'rts', 'bsrf', 'braf'):
+            _rt = (_rp + 4 + _rb['target_disp'] * 2) & MASK
+            if addr <= _rt < end:
+                reentry.add(_rt)
+
+    def _pin_lit(reg, val, pc):
+        """Record a literal definition of `reg` at `pc` (path-sensitivity)."""
+        st['lits']['r%d' % reg] = val
+        st['litdefs'].setdefault('r%d' % reg, set()).add(pc)
+        return val
 
     def temp():
         st['tmp'][0] += 1
@@ -171,10 +233,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             # extra literal pinning so jsr/jmp @Rn can resolve a register that
             # was set by `mov #imm,Rn` (0xEnnn) or `mova` (0xC700) — the base
             # tracker only pins mov.l/mov.w @(disp,PC) literal-pool loads.
+            # (bug b) every literal def is recorded as a def-site for the
+            # path-sensitivity guard.
             if op & 0xF000 == 0xE000:                  # mov #imm,Rn (sign-ext8)
-                st['lits']['r%d' % ((op >> 8) & 0xF)] = _s8(op & 0xFF) & MASK
+                _pin_lit((op >> 8) & 0xF, _s8(op & 0xFF) & MASK, pc)
             elif op & 0xFF00 == 0xC700:                # mova -> r0 = PC-rel EA
-                st['lits']['r0'] = ops.mova_target(pc, op & 0xFF) & MASK
+                _pin_lit(0, ops.mova_target(pc, op & 0xFF) & MASK, pc)
+            if op & 0xF000 in (0x9000, 0xD000):        # mov.w/l @(disp,PC),Rn
+                _v = st['lits'].get('r%d' % ((op >> 8) & 0xF))
+                if _v is not None:
+                    _pin_lit((op >> 8) & 0xF, _v, pc)
             return {'pc': pc, 'op': op, 'kind': 'st',
                     'c': list(d.get('c') or []),
                     'py': list(d.get('py') or []),
@@ -295,7 +363,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
-            c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp)
+            # bug b: don't bake a literal base that is not path-constant.
+            # (1) mem at a branch-target pc (re-entry) can be reached with the
+            # base register already modified on another path; (2) a base with
+            # >=2 distinct literal def-sites (e.g. a jsr delay-slot write on a
+            # sibling path) leaks the wrong constant here.  Emit the runtime
+            # register (dynbase) in both cases.
+            _dyn = ((pc in reentry)
+                    or len(st['litdefs'].get('r%d' % base_reg, ())) > 1)
+            c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                    dynbase=_dyn)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
             # jump-table base bookkeeping: indexed load @(r0,rB) with rB literal
             if m.get('idx') == 'r0' and m['dir'] == 'load' and m.get('dest') is not None:
