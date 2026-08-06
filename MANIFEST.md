@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5098 entries, 92.0M.** Regenerated 2026-08-02 for the
+in the working repository. **5102 entries, 92.1M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 789.6K |
+| (root) | 11 | 790.1K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
-| symbols/ | 33 | 10.2M |
-| c/ | 2062 | 4.7M |
-| c/tests/ | 2129 | 16.9M |
+| symbols/ | 33 | 10.3M |
+| c/ | 2064 | 4.7M |
+| c/tests/ | 2131 | 16.9M |
 | tools/ | 29 | 695.3K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5098 entries, 92.0M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5098** | 92.0M |
+| **Total** | **5102** | 92.1M |
 
 ## External dependencies
 
@@ -107,7 +107,7 @@ or the toolchain install (git-ignored; re-create with
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `symbols/CATALOG_MASTER.csv` | `e35e0b80b64d20eba262420b7d9fee59030ef3e521e6f340d8cdcb903443f2db` | 3.6M | Tracked file |
+| `symbols/CATALOG_MASTER.csv` | `50047db117df59186a7a86aff485d57190aa61b03138e6c3ace39e86a5b73e5f` | 3.6M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `a86ed8fad910b972d972c08f3c95199e7c2e205c9b2be8b515a7a7811804777d` | 3.2K | Tracked file |
 | `symbols/FUNCTION_CATEGORIES.csv` | `938d4cae1cc8622252be8b2b73b6915a9553d4bdbc909e2a967317716b79bb84` | 397.1K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `4f554fe49c1eaeda7e9388b08856055c4925fb69ad2960e3050732489c161544` | 528.6K | Tracked file |
@@ -118,17 +118,17 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/cal_tables.csv` | `48b14c8d7cd6cc1dce4c629e105fa477de43c15391678477626e1a99b911a1fd` | 104.4K | Calibration table descriptors (1,210 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
-| `symbols/romraider_rx8_tables.csv` | `35d83191a33e602a924fcb59220cccd9b797f9d5db4347e084f0b3ad4f174b77` | 2.4M | Tracked file |
+| `symbols/romraider_rx8_tables.csv` | `4cc0863d9b1278e2fb03340441807f7d098d6a1d3ddc025229a72a5cb2b53bd2` | 2.4M | Tracked file |
 | `symbols/symbols_60E0E500.csv` | `781b93c4709b708fb4992b521e634508a59528e543ead7f843370cfe7a8c5226` | 283.4K | Tracked file |
 | `symbols/symbols_60E0E500_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0E700.csv` | `74c0d8c0f9562c1f9cb13cb8011d2c46d1659f67befca38d82b8ce714afc0560` | 283.5K | Tracked file |
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `709ed49dcef4c072ba2241b2496077c0da83c1f44c13bfb9c7266b5e8d36b28c` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `ed140c9f65723e2c534d13edf3dbb1bba3e5a0d36b97e42ee3286b0072c24e27` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `f515eb93cccf617da8fede619baeb1ec304bdc9e9d4bc98a2795bb3d47f5bbfa` | 166.4K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `54b3f7e10be42ffbb3603f0850443a7dd6467815e07dba9f20e862d45023a2fc` | 166.4K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -550,6 +550,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateTorqueRelated_2d300.c` | `661af7eefca39d9ce640e4b26f64ee96037fb6a7eefcbd93cb1ff1132ebf4fa2` | 2.1K | Tracked file |
 | `c/calculateTotalRequestedTrqPcnt_2d3a2.c` | `dea5af9d2cc71bc519d87f3c20fce865af234aaa43b0f28375c09335235cba75` | 1.5K | Tracked file |
 | `c/calculateTrailingDerateRetard_0x12576.c` | `94de146211a496753e145b800078d1d198892509d44b8acf10ff7ff25feb2a19` | 4.9K | Tracked file |
+| `c/calculateTrailingOffThrottleRetard_0x126C0.c` | `4e1859109508aa4fe607d75241a91d02653ac0558457ae49b7b334c0ee4d2933` | 7.1K | Tracked file |
 | `c/calculateTrailingTimingBaseFinal_0x12456.c` | `6f15382f99d3b32b7b1ca9b8d9b6518ec0177f1141a191394bec210801628706` | 7.6K | Tracked file |
 | `c/calculateTrailingTimingBase_0x1202A.c` | `28dea5c41eff57c84f0e5538fa59b0b81edf1424bf0d148b00d15d3b2c30e34f` | 8.7K | Tracked file |
 | `c/calculateTrailingTimingDerateCompensated_12352.c` | `dbccbc5b9805ba86e34588118374d892c4e793e30246893d0bf89e8bc6123262` | 1.2K | Tracked file |
@@ -786,6 +787,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/dec_counter_b6e6_2792e.c` | `72f6ed359c14845985f19a22083d361ac8bcec3831c2caccf5334c3eef34b637` | 1.5K | Tracked file |
 | `c/deceleration_fuel_cut_0x592F8_592f8.c` | `2f5338a94be96e22d60b171664ebbd9cab14f5d2643ac0bbf26dec47e8cc485b` | 1.2K | Tracked file |
 | `c/decrement_saturated_27A36_27a36.c` | `5475792375a2f8cd1de6faeb57ccb69dab23c3355335a9460718f4c40fdfefc3` | 659B | Tracked file |
+| `c/defaultTimingMinMax_0x125B0.c` | `f68d324ae690d97a89a9230cc7aa2d3d285c6c29def4dc072e1cd51f4c338f2a` | 7.0K | Tracked file |
 | `c/delay_loop_n8.c` | `7310a5823dbd90c6e8c86d111e26098331723e57eee8e692edeb27dfa97f0544` | 1.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/diagCheckSecondaryAirRequest_5b76c.c` | `dd058b537bb6cf2bfaa89dc51e32a61b1fd65f5298d92bf03de8fc878b627995` | 897B | Tracked file |
 | `c/diagControlModeSomething_5a78c.c` | `6a44d52d7007d14fc595ab5aef6e163549670833693fc31e700d5ec0a0575b3c` | 789B | Tracked file |
@@ -2627,6 +2629,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateTorqueRelated_2d300.py` | `613fbaa828f01020a8d31f804ab27758e15e0dcf32c4b816645a0bec7b97bd4d` | 9.7K | Tracked file |
 | `c/tests/test_calculateTotalRequestedTrqPcnt_2d3a2.py` | `0e1115012d77f01a5c9e90b712dddcbca477b026d04882692b3e06520ac0613f` | 9.7K | Tracked file |
 | `c/tests/test_calculateTrailingDerateRetard_0x12576.py` | `edba73ed8c39e83cca153d9635567a1052afc4bb70201be2b424d893c0d12632` | 6.3K | Tracked file |
+| `c/tests/test_calculateTrailingOffThrottleRetard_0x126C0.py` | `35fc24e77a4ff1519530e63cad7b88fe4f9a791fae0c382d0fe0a27694b5a507` | 6.9K | Tracked file |
 | `c/tests/test_calculateTrailingTimingBaseFinal_0x12456.py` | `2b42ee5f261c3a448b5308f54b8e01f096a15321476cbf2b5762769ba0a004f4` | 9.5K | Tracked file |
 | `c/tests/test_calculateTrailingTimingBase_0x1202A.py` | `3c1f18697f40177f225f525f21581561d364fa27a3b9ba4c8dd55fd0232ce3e8` | 9.2K | Tracked file |
 | `c/tests/test_calculateTrailingTimingDerateCompensated_12352.py` | `7271458cf8a3d71da4e9289c430298380259d9023851262854c082948527f8e8` | 8.8K | Tracked file |
@@ -3247,6 +3250,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_dec_counter_b6e6_2792e.py` | `a73321162c8015b5edea07917a4e613ad8f1cdaad3e917d9d1e4c679b8c32a5e` | 8.6K | Tracked file |
 | `c/tests/test_deceleration_fuel_cut_0x592F8_592f8.py` | `c2856abae50d1ea58e040a556180029845a5ea4e3ae227275771bf2e103a47d4` | 6.6K | Tracked file |
 | `c/tests/test_decrement_saturated_27A36_27a36.py` | `5733bdfb92a4d08ab40ad2763dca5f9b86bffe0104a31e525c295f01c4451b69` | 2.2K | Tracked file |
+| `c/tests/test_defaultTimingMinMax_0x125B0.py` | `c17a9f6f808cdc3df66df0325ceba23b6827da42abed3ddd2ebb4c3e26413f1a` | 7.1K | Tracked file |
 | `c/tests/test_delay_loop_n8.py` | `5084347986d5453524888b9a58fcdfac709ff9fc91a3bf5af1c1383a5de301d3` | 3.6K | Python per-function behavior-equivalence test |
 | `c/tests/test_diagCheckSecondaryAirRequest_5b76c.py` | `0a853a58f3f3bae1e187510fb283b5364ffb074d682dad4ec31e12d6f3ffd819` | 2.4K | Tracked file |
 | `c/tests/test_diagControlModeSomething_5a78c.py` | `acbb0bb9b70df808755dac7b64e8204c3e1aaa07ce69ec82e7935dd034963274` | 2.3K | Tracked file |
