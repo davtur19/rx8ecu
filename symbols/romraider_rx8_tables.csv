@@ -4959,17 +4959,17 @@ rx8_defs.xml,60E1A500,0x6d580,0x6d58c,,,uint16,2
 rx8_defs.xml,60E0E600,0x6d580,0x6d58c,,,uint16,2
 rx8_defs.xml,60E0E700,0x6d580,0x6d58c,,,uint16,2
 rx8_defs.xml,60E0E500,0x6d584,0x6d58a,Ignition Maybe Idle Base Y Axis,,uint8,1
-rx8_defs.xml,60E0FC00,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
-rx8_defs.xml,G-ROM_FLEX,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E0FC00,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
+rx8_defs.xml,G-ROM_FLEX,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
 rx8_defs.xml,60E1D400,0x6d584,0x6d58a,Ignition Maybe Idle Base Y Axis,,uint8,1
-rx8_defs.xml,60E1B900,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
-rx8_defs.xml,60E0FB00,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E1B900,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E0FB00,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
 rx8_defs.xml,60E0E500,0x6d584,0x6d58a,Ignition Maybe Idle Base Y Axis,,uint8,1
-rx8_defs.xml,60E0FC00,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
-rx8_defs.xml,G-ROM_FLEX,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E0FC00,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
+rx8_defs.xml,G-ROM_FLEX,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
 rx8_defs.xml,60E1D400,0x6d584,0x6d58a,Ignition Maybe Idle Base Y Axis,,uint8,1
-rx8_defs.xml,60E1B900,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
-rx8_defs.xml,60E0FB00,0x6d584,0x6d594,Fuel Injector - Unknown - Max Injection Angle3???,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E1B900,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
+rx8_defs.xml,60E0FB00,0x6d584,0x6d594,Ignition Maybe Idle Base Y Axis,deg(MAYBE??),uint8,1
 rx8_defs.xml,60E1A500,0x6d598,0x6d5a4,Table 2D - 13 ,,uint16,2
 rx8_defs.xml,60E0E600,0x6d598,0x6d5a4,Table 2D - 13 ,,uint16,2
 rx8_defs.xml,60E0E700,0x6d598,0x6d5a4,Table 2D - 13 ,,uint16,2
@@ -21523,12 +21523,12 @@ rx8_defs.xml,60E0E700,0x778e4,0x778fc,,,float,4
 rx8_defs.xml,60E0E500,0x778ec,0x778ed,Cooling - Fan - Engage Threshold Y Axis,,uint8,1
 rx8_defs.xml,60E1D300,0x778ec,0x77b94,,,uint16,2
 rx8_defs.xml,60E1D400,0x778ec,0x778ed,Cooling - Fan - Engage Threshold Y Axis,,uint8,1
-rx8_defs.xml,60E0FB00,0x778ec,0x77902,Table 2D - Unknown_69158,,uint16,2
+rx8_defs.xml,60E0FB00,0x778ec,0x77902,Cooling - Fan - Engage Threshold Y Axis,,uint16,2
 rx8_defs.xml,60E15120,0x778ec,0x77b94,,,uint16,2
 rx8_defs.xml,60E0E500,0x778ec,0x778ed,Cooling - Fan - Engage Threshold Y Axis,,uint8,1
 rx8_defs.xml,60E1D300,0x778ec,0x77b94,,,uint16,2
 rx8_defs.xml,60E1D400,0x778ec,0x778ed,Cooling - Fan - Engage Threshold Y Axis,,uint8,1
-rx8_defs.xml,60E0FB00,0x778ec,0x77902,Table 2D - Unknown_69158,,uint16,2
+rx8_defs.xml,60E0FB00,0x778ec,0x77902,Cooling - Fan - Engage Threshold Y Axis,,uint16,2
 rx8_defs.xml,60E15120,0x778ec,0x77b94,,,uint16,2
 rx8_defs.xml,60E0E500,0x778f0,0x778f1,Table 2D - 164 ,,uint8,1
 rx8_defs.xml,60E1D400,0x778f0,0x778f1,Table 2D - 164 ,,uint8,1
@@ -23342,7 +23342,7 @@ rx8_defs.xml,G-ROM_FLEX,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,
 rx8_defs.xml,60E1D300,0x785f4,0x788c4,Fuel Injection - Engine Load Compensation,lambda,uint16,2
 rx8_defs.xml,60E1D400,0x785f4,0x78616,Table 2D - 182 ,,uint16,2
 rx8_defs.xml,60E1B900,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,degrees,uint8,1
-rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Table 2D - Unknown_693e0,,uint8,1
+rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Calculate Fuel Amount Per Rotation Min Max (Map),,uint8,1
 rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,degrees,uint8,1
 rx8_defs.xml,60E0E500,0x785f4,0x78612,Calculate Fuel Amount Per Rotation Min Max (Map),,uint8,1
 rx8_defs.xml,60E15120,0x785f4,0x788c4,Fuel Injection - Engine Load Compensation,lambda,uint16,2
@@ -23352,7 +23352,7 @@ rx8_defs.xml,G-ROM_FLEX,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,
 rx8_defs.xml,60E1D300,0x785f4,0x788c4,Fuel Injection - Engine Load Compensation,lambda,uint16,2
 rx8_defs.xml,60E1D400,0x785f4,0x78616,Table 2D - 182 ,,uint16,2
 rx8_defs.xml,60E1B900,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,degrees,uint8,1
-rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Table 2D - Unknown_693e0,,uint8,1
+rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Calculate Fuel Amount Per Rotation Min Max (Map),,uint8,1
 rx8_defs.xml,60E0FB00,0x785f4,0x785f9,Knock Retard Max - Knock Sensor Faulted,degrees,uint8,1
 rx8_defs.xml,60E0E500,0x785f4,0x78612,Calculate Fuel Amount Per Rotation Min Max (Map),,uint8,1
 rx8_defs.xml,60E15120,0x785f4,0x788c4,Fuel Injection - Engine Load Compensation,lambda,uint16,2
