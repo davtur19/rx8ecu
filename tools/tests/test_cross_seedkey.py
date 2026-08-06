@@ -30,10 +30,6 @@ REFERENCE VECTORS
 * 12/12 ROM-verified vectors (levels 1-4 x seeds {45820A, CBFED4, 123456},
   secret 'MazdA') extracted by emulating SeedKeyRelated @0x56ADA with
   tools/sh2emu.py — table in c/tests/test_security_access.py (ROM_VECTORS).
-* Live capture (rnd-ash wiki, bench RX-8 ICM): `27 01` -> `67 01 46 4E 7F`
-  seed 0x464E7F (docs/notes/ECU_CAPTURE_PLAN.md §7.1).  The capture carries
-  only the seed, not the key, so it can only be used as an INPUT vector —
-  it cannot discriminate the two implementations (they agree on every input).
 
 Run from repo root:  python3 tools/tests/test_cross_seedkey.py
 Exit: 0 if both implementations agree on every case, 1 otherwise.
@@ -172,12 +168,9 @@ ROM_VECTORS = [
     (3, '123456', '693D53'), (4, '123456', 'DEA216'),
 ]
 
-# Live capture (rnd-ash wiki, bench RX-8 ICM): `27 01` -> `67 01 46 4E 7F`.
-# Seed only — the key was not captured, so this is an INPUT vector only
-# (cannot discriminate the implementations; they agree on every input).
-CAPTURE_SEED = bytes.fromhex('464E7F')
-CAPTURE_SOURCE = ("rnd-ash/rx8-reverse-engineering wiki (ICM 0x720->0x728), "
-                  "cited in docs/notes/ECU_CAPTURE_PLAN.md §7.1")
+# Live-capture seed (rnd-ash wiki, bench RX-8 ICM) was previously used here as
+# an input vector.  It was captured with a tuning tool (VersaTuner), NOT from a
+# stock PCM, so its seed/key pair is not stock-key evidence — removed.
 
 ROM_PATH = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
                         'roms', 'stock', '60E1D400.bin')
@@ -285,19 +278,6 @@ def test_random_seeds(n=400):
     return not mismatches
 
 
-def test_capture_seed():
-    """Captured seed 0x464E7F (rnd-ash live trace): report the key computed by
-    both implementations.  The capture has only the seed, no key, so it cannot
-    discriminate — but it is a live-ECU input both implementations agree on."""
-    ours = compute_key(CAPTURE_SEED, SECRET)
-    comm = community_calculateKey(CAPTURE_SEED)
-    ok = ours == comm
-    print(f"  captured seed 0x464E7F (rnd-ash live trace, ICM bench):")
-    print(f"    ours={ours.hex().upper()}  community={comm.hex().upper()}  "
-          f"{'PASS' if ok else 'FAIL'}")
-    return ok
-
-
 def main():
     print("═" * 70)
     print("Seed/key cross-validation: repo (VERIFIED) vs ConnorRigby/rx8-ecu-dump")
@@ -313,8 +293,6 @@ def main():
     results['rom_12of12'] = rom_ok
     print("\n─── 3. 400 fixed random seeds (ours vs community) ───")
     results['random_400'] = test_random_seeds(400)
-    print("\n─── 4. Captured live seed 0x464E7F ───")
-    results['capture'] = test_capture_seed()
 
     print("\n" + "═" * 70)
     for name, ok in results.items():
