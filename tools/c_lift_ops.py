@@ -534,6 +534,57 @@ def _eff_addr(base_kind, base_c, off, idx, abs_addr):
     return '(%s + %d)' % (base_c, off), None
 
 
+def lit_load_value(rom, abs_addr, size, sext=True, ram_known=None):
+    """Value a load of `size` bytes from the literal absolute address `abs_addr`
+    reads, IF statically knowable — else None (the caller keeps the register
+    UNKNOWN, i.e. leaves base_unresolved).
+
+    ROM  (< 1MB, inside the ROM file): the bytes are deterministic, so the
+         loaded value is known and sign-extended per `sext` (mov.b/mov.w).
+    RAM: only when EVERY byte is present in `ram_known` ({addr: byte} written by
+         earlier KNOWN stores on the same execution path); a missing byte means
+         the slot was never written with a known value -> None.  The caller is
+         responsible for only allowing RAM folds when the path is linear (no
+         branch/call between the known store and this load).
+
+    Matches sh2emu._rb and the generated test mirror's _rd (RAM overlay first,
+    then ROM bytes), so a folded value equals what both engines read.
+    """
+    a = abs_addr & MASK
+    if classify_addr(a) == 'ROM':
+        if a + size > len(rom):
+            return None
+        v = int.from_bytes(rom[a:a + size], 'big')
+    elif classify_addr(a) == 'RAM' and ram_known:
+        bs = [ram_known.get((a + i) & MASK) for i in range(size)]
+        if any(b is None for b in bs):
+            return None
+        v = int.from_bytes(bytes(bs), 'big')
+    else:
+        return None
+    if sext:
+        if size == 1 and v & 0x80:
+            v -= 0x100
+        elif size == 2 and v & 0x8000:
+            v -= 0x10000
+    return v & MASK
+
+
+def lit_store_bytes(ram_known, abs_addr, size, value):
+    """Record a KNOWN store of `value` (size bytes) at literal absolute address
+    `abs_addr` in ram_known; pass value=None to invalidate the slot (an unknown
+    write makes any later load from it non-foldable).  No-op for non-RAM
+    addresses (ROM stores never fold RAM reads)."""
+    a = abs_addr & MASK
+    if classify_addr(a) != 'RAM':
+        return
+    for i in range(size):
+        if value is None:
+            ram_known.pop((a + i) & MASK, None)
+        else:
+            ram_known[(a + i) & MASK] = (value >> (8 * (size - 1 - i))) & 0xFF
+
+
 def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
     """Decode a SH-2 b/w/l memory op into a C fragment (v2 generator).
 
