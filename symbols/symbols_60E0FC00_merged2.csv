@@ -730,7 +730,7 @@ addr,end,name,source,flag
 0x010F72,0x010F76,returnOne,ghidra-hand,
 0x010F76,0x010F84,returnDwellTime_fp,ghidra-hand,
 0x010F84,0x010FEA,outputPerRotorIgnitionDwell,ghidra-hand,
-0x010FEA,0x011054,calculatePerRotorIgnitionDwell,ghidra-hand,
+0x010FEA,0x011054,calculatePerRotorIgnitionDwell,c-lift,
 0x011054,0x01107A,FUN_00011054,ghidra-auto,
 0x01107A,0x011286,resetFunc?,ghidra-hand,
 0x011286,0x01141C,setEngineStatusRotor,ghidra-hand,
@@ -815,7 +815,7 @@ addr,end,name,source,flag
 0x013C44,0x013D04,getEngineConditionsForKnockControl??,ghidra-hand,
 0x013D04,0x013D1C,FUN_00013d04,ghidra-auto,
 0x013D1C,0x013DA2,FUN_00013d1c,ghidra-auto,
-0x013DA2,0x013E04,read_o2_sensor_voltage_trim,ida-ai-xmap,DUBIOUS
+0x013DA2,0x013E04,incrementCountToCap21,c-lift,
 0x013E04,0x013E30,debounceThrottleRate,ghidra-hand,
 0x013E30,0x013E98,getCoolantBasedTimingDerate,c-lift,
 0x013E98,0x013F60,floatArrayToByteArrayLookup1,ghidra-hand,
@@ -841,7 +841,7 @@ addr,end,name,source,flag
 0x0146D4,0x01470A,setPerRotorTimingValuesLeading,ghidra-hand,
 0x01470A,0x01476C,setPerRotorTimingValuesTrailing,c-lift,
 0x01476C,0x01477C,engineCrankingConditionsInit??,ghidra-hand,
-0x01477C,0x014804,getEngineCrankingState??,ghidra-hand,
+0x01477C,0x014804,getEngineCrankingState,c-lift,
 0x014804,0x014824,FUN_00014804,ghidra-auto,
 0x014824,0x0148A4,dual_channel_fuel_computation,ida-ai-xmap,DUBIOUS
 0x0148A4,0x014B0A,detectIdleConditions???,ghidra-hand,
