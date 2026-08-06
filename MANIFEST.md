@@ -8,7 +8,7 @@ in the working repository. **4731 entries, 88.8M.** Regenerated 2026-08-02 for t
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 741.5K |
+| (root) | 11 | 742.3K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
