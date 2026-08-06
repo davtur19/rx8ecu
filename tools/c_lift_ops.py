@@ -1043,6 +1043,10 @@ def branch_info(opcode_hi):
 #   fneg FRn / fabs FRn                F0nD4/F0nD5
 #   fsqrt FRn                          F0nD6
 #   fldi0 FRn / fldi1 FRn              F0nD8/F0nD9  0.0 / 1.0
+#   fsca FPUL,FR(2k)/FR(2k+1)          FFnD        fr2k=sin(f),fr2k+1=cos(f)
+#                                               f = s32(fpul)*2pi/65536 (full
+#                                               32-bit signed fraction,
+#                                               0x10000 == 2pi; double->float32)
 #   fmac FR0,FRm,FRn                   F0nE        frn = ts(fr0*frm+frn)
 #   sts fpul/fpscr,Rn / lds Rn,fpul/fpscr            0x005A/0x006A/0x405A/0x406A
 #   sts.l fpul/fpscr,@-Rn / lds.l @Rn+,fpul/fpscr    0x4052/0x4062/0x4056/0x4066
@@ -1123,6 +1127,29 @@ def decode_fpu(op, pc, rom, ctx=None):
                 'uses': set(uses), 'ann': mnem}
 
     if n0 == 0xF:
+        # fsca FPUL,FR(2k)/FR(2k+1) = 0xFFnD (SH-2E FPU; encoding
+        # 1111 0nnn 1111 1101, k = bits 11-9, DRn = FR2k/FR2k+1).  FPUL is the
+        # FULL 32-bit signed angle fraction (0x10000 == 360 deg == 2*pi rad);
+        # FR(2k) = sin, FR(2k+1) = cos, abs err < 2^-21.  Matched BEFORE the
+        # nib==0xD sub-dispatch (which treats 0xFFnD as reserved).  C emits
+        # sinf/cosf (double angle rounded to float32 by the call); mirror +
+        # sh2emu run the identical double formula rounded once by ts(), so the
+        # differential pair is bit-exact by construction.  Requires `math`
+        # (mirror test ns) and <math.h> (lift, added by gen_c_lift when
+        # _records_have_fpu) — both already wired for the FPU path.
+        if (op & 0xF1FF) == 0xF0FD:
+            k = (op >> 9) & 0x7
+            f2k, f2k1 = 'fr%d' % (2 * k), 'fr%d' % (2 * k + 1)
+            return pure('{ union { uint32_t u; float f; } _a, _b;'
+                        ' _a.f = sinf((float)((double)(int32_t)fpul'
+                        ' * (2.0 * 3.14159265358979323846 / 65536.0)));'
+                        ' _b.f = cosf((float)((double)(int32_t)fpul'
+                        ' * (2.0 * 3.14159265358979323846 / 65536.0)));'
+                        ' %s = _a.u; %s = _b.u; }' % (f2k, f2k1),
+                        'fr[%d] = ts(math.sin(s32(fpul) * (2.0 * math.pi / 65536.0)));'
+                        ' fr[%d] = ts(math.cos(s32(fpul) * (2.0 * math.pi / 65536.0)))'
+                        % (2 * k, 2 * k + 1),
+                        [f2k, f2k1, 'fpul'], 'fsca fpul,%s/%s' % (f2k, f2k1))
         frn, frm = 'fr%d' % n, 'fr%d' % m
         # ---- binary arithmetic (round-to-nearest single) ----
         if nib == 0x0:
