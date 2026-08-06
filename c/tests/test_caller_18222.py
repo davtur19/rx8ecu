@@ -50,8 +50,8 @@ def _wrw(ram, a, n, v):
         _WRITES.append(ad)
 
 CODE = {
-    0x18222: {"kind": 'mem', "py": 'local[0x3FC] = r[14]\n_wrw(ram, STACK_BASE + 0x3FC, 4, r[14])\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
-    0x18224: {"kind": 'st', "py": 'local[0x3F8] = pr\n_wrw(ram, STACK_BASE + 0x3F8, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x18222: {"kind": 'mem', "py": '_wrw(ram, (sp - 4) & 0xFFFFFFFF, 4, r[14])\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x18224: {"kind": 'st', "py": '_wrw(ram, (sp - 4) & 0xFFFFFFFF, 4, pr)\nsp = (sp - 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x18226: {"kind": 'reg', "py": 'r[14] = 0x0003EE58', "slot_py": None, "target": None, "cond": None},
     0x18228: {"kind": 'reg', "py": 'r[4] = 0xFFFF807C', "slot_py": None, "target": None, "cond": None},
     0x1822a: {"kind": "call", "py": None, "slot_py": 'r[5] = s8(0x00)', "target": 0x3ee58, "ret_pc": 0x1822e, "set_pr": True, "cond": None},
@@ -59,8 +59,8 @@ CODE = {
     0x18230: {"kind": "call", "py": None, "slot_py": 'r[5] = s8(0x00)', "target": 0x3ee58, "ret_pc": 0x18234, "set_pr": True, "cond": None},
     0x18234: {"kind": 'reg', "py": 'r[4] = 0xFFFF807A', "slot_py": None, "target": None, "cond": None},
     0x18236: {"kind": "call", "py": None, "slot_py": 'r[5] = s8(0x37)', "target": 0x3ee58, "ret_pc": 0x1823a, "set_pr": True, "cond": None},
-    0x1823a: {"kind": 'st', "py": 'pr = _rdw(ram, STACK_BASE + 0x3F8, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
-    0x1823c: {"kind": "ret", "py": None, "slot_py": 'r[14] = _rdw(ram, STACK_BASE + 0x3FC, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "target": None, "cond": None},
+    0x1823a: {"kind": 'st', "py": 'pr = _rdw(ram, sp, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
+    0x1823c: {"kind": "ret", "py": None, "slot_py": 'r[14] = _rdw(ram, sp, 4)\nsp = (sp + 4) & 0xFFFFFFFF', "target": None, "cond": None},
     0x3ee58: {"kind": 'reg', "py": 'r[3] = r[5] & 0xFF', "slot_py": None, "target": None, "cond": None},
     0x3ee5a: {"kind": 'reg', "py": 'r[3] = (r[3] << 8) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x3ee5c: {"kind": 'reg', "py": 'r[2] = (~r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
