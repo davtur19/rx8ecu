@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5094 entries, 92.0M.** Regenerated 2026-08-02 for the
+in the working repository. **5098 entries, 92.0M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 779.1K |
+| (root) | 11 | 789.6K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.2M |
-| c/ | 2060 | 4.7M |
-| c/tests/ | 2127 | 16.9M |
+| c/ | 2062 | 4.7M |
+| c/tests/ | 2129 | 16.9M |
 | tools/ | 29 | 695.3K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5094 entries, 92.0M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5094** | 92.0M |
+| **Total** | **5098** | 92.0M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `dde40cc65c9edf0c233b1f197fe43f3c6e82a30e7726d4e346b443be44dc6807` | 6.9K | Project README |
+| `README.md` | `de6bb5c28efdef2541781825b3d537f3bdcea01d50149d20758044425d45d96f` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `6e9078cebf920a222f90fe526bea72a2ac7fb4baa3c843faf16a0ce525454a2d` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `709ed49dcef4c072ba2241b2496077c0da83c1f44c13bfb9c7266b5e8d36b28c` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `9ba0ef0faabc1c2a8dfcb205a25688acd586e69d18019da0086dc76f3f0dae3e` | 166.4K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `f515eb93cccf617da8fede619baeb1ec304bdc9e9d4bc98a2795bb3d47f5bbfa` | 166.4K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -540,6 +540,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateIgnitionDwellAdder_4b89c.c` | `95543ee804350de8305437b6c1683f876626a54d6f694358ac1311fe14b649f4` | 643B | Tracked file |
 | `c/calculateImmoSeed.c` | `d95e3de7fafe4260043f271b62314cc3e9d4f114db2c8334df15b3860131792a` | 3.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calculateKnockConditonActiveTimingDerate_0x138A4.c` | `60db011192bf89660e0ade34d6265efbd5f2bd59a2b8ff98a00d3cf2284e36a1` | 8.5K | Tracked file |
+| `c/calculateLeadingDerateRetard_0x1253C.c` | `14dddfc01d7764501f0cec5e9729d2f08fe1cc362df4a9aee4165f85a59a0f3a` | 4.7K | Tracked file |
 | `c/calculateLeadingTimingBaseFinal_0x12362.c` | `62832b0a3fb5f8e96f53343e5a8cf8602411d1651616bd7231195f592170ca23` | 7.6K | Tracked file |
 | `c/calculateLeadingTimingBase_0x11F78.c` | `fe53a37918a1bccab2132e329f155a1037d13fc43fe9ffc750400f3393a58dce` | 9.0K | Tracked file |
 | `c/calculateLeadingTimingDerateCompensated_12342.c` | `f08fee2222e56654f674646e281111f1d7c58e06ab35c927f88ba05ce1d13255` | 1.2K | Tracked file |
@@ -548,6 +549,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateTorqueRelatedParams_2d208.c` | `49f633861cbbafa55e368743022b95144ff1c0c93410c18e800931d43174b14b` | 2.6K | Tracked file |
 | `c/calculateTorqueRelated_2d300.c` | `661af7eefca39d9ce640e4b26f64ee96037fb6a7eefcbd93cb1ff1132ebf4fa2` | 2.1K | Tracked file |
 | `c/calculateTotalRequestedTrqPcnt_2d3a2.c` | `dea5af9d2cc71bc519d87f3c20fce865af234aaa43b0f28375c09335235cba75` | 1.5K | Tracked file |
+| `c/calculateTrailingDerateRetard_0x12576.c` | `94de146211a496753e145b800078d1d198892509d44b8acf10ff7ff25feb2a19` | 4.9K | Tracked file |
 | `c/calculateTrailingTimingBaseFinal_0x12456.c` | `6f15382f99d3b32b7b1ca9b8d9b6518ec0177f1141a191394bec210801628706` | 7.6K | Tracked file |
 | `c/calculateTrailingTimingBase_0x1202A.c` | `28dea5c41eff57c84f0e5538fa59b0b81edf1424bf0d148b00d15d3b2c30e34f` | 8.7K | Tracked file |
 | `c/calculateTrailingTimingDerateCompensated_12352.c` | `dbccbc5b9805ba86e34588118374d892c4e793e30246893d0bf89e8bc6123262` | 1.2K | Tracked file |
@@ -2615,6 +2617,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateIgnitionDwellAdder_4b89c.py` | `b89d4e45042ac21742a4a8244f7b30d920b5bdad6bef6486c3ef8e30ebaa7af7` | 6.4K | Tracked file |
 | `c/tests/test_calculateImmoSeed_3675C.py` | `1f321ad9af17013e4f53bb730019532f9b818d45e27c7fb833f3cb6d3b3859b2` | 3.2K | Tracked file |
 | `c/tests/test_calculateKnockConditonActiveTimingDerate_0x138A4.py` | `6b0e86bb2ce1f26e5453b13c883a14309b37e025fa70fdc0cf6cb5f4111a9041` | 8.5K | Tracked file |
+| `c/tests/test_calculateLeadingDerateRetard_0x1253C.py` | `07438880aa5c4212dff195691bde120f17ac087f20547b31cb23d49bd3c85c81` | 6.3K | Tracked file |
 | `c/tests/test_calculateLeadingTimingBaseFinal_0x12362.py` | `f07cf3ff5ef6a33588a3a7fed2983a84a30e0f24af4ea85ed0e0b8aaf87b5e17` | 9.6K | Tracked file |
 | `c/tests/test_calculateLeadingTimingBase_0x11F78.py` | `5c028e3c1d786e7cd121f3d5f6c9ffb28095650deae5d1b87aa0071698c6e32b` | 9.1K | Tracked file |
 | `c/tests/test_calculateLeadingTimingDerateCompensated_12342.py` | `2aaaea59a7cc9e74da850a0291eab2ae8c9b92a2d3244171547a0a71c23dfbb4` | 9.3K | Tracked file |
@@ -2623,6 +2626,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateTorqueRelatedParams_2d208.py` | `753acd3949256fe38132b44131333abe3605771f66201be6cad42337df77e50e` | 10.1K | Tracked file |
 | `c/tests/test_calculateTorqueRelated_2d300.py` | `613fbaa828f01020a8d31f804ab27758e15e0dcf32c4b816645a0bec7b97bd4d` | 9.7K | Tracked file |
 | `c/tests/test_calculateTotalRequestedTrqPcnt_2d3a2.py` | `0e1115012d77f01a5c9e90b712dddcbca477b026d04882692b3e06520ac0613f` | 9.7K | Tracked file |
+| `c/tests/test_calculateTrailingDerateRetard_0x12576.py` | `edba73ed8c39e83cca153d9635567a1052afc4bb70201be2b424d893c0d12632` | 6.3K | Tracked file |
 | `c/tests/test_calculateTrailingTimingBaseFinal_0x12456.py` | `2b42ee5f261c3a448b5308f54b8e01f096a15321476cbf2b5762769ba0a004f4` | 9.5K | Tracked file |
 | `c/tests/test_calculateTrailingTimingBase_0x1202A.py` | `3c1f18697f40177f225f525f21581561d364fa27a3b9ba4c8dd55fd0232ce3e8` | 9.2K | Tracked file |
 | `c/tests/test_calculateTrailingTimingDerateCompensated_12352.py` | `7271458cf8a3d71da4e9289c430298380259d9023851262854c082948527f8e8` | 8.8K | Tracked file |
