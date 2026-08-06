@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5133 entries, 92.3M.** Regenerated 2026-08-02 for the
+in the working repository. **5167 entries, 92.5M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 794.4K |
+| (root) | 11 | 795.0K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2080 | 4.8M |
-| c/tests/ | 2146 | 17.0M |
+| c/ | 2097 | 4.8M |
+| c/tests/ | 2163 | 17.2M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5133 entries, 92.3M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5133** | 92.3M |
+| **Total** | **5167** | 92.5M |
 
 ## External dependencies
 
@@ -455,6 +455,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/boot_phase_output_config_6de2.c` | `3bfc0b3d57b3ac5c3fc6ec7387443dc56b95dd6199e26686721a61454a163466` | 1.7K | Tracked file |
 | `c/boot_ports_cfg_f458_f45b_8268.c` | `16b6eba11bbb1c9715ca612157d5e7c3c4618a56efd9ae7f6ae0d22ebd42414e` | 2.0K | Tracked file |
 | `c/boot_ram_selftest_relocate_d518.c` | `88d3986a77801553b1820b7778b8f98c02360b7052bfe7881128bb78422f95e9` | 924B | Tracked file |
+| `c/bounded_byte_copy_9f98.c` | `154ec5bbd2f0511666f522692baeee69473530a592c836a7ad15fee4607abf85` | 1.8K | Tracked file |
 | `c/brake_control_42D20_42d1a.c` | `7de70ef855165f9b99a30964334af0e200ae8a2e306180ac09271d8847bb25fd` | 4.7K | Tracked file |
 | `c/brake_control_enable_2E3AC_2e3ac.c` | `bbcaf4931de78f091227f0c2ba92d117740292e76d59443d788386e309815d82` | 4.3K | Tracked file |
 | `c/brake_enable_dispatch_2E412_2e412.c` | `077f8128c3e044c63a50b7c229fe09b826c2dc4843006aebda572981a8d0adcb` | 2.7K | Tracked file |
@@ -610,9 +611,11 @@ or the toolchain install (git-ignored; re-create with
 | `c/can_fault_active_flag_bb5c_2a2ce.c` | `384b2c34bb018db64483207839427ed9a5ef97d4be8d648a18196389d4d90050` | 3.3K | Tracked file |
 | `c/can_fault_counter_update_de46.c` | `e82cec99a35a5062be947fe58340fdf1315045d677c80a2f697973659fdec98a` | 2.1K | Tracked file |
 | `c/can_frame_parse_491AC_491ac.c` | `56f406ba76a912bee07b6daacdf34cfb015b80145ac3bfd7f50cffa0a6de5665` | 811B | Tracked file |
+| `c/can_get_mailbox_config_d1ac.c` | `66219578fe27bbf33d931b58c82a2e999e2a37ea7710c0682ecce60ab7d049fe` | 843B | Tracked file |
 | `c/can_get_rx_pending_flags_d0c0.c` | `793ef0fe1b213e01ca439b9b2265aa63d92e2f06989ddf51e4fce4ef479bc95e` | 2.0K | Tracked file |
 | `c/can_get_tx_acknowledge_flags_d112.c` | `bb3328e542b39f39ebb4dea508ad1062a4027e2a9ea9d9f4d70ac5dcaa1af9ac` | 2.1K | Tracked file |
 | `c/can_message_setup_dispatcher_33974_33974.c` | `027e997fe61eae2e794c550a02a4779972ab2357d89c6547be7746a3d979259a` | 953B | Tracked file |
+| `c/can_msg_bytes_copy_9dfc.c` | `07a59b6b9987e2ef1686f018349bc34ec23c184c6a512daeeb46117f76f7f071` | 1.8K | Tracked file |
 | `c/can_msg_schedule_handler_a500.c` | `812ca819800daa6724f4f1cb0b8a47ce931e7190405e7416ce4087843d489c1c` | 999B | Tracked file |
 | `c/can_reset_counter_bb94_2a40c.c` | `7184657e4c715362d88d088945672e1d1926851fa572d36096346c97dea122dd` | 639B | Tracked file |
 | `c/can_reset_counter_bc9c_2cd58.c` | `a8a08460d510ce2b51188e38032badbe72cb96c99ca3758995f4ade522ee68fa` | 639B | Tracked file |
@@ -705,6 +708,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/copy_calbyte_ba96_ba97_289c8.c` | `a1dd52c8b000e53e3b086e10b8be96283060f34ec7b398661d5b4e2d7b7204bb` | 1.4K | Tracked file |
 | `c/copy_calbyte_ba96_ba97_b_289e0.c` | `bb2188f21fd891f0f61dc3acdb2b815cb16ae3c60a43505b3fdeb5c71f6f6c61` | 1.4K | Tracked file |
 | `c/copy_controller_state_to_a716_a717_135e4.c` | `46285830ea862575660a5333254a726075de3c23e52d5d44f29a878b6b128678` | 1.2K | Tracked file |
+| `c/copy_data_to_buffer_1f2a.c` | `cfdf171a0bfa255b4f0547538f16a1f654042c439ddc3a91825d1bef30a926c7` | 1.8K | Tracked file |
 | `c/copy_float_c9d0_433da.c` | `369bf3ef49fc86cbfb969dbb75ef70f03e0a87bf7f9a586d2bf37710d3403649` | 829B | Tracked file |
 | `c/copy_float_register_0x4F02C_4f02c.c` | `e0cce16774980293aea1e62702b9ab0ec5101009e5b6edd8f76042a02fb64303` | 869B | Tracked file |
 | `c/copy_floats_a390_b6a0_27264.c` | `827cf744d468dd58aaa5f82d881cc2309744cf39a06f9cec5b03a877ddf9c98c` | 3.1K | Tracked file |
@@ -903,10 +907,12 @@ or the toolchain install (git-ignored; re-create with
 | `c/dtc_primary_record_threshold_update_62a64.c` | `873857fc78753191b4c8c459b5d172c3fbeb022462e113a3931a76cc05d3bec2` | 1.3K | Tracked file |
 | `c/dtc_region_checksum_validate_8fc0_66280.c` | `f5e5ecdb86c0e8f147c362961d54004fbed9e67a1cec76ec2f7a747d05393e8c` | 717B | Tracked file |
 | `c/dtc_report_b5fc_b5fd_7e_7c_52682.c` | `4a56dfc0cf7ccaf12faad9ff6e747350c0e4bcb9f0b8b66df230f29529636e76` | 2.6K | Tracked file |
+| `c/dtc_secondary_byte06_update_62262.c` | `ee1824a59fe722b947870097ffd7d0984227e78f0263d17539632c89a7636c9c` | 4.8K | Tracked file |
 | `c/dtc_snapshot_if_inactive_62d08.c` | `06242a635aeb81e1978366a7c9dc5063ea9adc45bfc7fd85ae4c58dd69627fc9` | 1.0K | Tracked file |
 | `c/dtc_state_change_mode_dispatch_62a12.c` | `ee351622176572cc8aeff7e839430e01841366b711fda79edbc0fe94479b5d3f` | 3.8K | Tracked file |
 | `c/dtc_status_check_injector_43476_43476.c` | `f1a89c059ce96d5d696f18f781e2a9521863af8eb8f3539c8af7722db6c9af84` | 5.6K | Tracked file |
 | `c/dtc_status_count_list_7d8b8_5eca2.c` | `f4d5567c72c9bb81061b9ddfd331e0bbd627087e0a0795fe61fe2512e31f8778` | 671B | Tracked file |
+| `c/dtc_type_present_check_8d74_65460.c` | `395743b7800fed1d39c15478124190225feda33ef14a8ab790393416d631503b` | 1.4K | Tracked file |
 | `c/dual_cellbank_selector_58C4A.c` | `ab5e3f1345b74884d9834be664551c2cc091e6edb507fce44d9e068c7ca28c87` | 4.7K | Tracked file |
 | `c/dual_rotor_sync_controller_16466.c` | `0211ce0fd0835ae7d18e4b785a75329b9ce7f5c398916423f509f2768a136950` | 922B | Tracked file |
 | `c/duty_cycle_control_0x4F264_4f264.c` | `20c2078def6dd5c6b50709b142574c266ab4abfa611aebf7e47d5268ac436c2c` | 2.0K | Tracked file |
@@ -943,6 +949,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/fan_speed_control_3F050_3f050.c` | `f8bb41b78ae42263d6e0c43f53771ee4e02163d4413dc9b153bde7231498d1d3` | 667B | Tracked file |
 | `c/fanout_float_9f68_to_b5d8_b5dc_b5e0_25e88.c` | `b091afa18d73d53fc06e9f9a19474214cfaf0005ba154983e9f5a18be81a6427` | 1.3K | Tracked file |
 | `c/faultDetermination__394fc.c` | `3d14fc3b3cc086423e6bfb183f7c3b2dfc7ae82636a7ee7ea89f2380ef4a67ac` | 1022B | Tracked file |
+| `c/faultEnableStatus2_5e2bc.c` | `e59099d974970a22e089e5a232841b371c96d09ef685a8383fd7352b576900dc` | 929B | Tracked file |
 | `c/fault_all_clear_flag_eval_cca5_49de0.c` | `c8206d4cc385f39a2e5592f2fed91ec1ae5f531e8bfd939818ced3ea99d3c230` | 2.7K | Tracked file |
 | `c/fault_bit800_copy_cf90_cf91_3b284.c` | `53a6b0303b9e2c2822784f63a6e2197332b4fc6923ae7a207d717bcead11e5df` | 1.6K | Tracked file |
 | `c/fault_byte_copy_7970c_c5c4_3c45c.c` | `877de2fcff17ec2a47eb8103a968cc4ba4082f706d6aecaae059d12316d74108` | 805B | Tracked file |
@@ -1263,6 +1270,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/interp_leaves.c` | `55d65a25e37087eefd642a67e153930b88ca62f53f6b6fca89ad77e008a458ed` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/interrupt_priority_4A970_4a970.c` | `2d059f8a860bd916fa616109423f0bfa9b11ec9f7f97715c6913cad8d5cc2214` | 3.7K | Tracked file |
 | `c/interrupt_state_clear_b7ca.c` | `0e8f0d300b5ac02d05aa7549952aab0bab022ac8c366600eed30d83dfda13b09` | 635B | Tracked file |
+| `c/interrupt_state_update_5E574_5e574.c` | `8327ef9fb90dac486b35c289ec287a1986ddba5a4e1dbe1ca2c3b78ff5409c1f` | 6.2K | Tracked file |
 | `c/interrupt_state_update_5E7F0_5e7f0.c` | `55f706a3ec9ba9ae7c8b9b5549108dbe8b97aa6448c6b9a9507b80f3178df36c` | 873B | Tracked file |
 | `c/interrupt_state_update_5E878_5e878.c` | `44f8689fb9e334799c4b76c5cb387a5a68fb882e8958fb6a7f2d97ff234b0af2` | 1.2K | Tracked file |
 | `c/irq_atomic_bit_setclear_byte_4b64.c` | `29885342a63ab3ba547cdb11f11ef8fbbbd6523db78e57852a98c7595497d92a` | 2.9K | Tracked file |
@@ -1688,6 +1696,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/math_configuration_375ec_375ec.c` | `2bcb61d6dc583d4bd00dfe63fa1f66dd861cb0a695715c7d0d808228a47abbf7` | 2.5K | Tracked file |
 | `c/math_convert_53610_53610.c` | `d367c2fe95a61a2daf22c08aba94d0f076440844cfd52e71b339a59011082b26` | 2.1K | Tracked file |
 | `c/math_divRoundClampInt16_52970.c` | `caccc7ff5995eabdbe6485374d859e229ea1b3aab14483d88bead5b217983e0c` | 2.8K | Tracked file |
+| `c/math_exp_4A106_4a106.c` | `8224962330dafc76af2cf5b2a905995721336205dc7e8f5979425119a929f0f5` | 3.6K | Tracked file |
+| `c/math_filter_lpf_49FC4_49fc4.c` | `16e43dbc0c1c7c971cbaa30a3cd4656b77897fe49baa11a48a13bd11ea26fb57` | 3.6K | Tracked file |
+| `c/math_filter_median_4A020_4a020.c` | `303f1bd1335c192c77f4949ce0a4ca5f4268e7e6199575f737eef16607996369` | 3.6K | Tracked file |
 | `c/math_finalize_3e994_3e994.c` | `112d20362321e2a3926ede31f6910d673d4fdf521779db82cfb6cf2ef9f95a68` | 1.1K | Tracked file |
 | `c/math_formatter_3e9a6_3e9a6.c` | `3e9affd0e348211f37a82cae44c39101c47d5fd8b45bfea3b949ea568204adbb` | 1.5K | Tracked file |
 | `c/math_primitives.c` | `ac23154160b5454176d1808fc2102cb2aa3680d71964fc9711f3da61fcd8ca23` | 7.3K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -1788,6 +1799,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/obd_service_handler_670E6_670e6.c` | `ec8c7bdcddfcfe84ff6d6a91cb5183249ca97f64c8f3385f50c69adf7b560834` | 1.1K | Tracked file |
 | `c/obd_service_handler_67534_67534.c` | `76398e1edc53b9a98829c84a6b12d4aede66a79711a92ea61fde3e6dc92978ec` | 1.3K | Tracked file |
 | `c/obd_service_handler_67538_67538.c` | `4bf4a8aafc014c30a9266ff03311f885ddaba7799cdfa536900cf9373f2cb914` | 1.1K | Tracked file |
+| `c/obd_service_handler_675AC_675ac.c` | `4ee36824d74e700d45d0d6912f576947a4ec8a80ecde06ecde69c11ff991d480` | 1.4K | Tracked file |
 | `c/obd_service_handler_685F8_685f8.c` | `a644780864a1095c8958fc774c222a926ff474ff782ee3ff033c47b30beb7a9b` | 945B | Tracked file |
 | `c/obd_service_handler_68656_68656.c` | `52af07081b68ade0326a2942d7f2fa7e1049bded7da5f7533ae6173f20cc8680` | 945B | Tracked file |
 | `c/obd_service_handler_686B4_686b4.c` | `9f5837f95d4351b78e7eb0ba5638a72f3ab36df77cfe9c0fa2fcb4c536a06f81` | 945B | Tracked file |
@@ -1903,6 +1915,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/returnEngineLoad_5e5fe.c` | `a7e538b68f9e467239922454471d60db105d271a50f315bfed52a08a9a221074` | 1.5K | Tracked file |
 | `c/returnEngineRPM_5e57e.c` | `f1b2e67a4cd629795bab9bf919905ef74f535171e1426386ea12a094207b0885` | 935B | Tracked file |
 | `c/returnEngineSpeed_5e604.c` | `ce7476b9c22ee40c51d02211fe034791c5c7306a95830ad3a3b21cc061828f43` | 1.2K | Tracked file |
+| `c/returnFaultCode_6038c.c` | `1b99688858abe7da95d2c79105d1d27cfd1e24eb18a5347b599e95e9d72fd889` | 2.7K | Tracked file |
 | `c/returnOne_10f72.c` | `a118f883e7fc519952818dc0621d8f701175c9b23901e31d2f43ccf052910c35` | 919B | Tracked file |
 | `c/revLimitFuelCutInit.c` | `c2dec9f1642048d238f76fd048cdb5d09f5e7c2b5a0f2eea5aa656b7ceb275df` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/revLimitFuelCutInit_ee68.c` | `f27d667daddb36c0603cd534b57f1b39c760531b9f366193dce5f277c5826a7f` | 1.5K | Tracked file |
@@ -1910,6 +1923,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/rev_converter_552fe_552fe.c` | `be73a91ffd13b8fb7a19449edec2b58d911584cbe550e723a7842deb89740b3b` | 868B | Tracked file |
 | `c/rev_limit_0x59440_59440.c` | `e02b5880bff81e2ecae36917d5b25f3fb6ce9909e1aee6d7330a629f13d5c07d` | 1.2K | Tracked file |
 | `c/revlimit_byte_copy_b129_to_c169_345b4.c` | `b39ca74972e82a99989a07a2718727c7c7f8107c815a2a161eca457e9fda0653` | 1.1K | Tracked file |
+| `c/rom_id_byte_check_flag_cbda_485ca.c` | `532a1554e4c2f272c815506d954c2560af0b8cd6c3a9e2c984d38de50cae3a73` | 3.6K | Tracked file |
+| `c/rom_id_long_check_flag_cbd8_484e4.c` | `cf90e1168cc5a7b4f059edfab0f1b139b24c788fbc8b1a3454f26a424f4c11e9` | 3.6K | Tracked file |
+| `c/rom_id_word_check_flag_cbd7_48488.c` | `3a6525f4784af1a13797c130be52f831f831a81c91ce669e505e37df075f2a32` | 3.6K | Tracked file |
 | `c/rotor_fuel_calc_dispatcher_b57a.c` | `73697423da1c5b3fcf5f0bacdc99632860498aa089b75a5eb7ce3d1254a9cf58` | 2.0K | Tracked file |
 | `c/rotor_sync_gate_state_ctrl_2100A.c` | `777934a51455d3a96617361946d5fae18e23b55d2ebd5d956d74182540a9d002` | 7.5K | Tracked file |
 | `c/rotor_sync_idle_gate_cells_reset_127d6.c` | `9a867645324f81a9fb5d0db3614ca2811ea010b484c9540239d7a7efe98540d9` | 1.1K | Tracked file |
@@ -2174,6 +2190,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/uds_service_state_machine_58268.c` | `8e5c60106cb3aff4b40bee714bb0a3cad90fcc54f379c9271c8f5c1c1723ea12` | 2.7K | Tracked file |
 | `c/uds_sid_switch_d122_d124_5a2f0.c` | `0266c76df921392e7b68920ab2b509479b9583bb2101bcd71f4bef590bdc7354` | 5.3K | Tracked file |
 | `c/uds_status_ready1_chk_67002.c` | `f4fa7baac29ec02526741f39fcfbd5d34674d5e5db46551ba71c432d87bf37df` | 1.3K | Tracked file |
+| `c/uds_subservice_table_match_d187_5c328.c` | `520877a864865acf22227d9253d1982746af874276ab6a3024367154ef10963f` | 6.2K | Tracked file |
 | `c/unknownEnrichmentInit_4a27c.c` | `7fac6722c366f0ee9e08d7bc2ca95231c574698dbf183048197e41bd7b01117f` | 745B | Tracked file |
 | `c/updateDSCRelatedCANStuff___2aa02.c` | `fe1a623ae636a29d9ba162c168defee196a3e795494f6539b5c20548b7b99d72` | 1.3K | Tracked file |
 | `c/updateE2RAMBasedOnInput.c` | `a32f8af00398ecbc22a54f0c7b0a22d2cb05eb34f267a3fd2377a6bf32cd2b0d` | 6.4K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -2546,6 +2563,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_boot_phase_output_config_6de2.py` | `18d3a5128904c1b7b31b94103b17b0cdc26929beed142a4a463728bfbc8d3b38` | 7.9K | Tracked file |
 | `c/tests/test_boot_ports_cfg_f458_f45b_8268.py` | `e463f2a9bc9093aa5bcafecaff87090b57d70626ec60bdb1ae14f14ebf3467b7` | 9.4K | Tracked file |
 | `c/tests/test_boot_ram_selftest_relocate_d518.py` | `c687f89b83cbee06624b90c77fb46e6266e3470d7798909af3bd5612d90958f1` | 7.7K | Tracked file |
+| `c/tests/test_bounded_byte_copy_9f98.py` | `78665106bd1c5fa39ee88dab6191f74662c55c3e247b231ab1e7e345be6478f0` | 9.3K | Tracked file |
 | `c/tests/test_brake_control_42D20_42d1a.py` | `7a055b3c820eef9da438529e3e1b2797f3c0de4be603e3799ea87469f61af987` | 11.3K | Tracked file |
 | `c/tests/test_brake_control_enable_2E3AC_2e3ac.py` | `c0f228131b84cfadd1f3a1728f8033becaf2537361ed99e155b29daef0d69fdc` | 12.4K | Tracked file |
 | `c/tests/test_brake_enable_dispatch_2E412_2e412.py` | `f0eed2d3ec04a743655c9d8596b9658128fbaa79b66f1d465f41caad423b47ad` | 8.6K | Tracked file |
@@ -3086,9 +3104,11 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_can_fault_active_flag_bb5c_2a2ce.py` | `0f92c7e6809edc013488c8397abe90545c2454fa7a887a907497e0e137cc6966` | 10.6K | Tracked file |
 | `c/tests/test_can_fault_counter_update_de46.py` | `9ff0c2a52807adb0d81b3ea82c5ea67b5c2a3e25dba4b845c4de9d28b8686da6` | 10.5K | Tracked file |
 | `c/tests/test_can_frame_parse_491AC_491ac.py` | `ee320fd57b15314274e1a75fb5d4573ca9661e452b9e70705c9c681515cda261` | 7.5K | Tracked file |
+| `c/tests/test_can_get_mailbox_config_d1ac.py` | `4321295e25f1916bf0f73f2b75260b80d4a6ed8216f658c99116d734731f36ad` | 7.7K | Tracked file |
 | `c/tests/test_can_get_rx_pending_flags_d0c0.py` | `3eb6baf8210fbcd028ee87f7810f9ba4e0218f0372552bbb7cff7b46e587f9be` | 8.2K | Tracked file |
 | `c/tests/test_can_get_tx_acknowledge_flags_d112.py` | `53197aaf6672b06f6b80a34640027a6542d2d1a36ae13c79f2a0edde8526bc14` | 8.2K | Tracked file |
 | `c/tests/test_can_message_setup_dispatcher_33974_33974.py` | `1d2ccfb9d759a3294d1459a17c206389f6e01d4ee8a172bf7eb4ab11d4e7c5b7` | 6.7K | Tracked file |
+| `c/tests/test_can_msg_bytes_copy_9dfc.py` | `1aed13e3f5e9555ee3ce64d51e6946abc6acd865957c3c57f1560d05faf5f161` | 9.3K | Tracked file |
 | `c/tests/test_can_msg_schedule_handler_a500.py` | `de74f3c84270795fac0d9c0a7d9db1d8bbdbe9dde9996a3992a46762cce02713` | 7.7K | Tracked file |
 | `c/tests/test_can_packers.py` | `9f57076f6e50def29351bfd69d6c38356b02f5b567502d710404a252d27946dd` | 30.3K | Tracked file |
 | `c/tests/test_can_reset_counter_bb94_2a40c.py` | `a865d01c6414b7b97f5b08e167d2865f726c466289839a82e3f82e6a8b8b775a` | 7.2K | Tracked file |
@@ -3184,6 +3204,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_copy_calbyte_ba96_ba97_289c8.py` | `9b6ffc368e080785ca42cc0f553071a9cf8aac01413de1cbf9d836a9036ea756` | 8.3K | Tracked file |
 | `c/tests/test_copy_calbyte_ba96_ba97_b_289e0.py` | `879a6cb738c8268f51e1cb9e600aebf234831417d6ad60ed426a48d3c6affa7c` | 8.3K | Tracked file |
 | `c/tests/test_copy_controller_state_to_a716_a717_135e4.py` | `6d79b6b720a4ac80c736039a2dada91eed6fa37134353cf2cd8c6bf61654d746` | 6.7K | Tracked file |
+| `c/tests/test_copy_data_to_buffer_1f2a.py` | `90511e0ce7ca51baa9ba67d3f6269c7e5d2cdd7ac3bfc5ea1806e114c9436f14` | 9.3K | Tracked file |
 | `c/tests/test_copy_float_c9d0_433da.py` | `b87f71a5e3a5aae8a98ee6d0ca7122428588ef6b1721d1b875af2c3226fe8309` | 8.9K | Tracked file |
 | `c/tests/test_copy_float_register_0x4F02C_4f02c.py` | `9a1ba5628201d8f1ab949fad52134942f893909af048d5c124f9f15bbfbc200e` | 8.1K | Tracked file |
 | `c/tests/test_copy_floats_a390_b6a0_27264.py` | `7251c8308a16523184efcce7edce835dc1d8755a271082f16242b21df29b7ecb` | 12.3K | Tracked file |
@@ -3385,10 +3406,12 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_dtc_primary_record_threshold_update_62a64.py` | `9273a285f7a99364cab1ee5955d85a30e53e66fa9c6ee349ee19f8877a7d8fae` | 8.4K | Tracked file |
 | `c/tests/test_dtc_region_checksum_validate_8fc0_66280.py` | `7f0b7fc33d8f8ce83b83c3452c96e79b40cdb35a028f5c160e6cdd53c929808c` | 2.2K | Tracked file |
 | `c/tests/test_dtc_report_b5fc_b5fd_7e_7c_52682.py` | `1002ecf4f8d29f1916a3c27a60397016d4d2d4aea54a02ceaa633fa947764ae8` | 9.7K | Tracked file |
+| `c/tests/test_dtc_secondary_byte06_update_62262.py` | `d62b9f8d28d30e9f66018f430df94818be71e7e0a9fe5b6f4746fcf5668bff0e` | 13.9K | Tracked file |
 | `c/tests/test_dtc_snapshot_if_inactive_62d08.py` | `3c0ae6e1798f03832dc9e014ff7c9b16fae1ae0b4270c8488c89d5e5b31d95ea` | 8.0K | Tracked file |
 | `c/tests/test_dtc_state_change_mode_dispatch_62a12.py` | `32b9a02da022f124f16b4fd4baa27523e30204eaef48e012b975b018e45deac9` | 11.9K | Tracked file |
 | `c/tests/test_dtc_status_check_injector_43476_43476.py` | `d0479a2d2e18c9a0e820b9dbda10bb6fdab90a06ca8dccba75c7ed448d30427c` | 12.4K | Tracked file |
 | `c/tests/test_dtc_status_count_list_7d8b8_5eca2.py` | `c952f3e29ca6b09bde16a331a1e3dea2a589fdf0429bfaaf2444b0da93b2fca1` | 7.4K | Tracked file |
+| `c/tests/test_dtc_type_present_check_8d74_65460.py` | `99405e8311875fcafbb04d663a51d8f5c21f0b407ab9cc32874e6d466c67398b` | 8.5K | Tracked file |
 | `c/tests/test_dual_cellbank_selector_58C4A.py` | `782021436d99062cc146db9e8424b41ed3b483c718f0120dab2a020a325941e3` | 3.9K | Tracked file |
 | `c/tests/test_dual_rotor_sync_controller_16466.py` | `264747fa900eac7606cb32b9c0da927188f3d3ce73d4b30014fdd5e2af62263c` | 7.7K | Tracked file |
 | `c/tests/test_duty_cycle_control_0x4F264_4f264.py` | `d76c3f07bdd8d516d15c3442f9c4d53f9e3222cc207ed5ebbcea72a4b808057b` | 7.7K | Tracked file |
@@ -3424,6 +3447,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_fan_speed_control_3F050_3f050.py` | `64e06e0aa0dc39fbb5719c1d45586e954acf83e44768c515a897d92f57142de3` | 6.0K | Tracked file |
 | `c/tests/test_fanout_float_9f68_to_b5d8_b5dc_b5e0_25e88.py` | `d7633f810782479fb1c740013776e6e44d4225b095a5bc011dfd91709b1efe87` | 9.5K | Tracked file |
 | `c/tests/test_faultDetermination__394fc.py` | `5ff2fe9856bdebb4bbcb9aff031bdf053462c8af79ec843be22e142e8e18aa6c` | 8.6K | Tracked file |
+| `c/tests/test_faultEnableStatus2_5e2bc.py` | `5dee9f14c1f0e2cb0357570548756d7b3424c60e41c312ed83dd107ec572bb4f` | 7.9K | Tracked file |
 | `c/tests/test_fault_all_clear_flag_eval_cca5_49de0.py` | `51d3ebdb50b83d9e89af36046af11a9469ea147db236c0bd8cdbac6d02c24b84` | 9.1K | Tracked file |
 | `c/tests/test_fault_bit800_copy_cf90_cf91_3b284.py` | `4da5e9bb7ae9ce57ee4e7b8af88f5d3ecd234b5812cf090ab03a62e93e039dba` | 8.8K | Tracked file |
 | `c/tests/test_fault_byte_copy_7970c_c5c4_3c45c.py` | `01af40a719439360c707d50d905b6739b879a80f6253bff54d519a28ec880600` | 7.5K | Tracked file |
@@ -3746,6 +3770,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_interp_leaves.py` | `e1a9d0c940c77600197e3661b99b7bb1c168a153c69a2eee8d10e83d792d2155` | 7.6K | Python per-function behavior-equivalence test |
 | `c/tests/test_interrupt_priority_4A970_4a970.py` | `155266d3dc802e88535a45845dad1368848577e44046beaf3bc32dc914092bfa` | 9.8K | Tracked file |
 | `c/tests/test_interrupt_state_clear_b7ca.py` | `67f5abde583b67653848b2648f70329cccf5f2a97c84f026578a850ef6c2fd69` | 6.4K | Tracked file |
+| `c/tests/test_interrupt_state_update_5E574_5e574.py` | `a40e320fbf9b6ed8e406b270eaa92bf7d808a95b137b9d45b2d5cc4994de127f` | 15.9K | Tracked file |
 | `c/tests/test_interrupt_state_update_5E7F0_5e7f0.py` | `a85dfa97a48e7eab8c18102f39f454b8a868e233e8da1a469a117c7954716401` | 7.7K | Tracked file |
 | `c/tests/test_interrupt_state_update_5E878_5e878.py` | `441a3e59591e38466080ed9e5ef5d504f961d6102bc50fb972fa7298346d64fc` | 6.8K | Tracked file |
 | `c/tests/test_irq_atomic_bit_setclear_byte_4b64.py` | `2b7688c0b9fa201ccf9a0b091b22dcdc54ce6664f3fd332c2091ced6e28785b3` | 10.3K | Tracked file |
@@ -3816,6 +3841,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_math_configuration_375ec_375ec.py` | `b281d0bddb81f83e4faa717172ad8758f6e23723dee3952ece27bd927ac2094b` | 8.8K | Tracked file |
 | `c/tests/test_math_convert_53610_53610.py` | `ae9cc0cecb6b9461afcf4966e1b49988ac6dbc4cea5d73a3de3e1dff0a34424f` | 9.6K | Tracked file |
 | `c/tests/test_math_divRoundClampInt16_52970.py` | `a4f1258af94b5330b5fc8bbf825b7e6bee90b525adcb3318fcaf36fe528870b1` | 11.4K | Tracked file |
+| `c/tests/test_math_exp_4A106_4a106.py` | `45e3596e3b4fb5236e2e42273f4d34fd7d1bdcb0bf257b5c8369f1fa5e485184` | 11.7K | Tracked file |
+| `c/tests/test_math_filter_lpf_49FC4_49fc4.py` | `724972b6b8cbf56f386a8b988cbc32d2a8775d3969e330acc085a710918e0166` | 11.7K | Tracked file |
+| `c/tests/test_math_filter_median_4A020_4a020.py` | `f3b0dbfae71bc08afec279a09e005a5122a2b4ec538fce0d1b4e8a6d29a9676d` | 11.9K | Tracked file |
 | `c/tests/test_math_finalize_3e994_3e994.py` | `787431a20decbffda07547afc7b0860d675a180b467140883d8e16f6c50d952f` | 6.6K | Tracked file |
 | `c/tests/test_math_formatter_3e9a6_3e9a6.py` | `d40ca600d999320fb3a6f4b46f437933aee03dbb02845b48acdbbf5a807a6e46` | 7.2K | Tracked file |
 | `c/tests/test_math_primitives.py` | `09c660b5143c2ef40d67d8cc4b2ac0a7c9e692e0915a4a915bf3f49b9ea17cf1` | 7.4K | Python per-function behavior-equivalence test |
@@ -3930,6 +3958,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_obd_service_handler_670E6_670e6.py` | `a5dd40ad43d358bde6fc9744e81a25d0ea8a1a8d82c267e271ac9d5d0865376b` | 2.8K | Tracked file |
 | `c/tests/test_obd_service_handler_67534_67534.py` | `f2a4c47a34c01a260e26680ecf52706fa2c4ed817e54a22e2ea19438e75cff9f` | 8.5K | Tracked file |
 | `c/tests/test_obd_service_handler_67538_67538.py` | `76b914936d6ac280d075b9c6df550212dfeb02fe2a9f69d2f8ffbc011fa150bf` | 7.2K | Tracked file |
+| `c/tests/test_obd_service_handler_675AC_675ac.py` | `8ee4c83c528e4e6c6bd5519bbf8aa444cb4dceb43225706ad3f967340f8f9d60` | 8.5K | Tracked file |
 | `c/tests/test_obd_service_handler_685F8_685f8.py` | `471fda4979ae31ff59250f293b80105dfdb055f022a18632ea076e95e6734bb9` | 2.5K | Tracked file |
 | `c/tests/test_obd_service_handler_68656_68656.py` | `473021f59226acca965af6bb0cb1a6e171e9d7a527f9c8141f7cb7c0d407812a` | 2.5K | Tracked file |
 | `c/tests/test_obd_service_handler_686B4_686b4.py` | `70f964edc7cff2cde2cef7e1a3dea446e924f811167867e08efd8aeea94b19a8` | 2.5K | Tracked file |
@@ -4048,6 +4077,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_returnEngineLoad_5e5fe.py` | `384ae31a86c5737e1c81c8a814d28de107f1bcc6563b64f832b5b841589dc654` | 7.7K | Tracked file |
 | `c/tests/test_returnEngineRPM_5e57e.py` | `1c37a88f67c6bd562f11ed720498349e78d2e7f28cddc24720d398594a6b0a20` | 8.9K | Tracked file |
 | `c/tests/test_returnEngineSpeed_5e604.py` | `aa3c359b98eeff2637d0063ecfda5860505735bb9d4c1a9c6f98fcea029a2b78` | 7.3K | Tracked file |
+| `c/tests/test_returnFaultCode_6038c.py` | `51ad0abd9d61772b1b1fabd1d2d5fcead37eff0a082888e5ab7d7eb14bbd19aa` | 10.7K | Tracked file |
 | `c/tests/test_returnOne_10f72.py` | `081b00c19eed0cb1667ebe02087204e2e4044dcb57eecbcbff11297c14f7f686` | 7.8K | Tracked file |
 | `c/tests/test_revLimitFuelCutInit.py` | `d57950d4cff5062174f19e85878561325658cb1301eab2251c985e248c8998af` | 1.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_revLimitFuelCutInit_ee68.py` | `9313ea91fc950c8a6843a5423be278a8cd3e6d3035dfd3824b9a1a419e5bd035` | 8.3K | Tracked file |
@@ -4055,6 +4085,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_rev_converter_552fe_552fe.py` | `43bb09a8c847ce627e13e9337c081e521ddf0683a127074b01dabeb37eabcc20` | 6.4K | Tracked file |
 | `c/tests/test_rev_limit_0x59440_59440.py` | `a2357137a5430e7641879f816ad4ba1ef4e31096ee97b3a88fdc140df387ce26` | 6.6K | Tracked file |
 | `c/tests/test_revlimit_byte_copy_b129_to_c169_345b4.py` | `5912276f27c24ca792ae9cddfb30111de710875ceac8b499206f84c17b97eb68` | 9.3K | Tracked file |
+| `c/tests/test_rom_id_byte_check_flag_cbda_485ca.py` | `45ae555740219990a623a0e0e75c76bdd50ae6d0f320d24f0529c583b86dc447` | 11.7K | Tracked file |
+| `c/tests/test_rom_id_long_check_flag_cbd8_484e4.py` | `a795ebe9bd45d5ef7456b996dac1b1c8dac45d15f2e66537884ba7680d80c61e` | 11.9K | Tracked file |
+| `c/tests/test_rom_id_word_check_flag_cbd7_48488.py` | `467554323759852e50429e336efb5efe3622701b2d21facd594eea18eca16556` | 11.7K | Tracked file |
 | `c/tests/test_rotor_fuel_calc_dispatcher_b57a.py` | `0cac41a2074156ffead68bafb46f68734bde1d654e315745f19e3e29d77867ca` | 9.5K | Tracked file |
 | `c/tests/test_rotor_sync_gate_state_ctrl_2100A.py` | `2f6370e99677cf8800b4acbb89bd526e8841646485fdf07fab68d970801d5354` | 8.5K | Tracked file |
 | `c/tests/test_rotor_sync_idle_gate_cells_reset_127d6.py` | `7b2aca1280f2e02f62113eaa78706aab90b50d17eca1b244f16486f800474ac6` | 9.4K | Tracked file |
@@ -4325,6 +4358,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_uds_service_state_machine_58268.py` | `a10a9a5faa7a3c8a98857b543154822cc73c34abecd75216144900d53f41a9a6` | 10.0K | Tracked file |
 | `c/tests/test_uds_sid_switch_d122_d124_5a2f0.py` | `cfb1245297966493ee328bcea1ca9d8ba99b55d341e844b32b95721a3cf3d60e` | 14.6K | Tracked file |
 | `c/tests/test_uds_status_ready1_chk_67002.py` | `9ed1abd04e4c661838dd46071374ba586dc5ef3ef0096089507c9c3f1069a789` | 8.1K | Tracked file |
+| `c/tests/test_uds_subservice_table_match_d187_5c328.py` | `76a2aa6587b577edfb17499c3c8e249a65d496d01b676eae8015017c0a6fe925` | 15.9K | Tracked file |
 | `c/tests/test_unknownEnrichmentInit_4a27c.py` | `9639c9536f10349318a5712cbf2f26779594b61eca76c00845e5546f3b7bea15` | 8.2K | Tracked file |
 | `c/tests/test_updateDSCRelatedCANStuff___2aa02.py` | `897b5ee3e3ef01d19d84b23f06749662818fd2b01d68d0bc7e0251743461f5da` | 8.1K | Tracked file |
 | `c/tests/test_updateE2RAMBasedOnInput_0x36D0C.py` | `8658cb5c356726bc8b74e9dbdd4397e84a5d909de58e2984c24ca61785b5c758` | 5.2K | Tracked file |
