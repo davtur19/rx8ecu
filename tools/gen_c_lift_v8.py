@@ -198,7 +198,7 @@ def _fpu_mem_rt(pc, op, f, temp):
 
 
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
-              allow_runtime_base=False):
+              allow_runtime_base=False, tail_bra_as_call=False):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
     allow_runtime_base=True: a LOAD/STORE whose base register cannot be folded
     to a literal (or param-of-r4..r7) is emitted register-relative
@@ -734,6 +734,19 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     if addr <= target < end:
                         labels.add(target)
                         pending.append(target)
+                    elif tail_bra_as_call and kind == 'bra':
+                        # out-of-span unconditional bra => tail call to a sibling
+                        rec = {'pc': pc, 'op': op, 'kind': 'call',
+                               'mnem': 'bra %#x (tail)' % target,
+                               'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                    + ['f_%X(s);' % target, 'return;'],
+                               'slot': slot, 'target': target,
+                               'ret_pc': (pc + 4) & MASK, 'set_pr': False}
+                        res.records.append(rec)
+                        seen_pc.add(pc)
+                        if slot is not None:
+                            seen_pc.add(pc + 2)
+                        break
                     else:
                         res.reject = ('target_fuori', pc)
                         return res
@@ -1138,7 +1151,7 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
         return None, None, False, 'no-span'
     _a, end_s, _r = v3.sanitize_span(addr, end, rom)
     lifted = _load_lifted()
-    res = build_cfg(rom, addr, end_s, lifted, catalog, allow_runtime_base=True)
+    res = build_cfg(rom, addr, end_s, lifted, catalog, allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
         return None, None, False, res.reject
     if not res.records:
@@ -1295,7 +1308,7 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     rts = _callee_first_rts(rom, t, end_c)
     walk_end = _callee_walk_end(rom, t, end_c)
     cfg_end = min(walk_end + 2, end_c)
-    res = build_cfg(rom, t, cfg_end, allow_runtime_base=True)
+    res = build_cfg(rom, t, cfg_end, allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
         reason, pc = res.reject
         if reason == 'target_fuori':
@@ -1407,7 +1420,7 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     # 'unmapped' on a data word, even though the walk of the same span succeeds.
     cfg_end = min(_callee_walk_end(rom, t, end_c) + 2, end_c)
     lifted = _load_lifted()
-    res = build_cfg(rom, t, cfg_end, lifted, catalog, allow_runtime_base=True)
+    res = build_cfg(rom, t, cfg_end, lifted, catalog, allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
         return None, ('callee-cfg', t, res.reject)
     if not res.records:
