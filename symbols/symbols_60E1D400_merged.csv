@@ -534,7 +534,7 @@ addr,end,name,source,flag
 0x01379C,0x013880,calc_adaptive_fuel_trim,ida-ai,
 0x0138CC,0x0139B0,calc_accel_fuel_enrichment,ida-ai,
 0x013A0E,0x013A5E,calc_ignition_advance_modifier,c-lift,
-0x013A5E,0x013A86,calc_rotor_sync_base_A,ghidra-hand-xmap,
+0x013A5E,0x013A86,calc_rotor_sync_base_A,c-lift,
 0x013A86,0x013AAE,getKnockControlActive,c-lift,
 0x013AE8,0x013B90,calc_intake_manifold_trim,ida-ai,
 0x013B90,0x013BCE,updateKnockMaxRAM,c-lift,
