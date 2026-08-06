@@ -201,6 +201,20 @@ def _trk_fold(trk, written, reg, depth=0):
     return None
 
 
+def _lit_of(reg, lits, trk, written):
+    """Resolve a register to a literal constant: the trusted `lits` dict first,
+    then the tracker's literal fold (mova/add/#imm/lit-pool chains — cases the
+    old GBR code only consulted `lits` for, so `ldc r0,GBR` fed by a mova
+    stayed unresolved).  Returns the int or None."""
+    v = lits.get('r%d' % reg)
+    if v is not None:
+        return v
+    r = _trk_fold(trk, written, reg)
+    if r and r[0] == 'lit':
+        return r[1]
+    return None
+
+
 # opcodes whose fold must EVALUATE a literal (shll/shll2/shlr, shll8/16, shlr8/16)
 _TRK_SHIFTS = {0x4000: 1, 0x4008: 2, 0x4018: 8, 0x4028: 16,
                0x4009: 1, 0x4019: 8, 0x4029: 16}
@@ -332,7 +346,18 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
             continue
         if op & 0xF0FF == 0x401E:            # ldc Rn,GBR
             gbr_known = True
-            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            _lit = _lit_of((op >> 8) & 0xF, lits, trk, written)
+            gbr_value = _lit if _lit is not None else 'input'
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x4017:            # lds.l @Rm+,GBR (GBR = RAM[Rm])
+            gbr_known = True
+            _lit = _lit_of((op >> 8) & 0xF, lits, trk, written)
+            if _lit is not None and _lit < len(rom) and ops.classify_addr(_lit) == 'ROM':
+                gbr_value = (rom[_lit] << 24 | rom[_lit + 1] << 16
+                             | rom[_lit + 2] << 8 | rom[_lit + 3])
+            else:
+                gbr_value = 'input'
             pc += 2
             continue
         if gcl.is_call_op(op):
@@ -378,8 +403,27 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
         g = gcl._decode_gbr(op)
         if g is not None:
             size, gdir, disp = g
-            if not gbr_known or gbr_value is None:
-                return None, ('base_unresolved', 'GBR-non-risolto')
+            if gbr_value is None:
+                # GBR never set in-span (caller sets it): runtime input base.
+                # The address is `gbr + r0 + disp` with BOTH live at runtime, so
+                # neither GBR nor r0 needs to be a literal — the only requirement
+                # is that the mirror and the emulator track r0 identically, which
+                # the mapper fragments do.
+                gbr_value = 'input'
+            if gbr_value == 'input':
+                bases.setdefault('gbr', ('PARAM', None))
+                ops_list.append({'pc': pc, 'size': size, 'dir': gdir,
+                                 'kind': 'gbr', 'base_reg': None, 'disp': disp,
+                                 'auto': None, 'idx': None, 'gbr': True,
+                                 'gbr_input': True})
+                gcl._apply_mem_writes({'dir': gdir,
+                                       'dest': 0 if gdir == 'load' else None,
+                                       'src': 0 if gdir == 'store' else None},
+                                      written, lits)
+                if gdir == 'load':
+                    trk['r0'] = None
+                pc += 2
+                continue
             if 'r0' not in lits:
                 r0 = _trk_fold(trk, written, 0)
                 if not r0 or r0[0] != 'lit':
@@ -401,8 +445,18 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
             continue
         gb = ops.decode_gbr_bit(op, pc, rom, None)
         if gb is not None:
-            if not gbr_known or gbr_value is None:
-                return None, ('base_unresolved', 'GBR-non-risolto')
+            if gbr_value is None:
+                gbr_value = 'input'
+            if gbr_value == 'input':
+                bases.setdefault('gbr', ('PARAM', None))
+                ops_list.append({'pc': pc, 'size': 1,
+                                 'dir': 'load' if gb['dir'] == 'load' else 'store',
+                                 'kind': 'gbr_bit', 'base_reg': None, 'disp': 0,
+                                 'auto': None, 'idx': None, 'gbr': True,
+                                 'gbr_input': True,
+                                 'family': gb['family'], 'imm': gb['imm']})
+                pc += 2
+                continue
             if 'r0' not in lits:
                 return None, ('base_unresolved', 'r0-non-literal')
             abs_addr = (gbr_value + lits['r0']) & gcl.MASK
@@ -447,7 +501,7 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
             # they previously died at the is_fpu_op fallback as 'fpu/altre'.
             # Admit them here with the SAME r15/r14 stack-slot rule as the
             # generic r15/r14 mem ops (stack_ok / frame_live gates identical).
-            sys_store = (op & 0xF0FF) < 0x4006
+            sys_store = (op & 0xF) == 0x2    # low nibble: 2 = sts.l, 6 = lds.l
             srn = (op >> 8) & 0xF
             if srn == 15:
                 if not stack_ok:
@@ -833,7 +887,18 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
             continue
         if op & 0xF0FF == 0x401E:
             gbr_known = True
-            gbr_value = lits.get('r%d' % ((op >> 8) & 0xF))
+            _lit = _lit_of((op >> 8) & 0xF, lits, trk, written)
+            gbr_value = _lit if _lit is not None else 'input'
+            pc += 2
+            continue
+        if op & 0xF0FF == 0x4017:            # lds.l @Rm+,GBR (GBR = RAM[Rm])
+            gbr_known = True
+            _lit = _lit_of((op >> 8) & 0xF, lits, trk, written)
+            if _lit is not None and _lit < len(rom) and ops.classify_addr(_lit) == 'ROM':
+                gbr_value = (rom[_lit] << 24 | rom[_lit + 1] << 16
+                             | rom[_lit + 2] << 8 | rom[_lit + 3])
+            else:
+                gbr_value = 'input'
             pc += 2
             continue
         if gcl.is_call_op(op):
@@ -879,8 +944,23 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
         g = gcl._decode_gbr(op)
         if g is not None:
             size, gdir, disp = g
-            if not gbr_known or gbr_value is None:
-                return None, ('base_unresolved', 'GBR-non-risolto')
+            if gbr_value is None:
+                # GBR never set in-span (caller sets it): runtime input base.
+                gbr_value = 'input'
+            if gbr_value == 'input':
+                bases.setdefault('gbr', ('PARAM', None))
+                ops_list.append({'pc': pc, 'size': size, 'dir': gdir,
+                                 'kind': 'gbr', 'base_reg': None, 'disp': disp,
+                                 'auto': None, 'idx': None, 'gbr': True,
+                                 'gbr_input': True})
+                gcl._apply_mem_writes({'dir': gdir,
+                                       'dest': 0 if gdir == 'load' else None,
+                                       'src': 0 if gdir == 'store' else None},
+                                      written, lits)
+                if gdir == 'load':
+                    trk['r0'] = None
+                pc += 2
+                continue
             if 'r0' not in lits:
                 r0 = _trk_fold(trk, written, 0)
                 if not r0 or r0[0] != 'lit':
@@ -905,8 +985,18 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
         # the byte (no rN side effects). ----
         gb = ops.decode_gbr_bit(op, pc, rom, None)
         if gb is not None:
-            if not gbr_known or gbr_value is None:
-                return None, ('base_unresolved', 'GBR-non-risolto')
+            if gbr_value is None:
+                gbr_value = 'input'
+            if gbr_value == 'input':
+                bases.setdefault('gbr', ('PARAM', None))
+                ops_list.append({'pc': pc, 'size': 1,
+                                 'dir': 'load' if gb['dir'] == 'load' else 'store',
+                                 'kind': 'gbr_bit', 'base_reg': None, 'disp': 0,
+                                 'auto': None, 'idx': None, 'gbr': True,
+                                 'gbr_input': True,
+                                 'family': gb['family'], 'imm': gb['imm']})
+                pc += 2
+                continue
             if 'r0' not in lits:
                 return None, ('base_unresolved', 'r0-non-literal')
             abs_addr = (gbr_value + lits['r0']) & gcl.MASK
@@ -945,7 +1035,7 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
             # identical to _scan_mem_v3: admit the r15/r14 stack-base forms with
             # the same stack_ok / frame_live gates (param/literal bases are
             # already admitted by decode_mem in the mem path above).
-            sys_store = (op & 0xF0FF) < 0x4006
+            sys_store = (op & 0xF) == 0x2    # low nibble: 2 = sts.l, 6 = lds.l
             srn = (op >> 8) & 0xF
             if srn == 15:
                 if not stack_ok:
@@ -1704,7 +1794,7 @@ def walk_v3(rom, addr, end):
           'stack_ok': True, 'frame_live': False, 'frame_off': None,
           'sp_off': 0x400}
     info = {'stack_offs': set(), 'ram_addrs': set(),
-            'has_stack': False, 'has_literal': False}
+            'has_stack': False, 'has_literal': False, 'gbr_input': False}
     labels = set()
     records = []
     skip = set()
@@ -1773,12 +1863,30 @@ def walk_v3(rom, addr, end):
                     'mnem': d.get('ann') or ('op 0x%04X' % op)}
         if op & 0xF0FF == 0x401E:                  # ldc Rn,GBR
             st['gbr_known'] = True
-            st['gbr_value'] = st['lits'].get('r%d' % ((op >> 8) & 0xF))
+            _lit = _lit_of((op >> 8) & 0xF, st['lits'], st['trk'], st['written'])
+            st['gbr_value'] = _lit if _lit is not None else 'input'
             return {'pc': pc, 'op': op, 'kind': 'ldc',
-                    'c': ['/* ldc r%d,GBR (GBR = 0x%08X) */'
-                          % ((op >> 8) & 0xF, st['gbr_value'] or 0)],
+                    'c': ['/* ldc r%d,GBR (GBR = %s) */'
+                          % ((op >> 8) & 0xF,
+                             ('0x%08X' % st['gbr_value']) if _lit is not None
+                             else 'runtime input')],
                     'py': [], 'target': None, 'slot': None,
                     'mnem': 'ldc r%d,GBR' % ((op >> 8) & 0xF)}
+        if op & 0xF0FF == 0x4017:                  # lds.l @Rm+,GBR (GBR = RAM[Rm])
+            st['gbr_known'] = True
+            _lit = _lit_of((op >> 8) & 0xF, st['lits'], st['trk'], st['written'])
+            if _lit is not None and _lit < len(rom) and ops.classify_addr(_lit) == 'ROM':
+                st['gbr_value'] = (rom[_lit] << 24 | rom[_lit + 1] << 16
+                                   | rom[_lit + 2] << 8 | rom[_lit + 3])
+            else:
+                st['gbr_value'] = 'input'
+            return {'pc': pc, 'op': op, 'kind': 'ldc',
+                    'c': ['/* lds.l @r%d+,GBR (GBR = %s) */'
+                          % ((op >> 8) & 0xF,
+                             ('0x%08X' % st['gbr_value'])
+                             if st['gbr_value'] != 'input' else 'runtime input')],
+                    'py': [], 'target': None, 'slot': None,
+                    'mnem': 'lds.l @r%d+,GBR' % ((op >> 8) & 0xF)}
         if op & 0xF0FF in (0x4003, 0x4007):        # stc.l SR,@-Rn / ldc.l @Rn+,SR
             # Same base resolution as decode_mem (param r4..r7 | known literal);
             # the value transferred is `sr` (not an rN), so _mem_record cannot
@@ -1848,7 +1956,7 @@ def walk_v3(rom, addr, end):
             SYS_REG = {0x4002: 'mach', 0x4012: 'macl', 0x4022: 'pr',
                        0x4006: 'mach', 0x4016: 'macl', 0x4026: 'pr'}
             reg = SYS_REG[op & 0xF0FF]
-            sys_store = (op & 0xF0FF) < 0x4006     # 0x2/0x12/0x22 = sts.l
+            sys_store = (op & 0xF) == 0x2    # low nibble: 2 = sts.l (0x02/0x12/0x22), 6 = lds.l (0x06/0x16/0x26)
             srn = (op >> 8) & 0xF
             st['written'].add('r%d' % srn)         # auto side-effect kills literal
             st['lits'].pop('r%d' % srn, None)
@@ -1970,8 +2078,24 @@ def walk_v3(rom, addr, end):
         g = gcl._decode_gbr(op)
         if g is not None:
             size, gdir, disp = g
-            if not st['gbr_known'] or st['gbr_value'] is None:
-                return None
+            if st['gbr_value'] is None:
+                # GBR never set in-span (caller sets it): runtime input base.
+                st['gbr_value'] = 'input'
+            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
+                  'src': 0 if gdir == 'store' else None}
+            if st['gbr_value'] == 'input':
+                # EA = gbr + r0 + disp at runtime (mirror tracks r0); the gbr
+                # param is added to the C signature and seeded in the harness.
+                info['gbr_input'] = True
+                c, py = ops.gbr_mov_runtime(size, gdir, disp, temp)
+                mnem = ('mov.%s r0,@(0x%X,gbr) [gbr=runtime]' % (gcl._SIZE_CH[size], disp)
+                        if gdir == 'store' else
+                        'mov.%s @(0x%X,gbr),r0 [gbr=runtime]' % (gcl._SIZE_CH[size], disp))
+                gcl._apply_mem_writes(gm, st['written'], st['lits'])
+                if gdir == 'load':
+                    st['trk']['r0'] = None
+                return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': c, 'py': py,
+                        'target': None, 'slot': None, 'mnem': mnem}
             if 'r0' not in st['lits']:
                 r0 = _trk_fold(st['trk'], st['written'], 0)
                 if not r0 or r0[0] != 'lit':
@@ -1980,8 +2104,6 @@ def walk_v3(rom, addr, end):
             abs_addr = (st['gbr_value'] + st['lits']['r0'] + disp) & gcl.MASK
             info['has_literal'] = True
             info['ram_addrs'].add(abs_addr)
-            gm = {'dir': gdir, 'dest': 0 if gdir == 'load' else None,
-                  'src': 0 if gdir == 'store' else None}
             c, py = gcl._gbr_record(pc, op, size, gdir, abs_addr, temp)
             if gdir == 'store':
                 mnem = 'mov.%s r0,@(0x%X,gbr)' % (gcl._SIZE_CH[size], disp)
@@ -1994,8 +2116,14 @@ def walk_v3(rom, addr, end):
                     'target': None, 'slot': None, 'mnem': mnem}
         gb = ops.decode_gbr_bit(op, pc, rom, None)
         if gb is not None:
-            if not st['gbr_known'] or st['gbr_value'] is None:
-                return None
+            if st['gbr_value'] is None:
+                st['gbr_value'] = 'input'
+            if st['gbr_value'] == 'input':
+                info['gbr_input'] = True
+                gbd = ops.decode_gbr_bit(op, pc, rom, {'gbr_runtime': True})
+                return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': list(gbd['c']),
+                        'py': list(gbd['py']), 'target': None, 'slot': None,
+                        'mnem': gbd['ann'] + ' [gbr=runtime]'}
             if 'r0' not in st['lits']:
                 r0 = _trk_fold(st['trk'], st['written'], 0)
                 if not r0 or r0[0] != 'lit':
@@ -2320,6 +2448,7 @@ def emit_v3(addr, name, size, rom, out_c, rom_label=None, estimated_end=None):
         return False
     records, info, labels = walked
     has_fpu = _records_have_fpu(records)
+    gbr_input = info.get('gbr_input', False)
     stmts = render_body(records, labels)
     body = build_locals(stmts, info)
     body.extend('    ' + s for s in stmts)
@@ -2328,17 +2457,19 @@ def emit_v3(addr, name, size, rom, out_c, rom_label=None, estimated_end=None):
 
     banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
               ' * Auto-generated by tools/gen_c_lift_v3.py — not human-verified.\n'
-              ' * v3: branches + delay slots%s. */') % (
+              ' * v3: branches + delay slots%s%s. */') % (
         rom_label or gcl.ROM_LABEL, addr, size,
-        ' + v4 FPU (frN bit-pattern locals; fpul/fpscr)' if has_fpu else '')
+        ' + v4 FPU (frN bit-pattern locals; fpul/fpscr)' if has_fpu else '',
+        ' + gbr runtime input' if gbr_input else '')
     if estimated_end is not None:
         banner = banner.replace(
             ' * v3: branches + delay slots', ' * End: estimated (next_addr 0x%06X)\n * v3: branches + delay slots' % estimated_end)
     c_text = (banner + '\n'
               '#include <stdint.h>\n'
               + ('#include <math.h>\n' if has_fpu else '')
-              + 'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
-                '{\n%s\n}\n') % (fn, addr, cbody)
+              + 'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7%s)\n'
+                '{\n%s\n}\n') % (fn, addr,
+                                 ', uint32_t gbr' if gbr_input else '', cbody)
     with open(out_c, 'w') as f:
         f.write(c_text)
 
@@ -2566,7 +2697,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '        ram[ad] = (v >> (8 * (n - 1 - i))) & 0xFF\n'
         '        _WRITES.append(ad)\n\n'
         '%s\n'
-        'def spec_mirror(r4, r5, r6, r7, ram):\n'
+        'def spec_mirror(r4, r5, r6, r7, ram, gbr=0):\n'
         '    """pc-interpreter over CODE; returns ("RET", regs, writes, ram, pr) or\n'
         '    ("SKIP"/"ERR", detail).  Every instruction is the mapper py fragment\n'
         '    exec\'d in a shared ns (registers/T/ram/writes follow sh2emu)."""\n'
@@ -2578,6 +2709,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
         '          "sr": 0x000000F0,  # sh2emu call() default (independent of T)\n'
         '          "s8": s8, "s16": s16, "s32": s32, "ram": ram, "sp": r[15],\n'
+        '          "gbr": gbr & 0xFFFFFFFF,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
         '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
         '    pc = ENTRY\n'
@@ -2626,10 +2758,10 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '            if py:\n'
         '                exec(py, ns)\n'
         '            pc = pc + 2\n\n'
-        'def run(cpu, ram, a, b, c_, d):\n'
+        'def run(cpu, ram, a, b, c_, d, gbr=0):\n'
         '    ram = dict(ram)\n'
         '    ram[SENT] = 0x00; ram[SENT + 1] = 0x0B; ram[SENT + 2] = 0x00; ram[SENT + 3] = 0x09\n'
-        '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram, regs={15: STACK_TOP},\n'
+        '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram, regs={15: STACK_TOP, "gbr": gbr},\n'
         '             max_steps=MAXSTEPS)\n'
         '    out = dict(cpu.ram)\n'
         '    for i in range(4):\n'
@@ -2651,16 +2783,17 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '        for off in SEED_OFFS:\n'
         '            for i in range(4):\n'
         '                ram[STACK_BASE + off + i] = (0xEEEE0000 >> (8 * (3 - i))) & 0xFF\n'
-        '        a = rnd.randint(0, 0xFFFFFFFF)\n'
+                '        a = rnd.randint(0, 0xFFFFFFFF)\n'
         '        b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF)\n'
         '        d = rnd.randint(0, 0xFFFFFFFF)\n'
-        '        m = spec_mirror(a, b, c_, d, dict(ram))\n'
+        '        gbr = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        m = spec_mirror(a, b, c_, d, dict(ram), gbr)\n'
         '        if m[0] != "RET":\n'
         '            skipped += 1\n'
         '            continue\n'
         '        try:\n'
-        '            g = run(cpu, ram, a, b, c_, d)\n'
+        '            g = run(cpu, ram, a, b, c_, d, gbr)\n'
         '        except (StepLimitExceeded, NotImplementedError, RuntimeError):\n'
         '            skipped += 1\n'
         '            continue\n'
@@ -2805,7 +2938,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '        ram[ad] = (v >> (8 * (n - 1 - i))) & 0xFF\n'
         '        _WRITES.append(ad)\n\n'
         '%s\n'
-        'def spec_mirror(r4, r5, r6, r7, ram, fr_in):\n'
+        'def spec_mirror(r4, r5, r6, r7, ram, fr_in, gbr=0):\n'
         '    """pc-interpreter over CODE; returns ("RET", regs, writes, ram, pr,\n'
         '    fr_bits, fpul) or ("SKIP"/"ERR", detail).  fr_in is 16 uint32 bit\n'
         '    patterns; fr is the float32 mirror (bits2f) the FPU fragments run\n'
@@ -2822,6 +2955,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '          "fr": fr, "fpul": 0, "fpscr": 0,\n'
         '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "bits2f": bits2f,\n'
         '          "f2bits": f2bits, "ram": ram, "sp": r[15],\n'
+        '          "gbr": gbr & 0xFFFFFFFF,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
         '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
         '    pc = ENTRY\n'
@@ -2872,12 +3006,12 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '            if py:\n'
         '                exec(py, ns)\n'
         '            pc = pc + 2\n\n'
-        'def run(cpu, ram, a, b, c_, d, fr_in):\n'
+        'def run(cpu, ram, a, b, c_, d, fr_in, gbr=0):\n'
         '    ram = dict(ram)\n'
         '    ram[SENT] = 0x00; ram[SENT + 1] = 0x0B; ram[SENT + 2] = 0x00; ram[SENT + 3] = 0x09\n'
         '    cpu.call(ENTRY, r4=a, r5=b, r6=c_, r7=d, ram=ram,\n'
         '             fr={i: bits2f(fr_in[i]) for i in range(16)},\n'
-        '             regs={15: STACK_TOP}, max_steps=MAXSTEPS)\n'
+        '             regs={15: STACK_TOP, "gbr": gbr}, max_steps=MAXSTEPS)\n'
         '    out = dict(cpu.ram)\n'
         '    for i in range(4):\n'
         '        out.pop(SENT + i, None)\n'
@@ -2900,10 +3034,11 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '        b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF)\n'
         '        d = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        gbr = rnd.randint(0, 0xFFFFFFFF)\n'
         '        fr_in = [((caso * 0x9E3779B1 + i * 0x1000003) & 0xFFFFFFFF) for i in range(16)]\n'
         '        fr_in = [((x & 0x7F7FFFFF) | 0x3F800000) for x in fr_in]  # finite, positive, no NaN/Inf\n'
         '        try:\n'
-        '            m = spec_mirror(a, b, c_, d, dict(ram), fr_in)\n'
+        '            m = spec_mirror(a, b, c_, d, dict(ram), fr_in, gbr)\n'
         '        except ValueError:\n'
         '            skipped += 1          # fsqrt of a negative input (both sides)\n'
         '            continue\n'
@@ -2911,7 +3046,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '            skipped += 1\n'
         '            continue\n'
         '        try:\n'
-        '            g = run(cpu, ram, a, b, c_, d, fr_in)\n'
+        '            g = run(cpu, ram, a, b, c_, d, fr_in, gbr)\n'
         '        except (StepLimitExceeded, NotImplementedError, RuntimeError, ValueError):\n'
         '            skipped += 1\n'
         '            continue\n'
