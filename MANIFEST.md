@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4743 entries, 88.9M.** Regenerated 2026-08-02 for the
+in the working repository. **4749 entries, 88.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 742.8K |
+| (root) | 11 | 744.7K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1885 | 4.2M |
-| c/tests/ | 1952 | 15.1M |
+| c/ | 1888 | 4.2M |
+| c/tests/ | 1955 | 15.1M |
 | tools/ | 29 | 684.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4743 entries, 88.9M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4743** | 88.9M |
+| **Total** | **4749** | 88.9M |
 
 ## External dependencies
 
@@ -109,7 +109,7 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `symbols/CATALOG_MASTER.csv` | `1b30d3a21f42a2cf00dee633e63771465cfb8c854f291d3687133f7f00e5aa9c` | 3.2M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `a86ed8fad910b972d972c08f3c95199e7c2e205c9b2be8b515a7a7811804777d` | 3.2K | Tracked file |
-| `symbols/FUNCTION_CATEGORIES.csv` | `e797cd1fd0ccb265d408733e86d07480e17b1021e51699327ae9960a0bbb3983` | 397.4K | Tracked file |
+| `symbols/FUNCTION_CATEGORIES.csv` | `938d4cae1cc8622252be8b2b73b6915a9553d4bdbc909e2a967317716b79bb84` | 397.1K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `4f554fe49c1eaeda7e9388b08856055c4925fb69ad2960e3050732489c161544` | 528.6K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `26f35c721c423f268be78621f1b3ec91f10c8eb6996e8dbc957c66c36aead76a` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `332e37a2bf93d6006b5fb0552b45e163fe0e3613d4d9f16903d20a2821005dfa` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `f5b7ff2cd36b1cd16da165d79da3e80767fec559732a5705b91ac40a3724422d` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `ee8de71038e51f153ce75875e99c955935709cc8364a795e123a0c7db79d7b03` | 141.1K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -481,6 +481,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_fuel_trim_correction_map_136f0.c` | `031550ba873bd2ad4451849366b5cc12da3ade0083f7954f4ad2e9a817735634` | 5.4K | Tracked file |
 | `c/calc_fuel_trims_adaptive_117B4.c` | `41a76a6b2533804b8e98c6f7d3b61fc48157b5e96af6af3e2915d81aa6251a3f` | 6.0K | Tracked file |
 | `c/calc_idle_speed_target.c` | `5dc987b7d66eb48e02f873add3a784c58edfc20bfd37da693a9897d7e3b6d84a` | 7.9K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_ignition_advance_modifier_0x13A0E.c` | `3264ca57880eace3d0f254bd682fa347d2b55e22c01ec46785e83b92067c80cf` | 4.6K | Tracked file |
 | `c/calc_ignition_advance_modifier_13a0e.c` | `41feb6e2b8d8abf30eace75d9f368d129ad9d3451033ac3242b04b7c40c6a718` | 3.6K | Tracked file |
 | `c/calc_ignition_all_rotors_13C2C.c` | `d1f63c46fa4f6f677f59fdaf59268ffc84879c624aa840cb4465899735f433ae` | 17.5K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calc_ignition_all_rotors_13C2C_13c2c.c` | `6744a005660ddff4d9a1c606c748aa0959e45e1c11923fa3280782c5a3bd76a5` | 1.4K | Tracked file |
@@ -1066,6 +1067,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/getHCANRegisterAddress.c` | `0299aa0eeedf79a6faca8347646d000692a721a21b0dcdb021238d7fab8e9236` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getIgnitionTimingInit_12180.c` | `ba9198c233596123cc249ded9ccd78d4a5610f72308e4fe98e5d78ee9a26eb89` | 1.1K | Tracked file |
 | `c/getInitalLeadingTrailingAdvance__12192.c` | `1221900b2c4211fc50f14489bd252771518979b2cb05a4e2c3958453a8a648ea` | 1.1K | Tracked file |
+| `c/getKnockControlActive_0x13A86.c` | `4c67189e8dc90a16d103fb76f3f50ab23845663a847645e774a69fb9a291cfe3` | 3.0K | Tracked file |
 | `c/getKnockControlActive_13a86.c` | `d9260957b0d485efa29ce8c894fe11af660d49e37f52db2df7cce2a4950348ed` | 1.8K | Tracked file |
 | `c/getKnockControlAllowed___13686.c` | `498c021cb0ccf5bbeab5f342b02c86e46c38a1fa08ca0f0040ea1c787077de10` | 3.6K | Tracked file |
 | `c/getKnockSensorADC.c` | `9940d4b0e30adff04de2f9ff4daf6de79f74bfae8980626df0408a67e50aed0c` | 3.0K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -1916,6 +1918,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/stubCAN201Byte2_3_29c1c.c` | `cfd35c88d3ca1965925539271e6fa5d8b479d6822a65e0239b5ee26b7cba5a90` | 1.7K | Tracked file |
 | `c/stubCAN201Byte2_3_2a09c.c` | `92da211fbd277a74b71a833df588a7148ec2710025cb06996f72d79a17ed3e8c` | 614B | Tracked file |
 | `c/stubCAN203TX_byte6_29f36.c` | `271699dbc00c4e2a2e4a4ce19636bae6a8d3c6adcb852e132a35b07cfd423ac6` | 675B | Tracked file |
+| `c/sub_13E6C_0x13E6C.c` | `587cf7e9f8fbf1052e87f55f9f93e17b40ca2b0e4e3fb674395cc9ae2a27b2c5` | 6.0K | Tracked file |
 | `c/sys_flags_9ec8_bit0_latch_cdb6_4c292.c` | `48c80f391cd3bfe8d643d4da3226f65c767e7cf4b93f0d6a7a990191a24717f1` | 1.8K | Tracked file |
 | `c/sys_status_bit5_latch_ad7c_1b83c.c` | `d1655ba8e2abed32f46540da0dbf260289992c40394b50ebe19b141732f780ae` | 2.1K | Tracked file |
 | `c/tachometer_0x5A9F2_5a9f2.c` | `17ae7a96d4004708d5b1e9a9c09f7bc93dd0925ac6ccccb0eb440a0dd1c20533` | 2.2K | Tracked file |
@@ -2378,6 +2381,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_fuel_trim_correction_map_136f0.py` | `f02c6cff21fbcbb210eae326dd5ac805ecd5618bead1744dba2bc2b68ee51dc3` | 13.0K | Tracked file |
 | `c/tests/test_calc_fuel_trims_adaptive_117B4.py` | `9bad7105cf6f75752c62235a3916188fc3f78a4acc939818fe7bc05ae442ed87` | 13.4K | Tracked file |
 | `c/tests/test_calc_idle_speed_target_0x12F5E.py` | `d316e6c3622d9fd8fc8a97e8125b1fafa2d65475fe5f07bfae78e04d54ac0402` | 5.8K | Tracked file |
+| `c/tests/test_calc_ignition_advance_modifier_0x13A0E.py` | `6d75ccecbe583e75ab3fe01c64e29dcad3ff34df259495be7a35524f71544b0b` | 7.1K | Tracked file |
 | `c/tests/test_calc_ignition_advance_modifier_13a0e.py` | `474c6406acfa8b1e23c1dc0e170b0868d4acaa4be49b2a70b657aa9162da6fad` | 11.8K | Tracked file |
 | `c/tests/test_calc_ignition_all_rotors_13C2C.py` | `85609056cff0f898fbfe5a1ffd24e5a54b9adb555822f55fb4e472b5b09b84b2` | 14.4K | Python per-function behavior-equivalence test |
 | `c/tests/test_calc_ignition_all_rotors_13C2C_13c2c.py` | `f27b7be8bea51f7a310a653c4d13af744c8c53b02b20d889a94dbd452ba24311` | 9.5K | Tracked file |
@@ -3297,6 +3301,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_getHCANRegisterAddress.py` | `713e33fcd2052b9e09dd8fa201b98992a207d1b21e767138dbcf30575bd4166b` | 1.6K | Python per-function behavior-equivalence test |
 | `c/tests/test_getIgnitionTimingInit_12180.py` | `d361297bbddeab197d250a39240684f3f53c6658532a4b2c68c80dfbc709ff34` | 9.4K | Tracked file |
 | `c/tests/test_getInitalLeadingTrailingAdvance__12192.py` | `d7ddb5d04cfa0a305f3179cf32241eee0f1904f581a6d03044ae5c28917f0dbd` | 9.3K | Tracked file |
+| `c/tests/test_getKnockControlActive_0x13A86.py` | `04c50fc5ff16e362ed057ea35e8c8ee2ce8085086a901b8d905ac41a5785f7e5` | 4.5K | Tracked file |
 | `c/tests/test_getKnockControlActive_13a86.py` | `d49ffb9316d97ac75fc8697cd26ec1b6bbea5f499f887f9df8dfa8b3ac308540` | 7.5K | Tracked file |
 | `c/tests/test_getKnockControlAllowed___13686.py` | `467b878665e65d1c3e6925e4692fe6492d5dc043bc8627709153229526a6be54` | 12.3K | Tracked file |
 | `c/tests/test_getKnockSensorADC.py` | `45bab7a9a8849c0d458eb9ebcb86880f7e938c2dfd872461797e011d9f8e4b36` | 4.9K | Python per-function behavior-equivalence test |
@@ -3870,6 +3875,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_stubCAN201Byte2_3_29c1c.py` | `f40c537e38521dfe867d982948ef5b4eae05813a96b1034212932e311b62aa98` | 7.8K | Tracked file |
 | `c/tests/test_stubCAN201Byte2_3_2a09c.py` | `0f350a46d704c4d6a25c607535fe65103fd41689fcb01b224ee23d3d04446b3d` | 6.4K | Tracked file |
 | `c/tests/test_stubCAN203TX_byte6_29f36.py` | `96652d8bb6f803d9fa96772b7c00664dcfa7ebf500baab95b1ea0e047eb643ef` | 6.4K | Tracked file |
+| `c/tests/test_sub_13E6C_0x13E6C.py` | `925c1f72528ed112099e6bab022df0803f377ff771817a0f2b8d9c78dd0a2168` | 7.8K | Tracked file |
 | `c/tests/test_sys_flags_9ec8_bit0_latch_cdb6_4c292.py` | `2679470d2ef0c588fb051cf9160ad822dc7ed07ba57d0f8fb5b74dc2ae044f5b` | 7.8K | Tracked file |
 | `c/tests/test_sys_status_bit5_latch_ad7c_1b83c.py` | `621bf4fe7e3936df03da477c611d79d89a33d4bbe16d931cad574bb0e643062f` | 8.2K | Tracked file |
 | `c/tests/test_tachometer_0x5A9F2_5a9f2.py` | `5abbd5f64de506c6f74ae351ad4f52e15fe7d70ea5dff09c8b6a380e7a8261ce` | 9.5K | Tracked file |
