@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5129 entries, 92.2M.** Regenerated 2026-08-02 for the
+in the working repository. **5133 entries, 92.3M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 793.8K |
+| (root) | 11 | 794.4K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2078 | 4.8M |
-| c/tests/ | 2144 | 17.0M |
+| c/ | 2080 | 4.8M |
+| c/tests/ | 2146 | 17.0M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5129 entries, 92.2M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5129** | 92.2M |
+| **Total** | **5133** | 92.3M |
 
 ## External dependencies
 
@@ -107,9 +107,9 @@ or the toolchain install (git-ignored; re-create with
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `symbols/CATALOG_MASTER.csv` | `50047db117df59186a7a86aff485d57190aa61b03138e6c3ace39e86a5b73e5f` | 3.6M | Tracked file |
+| `symbols/CATALOG_MASTER.csv` | `2999e6b22ef0aed0eaaadbf61f0fb877ea7cb8a26285514d5194f87896ddd516` | 3.6M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `a86ed8fad910b972d972c08f3c95199e7c2e205c9b2be8b515a7a7811804777d` | 3.2K | Tracked file |
-| `symbols/FUNCTION_CATEGORIES.csv` | `938d4cae1cc8622252be8b2b73b6915a9553d4bdbc909e2a967317716b79bb84` | 397.1K | Tracked file |
+| `symbols/FUNCTION_CATEGORIES.csv` | `7858151dd3511a5f9debedf20c0f5bb28c089703b088a0358d5be06d7f4e6069` | 397.1K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `4f554fe49c1eaeda7e9388b08856055c4925fb69ad2960e3050732489c161544` | 528.6K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
 | `symbols/RAM_VARIABLES.csv` | `42e9fe730d64868b207f6d0009677b009116f0f4a82724499e490962488215cf` | 262.6K | Tracked file |
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `5e32839ecdb43f7c678d9e16b5e3dbc5c2d97a28f78a9a885ca8d1eb1a98b5b1` | 166.9K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `1b852eb9617434f8f5ad193522ff914c99813272130cbf9256d1f5371398a09d` | 166.9K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `20bf4a5f8746e67a993cd0d8e688432ef9835bdf2de10180b4ec0d5bf43a53ab` | 163.0K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `0ccdb44f6d0394d7014d5156088c25f857aa104832bd8995a337660aa2266bb8` | 162.9K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -512,6 +512,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_rotor_sync_base_A_13a5e.c` | `26d107cb616acbe14a1da44e9ab58f3f5d3cc7f517af5c4317a8da03ff201046` | 1.9K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_A_12b5e.c` | `e971bea7e9f35c2c6197ab264186a60261e8c6d8f730c4dfd8cd10a8e590e84e` | 1.1K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_B.c` | `278b71ed6ed92a40f55f5bb47cf4c541f3941cc4fdad0a4deaea82936c3c374b` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
+| `c/calc_rotor_sync_idle_gate_B_0x12840.c` | `347ba22a9bed0f5b3e0b5b1e18962e7c5fb7083dc6b445ecdc7423de9136edc1` | 5.7K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_B_12bc8.c` | `4c64371391b59314bbe41a1ec9b1f5ba2630f60073573bcca0c6cffe550eea0f` | 900B | Tracked file |
 | `c/calc_rotor_sync_solenoid_A_12b70.c` | `e7349cec182fea5c2d7eb86d18e4ee37c2a9630d214c8f85dd02b784f2c24102` | 3.8K | Tracked file |
 | `c/calc_secondary_o2_trim_1321C.c` | `3a230ed756a0565097405ca0cd173501a4a7f03b9b69c51c2298146cbe4235aa` | 13.2K | Tracked file |
@@ -985,6 +986,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/fault_verdict_cdba_cdbb_4c840.c` | `a9a0fb2562c2bc740cddd62d7a10ea03f70721936aaf6ca2271b59dcf85f2867` | 6.1K | Tracked file |
 | `c/fault_word_copy_c4e0_to_c4de_388aa.c` | `26992608f5dea7ecb39ad434e615121c5fad56b644d1b1e331c2627185a813c3` | 821B | Tracked file |
 | `c/filterECMVotlage_4d3da.c` | `6b39bfcf5066edd7d49e0d6d060d7da6f73b1950a490151aa778a1dc47332e7d` | 1.5K | Tracked file |
+| `c/filterEngineSpeedRateOfChange_0x429EE.c` | `1d2a1cc736f5fa3b443fea0866e1840a04e7ed7e2a5c658232c3c91568c4f856` | 5.3K | Tracked file |
 | `c/filter_counter_init_c750_3fe08.c` | `1cceb2b1f18f8cf8fbb4dac549e36c6ce47cf66bbdc3aa82efeefeb70b1acf71` | 2.6K | Tracked file |
 | `c/filter_signal_adaptive_2CBBA_2cbba.c` | `25390cd200bec107f1c12334f18b526f05b1625f660d781578d2cfb721057a0a` | 4.2K | Tracked file |
 | `c/finalLeadingTimingStuff__1326e.c` | `b7ebaa27ce0ce5c68b726b87d05aa60c85f3f935b50a7080ebab8bd53d2cd35e` | 4.2K | Tracked file |
@@ -2603,6 +2605,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_rotor_sync_base_A_13a5e.py` | `0166b50a91c639032fe21f00637df935924073ecabbbdcd3fbf54c0bb437639b` | 7.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_A_12b5e.py` | `bcba0af60c36bf2d8856473e9fd9e5c65b9c73cfef9b144f67a811e218fad859` | 8.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_B.py` | `65a0233dcd3c4402409c337572772163edad160ea8ed1c5e8200f820f1e4fd23` | 4.1K | Python per-function behavior-equivalence test |
+| `c/tests/test_calc_rotor_sync_idle_gate_B_0x12840.py` | `272fc38355e00c55d456af340ef46a28ef5df9f40a299065eb5a0da2f320a0bc` | 6.8K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_B_12bc8.py` | `fe3facbf235f7fac5823aa8ccfed7f367af40e5b20d2be30e608ee0478b1d9f6` | 7.7K | Tracked file |
 | `c/tests/test_calc_rotor_sync_solenoid_A_12b70.py` | `5b10f314d3fa073bd07b16ede45de9f22e6db2c25c722c26ebe38ef16ae7736c` | 11.7K | Tracked file |
 | `c/tests/test_calc_secondary_o2_trim_1321C.py` | `4987730c565cda9e940d3cd6b4d17ffce72cdade943a2606f0937de38db583fc` | 11.1K | Tracked file |
@@ -3464,6 +3467,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_fault_verdict_cdba_cdbb_4c840.py` | `d91298aef02c048933819e8e82b83677d1bde7faef2dd498d80d17d63b30522d` | 14.4K | Tracked file |
 | `c/tests/test_fault_word_copy_c4e0_to_c4de_388aa.py` | `e2dba9fab7bbecb8c339837dd9b24563342c0229772673e68506f5c6ba1d5231` | 7.5K | Tracked file |
 | `c/tests/test_filterECMVotlage_4d3da.py` | `050d91091d6794be525d008f3bb4cc37ba89eeee08879522df3d267a3547ea6e` | 7.6K | Tracked file |
+| `c/tests/test_filterEngineSpeedRateOfChange_0x429EE.py` | `718831e5404a2196c41c1c7ce0d284cc49db69ff30d98550b3023dc653ddf80f` | 6.1K | Tracked file |
 | `c/tests/test_filter_counter_init_c750_3fe08.py` | `bb5f632969adae145197dc8563915907109d113c1f4ffd4af0d2b4ee7be39116` | 11.6K | Tracked file |
 | `c/tests/test_filter_signal_adaptive_2CBBA_2cbba.py` | `24aea32956841e102e7ceeac8f7c4e3eae72b7d514775dce76ea9f16c633333e` | 12.2K | Tracked file |
 | `c/tests/test_finalLeadingTimingStuff__1326e.py` | `6e294fa27d54cc43fe53c0f0b026120602245c27dc8b25add05041ad4403ad17` | 13.2K | Tracked file |
