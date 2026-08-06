@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5115 entries, 92.2M.** Regenerated 2026-08-02 for the
+in the working repository. **5119 entries, 92.2M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 792.2K |
+| (root) | 11 | 792.5K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2071 | 4.8M |
-| c/tests/ | 2137 | 16.9M |
+| c/ | 2073 | 4.8M |
+| c/tests/ | 2139 | 16.9M |
 | tools/ | 29 | 698.4K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5115 entries, 92.2M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5115** | 92.2M |
+| **Total** | **5119** | 92.2M |
 
 ## External dependencies
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `da678c61e9d6b42b5a30d637a4a270ca330dcb7cbf4fde5d3349f92f5713a1b7` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `b75448e791831fc9282d6bae5189ab25712a693a01acfb3c10464b065816d33e` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `e7f20e3d02e088ace9f60a598bcfac3a5d33ac8fd1adb7fde1ca95b0811c3294` | 163.0K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `2cc536be8f58e794402d65af17779fe03062028d40e68f09d46c1acc197205c2` | 163.0K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -1127,6 +1127,8 @@ or the toolchain install (git-ignored; re-create with
 | `c/getDataFromE2RAM.c` | `e16bd04a9030060389ab79671a5bdaedf19e83b61809419a0bf89fd3d2295de0` | 2.4K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getDesiredTorqueCalcVar3_2d486.c` | `af1192cd5eab54c0142b375d805ef061d0ce16909612baee4a0effa765d0cb47` | 1.0K | Tracked file |
 | `c/getEngineCrankingStatusEnum___10ed2.c` | `12d3e9a1edeb1e6671797dc920b18f1fe6850489a37350bb759318d7088be688` | 1.1K | Tracked file |
+| `c/getEngineCrankingStatus_0x10EE6.c` | `6718360bb89b14cc81587dfbdd8998b4a7824916a89df38c8acf81dd852d6d11` | 3.5K | Tracked file |
+| `c/getEngineLimitTimingDerates_0x12CE8.c` | `84b43f3cd61076677d95363a779839e4140ecb9e255737f54754e91d1e50db70` | 3.9K | Tracked file |
 | `c/getEngineOffTimer.c` | `a991304600b08d07a380e7f00a85fed24d87c062967fa14f753ed48a5797de7e` | 1.3K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getEngineOnTimeForOilMetering.c` | `95d8becab0ecb97d84a854059ae24330900a2a82c2f1aa3f9ee7d6fa813008e9` | 1.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getEngineTorqueMaxCal_2a264.c` | `ae58f0ea0d76f76ae868d7c9a6b65759d4aed7e67b28e5866a8b6863ee64ae07` | 824B | Tracked file |
@@ -3600,6 +3602,8 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_getDataFromE2RAM_0x36C1C.py` | `9cfec2ea3ea72f5f2b29e3896a81dd5710ce394fd1a9a502f0cb0358a905d3a2` | 4.0K | Tracked file |
 | `c/tests/test_getDesiredTorqueCalcVar3_2d486.py` | `b0414360f5ebc09fd42ecd166b2be72e1ea7b2bd6135e1cc11a8389e2e4131fd` | 7.1K | Tracked file |
 | `c/tests/test_getEngineCrankingStatusEnum___10ed2.py` | `a40a090d76654d8ea81d76212806a913fe0ca56ac91648f99d2585f9a196d7ec` | 7.8K | Tracked file |
+| `c/tests/test_getEngineCrankingStatus_0x10EE6.py` | `3f7e4654a16bef1aeded9d999cbdb23e5c1755d72864a9702c7656f8ab4f81cd` | 4.2K | Tracked file |
+| `c/tests/test_getEngineLimitTimingDerates_0x12CE8.py` | `606411f0329f3e14a2610803a40afaf129cf7a30ff57b16b440ad8083b391f25` | 5.5K | Tracked file |
 | `c/tests/test_getEngineOffTimer.py` | `0e607655ce775e96f883f44a715a08c5e8fddf10a535b9ae5d926ca0805e78a8` | 1.2K | Python per-function behavior-equivalence test |
 | `c/tests/test_getEngineOnTimeForOilMetering.py` | `45871efee94a6cdddd9cf899ba9315149460aaa0058c6e227a33292a3d7f44bf` | 1.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_getEngineTorqueMaxCal_2a264.py` | `663720ea42fcedcaf9ff46a8a80c39eec789932ce2fb285126a709dda97bef78` | 9.0K | Tracked file |

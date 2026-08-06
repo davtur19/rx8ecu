@@ -725,7 +725,7 @@ addr,end,name,source,flag
 0x010E14,0x010EAC,coilOutputSomething?,ghidra-hand,
 0x010EAC,0x010ED2,calc_fuel_cut_flags_merged,ida-ai-xmap,DUBIOUS
 0x010ED2,0x010EE6,getEngineCrankingStatusEnum??,ghidra-hand,
-0x010EE6,0x010F04,getEngineCrankingStatus?,ghidra-hand,
+0x010EE6,0x010F04,getEngineCrankingStatus,c-lift,
 0x010F04,0x010F72,setTimingArrayValuesForOutput?,ghidra-hand,
 0x010F72,0x010F76,returnOne,ghidra-hand,
 0x010F76,0x010F84,returnDwellTime_fp,ghidra-hand,
@@ -788,7 +788,7 @@ addr,end,name,source,flag
 0x012904,0x012B6A,calculateOffThrottleTimingDerate,ghidra-hand,
 0x012B6A,0x012BD6,calculateOffThrottleORFuelCutTimer,ghidra-hand,
 0x012BD6,0x012CE8,somethingEngineLoadCalc,ghidra-hand,
-0x012CE8,0x012D30,getEngineLimitTimingDerates?,ghidra-hand,
+0x012CE8,0x012D30,getEngineLimitTimingDerates,c-lift,
 0x012D30,0x012E94,engineConditionDetectForTimingModification,ghidra-hand,
 0x012E94,0x013070,leadingAndTrailingSeperatorSomething,ghidra-hand,
 0x013070,0x01325C,roughKnockCorrection,ghidra-hand,
