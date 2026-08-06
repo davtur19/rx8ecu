@@ -348,8 +348,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                           % ((op >> 8) & 0xF, st['gbr_value'] or 0)],
                     'py': [], 'target': None, 'slot': None,
                     'mnem': 'ldc r%d,GBR' % ((op >> 8) & 0xF)}
-        if op & 0xF0FF in (0x4003, 0x4007):        # stc.l SR / ldc.l SR
+        if op & 0xF0FF in (0x4003, 0x4007, 0x4013, 0x4017):
+            # stc.l SR (0x4003) / ldc.l SR (0x4007) / stc.l GBR (0x4013) /
+            # ldc.l GBR (0x4017) via @-Rn / @Rn+.  Mirror sh2emu._exec
+            # (0x4003/0x4007/0x4013/0x4017): SR and GBR are independent state
+            # seeded in the mirror ('gbr' is seeded 0, like sr 0xF0), so a
+            # running lift stays == sh2emu (which also seeds gbr=0) even though
+            # nothing else in the body writes GBR.
             srn = (op >> 8) & 0xF
+            _sr_store = (op & 0xF) == 0x3   # low nibble 3 = stc.l (@-), 7 = ldc.l (@+)
+            _sr_reg = 'sr' if (op & 0xF0FF) in (0x4003, 0x4007) else 'gbr'
             if srn in (4, 5, 6, 7) and 'r%d' % srn not in st['written']:
                 bkind, abs_addr = 'param', None
             elif 'r%d' % srn in st['lits']:
@@ -357,13 +365,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             else:
                 if not allow_runtime_base:
                     return None
-                # rt-base: stack/indirect SR transfer through an unresolvable
-                # runtime register -> emit r-register-relative.
+                # rt-base: stack/indirect state transfer through an
+                # unresolvable runtime register -> emit r-register-relative.
                 bkind, abs_addr = 'param', None
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
-            if op & 0xF0FF == 0x4003:
+            if _sr_store:
                 if bkind == 'literal':
                     a = (abs_addr - 4) & MASK
                     eff = '0x%08X' % a
@@ -371,11 +379,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                             if ops.classify_addr(a) == 'RAM' else ' /* ROM */')
                 else:
                     eff, note = '(r%d - 4)' % srn, ''
-                c = ['*(volatile uint32_t*)%s = sr;%s' % (eff, note),
+                c = ['*(volatile uint32_t*)%s = %s;%s' % (eff, _sr_reg, note),
                      'r%d = r%d - 4;' % (srn, srn)]
-                py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, sr)' % srn,
+                py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, %s)' % (srn, _sr_reg),
                       'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (srn, srn)]
-                mnem = 'stc.l SR,@-r%d' % srn
+                mnem = 'stc.l %s,@-r%d' % (_sr_reg.upper(), srn)
             else:
                 if bkind == 'literal':
                     eff = '0x%08X' % (abs_addr & MASK)
@@ -385,11 +393,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     eff, note = 'r%d' % srn, ''
                 t = temp()
                 c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
-                     'sr = %s;' % t,
+                     '%s = %s;' % (_sr_reg, t),
                      'r%d = r%d + 4;' % (srn, srn)]
-                py = ['sr = _rdw(ram, r[%d], 4)' % srn,
+                py = ['%s = _rdw(ram, r[%d], 4)' % (_sr_reg, srn),
                       'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
-                mnem = 'ldc.l @r%d+,SR' % srn
+                mnem = 'ldc.l @r%d+,%s' % (srn, _sr_reg.upper())
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
@@ -1652,7 +1660,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    fr = [0.0] * 16\n'
         '    ns = {"r": r, "fr": fr, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": PRET,\n'
-        '          "sr": 0x000000F0, "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
+        '          "sr": 0x000000F0, "gbr": 0, "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
         '          "bits2f": bits2f, "f2bits": f2bits, "ram": ram,\n'
         '          "sp": r[15], "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS}}\n'

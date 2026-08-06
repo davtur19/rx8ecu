@@ -691,46 +691,51 @@ def decode_mem(opcode_hi_word, opcode_lo_word_or_None=None, ctx=None):
         ann = 'mov.%s @(r0,r%d),r%d' % (_SIZE_CH[size], m, n)
         return mem('load', size, m, None, n, 0, 'r0', None, ann)
 
-    # ---- SR system-register memory forms (additive, real): stc.l SR,@-Rn
-    # (0x4n03) / ldc.l @Rn+,SR (0x4n07) — sh2emu._exec 0x4n03/0x4n07.  Base
+    # ---- SR/GBR system-register memory forms (additive, real): stc.l SR,@-Rn
+    # (0x4n03) / ldc.l @Rn+,SR (0x4n07) / stc.l GBR,@-Rn (0x4n13) /
+    # ldc.l @Rn+,GBR (0x4n17) — sh2emu._exec 0x4n03/0x4n07/0x4n13/0x4n17.  Base
     # resolution is exactly the param/literal rule of the other mem forms (a
     # r15/r14 stack base falls through _resolve_base -> None and is rejected,
-    # as documented).  The value transferred is the `sr` state, not an rN, so
-    # src/dest stay None and 'sr_src'/'sr_dest' flag the op for the generator —
-    # _scan_mem_function only consumes size/dir/base_reg/auto (selection), and
-    # gen_c_lift_v3.walk_v3 renders the record itself (c_lift_ops.decode_mem
-    # dicts are never re-rendered by _mem_record for these).
-    if op & 0xF0FF == 0x4003:    # stc.l SR,@-Rn: rn -= 4; wr(rn, 4, sr)
+    # as documented).  The value transferred is the `sr`/`gbr` state, not an rN,
+    # so src/dest stay None and 'sr_src'/'sr_dest' (or 'gbr_src'/'gbr_dest')
+    # flag the op for the generator — _scan_mem_function only consumes
+    # size/dir/base_reg/auto (selection), and gen_c_lift_v3.walk_v3 renders the
+    # record itself (c_lift_ops.decode_mem dicts are never re-rendered by
+    # _mem_record for these).
+    _sr_fam = {0x4003: ('sr', 'store', 'SR', 'sr_src'),
+               0x4007: ('sr', 'load', 'SR', 'sr_dest'),
+               0x4013: ('gbr', 'store', 'GBR', 'gbr_src'),
+               0x4017: ('gbr', 'load', 'GBR', 'gbr_dest')}
+    _sf = _sr_fam.get(op & 0xF0FF)
+    if _sf is not None:
+        _sys_reg, _sdir, _sname, _sflag = _sf
         rb = _resolve_base(ctx, n)
         if rb is None:
             return None
         base_kind, abs_addr = rb
-        eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, -4, None, abs_addr)
-        c = ['*(volatile uint32_t*)%s = sr;' % eff]
-        if eff_abs is not None:
-            c[0] += _ram_note(eff_abs)
-        c.append('r%d = r%d - 4;' % (n, n))
-        return {'kind': 'mem', 'size': 4, 'dir': 'store', 'base': base_kind,
-                'c': c, 'src': None, 'base_reg': n, 'disp': -4, 'idx': None,
-                'auto': 'pre', 'sext': False, 'ann': 'stc.l SR,@-r%d' % n,
-                'uses': {'sr', 'r%d' % n}, 'sr_src': True}
-    if op & 0xF0FF == 0x4007:    # ldc.l @Rn+,SR: sr = rd(rn, 4); rn += 4
-        rb = _resolve_base(ctx, n)
-        if rb is None:
-            return None
-        base_kind, abs_addr = rb
+        if _sdir == 'store':
+            eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, -4, None, abs_addr)
+            c = ['*(volatile uint32_t*)%s = %s;' % (eff, _sys_reg)]
+            if eff_abs is not None:
+                c[0] += _ram_note(eff_abs)
+            c.append('r%d = r%d - 4;' % (n, n))
+            return {'kind': 'mem', 'size': 4, 'dir': 'store', 'base': base_kind,
+                    'c': c, 'src': None, 'base_reg': n, 'disp': -4, 'idx': None,
+                    'auto': 'pre', 'sext': False,
+                    'ann': 'stc.l %s,@-r%d' % (_sname, n),
+                    'uses': {_sys_reg, 'r%d' % n}, _sflag: True}
         eff, eff_abs = _eff_addr(base_kind, 'r%d' % n, 0, None, abs_addr)
         t = temp()
         c = ['uint32_t %s = *(volatile uint32_t*)%s;' % (t, eff)]
         if eff_abs is not None:
             c[0] += _ram_note(eff_abs)
-        c.append('sr = %s;' % t)
+        c.append('%s = %s;' % (_sys_reg, t))
         c.append('r%d = r%d + 4;' % (n, n))
         return {'kind': 'mem', 'size': 4, 'dir': 'load', 'base': base_kind,
                 'c': c, 'temp': t, 'dest': None, 'base_reg': n, 'disp': 0,
                 'idx': None, 'auto': 'post', 'sext': False,
-                'ann': 'ldc.l @r%d+,SR' % n, 'uses': {'sr', 'r%d' % n, t},
-                'sr_dest': True}
+                'ann': 'ldc.l @r%d+,%s' % (n, _sname),
+                'uses': {_sys_reg, 'r%d' % n, t}, _sflag: True}
 
     # ---- sts.l / lds.l mach/macl/pr stack/memory forms (additive, real):
     # mirror sh2emu._exec n0==0x4 `op & 0xF0FF` lines 450-455.  The transferred
