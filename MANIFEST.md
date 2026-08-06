@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4735 entries, 88.8M.** Regenerated 2026-08-02 for the
+in the working repository. **4743 entries, 88.9M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 742.3K |
+| (root) | 11 | 742.8K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1881 | 4.2M |
-| c/tests/ | 1948 | 15.1M |
+| c/ | 1885 | 4.2M |
+| c/tests/ | 1952 | 15.1M |
 | tools/ | 29 | 684.9K |
 | tools/tests/ | 3 | 52.0K |
 | docs/ | 225 | 832.2K |
@@ -23,7 +23,7 @@ in the working repository. **4735 entries, 88.8M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4735** | 88.8M |
+| **Total** | **4743** | 88.9M |
 
 ## External dependencies
 
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `d63dbd1aed2389b69f4e204bac80c9d849717bf651d56bbe441861cb56242604` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `c34d1ef0d15ebb51620d4a664ac6a076d9d6ffe1b5d94efe11d71ccabf505964` | 141.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `26f35c721c423f268be78621f1b3ec91f10c8eb6996e8dbc957c66c36aead76a` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `332e37a2bf93d6006b5fb0552b45e163fe0e3613d4d9f16903d20a2821005dfa` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -375,7 +375,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/addSaturate8Bit.c` | `cf605fc9870e06f1f3f8fa17e208469cc078ba0804b151f19436d25f3663563d` | 1.2K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/addSaturate8Bit_2478.c` | `8366638e41129052af095902ff0fb7ba4422c08d89c74cf5455bb635dc79b999` | 766B | Tracked file |
 | `c/add_float_to_ram_a898_16244.c` | `b342eb00cd362e00e42c2d874b08939466f5266d64f5467bd52db5bb9d53985f` | 1.2K | Tracked file |
+| `c/add_fuel_pressure_correction_0x126CA.c` | `61d9a25d60cfd4da3874a1fb5637dba4e5d436eceba5847ff8f43be67a5d1508` | 2.8K | Tracked file |
 | `c/add_fuel_pressure_correction_126ca.c` | `ed2cb458a21cd555d38310f1f228670e86f9a5a5725e4cf7a853ba7947c9654b` | 1.1K | Tracked file |
+| `c/add_rotor_timing_offset_0x126DA.c` | `443b62d4d24b7cf0e2b7fa41d6b88bb130044d566cf227c06932fc3a15217bc0` | 2.7K | Tracked file |
 | `c/add_rotor_timing_offset_126da.c` | `24301b0564a2207e7e40702faa9e86fd9c692327d7f1c6682e5f7b1780445ba2` | 1.1K | Tracked file |
 | `c/advance_retard_control_0x5027C_5027c.c` | `ea146b033be2fc1efa5d35c82dd383019279a86f5b70366df4af48f83d56352d` | 946B | Tracked file |
 | `c/airPerStroke_341e4.c` | `02874d083aa86f3292ba127ec66186e58d979f1c6d451baebd73ed07a3e31322` | 711B | Tracked file |
@@ -489,7 +491,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_manifold_pressure_error_clamp_10A5C.c` | `398cdba1c84153835c91a882baeb3d7e7667accae00f198974c1a52520785393` | 2.7K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calc_manifold_pressure_error_clamp_10A5C_10a5c.c` | `90c7222145d6e7172e163db8c3104f00661181e88bc6a4cc37b8a0a265dd2832` | 1.7K | Tracked file |
 | `c/calc_manifold_pressure_error_diff_10A88_10a88.c` | `f0742520cf769a868f1e61b60365ac29d7a826a073f7e5eebff82f10a11e4bbe` | 721B | Tracked file |
+| `c/calc_rotor_A_pressure_load_0x126EA.c` | `1d3166a4f656a63ec178c19760a1e7aac4d1ed5ce2170e0c559c6827315119e8` | 8.4K | Tracked file |
 | `c/calc_rotor_B_knock_flag_0x12A48.c` | `771ad61086cf479be3af3938e178497268cb334e2f5cee09ded8b48a2451ea28` | 6.8K | Tracked file |
+| `c/calc_rotor_B_pressure_load_0x127DE.c` | `71430f8d2aa063bfe7e41e987b6e1429491fa248db90dbf4931fac11894a35db` | 7.8K | Tracked file |
 | `c/calc_rotor_sync_base_A_13a5e.c` | `26d107cb616acbe14a1da44e9ab58f3f5d3cc7f517af5c4317a8da03ff201046` | 1.9K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_A_12b5e.c` | `e971bea7e9f35c2c6197ab264186a60261e8c6d8f730c4dfd8cd10a8e590e84e` | 1.1K | Tracked file |
 | `c/calc_rotor_sync_idle_gate_B.c` | `278b71ed6ed92a40f55f5bb47cf4c541f3941cc4fdad0a4deaea82936c3c374b` | 3.8K | Verified C lift (behavior-equivalent, emulator-proven) |
@@ -2262,7 +2266,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_add16bitSaturate_ADD1_ADD2_2460.py` | `207863bca0ed47b6a63121b5a374036e9eeaa9d24498c4534b8e99c7744f60f5` | 2.3K | Tracked file |
 | `c/tests/test_addSaturate8Bit_2478.py` | `753e43431a9340327476d28d3cd863ff6e60821f93b385a98ad34de1dd1db049` | 2.3K | Tracked file |
 | `c/tests/test_add_float_to_ram_a898_16244.py` | `ae9e12a2b3066379d74d99fbd3af4613f10065b4e295755ac985f623479c707d` | 8.4K | Tracked file |
+| `c/tests/test_add_fuel_pressure_correction_0x126CA.py` | `9c4ac16800872fb55340cb30c16e37558f5a78b1b847cea9191ff32475611feb` | 4.5K | Tracked file |
 | `c/tests/test_add_fuel_pressure_correction_126ca.py` | `56545b7759bc366a19b2747aba0024cf097e313f401de82a8f9628b892444b72` | 8.4K | Tracked file |
+| `c/tests/test_add_rotor_timing_offset_0x126DA.py` | `92bb3bad9fd228c75f0f6a301904fccfa9a5da44baac248a66064d666b153767` | 4.5K | Tracked file |
 | `c/tests/test_add_rotor_timing_offset_126da.py` | `71b9df3e542450bedd3adfa3a663cbd0a16448f19d4a910f0e53da12b33bb5b8` | 8.7K | Tracked file |
 | `c/tests/test_add_s32_saturate.py` | `5e72c86880bc7e6c53bb4affdda5f2e45c4122f78f64b360e4f6e25f51f0a71f` | 2.7K | Python per-function behavior-equivalence test |
 | `c/tests/test_advance_retard_control_0x5027C_5027c.py` | `37ce966f0ba50f8fbee7adbd768a3d96b988892bf2bf3c33468c1a2e2df2c37e` | 7.6K | Tracked file |
@@ -2383,7 +2389,9 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_manifold_pressure_error_clamp_10A5C.py` | `cdf6f3d5b71c66e7d8c927bb3074b847f53cd83cdeba37aa16779b45e9cc777b` | 3.5K | Python per-function behavior-equivalence test |
 | `c/tests/test_calc_manifold_pressure_error_clamp_10A5C_10a5c.py` | `1311d433a1cd9074e6b8b9b506e69846397d69aa61dad3180ae37d5aa67a9079` | 7.8K | Tracked file |
 | `c/tests/test_calc_manifold_pressure_error_diff_10A88_10a88.py` | `5ec73468d277d6fff185e5435f114724b461d788615790d1448a9a8048830915` | 2.3K | Tracked file |
+| `c/tests/test_calc_rotor_A_pressure_load_0x126EA.py` | `e3fb0e947ca98ea0f87386ab45296e312bc85bf605374eb932c75a2535481a5a` | 9.2K | Tracked file |
 | `c/tests/test_calc_rotor_B_knock_flag_0x12A48.py` | `5f98df45e376339842799d8b2c0dbbfcc74300b810f1b78b5d52e2f8d4019130` | 8.6K | Tracked file |
+| `c/tests/test_calc_rotor_B_pressure_load_0x127DE.py` | `698b3a9c53c015a31d656ece6d36c0ac132d9e5a6ff1a39683b5f7d74a8b5523` | 8.8K | Tracked file |
 | `c/tests/test_calc_rotor_sync_base_A_13a5e.py` | `0166b50a91c639032fe21f00637df935924073ecabbbdcd3fbf54c0bb437639b` | 7.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_A_12b5e.py` | `bcba0af60c36bf2d8856473e9fd9e5c65b9c73cfef9b144f67a811e218fad859` | 8.5K | Tracked file |
 | `c/tests/test_calc_rotor_sync_idle_gate_B.py` | `65a0233dcd3c4402409c337572772163edad160ea8ed1c5e8200f820f1e4fd23` | 4.1K | Python per-function behavior-equivalence test |
