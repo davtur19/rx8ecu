@@ -146,8 +146,8 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Barometric Pressure Adjustment Y Axis,0x0701f0,axis,1D,,,,high,axis_propagation
 60E1D400,O2 Switch,0x070264,table,1D,,,,high,docs_crossref
 60E1D400,O2 Switch Y Axis,0x070240,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 66_,0x07027c,table,1D,,,,high
-60E1D400,Y,0x070270,axis,1D,,,,high
+60E1D400,Fuel - Fuel Trim Learn - Coolant Temperature Threshold,0x07027c,table,1D,,,,high,uncovered_deep
+60E1D400,Fuel - Fuel Trim Learn - Coolant Temperature Threshold Y Axis,0x070270,axis,1D,,,,medium,axis_propagation3
 60E1D400,TPS Deadband,0x0702a4,table,1D,,,,high,docs_crossref
 60E1D400,TPS Deadband Y Axis,0x070280,axis,1D,,,,high,axis_propagation
 60E1D400,(Unknown - init_control_values),0x070334,table,1D,,,,high,consumer_noc_mapscan
@@ -210,16 +210,16 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Closed Loop Fuelling Threshold (Throttle Position)  Y Axis,0x071edc,axis,1D,,,,high,axis_propagation
 60E1D400,Rotary Combustion Efficiency (Map),0x071f84,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Rotary Combustion Efficiency (Map) Y Axis,0x071f3c,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 98_,0x071f9c,table,1D,,,,high
-60E1D400,Y,0x071f98,axis,1D,,,,high
+60E1D400,Sensors - MAF - Rotary Chamber Scalar,0x071f9c,table,1D,,,,high,uncovered_deep
+60E1D400,Sensors - MAF - Rotary Chamber Scalar Y Axis,0x071f98,axis,1D,,,,medium,axis_propagation3
 60E1D400,Wankel Chamber Pressure Analysis (Map),0x071fe8,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Wankel Chamber Pressure Analysis (Map) Y Axis,0x071fa0,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 100_,0x072000,table,1D,,,,high
-60E1D400,Y,0x071ffc,axis,1D,,,,high
+60E1D400,Fuel - Fuel Control - State Scalar,0x072000,table,1D,,,,high,uncovered_deep
+60E1D400,Fuel - Fuel Control - State Scalar Y Axis,0x071ffc,axis,1D,,,,medium,axis_propagation3
 60E1D400,Wankel Chamber Pressure Analysis (Map) 2,0x07204c,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Wankel Chamber Pressure Analysis (Map) 2 Y Axis,0x072004,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 102_,0x072064,table,1D,,,,high
-60E1D400,Y,0x072060,axis,1D,,,,high
+60E1D400,Sensors - Wankel - Chamber Pressure Scalar,0x072064,table,1D,,,,high,uncovered_deep
+60E1D400,Sensors - Wankel - Chamber Pressure Scalar Y Axis,0x072060,axis,1D,,,,medium,axis_propagation3
 60E1D400,Fuelling 8,0x072084,table,,,,,high
 60E1D400,Y,0x072068,axis,1D,,,,high
 60E1D400,Temp Correction A,0x072c20,table,1D,,,,high,docs_crossref
@@ -262,12 +262,12 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,(Unknown - float_map_3pt_calc) 2 Y Axis,0x073b88,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - float_map_3pt_calc) 3,0x073c00,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - float_map_3pt_calc) 3 Y Axis,0x073bcc,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 124_,0x073c50,table,1D,,,,high
-60E1D400,Y,0x073c24,axis,1D,,,,high
-60E1D400,Table 2D - 125_,0x073c88,table,1D,,,,high
-60E1D400,Y,0x073c5c,axis,1D,,,,high
-60E1D400,Table 2D - 126_,0x073cc0,table,1D,,,,high
-60E1D400,Y,0x073c94,axis,1D,,,,high
+60E1D400,Throttle - Pedal Position - Sensor Mode A,0x073c50,table,1D,,,,high,uncovered_deep
+60E1D400,Throttle - Pedal Position - Sensor Mode A Y Axis,0x073c24,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Pedal Position - Sensor Mode B,0x073c88,table,1D,,,,high,uncovered_deep
+60E1D400,Throttle - Pedal Position - Sensor Mode B Y Axis,0x073c5c,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Pedal Position - Sensor Mode C,0x073cc0,table,1D,,,,high,uncovered_deep
+60E1D400,Throttle - Pedal Position - Sensor Mode C Y Axis,0x073c94,axis,1D,,,,medium,axis_propagation3
 60E1D400,Air Fuel Ratio Check (Map),0x073d28,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Air Fuel Ratio Check (Map) Y Axis,0x073cf8,axis,1D,,,,high,axis_propagation2
 60E1D400,Acceleration Fuel Enrichment - Cold,0x073db4,table,1D,,,,high,docs_crossref
@@ -342,10 +342,10 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Transient Fuel Comp (Map) Y Axis,0x076090,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - math_accumulator),0x076b28,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - math_accumulator) Y Axis,0x076b18,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 164_,0x0778f0,table,1D,,,,high
-60E1D400,Y,0x0778ec,axis,1D,,,,high
-60E1D400,Table 2D - 165_,0x0778f8,table,1D,,,,high
-60E1D400,Y,0x0778f4,axis,1D,,,,high
+60E1D400,Cooling - Fan - Engage Threshold,0x0778f0,table,1D,,,,high,uncovered_deep
+60E1D400,Cooling - Fan - Engage Threshold Y Axis,0x0778ec,axis,1D,,,,medium,axis_propagation3
+60E1D400,Cooling - Fan - Disengage Threshold,0x0778f8,table,1D,,,,high,uncovered_deep
+60E1D400,Cooling - Fan - Disengage Threshold Y Axis,0x0778f4,axis,1D,,,,medium,axis_propagation3
 60E1D400,(Unknown - conditional_fpu_accumulate_handler),0x0779d8,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - conditional_fpu_accumulate_handler) Y Axis,0x0779b8,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - conditional_fpu_accumulate_handler) 2,0x0779fc,table,1D,,,,high,consumer_noc_mapscan
@@ -360,8 +360,8 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Coil Output Timing (Map) Y Axis,0x078284,axis,1D,,,,high,axis_propagation2
 60E1D400,Coil Output Timing (Map) 2,0x0782b8,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Coil Output Timing (Map) 2 Y Axis,0x0782a4,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 173_,0x0782c4,table,1D,,,,high
-60E1D400,Y,0x0782c0,axis,1D,,,,high
+60E1D400,Fuel Injection - Startup - Injector Pulse Width Multiplier,0x0782c4,table,1D,,,,high,uncovered_deep
+60E1D400,Fuel Injection - Startup - Injector Pulse Width Multiplier Y Axis,0x0782c0,axis,1D,,,,medium,axis_propagation3
 60E1D400,(Unknown - conditional_fpu_calc),0x0782d4,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - conditional_fpu_calc) Y Axis,0x0782c8,axis,1D,,,,high,axis_propagation2
 60E1D400,Injector Deadtime Primary,0x078318,table,1D,,,,high,docs_crossref
@@ -398,14 +398,14 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,(Unknown - extensive_table_based_fpu_calc) 7 Y Axis,0x078b14,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - complex_fpu_div_sqrt_accumulate),0x078b68,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - complex_fpu_div_sqrt_accumulate) Y Axis,0x078b44,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 192_,0x078ba0,table,1D,,,,high
-60E1D400,Y,0x078b74,axis,1D,,,,high
+60E1D400,Auxiliary Port Valve - Schedule - Condition Table,0x078ba0,table,1D,,,,high,uncovered_deep
+60E1D400,Auxiliary Port Valve - Schedule - Condition Table Y Axis,0x078b74,axis,1D,,,,medium,axis_propagation3
 60E1D400,(Unknown - conditional_fpu_multi_flag_selector),0x078be8,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - conditional_fpu_multi_flag_selector) Y Axis,0x078bb8,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - extensive_fpu_threshold_and_calc),0x078c68,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - extensive_fpu_threshold_and_calc) Y Axis,0x078c4c,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 195_,0x078c74,table,1D,,,,high
-60E1D400,Y,0x078c70,axis,1D,,,,high
+60E1D400,Cruise Control - Set Speed - Condition Threshold,0x078c74,table,1D,,,,high,uncovered_deep
+60E1D400,Cruise Control - Set Speed - Condition Threshold Y Axis,0x078c70,axis,1D,,,,medium,axis_propagation3
 60E1D400,Max Load - Intake Temperature Compensation,0x078dc0,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Max Load - Intake Temperature Compensation Y Axis,0x078d9c,axis,1D,,,,high,axis_propagation
 60E1D400,Engine Torque Max - Barometric Pressure Compensation,0x078df8,table,1D,,,,high,rx8_defs_60E1D400
@@ -586,10 +586,10 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,(Unknown - datalog_format) Y Axis,0x07c738,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - datalog_write),0x07c780,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - datalog_write) Y Axis,0x07c75c,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 2D - 286_,0x07c8ec,table,1D,,,,high
-60E1D400,Y,0x07c8b0,axis,1D,,,,high
-60E1D400,Table 2D - 287_,0x07c920,table,1D,,,,high
-60E1D400,Y,0x07c8fc,axis,1D,,,,high
+60E1D400,Datalog - Engine - Trace Level Table,0x07c8ec,table,1D,,,,high,uncovered_deep
+60E1D400,Datalog - Engine - Trace Level Table Y Axis,0x07c8b0,axis,1D,,,,medium,axis_propagation3
+60E1D400,Datalog - Battery - Voltage Correction Table,0x07c920,table,1D,,,,high,uncovered_deep
+60E1D400,Datalog - Battery - Voltage Correction Table Y Axis,0x07c8fc,axis,1D,,,,medium,axis_propagation3
 60E1D400,Table 2D - 288 Check DataType,0x06d158,intermediate,1D,,,,low
 60E1D400,Y,0x06d140,axis,1D,,,,high
 60E1D400,Table 2D - 289 Check DataType,0x06d178,intermediate,1D,,,,low
@@ -888,9 +888,9 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Ignition 17,0x06f840,table,,,,,low
 60E1D400,X,0x06f838,axis,1D,,,,high
 60E1D400,Y,0x06f83c,axis,1D,,,,high
-60E1D400,Table 3D - 22_,0x0708a8,table,2D,,,,high
-60E1D400,X,0x070868,axis,1D,,,,high
-60E1D400,Y,0x070888,axis,1D,,,,high
+60E1D400,Fuel - Long Term Fuel Trim - Load Correction Matrix,0x0708a8,table,2D,,,,high,uncovered_deep
+60E1D400,Fuel - Long Term Fuel Trim - Load Correction Matrix X Axis,0x070868,axis,1D,,,,medium,axis_propagation3
+60E1D400,Fuel - Long Term Fuel Trim - Load Correction Matrix Y Axis,0x070888,axis,1D,,,,medium,axis_propagation3
 60E1D400,Closed Loop WOT Enrichment??,0x070924,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Closed Loop WOT Enrichment?? X Axis,0x0708e8,axis,1D,,,,high,axis_propagation
 60E1D400,Closed Loop WOT Enrichment?? Y Axis,0x070918,axis,1D,,,,high,axis_propagation
@@ -960,9 +960,9 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,(Unknown - fault_gated_float_out),0x07393c,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - fault_gated_float_out) X Axis,0x0738c0,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - fault_gated_float_out) Y Axis,0x073900,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 3D - 46_,0x073d64,table,2D,,,,high
-60E1D400,X,0x073d40,axis,1D,,,,high
-60E1D400,Y,0x073d54,axis,1D,,,,high
+60E1D400,Throttle - Pedal Position - Load/RPM Correction Matrix,0x073d64,table,2D,,,,high,uncovered_deep
+60E1D400,Throttle - Pedal Position - Load/RPM Correction Matrix X Axis,0x073d40,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Pedal Position - Load/RPM Correction Matrix Y Axis,0x073d54,axis,1D,,,,medium,axis_propagation3
 60E1D400,Engine Load Calculation (Map),0x073e3c,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,Engine Load Calculation (Map) X Axis,0x073df4,axis,1D,,,,high,axis_propagation2
 60E1D400,Engine Load Calculation (Map) Y Axis,0x073e20,axis,1D,,,,high,axis_propagation2
@@ -1089,12 +1089,12 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuel Calculation Callback (Map) 2,0x07ad30,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,Fuel Calculation Callback (Map) 2 X Axis,0x07ace8,axis,1D,,,,high,axis_propagation2
 60E1D400,Fuel Calculation Callback (Map) 2 Y Axis,0x07ad0c,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 3D - 89_,0x07addc,table,2D,,,,high
-60E1D400,X,0x07add4,axis,1D,,,,high
-60E1D400,Y,0x07add8,axis,1D,,,,high
-60E1D400,Table 3D - 90_,0x07ade8,table,2D,,,,high
-60E1D400,X,0x07ade0,axis,1D,,,,high
-60E1D400,Y,0x07ade4,axis,1D,,,,high
+60E1D400,Throttle - Liftoff - Fuel Cut Trigger,0x07addc,table,2D,,,,high,uncovered_deep
+60E1D400,Throttle - Liftoff - Fuel Cut Trigger X Axis,0x07add4,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Liftoff - Fuel Cut Trigger Y Axis,0x07add8,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Liftoff - Fuel Cut Release,0x07ade8,table,2D,,,,high,uncovered_deep
+60E1D400,Throttle - Liftoff - Fuel Cut Release X Axis,0x07ade0,axis,1D,,,,medium,axis_propagation3
+60E1D400,Throttle - Liftoff - Fuel Cut Release Y Axis,0x07ade4,axis,1D,,,,medium,axis_propagation3
 60E1D400,Injection Angle,0x07b2b8,table,,,,,high
 60E1D400,X,0x07b250,axis,1D,,,,high
 60E1D400,Y,0x07b298,axis,1D,,,,high
@@ -1128,9 +1128,9 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,(Unknown - datalog_write) 3,0x07c844,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,(Unknown - datalog_write) 3 X Axis,0x07c808,axis,1D,,,,high,axis_propagation2
 60E1D400,(Unknown - datalog_write) 3 Y Axis,0x07c82c,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 3D - 102_,0x07c9b4,table,2D,,,,high
-60E1D400,X,0x07c92c,axis,1D,,,,high
-60E1D400,Y,0x07c98c,axis,1D,,,,high
+60E1D400,Datalog - Engine - Load Matrix,0x07c9b4,table,2D,,,,high,uncovered_deep
+60E1D400,Datalog - Engine - Load Matrix X Axis,0x07c92c,axis,1D,,,,medium,axis_propagation3
+60E1D400,Datalog - Engine - Load Matrix Y Axis,0x07c98c,axis,1D,,,,medium,axis_propagation3
 60E1D400,Engine Load Correction (Map),0x06d230,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,Engine Load Correction (Map) X Axis,0x06d200,axis,1D,,,,high,axis_propagation2
 60E1D400,Engine Load Correction (Map) Y Axis,0x06d218,axis,1D,,,,high,axis_propagation2
@@ -1152,27 +1152,27 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Knock Sensor Filter (Map),0x073f14,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,Knock Sensor Filter (Map) X Axis,0x073ee0,axis,1D,,,,high,axis_propagation2
 60E1D400,Knock Sensor Filter (Map) Y Axis,0x073ef8,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 3D - 110_,0x075d5c,table,2D,,,,high
-60E1D400,X,0x075cf8,axis,1D,,,,high
-60E1D400,Y,0x075d0c,axis,1D,,,,high
+60E1D400,CAN Faults - Fault Counter - Snapshot Matrix,0x075d5c,table,2D,,,,high,uncovered_deep
+60E1D400,CAN Faults - Fault Counter - Snapshot Matrix X Axis,0x075cf8,axis,1D,,,,medium,axis_propagation3
+60E1D400,CAN Faults - Fault Counter - Snapshot Matrix Y Axis,0x075d0c,axis,1D,,,,medium,axis_propagation3
 60E1D400,Torque Limit Multipoint (Map),0x0774c0,table,2D,,,,high,consumer_noc_mapscan
 60E1D400,Torque Limit Multipoint (Map) X Axis,0x077488,axis,1D,,,,high,axis_propagation2
 60E1D400,Torque Limit Multipoint (Map) Y Axis,0x0774ac,axis,1D,,,,high,axis_propagation2
-60E1D400,Table 3D - 112_,0x0775b0,table,2D,,,,high
-60E1D400,X,0x077574,axis,1D,,,,high
-60E1D400,Y,0x07759c,axis,1D,,,,high
-60E1D400,Table 3D - 113_,0x077694,table,2D,,,,high
-60E1D400,X,0x077678,axis,1D,,,,high
-60E1D400,Y,0x077680,axis,1D,,,,high
-60E1D400,Table 3D - 114_,0x0776d8,table,2D,,,,high
-60E1D400,X,0x0776bc,axis,1D,,,,high
-60E1D400,Y,0x0776c4,axis,1D,,,,high
-60E1D400,Table 3D - 115_,0x077738,table,2D,,,,high
-60E1D400,X,0x077700,axis,1D,,,,high
-60E1D400,Y,0x077724,axis,1D,,,,high
-60E1D400,Table 3D - 116_,0x077814,table,2D,,,,high
-60E1D400,X,0x0777ec,axis,1D,,,,high
-60E1D400,Y,0x077800,axis,1D,,,,high
+60E1D400,Faults - Diagnostic - Level Matrix,0x0775b0,table,2D,,,,high,uncovered_deep
+60E1D400,Faults - Diagnostic - Level Matrix X Axis,0x077574,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix Y Axis,0x07759c,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 2,0x077694,table,2D,,,,high,uncovered_deep
+60E1D400,Faults - Diagnostic - Level Matrix 2 X Axis,0x077678,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 2 Y Axis,0x077680,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 3,0x0776d8,table,2D,,,,high,uncovered_deep
+60E1D400,Faults - Diagnostic - Level Matrix 3 X Axis,0x0776bc,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 3 Y Axis,0x0776c4,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 4,0x077738,table,2D,,,,high,uncovered_deep
+60E1D400,Faults - Diagnostic - Level Matrix 4 X Axis,0x077700,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 4 Y Axis,0x077724,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 5,0x077814,table,2D,,,,high,uncovered_deep
+60E1D400,Faults - Diagnostic - Level Matrix 5 X Axis,0x0777ec,axis,1D,,,,medium,axis_propagation3
+60E1D400,Faults - Diagnostic - Level Matrix 5 Y Axis,0x077800,axis,1D,,,,medium,axis_propagation3
 60E1D400,Oil Metering By Load,0x0790c4,table,,,,,high
 60E1D400,X,0x079034,axis,1D,,,,high
 60E1D400,Y,0x079080,axis,1D,,,,high
