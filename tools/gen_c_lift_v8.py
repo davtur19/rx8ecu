@@ -1241,6 +1241,24 @@ def _callee_walk_end(rom, t, end_c):
     return walk_end
 
 
+def _emit_one(pc, op, rom):
+    """Emit a single non-branch instruction record (synthesized delay slot for a
+    trampoline bra).  Mirrors build_cfg's local emit_one but records a generic
+    'st' without stack-state tracking — the trampoline's delay slot is normally
+    a nop / plain stmt.  Returns the record, or an opaque stub if unmapped."""
+    d = ops.translate(op, pc, rom)
+    if d is None:
+        return {'pc': pc, 'kind': 'st', 'op': None,
+                'c': ['/* delay slot 0x%04X — opaque */' % op],
+                'py': [], 'target': None, 'slot': None,
+                'mnem': 'op 0x%04X' % op}
+    return {'pc': pc, 'op': op, 'kind': 'st',
+            'c': list(d.get('c') or []),
+            'py': list(d.get('py') or []),
+            'target': None, 'slot': None,
+            'mnem': d.get('ann') or ('op 0x%04X' % op)}
+
+
 def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     """Inline-walk a callee for the v8 mirror.  Returns (records, None) on
     success or (None, reason).
@@ -1268,10 +1286,35 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
         return None, ('no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
     walk_end = _callee_walk_end(rom, t, end_c)
-    w = v3.walk_v3(rom, t, walk_end, relax_chain=True)
-    if w is None:
-        return None, ('walk-fail', t, '0x%X..0x%X' % (t, walk_end))
-    records, _info, _lab = w
+    cfg_end = min(walk_end + 2, end_c)
+    res = build_cfg(rom, t, cfg_end, allow_runtime_base=True)
+    if res.reject is not None:
+        reason, pc = res.reject
+        if reason == 'target_fuori':
+            # trampoline: callee immediately bra's to an out-of-span target.
+            # Re-decode the bra at pc to get the target, then recurse.
+            op = (rom[pc] << 8) | rom[pc + 1]
+            bi = ops.branch_info(op)
+            if bi is None or bi.get('kind') != 'bra':
+                return None, ('trampoline', t, pc, reason)
+            tgt = (pc + 4 + bi['target_disp'] * 2) & MASK
+            sub, reason2 = _walk_callee(rom, tgt, catalog, bounds,
+                                        depth=depth + 1, seen=seen)
+            if sub is None:
+                return None, ('trampoline', t, tgt, reason2)
+            # synthesize the bra record (delay slot at pc+2)
+            slot = None
+            spc = pc + 2
+            if spc + 1 < walk_end:
+                sop = (rom[spc] << 8) | rom[spc + 1]
+                slot = _emit_one(spc, sop, rom)
+                if slot is None:
+                    return None, ('trampoline-slot', t, pc)
+            br_rec = {'pc': pc, 'op': op, 'kind': 'branch',
+                      'mnem': 'bra %#x' % tgt, 'target': tgt, 'slot': slot}
+            return [br_rec] + sub, None
+        return None, (reason, pc)
+    records = res.records
     # bug d (walk): a callee whose catalog span is cut mid-epilogue ends its
     # walk on `lds.l @r15+,pr` (0x4F26) with no rts in-span — the inlined
     # mirror stops there while sh2emu falls into the next function.  Reject
@@ -1283,15 +1326,6 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                 if walk_end + 1 < len(rom) else None
             if _nxt != 0x000B:
                 return None, ('span-no-return', t)
-    if records and records[0]['kind'] == 'branch' and \
-            (records[0].get('mnem') or '').startswith('bra'):
-        tgt = records[0]['target']
-        if tgt is not None and not (t <= tgt < walk_end):
-            sub, reason = _walk_callee(rom, tgt, catalog, bounds,
-                                       depth=depth + 1, seen=seen)
-            if sub is None:
-                return None, ('trampoline', t, tgt, reason)
-            records = records + sub
     # inline nested call targets so the mirror can execute them (a callee that
     # jsr/jmp's another function needs that function's records in the mirror,
     # or the mirror returns early at the call and diverges from sh2emu).
