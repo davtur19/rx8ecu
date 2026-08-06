@@ -1,6 +1,6 @@
 # docs/ — documentation index
 
-Index of the documentation shipped in this repo (alphabetical within each section); files moved to private storage are intentionally not listed.
+Index of shipped docs (alphabetical per section); files moved to private storage not listed.
 
 - [docs/notes/](#docsnotes--project-knowledge-base) — project knowledge base
 - [docs/subsystems/](#docssubsystems--subsystem-analysis) — subsystem analysis
@@ -66,7 +66,7 @@ Index of the documentation shipped in this repo (alphabetical within each sectio
 - [`arbitrateFuelCut`](docs/functions/arbitrateFuelCut.md)
 - [`bitfield_extract_merge`](docs/functions/bitfield_extract_merge.md)
 - [`byteToUDS_SERVICE_DATA`](docs/functions/byteToUDS_SERVICE_DATA.md)
-- [`bytetouds_service_data`](docs/functions/bytetouds_service_data.md)
+- [`bytetouds_service_data`](docs/functions/byteToUDS_SERVICE_DATA.md)
 - [`calcDesiredAlternatorVoltage`](docs/functions/calcDesiredAlternatorVoltage.md)
 - [`calcDiagFuelInjectorTrim`](docs/functions/calcDiagFuelInjectorTrim.md)
 - [`calcInjectorCrankingTime`](docs/functions/calcInjectorCrankingTime.md)
@@ -145,7 +145,7 @@ Index of the documentation shipped in this repo (alphabetical within each sectio
 - [`getSensorStuff`](docs/functions/getSensorStuff.md)
 - [`getSpeedLimitCal`](docs/functions/getSpeedLimitCal.md)
 - [`getThrottlePlatePosForOBD`](docs/functions/getThrottlePlatePosForOBD.md)
-- [`getfaultstatus`](docs/functions/getfaultstatus.md)
+- [`getfaultstatus`](docs/functions/getFaultStatus.md)
 - [`handleDiagInjectorPulse`](docs/functions/handleDiagInjectorPulse.md)
 - [`ignitionCoilPulse`](docs/functions/ignitionCoilPulse.md)
 - [`ignitionDwellOutputInit`](docs/functions/ignitionDwellOutputInit.md)
@@ -222,7 +222,7 @@ Index of the documentation shipped in this repo (alphabetical within each sectio
 - [`throttlePedalADCRead`](docs/functions/throttlePedalADCRead.md)
 - [`throttlePlateSomethingFuelCut`](docs/functions/throttlePlateSomethingFuelCut.md)
 - [`txCAN_EventBased`](docs/functions/txCAN_EventBased.md)
-- [`udsErrorResponse`](docs/functions/udsErrorResponse.md)
+- [`udsErrorResponse`](docs/functions/udserrorresponse.md)
 - [`udserrorresponse`](docs/functions/udserrorresponse.md)
 - [`udsresponserelated`](docs/functions/udsresponserelated.md)
 - [`udsserviceresponse`](docs/functions/udsserviceresponse.md)

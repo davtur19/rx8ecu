@@ -2,8 +2,6 @@
 
 Active RE work. Non-discoverable facts: `KNOWLEDGE.md`. Confirmed discoveries: `FINDINGS.md`.
 
----
-
 ## Launch-Control Patch
 
 **Code cave**: `0x6C7FE–0x6CBFA` — stock = all `0xFF`; a tuned variant injects SH-2E code here.
@@ -12,7 +10,7 @@ Active RE work. Non-discoverable facts: `KNOWLEDGE.md`. Confirmed discoveries: `
 
 **Patch at `0x35BBC`** (`LC_GateWrapper`): jump → `LC_GateCondition_RPMLoad` at `0x6CA80`.
 
-ROM immobilizer at `0x35D90` — **unchanged** between stock and tuned variants. No-start = EEPROM data, not ROM immo.
+ROM immobilizer at `0x35D90` — **unchanged** between stock and tuned. No-start = EEPROM data, not ROM immo.
 
 ### Two separate control paths
 
@@ -37,9 +35,7 @@ Wrong ECU → checksum fails (sum ≠ −23) → output forced to 0 → throttle
 - RPM targets: 5100 (stationary), 8300 (rolling < 9 km/h), 9300 (full active)
 
 ### Inject into stock
-The private injector `tools/<lc_patch>.py` (**not shipped** — private checkout only) injects the cave code into `60E1D400.bin`, NOPs out `LC_ValidateChecksum17`, fixes checksum.
-
----
+Private injector `tools/<lc_patch>.py` (**not shipped**) injects the cave code into `60E1D400.bin`, NOPs out `LC_ValidateChecksum17`, fixes checksum.
 
 ## Ghidra Function Labels
 
@@ -70,39 +66,32 @@ The private injector `tools/<lc_patch>.py` (**not shipped** — private checkout
 | `0xFFFFC004` | `EEPROM_PairingByte` | Non-zero = paired |
 | `0xFFFFA0D4` | (throttle) | ETB commanded throttle angle, uint16 0–65535 |
 
----
-
 ## CAN Dispatch Table
 
-Location: `0x4E728` (copy at `0x4E828`). Entry = 16 bytes.
-Handler ptr formula: `(b[12] << 16) | int.from_bytes(b[10:12], 'big')`
+Location: `0x4E728` (copy at `0x4E828`). Entry = 16 bytes. Handler ptr: `(b[12] << 16) | int.from_bytes(b[10:12], 'big')`
 
 | CAN ID | Handler | Notes |
 |---|---|---|
-| 0x0201 | 0x1BB5C | RPM / vehicle speed / accel (field-verified; see CAN_PROTOCOL.md "Field vs firmware") |
+| 0x0201 | 0x1BB5C | RPM / vehicle speed / accel (field-verified; CAN_PROTOCOL.md "Field vs firmware") |
 | 0x0231 | 0x1BCC4/0x1BB48 | Engine state / gear selector — field data differs (MT/AT split): OPEN |
 | 0x0250 | 0x1CEB8 | Injection pulse width (Rotarytronics patch target) — byte3 = IAT per field: OPEN |
 | 0x0630 | 0x1C044 | Fan status (Rotarytronics patch target) |
 | 0x7DF/0x7E0 | 0x0DE04 | OBD2 UDS handler |
 
-All RX-8 broadcast IDs (0x201, 0x203, 0x215, 0x231, 0x240, 0x250, 0x420, 0x630, 0x650) are proprietary — not visible via standard OBD2. See `docs/notes/CAN_PROTOCOL.md` for full list.
-
----
+All RX-8 broadcast IDs (0x201, 0x203, 0x215, 0x231, 0x240, 0x250, 0x420, 0x630, 0x650) are proprietary — not visible via standard OBD2. See `docs/notes/CAN_PROTOCOL.md`.
 
 ## Open Investigation Items
 
 1. **Boot initializer for `0xFFFFC37E`**: which function copies EEPROM → RAM at that offset? Not found.
 2. **`0x8F62` = `ignitionDwellOutputInit`** (verified: ignition-dwell chain; tail-calls `getIgnitionDwellTime`@0x94C8). Dwell PWM init.
-3. **0x7FFF4 second checksum**: algorithm unknown. Not verified at ECU runtime — low priority.
+3. **0x7FFF4 second checksum**: algorithm unknown; NOT verified at ECU runtime — low priority.
 4. **Live-ECU full function map**: CAN table located, most functions unnamed.
-5. **Modified stock functions outside cave**: `0x1038`, `0x109C`, `0x121F0`, `0x1237C` — semantic roles not fully confirmed.
-
----
+5. **Modified stock functions outside cave**: `0x1038`, `0x109C`, `0x121F0`, `0x1237C` — roles not fully confirmed.
 
 ## DENSO Checksum
 
-Additive sum of BE dwords over ROM range. Descriptor at `0x7FB80`: `[lo_addr:4][hi_addr:4][diff:4]` — range lo=`0x2000`, hi=`0x7DAFF`; target = `sum + diff = 0x5AA5A55A`; diff stored at `0x7FB88`.
+Additive sum of BE dwords over ROM range. Descriptor @`0x7FB80`: `[lo_addr:4][hi_addr:4][diff:4]` — range lo=`0x2000`, hi=`0x7DAFF`; target = `sum + diff = 0x5AA5A55A`; diff stored @`0x7FB88`.
 
-Second word at `0x7FFF4`: different algo, unknown, NOT verified at ECU runtime — ignore for now.
+Second word @`0x7FFF4`: different algo, unknown, NOT verified at runtime — ignore.
 
 Tool: `python tools/denso_ck.py <rom.bin>` (verify) / `-f` (fix in-place) / `-o <out>` (fix to copy).

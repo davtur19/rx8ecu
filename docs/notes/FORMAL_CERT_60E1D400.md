@@ -19,7 +19,7 @@ python3 tools/verify_formal.py --rom roms/stock/60E1D400.bin --asm src/60E1D400_
 
 Determinism: two consecutive runs produce byte-identical output (diff empty).
 
-Retro from v2 (check semantics): P3 = branch/CFG violations; P4 = unreferenced data + dead code; P5 = CODE-HIDDEN gaps. The v2→v3 transition fixed all 11 LIVE P3, the 37,736 unref words, and the 11 CODE-HIDDEN gaps (actions below), leaving residual_LIVE=0. Dead-code FLAG 48,366 & DEAD branches 83 remain as non-fatal FLAGs.
+P3 = branch/CFG violations; P4 = unreferenced data + dead code; P5 = CODE-HIDDEN gaps. The v2→v3 transition fixed all 11 LIVE P3, the 37,736 unref words, and the 11 CODE-HIDDEN gaps (actions below), leaving residual_LIVE=0. Dead-code FLAG 48,366 & DEAD branches 83 remain as non-fatal FLAGs.
 
 ## Actions taken to certify (no `.s` edit; byte-exact 9/9 preserved)
 
@@ -52,8 +52,6 @@ Retro from v2 (check semantics): P3 = branch/CFG violations; P4 = unreferenced d
 
 **CERTIFIED** — P1/P2 byte-exact and fully partitioned; P3/P4/P5 zero LIVE violations (all residual LIVE items declared as traps / declared table data). Byte-exact maintained across all 9 stock ROMs (`./tools/verify_all.sh` → 9/9 `BYTE-EXACT`).
 
----
-
 # 9-ROM certification (2026-08-04)
 
 `tools/verify_formal.py` was parametrized per-ROM (PASSO 1): the hardcoded `DECLARED_TRAP` dict and the `data_regions_60E1D400.csv` path were extracted into per-ROM declared configs `analysis/coverage/declared_<ROM>.csv` (`kind,start,end,class,src,motivo` rows: `data` = declared table region for P4, `trap` = intentional branch into filler/data-table for P3). The verifier derives the config + uncovered CSV from the ROM id (`--asm` basename) and takes an optional `--declared <file>` override; an empty/missing config is valid. The baseline (60E1D400) output is byte-identical before/after the refactor (`diff` of the certificate block: empty).
@@ -76,7 +74,7 @@ Retro from v2 (check semantics): P3 = branch/CFG violations; P4 = unreferenced d
 
 ## Declared configs (`analysis/coverage/declared_<ROM>.csv`)
 
-Every non-baseline ROM got the same Denso evidence-based structure as the baseline (verified per ROM: ~38–40k unreferenced words in the 0x60000–0x7FFFF calibration band, ~1050 beyond-image words at 0x80000–0x80970, ~300 vector/pool words below 0x60000):
+Every non-baseline ROM got the same evidence-based structure as the baseline (verified per ROM: ~38–40k unreferenced words in the 0x60000–0x7FFFF calibration band, ~1050 beyond-image words at 0x80000–0x80970, ~300 vector/pool words below 0x60000):
 - `data,393216,524288,cal_table` — contiguous calibration/data band (P4);
 - `data,524288,526708,cal_table` — extension/cfg words beyond the image (P4);
 - `literal_pool` rows for the residual vector/pool clusters below 0x60000 (P4);
@@ -97,18 +95,6 @@ Trap counts per ROM: 60E0E500=6, 60E0E700=6, 60E0FB00=12, 60E0FC00=14, 60E15120=
 - DEAD dangling gap branch-ins: 0–3 per ROM (FLAG).
 
 None are violations; all documented in the per-ROM certificate output. No true hidden-code residual remains un-annotated.
-
----
-
-# v1 → v2 result history (superseded, retained for record)
-
-v1 (syntactic, decidable; `--rom --asm`, exit=1): **NOT-CERTIFIED**; P1/P2 PASS, P3/P4/P5 fail; total violations 39,587; dead-code flag 167,368.
-
-v2 refactored the SH-2 semantics applied by the verifier itself (report-only; no `.s` fix; kept `--rom`/`--asm`, `CERTIFICATE 60E1D400 v2` output, added `--v2`; byte-identical run-to-run). Counts v1→v2: P1 sha256 `344cb8b9…af78` PASS; P2 524288/524288 covered; P3 448→**7** (6 LIVE branch + 1 jt); P4 unref 39061→**37736**; P4 dead-code FLAG 167368→**48366**; P5 78→**11**; verdict NOT-CERTIFIED.
-
-v2 changes: P3 — target alignment probe (±2/±4 off the instruction map) + offset-dispatch **jump-table OFFLOAD** heuristic (`table_base + 2*word`/`table_base + word`); every remaining branch violation triaged LIVE vs DEAD (86 DEAD branches). P4 — roots now every `! ---` header, all of `c/verified_addrs.txt`, every resolved jump-table entry, every P3 branch target on an instruction start; SH-2 control flow followed to fixed point; dead code is a FLAG; data refs collect all PC-relative loads (`mov.w/mov.l/mova @(disp,PC)`) with 32-bit load covering both pool words, all 32-bit pointers, declared padding/config regions. P5 — only a gap with a **reachable** source branch-in is CODE-HIDDEN (LIVE FAIL); unreachable branch-ins counted as DEAD dangling (77), not violations.
-
-v2 LIVE residuals: P3 — 6 LIVE branches (`0x5F85A` bt/s→`0x5F7CE` into NOP/0x00 padding, `0x6B996`/`0x6BC0E` bra→`0x6C652`/`0x6CBF2` into 0xFFFF, `0x6BE26`/`0x6BE2A`/`0x6BE6A` bsr→`0x6C35A`/`0x6C39E`/`0x6C7AE` into 0xFFFF) + jump-table `0x44456` (raw `0xC72B`, low-word displaced, not resolvable). P4 — 37,736 unref words dominated by unannotated tables: ~27,259 at `0x70000` page (from `0x72854`, calibration/record), ~7,937 at `0x60000` page (from `0x60012`, stride-6 records), ~1,057 at `0x8000e`+ (bank/mirror), ~219 at `0x50000`, ~99 near reset/vector pools (`0x2BA, 0x406, 0x4DE, 0xFF8, 0x1002, 0x2038, 0x33BC, 0x3B08, …`). P5 — 11 CODE-HIDDEN LIVE gaps (`0x142B0-0x142B4`, `0x14FD2-0x14FD4`, `0x1F81E-0x1F820`, `0x30B60-0x30B64`, `0x31A9E-0x31AA0`, `0x31FE6-0x31FE8`, `0x32CD2-0x32CD4`, `0x34AF0-0x34AF4`, `0x4305C-0x4305E`, `0x44456-0x4445E`, `0x5F788-0x5F7D6`) — each reachable branch-in landing inside, cand=0 → targets are 0xFFFF/0x00 filler reached by a dangling edge. All these were resolved as traps / declared data in v3 (above); none is true hidden code.
 
 ## Evidence notes
 
