@@ -1299,8 +1299,8 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
           which the caller mirror owns), so it never crosses into the next
           function and never diverges on the next function's unmapped bytes.
     """
-    if depth > 3:
-        return None, 'depth>3'
+    if depth > 6:
+        return None, 'depth>6'
     if seen is None:
         seen = set()
     if t in seen:
