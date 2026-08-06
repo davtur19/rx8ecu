@@ -2675,3 +2675,152 @@
 60E0FC00,0x52048,FUN_00052048,fault_flag_cfb0_dtc_gated_eval,0.6,CFB3=1; queries 0x5E2FC for DTC 0x03/0x04/0x05/0x06 -> CFB0=1 else 0; DTC-gated fault flag
 60E0FC00,0x5213C,FUN_0005213c,fault_counter_cfb8_load_cal,0.5,copy cal byte @0x7C230 -> CFB8 fault counter cell with delayed store
 60E0FC00,0x52146,FUN_00052146,fault_counter_cfb8_countdown,0.4,"CFB8 countdown: reset to cal@0x7C230 when A42C==1 or CFBA==0, else decrement (add 0xFF) while CFB8>0"
+60E0FC00,0x521D8,FUN_000521d8,dtc_present_shadow_flag_cfbc,0.6,redundant-read 0x86CC..0x86F0 DTC cells via 0x3E0DC; forces 0xFFFFCFBC=0 while session flag 0xCFD9 set; copies aggregate to 0xFFFFCFBD
+60E0FC00,0x5228E,FUN_0005228e,boot_scratch_init_dispatch,0.5,boot flag 0xCFD9==1 -> rerun scratch init 0x52D58; else pending shadow 0xCFBD -> restore defaults 0x52CD4; syncs 0xFFFFCFBC->0xFFFFCFBD
+60E0FC00,0x522F8,FUN_000522f8,dtc_report_flag_pairs_mapper,0.9,"DTCreport 0x5E644 for codes 0x2C-0x33,0x77-0x7B keyed on flag pairs 0xCEF5/CEF6..0xCF0F/CF10 with severity 1/2"
+60E0FC00,0x52502,FUN_00052502,dtc_gated_flag_cfc0_monitor42,0.7,0xCFC0 = (0xCFC1 OR 0xCBD7..0xCBDA) AND NOT fault_monitor 0x652F0(dtc 0x42)
+60E0FC00,0x52562,FUN_00052562,dtc_report_cfc0_flag_42,0.7,"DTCreport 0x5E644(0x42,1|2) from gated flag 0xCFC0"
+60E0FC00,0x525A0,FUN_000525a0,csum_window_80_100_flag_cfc4,0.5,sums 16-bit checksummed reads 0x0080..0x0100 via 0x38610; 0xCFC4 = sum!=0 AND 0xCFC1!=1 AND cal byte 0x7C23C!=0xFF
+60E0FC00,0x5263A,FUN_0005263a,dtc_report_cfc4_flag_44,0.7,"DTCreport 0x5E644(0x44,1|2) from flag 0xCFC4"
+60E0FC00,0x52682,FUN_00052682,dtc_report_b5fc_b5fd_7e_7c,0.7,DTCreport 0x5E644 gated on 0xB5FC(0x7E) and 0xB5FD(0x7C); severity by byte state
+60E0FC00,0x526B8,FUN_000526b8,dtc_flag_9008_update,0.7,checksummed store 0x3E1F8: 0x9008 = 0/1 from 0xCFCC OR 0xCFCD; cleared on 0x11F54/0xCFD0/0xCFD9
+60E0FC00,0x52718,FUN_00052718,fault_flag_9008_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x9008
+60E0FC00,0x52720,FUN_00052720,fault_flag_9008_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x9008,0)"
+60E0FC00,0x52728,FUN_00052728,dtc_gated_flag_cfce_1d_1e,0.7,0xCFCE = dtc_gated 0x5E2FC(0x1D) OR 0x5E2FC(0x1E)
+60E0FC00,0x5275E,FUN_0005275e,dtc_flag_cfcc_cfcf_set,0.7,sets 0xCFCF=1; 0xCFCC = (0xC82D OR 0xC830)
+60E0FC00,0x5278A,FUN_0005278a,dtc_flags_cfcd_900c_update,0.7,0xCFCD = 0xC82C AND 0xC82E; checksummed 0x900C set from 0xCA6E/0xCA9A/0xCA6D&0xCA99; cleared on 0x11F54/0xCFD6/0xCFD9
+60E0FC00,0x52854,FUN_00052854,fault_flag_900c_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x900C
+60E0FC00,0x5285C,FUN_0005285c,fault_flag_900c_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x900C,0)"
+60E0FC00,0x52864,FUN_00052864,dtc_flags_cfd4_cfd5_report_a4,0.5,sets 0xCFD5=1; 0xCFD4=dtc_gated 0x5E2FC(0|1); DTCreport 0x7F-0x83 gated on 0xA40A/0xA402/0xA401/0xA403/0xA404
+60E0FC00,0x529BC,FUN_000529bc,obd_buf_write_be16_inc,0.9,"writes 16-bit big-endian into response buffer, increments 2-byte length counter; serialization primitive for PID builders"
+60E0FC00,0x529D8,FUN_000529d8,obd_buf_write_be32_inc,0.9,writes 32-bit big-endian (4 bytes) into response buffer with counter increment; used by 0x53EF6 block responses
+60E0FC00,0x52A36,FUN_00052a36,obd_svc_struct_enqueue_flag1,0.5,"builds {type,0,0,1} struct and dispatches through 0x67646 service mux"
+60E0FC00,0x52A80,FUN_00052a80,obd_table_lookup_copy_5d5e4,0.7,"scans 0x5D5E4 {key,len,data} table for r5 key or 0xFF terminator; copies data block, returns byte count"
+60E0FC00,0x52AEC,FUN_00052aec,obd_status_regs_update_ch2,0.5,refresh of SR-protected status words via 0x54008/0x5A2F0/0x5C9AC/0x5C4E8/0x54A0C for channel 2 after 0x5415A gate
+60E0FC00,0x52B22,FUN_00052b22,obd_status_regs_update_ch3_svc,0.5,"channel-3 status-word refresh; sub-service dispatch on arg 0x11->0x59808, 0xB1->0x546FA"
+60E0FC00,0x52B8C,FUN_00052b8c,obd_status_regs_update_ch3_svc_b,0.5,"channel-3 status-word refresh with arg 0x11->0x59808(3), 0xB1->0x546FA(2)"
+60E0FC00,0x52C18,FUN_00052c18,obd_status_regs_update_ch3_a,0.5,"channel-3 status-word refresh (0x54008 chan3 + 0x5A2F0/0x5C9AC/0x5C4E8/0x54A0C), no arg dispatch"
+60E0FC00,0x52C4E,FUN_00052c4e,obd_status_regs_update_ch2_b,0.5,"channel-2 status-word refresh, twin of 0x52AEC with different caller index"
+60E0FC00,0x52C84,FUN_00052c84,obd_status_regs_update_ch3_b,0.5,"channel-3 status-word refresh, twin of 0x52C18 with different caller index"
+60E0FC00,0x52D58,FUN_00052d58,scratch_ram_init_zero_fill,0.7,"SR-protected 0x28-byte zero-fill of 0x9010 scratch; sets count 0x9039=0x29, marker 0x9038=0xA5"
+60E0FC00,0x52D92,FUN_00052d92,scratch_ram_csum16,0.9,16-bit additive checksum of 0x9010[0..count-1] sized by 0x9039
+60E0FC00,0x52DE4,FUN_00052de4,scratch_ram_csum_validate_reinit,0.7,validates marker 0x9038=0xA5 and checksum 0x903A vs 0x52D92; re-runs init 0x52D58 on mismatch
+60E0FC00,0x52E14,FUN_00052e14,obd_service_dispatch,0.7,looks up service id in table 0x5295C; loads response data via 0x52A80 into 0xFFFF9010 or dispatches via 0x52E7C jumptable 0x5D214
+60E0FC00,0x53124,FUN_00053124,obd_pid_resp_d098_scaled,0.6,builds PID response from 0x53748 scaled word via 0x529BC BE16 write
+60E0FC00,0x53164,FUN_00053164,obd_pid_resp_interp_b34c,0.4,"head reads float 0xB34C, interpolates via 0x24D0, writes byte; 0x306-byte span contains many sibling PID builders"
+60E0FC00,0x5346A,FUN_0005346a,obd_dtc_word_read_603e4,0.4,0x603E4 ready gate then 0x52A80(key 2) copies 2 bytes combined into 16-bit DTC word
+60E0FC00,0x536F8,FUN_000536f8,read_flag_byte_7c270,0.9,getter: returns byte 0x7C270
+60E0FC00,0x53742,FUN_00053742,read_flag_byte_7c271,0.9,getter: returns byte 0x7C271
+60E0FC00,0x53748,FUN_00053748,scale_d098_word_x1024,0.7,"reads 16-bit 0xD098, x0x400 via shll, unsigned div by 1000 (helper 0x409C), clamps 0xFFFF"
+60E0FC00,0x53770,FUN_00053770,obd_pid_resp_float_9150,0.5,"checksummed float load 0x3E1AA(0x9150), converts via 0x2490 to byte response"
+60E0FC00,0x537FE,FUN_000537fe,read_byte_d09b,0.9,getter: returns byte 0xD09B
+60E0FC00,0x53804,FUN_00053804,obd_word_87a8_to_byte_clamp,0.7,"reads 16-bit 0xFFFF87A8 via 0x60604, clamps >=0x100 to 0xFF"
+60E0FC00,0x538A8,FUN_000538a8,obd_pid_resp_zero,0.7,stub returning constant 0x00
+60E0FC00,0x538F0,FUN_000538f0,obd_dtc_readiness_bitmask_build,0.7,8-bit status from 0xCFD5/0xCFCF/0xCF9D flags plus zero-state of 0x900C/0x9008/0x8FE8 via 0x3E0DC
+60E0FC00,0x5395C,FUN_0005395c,obd_dtc_readiness_bitmask2_build,0.7,8-bit status from 0xCF99/0xCFA4/0xCF95/0xCFA1/0xCFB3 flags
+60E0FC00,0x539C0,FUN_000539c0,obd_dtc_status_bitmask_8fxx_build,0.7,8-bit status from 0x8FE6/0x9004/0x8FE2/0x8FF2/0x9000 via 0x3E0DC
+60E0FC00,0x53C5E,FUN_00053c5e,obd_dtc_word_tx_54,0.5,"packs DTC word 0xFFFFCFDA with tag 0x54, transmits via 0x66A14/0x52A12 on channel 0x14"
+60E0FC00,0x53CA4,FUN_00053ca4,dtc_code_cache_7c26c,0.7,copies fault code byte 0x7C26C to shadow 0xFFFFCFDC
+60E0FC00,0x53CAE,FUN_00053cae,dtc_diag_session_start,0.5,"sets 0xCFD9=1, 0xCFD8=0x17, stores arg to 0xFFFFCFDD, runs diag init 0x5E690"
+60E0FC00,0x53CF8,FUN_00053cf8,dtc_code_change_restart_session,0.5,"detects 0x7C26C vs shadow 0xFFFFCFDC change -> reruns 0x53CAE+0x603F2, resyncs shadow"
+60E0FC00,0x53D22,FUN_00053d22,dtc_session_timeout_countdown,0.5,"decrements 0xCFD8 while 0xFFFFCFDD active; on expiry runs 0x64A62 or 0x53C5E, clears 0xCFD9/0xFFFFCFDD"
+60E0FC00,0x53EF6,FUN_00053ef6,obd_status_block_tx_916c,0.4,0x58D5E status build then obd_buf_write_be32 0x529D8 of 0x9160/0x9168 block into response buffer (kept batch23 name)
+60E0FC00,0x53FCA,FUN_00053fca,boot_obd_challenge_init,0.7,"boot-time: 0xFFFFCFE3=0, bsr 0x54000/0x5427A seed gen, call 0x5A740, write CFE5/DC30, then tail to 0x54008 state write"
+60E0FC00,0x54000,FUN_00054000,obd_challenge_flag_write_cfe4,0.7,stor params CFE4 then tail-branch to 0x5427A(r4=3) to invalidate challenge seed
+60E0FC00,0x54008,FUN_00054008,obd_state_write_sr_protected,0.7,SR-protected (getSR/setSR) switch on param writes OBD status flags CFE6 word/CFE8 byte; CFE6=0x0271 timeout value
+60E0FC00,0x540C8,FUN_000540c8,obd_session_poll_sr,0.7,"SR-protected session poll: 0x5415A(session), 0x54646 timeout, 0x53FCC boot/comm check, setSR restore"
+60E0FC00,0x5415A,FUN_0005415a,obd_session_flag_cfe3_cmp,0.9,"reads byte 0xFFFFCFE3, returns r4==value (session flag compare)"
+60E0FC00,0x54172,FUN_00054172,obd_svc_index_lookup_5d8dc,0.7,"searches 6-byte service table 0x5D8DC for byte==r4, verifies capability word 0xD1C8 bitmask at 0x5D8E0; returns index or 4"
+60E0FC00,0x54208,FUN_00054208,obd_triple_lookup_5d8ee,0.7,"matches 3-byte tuple (r4,r5,r6) against 5-entry table at 0x5D8EE; returns 1 if found"
+60E0FC00,0x5426A,FUN_0005426a,obd_svc_table_byte_5d8de,0.9,indexed read of byte at 0x5D8DE+6*r4 from the OBD service table
+60E0FC00,0x5427A,FUN_0005427a,obd_challenge_seed_gen_cfe9,0.9,"samples 0xFFFFF430 into 4-byte buf w/ XOR parity, loops until nonzero, SR-protected store seed CFE9/CFEA/CFEB + CFEC"
+60E0FC00,0x543A0,FUN_000543a0,obd_challenge_seed_read_cfe9,0.9,writes CFE9/CFEA/CFEB bytes to buffer and returns CFEC (seed readout)
+60E0FC00,0x54646,FUN_00054646,obd_timeout_cfe6_elapsed,0.9,"returns 1 while word@0xFFFFCFE6 < 0x0271(625), 0 once timeout elapsed"
+60E0FC00,0x5466C,FUN_0005466c,obd_comm_session_handler,0.4,"sessioned flow: check CFE3/CFE4 flags, 0x54744 condition, then UDS error/id response or 0x547C8 + 0x546FA(3) init"
+60E0FC00,0x546F8,FUN_000546f8,obd_session_state_set_inactive,0.4,alternate entry of 0x546FA setting r4=0 then falls into state machine CFF0
+60E0FC00,0x546FA,FUN_000546fa,obd_session_state_update_cff0,0.7,"state machine over 0xFFFFCFF0: 3=>active, 1=>wait/halt(0x547F0 busy-loop) else clear"
+60E0FC00,0x54744,FUN_00054744,obd_condition_range_check,0.7,"FP plausibility: float@0xB5DC(8-16.5V)-range check flags C5EA, temps @0xA9FC(-40..120C); returns status 0x10/0x22"
+60E0FC00,0x547C8,FUN_000547c8,obd_send_f100_b2_msg,0.9,"builds {0xF1,0x00,0xB2} CAN msg and sends via 0x66A14(id 0x3E)"
+60E0FC00,0x547F0,FUN_000547f0,obd_fatal_halt_set_sr,0.7,"sets SR (interrupt-disabled), calls 0x1038(1), then infinite-busy loop 0x54800"
+60E0FC00,0x54824,FUN_00054824,obd_response_dispatch_d1c8,0.7,dispatch on capability word 0xD1C8 & session byte: sends 0x7E/0x12 etc via 0x52A12/0x52A36 service enqueues
+60E0FC00,0x548CA,FUN_000548ca,obd_send_7e_msg,0.9,builds {0x7E} 1-byte msg and sends via 0x66A14(id 0x3E)
+60E0FC00,0x54A0C,FUN_00054a0c,obd_session_write_sr_cff,0.7,SR-protected set of OBD state flags CFF4/CFF6(word)/CFF8 by mode arg
+60E0FC00,0x54AA2,FUN_00054aa2,obd_boot_state_select,0.7,"byte@0xFFFFC1EE==0x33 -> 0x54A0C(0) else 0x54A0C(3), clears CFF4; boot OBD state select"
+60E0FC00,0x54AC6,FUN_00054ac6,obd_timer_below_cff6,0.9,returns 1 if param < word@0xFFFFCFF6 (15-bit pending/timer threshold)
+60E0FC00,0x54ADE,FUN_00054ade,thunk_uds_error_b1_31,0.7,"tail jmp to 0x52A5A udsErrorResponse(id 0xB1, code 0x31)"
+60E0FC00,0x54B5E,FUN_00054b5e,obd_upload_tail_frag_54b04,0.4,basic-block fragment (end) of function at 0x54B04: sends 0x22 flags or returns; not a fn boundary
+60E0FC00,0x54BAE,FUN_00054bae,obd_emit_word_hi_lo_5d4c4,0.4,emits hi then full 16-bit value from *(0x5D4C4) via 0x55ECC twice (2 bytes)
+60E0FC00,0x54C68,FUN_00054c68,obd_pid_emit_534b2,0.7,OBD PID handler: getter 0x534B2 then emits (byte<<8|byte) via 0x55ECC
+60E0FC00,0x54C8E,FUN_00054c8e,obd_pid_emit_53530,0.7,OBD PID handler: getter 0x53530 then emit via 0x55EEE
+60E0FC00,0x54CA4,FUN_00054ca4,obd_pid_emit_53590,0.7,OBD PID handler: getter 0x53590 then emit via 0x55EEE
+60E0FC00,0x54CBA,FUN_00054cba,obd_pid_emit_535a6,0.7,OBD PID handler: getter 0x535A6 then emit via 0x55EEE
+60E0FC00,0x54CD0,FUN_00054cd0,obd_pid_emit_535cc,0.7,OBD PID handler: getter 0x535CC then emit via 0x55EEE
+60E0FC00,0x54CFC,FUN_00054cfc,obd_pid_emit_53600,0.7,OBD PID handler: getter 0x53600 then emit via 0x55EEE
+60E0FC00,0x54D14,FUN_00054d14,obd_pid_emit_53614,0.7,OBD PID handler: getter 0x53614 then emit via 0x55EEE
+60E0FC00,0x54D28,FUN_00054d28,obd_pid_emit_53678,0.7,OBD PID handler: getter 0x53678 then emit via 0x55EEE
+60E0FC00,0x54D3E,FUN_00054d3e,obd_pid_emit_5368e,0.7,OBD PID handler: getter 0x5368E then emit via 0x55ECC
+60E0FC00,0x54D54,FUN_00054d54,obd_pid_emit_536b6,0.7,OBD PID handler: getter 0x536B6 then emit via 0x55EEE
+60E0FC00,0x54D80,FUN_00054d80,obd_pid_emit_536f8,0.7,OBD PID handler: getter 0x536F8 then emit via 0x55EEE
+60E0FC00,0x54DBC,FUN_00054dbc,obd_pid_emit_53742,0.7,OBD PID handler: getter 0x53742 then emit via 0x55EEE
+60E0FC00,0x54DD2,FUN_00054dd2,obd_pid_emit_53748,0.7,OBD PID handler: getter 0x53748 then emit via 0x55ECC
+60E0FC00,0x54DE8,FUN_00054de8,obd_pid_emit_hi_lo_5d4c8,0.7,"reads 0x5D4C8 long, emits hi16 then low16 via 0x55ECC (16-bit PID value)"
+60E0FC00,0x54E38,FUN_00054e38,obd_pid_emit_537fe,0.7,OBD PID handler: getter 0x537FE then emit via 0x55EEE
+60E0FC00,0x54E4E,FUN_00054e4e,obd_pid_emit_53804,0.7,OBD PID handler: getter 0x53804 then emit via 0x55EEE
+60E0FC00,0x54E7A,FUN_00054e7a,obd_pid_emit_53844,0.7,OBD PID handler: getter 0x53844 then emit via 0x55EEE
+60E0FC00,0x54EB4,FUN_00054eb4,obd_pid_emit_53890,0.7,OBD PID handler: getter 0x53890 then emit via 0x55ECC
+60E0FC00,0x54ECA,FUN_00054eca,obd_pid_emit_hi_lo_5d4cc,0.7,"reads 0x5D4CC long, emits hi+lo 16-bit via 0x55ECC"
+60E0FC00,0x54EEE,FUN_00054eee,obd_readiness_emit_multi,0.7,"OBD mode 0x01 PID 0x01 monitor status: emits via 0x55EEE the getters 0x538A8,0x538D0(readiness),0x5395C,0x539C0"
+60E0FC00,0x54FBC,FUN_00054fbc,obd_pid_emit_53a24,0.7,OBD PID handler: getter 0x53A24 then emit via 0x55ECC
+60E0FC00,0x54FE4,FUN_00054fe4,obd_pid_emit_53a62,0.7,OBD PID handler: getter 0x53A62 then emit via 0x55ECC
+60E0FC00,0x5505C,FUN_0005505c,obd_pid_emit_5e3be,0.4,emits DTC/CAN status getter 0x5E3BE result via 0x55EEE (first of family incl FP variants)
+60E0FC00,0x552C4,FUN_000552c4,obd_fp_scaled_emit_552c4,0.4,"normalizes checksummed float (0x3E1AA) of 0x6FA60 by 0x6FA14/0x6FA0C range, scales via 0x2490, emits 0x55ECC"
+60E0FC00,0x55316,FUN_00055316,obd_pid_emit_byte_aa2c,0.7,OBD PID byte emitter: float@0xAA2C -> floatToInt 0x24D0 -> byteToUDS 0x55EEE tail (family of 0x54C68+); pre-cat Memory & CRC was wrong
+60E0FC00,0x5547A,FUN_0005547a,obd_pid_emit_byte_cfb8,0.7,"PID byte emitter: 8-bit@0xCFB8 via fixedPointToFloat8 0x2500, /1000.0, floatToInt 0x24D0, emit 0x55EEE; FP math but UDS-bound"
+60E0FC00,0x5557E,FUN_0005557e,obd_pid_emit_16bit_86ac,0.7,"PID 16-bit emitter: checksummed load 0x3E1AA of float@0x86AC, floatToFP16 0x2490, emit intToUDS 0x55ECC"
+60E0FC00,0x555A8,FUN_000555a8,obd_pid_emit_16bit_86d0,0.7,"PID 16-bit emitter: checksummed load 0x3E1AA of float@0x86D0, floatToFP16 0x2490, emit intToUDS 0x55ECC"
+60E0FC00,0x55680,FUN_00055680,uds_fault_status_mask_getter_bf58_ad7c_cca4,0.7,packs flag bytes BF58(0x01)/AD7C(0x02)/CCA4(0x08) via memory_match_accumulate 0x55E68 + byteToUDS 0x55EEE
+60E0FC00,0x556C2,FUN_000556c2,uds_fault_status_mask_getter_bdd8,0.7,flag byte@0xBDD8==1 -> 0x01 via 0x55E68/0x55EEE UDS byte-getter
+60E0FC00,0x5576C,FUN_0005576c,uds_fault_status_mask_getter_f76c_bf88,0.6,word@0xF76C bit0x80 clear -> 0x01 and byte@0xBF88==1 -> 0x10 via 0x55E68/0x55EEE
+60E0FC00,0x557AA,FUN_000557aa,uds_fault_status_mask_getter_b5bc_b5d0,0.6,"interp 0x2440(float@0xB5BC)!=0 -> 0x01, long@0xB5D0!=0 -> 0x02 via 0x55E68/0x55EEE"
+60E0FC00,0x557E6,FUN_000557e6,uds_fault_status_mask_getter_cce4,0.7,flag byte@0xCCE4==1 -> 0x40 via 0x55E68/0x55EEE
+60E0FC00,0x55808,FUN_00055808,uds_fault_status_mask_getter_a9d0,0.7,flag byte@0xA9D0==1 -> 0x20 via 0x55E68/0x55EEE
+60E0FC00,0x5588C,FUN_0005588c,uds_fault_status_mask_getter_f754_02,0.6,word@0xF754 bit0x02 clear -> 0x80 via 0x55E68/0x55EEE
+60E0FC00,0x558BA,FUN_000558ba,uds_fault_status_mask_getter_a962,0.7,flag byte@0xA962==1 -> 0x04 via 0x55E68/0x55EEE
+60E0FC00,0x558DC,FUN_000558dc,uds_fault_status_mask_getter_f754_04,0.6,word@0xF754 bit0x04 -> 0x01 via 0x55E68/0x55EEE
+60E0FC00,0x5590A,FUN_0005590a,uds_fault_status_mask_getter_f754_f746,0.6,word@0xF754 bit0x80 -> 0x40 and word@0xF746 bit0x20 -> 0x80 via 0x55E68/0x55EEE
+60E0FC00,0x55952,FUN_00055952,uds_fault_status_mask_getter_ccfa,0.7,flag byte@0xCCFA==1 -> 0x01 via 0x55E68/0x55EEE
+60E0FC00,0x55974,FUN_00055974,obd_emit_4_bytes_6d343,0.7,emits 4 bytes 0x6D343+3..+6 via byteToUDS 0x55EEE (status block)
+60E0FC00,0x559A2,FUN_000559a2,obd_emit_const_31_38,0.7,emits const bytes 0x31 then 0x38 via 0x55EEE
+60E0FC00,0x559C8,FUN_000559c8,obd_emit_const_38_38_31,0.7,"emits const bytes 0x38, 0x38, 0x31 via 0x55EEE"
+60E0FC00,0x559F8,FUN_000559f8,obd_emit_24_bytes_6d343,0.7,loop emits 24 bytes from block 0x6D343 via 0x55EEE
+60E0FC00,0x55BCC,FUN_00055bcc,obd_emit_status_c1ef_c1f0,0.7,"emits 0x00, byte@0xC1EF, byte@0xC1F0, 0x00 via 0x55EEE x4"
+60E0FC00,0x55DB4,FUN_00055db4,obd_emit_bytes_6d35b,0.7,emits bytes@0x6D35B and 0x6D35C via 0x55EEE
+60E0FC00,0x55DCE,FUN_00055dce,obd_emit_bytes_6d35d,0.7,emits 4 bytes from 0x6D35D+0..+3 via 0x55EEE
+60E0FC00,0x55E1C,FUN_00055e1c,obd_emit_io_bytes_0ff8,0.6,emits 3 peripheral bytes @0x0FF8/0x0FF9/0x0FFA via 0x55EEE
+60E0FC00,0x55E3C,FUN_00055e3c,obd_emit_io_bytes_0ffb,0.6,emits 3 peripheral bytes @0x0FFB/0x0FFC/0x0FFD via 0x55EEE
+60E0FC00,0x560DE,FUN_000560de,obd_send_67_msg,0.7,"builds {0x67,param,data...} CAN msg, sends via setupForUdsResponse 0x66A14 id 0x27"
+60E0FC00,0x56280,FUN_00056280,uds_svc_18_dispatch,0.6,"UDS service 0x18 dispatch: capability 0xD1C8, state setter 0x56638, udsErrorResponse 0x52A5A(0x31/0x12), enqueue 0x52A12/0x52A36"
+60E0FC00,0x56342,FUN_00056342,obd_state_clear_d038,0.7,zeroes OBD state bytes/words 0xFFFFD038/D03A/D03C-D042; reset path of state machine 0x56638 (re-cat from Boot & Init)
+60E0FC00,0x56638,FUN_00056638,obd_state_set_d03c,0.9,"sets byte@0xFFFFD03C to 1 (param 0) or 2 (param 1), else clears via 0x56342; called by 0x56280"
+60E0FC00,0x5667C,FUN_0005667c,dtc_status_check_d1c8,0.5,"bool check: faultEnableStatus2 0x5E2BC / faultConfirmation 0x5E2CE with capability 0xD1C8, returns 0/1"
+60E0FC00,0x566CC,FUN_000566cc,opt_byte_latch_8fee_d044,0.4,redundant 8-bit read 0x3E0DC of 0x8FEE -> latch to 0xFFFFD044 (option/bypass byte shadow)
+60E0FC00,0x56726,FUN_00056726,fault_record_verify_903c,0.7,thunk: r4=0xFFFF903C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x5672E,FUN_0005672e,fault_record_clear_903c,0.7,"thunk: r4=0xFFFF903C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x56736,FUN_00056736,fault_monitor_sample_c6ec,0.7,"samples floats 0xC6EC/0xC6F4 -> 16-bit via 0x2490 into buffer, checksummed-store 0x5781C to cell 0xFFFF903C"
+60E0FC00,0x567B0,FUN_000567b0,fault_record_verify_904c,0.7,thunk: r4=0xFFFF904C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x567B8,FUN_000567b8,fault_record_clear_904c,0.7,"thunk: r4=0xFFFF904C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x56800,FUN_00056800,fault_monitor_sample_c6f0,0.7,"samples floats 0xC6F0/0xC6F8 -> 16-bit via 0x2490 into buffer, checksummed-store 0x5781C to cell 0xFFFF904C"
+60E0FC00,0x5688C,FUN_0005688c,fault_monitor_task_dispatch,0.6,fault-monitor dispatcher: latches 0x8FF0->D045 via 0x5687A; 0xCFD9==1 -> 0x568E2+0x56988+0x569F6 chain; else 0x56920+0x5698E+0x56A38 chain
+60E0FC00,0x568DC,FUN_000568dc,fault_record_verify_905c,0.7,thunk: r4=0xFFFF905C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x568E2,FUN_000568e2,fault_record_clear_905c,0.7,"thunk: r4=0xFFFF905C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x56920,FUN_00056920,fault_monitor_sample_7b138,0.7,"samples float@0x7B138 scaled via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF905C"
+60E0FC00,0x56982,FUN_00056982,fault_record_verify_906c,0.7,thunk: r4=0xFFFF906C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x56988,FUN_00056988,fault_record_clear_906c,0.7,"thunk: r4=0xFFFF906C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x5698E,FUN_0005698e,fault_monitor_sample_7b13c,0.7,"samples float@0x7B13C scaled via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF906C"
+60E0FC00,0x569F0,FUN_000569f0,fault_record_verify_907c,0.7,thunk: r4=0xFFFF907C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x569F6,FUN_000569f6,fault_record_clear_907c,0.7,"thunk: r4=0xFFFF907C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x56A38,FUN_00056a38,fault_monitor_sample_7b122_cc08,0.7,"samples 16-bit@0x7B122 and @0xCC08 via 0x24C0+0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF907C"
+60E0FC00,0x56ACC,FUN_00056acc,opt_byte_latch_8fe6_d046,0.4,redundant 8-bit read 0x3E0DC of 0x8FE6 -> latch to 0xFFFFD046 (option/bypass byte shadow)
+60E0FC00,0x56B1E,FUN_00056b1e,fault_record_verify_908c,0.7,thunk: r4=0xFFFF908C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x56B24,FUN_00056b24,fault_record_clear_908c,0.7,"thunk: r4=0xFFFF908C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
+60E0FC00,0x56B64,FUN_00056b64,fault_monitor_sample_c9c4,0.7,"samples float@0xC9C4 * float@0x7C2C4 via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF908C"
