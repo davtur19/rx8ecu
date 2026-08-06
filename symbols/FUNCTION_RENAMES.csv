@@ -75,7 +75,7 @@
 60E1D400,0x1671A,secondary_chamber_controller,fuel_controller_1671a,0.3,secondary_chamber_controller
 60E1D400,0x53760,assert_handler_0x53760,assert_handler_0x53760,0.3,assert_handler_0x53760
 60E1D400,0x2D600,pid_control_loop_2D600,fuel_control_2d600,0.3,pid_control_loop_2D600
-60E0FC00,0x11286,setEngineStatusRotor,setEngineStatusRotor,0.9,already descriptive human name preserved
+60E0FC00,0x11286,setEngineStatusRotor,set_engine_status_rotor,0.9,already descriptive human name preserved
 60E0FC00,0x26C80,FUN_00026c80,alternator_voltage_condition_flag,0.5,"Called by alternatorControl(0x27132) (AUXILIARY_CONTROL 7.2); battery voltage 0xB5DC vs cal 0x749FC/0x74A00, engine state 0xA428, sets flag 0xB683; alternator voltage condition latch"
 60E1D400,0x18860,omp_waveform_state_machine_18860,omp_waveform_state_machine_18860,0.9,already descriptive human name preserved
 60E1D400,0x20E7C,rotary_combustion_efficiency_20E7C,rotary_combustion_efficiency_20E7C,0.9,already descriptive human name preserved
@@ -112,7 +112,7 @@
 60E1D400,0x36870,ImmoGetCANData,ImmoGetCANData_a,0.9,already descriptive human name preserved
 60E1D400,0x3C888,clamp_range_check_3c938,diag_clamp_3c888,0.3,clamp_range_check_3c938
 60E0FC00,0x51968,FUN_00051968,fault_counter_clear,0.5,"Called by faultRelated??(0x39938); gated by getKnownBooleanValue??(0x11F54)+OBD flags 0xCFD9/0xFFFFCFA2, clears RAM bytes 0x8FEE/0x8FF0/0x8FF2 via updateMemoryAtAddress_8bit(0x3E1F8); fault-counter reset"
-60E0FC00,0x1A7FA,vehicleConditionRelatedFuntions,vehicleConditionRelatedFuntions,0.9,already descriptive human name preserved
+60E0FC00,0x1A7FA,vehicleConditionRelatedFuntions,vehicle_condition_update,0.9,already descriptive human name preserved
 60E0FC00,0x452A8,FUN_000452a8,dtc_fault_status_update,0.6,"Called by 0x39342 (throttleTask fault cluster, cf 0x44648); status 0xB48A/0xB489/0xFFFFA228-9, updates 0x875E/0x875C vs cal 0x7AF28, E2 shadow 0xFFFFCAE5-8, updateFaultStatusTHUNK(0x5E644); DTC fault status update"
 60E0FC00,0x36684,checkImmoStatus?,checkImmoStatus?,0.9,already descriptive human name preserved
 60E0FC00,0x2D9BC,cruiseControlUndershootingPlausibilityMon,cruiseControlUndershootingPlausibilityMon,0.9,already descriptive human name preserved
@@ -170,7 +170,7 @@
 60E1D400,0x56E64,softmax_0x56E64,diag_o2_voltage_fault_check,0.7,"reads front-O2 float @0xAA10 (O2_LAMBDA_SUBSYSTEM.md) + voltage @0xB600, 2-sided float threshold compares vs literal-pool bounds, gates on flag byte @0xC656, returns fault codes 0x00/0x10/0x22; O2 voltage bounds monitor, not softmax"
 60E1D400,0x56892,regression_0x56892,position_check,0.9,UDS 0x27 security position_check (UDS_SECURITY_MAPPING.md): scans 3 entries @0x5FA90 stride 0x6 comparing entry[i][1] then ANDs runtime mask word @0xFFFFD3F0; returns table idx 0..2/3; not regression
 60E1D400,0x57292,adadelta_0x57292,immo_security_state_reset,0.7,"if security-state flag @0xFFFFD228==1 and byte @0xD224!=0x80: clears @D228/@D226/@D224 then tail-jumps 0x55362 (UDS error sender, near udsErrorResponse 0x553AA) with code 0x22; immo/security-state reset, not adadelta"
-60E0FC00,0x1A310,calculateKeyOffTime,calculateKeyOffTime,0.9,"confirmed: while key-off flag byte @0xAACC clear, saturating-increment (0x2460 add16bitSaturate) of 16-bit counter @0xAA6A else write 0; matches ghidra-hand name; not ML"
+60E0FC00,0x1A310,calculateKeyOffTime,calc_key_off_time,0.9,"confirmed: while key-off flag byte @0xAACC clear, saturating-increment (0x2460 add16bitSaturate) of 16-bit counter @0xAA6A else write 0; matches ghidra-hand name; not ML"
 60E1D400,0x561F2,gradient_compute_0x561F2,sensor_scaled_read_AA4C,0.7,"reads fixed-point @0xAA4C, 0x24C0 fixedPointToFloat_16bit_MULT_OFF_SIG, fmul one cal float const, 0x24D0 floatToOB/clamp -> scaled sensor read to uint; not gradient"
 60E1D400,0x550BE,neural_network_0x550BE,diag_flag_combine_or,0.7,"logical OR of two RAM flag bytes @0xC99D/@0xC9A0 -> status byte @0xD1F8 (twin fn at 0x550E6 does AND of @0xC99C/@0xC99E -> @0xD1F9); diag flag-combiner, not neural net"
 60E1D400,0x1A7F4,calculateKeyOffTime,calculateKeyOffTime_a,0.9,"D400 variant: while key flag @0xAAE0 clear, saturating-increment counter @0xAA7E via 0x2460 else write 0; matches ghidra-hand name calculateKeyOffTime"
@@ -234,7 +234,7 @@
 60E1D400,0x1261C,calc_vis_solenoid_duty_cycle_1261C,calc_vis_solenoid_duty_cycle_1261C,0.9,already descriptive human name preserved
 60E0FC00,0x2EB40,cruiseControlMain??,cruiseControlMain,0.9,Cruise-control hub dispatcher: getSR/setSR wrapper calling calculateCruiseControlDisableCondition
 60E1D400,0x16AA8,engine_control_main_loop,engine_control_main_loop,0.9,already descriptive human name preserved
-60E0FC00,0x1A940,getVehicleCondtions??,updateVehicleConditions,0.9,Hub: getSR/setSR(0x10) task wrapper sequentially calling calculateEngineLoadMax
+60E0FC00,0x1A940,getVehicleCondtions??,update_vehicle_conditions,0.9,Hub: getSR/setSR(0x10) task wrapper sequentially calling calculateEngineLoadMax
 60E1D400,0x2E1A4,cruiseControlUndershootingPlausibilityMon,cruiseControlUndershootingPlausibilityMon_a,0.9,Speeds 0xC008/0xC00C differ fr4=fr5-fr3 compared vs thresholds 0x76B4C/0x76B68; gated by cruise flags 0xAD90/0xBC37/0xB5AA/0xBD59/0xBDB5; writes 0xFFFFBD5E/0xFFFFBD62. Mirror of OvershootPlausibilityMon(0x2DB00).
 60E1D400,0x22700,gear_ratio_compensation_22700,gear_ratio_compensation_22700,0.9,already descriptive human name preserved
 60E1D400,0x30A8C,multi_threshold_accumulate_30A8C,aux_idle_debounce_accumulate,0.4,inputs 0xFFFFAAE0 (idle ctrl enable) + 0xFFFFA42C (engine state/TPS); saturating counters BE46/BE4A/BE48 vs cal u16 0x7BA20/0x7BA24 -> output flag @0xFFFFBE44
@@ -300,7 +300,7 @@
 60E1D400,0x263C8,port_write_bit_control_263C8,fuel_control_263c8,0.3,port_write_bit_control_263C8
 60E0FC00,0x25F98,calculateOutputforAlternator,calculateOutputforAlternator,0.9,already descriptive human name preserved
 60E1D400,0x5316A,mem_zero_0x5316A,diag_monitor_flag_pair_write,0.5,D079 disable clears D155/D156; D075/CFB4 gates set D155/D156 from enable bytes 8706/8708 when getFaultStatus(122)==0; tail-call 0x53920 (vtc-gated clear)
-60E0FC00,0x257D6,calculatePredictedEngineSpeed?,calculatePredictedEngineSpeed?,0.9,already descriptive human name preserved
+60E0FC00,0x257D6,calculatePredictedEngineSpeed?,calc_predicted_engine_speed,0.9,already descriptive human name preserved
 60E1D400,0x43C8,shift_right_arithmetic_r0,util_arithmetic_43c8,0.3,shift_right_arithmetic_r0
 60E1D400,0x3A28,consistencyCheck,diag_consistencycheck_3a28,0.3,consistencyCheck
 60E1D400,0x37348,multi_flag_state_dispatcher_37348,immo_eeprom_write_request_02,0.9,"E2 write-queue state machine: queues code 0x02 (pairing 8B persist per updateE2RAMBasedOnInput) via 0x36D0C, commits via 0x37000, clears on 0xFFFFC2F8"
@@ -417,7 +417,7 @@
 60E1D400,0x59CEC,starter_motor_0x59CEC,starter_motor_0x59CEC,0.9,already descriptive human name preserved
 60E1D400,0x55E18,cache_manager_0x55E18,diag_manager_55e18,0.3,cache_manager_0x55E18
 60E1D400,0x2A896,conditional_multi_check_2A896,math_conditional_2a896,0.3,conditional_multi_check_2A896
-60E0FC00,0x1A4E6,engineControlGetAir,engineControlGetAir,0.9,already descriptive human name preserved
+60E0FC00,0x1A4E6,engineControlGetAir,engine_control_get_air,0.9,already descriptive human name preserved
 60E1D400,0x1A9CA,engineControlGetAir,engineControlGetAir_a,0.9,already descriptive human name preserved
 60E0FC00,0x3E15C,readValue_32bit_ADDRESS_VAL,read_value_32bit_redundant,0.9,"Canonical redundant-cell readValue_32bit helper: word@r4+word@r4+2 vs complement at r4+4 (checksum pair), else fault path; under getSR 0x3920; matches readValue_32bit family"
 60E1D400,0x3EDBC,readValue_32bit_ADDRESS_VAL,diag_readvalue_3edbc,0.5,setMemInsideFUNCto1
@@ -443,7 +443,7 @@
 60E1D400,0x4F778,secondary_air_control_0x4F778,secondary_air_control_0x4F778,0.9,already descriptive human name preserved
 60E0FC00,0x11540,someMainFunction,diag_somemainfunction_11540,0.3,someMainFunction
 60E1D400,0x3E58A,status_checker_3E58A,o2_boost_cond_timer_countdown,0.4,boost f32@0xFFFFBC1C > cal 0x7A87C and D201 -> byte@0xFFFFC68C = cal 0x7A870; else if flag C68D set and C68C>0 countdown (add0xFF) - O2/warmup boost timer countdown (cluster with 0x3E5CE)
-60E0FC00,0x31BA0,turnOnSecondaryAir??,turnOnSecondaryAir??,0.9,already descriptive human name preserved
+60E0FC00,0x31BA0,turnOnSecondaryAir??,turn_on_secondary_air,0.9,already descriptive human name preserved
 60E1D400,0x17E5E,zero_solenoid_outputs,zero_solenoid_outputs,0.9,already descriptive human name preserved
 60E0FC00,0x27132,alternatorControl,alternatorControl,0.9,already descriptive human name preserved
 60E1D400,0x5ACB0,battery_light_0x5ACB0,battery_light_0x5ACB0,0.9,already descriptive human name preserved
@@ -502,14 +502,14 @@
 60E1D400,0x5B09E,lane_departure_0x5B09E,ctrl_departure_5b09e,0.3,no-callee-evidence
 60E1D400,0x567E8,lu_decomp_0x567E8,ctrl_decomp_567e8,0.3,no-callee-evidence
 60E1D400,0x551BC,regulator_0x551BC,ctrl_regulator_551bc,0.3,no-callee-evidence
-60E0FC00,0xA230,setupStructRotorNumber?,setupStructRotorNumber?,0.9,already descriptive human name preserved
+60E0FC00,0xA230,setupStructRotorNumber?,rotor_array_add_entry,0.9,already descriptive human name preserved
 60E0FC00,0x2BEA8,DSC_checkIfMode_x40,DSC_checkIfMode_x40,0.9,already descriptive human name preserved
 60E1D400,0x2C57C,DSC_checkIfMode_x40,DSC_checkIfMode_x40_a,0.9,already descriptive human name preserved
 60E1D400,0x5C5CE,archive_0x5C5CE,ctrl_archive_5c5ce,0.3,no-callee-evidence
 60E0FC00,0x341F4,calculateEngineLoadMax,calculateEngineLoadMax,0.9,already descriptive human name preserved
 60E1D400,0x34D54,calculateEngineLoadMax,calculateEngineLoadMax_a,0.9,already descriptive human name preserved
-60E0FC00,0xE244,calculateEngineOnTime??,calculateEngineOnTime??,0.9,already descriptive human name preserved
-60E0FC00,0xE278,calculateEngineRunning,calculateEngineRunning,0.9,already descriptive human name preserved
+60E0FC00,0xE244,calculateEngineOnTime??,calc_engine_on_time,0.9,already descriptive human name preserved
+60E0FC00,0xE278,calculateEngineRunning,calc_engine_running,0.9,already descriptive human name preserved
 60E1D400,0x51406,cell_select_0x51406,sensor_select_51406,0.3,cell_select_0x51406
 60E1D400,0x5A044,climate_control_0x5A044,fuel_climate_5a044,0.3,climate_control_0x5A044
 60E1D400,0x5637E,convolution_0x5637E,ctrl_convolution_5637e,0.3,no-callee-evidence
@@ -552,7 +552,7 @@
 60E1D400,0x53610,itoa_convert_0x53610,math_convert_53610,0.3,itoa_convert_0x53610
 60E1D400,0x50326,load_compensation_0x50326,load_compensation_0x50326,0.9,already descriptive human name preserved
 60E1D400,0x532A0,mem_compare_0x532A0,mem_compare_0x532A0,0.9,already descriptive human name preserved
-60E1D400,0x3E6A4,offset_calculator_3E6A4,offset_calculator_3E6A4,0.9,already descriptive human name preserved
+60E1D400,0x3E6A4,offset_calculator_3E6A4,dtc_status_handler_3a_3e6a4,0.9,already descriptive human name preserved
 60E1D400,0xA9F4,port_b_gpio_toggle_bit,port_b_gpio_toggle_bit,0.9,already descriptive human name preserved
 60E1D400,0xFCA6,pulse_period_filter,pulse_period_filter,0.9,already descriptive human name preserved
 60E1D400,0x11DCC,read_iacv_target_duty,read_iacv_target_duty,0.9,already descriptive human name preserved
@@ -573,7 +573,7 @@
 60E1D400,0x3941E,update_rom_value_or_decrement_3941E,isr_decrement_3941e,0.3,update_rom_value_or_decrement_3941E
 60E1D400,0x606F8,bit_value_extract_606F8,sensor_extract_606f8,0.3,bit_value_extract_606F8
 60E1D400,0x13A5E,calc_rotor_sync_base_A,calc_rotor_sync_base_A,0.9,already descriptive human name preserved
-60E0FC00,0x1A2E8,calculateKeyOnTime,calculateKeyOnTime,0.9,already descriptive human name preserved
+60E0FC00,0x1A2E8,calculateKeyOnTime,calc_key_on_time,0.9,already descriptive human name preserved
 60E1D400,0x1A7CC,calculateKeyOnTime,calculateKeyOnTime_a,0.9,already descriptive human name preserved
 60E1D400,0x1B56C,crank_enable_status_checker,crank_enable_status_checker,0.9,already descriptive human name preserved
 60E1D400,0x7C08,crank_event_timeout_check,crank_event_timeout_check,0.9,already descriptive human name preserved
@@ -604,7 +604,7 @@
 60E1D400,0x37B88,master_system_dispatcher_37B88,fuel_dispatcher_37b88,0.3,master_system_dispatcher_37B88
 60E1D400,0x542C8,or_operator_0x542C8,ctrl_operator_542c8,0.3,no-callee-evidence
 60E1D400,0x55E7C,tlb_handler_0x55E7C,tlb_handler_0x55E7C,0.3,tlb_handler_0x55E7C
-60E0FC00,0x31BF2,calculateSecondaryAirOnTime,calculateSecondaryAirOnTime,0.9,already descriptive human name preserved
+60E0FC00,0x31BF2,calculateSecondaryAirOnTime,calc_secondary_air_on_time,0.9,already descriptive human name preserved
 60E1D400,0x5BFEC,consistency_check_0x5BFEC,diag_consistency_5bfec,0.3,consistency_check_0x5BFEC
 60E1D400,0x55386,distribution_0x55386,ctrl_distribution_55386,0.3,no-callee-evidence
 60E1D400,0x22988,emission_control_dispatcher_22988,fuel_dispatcher_22988,0.3,emission_control_dispatcher_22988
@@ -711,7 +711,7 @@
 60E1D400,0x25E36,limp_mode_detection_25E36,diag_detection_25e36,0.3,limp_mode_detection_25E36
 60E1D400,0x55E66,page_table_0x55E66,page_table_0x55E66,0.9,already descriptive human name preserved
 60E1D400,0x55F64,partition_0x55F64,ctrl_partition_55f64,0.3,no-callee-evidence
-60E1D400,0x3C74C,setup_handler_3C74C,setup_handler_3C74C,0.3,setup_handler_3C74C
+60E1D400,0x3C74C,setup_handler_3C74C,dtc_status_handler_3c74c,0.3,setup_handler_3C74C
 60E1D400,0x3DAE4,status_reporter_3DAE4,isr_reporter_3dae4,0.3,status_reporter_3DAE4
 60E1D400,0x606C0,bit_value_extract_606C0,sensor_extract_606c0,0.3,bit_value_extract_606C0
 60E1D400,0x11166,calc_traction_control_mode,calc_traction_control_mode,0.9,already descriptive human name preserved
@@ -868,21 +868,21 @@
 60E1D400,0x2064,loadStatusRegister_ADDR,loadStatusRegister_ADDR,0.9,already descriptive human name preserved
 60E1D400,0x3F88,nullsub_1,rtos_noop_stub_3f88,0.9,Pure rts;nop no-op stub; called by 0x3E10 (RTOS task/TCB init cluster); placeholder OS hook
 60E1D400,0x5042,nullsub_10,rtos_noop_stub_5042,0.9,Pure rts;nop no-op stub; next function 0x5046 writes 0x80 to MMIO 0xFFFFF000/F008/F010/F018 - boot reg init; stub is placeholder
-60E1D400,0x505E,nullsub_11,ctrl_nullsub_505e,0.3,no-callee-evidence
-60E1D400,0x5062,nullsub_12,ctrl_nullsub_5062,0.3,no-callee-evidence
-60E1D400,0x5066,nullsub_13,ctrl_nullsub_5066,0.3,no-callee-evidence
-60E1D400,0x50AE,nullsub_14,ctrl_nullsub_50ae,0.3,no-callee-evidence
-60E1D400,0x5F30,nullsub_15,ctrl_nullsub_5f30,0.3,no-callee-evidence
-60E1D400,0x6866,nullsub_16,ctrl_nullsub_6866,0.3,no-callee-evidence
-60E1D400,0x686A,nullsub_17,ctrl_nullsub_686a,0.3,no-callee-evidence
-60E1D400,0x74D0,nullsub_18,ctrl_nullsub_74d0,0.3,no-callee-evidence
-60E1D400,0xA118,nullsub_19,ctrl_nullsub_a118,0.3,no-callee-evidence
+60E1D400,0x505E,nullsub_11,nullsub_505e,0.3,no-callee-evidence
+60E1D400,0x5062,nullsub_12,nullsub_5062,0.3,no-callee-evidence
+60E1D400,0x5066,nullsub_13,nullsub_5066,0.3,no-callee-evidence
+60E1D400,0x50AE,nullsub_14,nullsub_50ae,0.3,no-callee-evidence
+60E1D400,0x5F30,nullsub_15,table_accessor_5f30,0.3,no-callee-evidence
+60E1D400,0x6866,nullsub_16,nullsub_6866,0.3,no-callee-evidence
+60E1D400,0x686A,nullsub_17,nullsub_686a,0.3,no-callee-evidence
+60E1D400,0x74D0,nullsub_18,nullsub_74d0,0.3,no-callee-evidence
+60E1D400,0xA118,nullsub_19,nullsub_a118,0.3,no-callee-evidence
 60E1D400,0x3F8C,nullsub_2,rtos_noop_stub_3f8c,0.9,Pure rts;nop no-op stub; called by 0x3E10 (RTOS init cluster); placeholder OS hook
-60E1D400,0xD9AA,nullsub_20,ctrl_nullsub_d9aa,0.3,no-callee-evidence
-60E1D400,0x22984,nullsub_21,ctrl_nullsub_22984,0.3,no-callee-evidence
-60E1D400,0x23374,nullsub_22,ctrl_nullsub_23374,0.3,no-callee-evidence
-60E1D400,0x2D9EC,nullsub_23,ctrl_nullsub_2d9ec,0.3,no-callee-evidence
-60E1D400,0x32A98,nullsub_24,ctrl_nullsub_32a98,0.3,no-callee-evidence
+60E1D400,0xD9AA,nullsub_20,nullsub_d9aa,0.3,no-callee-evidence
+60E1D400,0x22984,nullsub_21,nullsub_22984,0.3,no-callee-evidence
+60E1D400,0x23374,nullsub_22,nullsub_23374,0.3,no-callee-evidence
+60E1D400,0x2D9EC,nullsub_23,nullsub_2d9ec,0.3,no-callee-evidence
+60E1D400,0x32A98,nullsub_24,nullsub_32a98,0.3,no-callee-evidence
 60E1D400,0x60F54,nullsub_25,ctrl_nullsub_60f54,0.3,no-callee-evidence
 60E1D400,0x60F70,nullsub_26,ctrl_nullsub_60f70,0.3,no-callee-evidence
 60E1D400,0x60FCA,nullsub_27,ctrl_nullsub_60fca,0.3,no-callee-evidence
@@ -1572,8 +1572,8 @@
 60E0FC00,0x54D12,FUN_00054d12,uds_mode22_get_ign_lead_advance,0.9,jsr getIgnLeadingOBD 0x53614 then jmp byteToUDS 0x55EEE with value in r5; UDS Mode-22 getter for leading-rotor ignition advance (callgraph 0x54D14)
 60E0FC00,0x770CD,FUN_000770cd,FUN_000770cd,0.1,"data table: float constants (0x3F800000=1.0, 0x3D935FC4) and stc SPC/stray bytes; sibling of 0x770C7 data block, not code"
 60E0FC00,0x66B2,thunk_FUN_00011c6e,noop_stub_thunk_11c6e,0.8,6-byte jmp @0x11C6E which is pure rts;nop no-op stub; consecutive table slot with 0x66A6/0x66AC
-60E0FC00,0x5E78,thunk_FUN_00009c86,fnptr_dispatch_d8d8_thunk,0.8,6-byte jmp @0x9C86 which is fnptr_dispatch_d8d8 (jmp *fnptr@0xFFFFD8D8 r4=0); tail-jump thunk alias
-60E0FC00,0x5EEE,thunk_FUN_00009c86,fnptr_dispatch_d8d8_thunk_5eee,0.8,"6-byte jmp @0x9C86 = fnptr_dispatch_d8d8 (RAM fnptr 0xFFFFD8D8, r4=0); called by interpolate_charTable 0x26F4"
+60E0FC00,0x5E78,thunk_FUN_00009c86,thunk_to_9c86,0.8,6-byte jmp @0x9C86 which is fnptr_dispatch_d8d8 (jmp *fnptr@0xFFFFD8D8 r4=0); tail-jump thunk alias
+60E0FC00,0x5EEE,thunk_FUN_00009c86,thunk_to_9c86_5eee,0.8,"6-byte jmp @0x9C86 = fnptr_dispatch_d8d8 (RAM fnptr 0xFFFFD8D8, r4=0); called by interpolate_charTable 0x26F4"
 60E0FC00,0x66AC,thunk_FUN_00011c6a,noop_stub_thunk_11c6a,0.8,6-byte jmp @0x11C6A which is pure rts;nop no-op stub; consecutive table slot with 0x66A6/0x66B2
 60E0FC00,0x66A6,thunk_FUN_00011f3c,noop_stub_thunk_11f3c,0.8,6-byte jmp @0x11F3C which is pure rts;nop no-op stub; consecutive table slot with 0x66AC/0x66B2 (hook/callback table)
 60E0FC00,0x67666,thunk_FUN_00052b8c,dtc_status_getter_thunk_52b8c,0.6,6-byte jmp @0x52B8C which calls 0x5415A (status) mapping to 0x00/0x03 and calls 0x54008; DTC/fault status getter wrapper; consecutive table slot with 0x6766C/0x67672 thunks
