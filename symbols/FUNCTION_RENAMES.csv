@@ -2076,3 +2076,153 @@
 60E0FC00,0x29BDE,FUN_00029bde,can201_value_bb34,0.6,CAN201 value: if 0xCC88==1 set 0xFFFFBB34=0xFFFF else float 0x2490 compute capped at 0xFFFE
 60E0FC00,0x29C24,FUN_00029c24,can201_value_bb38,0.6,CAN201 value: if 0xBBEF==1 set 0xFFFFBB38=0xFFFF else float 0x2490 compute capped 0x9C40
 60E0FC00,0x29CA0,FUN_00029ca0,can201_value_bb3a,0.6,CAN201 value: if 0xCB61>=0x77A6C set 0xFFFFBB3A=0xFF else float 0x24D0 compute capped 0xC8
+60E0FC00,0x29DBC,FUN_00029dbc,can_periodic_torque_tx_tick,0.9,incr word@0xFFFFBB66; every 4th call runs getEngineTorqueMetricsForCAN 0x29E28 + can203pack 0x29DF4 then resets counter; periodic CAN203 TX trigger
+60E0FC00,0x29DEC,FUN_00029dec,can_reset_counter_bb66,0.9,trivial reset of word@0xFFFFBB66 to 0 (store in rts delay slot); sibling of tick 0x29DBC
+60E0FC00,0x29E6A,FUN_00029e6a,can203_copy_byte_bb50_to_bb5f,0.7,byte copy @0xBB50->0xFFFFBB5F feeding can203pack buffer cell 5F
+60E0FC00,0x29E74,FUN_00029e74,can203_copy_byte_bb52_to_bb60,0.7,byte copy @0xBB52->0xFFFFBB60 feeding can203pack buffer cell 60
+60E0FC00,0x29E7E,FUN_00029e7e,can203_copy_byte_bb51_to_bb61,0.7,byte copy @0xBB51->0xFFFFBB61 feeding can203pack buffer cell 61
+60E0FC00,0x29E88,FUN_00029e88,can203_copy_byte_bb53_to_bb62,0.7,byte copy @0xBB53->0xFFFFBB62 feeding can203pack buffer cell 62
+60E0FC00,0x2A01E,FUN_0002a01e,can_out_byte_bb52_calc,0.7,float math (0x2440/0x2404/0x24D0) gated by flags BB5C/A428/B127/B126 -> byte 0xBB52 (CAN203 byte60); defaults 0xFF/0x00
+60E0FC00,0x2A1E4,FUN_0002a1e4,can_out_byte_bb53_calc,0.7,sibling of 0x2A01E: float math -> byte 0xBB53 (CAN203 byte62); defaults 0xFF/0x00/0xFE
+60E0FC00,0x2A2CE,FUN_0002a2ce,can_fault_active_flag_bb5c,0.7,aggregates diag bytes @0xC590/0xC5EA/0xC5DB/0xC5D7==1 or @0xCB61>=3 -> 0xBB5C fault-present flag (read by can_251_pack_field)
+60E0FC00,0x2A31C,FUN_0002a31c,flag_bb5d_condition_eval,0.5,boolean from float A998>A62C + flags A9AC/A428/AAC6/A9A8/A9AA -> byte 0xBB5D; exact signal unclear
+60E0FC00,0x2A372,FUN_0002a372,torque_flag_bb5e_eval,0.6,float 0x77A98 vs 0xA9FC + flags A428/AAC6 -> byte 0xBB5E torque-condition flag
+60E0FC00,0x2A3DC,FUN_0002a3dc,can_periodic_throttle_tx_tick,0.9,incr word@0xFFFFBB94; every 2nd call runs can251_throttle_values_pack 0x2A454 + can215TXpack 0x2A414 then resets
+60E0FC00,0x2A40C,FUN_0002a40c,can_reset_counter_bb94,0.9,trivial reset of word@0xFFFFBB94 to 0; sibling of 0x2A3DC tick
+60E0FC00,0x2A7D6,FUN_0002a7d6,dsc_state_filter_bb90,0.5,state/decay filter on long@0xFFFFBB90 gated by floats 0x77B2C/0x77B30/AA2C/B594 and flags A428/AAC6/0x77B1C; writes 0xBB7D + word@0xFFFFBB96; in can251/DSC pack chain 0x2A454
+60E0FC00,0x2A8AC,FUN_0002a8ac,dsc_cond_flag_bb7e_eval,0.6,bits 0x80/0x40 of byte@0xBB4F or torque float 0x77A98>A9FC -> byte 0xBB7E; part of can251/DSC pack chain
+60E0FC00,0x2A9E4,FUN_0002a9e4,can_sr_protected_call_2979a_297c2,0.4,getSR(0x10)/setSR(0x10) critical-section wrapper around calls 0x2979A/0x297C2 in CAN area; inner purpose opaque
+60E0FC00,0x2AAC8,FUN_0002aac8,veh_speed_filter_update_sr,0.7,SR-protected batch running 0x2B19A/0x2B1B6/0x2B1DC/0x2B5D0 (veh-speed filter chain); periodic update
+60E0FC00,0x2B14C,FUN_0002b14c,copy_byte_a41c_to_bbd1,0.6,trivial byte copy @0xA41C->0xFFFFBBD1 (vehicle-speed sensor input cell)
+60E0FC00,0x2B19A,FUN_0002b19a,flag_bb98_from_bddc,0.7,byte 0xBB98 = (@0xBDDC==1); veh-speed filter flag
+60E0FC00,0x2B1B6,FUN_0002b1b6,flag_bb99_gated_a4a6,0.7,byte 0xBB99 = (@0xA4A6==1 && @0x75396!=0); veh-speed filter flag
+60E0FC00,0x2B5D0,FUN_0002b5d0,veh_speed_filter_rate_limit,0.7,"big filter/limiter: floats 0x753C0/753C4, rate-limiter 0x2460 on words 0xFFFFBBC6/8, hysteresis bytes 0xFFFFBBD3/0xFFFFBBA5/0xBB9B"
+60E0FC00,0x2B974,FUN_0002b974,copy_timer_reset_6d480_to_bbe4,0.5,copies byte @0x6D480 -> 0xBBE4 (reload value for decay timer used by 0x2B9B8)
+60E0FC00,0x2B9B8,FUN_0002b9b8,dtc_timer_bbe4_dec,0.6,reload-or-decrement timer: if @0xA400 active reload byte 0xBBE4 from 0x6D480 else decrement by 1; DTC/debounce timer
+60E0FC00,0x2BA58,FUN_0002ba58,can_signal_counters_init_1f,0.6,writes 0x1F(31) to words 0xFFFFBC1C/BC1E/BC20 (signal-freshness counters reset)
+60E0FC00,0x2BDF8,FUN_0002bdf8,flag_bc03_bit3_bc12,0.5,byte 0xBC03 = bit3(word@0xBC12); CAN RX status-bit extraction
+60E0FC00,0x2BF18,FUN_0002bf18,flag_bc04_threshold_bc24,0.5,byte 0xBC04 = (word@0xFFFFBC24 >= word@0x77A7C2); threshold compare flag
+60E0FC00,0x2C052,FUN_0002c052,dtc_timer_bc10_dec,0.6,reload-or-decrement timer: if @0xA400 active reload byte 0xBC10 from 0x6D484 else decrement by 1
+60E0FC00,0x2C0D2,FUN_0002c0d2,copy_byte_bc30_to_bc31,0.6,trivial byte copy @0xFFFFBC30 -> 0xBC31 (DTC/timer cell)
+60E0FC00,0x2C0E6,FUN_0002c0e6,dtc_timer_bc32_dec,0.6,reload-or-decrement timer: if @0xA400 active reload byte 0xBC32 from 0x6D482 else decrement by 1
+60E0FC00,0x2C15C,FUN_0002c15c,can_reset_counter_bc36,0.9,trivial reset of word@0xFFFFBC36 to 0 (periodic CAN flag TX tick counter)
+60E0FC00,0x2C164,FUN_0002c164,can_flag_bc34_copy_and_tx,0.6,copies byte 0xFFFFBC35->0xFFFFBC34 then tail-jmp 0x99B0(r4=0x4BA94) message update
+60E0FC00,0x2C174,FUN_0002c174,can_flag_byte_bc35_compose,0.6,composes bitmask byte (bits 0x80/0x40/0x20/0x10) from cond bytes 0xBD6C/BD6D/BD81/BD80 -> 0xFFFFBC35
+60E0FC00,0x2C374,FUN_0002c374,ign_cal_then_crank_timing_init,0.6,sequence wrapper: bsr getIgnitionRelatedCalsForSomething 0x2C388 then bra crankingTimingInitSomething 0x2C3AE
+60E0FC00,0x2C484,FUN_0002c484,crank_ign_timing_decay_bc63,0.5,dual-threshold retard decay: div-helper 0x4144 vs bytes @0xA415/+3 decrement counter 0xFFFFBC63; clears 0xFFFFBC58/BC5C longs + 0xFFFFBC62 near thresholds 0x753C9/753CA
+60E0FC00,0x2C4E6,FUN_0002c4e6,ign_cond_flag_bc60_eval,0.5,"boolean from byte 0xCCFA, floats 0x753EC/753F0/753F4 vs A9FC/ADA8, flags A428/A42C/B46C -> 0xFFFFBC60; exact ign condition unclear"
+60E0FC00,0x2C5E8,FUN_0002c5e8,fault_cell_868c_zero,0.9,"tail jmp updateMemoryAtAddress_8bit 0x3E1F8(r4=0x868C, r5=0): zero fault cell; sibling of named 0x2C5F0 fault_cell_868c_8bit_update"
+60E0FC00,0x2CD28,FUN_0002cd28,can_periodic_tx231_tick,0.9,incr word@0xFFFFBC9C; every 4th call runs can_231_frame_tx_init_bytes 0x2CD8A + canPackandTx231 0x2CD60 then resets
+60E0FC00,0x2CD58,FUN_0002cd58,can_reset_counter_bc9c,0.9,trivial reset of word@0xFFFFBC9C to 0; sibling of 0x2CD28 tick
+60E0FC00,0x2CDD8,FUN_0002cdd8,can231_clear_bc9a,0.7,zeros byte 0xFFFFBC9A; tail of CAN231 TX init (per named 0x2CD8A description)
+60E0FC00,0x2CE24,FUN_0002ce24,dsc_torque_derate_calc,0.6,"float derate: 0xBCA0=@0xBCD8*@0x75504, hysteresis vs 0x75508/7550C/75510 -> state bytes 0xFFFFBCBA/0xBCB0/0xBCB1; follows dscDerateInit 0x2CE0C"
+60E0FC00,0x2D430,FUN_0002d430,torque_delta_bce0_calc,0.7,fr2 = float@0xBCDC - float@0xBCE4 stored to 0xBCE0 (torque delta/slope)
+60E0FC00,0x2D440,FUN_0002d440,torque_corr_sum_bce4,0.7,float@0xBCE4 = @0xFFFFBCF0 + @0xBCEC + @0xFFFFBCF8 (torque correction sum)
+60E0FC00,0x2D508,FUN_0002d508,torque_integral_acc_bcf8,0.7,if byte@0xBD88==1 accumulate 0xFFFFBCF8 += float@0x75720 else hold; torque-correction integrator
+60E0FC00,0x2D5DC,FUN_0002d5dc,fault_cell_8690_zero,0.9,"tail jmp updateMemoryAtAddress_8bit 0x3E1F8(r4=0x8690, r5=0): zero fault cell; siblings 0x2D5E4/0x2D5EC named fault_cell_8690*"
+60E0FC00,0x2D82C,FUN_0002d82c,dtc_bd08_threshold_report,0.7,"if byte@0xFFFFBD09 or 0xFFFFBD0A >=5 -> 0xBD08=1; then tail jmp updateFaultStatusTHUNK 0x5E644(r4=0x3F, r5=1/2)"
+60E0FC00,0x2E604,FUN_0002e604,cruise_cond_flag_bd68_eval,0.5,byte 0xBD68 = ((@0xD1B0==1 && @0x7663C!=0xFF) || @0x7663C==1); cruise enable/condition flag
+60E0FC00,0x2E63A,FUN_0002e63a,cruise_cond_flag_bd69_eval,0.5,byte 0xBD69 = bit7(@0xCBD4); cruise condition flag
+60E0FC00,0x2E6E2,FUN_0002e6e2,cruise_control_state_update,0.7,"cruise state machine: floats 0xBFBC/0xBFC0/0x77A5C/0x77A60 + flags -> bytes 0xFFFFBD75/0xBD6D/0xFFFFBD72/0xFFFFBD74, word 0xFFFFBD70; = cruiseControlStateStuff"
+60E0FC00,0x2E850,FUN_0002e850,cruise_dtc_bd7a_check,0.7,"if float@0xBC68>@0x754C4 and word@0xFFFFBD7A>=word@0x76640 -> flag 0xBD78=1 + rate-limit 0x2460; tail jmp 0x5E644(r4=0x3E, r5=1/2) DTC report"
+60E0FC00,0x2E960,FUN_0002e960,cruise_fault_flag_bd80_eval,0.6,"complex cruise fault eval: word-redundant read 0x3E1AA(0x8694), floats 0x77A18/0x77A14/BFC8/BFBC, flags 0xBFD5/0xBFD1 -> byte 0xBD80 + filtered counters 0xFFFFBD82/84 via 0x2460"
+60E0FC00,0x2EB10,FUN_0002eb10,cruise_cond_eval_bd69_then_bd68,0.7,wrapper: jsr 0x2E63A cruise_cond_flag_bd69_eval then tail-jmp 0x2E604 cruise_cond_flag_bd68_eval; part of resetFunc? init
+60E0FC00,0x2EC0C,FUN_0002ec0c,fault_cells_8694_float_zero_then_8690_zero,0.9,wrapper: jsr 0x3259C fault_float_cell_8694_zero then tail-jmp 0x2D5DC fault_cell_8690_zero
+60E0FC00,0x2EC1A,FUN_0002ec1a,fault_cell_8694_validate_then_8690_update,0.7,wrapper: jsr 0x325A4 validateAddressCopy(0x8694) then tail-jmp 0x2D5E4 fault_cell_8690_8bit_update
+60E0FC00,0x2ECB8,FUN_0002ecb8,obd_diag_reg_f76c_bit80_from_bd88,0.7,SR-protected (0x2054/0x2064) set/clear bit0x80 of word@0xF76C via 0x4BBC keyed on byte@0xBD88==1; via thunk 0x2F5D4
+60E0FC00,0x2ECF8,FUN_0002ecf8,ac_diag_reg_f76c_bit80_from_bd88,0.7,same diag-bit sync 0xF76C bit0x80 from byte@0xBD88 but pre-read via 0x5AD5C; called from acCompressorControlMain 0x2F5DA
+60E0FC00,0x2EE5C,FUN_0002ee5c,ac_compressor_plausibility_monitor,0.7,float hysteresis vs B594/76660-70 + 2DLookup_FP 0x20C4(0x68E44); writes flags BDB6/BDB7/BDB8; fault chain sets BD89 + counter BDB2 via 0x2478; A/C plausibility
+60E0FC00,0x2F504,FUN_0002f504,ac_compressor_fault_hysteresis_monitor,0.7,float A9FC vs 766A0/766A4 sets byte@BDB3 with hysteresis; confirm word@BDAA copy from 0x7665E + decrement; checks BD96 flag
+60E0FC00,0x2FD48,FUN_0002fd48,init_diag_reg_f754_bit2_from_bdf8,0.7,SR-protected diag sync: 0x2054/0x2064 + 0x4BBC set/clear bit2(0x04) of word@0xF754 from byte@0xBDF8; called from reset init 0x2FE00
+60E0FC00,0x2FD86,FUN_0002fd86,obd_diag_reg_f754_bits_from_bdf8_bddc,0.7,"two SR-protected diag bit syncs on reg 0xF754 (bit2 from BDF8 via 0x5A9F4, bit1 from BDDC); called by getOBDFuelModificationRequest"
+60E0FC00,0x2FE00,FUN_0002fe00,reset_init_flags_then_diag_sync,0.9,"init seq: 0x300A8 (BDF8=1), 0x300B0 (BDFC=0xFFFF), tail-jmp 0x2FD48; called from resetFunc? 0x1107A"
+60E0FC00,0x2FE44,FUN_0002fe44,fuel_cut_flags_reset_sr_protected,0.9,"getSR(0x10) + jsr 0x30164 (reset BDFC, eval BE00) + setSR 0x3934; SR-protected fuel-cut flag reset"
+60E0FC00,0x300A8,FUN_000300a8,init_flag_bdf8_set,0.9,trivial store byte 1 -> 0xFFFFBDF8 (rts delay slot)
+60E0FC00,0x300B0,FUN_000300b0,init_word_bdfc_set_ffff,0.9,trivial store word 0xFFFF -> 0xFFFFBDFC
+60E0FC00,0x300B8,FUN_000300b8,obd_fuel_cut_request_eval,0.7,"fuel-cut eval: BDFA/BDFE/BDFC via add16bitSaturate 0x2460, BE00=0, BDF8 from counters 7A7C4/7A7C8 + flags A42C/AACC; called by getOBDFuelModificationRequest"
+60E0FC00,0x30164,FUN_00030164,fuel_cut_flags_bdfc_reset_bdfe_check,0.9,BDFC=0; BE00=1 if word@BDFE > word@0x7A7C6 else 0
+60E0FC00,0x3059E,FUN_0003059e,rtos_fault_monitor_schedule_task,0.6,"debounce counters BEC4/BEC8 via 0x2478 + condition chain (A42C,76FFC/77004,77008,ADA8,77044,AA2C,CCFB,76FFD); on trigger latches BE84, 2DLookup 0x2068(0x68FB8)->BE80, osTaskScheduler 0x9630(0,1,BE80)"
+60E0FC00,0x31C16,FUN_00031c16,sr_protected_counter_bf8a_update,0.9,getSR(0x10) + jsr 0x31DCA (counter word@BF8A via addSaturate8Bit keyed on A41C) + setSR 0x3934
+60E0FC00,0x320C4,FUN_000320c4,nullsub_320c4,0.9,bare rts + nop; no-op stub called from resetFunc?
+60E0FC00,0x325A4,FUN_000325a4,validate_address_copy_8694_thunk,0.9,tail-jmp validateAddressCopy 0x3E38A with r4=0x8694 (protected float cell); thunk
+60E0FC00,0x32DDC,FUN_00032ddc,can630_tx_periodic_tick,0.9,increments word@BFFC; every 25th call runs packCANTX630 0x32E3E + frame pack 0x32E14 then resets counter; CAN630 periodic TX trigger
+60E0FC00,0x32E0C,FUN_00032e0c,can630_tx_counter_bffc_reset,0.9,trivial store word 0 -> 0xFFFFBFFC; called by resetCANTimers 0xDA94
+60E0FC00,0x32E14,FUN_00032e14,can630_pack_frame_tx,0.7,"builds 8-byte CAN630 frame at 0xFFFFBFF0 (bytes from BFF9/BFFA/BFF8), tail-jmp txCAN_EventBased 0x99B0 with txbuf 0x4BA84"
+60E0FC00,0x32E4C,FUN_00032e4c,can630_status_byte_bff9_from_cbd6,0.7,"encodes byte@CBD6 bits (0x40/0x20->8, 0x80->2, else 0) into status byte@0xFFFFBFF9"
+60E0FC00,0x32E98,FUN_00032e98,can630_copy_byte_d196_to_bffa,0.9,copies byte@0xD196 -> 0xFFFFBFFA; sibling of named 0x32EA2 D196->BFF8
+60E0FC00,0x32ED0,FUN_00032ed0,can620_tx_periodic_tick,0.9,increments word@C00A; every 25th call runs 0x32F2E + can620Pack 0x32F08 then resets counter; CAN620 periodic TX trigger
+60E0FC00,0x32F00,FUN_00032f00,can620_tx_counter_c00a_reset,0.9,trivial store word 0 -> 0xFFFFC00A; called by resetCANTimers 0xDA94
+60E0FC00,0x32F2E,FUN_00032f2e,can620_status_encode_then_limit_type,0.7,calls 0x32F38 (CBD6 bits -> byte@C008<<2) then tail-bra 0x32F8A speedLimiterSetLimitType?? (CBD4 bits)
+60E0FC00,0x33098,FUN_00033098,can430_copy_bytes_c017_to_c014,0.7,3 byte copies 0xFFFFC017/18/19 -> 0xFFFFC014/15/16; called by CAN430RX_Main 0x33040
+60E0FC00,0x330BC,FUN_000330bc,can_fault_confirm_counter_c013,0.7,if byte@A400>0 copy byte@0x6D483 -> C013 else decrement byte@C013; confirm counter; called by checkCANFaults??
+60E0FC00,0x3335C,FUN_0003335c,init_float_c03c_set_const,0.9,stores float constant (mova literal) -> 0xFFFFC03C; trivial init
+60E0FC00,0x33876,FUN_00033876,float_slew_filter_c05c_from_b588,0.7,if B580!=0: C05C=0; else if B588!=0: C05C=const 0x7845C or saturateLow 0x23E4(C05C-0x78460); copies B588->C06F; called by updateIdleControl??
+60E0FC00,0x3397A,FUN_0003397a,knock_byte_c070_clear,0.9,trivial store byte 0 -> 0xFFFFC070; called from knock chain 0x1A478
+60E0FC00,0x3431C,FUN_0003431c,fuel_enrichment_calc_ch1,0.7,"C174->2DLookup 0x2068(0x69430)->C0F8, C0D8->2DLookup(0x6941C)->C0FC; C0F4=C0F8*0x78680*C0FC or 0; A42C gate 3DLookup 0x20DC(0x6946C)->C100"
+60E0FC00,0x34388,FUN_00034388,fuel_enrichment_calc_ch2,0.7,"twin of 0x3431C ch2: C178->2DLookup(0x69444)->C108, fixedPointToFloat 0x2500(0x78674)->C10C, C104=C108*0x78684*C10C, 3DLookup(0x69488)->C110"
+60E0FC00,0x344CC,FUN_000344cc,fuel_enrichment_combine_saturate,0.7,weighted fmac sum C110/C104/C100/C0F4/C114/C120 -> C0F0; gate A426>=0x78676&&C128==1&&0x78678>B594 -> C0EC=0 else minValue 0x23F4(0x7867C)->C0EC
+60E0FC00,0x345B4,FUN_000345b4,revlimit_byte_copy_b129_to_c169,0.7,copies byte@0xB129 -> 0xFFFFC169 and sets float@C130=1.0; called by setPrevLoops?? 0x216D4; sibling 0x345C4 does rev-limit compare
+60E0FC00,0x34D70,FUN_00034d70,idle_speed_control_calc,0.7,"idle target calc: 2DLookup 0x2068(0x696A4/0x696B8), ratio interp 0x2404(0x79228/2C), saturateLow 0x23E4, flags C1D8/C1D9, 0x2440->C1CC, A840 gate, B586 path->C1C8; called by updateIdleControl??"
+60E0FC00,0x34F34,FUN_00034f34,idle_target_c1b8_select,0.7,C1B8 = C1C8 if flag B580==1 else 0.0
+60E0FC00,0x3518C,FUN_0003518c,validate_address_copy_32bit_869c_thunk,0.9,tail-jmp validateAddressCopy_32bit 0x3E330 with r4=0x869C; thunk (accessed via 0x3514E)
+60E0FC00,0x35B58,FUN_00035b58,obd_byte_reorder_24bit_pack,0.4,"opaque bit/byte permutation of 24-bit value (masks 0x0FE0/0x1FC000/0xFFE0301F, 2's-complement byte ops); used by immo_related??/0x36FCA/0x37010"
+60E0FC00,0x35F5C,FUN_00035f5c,fault_cell_869c_read_add_write,0.7,read_value_32bit_redundant 0x3E15C(0x869C) + add long@0xF430 + tail-jmp updateMemoryAtAddress_32bit 0x3E218(0x869C)
+60E0FC00,0x364A0,FUN_000364a0,immo_fault_code_param_dispatch,0.7,"switch on byte code (1-0xF,0xFF) -> (r6,r5,r4) params, jsr 0x37FFC (stores code->C4B2); sets C27E=1 if result!=0; called by ImmoUpdateRelated"
+60E0FC00,0x367C8,FUN_000367c8,checksum_xor_accum_32bit,0.9,rolling XOR checksum: acc C288 ^= data; rotated word ^= acc C28C; 32-bit XOR accumulators
+60E0FC00,0x367E8,FUN_000367e8,immo_fault_mem_commit_code_2,0.7,"E2 fault-mem commit: if C249==1&&C24A==0&&C243==0&&C27D!=0: set C243=2/C27D=2, updateE2RAMBasedOnInput 0x361AC(2), C24A=1; dispatch 0x364A0, cleanup on C2A4"
+60E0FC00,0x36862,FUN_00036862,immo_fault_mem_commit_code_1,0.7,"same E2 fault-mem commit machine, code 1 (C243/C27D=1, 0x361AC(1)); uses flags C248/C247"
+60E0FC00,0x36904,FUN_00036904,immo_fault_mem_commit_code_0d,0.7,"same E2 fault-mem commit machine, code 0x0D (0x361AC(0x0D)); uses flags C24C/C24B"
+60E0FC00,0x3697E,FUN_0003697e,immo_comm_state_main,0.6,"immo comm state machine: RPM>500 gate + 0x54AC6 wait, sets C256, calls 0x36AF0/0x36B3E, checks C1EE/C291 bit2/C256, 0x5415A checks, branches 0x36B84/0x36C60/0x36A8C; called by ImmoMain"
+60E0FC00,0x36A8C,FUN_00036a8c,immo_comm_state_enter_33,0.6,"if C1EE!=0x33: set C1EE=0x33, clear C291 bit2, reset C263/C250/C258/C254, set C25A=1; comm state enter/reset"
+60E0FC00,0x36AF0,FUN_00036af0,immo_comm_confirm_counter_c253,0.6,"if C255==1: increment byte@C253 (cap 0xFF); at >=25: decrement C295, C25C=1 else clear C255; reset C253; timeout counter"
+60E0FC00,0x36B3E,FUN_00036b3e,immo_comm_confirm_counter_c292,0.6,"if C262==0 && B5C4!=1 && C292>0: decrement byte@C292, C25E=1; on wrap-to-0 with C1EE==0x55 -> call 0x36A8C"
+60E0FC00,0x36B84,FUN_00036b84,immo_e2_fault_mem_pointer_update,0.6,"if C1EF bit0x80 && C1EE==0x55 && C263==1: E2 fault offset=C1F0*0x258 (cap 0xFFFF); word@C250>=offset -> new fault entry (C1EE=0xAA,C263=0,C25A=1) else advance sub-index C252 (cap 0x19)+word@C250; immo E2 fault-mem pointer mgmt"
+60E0FC00,0x36C60,FUN_00036c60,immo_comm_state_33_55_handshake,0.6,"immo comm handshake: on C1EE==0x33 (C27B==0,C27C==1) -> set 0x55/C291 bit1/C25A; on 0x55 with C259==1: bsr 0x37010, compare C266 vs C24E -> accept (0xAA) or retry (C294++ up to 2 then lock C295=0xC8 + immo_comm_state_enter_33 0x36A8C)"
+60E0FC00,0x36D7A,FUN_00036d7a,immo_fault_mem_commit_code_09,0.7,"E2 fault-mem commit machine code 0x09: if C25A==1&&C25B==0&&C243==0&&C27D==0 set C243=1, C27D=0x09, updateE2RAMBasedOnInput 0x361AC(9); sibling of batch12 commit_code_1/2/0d"
+60E0FC00,0x36E20,FUN_00036e20,immo_fault_mem_commit_code_08,0.7,E2 fault-mem commit machine code 0x08 (0x361AC(8)); same skeleton as 0x36D7A
+60E0FC00,0x36E9A,FUN_00036e9a,immo_fault_mem_commit_code_0e,0.7,E2 fault-mem commit machine code 0x0E (0x361AC(0x0E)); same skeleton as 0x36D7A
+60E0FC00,0x36F50,FUN_00036f50,immo_fault_mem_commit_code_0f,0.7,E2 fault-mem commit machine code 0x0F (0x361AC(0x0F)); same skeleton as 0x36D7A
+60E0FC00,0x36FCA,FUN_00036fca,obd_byte_reorder_f430_to_c293,0.5,"extracts mid byte (0xFF00>>8) of word@F430, reads byte@C293, calls obd_byte_reorder_24bit_pack 0x35B58, stores byte@C293; immo/OBD data reorder"
+60E0FC00,0x37010,FUN_00037010,obd_word_build_c24e_from_c293,0.5,"reads byte@C293, calls obd_byte_reorder_24bit_pack 0x35B58, stores word@C24E; inverse of 0x36FCA, used by immo_comm_state_33_55_handshake 0x36C60"
+60E0FC00,0x37090,FUN_00037090,immo_unlock_validate_5415a,0.4,"immo unlock validation: calls 0x66A74, checks B1A8/A41C, calls 0x5415A with r4=0 then r4=2, compares result to 0x10"
+60E0FC00,0x37134,FUN_00037134,immo_comm_state_aa_validate,0.5,"immo comm: on C1EE==0xAA calls 0x5415A twice, updates C1EF state flags"
+60E0FC00,0x372B8,FUN_000372b8,immo_comm_state_33_validate,0.5,"immo comm state 0x33 gate: checks AACC/A41C, C1EF bit0x80, C1EE==0x33 then calls 0x5415A"
+60E0FC00,0x3753C,FUN_0003753c,immo_rx_word_c296_store,0.4,"immo rx: calls 0x66A74, checks word@C296==0, calls 0x5415A, stores 16-bit stack value to word@C296"
+60E0FC00,0x37698,FUN_00037698,immo_comm_state_aa_range_check,0.4,immo comm state 0xAA: 0x5415A checks + 0x08..0x3F range validation of response byte
+60E0FC00,0x377FE,FUN_000377fe,immo_eeprom_read_00b1,0.4,"calls 0x66A74 then 0x52A5A with r4=0x00B1, r5=0x31; immo E2/EEPROM register read"
+60E0FC00,0x378D6,FUN_000378d6,immo_unlock_rx_checksum_accum,0.5,"immo unlock response: C1EE==0xAA, 0x5415A result==0x20, then jsr checksum_xor_accum_32bit 0x367C8"
+60E0FC00,0x37A78,FUN_00037a78,immo_e2_fault_mem_validate,0.5,"validates E2 fault-mem state: reads C27B/C255/C263, words C296/C298, 0xFFFF empty-marker compares; immo E2"
+60E0FC00,0x37CE0,FUN_00037ce0,immo_e2_key_learn_state,0.4,"large state machine: gate CFE2, calls 0x541F0, E2 program vars C1F3/C29F/C2A1/C2A2/C1F1; immo key-learn E2 flow"
+60E0FC00,0x37FFC,FUN_00037ffc,e2_fault_mem_commit_main,0.6,"SR-protected (0x3920/0x3934) E2 fault-mem commit: stores code->C4B2, mode byte@C4B8, counters C4AA/C4BD/C4C0; called by immo_fault_code_param_dispatch 0x364A0"
+60E0FC00,0x38104,FUN_00038104,e2_fault_mem_block_verify,0.5,"E2 fault-mem block read/verify state machine: mode byte@C4B8 (1-4), CRC via 0xBDFA/0xBE30/0xBE5E vs word@C4B6, byte-index into C2AA buffer, flags C2A4-C2A9"
+60E0FC00,0x386F4,FUN_000386f4,e2_buf_c2aa_addr_get,0.7,returns pointer 0xFFFFC2AA (E2 fault-mem buffer) in r0; trivial getter
+60E0FC00,0x386FA,FUN_000386fa,e2_shadow_c4b9_c4ba_init,0.6,"copies ROM byte@0x792C0 -> byte@C4B9, clears byte@C4BA; E2 shadow init"
+60E0FC00,0x3870A,FUN_0003870a,e2_fault_mem_blank_ff_fill,0.7,SR-protected (0x3920/0x3934): if byte@0x792C0==0xFF && byte@C4B9!=0xFF fill 0x100 bytes at C2AA with 0xFF then jsr e2_fault_mem_commit_main 0x37FFC; E2 erase/blank
+60E0FC00,0x387A2,FUN_000387a2,e2_fault_mem_verify_sr_protected,0.7,SR-protected wrapper (0x3920/0x3934): jsr 0x38104 then jmp setSR
+60E0FC00,0x387BA,FUN_000387ba,e2_fault_mem_blank_sr_protected,0.7,SR-protected wrapper: jsr e2_fault_mem_blank_ff_fill 0x3870A then jmp setSR 0x3934
+60E0FC00,0x388AA,FUN_000388aa,fault_word_copy_c4e0_to_c4de,0.6,copies word@C4E0 -> word@C4DE; getter feeding CAN-reported fault data
+60E0FC00,0x388B4,FUN_000388b4,fault_cell_c4d4_from_6d487,0.7,copies ROM byte@0x6D487 -> byte@C4D4; fault cell load for CAN report
+60E0FC00,0x388BE,FUN_000388be,fault_confirm_counter_c4d4,0.7,if byte@A400>0 reload byte@C4D4 from 0x6D487 else decrement (wrap) byte@C4D4; confirm/debounce counter (sibling of can_fault_confirm_counter_c013 0x330BC)
+60E0FC00,0x38918,FUN_00038918,float_copy_aa74_to_c50c,0.7,fmov float@0xAA74 -> @0xC50C; signal float copy
+60E0FC00,0x38922,FUN_00038922,float_2dlookup_a9fc_to_c518_c51a,0.6,stores float@A9FC->C514 then 2DLookup_FP 0x20C4(0x6971C) on same input -> words C518 and C51A
+60E0FC00,0x3894E,FUN_0003894e,float_filter_2dlookup_c50c,0.5,"float pipeline: fr6=1.0-float@0x792D0, C50C=firstOrderFilter 0x23B0(float@AA74,C50C,...), 2DLookup 0x2068(0x69708), gates B126/B17C, writes C4F4/C50C"
+60E0FC00,0x38C2C,FUN_00038c2c,float_state_accum_c522,0.4,"large float accumulation/state machine: C514/C521/C522/C523, gate CFD9, clears bytes, calls 0x39794/0x38440"
+60E0FC00,0x38E1C,FUN_00038e1c,dtc_report_17_from_c520_c521,0.7,"if C520==1 jmp 0x5E644(r4=0x17,r5=1); if C521==1 jmp 0x5E644(r4=0x17,r5=2); DTC 0x17 status report"
+60E0FC00,0x39040,FUN_00039040,sr_protected_init_chain_498d8,0.6,"SR-protected (0x3920/0x3934) chain: 0x498D8, 0x498E0, 0x3FE44, tail-jmp 0x43344"
+60E0FC00,0x39258,FUN_00039258,sr_protected_call_4d3da,0.7,"SR-protected wrapper: getSR(0x10), jsr 0x4D3DA, setSR 0x3934"
+60E0FC00,0x39342,FUN_00039342,sr_protected_throttle_chain,0.5,SR-protected (0x3920/0x3934) chain of 12 callees 0x45E26..0x45BB0 (throttle/torque update group)
+60E0FC00,0x398F4,FUN_000398f4,sr_protected_float_3894e,0.6,"SR-protected wrapper (0x3920/0x3934): jsr 0x3894E then 0x3FF1C, setSR"
+60E0FC00,0x39F00,FUN_00039f00,fault_update_chain_4e56c,0.5,"big update chain (0x4E56C,0x4F6F2,0x5007C,0x5028C,0x505AC,0x4C03A,0x4F5F0,0x41198,...); fault/DTC periodic group"
+60E0FC00,0x3A164,FUN_0003a164,null_sr_wrapper,0.8,no-op SR wrapper: getSR(0x10) then jmp setSR 0x3934; empty slot in ignition/knock group
+60E0FC00,0x3A18C,FUN_0003a18c,sr_protected_chain_4b4e0,0.6,"SR-protected (0x3920/0x3934) chain: 0x4B4E0, 0x4B568"
+60E0FC00,0x3A1AA,FUN_0003a1aa,init_chain_45242_515f0,0.5,32-callee chain 0x45242..0x515F0 (tail-jmp 0x515F0); init/update dispatch in ignition-knock region
+60E0FC00,0x3A4F0,FUN_0003a4f0,flag_gate_dfa0_then_168a0,0.5,if byte@DFA0==1 set byte@DFA1=1 then jmp 0x168A0; conditional dispatch thunk
+60E0FC00,0x3A520,FUN_0003a520,diag_reg_sync_f746_f754_from_cdb3_cdb4,0.6,"SR-protected (0x2054/0x2064) diag bit sync via 0x4BBC: bit0x80 of reg 0xF746 from CDB3, bit0x01 of reg 0xF754 from !CDB4; pattern of obd_diag_reg_f76c_bit80 0x2ECB8"
+60E0FC00,0x3A600,FUN_0003a600,float_c534_init_one,0.8,fldi1 (1.0) -> float@0xFFFFC534; trivial init setter
+60E0FC00,0x3A608,FUN_0003a608,fault_threshold_monitor_c546,0.5,"2DLookup 0x2068(0x69968) on B594 -> C554, compares vs C0D8, sets fault flags C546/C547, C53C handling, gate B126"
+60E0FC00,0x3A6B6,FUN_0003a6b6,fault_confirm_counter_c53e,0.6,gate CFD9/BF88: increment byte@C53E via addSaturate8Bit 0x2478; if > byte@0x79572 set flag C541 else clear C541/C53E
+60E0FC00,0x3A74A,FUN_0003a74a,fault_monitor_dtc_2a_report,0.6,gate CFD9: debounce C53F/C540 via 0x2478 keyed on C544/C545; on threshold (0x79570/0x79571) jsr 0x652F0(r4=0x2A) sets flags C542/C543; DTC 0x2A report
+60E0FC00,0x3A80A,FUN_0003a80a,fault_ref_float_c534_update,0.5,float C534 reference update: if D082==1 use const 0x79578; elif BF88==1 compute via 2DLookup 0x2068(0x6997C)/3DLookup 0x20DC(0x69990)+saturateLow 0x23E4; sets C544/C545 hysteresis flags vs AAD0
+60E0FC00,0x3A8FC,FUN_0003a8fc,dtc_report_2a_from_c542_c543,0.7,"if C542==1 jmp 0x5E644(r4=0x2A,r5=1); if C543==1 jmp 0x5E644(r4=0x2A,r5=2); DTC 0x2A status report"
+60E0FC00,0x3A970,FUN_0003a970,fault_monitor_dtc_71_72_report,0.6,gate CFD9/CFB9/BF88 + 0x2478 debounce counters C558/C559/C55C/C55D/C55E/C55F/C560; on threshold jsr 0x652F0(r4=0x71/0x72); sets fault flags + DTC report
+60E0FC00,0x3AAFC,FUN_0003aafc,fault_monitor_dtc_73_74_report,0.6,twin of 0x3A970 on C55A/C55B/C561-C565 with 0x2478 debounce; jsr 0x652F0(r4=0x73/0x74); gate CFD9/CFB9
