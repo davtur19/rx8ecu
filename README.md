@@ -16,7 +16,7 @@ Cascade L1→L6; each claim is machine-checked or tagged `AI draft` / `unverifie
   18 jump tables, LIVE=0), XREF closure, gap audit. **9/9 CERTIFIED**, deterministic, CI-gated
   (`make cert`). [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
 - **L3 — Determinism.** Master catalog/CSVs derived from scripts; drift breaks CI.
-- **L4 — Differential/emulator.** 1678 py + 26 C suites; each lift vs ROM bytes on
+- **L4 — Differential/emulator.** 1915 py + 26 C suites; each lift vs ROM bytes on
   `tools/sh2emu.py` — **295 emulator-verified** add, 100k+ random inputs/lift. [VERIFICATION.md](VERIFICATION.md) §3–4.
 - **L5 — Cross-validation.** Seed/key bit-identical to ConnorRigby (100k+400+3+1 vectors,
   0 divergences); captured seed **0x464E7F → key 0xFAFDD8**. Tables vs RomRaider/GROM.
@@ -39,11 +39,11 @@ Hard gates (each with a command):
 ## Quick reference
 
 - **9/9 byte-exact + 9/9 formally certified**; code window 0x800..0x60000; SH-2 round-trip 93.46–93.8%.
-- Symbols: 56,952 rows → 50,676 real-fnc estimate, 6,439 named, 6,082 categorized.
-- 1299 C lifts / 1432 `c/*.c`; **295 emulator**-verified (`c/verified_addrs.txt`).
+- Symbols: 56,953 rows → 50,789 real-fnc estimate, 8,006 named, 6,082 categorized.
+- 1464 C lifts / 1599 `c/*.c`; **295 emulator**-verified (`c/verified_addrs.txt`).
 - Tables: 1,210 cal + 37,121 RomXR/GROM defs / 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
-- Docs: 191 function + 15 subsystem; **tests:** 1678 py + 26 C.
-- _Counters are snapshot at commit `419b1c7`; source of truth: `make catalog` / [MANIFEST.md](MANIFEST.md)._
+- Docs: 191 function + 15 subsystem; **tests:** 1915 py + 26 C.
+- _Counters are snapshot at commit `0689b22`; source of truth: `make catalog` / [MANIFEST.md](MANIFEST.md)._
 - Links: [Explorer](https://davtur19.github.io/rx8ecu/) · [VERIFICATION.md](VERIFICATION.md)
   · [MANIFEST.md](MANIFEST.md) · [docs/README.md](docs/README.md)
   · [FORMAL_CERT](docs/notes/FORMAL_CERT_60E1D400.md) · [REPLICATION.md](REPLICATION.md).
@@ -70,7 +70,7 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 | Path | Contents |
 |------|----------|
 | `roms/stock/` | 9 stock ROM images (512 KB each) + `roms/ROMS.md`; `src/` annotated reassemblable asm |
-| `c/` | verified C lifts (1432 `c/*.c`), `eeprom_immo.h`, host test suites, `verified_addrs.txt` |
+| `c/` | verified C lifts (1599 `c/*.c`), `eeprom_immo.h`, host test suites, `verified_addrs.txt` |
 | `tools/` | disassembler, `sh2emu.py`, formal verifier, rebuild scripts, test suites |
 | `symbols/` | per-ROM CSV, CATALOG_MASTER.csv, cal_tables.csv, romraider defs, callgraph |
 | `analysis/` | data-region classification + formal-verifier ROM configs |
@@ -102,7 +102,7 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 |---|---|---|
 | **Done** | 9/9 byte-exact; 9/9 formal cert (P1–P5 zero LIVE); seed/key bit-identical | VERIFICATION.md; FORMAL_CERT_60E1D400.md; UDS_SECURITY_MAPPING.md |
 | **Done** | catalog + named/categorized functions, cal tables, explorer | `CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`, `cal_tables.csv` |
-| **In progress** | naming of ~50,676 est. fns (6,439 named); more lifts + certs | NAMES_STATUS.md, `c/verified_addrs.txt` |
+| **In progress** | naming of ~50,789 est. fns (8,006 named); more lifts + certs | NAMES_STATUS.md, `c/verified_addrs.txt` |
 | **Open** | semantic meaning; runtime on real hardware | RUNTIME_CERT_PLAN.md, ECU_CAPTURE_PLAN.md |
 
 ## Legal
