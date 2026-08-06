@@ -760,26 +760,91 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
     # ---- test ----
     out_t = os.path.join(outdir, 'test_caller_%X.py' % addr)
     ok, reason = _emit_v8_test(addr, rom, end_s, res, callees, out_t,
-                               seed=seed, cases=cases, rom_label=rom_label)
+                               seed=seed, cases=cases, rom_label=rom_label,
+                               catalog=catalog, bounds=bounds)
     return out_c, out_t, ok, reason
 
 
+def _callee_span_end(t, catalog, bounds):
+    """Walk bound for a callee: its catalog end, else the next-catalog-address
+    estimate (same rule as v3 selection).  Replaces the fixed t+32 window."""
+    end_c = catalog.get(t)
+    if end_c is None and bounds is not None:
+        end_c = v3._next_addr(t, bounds)
+    return end_c
+
+
+def _callee_first_rts(rom, t, end_c):
+    """First `rts` (0x000B) at an even offset inside [t, end_c), skipping
+    literal-pool words so a 0x000B data word cannot truncate the walk."""
+    bound = min(end_c, len(rom))
+    pool = gcl._pcrel_pool_words(rom, t, end_c)
+    pc = t
+    while pc + 1 < bound:
+        if pc not in pool and (rom[pc] << 8) | rom[pc + 1] == 0x000B:
+            return pc
+        pc += 2
+    return None
+
+
+def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
+    """Inline-walk a callee for the v8 mirror.  Returns (records, None) on
+    success or (None, reason).
+
+    Fixes the three known callee-walk blockers:
+      (a) span: the walk bound is the callee's catalog end (or next-address
+          estimate) instead of the fixed t+32 window;
+      (b) trampoline: a callee that opens with a pure `bra X` (always-taken
+          branch to a target outside its own span) is followed to X — depth
+          guard 3, cycle guard — so the mirror runs the real body instead of
+          returning at the branch while sh2emu runs the body (MISMATCH);
+      (c) rts: the walk stops at the first rts (the callee returns via pr,
+          which the caller mirror owns), so it never crosses into the next
+          function and never diverges on the next function's unmapped bytes.
+    """
+    if depth > 3:
+        return None, 'depth>3'
+    if seen is None:
+        seen = set()
+    if t in seen:
+        return None, 'cycle'
+    seen = seen | {t}
+    end_c = _callee_span_end(t, catalog, bounds)
+    if end_c is None:
+        return None, ('no-span', t)
+    rts = _callee_first_rts(rom, t, end_c)
+    walk_end = rts + 2 if rts is not None else end_c
+    w = v3.walk_v3(rom, t, walk_end)
+    if w is None:
+        return None, ('walk-fail', t, '0x%X..0x%X' % (t, walk_end))
+    records, _info, _lab = w
+    if records and records[0]['kind'] == 'branch' and \
+            (records[0].get('mnem') or '').startswith('bra'):
+        tgt = records[0]['target']
+        if tgt is not None and not (t <= tgt < walk_end):
+            sub, reason = _walk_callee(rom, tgt, catalog, bounds,
+                                       depth=depth + 1, seen=seen)
+            if sub is None:
+                return None, ('trampoline', t, tgt, reason)
+            records = records + sub
+    return records, None
+
+
 def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
-                  rom_label='60E1D400'):
+                  rom_label='60E1D400', catalog=None, bounds=None):
     """v7-style differential test.  The CODE dict carries the caller records
     (incl. 'call' -> pc = target, 'jt' -> dynamic table read) plus the inlined
-    callee leaf records (fetched via walk_v3 over their own span so the mirror
-    executes them exactly like sh2emu)."""
+    callee leaf records (fetched via _walk_callee over the callee's own catalog
+    span, stopping at the first rts and following pure `bra` trampolines, so
+    the mirror executes them exactly like sh2emu)."""
     # inline each callee's leaf records at their real pcs
+    catalog = catalog or {}
     callee_records = []
     for t in callees:
-        end_c = t + 32                      # callee leaves are tiny; walk until rts
-        # walk_v3 needs a real end; use catalog if known
-        w = v3.walk_v3(rom, t, end_c)
+        w, reason = _walk_callee(rom, t, catalog, bounds)
         if w is None:
-            return False, ('callee-walk', t)
-        r, inf, lab = w
-        callee_records.extend(r)
+            return False, ('callee-walk', t, reason)
+        callee_records.extend(w)
     all_records = list(res.records) + callee_records
 
     offs_list = sorted(res.info['stack_offs'])
@@ -814,7 +879,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n'
         'sys.path.insert(0, os.path.join(ROOT, "tools"))\n'
         'from sh2emu import SH2, StepLimitExceeded\n'
-        'from c_lift_ops import s8, s16, s32\n\n'
+        'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "%s.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -851,9 +916,12 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    r = [0] * 16\n'
         '    r[4], r[5], r[6], r[7] = r4 & 0xFFFFFFFF, r5 & 0xFFFFFFFF, r6 & 0xFFFFFFFF, r7 & 0xFFFFFFFF\n'
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
-        '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": PRET,\n'
-        '          "sr": 0x000000F0, "s8": s8, "s16": s16, "s32": s32, "ram": ram,\n'
-        '          "sp": r[15], "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
+        '    fr = [0.0] * 16\n'
+        '    ns = {"r": r, "fr": fr, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": PRET,\n'
+        '          "sr": 0x000000F0, "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
+        '          "bits2f": bits2f, "f2bits": f2bits, "ram": ram,\n'
+        '          "sp": r[15], "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE,\n'
+        '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS}}\n'
         '    pc = ENTRY\n'
         '    steps = 0\n'
         '    while True:\n'
