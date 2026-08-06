@@ -29,5 +29,5 @@ void vfadControl() {
     loadStatusRegister_ADDR();
 }
 ```
-**Status:** med - Structure mirrors VDIControl; exact threshold semantics and SR need unconfirmed.
-**Uncertainties:** Exact boundary conditions and comparison operators ; Purpose of SR save/restore ; Semantics of diagControlVFADMAYBE vs diagControlVDI ; Whether bit 0x0400 is mask or position
+**Status:** med — mirrors VDIControl; threshold semantics and SR need unconfirmed.
+**Uncertainties:** Boundary conditions and comparison operators? Purpose of SR save/restore? diagControlVFADMAYBE vs diagControlVDI? bit 0x0400 mask or position?

@@ -1,5 +1,5 @@
 # ignitionTimingHardwareTimerSomething @ 0x8E28
-**Purpose:** Configure hardware timer output-compare register for ignition timing; validate timing is ready and fire ignition coil if armed.
+**Purpose:** Configure timer output-compare register for ignition timing; validate timing ready and fire coil if armed.
 **Inputs:** r4: spark_id (0–1, selects which spark plug) ; Globals: 0xFFFFA0D8 (spark state), 0x0000D81C (ignition calibration/config table)
 **Out:** Writes timing value to hardware output-compare register ; Clears control flags at offset +4 and +5 ; Calls FUN_0000A8A4 (likely coil fire or interrupt handler setup) ; Restores processor status register (interrupt mask)
 **Calls:** getSR @ 0x3920: read current status register ; FUN_0000A8A4 @ 0xA8A4: unknown utility, likely hardware register write or coil fire ; setSR @ 0x3934: restore status register
@@ -54,5 +54,5 @@ void ignitionTimingHardwareTimerSomething(uint8_t spark_id) {
     setSR(sr);
 }
 ```
-**Status:** med-low — overall flow is clear, but exact interpretation of enable_bits, timing semantics, and coil_fire parameters need verification.
+**Status:** med-low — flow clear; enable-bits, timing semantics, coil_fire params need verification.
 **Uncertainties:** Whether delta < 0 means "timing has passed" or "not yet ready" ; What enable_reg1/enable_reg2 bits represent (channel enables? interrupt masks?) ; Whether coil_data is a coil ID or hardware register value ; Exact semantics of the fire_coil function at 0xA8A4 ; Whether timing_value is crank angle or raw timer count

@@ -36,5 +36,5 @@ uint8_t getOLStatusforOBD(void) {
     }
 }
 ```
-**Status:** low (structure recovered, semantics unclear, RAM addresses unconfirmed, conditional logic may be misinterpreted due to extraction limits)
-Notes: Purpose unclear from name; "OL" may refer to Open Loop (fuel control mode) status ; Returns discrete status codes (1, 2, 4, 8, 16) rather than bitfield ; Multiple RAM addresses suggest multiplex conditional logic ; Threshold at 0x6FC40 is likely engine load limit (e.g., 60% for open-loop transition) ; UNKNOWN: exact PID mapping, meaning of each status code, purpose of status1/status2/flag1
+**Status:** low — structure recovered; semantics, RAM addresses unconfirmed; conditional logic may be misread.
+Notes: "OL" may be Open-Loop fuel-mode status; returns discrete codes (1/2/4/8/16), not a bitfield; 0x6FC40 threshold likely load limit (~60% open-loop transition); UNKNOWN: PID mapping, status-code meanings, status1/status2/flag1 purposes.

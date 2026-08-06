@@ -36,4 +36,4 @@ void canSetup(void) {
   *(uint8_t*)0xFFFFA411 = 0;
 }
 ```
-**Status:** med – CAN controller dual-channel setup pattern clear (TX/RX branches), mailbox iteration clear; exact error handling logic and magic addresses (0x4BB14, 0x4BC14) require verification
+**Status:** med — dual-channel (TX/RX) setup and mailbox iteration clear; error logic and magic addrs (0x4BB14, 0x4BC14) need verification.

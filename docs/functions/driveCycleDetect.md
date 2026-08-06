@@ -42,4 +42,4 @@ uint8_t driveCycleDetect(void) {
     return criteria_met;
 }
 ```
-**Status:** med ; Overall structure (sensor read, threshold checks, conditional logic) is sound ; Function calls and float-register usage are clear ; Threshold addresses (0x7DB08, 0x7DB0C) and constant 71.0°C are inferred from patterns ; Uncertainties: ; Exact semantics of the two branch paths (hot vs. cold) — appear nearly identical in ASM ; Meaning of intermediate deltas and how they combine ; Whether thresholds are fixed or calibration values ; Clarify: what is `subtractAbsolute(engine_load, 71.0)` actually computing? May be a complex weighted delta.
+**Status:** med — structure (sensor read, thresholds, conditionals) sound; thresholds (0x7DB08/0x7DB0C) and 71.0°C inferred. Uncertain: hot-vs-cold branches nearly identical in ASM; intermediate delta meaning; thresholds fixed or calibrated; `subtractAbsolute(engine_load, 71.0)` may be a weighted delta.

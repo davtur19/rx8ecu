@@ -1,5 +1,5 @@
 # E2IntoRAM @ 0x383F8
-**Purpose:** Reads a block of data from external EEPROM ("E2") into RAM with cross-validation using stored (value + complement) pairs; handles E2 polling and error detection.
+**Purpose:** Reads an E2 (external EEPROM) block into RAM with (value + complement) cross-validation; handles E2 polling and error detection.
 **Inputs:** `r4`: start address/index for E2 read (16-bit value stored at r15+0) ; `r5`: number of bytes to read (8-bit value stored at r15+8) ; `r6`: (unused in visible code path)
 **Out:** Copies data from E2 into RAM buffers (0xFFFFC2AA primary, 0xFFFFC3AA complement) ; Performs redundancy validation: compares read value against stored complement ; Returns in `r0`: success/failure flag (1 if validated, 0 on error) ; Modifies flags at stack offsets + global state
 **Calls:** `getSR()` @ 0x3920: Read interrupt mask ; `FUN_0000BED8()`: Poll E2 ready status (calls twice; likely waits for EEPROM idle) ; `setSR(mask)` @ 0x3934: Restore interrupt state
@@ -37,4 +37,4 @@ uint8_t E2IntoRAM(uint16_t e2_addr, uint8_t length) {
     return result;
 }
 ```
-**Status:** med ; E2 subsystem integration (buffer addresses, ready polling) confirmed ; Redundant validation pattern matches writeToE2RAMArea ; Nested validation logic in ASM is complex; simplified in C model ; Loop termination condition verified against computed block size ; Uncertainties: exact E2 address mapping, alternate storage location logic, why FUN_0000BED8 is called twice
+**Status:** med — E2 integration confirmed; validation matches writeToE2RAMArea; ASM validation simplified in C; unsure: E2 address mapping, alternate storage logic, why FUN_0000BED8 is called twice.

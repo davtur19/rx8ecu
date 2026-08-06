@@ -36,4 +36,4 @@ void fuelInjectionRelated(fuel_injection_control *ctrl) {
   }
 }
 ```
-**Status:** high ; Branch structure and float address loading clearly visible ; Scaling constant (65536 for TDC conversion) standard for SH-2 timing calculations ; Mode 0 offset (-275) suggests fuel pressure or temperature correction ; Mode 1 three-output structure aligns with 3-rotor layout
+**Status:** high — branches and float loads clear; 65536 scaling standard for TDC conversion; mode-0 offset (-275) likely pressure/temp correction; mode-1 three-output fits the 3-rotor layout.

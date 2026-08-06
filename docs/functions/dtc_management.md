@@ -1,9 +1,8 @@
 # DTC Management Subsystem @ 60E1D400.bin
 
-Consolidated documentation of the RX-8 PCM diagnostic-trouble-code (DTC)
-management functions. All six functions below are Track-A verified: the
-actual ROM bytes were executed in the SH-2E emulator (`tools/sh2emu.py`) against
-random RAM states and checked against the C lifts in `c/`.
+Consolidated docs of the RX-8 PCM diagnostic-trouble-code (DTC) management
+functions. All six are Track-A verified: ROM bytes run in the SH-2E emulator
+(`tools/sh2emu.py`) on random RAM states, checked against the C lifts in `c/`.
 
 | Function | Address | Role |
 |---|---|---|
@@ -13,9 +12,9 @@ random RAM states and checked against the C lifts in `c/`.
 | `dtc_code_set` / `dtc_code_clear` | 0x046780 / 0x0467AA | Checksum-protected DTC state-word storage |
 | `dtc_debounce_monitor_43760` | 0x043760 | Confirmation counter ladder (debounce) |
 
-Verified: `c/tests/test_dtcRelated.py` (500 states), `test_dtc_handler_610FA.py`
+Tests (all pass, in `c/tests/`): `test_dtcRelated.py` (500), `test_dtc_handler_610FA.py`
 (200), `test_dtc_handler_61550.py` (200), `test_dtc_code_set_clear.py` (500),
-`test_dtc_debounce_monitor_43760.py` (500) — all pass.
+`test_dtc_debounce_monitor_43760.py` (500).
 
 ## Shared RAM map (diagnostics area)
 
@@ -54,9 +53,8 @@ Type dispatch: `0x00 → ==0`, `0x60 → 1..0x3F`, `0x80 → bit7`,
 `0xC0/0xC1/0x50 → exact`, `0xF0 → (1..0x3F) or bit7`, `0x70 → 0x81..0xBF`,
 else no match.  Returns count in r0.
 
-Note: the earlier draft (docs/functions/dtcRelated.md) referenced a
-different address (0x5FEB6) and tables (0x0007C9FC/0x0007CA88) — superseded
-by this verified version. See dtcRelated.md.
+Note: the earlier draft (docs/functions/dtcRelated.md) referenced 0x5FEB6 and
+tables 0x0007C9FC/0x0007CA88 — superseded by this verified version.
 
 ## dtc_handler_610FA @ 0x0610FA
 

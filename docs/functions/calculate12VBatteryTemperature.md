@@ -36,4 +36,4 @@ void calculate12VBatteryTemperature(void) {
   writeFloatMemory(0xB610, finalTemp);
 }
 ```
-**Status:** med ; Battery temperature estimation purpose clear from context (alternator current → temp) ; Filter time constant very small (1e-05); exact meaning unclear ; Lookup table and saturation limits inferred from assembly ; Reference temperature contribution logic partially inferred
+**Status:** med — purpose clear (alternator current → temp); tau=1e-05 oddly small, meaning unclear; table/saturation limits inferred; reference-temp logic partially inferred.

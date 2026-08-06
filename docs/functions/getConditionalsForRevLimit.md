@@ -44,4 +44,4 @@ void getConditionalsForRevLimit(void) {
   *(uint8_t *)0xA4AD = mode;
 }
 ```
-**Status:** med ; Overall logic structure is clear: speed range checking → conditional flags ; Some branch conditions are ambiguous (exact threshold application) ; Final threshold adjustment (limit_val + 0xFF) logic unclear — may be saturation or wraparound ; The 0xFFFFA4AA role (temp storage?) not fully determined
+**Status:** med — structure clear (speed ranges → conditional flags); some branch thresholds ambiguous; final `limit_val + 0xFF` adjustment unclear (saturation or wraparound); 0xFFFFA4AA role not fully determined.

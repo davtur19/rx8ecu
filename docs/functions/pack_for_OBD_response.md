@@ -26,5 +26,5 @@ void pack_for_OBD_response(uint8_t count, uint8_t *src, ???) {
     }
 }
 ```
-**Status:** med (loop structure clear, buffer management recovered, exact semantics of response format unclear)
-Notes: Appears to be part of OBD-II response packet assembly pipeline ; Uses table lookup with stride 0x046C (1132 bytes per response type) ; Bounds checking prevents buffer overflow (max length 1125 bytes) ; Data written at offset 6 into response (suggests 6-byte header: PID, status, etc.) ; UNKNOWN: exact response buffer layout, meaning of r6 parameter, response type enumeration (r4 usage as index)
+**Status:** med — loop and buffer management recovered; response-format semantics unclear.
+Notes: part of the OBD-II response assembly pipeline; stride 0x046C (1132 B per response type); bounds check caps at 1125 B; data written at offset 6 (6-byte header: PID, status...). UNKNOWN: buffer layout, r6 meaning, response-type enumeration.

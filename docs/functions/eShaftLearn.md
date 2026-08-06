@@ -47,4 +47,4 @@ void eShaftLearn(void) {
   }
 }
 ```
-**Status:** med ; E-shaft learning purpose confirmed (adaptive engine timing trim on rotary) ; EEPROM read/write sequence inferred from function calls ; Loop iteration count inferred (28 state values typical for engine adaptive maps) ; Multiplier and scale logic partially inferred; exact adaptive algorithm unclear ; Threshold conditions for loop control not fully reconstructed
+**Status:** med — purpose confirmed (adaptive e-shaft timing trim); EEPROM r/w sequence and 28-iteration loop inferred from calls; multiplier/scale logic and threshold conditions not fully reconstructed.

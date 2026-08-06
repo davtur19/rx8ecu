@@ -60,4 +60,4 @@ void setImmoCANTXData(uint8_t cmd_type) {
     *(uint8_t *)0xFFFFC245 = 1;
 }
 ```
-**Status:** med ; Command dispatch and basic CAN frame staging are clear ; State-dependent payload sources (0x09) inferred from state register reference; actual usage unknown ; TX-pending flag locations guessed from register patterns; need CAN subsystem context to confirm
+**Status:** med — command dispatch and frame staging clear; state-dependent payload sources (0x09) inferred, usage unknown; TX-pending flag addresses guessed — needs CAN subsystem context.

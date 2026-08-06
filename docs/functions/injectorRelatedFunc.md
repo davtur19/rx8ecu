@@ -42,4 +42,4 @@ void injectorRelatedFunc(u8 injector_idx, u32 val1, u32 val2) {
   setSR(sr);
 }
 ```
-**Status:** low — the exact meaning of lookup tables, saturation bounds, and the purpose of the computation requires cross-reference with calibration documentation. The SR masking and LongFunc call suggest this is a time-critical function.
+**Status:** low — lookup tables, saturation bounds, and computation purpose need calibration-doc cross-reference. SR masking + LongFunc → time-critical function.

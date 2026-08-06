@@ -38,5 +38,5 @@ void throttleDownDeFloodCheck(void) {
     }
 }
 ```
-**Status:** med — logical flow and conditions are clear; interpretation of deflood thresholds and table lookup purpose inferred from name.
-**Uncertainties:** Exact meaning of "deflood" value (1.0 = cut all fuel, or multiplier value) ; Purpose of additional check register at 0xC5EA ; Exact conditions that trigger deflood (may be OR vs AND logic) ; Lookup table structure and what it represents
+**Status:** med — flow and conditions clear; deflood thresholds and table purpose inferred.
+**Uncertainties:** "deflood" value semantics (1.0 = cut all fuel vs multiplier)? Check register 0xC5EA purpose? OR vs AND trigger logic? Table structure?

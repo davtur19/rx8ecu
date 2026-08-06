@@ -1,10 +1,9 @@
 # osTaskScheduler @ 0x9668
 
 ## Summary
-RTOS task-scheduler entry point. Given a `task_id`, an `entry_idx` into that
-task's table, and an optional argument array, it either calls the target
-function directly or routes through a dispatcher.  Returns 0 (normal) or 1
-(reschedule requested).
+RTOS task-scheduler entry. Given `task_id`, `entry_idx` into the task's table, and
+an optional argument array, calls the target function directly or routes through a
+dispatcher. Returns 0 (normal) or 1 (reschedule requested).
 
 ## Signature
 ```c

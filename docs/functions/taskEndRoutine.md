@@ -37,5 +37,5 @@ void taskEndRoutine(TaskControlBlock *tcb) {
   next_task_handler();  // jmp (no return)
 }
 ```
-**Status:** med ; Task control block structure partially inferred ; System state pointer and offsets educated guesses ; The 0x0100 write purpose unclear (status flag? interrupt level?) ; Tail jump to next handler confirmed from jmp instruction
-**Uncertainties:** What is the significance of 0x0100 written to system state+8? ; Is the flag at 0x00004B10 a global task-enabled flag or per-task? ; What does FUN_000035ee do when called with r4=0? ; What is task context stored at TCB+4 used for?
+**Status:** med — TCB structure partially inferred; state pointer/offsets educated guesses; 0x0100 write purpose unclear; tail jump to next handler confirmed (jmp).
+**Uncertainties:** Meaning of 0x0100 at system state+8? Flag @0x4B10 global or per-task? What FUN_000035ee(r4=0) does? Task context at TCB+4?

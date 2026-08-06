@@ -5,20 +5,19 @@
 
 ## Overview
 
-This is the **main ignition timing calculation** for all rotors. It is called
-once per scheduler tick from `engineControlCalculateTiming` (0x14584). The function
-reads current engine speed, knock status, and temperature flags; looks up a base
-ignition correction from a 1-D calibration table; applies knock- and temperature-based
-corrections; then dispatches the result to the per-rotor hardware output via three
-helper subroutines.
+**Main ignition timing calculation** for all rotors. Runs once per scheduler tick
+from `engineControlCalculateTiming` (0x14584). Reads engine speed, knock status and
+temperature flags; interpolates a base ignition correction from a 1-D table; applies
+knock/temperature corrections; dispatches the result to per-rotor hardware output via
+three helpers.
 
-The ECU strategy documented in the equinox guide describes ignition timing as:
+Equinox guide strategy:
 
 > `ignition_angle = base_advance + knock_correction + temperature_correction + load_correction`
 
-This function computes the **correction terms** and combines them with the base
-advance value. The final timing value (in degrees BTDC) is written to two RAM
-locations for the trailing-edge and leading-edge coil drivers respectively.
+This function computes the **correction terms**, combines them with the base advance,
+and writes the final timing (degrees BTDC) to two RAM locations for the trailing- and
+leading-edge coil drivers.
 
 ## Subcalls
 
@@ -69,9 +68,8 @@ locations for the trailing-edge and leading-edge coil drivers respectively.
 | 4500 | 108 | -10.0 | Moderate load retard |
 | 5000 | 128 | 0.0 | No correction at high RPM |
 
-This table provides a **negative correction (retard)** at low-to-mid RPM and
-neutral correction at high RPM. This is consistent with an ignition timing
-temperature-protection or knock-avoidance strategy.
+**Negative correction (retard)** at low-to-mid RPM, neutral at high RPM — consistent
+with a temperature-protection / knock-avoidance strategy.
 
 ### Scalar Constants in ROM
 
@@ -178,8 +176,6 @@ call 0x13EE6  ; calc_fuel_pressure_load_compensation
 
 ## Ignition Timing Formula
 
-Based on the analysis, the ignition timing strategy works as follows:
-
 ```
 ignition_timing = base_ignition_advance
                 + knock_correction
@@ -193,11 +189,11 @@ Where:
 - **rpm_dependent_correction**: -10.0° below 5000 RPM, 0.0° above 5000 RPM (from table 0x6B68C)
 - **temperature_correction**: -1.0° if warm, 0.0° if cold (from constants at 0x79880/0x79888)
 
-The function writes final timing values to:
-- 0xFFFFA744: Main ignition advance (float, degrees BTDC)
-- 0xFFFFA734/0xFFFFA738: Ignition timing values (float, degrees BTDC) — written
-  identically by this function; the lead/trail split is applied later in
-  rotor_sync_gate_state_ctrl_2100A (0x2100A, not yet emulated)
+Final timing written to:
+- 0xFFFFA744: Main ignition advance (float, deg BTDC)
+- 0xFFFFA734/0xFFFFA738: Ignition timing (float, deg BTDC) — written identically.
+  lead/trail split applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A,
+  not yet emulated)
 
 ## Relationships
 
@@ -219,9 +215,8 @@ engineControlCalculateTiming (0x14584)
 
 ## Verification Notes
 
-- The 1D lookup function at 0x2068 (formerly labeled `fpu_multiply_accumulate` in IDA, now `2DLookup`) is actually a **general 1D table interpolation** with configurable cell type and optional scale/offset. Its signature is:
-  - r4 = table descriptor pointer
-  - fr4 = X input
-  - returns fr0 = interpolated value
-- The table at 0x6B68C uses u8 cells with scale=0.5 and offset=-64.0, giving effective range [-64, 63.5] in 0.5° steps.
-- All three sub-calls (0x13ED2, 0x13E6C, 0x13EE6) are shared with `calc_fuel_injection_all_rotors`.
+- 1D lookup @0x2068 (IDA: `fpu_multiply_accumulate`, now `2DLookup`) is a **general
+  1D interpolation** with configurable cell type and optional scale/offset:
+  `r4` = descriptor, `fr4` = X, returns `fr0` = interpolated value.
+- Table 0x6B68C: u8 cells, scale 0.5, offset −64.0 → effective range [−64, 63.5] in 0.5° steps.
+- Sub-calls 0x13ED2/0x13E6C/0x13EE6 are shared with `calc_fuel_injection_all_rotors`.
