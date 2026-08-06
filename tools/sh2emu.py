@@ -6,7 +6,7 @@ Executes the ACTUAL ROM bytes of a function so a C lift can be checked against r
 machine behavior over many inputs. This CPU is a Renesas SH7055 (HD64F7055S): SH-2
 integer core **plus a single-precision hardware FPU** — so the FPU is emulated too
 (FR0-15, FPUL, fadd/fsub/fmul/fdiv/fmac/fmov(.s)/fcmp/float/ftrc/fsts/flds/fneg/fabs/
-fsqrt/fldi0/1). Unknown opcodes raise NotImplementedError so gaps are explicit.
+fsqrt/fldi0/1/fsca). Unknown opcodes raise NotImplementedError so gaps are explicit.
 
 API:
   cpu = SH2(rom_bytes)
@@ -15,6 +15,7 @@ API:
   # Optional safety valve: cpu.call(..., max_steps=N) raises StepLimitExceeded
   # after N executed instructions (branch + its delay slot count as 2).
 """
+import math
 import struct
 
 MASK = 0xFFFFFFFF
@@ -389,6 +390,18 @@ class SH2:
         # ---- FPU (0xF___) ----
         if n0 == 0xF:
             f = self.fr
+            # fsca FPUL,FR(2k)/FR(2k+1) = 0xFFnD (SH-2E FPU; encoding
+            # 1111 0nnn 1111 1101, k = bits 11-9, DRn = FR2k/FR2k+1).
+            # FPUL is the FULL 32-bit signed angle fraction (0x10000 == 360
+            # == 2*pi in radians); FR(2k) = sin, FR(2k+1) = cos.  Approximate
+            # op (abs err < 2^-21); modeled like fmac/fsqrt: double-precision
+            # math.sin/cos, then rounded once to float32 by ts().  This is
+            # matched BEFORE the nib==0xD sub-dispatch, which currently treats
+            # 0xFFnD as a reserved sub-encoding (raises NotImplementedError).
+            if (op & 0xF1FF) == 0xF0FD:
+                _k = (op >> 9) & 0x7
+                _ang = s32(self.fpul) * (2.0 * math.pi / 65536.0)
+                f[2 * _k] = ts(math.sin(_ang)); f[2 * _k + 1] = ts(math.cos(_ang)); return
             if nib == 0x0: f[n] = ts(f[n] + f[m]); return           # fadd FRm,FRn
             if nib == 0x1: f[n] = ts(f[n] - f[m]); return           # fsub
             if nib == 0x2: f[n] = ts(f[n] * f[m]); return           # fmul

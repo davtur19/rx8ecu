@@ -43,6 +43,13 @@ def disasm_one(op, pc, rd16=None, rd32=None):
 
     # ---- FPU (0xF___) ----
     if n0 == 0xF:
+        # fsca FPUL,DRn = 0xFFnD (encoding 1111 0nnn 1111 1101, DR = FR2k/FR2k+1
+        # pair, k = bits 11-9).  DRn = sin, DR[n+1] = cos; abs err < 2^-21.
+        # Emitted as GNU-as "fsca fpul,drN" (drN = DR2k) so the bulk
+        # assemble/re-assemble round-trip keeps the exact word.
+        if (op & 0xF1FF) == 0xF0FD:
+            k = (op >> 9) & 0x7
+            return ("fsca", "fpul,dr%d" % (2 * k), ann)
         if nib == 0x0:
             return ("fadd", f"{fr[m]},{fr[n]}", ann)
         if nib == 0x1:
