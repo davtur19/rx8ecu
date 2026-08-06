@@ -1,7 +1,7 @@
 # RTOS / Task Scheduling Subsystem — RX-8 PCM (60E1D400)
 
 **Target:** 60E1D400.bin (SH-2E, big-endian, Renesas SH7055)
-**Scope:** Cooperative multitasking RTOS — queue dispatcher, priority scheduling, context switching, initialization. See also `BOOT_SEQUENCE.md` for the reset → RTOS-start chain.
+**Scope:** Cooperative multitasking RTOS — queue dispatcher, priority scheduling, context switching, initialization. Reset → RTOS-start chain: see `BOOT_SEQUENCE.md`.
 
 ## 1. Architecture Overview
 

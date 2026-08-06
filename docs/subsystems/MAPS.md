@@ -2,12 +2,12 @@
 
 > **WARNING:** descriptor addresses below reference a **J-line ROM variant** (shift +0x298 from 60E1D400); on `60E1D400.bin` apply **+0x298** (verified: Ignition Leading Base @0x69AF8, MAF @0x6A0E4, deadtime @0x6B264). Always verify with `tools/mapscan.py`.
 
-Auto-extracted by `tools/mapscan.py` using the reverse-engineered TwoDLookup/ThreeDLookup descriptor format (emulator-verified). Naming follows RX8Defs conventions (original RomRaider XML not redistributed). Dump any map in physical units:
+Auto-extracted by `tools/mapscan.py` (TwoDLookup/ThreeDLookup descriptor format, emulator-verified). Naming follows RX8Defs conventions (original RomRaider XML not redistributed). Dump any map in physical units:
 ```
 python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<descAddr>
 ```
 
-**cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence` (columns 4–9 appended backward-compatibly; `mapscan.py` reads only `name`/`address`). `kind` (1210 rows): `axis`=662 (bare "X"/"Y", pointer-verified 3D-map axes), `table`=443 (334 anonymous "Table 2D/3D - NNN" + 109 descriptive), `intermediate`=105 ("Check DataType"). `dims`: 1D=1014, 2D=87, blank where not derivable (109). `scale`/`offset`/`units` **unverified** unless declared by a verified source; `confidence` high=1072, low=138. See `CALIBRATION_TABLES_CROSS_REFERENCE.md` for the 499-descriptor catalog grouped by subsystem.
+**cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence` (cols 4–9 backward-compat; `mapscan.py` reads only `name`/`address`). `kind` (1210 rows): `axis`=662, `table`=443 (334 anonymous + 109 descriptive), `intermediate`=105. `dims`: 1D=1014, 2D=87, blank=109. `scale`/`offset`/`units` **unverified** unless from a verified source; `confidence` high=1072, low=138. 499-descriptor catalog by subsystem: `CALIBRATION_TABLES_CROSS_REFERENCE.md`.
 
 ## Descriptor table (J-line variant: 499 descriptors; 119 2D, 380 1D)
 

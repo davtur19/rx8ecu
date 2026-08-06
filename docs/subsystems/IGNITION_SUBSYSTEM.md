@@ -1,9 +1,6 @@
 # Ignition / Spark Control Subsystem
 
-**Firmware:** 60E1D400 (RX-8 Renesis 6-speed MT)
-**Processor:** Renesas SH-2E (HD64F7055)
-**Update:** 2026-07-31
-**Functions:** ~59 identified (38 analyzed in detail)
+**Firmware:** 60E1D400 (RX-8 Renesis 6-speed MT) · **Processor:** Renesas SH-2E (HD64F7055) · **Update:** 2026-07-31 · **Functions:** ~59 identified (38 analyzed in detail)
 
 ## 1. Rotary-Specific Ignition Architecture
 
@@ -17,13 +14,12 @@
 | Split (lead-trail gap) | 5–20° BTDC typical | N/A |
 
 ### Coil Configuration
-- **4 coils**: 2 leading (one per rotor) + 2 trailing (one per rotor)
-- **Per-e-shaft-rev firing**: each of 4 coils fires once per e-shaft rev (one lead + one trail spark per rotor per rev = one combustion event per rotor per rev, 2 events/rev total). **Not** wasted-spark: dedicated coil per rotor means no firing lands on an exhaust phase.
-- **Dwell control**: independent per coil, battery-voltage compensated
-- **Spark duration**: ~1.5–2.5 ms by load/RPM
+- **4 coils**: 2 leading + 2 trailing (one per rotor). Each fires once per e-shaft rev (one combustion event per rotor per rev, 2 events/rev). **Not** wasted-spark: dedicated coil per rotor, no firing on exhaust phase.
+- **Dwell control**: independent per coil, battery-voltage compensated.
+- **Spark duration**: ~1.5–2.5 ms by load/RPM.
 
 ### Timer Hardware
-SH-2E MTU2 (Multi-Function Timer Pulse Unit 2), **4 output-compare channels**:
+SH-2E MTU2, **4 output-compare channels**:
 
 | Channel | Spark Role | TCNT | TIER | TCR | TSTR/TSR | TGRA | Bit Mask |
 |---|---|---|---|---|---|---|---|
@@ -88,19 +84,15 @@ engineControlTASK (0x11E94)
               └── ignitionDwellOutputInit (0x8F62)
 ```
 
-Pipeline layers: **Calculation** (combine base+knock+temp; RPM/Load interpolation) → **Boundary** (min/max clamp, rate-of-change, ECT/IAT protection) → **Output** (normalize angle, wrap 720°, program lead/trail timers, set output compare) → **Hardware** (MTU2 channel setup, dwell PWM init, coil status).
+Pipeline layers: **Calculation** (base+knock+temp; RPM/Load interp) → **Boundary** (min/max clamp, rate-of-change, ECT/IAT protection) → **Output** (normalize angle, wrap 720°, program lead/trail timers, output compare) → **Hardware** (MTU2 channel setup, dwell PWM init, coil status).
 
 ## 4. Function Analysis
 
 ### 4.1 `engineControlCalculateTiming` (0x14584) — Main Timing Dispatcher
-414 B (0x14584–0x14722), called once per scheduler tick from `engineControlTASK` (0x11E94). Central engine control loop — 66 sequential calls with zero branches:
-- **Phase 1** (7 calls): context save, knock prep, `calc_ignition_all_rotors_13C2C`
-- **Phase 2** (56+ calls): fuel, rotor-position timing (the "cam" group — RX-8 is camless), knock, DSC, throttle, sensor, output chain
-
-Gated by `getSR(16)`/`setSR()` critical sections. **Confidence: high** — 66 sequential jsr, no conditional branching.
+414 B (0x14584–0x14722), called once per scheduler tick from `engineControlTASK` (0x11E94). Central engine control loop — 66 sequential calls, zero branches. Phase 1 (7 calls): context save, knock prep, `calc_ignition_all_rotors_13C2C`. Phase 2 (56+ calls): fuel, rotor-position timing ("cam" group — RX-8 is camless), knock, DSC, throttle, sensor, output chain. Gated by `getSR(16)`/`setSR()` critical sections. **Confidence: high.**
 
 ### 4.2 `calc_ignition_all_rotors_13C2C` (0x13C2C) — Main Ignition Computation
-208 B (0x13C2C–0x13CFC), called Phase 1 slot 7. Computes correction terms for all rotors and combines with base advance.
+208 B (0x13C2C–0x13CFC), Phase 1 slot 7. Correction terms for all rotors combined with base advance.
 
 **Input RAM:** `0xFFFFA73C` RPM (float) · `0xFFFFA740` ignition enable/knock status · `0xFFFFA744` prev timing (base advance) · `0xFFFFA748` knock sensor fault status · `0xFFFFA749` knock detected · `0xFFFFA74C` scratch · `0xFFFFA75C` knock control active · `0xFFFFB5B8` RPM (filtered) · `0xFFFFC0C4` coolant temp status (warm=1) · `0xFFFFC0C5` ECT correction enable
 
@@ -122,7 +114,7 @@ calc_fuel_pressure_load_compensation()             → 0xFFFFA734/0xFFFFA738
 
 **Output RAM:** `0xFFFFA744` main ignition advance (float °BTDC) · `0xFFFFA75C` knock control active (saved back).
 
-> `0xFFFFA734`/`0xFFFFA738` ignition timing values (float °BTDC) — written **identically** (same value) by `calc_ignition_all_rotors_13C2C`; lead/trail split NOT applied in `split_selector_state_ctrl_487DC` either (VERIFIED 2026-08-01, emulator 500k inputs 0 mismatches: it is a gated state selector → u8 @0xFFFFCCD2 decoded by `split_selector_decoder_48C12`; 0x2100A is a cold/validity state controller). **SPLIT ANSWER 2026-08-02:** A734/A738 also written identically by `calc_fuel_injection_all_rotors` (0x13D3C); exhaustive ROM literal scan shows NO function writes them differently — readers are `write_knock_detected_flag` (0x128C4, reads A734), `write_rotor_A_knock_flag` (0x128FE, reads A738), `updateKnockMaxRAM` (0x13B90, reads A734). Lead/trail differentiation NOT found in analyzed functions; **open item**.
+> **SPLIT ANSWER 2026-08-02 (verified, emulator):** A734/A738 written **identically** by `calc_ignition_all_rotors_13C2C` and `calc_fuel_injection_all_rotors` (0x13D3C). Exhaustive ROM literal scan: NO function writes them differently. Readers: `write_knock_detected_flag` (0x128C4, reads A734), `write_rotor_A_knock_flag` (0x128FE, reads A738), `updateKnockMaxRAM` (0x13B90, reads A734). Lead/trail differentiation NOT found in analyzed functions; **open item**. Split site is `calc_spark_lead_trail_split_19220` (0x19220, called @0x147D0) → see §4.14.
 
 **Confidence: high** — all paths traced.
 
@@ -130,7 +122,7 @@ calc_fuel_pressure_load_compensation()             → 0xFFFFA734/0xFFFFA738
 212 B (0x11A9C–0x11B70), Phase 2. 3D lookup (RPM × Load), then `base_angle = base_angle * scale + offset`. **Confidence: medium** — table addresses unverified.
 
 ### 4.4 `spark_advance_calc_main_1A0C8` (0x1A0C8) — Main Spark Advance
-850 B (0x1A0C8–0x1A41A), Phase 2. **Largest** spark function: RPM-based advance lookup, enable-condition check (knock enabled, sensor valid), torque management (DSC/TCM reduction), rate limiting, store to rotor RAM. **Confidence: medium**.
+850 B (0x1A0C8–0x1A41A), Phase 2. **Largest** spark function: RPM-based advance lookup, enable-condition check (knock enabled, sensor valid), torque management (DSC/TCM reduction), rate limiting, store to rotor RAM. **Confidence: medium.**
 
 ### 4.5 `outputSpark1` (0x8DE6) — Program Leading Spark Timer
 58 B (0x8DE6–0x8E20), output chain.
@@ -175,7 +167,7 @@ void outputSpark1(uint8_t spark_index, float dwell_time) {
 ```
 
 **Spark State Array** (base 0xFFFFA0D8): `+0` float timer compare · `+4` u8 arm (2=armed, 0=idle) · `+5` u8 enable (0=enabled) · `+6` u8 fire request/completion.
-Data: `L_008eb8`=0xFFFFA0D8, `L_008ebc`=0x3920 (getSR), `L_008ec0`=0x3934 (setSR). **Confidence: high**.
+Data: `L_008eb8`=0xFFFFA0D8, `L_008ebc`=0x3920 (getSR), `L_008ec0`=0x3934 (setSR). **Confidence: high.**
 
 ### 4.6 `outputSpark2` (0x8E20) — Program Trailing Spark Timer
 64 B (0x8E20–0x8E60). Like `outputSpark1` but **16-byte** stride; only writes if `arm(control)==2`:
@@ -191,10 +183,10 @@ void outputSpark2(uint8_t spark_index, float timing_angle) {
     setSR(sr);
 }
 ```
-16-byte stride suggests trailing channels hold more state (possibly dual-output/per-rotor secondary data). **Confidence: high**.
+16-byte stride suggests trailing channels hold more state (possibly dual-output/per-rotor secondary data). **Confidence: high.**
 
 ### 4.7 `ignitionTimingHardwareTimerSomething` (0x8E60) — MTU2 Output Compare Setup
-190 B (0x8E60–0x8F1E), timer ISR path. Most complex hardware-level function; configures MTU2 output-compare and fires coil.
+190 B (0x8E60–0x8F1E), timer ISR path. Configures MTU2 output-compare and fires coil.
 
 ```c
 void ignitionTimingHardwareTimerSomething(uint8_t spark_id) {
@@ -211,7 +203,7 @@ void ignitionTimingHardwareTimerSomething(uint8_t spark_id) {
     setSR(sr);
 }
 ```
-Data: `L_008fb4`=0xDAB4 (config table), `L_008fb8`=0xAA74 (coil fire helper). **Confidence: high**.
+Data: `L_008fb4`=0xDAB4 (config table), `L_008fb8`=0xAA74 (coil fire helper). **Confidence: high.**
 
 ### 4.8 `ignitonSomethingCalc` (0x91FE) — Angle Normalization
 582 B (0x91FE–0x9444). Normalizes spark angle with 720° wrapping. (720° is the software scheduling window inherited from the generic 4-stroke codebase; physically the rotary fires every 180° e-shaft, 2 events/rev, one rotor face completes its 4 phases per rotor revolution = 1080° e-shaft.)
@@ -229,7 +221,7 @@ void ignitonSomethingCalc(uint8_t rotor_idx) {
     if (flags[5] == 0 && delta > 60.0f) call_rotor_specific_logic(rotor_idx);  // @0x9440
 }
 ```
-Constants: `L_009244`=0xFFFFA0D8 (rotor timing base) · `L_009248`=0xFFFFA0FC (ref angle) · `L_00924c`=-90.0 · `L_009250`=720.0 · `L_009254`=630.0 · `L_009258`=-720.0 · `L_009274`=0xFFFFA0F8 (normalized output). **Confidence: high**.
+Constants: `L_009244`=0xFFFFA0D8 (rotor timing base) · `L_009248`=0xFFFFA0FC (ref angle) · `L_00924c`=-90.0 · `L_009250`=720.0 · `L_009254`=630.0 · `L_009258`=-720.0 · `L_009274`=0xFFFFA0F8 (normalized output). **Confidence: high.**
 
 ### 4.9 `setupCoilOutputs` (0xC98A) — MTU2 Channel Configuration
 208 B (0xC98A–0xCA5A), Phase 2. Configure I/O pin 0xFFFF9F34 (set bit 6, clear bit 5, output-compare mode); RPM→timer conversion factor with 1152.0 constant (timer clock prescaler); load min/max window from 0xFFFFA37C/0xFFFFA37E; write dwell boundaries; PWM control via 0xFFFF9F34 bits 0-1.
@@ -241,28 +233,26 @@ uint16_t min_window = *(uint16_t*)0xFFFFA37E;
 uint16_t max_window = *(uint16_t*)0xFFFFA37C;
 *io_reg = (*io_reg & 0xFC) | output_bits;
 ```
-Data: `L_00ca78`=0xFFFF9F34 · `L_00ca7c`=0x71AC (adc_read_and_merge_flags) · `L_00ca80`=0xFFFF9F88 · `L_00ca84`=1152.0f · `L_00ca88`=0xFFFF9F9C · `L_00ca8c`=0xFFFFA37E · `L_00ca90`=0x4F000000 (2^31) · `L_00ca94`=0xFFFFA37C · `L_00ca98`=0x2054 (setSR_PARAM). **Confidence: medium**.
+Data: `L_00ca78`=0xFFFF9F34 · `L_00ca7c`=0x71AC (adc_read_and_merge_flags) · `L_00ca80`=0xFFFF9F88 · `L_00ca84`=1152.0f · `L_00ca88`=0xFFFF9F9C · `L_00ca8c`=0xFFFFA37E · `L_00ca90`=0x4F000000 (2^31) · `L_00ca94`=0xFFFFA37C · `L_00ca98`=0x2054 (setSR_PARAM). **Confidence: medium.**
 
 ### 4.10 `ignitionDwellOutputInit` (0x8F62) — Dwell Initialization
-80 B (0x8F62–0x8FB2). Clears all coil control flags in spark state array (channels 0-3, stride 8: `state[4]=0`, `state[5]=0`) and `0xFFFFA100=0`, inside getSR/setSR. **Confidence: high**.
+80 B (0x8F62–0x8FB2). Clears all coil control flags in spark state array (channels 0-3, stride 8: `state[4]=0`, `state[5]=0`) and `0xFFFFA100=0`, inside getSR/setSR. **Confidence: high.**
 
 ### 4.11 `ignition_advance_limiter` (0xE38C) — Rate Limiter
-176 B (0xE38C–0xE43C). Clamps advance rate of change: `delta = clamp(desired-current, ±max_rate)`. **Confidence: medium**.
+176 B (0xE38C–0xE43C). Clamps advance rate of change: `delta = clamp(desired-current, ±max_rate)`. **Confidence: medium.**
 
 ### 4.12 `coil_pwm_init` (0xE37C) — PWM Coil Init
-16 B (0xE37C–0xE38C). Writes initial PWM duty to `0xFFFFA100`. **Confidence: medium**.
+16 B (0xE37C–0xE38C). Writes initial PWM duty to `0xFFFFA100`. **Confidence: medium.**
 
 ### 4.13 `coil_charge_enabled_query` (0xE450) — Coil Status
-26 B (0xE450–0xE46A). Tests `*(uint8_t*)0xFFFFA0D8 & 0x01`. **Confidence: medium**.
+26 B (0xE450–0xE46A). Tests `*(uint8_t*)0xFFFFA0D8 & 0x01`. **Confidence: medium.**
 
 ### 4.14 `rotor_sync_gate_state_ctrl_2100A` (0x2100A) — Split Angle Control
-352 B (0x2100A–0x2116A).
+352 B (0x2100A–0x2116A). Verified (emulator, 500k inputs, 0 mismatches; `c/rotor_sync_gate_state_ctrl_2100A.c` + test). **NOT a split-angle calculator** despite the IDA name; does NOT touch A734/A738. Manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as `max(state − 0.0667, 0.0)`, or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, shared max helper @0x23E4. The real split lives elsewhere:
 
-> STATUS 2026-08-01: Lifted and VERIFIED against the ROM emulator (500,000 random inputs, 0 mismatches; see c/rotor_sync_gate_state_ctrl_2100A.c and c/tests/test_rotor_sync_gate_state_ctrl_2100A.py). Despite the IDA name, this function does NOT compute a split angle and does NOT touch A734/A738. It manages a cold/validity flag u8@0xFFFFB240 and two state floats f32@0xFFFFB18C / f32@0xFFFFB188 (set to 1.0 together, decayed independently as max(state − 0.0667, 0.0), or cleared together) gated by temperature hysteresis, engine-off/enable/cal flags, and the shared max helper @0x23E4. A734 == A738 in practice (written identically by calc_ignition_all_rotors_13C2C). The actual lead/trail split is NOT implemented here; see split_selector_state_ctrl_487DC for further analysis.
+> **Split site (verified, emulator) `calc_spark_lead_trail_split_19220` (0x19220), called from `engineControlCalculateTiming` @0x14584 dispatch 0x147D0:** A9A0=leading, A9AC=trailing (selector @0xBCEF: 1/3→byte 0x6ED98/0x6ED99 costante=126 *0.5-50; 2→ThreeD(desc 0x69F14 TrailingA); 0→ThreeD(desc 0x69EF8 TrailingB)), minSplit=ThreeD(desc 0x69F30 MinSplit, load, RPM); A9A8=max(A9A0,A9AC); A9A4=A9A8+minSplit; A9C0=(lead>trail)?0:1. Il desc 0x69F30 si chiama **MinSplit** (verificato emulatore); il **dwell** vero è **§6.2** (`getIgnitionDwellTime` 0x94C8, desc 0x6C1C0, dati 0x7CB20).
 
-> **NOTA (verificata, provenienza emulatore):** Split site `0x19220` (`calc_spark_lead_trail_split_19220`, chiamato da `engineControlCalculateTiming` @0x14584 dispatch 0x147D0): A9A0=leading, A9AC=trailing (selector @0xBCEF: 1/3→byte 0x6ED98/0x6ED99 costante=126 *0.5-50; 2→ThreeD(desc 0x69F14 TrailingA); 0→ThreeD(desc 0x69EF8 TrailingB)), minSplit=ThreeD(desc 0x69F30 MinSplit, load, RPM); A9A8=max(A9A0,A9AC); A9A4=A9A8+minSplit; A9C0=(lead>trail)?0:1. NOTA: alcuni doc vecchi chiamano "dwell" il desc 0x69F30 (MinSplit) — il nome corretto è MinSplit (verificato emulatore); il **dwell** vero è identificato in **§6.2** (`getIgnitionDwellTime` 0x94C8, desc 0x6C1C0, dati 0x7CB20).
-
-Otherwise checks engine-running, temperature, load, AC, knock conditions to enable lead/trail split; if not met (cold start, overrun, knock) both plugs fire same angle. **Confidence: medium**.
+Otherwise checks engine-running, temperature, load, AC, knock conditions to enable lead/trail split; if not met (cold start, overrun, knock) both plugs fire same angle. **Confidence: medium.**
 
 ### 4.15-4.22 Short Functions
 
@@ -316,7 +306,7 @@ dwell_time = dwell_time + offset(0xFFFFA0D6)
 if (dwell_time > 0xFFFF) dwell_time = 0xFFFF
 store to 0xFFFFA0D4
 ```
-> **0x69F30** = **MinSplit** (3D lookup, verificato) — non è il dwell. Il dwell usa desc **0x6C1C0** (dati **0x7CB20**).
+> **0x69F30** = **MinSplit** (3D lookup, verified) — not dwell. Dwell uses desc **0x6C1C0** (dati **0x7CB20**). Canonical description (see also `CALIBRATION_TABLES_CROSS_REFERENCE.md` ignition catalog).
 
 ### 6.3 `outputPerRotorIgnitionDwell` (0x11218)
 Distributes dwell per rotor; helper @0x10F84 computes per-rotor dwell.
@@ -364,7 +354,7 @@ Boundary tables (code): Max/Min advance per-RPM, rate limits.
 
 ## 9. Interrupt Safety
 
-Timer-modifying functions use `getSR(16)` (set IMASK=16, disable all interrupts) / `setSR` (restore) around register writes to keep output-compare programming atomic. `getSR`=0x3920, `setSR`=0x3934.
+Timer-modifying functions use `getSR(16)` (IMASK=16, all interrupts disabled) / `setSR` (restore) around register writes to keep output-compare programming atomic. `getSR`=0x3920, `setSR`=0x3934.
 
 ## 10. Complete Ignition Equation
 
@@ -448,11 +438,8 @@ Lookup fns @0x2068 (1D) and 0x20DC (3D): binary-search axis intervals, linear in
 
 **C headers/structs:** MTU2 register defines (sec 1/8), spark_state_8 (sec 4.5/5), chan_cfg 24B@0xDAB4 (sec 5), table_1d/table_2d descriptors (sec 11) serve as the reconstruction headers.
 
-## 14. Open Questions / Uncertainties
+## 14. Open Items
 
-1. **Precise table addresses** — cal_tables.csv addresses are J-line variant layout; verify vs 60E1D400.
-2. **Coil fire helper (0xAA74)** — may be PWM duty write or compare-register update; needs analysis.
-3. **Ion sense detection** — `coil_correction_write_0x50A54` may relate (separate code region).
-4. **Split angle formula** — precise lead/trail split not fully verified; `rotor_sync_gate_state_ctrl_2100A` deeper analysis needed.
-5. **DSC interaction** — EBCM torque reduction via `dscRelatedTiming` (0x19220); CAN message format unanalyzed.
-6. **Check engine light** — `ignition_fault_monitor_458F4` DTC trigger conditions need analysis.
+1. Table addresses in `cal_tables.csv` are J-line variant; verify vs 60E1D400.
+2. Coil fire helper 0xAA74 (PWM duty write vs compare-register update) needs analysis; `coil_correction_write_0x50A54` may relate (separate region).
+3. DSC interaction: EBCM torque reduction via `dscRelatedTiming` (0x19220) — CAN message format unanalyzed; `ignition_fault_monitor_458F4` DTC trigger conditions unanalyzed.

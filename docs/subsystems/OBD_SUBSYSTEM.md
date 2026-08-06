@@ -1,15 +1,8 @@
 # OBD-II Subsystem — RX-8 ECU (60E1D400)
 
-The RX-8 ECU firmware implements **ISO-15031 (OBD-II / SAE J1979)** diagnostic
-services for emissions diagnostics. OBD-II shares the CAN transport with UDS
-(ISO-14229) and uses the same message framing, but has its own service IDs and
-PID-based data access model.
+**ISO-15031 (OBD-II / SAE J1979)** emissions diagnostics. Shares CAN transport + message framing with UDS (ISO-14229), but has its own service IDs and PID-based data access model.
 
-Supported modes: **Mode 1** (SID 0x01) show current data by PID · **Mode 2** (0x02)
-freeze frame · **Mode 3** (0x03) stored DTCs · **Mode 4** (0x04) clear DTCs ·
-**Mode 5** (0x05) oxygen sensor monitoring · **Mode 6** (0x06) non-continuous tests ·
-**Mode 7** (0x07) pending DTCs · **Mode 8** (0x08) component control · **Mode 9** (0x09)
-vehicle info.
+Supported modes: **Mode 1** (SID 0x01) current data by PID · **Mode 2** (0x02) freeze frame · **Mode 3** (0x03) stored DTCs · **Mode 4** (0x04) clear DTCs · **Mode 5** (0x05) oxygen sensor monitoring · **Mode 6** (0x06) non-continuous tests · **Mode 7** (0x07) pending DTCs · **Mode 8** (0x08) component control · **Mode 9** (0x09) vehicle info.
 
 ## Architecture
 
@@ -46,7 +39,7 @@ UDSMode01Handler(request, response):
 
 ### PID Table Format @ 0x5F6D8
 
-Each entry is 32 bytes; first two words (4 bytes) determine the type:
+Each entry 32 bytes; first two words (4 bytes) determine the type:
 
 | Offset | Size | Field | Description |
 |--------|------|-------|-------------|
@@ -55,11 +48,8 @@ Each entry is 32 bytes; first two words (4 bytes) determine the type:
 | +4..31 | - | pad | Reserved |
 
 **Entry types**
-1. **Handler** (type == `0xFFFF`): call handler at `data` to produce the response
-   (e.g. PID 0x0C RPM, 0x0D Speed).
-2. **Direct data** (type != `0xFFFF`): response data looked up indirectly via a group
-   mechanism; `type` = expected byte count, `data` = lookup key/index
-   (e.g. PIDs 0x00-0x0B group inquiry, 0x10-0x18 group data).
+1. **Handler** (type == `0xFFFF`): call handler at `data` (e.g. PID 0x0C RPM, 0x0D Speed).
+2. **Direct data** (type != `0xFFFF`): response data looked up indirectly; `type` = byte count, `data` = lookup key/index (e.g. PIDs 0x00-0x0B group inquiry, 0x10-0x18 group data).
 
 ### Handler Functions (called from PID table)
 
@@ -105,9 +95,7 @@ Raw Sensor → Sensor Processing → Float RAM Value → OBD Getter (float→OBD
 
 ## OBD Getter Functions
 
-Per-PID conversion functions forming the core of the OBD data pipeline. Each follows
-the same pattern: load float sensor val from RAM → load scale/offset constants → call
-shared `floatToOBDBounded` @ 0x24D0 → return uint16 for CAN packing.
+Per-PID conversion functions — the core of the OBD data pipeline. Pattern: load float sensor val from RAM → load scale/offset constants → call shared `floatToOBDBounded` @ 0x24D0 → return uint16 for CAN packing.
 
 ```
 uint16_t floatToOBDBounded(float sensor_val, float scale, float offset, uint16_t max_val)
@@ -120,8 +108,7 @@ uint16_t floatToOBDBounded(float sensor_val, float scale, float offset, uint16_t
 }
 ```
 
-**Arguments:** fr4 = `sensor_val` (raw float) · fr5 = `scale` · fr6 = `offset` ·
-r5 = `max_val` (typically 0xFF).
+**Arguments:** fr4 = `sensor_val` (raw float) · fr5 = `scale` · fr6 = `offset` · r5 = `max_val` (typically 0xFF).
 
 **Formula:** `OBD_value = clamp((sensor_val - offset) / scale + 0.5, 0, max_val)`
 
@@ -150,8 +137,7 @@ FreezeFrameHandler(request, response):
   response_empty()
 ```
 
-Freeze frame buffer holds pre-computed OBD-scaled values for all supported PIDs,
-captured atomically when the DTC was set.
+Freeze frame buffer holds pre-computed OBD-scaled values for all supported PIDs, captured atomically when the DTC was set.
 
 ## Mode 9: Vehicle Information @ 0x64BB0
 
@@ -251,11 +237,7 @@ Refer to `SENSOR_PIPELINE.md` for the complete mapping. OBD getter inputs:
 
 ## Notes
 
-1. Not all PID handlers fully decompiled — some branches (failure/limp modes) depend on
-   status registers set by other runtime subsystems.
-2. `getCoolantTempOBD` @ 0x55E14 is a trivial stub returning 0; coolant temp OBD data
-   may route through a different path.
-3. Conversion constants for some getters differ from theoretical OBD standard values,
-   suggesting manufacturer-specific calibration adjustments.
-4. UDS Mode 22 (DID-based) handlers @ 0x630A4+ are separate from the OBD PID handlers
-   and serve proprietary diagnostic data requests.
+1. Not all PID handlers fully decompiled — some branches (failure/limp modes) depend on status registers set by other runtime subsystems.
+2. `getCoolantTempOBD` @ 0x55E14 is a trivial stub returning 0; coolant temp OBD data may route through a different path.
+3. Conversion constants for some getters differ from theoretical OBD standard values — manufacturer-specific calibration adjustments.
+4. UDS Mode 22 (DID-based) handlers @ 0x630A4+ are separate from the OBD PID handlers and serve proprietary diagnostic data requests.

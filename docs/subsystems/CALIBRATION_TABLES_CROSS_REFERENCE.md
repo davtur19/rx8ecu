@@ -166,8 +166,6 @@ Data flow: code → loads descriptor addr into R4 → calls `TwoDLookup`/`ThreeD
 | 0x6E432 | fuel pump mode | u8 | Fuel pump control mode |
 | 0x6E435 | fuel pump parameter | u8 | Fuel pump secondary param |
 
-Identified: 0x72DD0 → **WOT Enrichment Threshold** (HIGH); 0x72E40 → **Cold Start Enrichment Threshold** (HIGH).
-
 ### `calc_adaptive_fuel_trim.c` (STFT/LTFT)
 | Address | Access | Notes |
 |---------|--------|-------|
@@ -396,10 +394,9 @@ Coverage by subsystem: Sensor ~17 (12 id'd) · Fuel base ~28 (18) · Fuel enrich
 - `refs/rx8defs/RomRaider/rx8_defs.xml` — RomRaider (not shipped; naming only)
 
 ### B. Future Work
-- 286 remaining unidentified tables need function cross-referencing.
-- 105 Check DataType tables: validate intermediate vs tunable.
-- Match axis pointer entries to parent tables.
-- Add remaining C files referencing table addresses.
-- Cross-reference other ROM variants (N3J6EB, N3M5E, N3YLEE).
+- 286 unidentified tables → function cross-referencing.
+- 105 Check DataType: validate intermediate vs tunable.
+- Match axis pointers to parent tables; add remaining C refs.
+- Other ROM variants: N3J6EB, N3M5E, N3YLEE.
 
 *Generated from `cal_tables.csv`, `mapscan.py`, verified C sources in `c/`, and analysis reports (private storage).*

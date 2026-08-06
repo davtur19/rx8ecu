@@ -1,6 +1,6 @@
 # CAN/UDS Subsystem — RX-8 ECU (60E1D400)
 
-Multi-layered CAN (Controller Area Network) and UDS (ISO-14229-1) subsystem, ~149 functions.
+Multi-layered CAN (Controller Area Network) + UDS (ISO-14229-1) subsystem, ~149 functions.
 
 - **Two CAN buses**: HS-CAN (diagnostics, UDS) and MS-CAN (accessories)
 - **Proprietary broadcast**: CAN IDs 0x201–0x650 carry engine data
@@ -17,13 +17,13 @@ Layer 0  SH7055 HCAN         16 mailboxes, regs @0xFFFFC000-0xFFFFCFFF
 
 ## CAN Mailbox Configuration Tables (60E1D400)
 
-Dispatch table (0x4E728 in J-line) maps to three **mailbox configuration** tables (16-byte entries: CAN ID, DLC, direction, buffer address):
+Dispatch table (0x4E728 in J-line) maps to three **mailbox config** tables (16-byte entries: CAN ID, DLC, direction, buffer address):
 
 - **CAN0 TX Primary**: `0x4EA60` (16 entries, used when `0xB5A4 == 1`)
 - **CAN0 TX Alternate**: `0x4EB60` (16 entries, used when `0xB5A4 == 0`)
 - **CAN1 RX**: `0x4EC60` (6 entries)
 
-The 16-byte entry "handler" field is a **mailbox data buffer pointer** (into HCAN reg space 0xFFFFExxx), NOT a function pointer. Runtime dispatch is direct calls in `CANTX_Main`/`secondary_system_controller`.
+The 16-byte "handler" field is a **mailbox data buffer pointer** (into HCAN reg space 0xFFFFExxx), NOT a function pointer. Runtime dispatch is direct calls in `CANTX_Main`/`secondary_system_controller`.
 
 ### CAN0 TX Mailbox Map
 
@@ -59,7 +59,7 @@ The 16-byte entry "handler" field is a **mailbox data buffer pointer** (into HCA
 
 ## HCAN Hardware (Layer 0)
 
-SH7055 built-in HCAN: 16 mailboxes (0–7 usually RX, 8–15 usually TX), standard (11-bit) and extended (29-bit) ID support. Key registers (via `getHCANRegisterAddress` 0xD198): `MCR`, `MBCR`, `M_BOCR`, `M_BIDR`, `M_BDSR`.
+SH7055 built-in HCAN: 16 mailboxes (0–7 usually RX, 8–15 usually TX), standard (11-bit) + extended (29-bit) IDs. Key regs (via `getHCANRegisterAddress` 0xD198): `MCR`, `MBCR`, `M_BOCR`, `M_BIDR`, `M_BDSR`.
 
 ## CAN Hardware Interface (Layer 1)
 
@@ -70,7 +70,7 @@ main_init → canSetup (0xDC8C) → CANControllerSetup (0x9878)
                                 → hcan_init_and_status_check (0xD6A0)
 ```
 
-**`CANControllerSetup`** (0x9878): full HCAN init — configure CAN TX/RX pins, take HCAN out of reset (MCR), set baud prescaler (`set_MCR_bits2_3`, `set_MCR_bits5_7`), configure all 16 mailboxes (`setCANRegisters`), set RX masks, enable mailbox interrupts.
+**`CANControllerSetup`** (0x9878): full HCAN init — configure TX/RX pins, release HCAN reset (MCR), baud prescaler (`set_MCR_bits2_3`, `set_MCR_bits5_7`), configure all 16 mailboxes (`setCANRegisters`), RX masks, mailbox interrupts.
 
 **`canMessageSetup`** (0x2B320): post-init — periodic TX timing, RX filters by CAN ID, message counters/timeouts.
 
@@ -102,22 +102,22 @@ main_init → canSetup (0xDC8C) → CANControllerSetup (0x9878)
 1. counter @0xFFFFA40F >= 100 (0x64) → skip cycle
 2. flags @0xA40A, 0xFFFFA410, 0xFFFFA411 set → skip
 3. 0xAAE0 == 1 AND 0xB5E8 != 1 → allow TX
-4. call TX functions in sequence (counter-based rate limiting):
-   can41TXPack (0x39348)                     - 0x041 (AC)
-   FUN_00029fd2 (0x29FD2)                     - every 4 calls → 0x201+0x203
-   counter_check_dispatch_2A242 (0x2A242)     - 0x215 (throttle)
-   can251TX_getAndPack (0x2AAB6)              - 0x251 (throttle position)
+4. sequential TX calls (counter-based rate limiting):
+   can41TXPack (0x39348)                        - 0x041 (AC)
+   FUN_00029fd2 (0x29FD2)                       - every 4 calls → 0x201+0x203
+   counter_check_dispatch_2A242 (0x2A242)       - 0x215 (throttle)
+   can251TX_getAndPack (0x2AAB6)                - 0x251 (throttle position)
    [if 0xB5A4==1] can_tx_periodic_dispatch_2D402 (0x2D402) - 0x231
-   mutex_trylock_4C85A (0x4C85A)              - every 25 → can240TX_pack (0x240)
-   message_queue_send_4C956 (0x4C956)        - every 25 → can250TX_pack (0x250)
-   incr_counter_saturated_299DA (0x299DA)     - CAN RX 216 timeout
+   mutex_trylock_4C85A (0x4C85A)                - every 25 → can240TX_pack (0x240)
+   message_queue_send_4C956 (0x4C956)           - every 25 → can250TX_pack (0x250)
+   incr_counter_saturated_299DA (0x299DA)       - CAN RX 216 timeout
    saturated_counter_dispatcher_33A36 (0x33A36) - 0x620 (fan)
    saturated_counter_dispatcher_33942 (0x33942) - 0x630 (cooling fan)
-   can650TX_getAndPack (0x2C806)              - 0x650 (catalyst/O2)
+   can650TX_getAndPack (0x2C806)                - 0x650 (catalyst/O2)
 5. clear byte @0xC241 (TX complete)
 ```
 
-**Corrected names** (TLA names were misleading): `can201TX_getAndPack` = `FUN_00029fd2`; `can203TX_getAndPack` = `counter_check_dispatch_2A242`; `can240TX_pack` = `mutex_trylock_4C85A` (calls `L_04c888`); `can250TX_pack` = `message_queue_send_4C956` (calls `L_04c984`); `CANRX216TimeoutCount` = `incr_counter_saturated_299DA`; `can620TX_getAndPack` = `saturated_counter_dispatcher_33A36`; `can_message_setup_dispatcher_33974` = `saturated_counter_dispatcher_33942`.
+**Corrected names** (TLA names misleading): `can201TX_getAndPack` = `FUN_00029fd2`; `can203TX_getAndPack` = `counter_check_dispatch_2A242`; `can240TX_pack` = `mutex_trylock_4C85A` (calls `L_04c888`); `can250TX_pack` = `message_queue_send_4C956` (calls `L_04c984`); `CANRX216TimeoutCount` = `incr_counter_saturated_299DA`; `can620TX_getAndPack` = `saturated_counter_dispatcher_33A36`; `can_message_setup_dispatcher_33974` = `saturated_counter_dispatcher_33942`.
 
 ### TX Message Pack Functions
 
@@ -141,18 +141,18 @@ Reads bit 0x0400 from 0xFFFFF754 (VFAD solenoid bit, repurposed by a launch-cont
 ## RX Path (Layer 2)
 
 ### Dispatch: `secondary_system_controller` (0xDE8E)
-In 60E1D400 the CAN RX dispatch is `secondary_system_controller` (not a separate CANHandler/CANRX_Main pair; those may exist in other J-line variants, 0xDBF6 was previously/mistakenly used).
+In 60E1D400 the CAN RX dispatch is `secondary_system_controller` (not a separate CANHandler/CANRX_Main pair; those may exist in other J-line variants — 0xDBF6 was previously/mistakenly used).
 
 ```
 Gate: 0xAAE0==1, 0xB5E8!=1, 0xA410==0
-→ CAN212RX_Main (0x2C0C4)              - 0x212
-→ lookup_table_indexed_29BE8           - general lookups
-→ table_lookup_dispatch_29E9C          - (if 0xB5A4==0)
-→ table_lookup_conditional_dispatch_33BA0 - 0x430/0x4C0
-→ CAN4B0RX_Main (0x2BE18)              - 0x4B0
-→ event_check_4C78C                    - 0x4B1
-→ utility_bitfield_check_2C780         - 0x4C0
-→ CAN47RX_Main (0x3939C)               - 0x47
+→ CAN212RX_Main (0x2C0C4)                     - 0x212
+→ lookup_table_indexed_29BE8                  - general lookups
+→ table_lookup_dispatch_29E9C                 - (if 0xB5A4==0)
+→ table_lookup_conditional_dispatch_33BA0     - 0x430/0x4C0
+→ CAN4B0RX_Main (0x2BE18)                     - 0x4B0
+→ event_check_4C78C                           - 0x4B1
+→ utility_bitfield_check_2C780                - 0x4C0
+→ CAN47RX_Main (0x3939C)                      - 0x47
 ```
 
 ### Per-ID RX Handlers
@@ -165,7 +165,7 @@ Gate: 0xAAE0==1, 0xB5E8!=1, 0xA410==0
 | event_check_4C78C | 0x4C78C | 0x4B1 | CAN0 MB12 | DSC request secondary |
 | utility_bitfield_check_2C780 | 0x2C780 | 0x4C0 | CAN1 MB6 | Unknown (short msg) |
 
-CAN IDs 0x216, 0x430, 0x231 RX are dispatched via `lookup_table_indexed_29BE8`/`table_lookup_dispatch_29E9C`, not directly called.
+CAN IDs 0x216, 0x430, 0x231 RX dispatched via `lookup_table_indexed_29BE8`/`table_lookup_dispatch_29E9C`, not directly called.
 
 ### RX Unpack Functions
 
@@ -179,19 +179,10 @@ CAN IDs 0x216, 0x430, 0x231 RX are dispatched via `lookup_table_indexed_29BE8`/`
 
 ### Filter / Encode / Decode
 
-**`can_filter_apply_49216`** (0x49216, 594 instr): big CAN filter/condition evaluator. Reads RPM (0xB5B8), VSS (0xB600), accel (0xAA10); loads cal constants @0x7C2E8+; FPU comparisons vs thresholds; sets/clears flag bytes @0xCD2A-0xCD30; evaluates DSC/ESP intervention, traction, fuel-cut, engine-load branches; calls `add16bitSaturate`.
-
-**`can_frame_parse_491AC`** (0x491AC): validates incoming frame timing vs thresholds @0x7C2B6, updates timer @0xCD28.
-
-**`can_data_encoder_24614`** (0x24614, 62 instr): TX bitfield encoder (inverse of decoder). Packs boolean flag bytes from RAM into compressed CAN format; uses FPU + `floatToFP_16bit`; buffer struct @0xB4B0.
-
-**`can_data_decode_2468C`** (0x2468C, 901 instr): largest CAN function — RX bitfield unpacker.
-1. r12 = 0xB4E8 descriptor; copies 7 words to RAM 0xB53C-0xB544.
-2. Reads source bytes 0xFFFFB596-0xFFFFB59C; per bit tests `tst→movt→add #-1→neg→cmp/eq #1→mov.b #1/#0`.
-3. Outputs 47 flag bytes to RAM 0xB55C-0xB58B.
-4. On bit patterns calls one of 77 helper funcs (region 0x250A6-0x2595C); `0x2595C` called 7+ times.
-5. Stores last decoded pair to 0xB546-0xB54B.
-One entry in a function-pointer table @0x245F0 (8 entries), referenced only there. Source bytes = CAN RX buffer / digital-input regs, each bit a vehicle status indicator.
+- **`can_filter_apply_49216`** (0x49216, 594 instr): big CAN filter/condition evaluator. Reads RPM (0xB5B8), VSS (0xB600), accel (0xAA10); cal constants @0x7C2E8+; FPU compares vs thresholds; sets/clears flag bytes @0xCD2A-0xCD30; evaluates DSC/ESP intervention, traction, fuel-cut, engine-load branches; calls `add16bitSaturate`.
+- **`can_frame_parse_491AC`** (0x491AC): validates incoming frame timing vs thresholds @0x7C2B6, updates timer @0xCD28.
+- **`can_data_encoder_24614`** (0x24614, 62 instr): TX bitfield encoder (inverse of decoder). Packs boolean flag bytes from RAM into compressed CAN format; FPU + `floatToFP_16bit`; buffer struct @0xB4B0.
+- **`can_data_decode_2468C`** (0x2468C, 901 instr): largest CAN function — RX bitfield unpacker. 1) r12 = 0xB4E8 descriptor; copies 7 words to 0xB53C-0xB544. 2) Reads bytes 0xFFFFB596-0xFFFFB59C; per bit `tst→movt→add #-1→neg→cmp/eq #1→mov.b #1/#0`. 3) Outputs 47 flag bytes to 0xB55C-0xB58B. 4) On bit patterns calls 1 of 77 helpers (region 0x250A6-0x2595C; `0x2595C` called 7+ times). 5) Stores last decoded pair to 0xB546-0xB54B. One entry in fn-ptr table @0x245F0 (8 entries), referenced only there. Source bytes = CAN RX buffer / digital-input regs, each bit a vehicle status indicator.
 
 ## UDS Diagnostic Services (Layer 3a, ISO-14229-1)
 
@@ -201,7 +192,7 @@ Arrival: serial KWP2000 (0x1572-0x1D98, legacy) or CAN (0x7DF broadcast / 0x7E0 
 
 Called from `udsEntryPoint` (0x69702). Params: `param_1` = SID (& 0xff), `param_2` = length/flags, `param_3` = first byte = SID.
 
-Dispatch table: 12 bytes/entry — `{sid(1) pad(3) handler_ptr(4) access_mask(4)}`, 0xFF sid sentinel. Session check helper @0x4308 reads session from 0xFFFFDE5C → bitmask (0x01 default, 0x02 programming, 0x04 extended, 0x08 safety); access mask ANDed → nonzero = handler accessible. Loop starts at index 1; r13=0 found/handled, 2 = no access.
+Dispatch table: 12 bytes/entry — `{sid(1) pad(3) handler_ptr(4) access_mask(4)}`, 0xFF sid sentinel. Session check helper @0x4308 reads session from 0xFFFFDE5C → bitmask (0x01 default, 0x02 programming, 0x04 extended, 0x08 safety); access mask ANDed → nonzero = accessible. Loop starts at index 1; r13 = 0 found/handled, 2 = no access.
 
 Session mask encoding: 0x01=S1, 0x02=S2, 0x04=S3, 0x05=S1+3, 0x06=S2+3, 0x0E=S2+3+4, 0x0F=all, 0x1000000F=all+seed/key-generated flag.
 

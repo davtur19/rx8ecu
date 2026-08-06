@@ -1,24 +1,6 @@
 # Fuel Injection Control Subsystem — RX-8 PCM (60E1D400)
 
-**ROM:** 60E1D400 (N3J1EM, 6-Port MT, 2004–08)
-**Cross-reference:** 60E0FC00 (USDM), 60E1D400 (baseline)
-**Functions:** ~93 fuel/injection-related functions
-**Last updated:** 2026-07-31
-
-## Table of Contents
-
-1. [Overall Fueling Architecture](#1-overall-fueling-architecture)
-2. [Fuel Mass Calculation Strategy](#2-fuel-mass-calculation-strategy)
-3. [Correction Hierarchy](#3-correction-hierarchy)
-4. [Injector Flow Rate and Latency Calibration](#4-injector-flow-rate-and-latency-calibration)
-5. [Fuel Cut Logic](#5-fuel-cut-logic)
-6. [Per-Rotor Fueling](#6-per-rotor-fueling)
-7. [Fuel Pump Control](#7-fuel-pump-control)
-8. [Key Calibration Tables](#8-key-calibration-tables)
-9. [Complete Fuel Function Catalog](#9-complete-fuel-function-catalog)
-10. [C Code for Key Functions](#10-c-code-for-key-functions)
-11. [Test Strategy](#11-test-strategy)
-12. [Open Questions](#12-open-questions)
+**ROM:** 60E1D400 (N3J1EM, 6-Port MT, 2004–08) · **Cross-ref:** 60E0FC00 (USDM) · **Functions:** ~93 fuel/injection-related · **Updated:** 2026-07-31
 
 ## 1. Overall Fueling Architecture
 

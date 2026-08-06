@@ -2,28 +2,15 @@
 
 Reverse-engineered control strategies for idle regulation and auxiliary subsystems in the Mazda RX-8 Renesis (13B-MSP) ECU firmware (SH-2E, 60E1D400/60E0FC00).
 
-## Table of Contents
-
-1. [Idle Speed Control (ISC)](#1-idle-speed-control-isc)
-2. [SSV — Secondary Shutter Valve](#2-ssv--secondary-shutter-valve)
-3. [VIS — Variable Intake System](#3-vis--variable-intake-system)
-4. [VFAD — Variable Fresh Air Duct](#4-vfad--variable-fresh-air-duct)
-5. [OMP — Oil Metering Pump](#5-omp--oil-metering-pump)
-6. [Cooling Fan Control](#6-cooling-fan-control)
-7. [Alternator Voltage Control](#7-alternator-voltage-control)
-8. [APV — Auxiliary Port Valves](#8-apv--auxiliary-port-valves)
-9. [EVAP / Purge Control](#9-evap--purge-control)
-10. [Global Memory Map](#10-global-memory-map)
-
 ## 1. Idle Speed Control (ISC)
 
-Closed-loop air bypass idle control. Rather than a stepper motor, the Renesis ECU uses a linear solenoid (ISC valve) varying air bypassing the throttle. Components:
+Closed-loop air bypass idle control via **linear solenoid** (ISC valve) varying air past the throttle (no stepper motor).
 
-1. `calc_idle_speed_target()` (0x12F5E) — target computation
+1. `calc_idle_speed_target()` (0x12F5E) — target
 2. `idle_speed_control_18054()` (0x18054) — state machine & mode dispatch
 3. `idle_air_control_valve_47848()` (0x47848) — air valve position
 4. `adaptive_idle_47754()` (0x47754) — adaptive learning
-5. Load compensations — warm-up, A/C, power steering
+5. Load comps — warm-up, A/C, power steering
 
 ### 1.2 Target RPM (`calc_idle_speed_target`, 0x12F5E, 0x112 B to 0x13070; calls `sensor_range_check_3ED0C`)
 
@@ -87,7 +74,7 @@ void idle_air_control_valve_47848(void) {
 }
 ```
 
-Actual ISC position is a function of coolant (warm-up), A/C clutch, power-steering pressure switch, alternator load, adaptive learned base.
+Actual ISC position = f(coolant warm-up, A/C clutch, PS pressure switch, alternator load, adaptive learned base).
 
 ### 1.5 Adaptive Idle Learning (`adaptive_idle_47754`, 0x47754, 50 B)
 
@@ -128,7 +115,6 @@ ISC solenoid driven by SH-2E MTU (Multi-Function Timer Pulse Unit) PWM; duty con
 ## 2. SSV — Secondary Shutter Valve
 
 Two-position intake valve; opens secondary port at RPM threshold via vacuum actuator + solenoid. Closed <~2000 RPM (low-end torque), open >~2000 RPM (high-end power), hysteresis prevents oscillation.
-
 ### 2.2 SSV Control (`ssvControl__`, 0x225C8, 94 B; called from `torque_dispatcher_225A2`/`direct_branch_to_torque_calc_2259C`)
 
 ```asm
@@ -161,7 +147,7 @@ Port `0xFFFFF754` bit 7 (0x80) · output `0xFFFFB320` (validated command) · ram
 
 ## 3. VIS — Variable Intake System
 
-Adjusts intake runner length/cross-section via continuously-variable or multi-position actuator driven by a duty-cycled solenoid.
+Adjusts intake runner length/cross-section via multi-position actuator driven by a duty-cycled solenoid.
 
 ### 3.2 VIS Intake Control (`vis_intake_control_23718`, 0x23718, 236 B; called from `engine_control_master_task_23DC8`)
 
@@ -232,7 +218,6 @@ Same design pattern: hysteresis comparator → alternating sensor state machine 
 ## 5. OMP — Oil Metering Pump
 
 Electronically-controlled stepper-motor OMP injecting oil to lubricate apex seals/rotor housings. Delivery varies with RPM, load (TPS/intake vacuum), coolant temp, throttle change rate (accel enrichment).
-
 ### 5.2 OMP Control (`omp_control_task_1825E`, 0x1825E, 374 B; called from `main_engine_cycle_10ms`; verified lift `c/omp_control_task_1825E.c`)
 
 ```c
