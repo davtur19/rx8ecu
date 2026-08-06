@@ -440,6 +440,42 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
                 trk['r%d' % breg] = None
             pc += 2
             continue
+        if op & 0xF0FF in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026):
+            # ---- sts.l/lds.l mach/macl/pr @-Rn/@Rn+ (sys_src/sys_dest) ----
+            # decode_mem maps the param/literal-base forms above (mem path); the
+            # r15/r14 stack-base forms fall through _resolve_base -> None, so
+            # they previously died at the is_fpu_op fallback as 'fpu/altre'.
+            # Admit them here with the SAME r15/r14 stack-slot rule as the
+            # generic r15/r14 mem ops (stack_ok / frame_live gates identical).
+            sys_store = (op & 0xF0FF) < 0x4006
+            srn = (op >> 8) & 0xF
+            if srn == 15:
+                if not stack_ok:
+                    return None, ('base_unresolved', 'r15-non-tracked')
+                bases.setdefault('r15', ('STACK', None))
+            elif srn == 14:
+                if not frame_live:
+                    return None, ('base_unresolved', 'r14-non-frame')
+                bases.setdefault('r14', ('STACK', None))
+            else:
+                # param/literal/tracked base — decode_mem already returned None
+                # (should not reach here; decode_mem covers these), so reject
+                # rather than silently accept an unrendered form.
+                return None, ('base_unresolved', 'altro')
+            ops_list.append({'pc': pc, 'size': 4,
+                             'dir': 'store' if sys_store else 'load',
+                             'kind': 'sys_stack', 'base_reg': srn,
+                             'disp': -4 if sys_store else 0,
+                             'auto': 'pre' if sys_store else 'post',
+                             'idx': None, 'gbr': False,
+                             'sys_reg': 'pr' if (op & 0xF0FF) == 0x4022 else
+                                        ('macl' if (op & 0xF0FF) == 0x4012 else
+                                         ('mach' if (op & 0xF0FF) == 0x4002 else
+                                          ('pr' if (op & 0xF0FF) == 0x4026 else
+                                           ('macl' if (op & 0xF0FF) == 0x4016 else 'mach'))))})
+            trk['r%d' % srn] = None
+            pc += 2
+            continue
         if gcl.is_mem_opcode(op):
             return None, ('base_unresolved', 'altro')
         if gcl.is_fpu_op(op):
@@ -902,6 +938,35 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                              'kind': 'stack', 'base_reg': breg, 'disp': sh['disp'],
                              'auto': sh['auto'], 'idx': sh.get('idx'), 'gbr': False})
             gcl._apply_mem_writes(sm, written, lits)
+            pc += 2
+            continue
+        if op & 0xF0FF in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026):
+            # ---- sts.l/lds.l mach/macl/pr @-Rn/@Rn+ (sys_src/sys_dest) ----
+            # identical to _scan_mem_v3: admit the r15/r14 stack-base forms with
+            # the same stack_ok / frame_live gates (param/literal bases are
+            # already admitted by decode_mem in the mem path above).
+            sys_store = (op & 0xF0FF) < 0x4006
+            srn = (op >> 8) & 0xF
+            if srn == 15:
+                if not stack_ok:
+                    return None, ('base_unresolved', 'r15-non-tracked')
+                bases.setdefault('r15', ('STACK', None))
+            elif srn == 14:
+                if not frame_live:
+                    return None, ('base_unresolved', 'r14-non-frame')
+                bases.setdefault('r14', ('STACK', None))
+            else:
+                return None, ('base_unresolved', 'altro')
+            ops_list.append({'pc': pc, 'size': 4,
+                             'dir': 'store' if sys_store else 'load',
+                             'kind': 'sys_stack', 'base_reg': srn,
+                             'disp': -4 if sys_store else 0,
+                             'auto': 'pre' if sys_store else 'post',
+                             'idx': None, 'gbr': False,
+                             'sys_reg': 'pr' if (op & 0xF0FF) in (0x4022, 0x4026)
+                             else ('macl' if (op & 0xF0FF) in (0x4012, 0x4016)
+                                   else 'mach')})
+            trk['r%d' % srn] = None
             pc += 2
             continue
         if gcl.is_mem_opcode(op):
@@ -1679,7 +1744,22 @@ def walk_v3(rom, addr, end):
                         'c': [], 'py': [], 'target': None, 'slot': None,
                         'mnem': 'mov r15,r14 (frame pointer — implicit)'}
             if 'r15' in writes:
-                if not (op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15):
+                if op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15:
+                    # `add #imm,r15` keeps stack_ok (stack allocation).  The
+                    # runtime stack pointer moves by the signed immediate, so
+                    # (a) every subsequent @r15/@(disp,r15) offset must shift by
+                    # it (sp_off tracks r15-relative-to-STACK_BASE) and (b) the
+                    # mirror's `sp` alias must follow, or the final r15
+                    # comparison diverges from sh2emu (unbalanced prologues).
+                    _imm = op & 0xFF
+                    if _imm & 0x80:
+                        _imm -= 0x100
+                    st['sp_off'] += _imm
+                    d = dict(d)
+                    d['py'] = list(d.get('py') or [])
+                    d['py'].append('sp = (sp + s8(0x%02X)) & 0xFFFFFFFF'
+                                   % (op & 0xFF))
+                else:
                     st['stack_ok'] = False
             if 'r14' in writes:
                 st['frame_live'] = False
@@ -1753,6 +1833,108 @@ def walk_v3(rom, addr, end):
             st['trk']['r%d' % srn] = None
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
+        if op & 0xF0FF in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026):
+            # ---- sts.l/lds.l mach/macl/pr @-Rn/@Rn+ (sys_src/sys_dest) ----
+            # c_lift_ops.decode_mem flags these with sys_src/sys_dest + sys_reg
+            # and carries 1:1 'py' mirror fragments, but _mem_record cannot
+            # render them (src/dest are None — the value transferred is the
+            # system register, not an rN).  Render here, mirroring the SR block
+            # above AND the r15/r14 stack-slot model of the sh block below:
+            #   sts.l pr,@-r15   0x4F22: off = sp-4; local_off = pr; sp -= 4
+            #   lds.l @r15+,pr   0x4F26: pr = local_off; sp += 4
+            # For a stack base the local_<off> slot is shared with every other
+            # r15/r14 mem op (sh2emu writes/reads the same RAM), so pr/macl/mach
+            # round-trips through the function prologue/epilogue for free.
+            SYS_REG = {0x4002: 'mach', 0x4012: 'macl', 0x4022: 'pr',
+                       0x4006: 'mach', 0x4016: 'macl', 0x4026: 'pr'}
+            reg = SYS_REG[op & 0xF0FF]
+            sys_store = (op & 0xF0FF) < 0x4006     # 0x2/0x12/0x22 = sts.l
+            srn = (op >> 8) & 0xF
+            st['written'].add('r%d' % srn)         # auto side-effect kills literal
+            st['lits'].pop('r%d' % srn, None)
+            st['trk']['r%d' % srn] = None
+            if srn == 15 and st['stack_ok']:
+                if sys_store:
+                    st['sp_off'] -= 4
+                    off = st['sp_off']
+                else:
+                    off = st['sp_off']
+                    st['sp_off'] += 4
+                info['has_stack'] = True
+                info['stack_offs'].add(off)
+                if sys_store:
+                    c = ['local_%x = %s;' % (off, reg)]
+                    py = ['local[0x%X] = %s' % (off, reg),
+                          '_wrw(ram, STACK_BASE + 0x%X, 4, %s)' % (off, reg),
+                          'sp = (sp - 4) & 0xFFFFFFFF']
+                else:
+                    c = ['%s = local_%x;' % (reg, off)]
+                    py = ['%s = _rdw(ram, STACK_BASE + 0x%X, 4)' % (reg, off),
+                          'sp = (sp + 4) & 0xFFFFFFFF']
+                mnem = ('sts.l %s,@-r15' % reg if sys_store
+                        else 'lds.l @r15+,%s' % reg)
+            elif srn == 14 and st['frame_live']:
+                base_off = (st['frame_off'] if st['frame_off'] is not None
+                            else st['sp_off'])
+                off = base_off - 4 if sys_store else base_off
+                info['has_stack'] = True
+                info['stack_offs'].add(off)
+                if sys_store:
+                    c = ['local_%x = %s;' % (off, reg)]
+                    py = ['local[0x%X] = %s' % (off, reg),
+                          '_wrw(ram, STACK_BASE + 0x%X, 4, %s)' % (off, reg),
+                          'sp = (sp - 4) & 0xFFFFFFFF']
+                else:
+                    c = ['%s = local_%x;' % (reg, off)]
+                    py = ['%s = _rdw(ram, STACK_BASE + 0x%X, 4)' % (reg, off),
+                          'sp = (sp + 4) & 0xFFFFFFFF']
+                mnem = ('sts.l %s,@-r14' % reg if sys_store
+                        else 'lds.l @r14+,%s' % reg)
+            else:
+                if srn in (4, 5, 6, 7) and 'r%d' % srn not in st['written']:
+                    bkind, abs_addr = 'param', None
+                elif 'r%d' % srn in st['lits']:
+                    bkind, abs_addr = 'literal', st['lits']['r%d' % srn]
+                else:
+                    r = _trk_fold(st['trk'], st['written'], srn)
+                    if not r:
+                        return None
+                    if r[0] == 'lit':
+                        bkind, abs_addr = 'literal', r[1]
+                    else:
+                        bkind, abs_addr = 'param', None
+                if bkind == 'literal':
+                    info['has_literal'] = True
+                    info['ram_addrs'].add(abs_addr)
+                if sys_store:
+                    if bkind == 'literal':
+                        a = (abs_addr - 4) & gcl.MASK
+                        eff = '0x%08X' % a
+                        note = (' /* RAM 0x%08X */' % a
+                                if ops.classify_addr(a) == 'RAM' else ' /* ROM */')
+                    else:
+                        eff, note = '(r%d - 4)' % srn, ''
+                    c = ['*(volatile uint32_t*)%s = %s;%s' % (eff, reg, note),
+                         'r%d = r%d - 4;' % (srn, srn)]
+                    py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, %s)' % (srn, reg),
+                          'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (srn, srn)]
+                    mnem = 'sts.l %s,@-r%d' % (reg, srn)
+                else:
+                    if bkind == 'literal':
+                        eff = '0x%08X' % (abs_addr & gcl.MASK)
+                        note = (' /* RAM 0x%08X */' % (abs_addr & gcl.MASK)
+                                if ops.classify_addr(abs_addr) == 'RAM' else ' /* ROM */')
+                    else:
+                        eff, note = 'r%d' % srn, ''
+                    t = temp()
+                    c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
+                         '%s = %s;' % (reg, t),
+                         'r%d = r%d + 4;' % (srn, srn)]
+                    py = ['%s = _rdw(ram, r[%d], 4)' % (reg, srn),
+                          'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
+                    mnem = 'lds.l @r%d+,%s' % (srn, reg)
+            return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
+                    'target': None, 'slot': None, 'mnem': mnem}
         m = ops.decode_mem(op, None, ctx)
         if m is not None:
             base_reg = m['base_reg']
@@ -1775,7 +1957,9 @@ def walk_v3(rom, addr, end):
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
             c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
-                                    dynbase=(pc in reentry))
+                                    dynbase=((pc in reentry)
+                                             or ('r%d' % base_reg)
+                                             in carried.get(pc, ())))
             gcl._apply_mem_writes(m, st['written'], st['lits'])
             if m['dir'] == 'load' and m.get('dest') is not None:
                 st['trk']['r%d' % m['dest']] = None
@@ -1924,6 +2108,55 @@ def walk_v3(rom, addr, end):
                 if addr <= _t < end:
                     reentry.add(_t)
         _p += 2
+    # ---- Bug 2: loop-carried (register) base · dynbase extension -------------
+    # A literal-folded mem base (bkind='literal') is only valid when the base
+    # register stays constant between re-entries.  If the register is WRITTEN
+    # again inside a backward-branch loop body that re-enters the mem, the
+    # runtime address changes across iterations, so the mem must be emitted
+    # register-relative (`rN(+disp)`) instead of baking the folded literal.
+    # gen_c_lift._mem_record already does this for mem directly at a re-entry
+    # PC (dynbase=); here we broaden it to REGISTER bases modified anywhere in
+    # the enclosing loop body (initial entry run included) — the same principle
+    # extended from literal-base to register-base loop-carried mems.
+    carried = {}                       # pc -> set of registers written in its loop
+    _p2 = addr
+    while _p2 + 1 < bound:
+        if _p2 in pool_words:
+            _p2 += 2
+            continue
+        _op2 = (rom[_p2] << 8) | rom[_p2 + 1]
+        _d2 = ops.translate(_op2, _p2, rom)
+        if _d2 is not None and _d2.get('kind') in ('branch',):
+            _bi2 = ops.branch_info(_op2)
+            if _bi2 and _bi2['kind'] not in ('rte', 'rts', 'bsrf', 'braf'):
+                _lo = (_p2 + 4 + _bi2['target_disp'] * 2) & gcl.MASK
+                if addr <= _lo < _p2:            # backward branch -> loop body
+                    _wr = set()
+                    _q = _lo
+                    _qend = _p2 + 2              # include the delay slot
+                    while _q < bound and _q <= _qend:
+                        if _q not in pool_words:
+                            _oq = (rom[_q] << 8) | rom[_q + 1]
+                            _dqr = ops.translate(_oq, _q, rom)
+                            if _dqr is not None:
+                                _wr |= gcl._stmt_writes(
+                                    '\n'.join(_dqr.get('c') or []))
+                            _m = ops.decode_mem(_oq, None, ctx)
+                            if _m is not None:
+                                gcl._apply_mem_writes(_m, _wr, {})
+                            _sh = gcl._mem_shape(_oq)
+                            if _sh is not None and _sh['base'] in (14, 15):
+                                gcl._apply_mem_writes(
+                                    {'dir': _sh['dir'], 'size': _sh['size'],
+                                     'base_reg': _sh['base'], 'auto': _sh['auto'],
+                                     'dest': _sh.get('dest'),
+                                     'src': _sh.get('src')}, _wr, {})
+                        _q += 2
+                    for _q in range(_lo, _qend + 1, 2):
+                        if _q in pool_words:
+                            continue
+                        carried.setdefault(_q, set()).update(_wr)
+        _p2 += 2
     while pc + 1 < bound:
         if pc in pool_words:                     # literal-pool data word
             pc += 2
@@ -2001,8 +2234,10 @@ def render_body(records, labels):
 
 def build_locals(stmts, info):
     """Locals: only the registers the emitted C actually references (r0..r3 and
-    r8..r14 as one-per-line uint32_t; r4..r7 are the params -> note only; r15 is
-    the stack pointer -> implicit).  T is declared ONLY when the body mentions
+    r8..r15 as one-per-line uint32_t; r4..r7 are the params -> note only; r15 is
+    declared when the body writes it as a bare register e.g. `add #imm,r15`,
+    mirroring gen_c_lift.py's pure path which declares `uint32_t r15 = 0`).
+    T is declared ONLY when the body mentions
     it (a v3 body mentions T iff some bt/bf reads it or a compare writes it).
     Temps t1.. for mem loads are declared inline by the mem fragments."""
     body_text = '\n'.join(stmts)
@@ -2016,7 +2251,7 @@ def build_locals(stmts, info):
     lines = []
     if any('r%d' % n in refs for n in range(4, 8)):
         lines.append('    /* params (possibly) */')
-    for n in list(range(0, 4)) + list(range(8, 15)):
+    for n in list(range(0, 4)) + list(range(8, 16)):
         if 'r%d' % n in refs:
             lines.append('    uint32_t r%d = 0;' % n)
     for t in ('T', 'Q', 'M', 'macl', 'mach', 'sr', 'pr'):
@@ -2244,6 +2479,32 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
     stack_offs = ', '.join('0x%X' % o for o in offs_list)
     if len(offs_list) == 1:
         stack_offs += ','                     # (0x414,) must stay a tuple
+    # sys-form stack LOAD slots (lds.l @r15+/@r14+, pr/macl/mach).  These pop a
+    # slot the function never wrote (no sts.l epilogue in these catalog-boundary
+    # fragments), so without seeding pr lands on prefill garbage and the emulator's
+    # rts jumps to a random pc -> every case is skipped.  Seed the slot with the
+    # sh2emu return sentinel 0xEEEE0000 (exactly what call() initialises pr to) so
+    # the load round-trips into the rts and the test actually compares the lds.l
+    # emission against sh2emu.  Both sides read the same ram; the sentinel bytes
+    # are masked out of the RAM comparison (harness input, not function output).
+    seed_offs = []
+    for rec in records:
+        if rec.get('kind') != 'mem':
+            continue
+        if (rec.get('op', 0) & 0xF0FF) not in (0x4006, 0x4016, 0x4026):
+            continue
+        for py in rec.get('py') or ():
+            if '_rdw(ram, STACK_BASE + 0x' in py:
+                off = int(py.split('STACK_BASE + 0x')[1].split(',')[0], 16)
+                if off not in seed_offs:
+                    seed_offs.append(off)
+                break
+    seed_offs.sort()
+    seed_offs_s = ', '.join('0x%X' % o for o in seed_offs)
+    if len(seed_offs) == 1:
+        seed_offs_s += ','                     # (0x400,) must stay a tuple
+    if not seed_offs:
+        seed_offs_s = '()'
     ram_addrs = [v for v in info['ram_addrs'] if ops.classify_addr(v) == 'RAM']
     ram_min = min(ram_addrs) if ram_addrs else None
     ram_max = max(ram_addrs) if ram_addrs else None
@@ -2283,6 +2544,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         'STACK_BASE = 0xFFFFD000\n'
         'STACK_TOP = STACK_BASE + 0x400\n'
         'STACK_OFFS = (%s)\n'
+        'SEED_OFFS = (%s)   # lds.l pr/macl/mach slots seeded with the return sentinel\n'
         'RAM_MIN = %s\n'
         'RAM_MAX = %s\n'
         'SPAN_END = 0x%X\n'
@@ -2357,7 +2619,8 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '            if slot_py:\n'
         '                exec(slot_py, ns)\n'
         '            r[15] = ns["sp"] & 0xFFFFFFFF\n'
-        '            return ("RET", [x & 0xFFFFFFFF for x in r], _WRITES, ram, ns["pr"] & 0xFFFFFFFF)\n'
+        '            return ("RET", [x & 0xFFFFFFFF for x in r], _WRITES, ram, ns["pr"] & 0xFFFFFFFF,\n'
+        '                    ns["macl"] & 0xFFFFFFFF, ns["mach"] & 0xFFFFFFFF)\n'
         '        else:\n'
         '            py = inst["py"]\n'
         '            if py:\n'
@@ -2371,7 +2634,9 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '    out = dict(cpu.ram)\n'
         '    for i in range(4):\n'
         '        out.pop(SENT + i, None)\n'
-        '    return cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out, cpu.pr & 0xFFFFFFFF\n\n'
+        '    return (cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out,\n'
+        '            cpu.pr & 0xFFFFFFFF, cpu.macl & 0xFFFFFFFF,\n'
+        '            cpu.mach & 0xFFFFFFFF)\n\n'
         'def main():\n'
         '    rnd = random.Random(SEED)\n'
         '    cpu = SH2(ROM_BYTES)\n'
@@ -2383,6 +2648,9 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '                ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
         '        for a in range(STACK_BASE, STACK_BASE + 0x400):\n'
         '            ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        for off in SEED_OFFS:\n'
+        '            for i in range(4):\n'
+        '                ram[STACK_BASE + off + i] = (0xEEEE0000 >> (8 * (3 - i))) & 0xFF\n'
         '        a = rnd.randint(0, 0xFFFFFFFF)\n'
         '        b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF)\n'
@@ -2396,8 +2664,8 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '        except (StepLimitExceeded, NotImplementedError, RuntimeError):\n'
         '            skipped += 1\n'
         '            continue\n'
-        '        _, exp_regs, _, exp_ram, exp_pr = m\n'
-        '        _, got_regs, got_ram, got_pr = g\n'
+        '        _, exp_regs, _, exp_ram, exp_pr, exp_macl, exp_mach = m\n'
+        '        _, got_regs, got_ram, got_pr, got_macl, got_mach = g\n'
         '        for i in range(16):\n'
         '            if exp_regs[i] != got_regs[i]:\n'
         '                print("MISMATCH case=%%d reg=r%%d mirror=%%08X emu=%%08X" %% (caso, i, exp_regs[i], got_regs[i]))\n'
@@ -2405,7 +2673,15 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '        if exp_pr != got_pr:\n'
         '            print("MISMATCH case=%%d reg=pr mirror=%%08X emu=%%08X" %% (caso, exp_pr, got_pr))\n'
         '            sys.exit(1)\n'
+        '        if exp_macl != got_macl:\n'
+        '            print("MISMATCH case=%%d reg=macl mirror=%%08X emu=%%08X" %% (caso, exp_macl, got_macl))\n'
+        '            sys.exit(1)\n'
+        '        if exp_mach != got_mach:\n'
+        '            print("MISMATCH case=%%d reg=mach mirror=%%08X emu=%%08X" %% (caso, exp_mach, got_mach))\n'
+        '            sys.exit(1)\n'
         '        for ad in sorted(set(exp_ram) | set(got_ram)):\n'
+        '            if any(STACK_BASE + off <= ad < STACK_BASE + off + 4 for off in SEED_OFFS):\n'
+        '                continue\n'
         '            if exp_ram.get(ad, 0) != got_ram.get(ad, 0):\n'
         '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
         '                sys.exit(1)\n'
@@ -2417,6 +2693,7 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         'if __name__ == "__main__":\n'
         '    main()\n'
     ) % (fn, addr, size, cases, fn, addr, addr, flat, seed, cases, stack_offs,
+          seed_offs_s,
 'None' if ram_min is None else '0x%X' % ram_min,
           'None' if ram_max is None else '0x%X' % ram_max,
           end_addr, sent_addr,
@@ -2588,7 +2865,8 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '            r[15] = ns["sp"] & 0xFFFFFFFF\n'
         '            return ("RET", [x & 0xFFFFFFFF for x in r], _WRITES, ram,\n'
         '                    ns["pr"] & 0xFFFFFFFF,\n'
-        '                    [f2bits(f) for f in fr], ns["fpul"] & 0xFFFFFFFF)\n'
+        '                    [f2bits(f) for f in fr], ns["fpul"] & 0xFFFFFFFF,\n'
+        '                    ns["macl"] & 0xFFFFFFFF, ns["mach"] & 0xFFFFFFFF)\n'
         '        else:\n'
         '            py = inst["py"]\n'
         '            if py:\n'
@@ -2605,7 +2883,8 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '        out.pop(SENT + i, None)\n'
         '    return (cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], out,\n'
         '            cpu.pr & 0xFFFFFFFF,\n'
-        '            [f2bits(cpu.fr[i]) for i in range(16)], cpu.fpul & 0xFFFFFFFF)\n\n'
+        '            [f2bits(cpu.fr[i]) for i in range(16)], cpu.fpul & 0xFFFFFFFF,\n'
+        '            cpu.macl & 0xFFFFFFFF, cpu.mach & 0xFFFFFFFF)\n\n'
         'def main():\n'
         '    rnd = random.Random(SEED)\n'
         '    cpu = SH2(ROM_BYTES)\n'
@@ -2636,8 +2915,8 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '        except (StepLimitExceeded, NotImplementedError, RuntimeError, ValueError):\n'
         '            skipped += 1\n'
         '            continue\n'
-        '        _, exp_regs, _, exp_ram, exp_pr, exp_fr, exp_fpul = m\n'
-        '        _, got_regs, got_ram, got_pr, got_fr, got_fpul = g\n'
+        '        _, exp_regs, _, exp_ram, exp_pr, exp_fr, exp_fpul, exp_macl, exp_mach = m\n'
+        '        _, got_regs, got_ram, got_pr, got_fr, got_fpul, got_macl, got_mach = g\n'
         '        for i in range(16):\n'
         '            if exp_regs[i] != got_regs[i]:\n'
         '                print("MISMATCH case=%%d reg=r%%d mirror=%%08X emu=%%08X" %% (caso, i, exp_regs[i], got_regs[i]))\n'
@@ -2651,6 +2930,12 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '            sys.exit(1)\n'
         '        if exp_pr != got_pr:\n'
         '            print("MISMATCH case=%%d reg=pr mirror=%%08X emu=%%08X" %% (caso, exp_pr, got_pr))\n'
+        '            sys.exit(1)\n'
+        '        if exp_macl != got_macl:\n'
+        '            print("MISMATCH case=%%d reg=macl mirror=%%08X emu=%%08X" %% (caso, exp_macl, got_macl))\n'
+        '            sys.exit(1)\n'
+        '        if exp_mach != got_mach:\n'
+        '            print("MISMATCH case=%%d reg=mach mirror=%%08X emu=%%08X" %% (caso, exp_mach, got_mach))\n'
         '            sys.exit(1)\n'
         '        for ad in sorted(set(exp_ram) | set(got_ram)):\n'
         '            if exp_ram.get(ad, 0) != got_ram.get(ad, 0):\n'
