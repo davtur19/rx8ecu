@@ -2525,3 +2525,153 @@
 60E0FC00,0x4C030,FUN_0004c030,float_copy_7c13c_to_cd80,0.9,3-insn float copy cal 0x7C13C -> 0xCD80
 60E0FC00,0x4C03A,FUN_0004c03a,fault_flag_cd87_update,0.7,Fault flags: CD87 = (D07A!=0 && CD86==1); CD85 byte -1 while >0; CD86=CD88 latch
 60E0FC00,0x4C0C4,FUN_0004c0c4,float_copy_cd8c_to_cd90,0.9,3-insn float copy 0xCD8C -> 0xCD90 (precedes checksummed verify/store of 0x86A4)
+60E0FC00,0x4C166,FUN_0004c166,fuel_lambda_dual_hysteresis_compare,0.7,reads float 0x86A4; two hysteresis bands (thr 0x7B9D8/0x7B9E4 and 0x7B9DC/0x7B9E8) write CD94/CD95 with fcmp/gt hysteresis
+60E0FC00,0x4C200,FUN_0004c200,fault_compare_words_cda6,0.7,if 0xCEF3 enable then CD98 = (uint word@0xCDA6 >= word@0x7BE9C); else CD98=0
+60E0FC00,0x4C234,FUN_0004c234,init_copy_cal_bytes_7b813,0.6,"copies cal bytes 0x7B813-0x7B817 into CDAD/CDAF/CDB0/CDB1 and sets CDB2=0x40,CDC7=1 on boot"
+60E0FC00,0x4C2E0,FUN_0004c2e0,byte_counter_copy_or_decr_cdb0,0.5,if CDB5==1 copy cal0x7B816 to CDB0 else CDB0-- while positive (down-counter)
+60E0FC00,0x4C30A,FUN_0004c30a,fault_countdown_timer_cdaf,0.6,if CDB6==1 load cal0x7B815 into CDAF else decrement; CDC7 reflects CDAF!=0 (countdown active)
+60E0FC00,0x4C3E4,FUN_0004c3e4,flag_or_latch_cdc4,0.6,CDC4=1 if CE48==1 or CEBC==1 else 0 (OR flag latch)
+60E0FC00,0x4C40C,FUN_0004c40c,flag_copy_latch_cdc5,0.6,pass-through CDC5=1 iff CDC8==1 (edge copy latch)
+60E0FC00,0x4C428,FUN_0004c428,countdown_timer_flag_cdae,0.5,uses cal0x7B818/0x7B814 and 0xCF4B/0xCDCF to seed then decrement CDAE down-counter
+60E0FC00,0x4C48C,FUN_0004c48c,flag_or_condition_cdc6,0.6,CDC6=1 if (CF4B or CF0D) and (cal0x7B818 or CDAE non-zero) gating logic
+60E0FC00,0x4C51A,FUN_0004c51a,name_override_select_sel,0.5,selects CDAC = cal0x7B984 or 0x7B986 based on CDBD flag / r5 (cal override selector)
+60E0FC00,0x4C57C,FUN_0004c57c,countdown_timer_fault_cdad,0.6,if CDC4 and CDA6>CDA4 and CDE4>CDE0 then CDAD=cal0x7B813 else CDAD-- countdown
+60E0FC00,0x4C5C2,FUN_0004c5c2,fault_latch_reset_cfd9,0.6,if CFD9 monitor-active then zero latches CDC1/CDBF/CDC0 (fault clear)
+60E0FC00,0x4C5E0,FUN_0004c5e0,fault_decision_latch_cdba,0.5,combines CE00/CDC4/CDB2bit7/CFD9 into CDBA output latch (fault verdict)
+60E0FC00,0x4C790,FUN_0004c790,flag_or_latch_cdbd,0.6,CDBD=1 if CDC4==1 or CEF3==1 else 0
+60E0FC00,0x4C7D4,FUN_0004c7d4,flag_or_latch_cdbc,0.6,CDBC=1 if CDBD==1 or CDBE==1 else 0 (nested OR latch)
+60E0FC00,0x4C7FC,FUN_0004c7fc,flag_assert_latch_cdb9,0.5,CDB9 set by CDBF/CDBC/CDA6-CDA2/CF60 condition tree (assert latch)
+60E0FC00,0x4C840,FUN_0004c840,fault_verdict_cdba_cdbb,0.6,decision: CDC0 then compares CDBC/CDA6 vs CDA4 and CDB2bit7/0xD054 word sets CDBA/CDBB flags
+60E0FC00,0x4C8D0,FUN_0004c8d0,sensor_state_tracking_cdb7,0.6,uses CDD0 prev-state + CDBA/CDA8 vs 0x7B810 compare to set CDB7/CDB8 sensor-state flags
+60E0FC00,0x4C974,FUN_0004c974,sensor_state_machine_flags,0.5,"large state machine: CDB7/CDB8/CDA9/CDAA/CDAB via helper 0x2478 addSaturate and 0x2500, caches CDD1/CDCC/CDCD"
+60E0FC00,0x4CD74,FUN_0004cd74,flag_threshold_2d_lookup,0.6,2D lookup 0x6974C on 0x86A4; if result<=word@CDA6 sets CDC3 flag else 0
+60E0FC00,0x4CDAA,FUN_0004cdaa,sensor_check_2d_interp,0.5,interp helper 0x2440 on 0x86D0; if path active and CEBC -> set CDC8 flag
+60E0FC00,0x4CE40,FUN_0004ce40,counter_flag_increment_cda6,0.6,if CFD9 active word@CDA6=0 else if CDBC then helper 0x2460 increments word CDA6
+60E0FC00,0x4CE74,FUN_0004ce74,countdown_timer_flag_cdb1,0.6,if CDB2bit7 clear then CDB1=cal0x7B817 else CDB1-- down-counter
+60E0FC00,0x4CEB0,FUN_0004ceb0,init_float_constants_store,0.6,stores const float 0xB5D8 into CDF8/CDFC/CDE8 and sets CE01=1 on init
+60E0FC00,0x4CECC,FUN_0004cecc,init_float_const_store_cdf0,0.5,stores const 0x8000 float literal into CDF0 (init constant)
+60E0FC00,0x4CED6,FUN_0004ced6,fault_state_machine_control,0.5,"helper 0x3920/0x3924; checks CD85/CE48/CEBC/CEF3 path and CDBC/CE0C to decide fault reset, writes CE0B-E0D"
+60E0FC00,0x4CF7E,FUN_0004cf7e,fault_state_reset_cdec,0.5,CDB2bit7 + 0xCE0E monitor -> helper 0x3920/0x3934 resets floats CDEC and CDF0 (fault clear)
+60E0FC00,0x4D15A,FUN_0004d15a,fuel_filter_float_cde8,0.6,if CDBC/CEf then 0x7B985 check; CDE8=CDE0*0x7B998 or first-order filter 0x23F4 into CDE8
+60E0FC00,0x4D200,FUN_0004d200,fuel_trim_decision_flags,0.5,multi-threshold (CDA6/CDA2/CDA4/CDBD/CDBC/CEf) sets CE00/CE02/CE03 trim state flags
+60E0FC00,0x4D35E,FUN_0004d35e,fuel_float_filter_interp,0.6,filters CDEC/CDE0 via helpers 0x23E4/0x23F4 with CDA6/CDA4/CDBD/CE00 thresholds
+60E0FC00,0x4D45C,FUN_0004d45c,fuel_sensor_plausibility_check,0.6,multi float compare (0x7B9F8/7B9FC/7B9F0/7B9F4) plus flag conditions set CE16 fault
+60E0FC00,0x4D506,FUN_0004d506,monitor_state_word_copy,0.5,if CDB2bit7 monitor then copy word@0xA426 to CE14 and store CE19=1
+60E0FC00,0x4D532,FUN_0004d532,init_const_float_ce10,0.5,CE10 = const 0x4D59E or 0xB134*0xB27C product (init calibration literal)
+60E0FC00,0x4D5A8,FUN_0004d5a8,threshold_hysteresis_flag_ce17,0.6,7B9E0/7B9EC hysteresis vs 0xAD78 float sets CE17 (window flag)
+60E0FC00,0x4D5D2,FUN_0004d5d2,countdown_timer_flag_ce18,0.6,if 0xBDC0==1 CE18=cal0x7B9D5 else CE18-- down-counter
+60E0FC00,0x4D610,FUN_0004d610,sensor_bytes_acquisition_cache,0.7,reads sensor bytes 86C8/86CC/86CE/86FC/86CA/86E0/86E2 via redundant reads -> caches CE8C-CE97
+60E0FC00,0x4D682,FUN_0004d682,sensor_scaled_read_batch,0.5,batch raw->scaled reads 86C8/86CA/86CC/86CE (E29E) and 86AC/86B4/86BC/86C4/86C6 (E38A)
+60E0FC00,0x4D770,FUN_0004d770,sensor_open_circuit_fault_detect,0.6,checks CE16/CE18/CB96/A956/BDC0/CDAD enable tree then all sensor bytes zero -> fault; resets fault floats
+60E0FC00,0x4D87A,FUN_0004d87a,fault_output_reset_floats,0.6,if CE-state inactive zeroes fault floats 86AC/86B4/86BC and CE4A/CE4B/CE4D/CE4E via helper 0x3E258
+60E0FC00,0x4D8C6,FUN_0004d8c6,fault_err_float_calc,0.6,if CDC4 and CDA6>cal 0x7B98A then CE1C = CDE8 - CDE4 (residual error float)
+60E0FC00,0x4DC34,FUN_0004dc34,fault_fallback_float_store_86ac,0.6,2D lookup 0x69840 on 0x86A4; CFD9->store 0 or fallback CDE8-CDE0 into 0x86AC via checksummed store
+60E0FC00,0x4DCCC,FUN_0004dccc,fault_sensor_system_detect,0.6,"large sensor-fault engine: 2D lookups, CE28/CE7C compares, sets CE49/CE51/CE52 and fallbacks 86C8/86CA"
+60E0FC00,0x4DE6C,FUN_0004de6c,dtc_monitor_ce4a_ce4b,0.6,if CE45/CD7C then fault_monitor 0x652F0(0x32) on 86C8/86CA sets fault latches CE4A/CE4B and clears sensor
+60E0FC00,0x4DF24,FUN_0004df24,fault_sensor_system_detect2,0.6,mirror of 0x4DCCC using 69834/CE7E/CE88; sets CE4C/CE53/CE54 with 86C8/86CC/86CE fallbacks
+60E0FC00,0x4E0FC,FUN_0004e0fc,dtc_monitor_ce4d_ce4e,0.6,fault_monitor 0x652F0(0x2D) on 86CC/86CE gates CE46/CE41/CD7C set latches CE4D/CE4E
+60E0FC00,0x4E1DC,FUN_0004e1dc,fault_fallback_float_store_86b4,0.6,"like 0x4DC34 but fallback float into 0x86B4 (2D 0x69834, CFD9/CEf checks)"
+60E0FC00,0x4E284,FUN_0004e284,fault_fallback_float_store_86bc,0.6,mirror writing fallback float into 0x86BC with CE90/CE92/CE91->conditions and checksummed store
+60E0FC00,0x4E368,FUN_0004e368,sensor_scan_acquisition_cache,0.6,reads seven sensor bytes (86FC/86E2/86E0/86CE/86CC/86C4/8FDC) + A426/CDB2 bit into CE8C-CE97 cache
+60E0FC00,0x4E56C,FUN_0004e56c,dtc_monitor_flag_ce4d,0.6,if CD86 then 86AC float vs cal0x7BA08 and fault_monitor 0x652F0(0x2D) set CE4D latch
+60E0FC00,0x4E5A6,FUN_0004e5a6,flag_threshold_set_ce50,0.5,2D lookup 0x69840 on 0x86A4; if result>=word@0xCDA6 set byte CE50 flag
+60E0FC00,0x4E5FC,FUN_0004e5fc,crc_store_verify_clear_86d0,0.7,"0x3E29E checksummed byte stores to 86E0/86E2, 0x3E38A verify and 0x3E1F8/0x3E258 clear of fault floats 86D0/86D8 (CRC-protected store/verify/clear)"
+60E0FC00,0x4E660,FUN_0004e660,sensor_open_circuit_fault_cebc,0.7,long enable tree (CE16/CDB2 bit7/CE18/CB96/A956/BDC0) then redundant reads of sensor bytes 8704/86E0/86E2/86CC/86C8; all-zero -> set CEBC fault; DTC 0x32 via 0x5E2FC
+60E0FC00,0x4E7F6,FUN_0004e7f6,fault_fallback_float_store_86d8,0.7,2D lookups 0x69888/0x6989C/0x69874 on 0x86A4; CFD9 clears 86D8+CEAC or stores fallback float via checksummed 0x3E258
+60E0FC00,0x4E8D0,FUN_0004e8d0,fault_flag_set_cebf,0.9,CEBF=1 iff CDA6>CDA4 and CE00==0 and (CEBC==1 or CD7C==1) else 0 (fault verdict flag)
+60E0FC00,0x4E910,FUN_0004e910,fuel_adapt_state_machine,0.7,float compares (0x7BCA0/CDE0/CDE4) + CFD9/CD7C gating compute CEB6/CEB4/CEBA/CEA0/CE9C/CEB8 word trims with saturating stores
+60E0FC00,0x4EA54,FUN_0004ea54,fuel_trim_float_interp,0.7,"reads CEB6/CEB4/CEBA, interp 0x2440 + 0x24C0 helper, CD7C/CFD9 gating; stores float to CEB0 (checksummed 0x3E258) and CEA4"
+60E0FC00,0x4EC14,FUN_0004ec14,fault_delta_float_calc_cec8,0.7,interp 0x2440 on 0x86D0; CEBC-gated delta (CDE8-CDE0)*fr12/fr14 stored to CEC8
+60E0FC00,0x4ED0A,FUN_0004ed0a,sensor_fault_detect_engine,0.7,"2D lookups 0x6995C/0x698C8, 0x86A4/0x86D0 reads, CEA8/CEA4/CF86/7BC9D thresholds; sets CEC0/CEC1 and fault bytes 86E0/86E2 via 0x3E1F8; helper 0x50EC8"
+60E0FC00,0x4EF76,FUN_0004ef76,fault_flags_clear_cebd,0.9,if CDB2 bit7 and CED6==0 then CEBD=CEBE=0 (fault-latch clear)
+60E0FC00,0x4EFBC,FUN_0004efbc,init_sensor_status_cache,0.7,"boot: copies cal 0x7BE94->86E4 (0x3E1F8), 0x7BE98->CEF0, float const->CEDC; redundant reads 86FC/86C4/86E0/86E2 cached to CF00/CF01/CF05/CF06"
+60E0FC00,0x4F016,FUN_0004f016,crc_clear_bytes_86e4,0.9,0x3E29E checksummed byte store to 86E4 then tail-jmp to store 86E6 (fault-byte init clear)
+60E0FC00,0x4F028,FUN_0004f028,init_fault_bytes_86e4_86e6,0.7,copies cal 0x7BE94 into 86E4 and clears 86E6 via 0x3E1F8 (fault-byte init; file also holds 0x4F03E threshold compare)
+60E0FC00,0x4F128,FUN_0004f128,fault_flag_condition_cef1,0.9,CEF1=1 iff CEF7=1 and CEF8=0 and CEF9=1 and CEFA=0 and 86E4 read==0 and CEFB==0 else 0
+60E0FC00,0x4F186,FUN_0004f186,fault_detect_enable_tree,0.7,checks CE16/CEF1/0x7BE99/0xAAC6/CDB2 bit5/0x7BE95/0xB352/CDC1 then sensor bytes 86E6/86C4 via 0x3E0DC -> fault flags
+60E0FC00,0x4F3C6,FUN_0004f3c6,fault_float_calc_ced8,0.9,if CEF3==1 and CDA6==0x7BE9C then CED8=(0xAE50-1.0)*0x42C8 const float
+60E0FC00,0x4F3F8,FUN_0004f3f8,fault_float_filter_cee4,0.7,CEF3 && 0x7B98C<=CDA6<0x7BE9E -> first-order filter 0x23B0 into CEE4 with 0x7BECC; mirrors to CEE8/CEEC by cal match
+60E0FC00,0x4F4B6,FUN_0004f4b6,fault_float_calc_cedc,0.7,"CFD9->CEDC=const 0x3D1BA5E3; else CEF3&&CDA6>=0x7B98C&&CE00>0 -> CEDC=fadd(0x7BEC8,CDE0) via 0x23F4"
+60E0FC00,0x4F50E,FUN_0004f50e,fault_flag_latch_cef6,0.7,clears CEFD; CFD9->CEF6=0 else CEF3&&CDA6==0x7BE9C&&CEDC>CDE0&&(0x7BEC4/0x7BE97) -> CEF6=1
+60E0FC00,0x4F56E,FUN_0004f56e,fault_float_latch_cee0,0.7,CFD9->CEE0=0; CEF3&&CDA6==0x7BE9E or CF04&&CEF6==1 -> CEE0=CDE0; echoes CEF6 to CF04
+60E0FC00,0x4F5F0,FUN_0004f5f0,fault_float_copy_cee0,0.9,if CD86==1 then CEE0=CDE0 (float copy)
+60E0FC00,0x4F608,FUN_0004f608,fault_float_diff_flag_cefc,0.7,|a-b| diffs (0x23DC) on CED8 and CEE8/CEEC; clears CEFC; CEF3&&CDA6==0x7BE9E&&CEDC>CEE0 gating sets CEFD
+60E0FC00,0x4F6F2,FUN_0004f6f2,fault_monitor_cef5,0.7,if CD86==1 and (CDE8+0)-CEE0 > 0x7BED0 then fault_monitor 0x652F0(0x2C) -> CEF5=1
+60E0FC00,0x4F764,FUN_0004f764,fault_state_cache_update,0.7,redundant reads 86FC/86E2/86E0; CD7C/CD85/CFD9 gating updates 86E6/86C4 and stores cache CF00/CF05/CF06/CF02/CF03
+60E0FC00,0x4F87C,FUN_0004f87c,fault_byte_accumulate_86e4,0.7,reads 86E4 via 0x3E0DC(r5=0x7BE94); CEF5/CEF6 clear 86E4; else CDA6==0x7B98C&&CEF3==1 -> 86E4+0xFF saturate; caches CDA6 in 0xFFFFCEFE
+60E0FC00,0x4F984,FUN_0004f984,fault_flag_condition_cef4,0.9,CEF4=1 iff 86E4==0 && CEF3==1 && CDA6==0x7BE9E && CEF5==0 && CEF6==0 else 0
+60E0FC00,0x4FA6C,FUN_0004fa6c,init_copy_cal_byte_cf0a,0.9,copies cal byte 0x7BF0C into CF0A/CF0B/CF0C (boot propagation)
+60E0FC00,0x4FA82,FUN_0004fa82,crc_clear_bytes_86e8,0.9,clears 0x86E8-86F8 (9 sensor-fault bytes) via checksummed store 0x3E29E
+60E0FC00,0x4FAC4,FUN_0004fac4,clear_fault_bytes_86e8,0.7,clears 0x86E8-86F8 via 0x3E1F8 byte store (non-checksummed twin of 0x4FA82)
+60E0FC00,0x4FB2C,FUN_0004fb2c,sr_protected_clear_fault_flags,0.7,if CDB2 bit7 and 0xFFFFCF2C==0: getSR 0x3920/0x3934 wrap clears CF08/CF0D-CF16 and sensor bytes 86E8-86F8
+60E0FC00,0x4FBDE,FUN_0004fbde,fault_counter_increment_cf09,0.7,CFD9 or (CDBD && CDA6==CDA4) -> CF09=0; CDA6>CDA4 -> CF09=addSaturate 0x2478 increment
+60E0FC00,0x4FC7C,FUN_0004fc7c,fault_monitor_86e8_86ea,0.7,2D lookups 0x69908/0x698F4; CDBD/CDA6==CDA4 && CF20/CF1C float window -> set 86E8/86EA; fault_monitor 0x652F0(0x7A) -> CF11/CF12
+60E0FC00,0x4FDDC,FUN_0004fddc,fault_threshold_select_cf24,0.7,"CF24 = word 0x7BF0E if CDC4, 0x7BF10 if CEF3, else 0x7BF12 if CD85>0 (cal threshold select)"
+60E0FC00,0x4FE52,FUN_0004fe52,sensor_fault_monitor_86ec,0.7,"lookup 0x20AC(0x698E8)+0x11F54, CF26/CF27/CF24/CF4B checks, CE45 clears 86EC/86EE, redundant reads + fault_monitor 0x652F0(0x79) -> CF15/CF16"
+60E0FC00,0x500BC,FUN_000500bc,fault_monitor_86f0_86f2,0.7,CE45 clears 86F0/86F2; CDBD/0x7BF14 float window sets fault bytes; 0x652F0(0x31) -> CF13/CF14; CF2A gated clear
+60E0FC00,0x5025E,FUN_0005025e,fault_flag_set_cf19,0.9,CF19=1 iff CDBD==1 and CDA6>CDA4 and CE00==0 else 0
+60E0FC00,0x5028C,FUN_0005028c,fault_monitor_flag_cf13,0.7,if CD86==1 and (CDE4-CDE8) > 0x7BF28 then fault_monitor 0x652F0(0x31) -> CF13=1
+60E0FC00,0x502F0,FUN_000502f0,fault_monitor_86f4_86f8,0.7,"CF1A/CDBD gating, copies 0x7BF0C->CF0A/CF0B/CF0C, saturating increments, fault_monitor 0x652F0(0x77/0x78) -> CF0E/CF0F/CF10"
+60E0FC00,0x505AC,FUN_000505ac,fault_monitor_ce_0e_0f,0.7,if CD86==1: fr15(CDE4)>0x7BF20 -> 0x652F0(0x77)->CF0E; >0x7BF24 -> 0x652F0(0x78)->CF0F
+60E0FC00,0x50602,FUN_00050602,fault_flag_latch_cf17_18,0.7,CE45 clears CF17/CF18; else CE41/CD7C && redundant read 86FE/8700==0 -> set latches; tail-call 0x50E68
+60E0FC00,0x50682,FUN_00050682,sensor_health_check_cf0d,0.7,CFD9->CF0D=0; else all sensor bytes 86FE/86E8/86EC/86F0/86F4/86F6 zero via 0x3E0DC -> CF0D=1
+60E0FC00,0x5072A,FUN_0005072a,sr_clear_flag_cf08,0.7,CE45 gated SR-protected (0x3920/0x3934) clear of CF08; file also holds 0x50756 CDE4>CDE0 copy CF09->CF08
+60E0FC00,0x507C0,FUN_000507c0,sensor_snapshot_cache_cf36,0.7,redundant reads 86FC(r5=0x7BFBE)/86CC/86CE/86E0/86E2/86C8/86CA cached to CF36-CF40
+60E0FC00,0x5081A,FUN_0005081a,crc_clear_bytes_86fe,0.9,clears 86FE/8700/8702/86FC via checksummed store 0x3E29E
+60E0FC00,0x5083E,FUN_0005083e,clear_fault_bytes_86fe,0.9,"clears 86FE/8700/8702 via 0x3E1F8, then 86FC with cal byte 0x7BFBE"
+60E0FC00,0x50864,FUN_00050864,fault_flag_clear_cf34,0.9,if CDBD==0 then CF34=0
+60E0FC00,0x508C0,FUN_000508c0,fault_monitor_sensor_86fc,0.7,"FP lookups 0x6974C/0x69840, addSaturate16 0x2460, CDC4/CFD9/CD7C/CE40/CEBC/CDC8/CE48 gates, 0x652F0 monitors, caches CF36/CF39/CF38"
+60E0FC00,0x50B56,FUN_00050b56,fault_float_select_cf30,0.9,CF30 = 0x7BFC8 if CDC4==1 else 0x7BFCC if CEF3==1 (cal float select)
+60E0FC00,0x50BB0,FUN_00050bb0,fault_counter_inc_reset_cf34,0.7,CFD9 or (CDBD && CDA6>CDA4 && CE00==0 && CDE0>CDEC-CF30) -> CF34=0; else CF34=addSaturate 0x2478 increment
+60E0FC00,0x50C0E,FUN_00050c0e,fault_flag_latch_cf35,0.7,CFD9->CF35=0; CEF3 && CDA6>0x7B98C && 0x7BFC4>CDF4 && CDA6<0x7BE9C && CE00==0 && CF34>0x7BFBD -> CF35=1
+60E0FC00,0x50CA8,FUN_00050ca8,fault_monitor_sensor_bank,0.7,"redundant reads 86FC/86CC/86CE/86E0/86E2/86C8/86CA, CDB2 bit7/CD7C/CE45 gates, per-sensor fault bytes 86FE/8700 via 0x3E1F8, caches CF37/CF3B-CF40, 0x11F54/CF3A clear"
+60E0FC00,0x50EB0,FUN_00050eb0,fault_flag_cf48_set,0.7,"writes 0x01 to fault flag byte 0xCF48; trivial setter, sibling of fault eval cluster 0x50FD8/0x510E8"
+60E0FC00,0x50EB8,FUN_00050eb8,fault_byte_8704_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit on sensor fault byte 0x8704; checksummed CRC read-back
+60E0FC00,0x50EC0,FUN_00050ec0,fault_byte_8704_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8704,0); clears sensor fault byte 0x8704"
+60E0FC00,0x50EC8,FUN_00050ec8,fault_threshold_latch_8704_cf4a,0.5,"readValue_float(0x3E1AA) of DTC cell 0x86A4, filtered value 0xCD90 vs cal threshold 0x7BFD4, latch 0xFFFFCF5C, sets CF4A + fault byte 0x8704, gates CFD9/CEC0/CEC1, tail-jmp 0x4D93C"
+60E0FC00,0x50F76,FUN_00050f76,fault_counter_cf49_flag_cf4b,0.5,if CF49(byte)>cal 0x7BFD2 and CDB2 bit7 clear -> set CF4B=1; counter-threshold flag
+60E0FC00,0x50FD8,FUN_00050fd8,fault_accum_integrate_cf44_cf48,0.4,"integrates float delta (CDE0-CF50) into CF44, debounces timer CF48 to cal limit 0x7BFD3 via addSaturate 0x2478, gated by CD7C/CDC4/0x7BFD1 and redundant words CDA4/CDA6"
+60E0FC00,0x510E8,FUN_000510e8,fault_timer_expire_cf4c_cf4d,0.4,when CF48==cal limit 0x7BFD3 compares CDA6 word vs add16bitSaturate(0x7BFD0+word@0x7B98A) and sets flags CF4C/CF4D; fault timer expiry check
+60E0FC00,0x51132,FUN_00051132,fault_threshold_2d_cf49_debounce,0.4,"readValue_float 0x3E1AA on DTC cell 0x86A4, 2DLookup(0x2068) tables 0x6991C/0x69930 -> CF54/CF58, compares vs CF44 accumulator, debounces CF49 via addSaturate 0x2478, gates 0x7BFD1/CFD9/CD7C/CDC4"
+60E0FC00,0x51244,FUN_00051244,iat_fault_word_8708_verify,0.9,jmp 0x3E2DA validateAddressCopy_16bit on IAT fault counter word 0x8708 (16-bit CRC verify)
+60E0FC00,0x51314,FUN_00051314,fault_float_copy_ae40_cf64,0.5,copy float @0xAE40 -> CF64 (DTC value latch) with delayed store; sibling of IATTimerOperation 0x5131E
+60E0FC00,0x51380,FUN_00051380,fault_accum_clear_cf6c_cf80,0.4,CFD9 -> clear flags CF84/CF85 and float bank CF6C-CF80; else if CDC4 && CDA6==add16-saturate(CDA4+0x7BFD0) -> CF84=cal 0x7C054; 10k-reset of fault accumulators
+60E0FC00,0x514F2,FUN_000514f2,fault_threshold_2d_flag_cf86,0.4,"2DLookup 0x2068 tables 0x69944/0x69950 on DTC float 0x86A4 -> CF88/CF8C; CFD9/CD7C clear, sets CF86 when CF88>CF74 && CF8C>CF80 && CDC4 && CF85>=3"
+60E0FC00,0x515A4,FUN_000515a4,sensor_fault_flag_8fdc_eval,0.4,"fixedPointToFloat_16bit(0x24C0) of word 0xC4DE; sets fault 0x8FDC=1 if value<cal 0x7C134 or id byte 0x7C130==0xFF, clears when 0xCE14>0, via 0x3E1F8"
+60E0FC00,0x515F0,FUN_000515f0,fault_flag_8fdc_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FDC,0); clears sensor fault flag 0x8FDC"
+60E0FC00,0x515F8,FUN_000515f8,fault_flag_8fdc_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FDC
+60E0FC00,0x5161C,FUN_0005161c,fault_flag_8fe0_eval,0.6,CFD9 -> 0x8FE0=0; else if CF94(engine-fault aggregate) or 0xC543 -> 0x8FE0=1 via 0x3E1F8; OBD DTC-present bit cell
+60E0FC00,0x51654,FUN_00051654,fault_flag_8fe0_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FE0
+60E0FC00,0x5165C,FUN_0005165c,fault_flag_8fe0_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FE0,0); clears fault flag 0x8FE0"
+60E0FC00,0x516C4,FUN_000516c4,fault_flag_8fe2_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FE2
+60E0FC00,0x516CC,FUN_000516cc,fault_flag_8fe2_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FE2,0); clears fault flag 0x8FE2"
+60E0FC00,0x51750,FUN_00051750,fault_flag_copy_bf88_cf95,0.6,CF95 = (byte@0xBF88==1)?1:0; copies input flag byte 0xBF88 to fault flag CF95
+60E0FC00,0x51778,FUN_00051778,fault_flag_8fe4_eval,0.6,CFD9 -> 0x8FE4=0; else if CF98==1 or 0xC9CA==1 -> 0x8FE4=1 via 0x3E1F8; OBD DTC-present bit cell
+60E0FC00,0x517B0,FUN_000517b0,fault_flag_8fe4_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FE4
+60E0FC00,0x517B8,FUN_000517b8,fault_flag_8fe4_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FE4,0); clears fault flag 0x8FE4"
+60E0FC00,0x51820,FUN_00051820,fault_flag_8fe6_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FE6
+60E0FC00,0x51828,FUN_00051828,fault_flag_8fe6_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FE6,0); clears fault flag 0x8FE6"
+60E0FC00,0x51830,FUN_00051830,fault_flag_cf98_dtc_2a_eval,0.6,CF99=1; queries 0x5E2FC for DTC 0x2A -> CF98=1 else 0; DTC-gated fault flag
+60E0FC00,0x51888,FUN_00051888,fault_flag_8fe8_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FE8
+60E0FC00,0x51890,FUN_00051890,fault_flag_8fe8_set,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FE8,1); sets fault flag 0x8FE8"
+60E0FC00,0x518B4,FUN_000518b4,fault_flag_8fec_cond_chain,0.4,CFD9 -> 0x8FEC=0; sets 1 if CFA0==1 or 10-condition AND of C6FE/C6D2/C6D0/C86E/C86C/C870/CBDC/C6B8/C6B4/C6B6 all set
+60E0FC00,0x51958,FUN_00051958,fault_flag_8fec_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x8FEC
+60E0FC00,0x51960,FUN_00051960,fault_flag_8fec_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x8FEC,0); clears fault flag 0x8FEC"
+60E0FC00,0x51AAE,FUN_00051aae,fault_flags_8fee_8ff2_verify,0.6,"jsr 0x3E29E validateAddressCopy_8bit on fault flag bytes 0x8FEE/0x8FF0/0x8FF2 (CRC verify trio, sibling of fault_counter_clear 0x51968)"
+60E0FC00,0x51ACC,FUN_00051acc,fault_flags_8fee_8ff2_clear,0.7,jsr 0x3E1F8 updateMemoryAtAddress_8bit clears fault flag bytes 0x8FEE/0x8FF0/0x8FF2
+60E0FC00,0x51B18,FUN_00051b18,fault_flag_cfa0_dtc_gated_eval,0.6,CFA1=1; queries 0x5E2FC for DTC 0x1A/0x67/0x68/0x18/0x19/0x17/0x1C/0x1B/0x6D/0x6E -> CFA0=1 else 0; DTC-gated fault flag
+60E0FC00,0x51BCC,FUN_00051bcc,fault_flags_8ff4_8ff6_8ff8_eval,0.4,"CFD9 clears 0x8FF6/0x8FF8/0x8FF4; 8FF6 from CE4D/CE4E, 8FF8 from CEF5/CEF6, 8FF4 set if DTC 0x2B/0x2C/0x31 via 0x5E2FC or both 8FF6&8FF8==1"
+60E0FC00,0x51CA0,FUN_00051ca0,fault_flags_8ff4_8ff8_verify,0.6,jsr 0x3E29E validateAddressCopy_8bit on fault flag bytes 0x8FF6/0x8FF8/0x8FF4 (CRC verify trio)
+60E0FC00,0x51CBE,FUN_00051cbe,fault_flags_8ff4_8ff8_clear,0.7,jsr 0x3E1F8 updateMemoryAtAddress_8bit clears fault flag bytes 0x8FF6/0x8FF8/0x8FF4
+60E0FC00,0x51CFC,FUN_00051cfc,fault_flag_cfa4_window_eval,0.4,DTC value float CF64 within cal window (0x7B9FC<val<=0x7B9F8) and gates CE17/CD94/CD95/read_value_8bit(0x8FDC) -> CFA4=1 else 0
+60E0FC00,0x51DDE,FUN_00051dde,fault_counter_cfa8_inc,0.5,"if throttle gate 0xA428==1 -> CFA8=addSaturate8Bit(CFA8,+1) via 0x2478 else CFA8=0"
+60E0FC00,0x51F32,FUN_00051f32,fault_flags_8ffc_8ffe_verify,0.6,jsr 0x3E29E validateAddressCopy_8bit on paired fault flag bytes 0x8FFC/0x8FFE (source of dtc_fault_flag_cell_pair_update 0x51D9C)
+60E0FC00,0x51F44,FUN_00051f44,fault_flags_8ffc_8ffe_clear,0.7,jsr 0x3E1F8 updateMemoryAtAddress_8bit clears paired fault flag bytes 0x8FFC/0x8FFE
+60E0FC00,0x51F74,FUN_00051f74,fault_flag_9002_eval,0.6,CFD9 -> 0x9002=0; else if CFB0==1 or CFB1==1 -> 0x9002=1 via 0x3E1F8; OBD DTC-present bit cell
+60E0FC00,0x51FAC,FUN_00051fac,fault_flag_9002_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x9002
+60E0FC00,0x51FB4,FUN_00051fb4,fault_flag_9002_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x9002,0); clears fault flag 0x9002"
+60E0FC00,0x5201C,FUN_0005201c,fault_flag_9000_verify,0.9,jmp 0x3E29E validateAddressCopy_8bit returns checksummed fault flag 0x9000
+60E0FC00,0x52024,FUN_00052024,fault_flag_9000_clear,0.9,"jmp 0x3E1F8 updateMemoryAtAddress_8bit(0x9000,0); clears fault flag 0x9000"
+60E0FC00,0x52048,FUN_00052048,fault_flag_cfb0_dtc_gated_eval,0.6,CFB3=1; queries 0x5E2FC for DTC 0x03/0x04/0x05/0x06 -> CFB0=1 else 0; DTC-gated fault flag
+60E0FC00,0x5213C,FUN_0005213c,fault_counter_cfb8_load_cal,0.5,copy cal byte @0x7C230 -> CFB8 fault counter cell with delayed store
+60E0FC00,0x52146,FUN_00052146,fault_counter_cfb8_countdown,0.4,"CFB8 countdown: reset to cal@0x7C230 when A42C==1 or CFBA==0, else decrement (add 0xFF) while CFB8>0"
