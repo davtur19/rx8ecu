@@ -20,8 +20,8 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuel Injector - Unknown - Max Injection Angle2??? Y Axis,0x06cff4,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Injector - Unknown - Max Injection Angle3???,0x06d084,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Fuel Injector - Unknown - Max Injection Angle3??? Y Axis,0x06d044,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 3_,0x06d114,table,1D,,,,high
-60E1D400,Y,0x06d0ec,axis,1D,,,,high
+60E1D400,Throttle Plate Something Fuel Cut (Map),0x06d114,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Throttle Plate Something Fuel Cut (Map) Y Axis,0x06d0ec,axis,1D,,,,high,axis_propagation2
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - Engine Startup Base,0x06d138,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - Engine Startup Base Y Axis,0x06d120,axis,1D,,,,high,axis_propagation
 60E1D400,Idle Related,0x06d1e0,table,,,,,high
@@ -46,22 +46,22 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Knock Retard Y Axis,0x06e534,axis,1D,,,,high,axis_propagation
 60E1D400,Knock Retard 2,0x06e570,table,1D,,,,high,docs_crossref
 60E1D400,Knock Retard 2 Y Axis,0x06e558,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 16_,0x06e5bc,table,1D,,,,high
-60E1D400,Y,0x06e57c,axis,1D,,,,high
-60E1D400,Table 2D - 17_,0x06e6f0,table,1D,,,,high
-60E1D400,Y,0x06e6d4,axis,1D,,,,high
-60E1D400,Table 2D - 18_,0x06e714,table,1D,,,,high
-60E1D400,Y,0x06e6f8,axis,1D,,,,high
-60E1D400,Table 2D - 19_,0x06e738,table,1D,,,,high
-60E1D400,Y,0x06e71c,axis,1D,,,,high
-60E1D400,Table 2D - 20_,0x06e75c,table,1D,,,,high
-60E1D400,Y,0x06e740,axis,1D,,,,high
-60E1D400,Table 2D - 21_,0x06e780,table,1D,,,,high
-60E1D400,Y,0x06e764,axis,1D,,,,high
-60E1D400,Table 2D - 22_,0x06e7a4,table,1D,,,,high
-60E1D400,Y,0x06e788,axis,1D,,,,high
-60E1D400,Table 2D - 23_,0x06e7f8,table,1D,,,,high
-60E1D400,Y,0x06e7ac,axis,1D,,,,high
+60E1D400,(Unknown - fpu_multiply_accumulate_filter),0x06e5bc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_multiply_accumulate_filter) Y Axis,0x06e57c,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map),0x06e6f0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) Y Axis,0x06e6d4,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 2,0x06e714,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 2 Y Axis,0x06e6f8,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 3,0x06e738,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 3 Y Axis,0x06e71c,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 4,0x06e75c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 4 Y Axis,0x06e740,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 5,0x06e780,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 5 Y Axis,0x06e764,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 6,0x06e7a4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 6 Y Axis,0x06e788,axis,1D,,,,high,axis_propagation2
+60E1D400,Manifold Pressure Limiter (Map) 7,0x06e7f8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Manifold Pressure Limiter (Map) 7 Y Axis,0x06e7ac,axis,1D,,,,high,axis_propagation2
 60E1D400,Idle Target Filter Factor,0x06e84c,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Idle Target Filter Factor Y Axis,0x06e820,axis,1D,,,,high,axis_propagation
 60E1D400,Idle Target,0x06e880,table,,,,,high
@@ -82,32 +82,32 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Y,0x06ea08,axis,1D,,,,high
 60E1D400,Idle Target 7,0x06ea50,table,,,,,high
 60E1D400,Y,0x06ea34,axis,1D,,,,high
-60E1D400,Table 2D - 34_,0x06eaf8,table,1D,,,,high
-60E1D400,Y,0x06ead4,axis,1D,,,,high
-60E1D400,Table 2D - 35_,0x06eb28,table,1D,,,,high
-60E1D400,Y,0x06eb04,axis,1D,,,,high
-60E1D400,Table 2D - 36_,0x06eb58,table,1D,,,,high
-60E1D400,Y,0x06eb34,axis,1D,,,,high
-60E1D400,Table 2D - 37_,0x06eb88,table,1D,,,,high
-60E1D400,Y,0x06eb64,axis,1D,,,,high
-60E1D400,Table 2D - 38_,0x06eba8,table,1D,,,,high
-60E1D400,Y,0x06eb94,axis,1D,,,,high
-60E1D400,Table 2D - 39_,0x06ebc8,table,1D,,,,high
-60E1D400,Y,0x06ebb0,axis,1D,,,,high
-60E1D400,Table 2D - 40_,0x06ec08,table,1D,,,,high
-60E1D400,Y,0x06ebd0,axis,1D,,,,high
-60E1D400,Table 2D - 41_,0x06ec44,table,1D,,,,high
-60E1D400,Y,0x06ec34,axis,1D,,,,high
-60E1D400,Table 2D - 42_,0x06ec70,table,1D,,,,high
-60E1D400,Y,0x06ec4c,axis,1D,,,,high
-60E1D400,Table 2D - 43_,0x06eca8,table,1D,,,,high
-60E1D400,Y,0x06ec84,axis,1D,,,,high
-60E1D400,Table 2D - 44_,0x06ece0,table,1D,,,,high
-60E1D400,Y,0x06ecbc,axis,1D,,,,high
-60E1D400,Table 2D - 45_,0x06ed08,table,1D,,,,high
-60E1D400,Y,0x06ecf4,axis,1D,,,,high
-60E1D400,Table 2D - 46_,0x06ed3c,table,1D,,,,high
-60E1D400,Y,0x06ed18,axis,1D,,,,high
+60E1D400,Fuel Pressure (Map),0x06eaf8,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) Y Axis,0x06ead4,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 2,0x06eb28,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 2 Y Axis,0x06eb04,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 3,0x06eb58,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 3 Y Axis,0x06eb34,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 4,0x06eb88,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 4 Y Axis,0x06eb64,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 5,0x06eba8,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 5 Y Axis,0x06eb94,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 6,0x06ebc8,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 6 Y Axis,0x06ebb0,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 7,0x06ec08,table,1D,,,,high,consumer_cfuel_pressure_calc_with_interpolation_e6ec_mapscan
+60E1D400,Fuel Pressure (Map) 7 Y Axis,0x06ebd0,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Controller (Map),0x06ec44,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Controller (Map) Y Axis,0x06ec34,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Controller (Map) 2,0x06ec70,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Controller (Map) 2 Y Axis,0x06ec4c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Controller (Map) 3,0x06eca8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Controller (Map) 3 Y Axis,0x06ec84,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Controller (Map) 4,0x06ece0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Controller (Map) 4 Y Axis,0x06ecbc,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Controller (Map) 5,0x06ed08,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Controller (Map) 5 Y Axis,0x06ecf4,axis,1D,,,,high,axis_propagation2
+60E1D400,Load Blend Factor - Coolant Temperature,0x06ed3c,table,1D,,,,high,consumer_cload_blend_factor_limiter_0x16A30_mapscan
+60E1D400,Load Blend Factor - Coolant Temperature Y Axis,0x06ed18,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition 4,0x06f78c,table,,,,,high
 60E1D400,Y,0x06f75c,axis,1D,,,,high
 60E1D400,Ignition 5,0x06f79c,table,,,,,low
@@ -150,42 +150,42 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Y,0x070270,axis,1D,,,,high
 60E1D400,TPS Deadband,0x0702a4,table,1D,,,,high,docs_crossref
 60E1D400,TPS Deadband Y Axis,0x070280,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 68_,0x070334,table,1D,,,,high
-60E1D400,Y,0x0702f8,axis,1D,,,,high
+60E1D400,(Unknown - init_control_values),0x070334,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - init_control_values) Y Axis,0x0702f8,axis,1D,,,,high,axis_propagation2
 60E1D400,Load Smoothing,0x0703bc,table,1D,,,,high,docs_crossref
 60E1D400,Load Smoothing Y Axis,0x0703a0,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 70_,0x0715bc,table,1D,,,,high
-60E1D400,Y,0x07158c,axis,1D,,,,high
-60E1D400,Table 2D - 71_,0x0715f8,table,1D,,,,high
-60E1D400,Y,0x0715c8,axis,1D,,,,high
-60E1D400,Table 2D - 72_,0x071634,table,1D,,,,high
-60E1D400,Y,0x071604,axis,1D,,,,high
-60E1D400,Table 2D - 73_,0x071664,table,1D,,,,high
-60E1D400,Y,0x071640,axis,1D,,,,high
-60E1D400,Table 2D - 74_,0x071694,table,1D,,,,high
-60E1D400,Y,0x071670,axis,1D,,,,high
-60E1D400,Table 2D - 75_,0x0716c4,table,1D,,,,high
-60E1D400,Y,0x0716a0,axis,1D,,,,high
-60E1D400,Table 2D - 76_,0x0716f4,table,1D,,,,high
-60E1D400,Y,0x0716d0,axis,1D,,,,high
-60E1D400,Table 2D - 77_,0x071724,table,1D,,,,high
-60E1D400,Y,0x071700,axis,1D,,,,high
-60E1D400,Table 2D - 78_,0x071754,table,1D,,,,high
-60E1D400,Y,0x071730,axis,1D,,,,high
+60E1D400,(Unknown - wankel_rotary_control),0x0715bc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - wankel_rotary_control) Y Axis,0x07158c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - wankel_rotary_control) 2,0x0715f8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - wankel_rotary_control) 2 Y Axis,0x0715c8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - wankel_rotary_control) 3,0x071634,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - wankel_rotary_control) 3 Y Axis,0x071604,axis,1D,,,,high,axis_propagation2
+60E1D400,Secondary Fuel (Map),0x071664,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Secondary Fuel (Map) Y Axis,0x071640,axis,1D,,,,high,axis_propagation2
+60E1D400,Secondary Fuel (Map) 2,0x071694,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Secondary Fuel (Map) 2 Y Axis,0x071670,axis,1D,,,,high,axis_propagation2
+60E1D400,Secondary Fuel (Map) 3,0x0716c4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Secondary Fuel (Map) 3 Y Axis,0x0716a0,axis,1D,,,,high,axis_propagation2
+60E1D400,Secondary Fuel (Map) 4,0x0716f4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Secondary Fuel (Map) 4 Y Axis,0x0716d0,axis,1D,,,,high,axis_propagation2
+60E1D400,Obd Validation Check (Map),0x071724,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Obd Validation Check (Map) Y Axis,0x071700,axis,1D,,,,high,axis_propagation2
+60E1D400,Obd Validation Check (Map) 2,0x071754,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Obd Validation Check (Map) 2 Y Axis,0x071730,axis,1D,,,,high,axis_propagation2
 60E1D400,Lambda Integration Time Constant,0x0717bc,table,1D,,,,high,docs_crossref
 60E1D400,Lambda Integration Time Constant Y Axis,0x071798,axis,1D,,,,high,axis_propagation
 60E1D400,Lambda Parameter,0x0717f4,table,1D,,,,high,docs_crossref
 60E1D400,Lambda Parameter Y Axis,0x0717d0,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 81_,0x071828,table,1D,,,,high
-60E1D400,Y,0x071808,axis,1D,,,,high
-60E1D400,Table 2D - 82_,0x071868,table,1D,,,,high
-60E1D400,Y,0x071838,axis,1D,,,,high
-60E1D400,Table 2D - 83_,0x071a78,table,1D,,,,high
-60E1D400,Y,0x071a50,axis,1D,,,,high
-60E1D400,Table 2D - 84_,0x071acc,table,1D,,,,high
-60E1D400,Y,0x071aa4,axis,1D,,,,high
-60E1D400,Table 2D - 85_,0x071b08,table,1D,,,,high
-60E1D400,Y,0x071ae0,axis,1D,,,,high
+60E1D400,Ignition Timing Output (Map),0x071828,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ignition Timing Output (Map) Y Axis,0x071808,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Timing Output (Map) 2,0x071868,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ignition Timing Output (Map) 2 Y Axis,0x071838,axis,1D,,,,high,axis_propagation2
+60E1D400,Sensor Validation Monitor (Map),0x071a78,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Sensor Validation Monitor (Map) Y Axis,0x071a50,axis,1D,,,,high,axis_propagation2
+60E1D400,Sensor Validation Monitor (Map) 2,0x071acc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Sensor Validation Monitor (Map) 2 Y Axis,0x071aa4,axis,1D,,,,high,axis_propagation2
+60E1D400,Sensor Validation Monitor (Map) 3,0x071b08,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Sensor Validation Monitor (Map) 3 Y Axis,0x071ae0,axis,1D,,,,high,axis_propagation2
 60E1D400,Fuelling - Safe Mode,0x071cd0,table,,,,,high
 60E1D400,Y,0x071cac,axis,1D,,,,high
 60E1D400,Fuelling 0,0x071ce0,table,,,,,low
@@ -208,16 +208,16 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Closed Loop Fuelling Threshold (Unknown A) Y Axis,0x071ea0,axis,1D,,,,high,axis_propagation
 60E1D400,Closed Loop Fuelling Threshold (Throttle Position) ,0x071f28,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Closed Loop Fuelling Threshold (Throttle Position)  Y Axis,0x071edc,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 97_,0x071f84,table,1D,,,,high
-60E1D400,Y,0x071f3c,axis,1D,,,,high
+60E1D400,Rotary Combustion Efficiency (Map),0x071f84,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Rotary Combustion Efficiency (Map) Y Axis,0x071f3c,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 98_,0x071f9c,table,1D,,,,high
 60E1D400,Y,0x071f98,axis,1D,,,,high
-60E1D400,Table 2D - 99_,0x071fe8,table,1D,,,,high
-60E1D400,Y,0x071fa0,axis,1D,,,,high
+60E1D400,Wankel Chamber Pressure Analysis (Map),0x071fe8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Wankel Chamber Pressure Analysis (Map) Y Axis,0x071fa0,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 100_,0x072000,table,1D,,,,high
 60E1D400,Y,0x071ffc,axis,1D,,,,high
-60E1D400,Table 2D - 101_,0x07204c,table,1D,,,,high
-60E1D400,Y,0x072004,axis,1D,,,,high
+60E1D400,Wankel Chamber Pressure Analysis (Map) 2,0x07204c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Wankel Chamber Pressure Analysis (Map) 2 Y Axis,0x072004,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 102_,0x072064,table,1D,,,,high
 60E1D400,Y,0x072060,axis,1D,,,,high
 60E1D400,Fuelling 8,0x072084,table,,,,,high
@@ -242,34 +242,34 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Ignition Leading/Trailing - Intake Air Temperature Compensation - On Throttle Y Axis,0x072e60,axis,1D,,,,high,axis_propagation
 60E1D400,Warm-up Enrichment B,0x072eb4,table,1D,,,,high,docs_crossref
 60E1D400,Warm-up Enrichment B Y Axis,0x072e90,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 114_,0x072edc,table,1D,,,,high
-60E1D400,Y,0x072ec0,axis,1D,,,,high
-60E1D400,Table 2D - 115_,0x072f08,table,1D,,,,high
-60E1D400,Y,0x072eec,axis,1D,,,,high
-60E1D400,Table 2D - 116_,0x072f34,table,1D,,,,high
-60E1D400,Y,0x072f18,axis,1D,,,,high
-60E1D400,Table 2D - 117_,0x072f64,table,1D,,,,high
-60E1D400,Y,0x072f4c,axis,1D,,,,high
+60E1D400,Dual Channel Fuel Computation (Map),0x072edc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Dual Channel Fuel Computation (Map) Y Axis,0x072ec0,axis,1D,,,,high,axis_propagation2
+60E1D400,Dual Channel Fuel Computation (Map) 2,0x072f08,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Dual Channel Fuel Computation (Map) 2 Y Axis,0x072eec,axis,1D,,,,high,axis_propagation2
+60E1D400,Dual Channel Fuel Computation (Map) 3,0x072f34,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Dual Channel Fuel Computation (Map) 3 Y Axis,0x072f18,axis,1D,,,,high,axis_propagation2
+60E1D400,Secondary Fuel Trimmer (Map),0x072f64,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Secondary Fuel Trimmer (Map) Y Axis,0x072f4c,axis,1D,,,,high,axis_propagation2
 60E1D400,DSC Mode C - Max Throttle Plate Opening Allowed,0x072fc8,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,DSC Mode C - Max Throttle Plate Opening Allowed Y Axis,0x072f7c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 119_,0x073778,table,1D,,,,high
-60E1D400,Y,0x073768,axis,1D,,,,high
-60E1D400,Table 2D - 120_,0x0737bc,table,1D,,,,high
-60E1D400,Y,0x07377c,axis,1D,,,,high
-60E1D400,Table 2D - 121_,0x073b70,table,1D,,,,high
-60E1D400,Y,0x073b1c,axis,1D,,,,high
-60E1D400,Table 2D - 122_,0x073bbc,table,1D,,,,high
-60E1D400,Y,0x073b88,axis,1D,,,,high
-60E1D400,Table 2D - 123_,0x073c00,table,1D,,,,high
-60E1D400,Y,0x073bcc,axis,1D,,,,high
+60E1D400,Idle Speed Control Task (Map),0x073778,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Idle Speed Control Task (Map) Y Axis,0x073768,axis,1D,,,,high,axis_propagation2
+60E1D400,Idle Speed Control Task (Map) 2,0x0737bc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Idle Speed Control Task (Map) 2 Y Axis,0x07377c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - float_map_3pt_calc),0x073b70,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - float_map_3pt_calc) Y Axis,0x073b1c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - float_map_3pt_calc) 2,0x073bbc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - float_map_3pt_calc) 2 Y Axis,0x073b88,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - float_map_3pt_calc) 3,0x073c00,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - float_map_3pt_calc) 3 Y Axis,0x073bcc,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 124_,0x073c50,table,1D,,,,high
 60E1D400,Y,0x073c24,axis,1D,,,,high
 60E1D400,Table 2D - 125_,0x073c88,table,1D,,,,high
 60E1D400,Y,0x073c5c,axis,1D,,,,high
 60E1D400,Table 2D - 126_,0x073cc0,table,1D,,,,high
 60E1D400,Y,0x073c94,axis,1D,,,,high
-60E1D400,Table 2D - 127_,0x073d28,table,1D,,,,high
-60E1D400,Y,0x073cf8,axis,1D,,,,high
+60E1D400,Air Fuel Ratio Check (Map),0x073d28,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Air Fuel Ratio Check (Map) Y Axis,0x073cf8,axis,1D,,,,high,axis_propagation2
 60E1D400,Acceleration Fuel Enrichment - Cold,0x073db4,table,1D,,,,high,docs_crossref
 60E1D400,Acceleration Fuel Enrichment - Cold Y Axis,0x073da0,axis,1D,,,,high,axis_propagation
 60E1D400,Acceleration Fuel Enrichment - Warm,0x073dd0,table,1D,,,,high,docs_crossref
@@ -278,30 +278,30 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Acceleration Fuel Enrichment - Hot Y Axis,0x073dd8,axis,1D,,,,high,axis_propagation
 60E1D400,Throttle Pedal Percent Decreasing Filter Factor,0x073fb8,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Throttle Pedal Percent Decreasing Filter Factor Y Axis,0x073f98,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 132_,0x073fe0,table,1D,,,,high
-60E1D400,Y,0x073fc0,axis,1D,,,,high
-60E1D400,Table 2D - 133_,0x074008,table,1D,,,,high
-60E1D400,Y,0x073fe8,axis,1D,,,,high
-60E1D400,Table 2D - 134_,0x074030,table,1D,,,,high
-60E1D400,Y,0x074010,axis,1D,,,,high
-60E1D400,Table 2D - 135_,0x074054,table,1D,,,,high
-60E1D400,Y,0x074038,axis,1D,,,,high
-60E1D400,Table 2D - 136_,0x074078,table,1D,,,,high
-60E1D400,Y,0x07405c,axis,1D,,,,high
-60E1D400,Table 2D - 137_,0x0740ac,table,1D,,,,high
-60E1D400,Y,0x074080,axis,1D,,,,high
-60E1D400,Table 2D - 138_,0x0740e4,table,1D,,,,high
-60E1D400,Y,0x0740b8,axis,1D,,,,high
-60E1D400,Table 2D - 139_,0x074110,table,1D,,,,high
-60E1D400,Y,0x0740f0,axis,1D,,,,high
-60E1D400,Table 2D - 140_,0x074138,table,1D,,,,high
-60E1D400,Y,0x074118,axis,1D,,,,high
-60E1D400,Table 2D - 141_,0x074160,table,1D,,,,high
-60E1D400,Y,0x074140,axis,1D,,,,high
-60E1D400,Table 2D - 142_,0x074188,table,1D,,,,high
-60E1D400,Y,0x074168,axis,1D,,,,high
-60E1D400,Table 2D - 143_,0x0741ac,table,1D,,,,high
-60E1D400,Y,0x074190,axis,1D,,,,high
+60E1D400,Ign Timing Limit Check (Map),0x073fe0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) Y Axis,0x073fc0,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 2,0x074008,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 2 Y Axis,0x073fe8,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 3,0x074030,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 3 Y Axis,0x074010,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 4,0x074054,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 4 Y Axis,0x074038,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 5,0x074078,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 5 Y Axis,0x07405c,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 6,0x0740ac,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 6 Y Axis,0x074080,axis,1D,,,,high,axis_propagation2
+60E1D400,Ign Timing Limit Check (Map) 7,0x0740e4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Ign Timing Limit Check (Map) 7 Y Axis,0x0740b8,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure Control (Map),0x074110,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure Control (Map) Y Axis,0x0740f0,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure Control (Map) 2,0x074138,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure Control (Map) 2 Y Axis,0x074118,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure Control (Map) 3,0x074160,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure Control (Map) 3 Y Axis,0x074140,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure Control (Map) 4,0x074188,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure Control (Map) 4 Y Axis,0x074168,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure Control (Map) 5,0x0741ac,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure Control (Map) 5 Y Axis,0x074190,axis,1D,,,,high,axis_propagation2
 60E1D400,MAP Requested Load,0x075054,table,1D,,,,high,docs_crossref
 60E1D400,MAP Requested Load Y Axis,0x075030,axis,1D,,,,high,axis_propagation
 60E1D400,MAP Requested Load Smoothing,0x0750b0,table,1D,,,,high,docs_crossref
@@ -318,92 +318,92 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Alternator Duty Cycle Max Y Axis,0x075320,axis,1D,,,,high,axis_propagation
 60E1D400,Alternator Diagnostic Voltage Delta to DC,0x075398,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Alternator Diagnostic Voltage Delta to DC Y Axis,0x075364,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 152_,0x0753d8,table,1D,,,,high
-60E1D400,Y,0x0753b4,axis,1D,,,,high
-60E1D400,Table 2D - 153_,0x075410,table,1D,,,,high
-60E1D400,Y,0x0753ec,axis,1D,,,,high
-60E1D400,Table 2D - 154_,0x075448,table,1D,,,,high
-60E1D400,Y,0x075424,axis,1D,,,,high
-60E1D400,Table 2D - 155_,0x075480,table,1D,,,,high
-60E1D400,Y,0x07545c,axis,1D,,,,high
-60E1D400,Table 2D - 156_,0x0755b8,table,1D,,,,high
-60E1D400,Y,0x075594,axis,1D,,,,high
-60E1D400,Table 2D - 157_,0x0759cc,table,1D,,,,high
-60E1D400,Y,0x075984,axis,1D,,,,high
+60E1D400,Fuel Integrated (Map),0x0753d8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Integrated (Map) Y Axis,0x0753b4,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Integrated (Map) 2,0x075410,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Integrated (Map) 2 Y Axis,0x0753ec,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Integrated (Map) 3,0x075448,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Integrated (Map) 3 Y Axis,0x075424,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Integrated (Map) 4,0x075480,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Integrated (Map) 4 Y Axis,0x07545c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - interp_bilinear_fpu_blend_v2),0x0755b8,table,1D,,,,high,consumer_cinterp_bilinear_fpu_blend_v2_29450_29450_mapscan
+60E1D400,(Unknown - interp_bilinear_fpu_blend_v2) Y Axis,0x075594,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_mac_single),0x0759cc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_mac_single) Y Axis,0x075984,axis,1D,,,,high,axis_propagation2
 60E1D400,Rotor 1 Ignition Dwell,0x075bf8,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Rotor 1 Ignition Dwell Y Axis,0x075bc4,axis,1D,,,,high,axis_propagation
 60E1D400,Rotor 2 Ignition Dwell,0x075c48,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Rotor 2 Ignition Dwell Y Axis,0x075c14,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 160_,0x076034,table,1D,,,,high
-60E1D400,Y,0x075fec,axis,1D,,,,high
-60E1D400,Table 2D - 161_,0x07607c,table,1D,,,,high
-60E1D400,Y,0x076058,axis,1D,,,,high
-60E1D400,Table 2D - 162_,0x0760a4,table,1D,,,,high
-60E1D400,Y,0x076090,axis,1D,,,,high
-60E1D400,Table 2D - 163_,0x076b28,table,1D,,,,high
-60E1D400,Y,0x076b18,axis,1D,,,,high
+60E1D400,Adaptive Fuel Trim (Map),0x076034,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Adaptive Fuel Trim (Map) Y Axis,0x075fec,axis,1D,,,,high,axis_propagation2
+60E1D400,Adaptive Fuel Trim (Map) 2,0x07607c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Adaptive Fuel Trim (Map) 2 Y Axis,0x076058,axis,1D,,,,high,axis_propagation2
+60E1D400,Transient Fuel Comp (Map),0x0760a4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Transient Fuel Comp (Map) Y Axis,0x076090,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - math_accumulator),0x076b28,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - math_accumulator) Y Axis,0x076b18,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 164_,0x0778f0,table,1D,,,,high
 60E1D400,Y,0x0778ec,axis,1D,,,,high
 60E1D400,Table 2D - 165_,0x0778f8,table,1D,,,,high
 60E1D400,Y,0x0778f4,axis,1D,,,,high
-60E1D400,Table 2D - 166_,0x0779d8,table,1D,,,,high
-60E1D400,Y,0x0779b8,axis,1D,,,,high
-60E1D400,Table 2D - 167_,0x0779fc,table,1D,,,,high
-60E1D400,Y,0x0779e0,axis,1D,,,,high
-60E1D400,Table 2D - 168_,0x077a28,table,1D,,,,high
-60E1D400,Y,0x077a0c,axis,1D,,,,high
-60E1D400,Table 2D - 169_,0x077b44,table,1D,,,,high
-60E1D400,Y,0x077b34,axis,1D,,,,high
+60E1D400,(Unknown - conditional_fpu_accumulate_handler),0x0779d8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - conditional_fpu_accumulate_handler) Y Axis,0x0779b8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - conditional_fpu_accumulate_handler) 2,0x0779fc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - conditional_fpu_accumulate_handler) 2 Y Axis,0x0779e0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - conditional_fpu_accumulate_handler) 3,0x077a28,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - conditional_fpu_accumulate_handler) 3 Y Axis,0x077a0c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_multiply_accumulate_store),0x077b44,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_multiply_accumulate_store) Y Axis,0x077b34,axis,1D,,,,high,axis_propagation2
 60E1D400,Injector Manifold Vacuum Multiplier,0x077b90,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Injector Manifold Vacuum Multiplier Y Axis,0x077b4c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 171_,0x07829c,table,1D,,,,high
-60E1D400,Y,0x078284,axis,1D,,,,high
-60E1D400,Table 2D - 172_,0x0782b8,table,1D,,,,high
-60E1D400,Y,0x0782a4,axis,1D,,,,high
+60E1D400,Coil Output Timing (Map),0x07829c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Output Timing (Map) Y Axis,0x078284,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Output Timing (Map) 2,0x0782b8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Output Timing (Map) 2 Y Axis,0x0782a4,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 173_,0x0782c4,table,1D,,,,high
 60E1D400,Y,0x0782c0,axis,1D,,,,high
-60E1D400,Table 2D - 174_,0x0782d4,table,1D,,,,high
-60E1D400,Y,0x0782c8,axis,1D,,,,high
+60E1D400,(Unknown - conditional_fpu_calc),0x0782d4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - conditional_fpu_calc) Y Axis,0x0782c8,axis,1D,,,,high,axis_propagation2
 60E1D400,Injector Deadtime Primary,0x078318,table,1D,,,,high,docs_crossref
 60E1D400,Injector Deadtime Primary Y Axis,0x0782e8,axis,1D,,,,high,axis_propagation
 60E1D400,Primary Fuel Injector Cranking Pulse Width,0x078364,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Primary Fuel Injector Cranking Pulse Width Y Axis,0x078330,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 177_,0x07845c,table,1D,,,,high
-60E1D400,Y,0x078418,axis,1D,,,,high
+60E1D400,(Unknown - massive_fpu_control_calc),0x07845c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - massive_fpu_control_calc) Y Axis,0x078418,axis,1D,,,,high,axis_propagation2
 60E1D400,Primary Injector Max Barometric Pressure Correction,0x078490,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Primary Injector Max Barometric Pressure Correction Y Axis,0x078470,axis,1D,,,,high,axis_propagation
 60E1D400,Secondary Fuel Injector Minimum Pulse Width,0x07853c,table,1D,,,,high,docs_crossref
 60E1D400,Secondary Fuel Injector Minimum Pulse Width Y Axis,0x078518,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 180_,0x07856c,table,1D,,,,high
-60E1D400,Y,0x078548,axis,1D,,,,high
-60E1D400,Table 2D - 181_,0x07859c,table,1D,,,,high
-60E1D400,Y,0x078578,axis,1D,,,,high
-60E1D400,Table 2D - 182_,0x0785f4,table,1D,,,,high
-60E1D400,Y,0x0785b0,axis,1D,,,,high
+60E1D400,(Unknown - complex_adaptive_fpu_calc),0x07856c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - complex_adaptive_fpu_calc) Y Axis,0x078548,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - complex_fpu_compare_calc),0x07859c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - complex_fpu_compare_calc) Y Axis,0x078578,axis,1D,,,,high,axis_propagation2
+60E1D400,Calculate Fuel Amount Per Rotation Min Max (Map),0x0785f4,table,1D,,,,high,consumer_ccalculateFuelAmountPerRotationMinMax_317b8_mapscan
+60E1D400,Calculate Fuel Amount Per Rotation Min Max (Map) Y Axis,0x0785b0,axis,1D,,,,high,axis_propagation2
 60E1D400,Secondary Injectors Allowed Threshold - Coolant Temperature Based,0x07863c,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Secondary Injectors Allowed Threshold - Coolant Temperature Based Y Axis,0x078618,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 184_,0x078a00,table,1D,,,,high
-60E1D400,Y,0x0789d0,axis,1D,,,,high
-60E1D400,Table 2D - 185_,0x078a30,table,1D,,,,high
-60E1D400,Y,0x078a0c,axis,1D,,,,high
-60E1D400,Table 2D - 186_,0x078a6c,table,1D,,,,high
-60E1D400,Y,0x078a3c,axis,1D,,,,high
-60E1D400,Table 2D - 187_,0x078a9c,table,1D,,,,high
-60E1D400,Y,0x078a78,axis,1D,,,,high
-60E1D400,Table 2D - 188_,0x078ad8,table,1D,,,,high
-60E1D400,Y,0x078aa8,axis,1D,,,,high
-60E1D400,Table 2D - 189_,0x078b08,table,1D,,,,high
-60E1D400,Y,0x078ae4,axis,1D,,,,high
-60E1D400,Table 2D - 190_,0x078b38,table,1D,,,,high
-60E1D400,Y,0x078b14,axis,1D,,,,high
-60E1D400,Table 2D - 191_,0x078b68,table,1D,,,,high
-60E1D400,Y,0x078b44,axis,1D,,,,high
+60E1D400,(Unknown - extensive_table_based_fpu_calc),0x078a00,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) Y Axis,0x0789d0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 2,0x078a30,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 2 Y Axis,0x078a0c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 3,0x078a6c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 3 Y Axis,0x078a3c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 4,0x078a9c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 4 Y Axis,0x078a78,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 5,0x078ad8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 5 Y Axis,0x078aa8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 6,0x078b08,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 6 Y Axis,0x078ae4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 7,0x078b38,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_table_based_fpu_calc) 7 Y Axis,0x078b14,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - complex_fpu_div_sqrt_accumulate),0x078b68,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - complex_fpu_div_sqrt_accumulate) Y Axis,0x078b44,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 192_,0x078ba0,table,1D,,,,high
 60E1D400,Y,0x078b74,axis,1D,,,,high
-60E1D400,Table 2D - 193_,0x078be8,table,1D,,,,high
-60E1D400,Y,0x078bb8,axis,1D,,,,high
-60E1D400,Table 2D - 194_,0x078c68,table,1D,,,,high
-60E1D400,Y,0x078c4c,axis,1D,,,,high
+60E1D400,(Unknown - conditional_fpu_multi_flag_selector),0x078be8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - conditional_fpu_multi_flag_selector) Y Axis,0x078bb8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_threshold_and_calc),0x078c68,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_threshold_and_calc) Y Axis,0x078c4c,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 195_,0x078c74,table,1D,,,,high
 60E1D400,Y,0x078c70,axis,1D,,,,high
 60E1D400,Max Load - Intake Temperature Compensation,0x078dc0,table,1D,,,,high,rx8_defs_60E1D400
@@ -414,14 +414,14 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Load Based Oil Injection Temperature Correction Y Axis,0x078f84,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Injection - Warmup Fueling - Load Based Multiplier,0x079334,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Fuel Injection - Warmup Fueling - Load Based Multiplier Y Axis,0x07930c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 200_,0x0794b0,table,1D,,,,high
-60E1D400,Y,0x079470,axis,1D,,,,high
-60E1D400,Table 2D - 201_,0x079510,table,1D,,,,high
-60E1D400,Y,0x0794d0,axis,1D,,,,high
-60E1D400,Table 2D - 202_,0x0796e8,table,1D,,,,high
-60E1D400,Y,0x0796bc,axis,1D,,,,high
-60E1D400,Table 2D - 203_,0x079728,table,1D,,,,high
-60E1D400,Y,0x0796f4,axis,1D,,,,high
+60E1D400,(Unknown - extensive_fpu_div_multi_calc),0x0794b0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_div_multi_calc) Y Axis,0x079470,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_div_multi_calc) 2,0x079510,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_div_multi_calc) 2 Y Axis,0x0794d0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_threshold_calc),0x0796e8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_threshold_calc) Y Axis,0x0796bc,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_threshold_calc) 2,0x079728,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_threshold_calc) 2 Y Axis,0x0796f4,axis,1D,,,,high,axis_propagation2
 60E1D400,Secondary Fuel Blend Transition RPM,0x079790,table,1D,,,,high,docs_crossref
 60E1D400,Secondary Fuel Blend Transition RPM Y Axis,0x079770,axis,1D,,,,high,axis_propagation
 60E1D400,Ignition Leading - Cranking Timing Advance,0x0797c8,table,1D,,,,high,rx8_defs_60E1D400
@@ -446,146 +446,146 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuel Pressure Regulator Duty Low Y Axis,0x0799c0,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Pressure Regulator Duty High,0x079a1c,table,1D,,,,high,docs_crossref
 60E1D400,Fuel Pressure Regulator Duty High Y Axis,0x079a14,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 216_,0x079c18,table,1D,,,,high
-60E1D400,Y,0x079bf0,axis,1D,,,,high
-60E1D400,Table 2D - 217_,0x079c48,table,1D,,,,high
-60E1D400,Y,0x079c24,axis,1D,,,,high
-60E1D400,Table 2D - 218_,0x079c74,table,1D,,,,high
-60E1D400,Y,0x079c54,axis,1D,,,,high
-60E1D400,Table 2D - 219_,0x079cb4,table,1D,,,,high
-60E1D400,Y,0x079c7c,axis,1D,,,,high
-60E1D400,Table 2D - 220_,0x079d08,table,1D,,,,high
-60E1D400,Y,0x079cd0,axis,1D,,,,high
-60E1D400,Table 2D - 221_,0x079d5c,table,1D,,,,high
-60E1D400,Y,0x079d24,axis,1D,,,,high
+60E1D400,(Unknown - fpu_calc_with_state_routing),0x079c18,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_routing) Y Axis,0x079bf0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - state_dispatch_with_interpolate),0x079c48,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - state_dispatch_with_interpolate) Y Axis,0x079c24,axis,1D,,,,high,axis_propagation2
+60E1D400,Get Engine Startup Enrich Value (Map),0x079c74,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Get Engine Startup Enrich Value (Map) Y Axis,0x079c54,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_routing) 2,0x079cb4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_routing) 2 Y Axis,0x079c7c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_conditional_branch),0x079d08,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_conditional_branch) Y Axis,0x079cd0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_transition),0x079d5c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_transition) Y Axis,0x079d24,axis,1D,,,,high,axis_propagation2
 60E1D400,RPM Based Max Engine Load,0x07a070,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,RPM Based Max Engine Load Y Axis,0x07a028,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 223_,0x07a0b4,table,1D,,,,high
-60E1D400,Y,0x07a094,axis,1D,,,,high
+60E1D400,(Unknown - fpu_pair_accumulate_calc),0x07a0b4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_pair_accumulate_calc) Y Axis,0x07a094,axis,1D,,,,high,axis_propagation2
 60E1D400,Max Load - Barometric Pressure Compensation,0x07a0e4,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Max Load - Barometric Pressure Compensation Y Axis,0x07a0c4,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 225_,0x07a118,table,1D,,,,high
-60E1D400,Y,0x07a0f4,axis,1D,,,,high
-60E1D400,Table 2D - 226_,0x07a150,table,1D,,,,high
-60E1D400,Y,0x07a12c,axis,1D,,,,high
+60E1D400,(Unknown - extensive_fpu_conditional_threshold_calc),0x07a118,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_conditional_threshold_calc) Y Axis,0x07a0f4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_conditional_threshold_calc) 2,0x07a150,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_conditional_threshold_calc) 2 Y Axis,0x07a12c,axis,1D,,,,high,axis_propagation2
 60E1D400,Knock Voltage To Magnitude,0x07a318,table,,,,,low
 60E1D400,Y,0x07a230,axis,1D,,,,high
-60E1D400,Table 2D - 228_,0x07a554,table,1D,,,,high
-60E1D400,Y,0x07a538,axis,1D,,,,high
-60E1D400,Table 2D - 229_,0x07a58c,table,1D,,,,high
-60E1D400,Y,0x07a55c,axis,1D,,,,high
+60E1D400,(Unknown - extensive_fpu_multi_calc_selector),0x07a554,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_multi_calc_selector) Y Axis,0x07a538,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - extensive_fpu_multi_calc_selector) 2,0x07a58c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - extensive_fpu_multi_calc_selector) 2 Y Axis,0x07a55c,axis,1D,,,,high,axis_propagation2
 60E1D400,Airflow Or Load Related,0x07a628,table,,,,,high
 60E1D400,Y,0x07a600,axis,1D,,,,high
 60E1D400,MAF Related,0x07a65c,table,,,,,high
 60E1D400,Y,0x07a63c,axis,1D,,,,high
-60E1D400,Table 2D - 232_,0x07a698,table,1D,,,,high
-60E1D400,Y,0x07a66c,axis,1D,,,,high
-60E1D400,Table 2D - 233_,0x07a6dc,table,1D,,,,high
-60E1D400,Y,0x07a6b0,axis,1D,,,,high
-60E1D400,Table 2D - 234_,0x07a720,table,1D,,,,high
-60E1D400,Y,0x07a6f4,axis,1D,,,,high
-60E1D400,Table 2D - 235_,0x07d274,table,1D,,,,high
-60E1D400,Y,0x07d254,axis,1D,,,,high
-60E1D400,Table 2D - 236_,0x07d2e0,table,1D,,,,high
-60E1D400,Y,0x07d2bc,axis,1D,,,,high
-60E1D400,Table 2D - 237_,0x07d318,table,1D,,,,high
-60E1D400,Y,0x07d2f4,axis,1D,,,,high
-60E1D400,Table 2D - 238_,0x07d350,table,1D,,,,high
-60E1D400,Y,0x07d32c,axis,1D,,,,high
-60E1D400,Table 2D - 239_,0x07d388,table,1D,,,,high
-60E1D400,Y,0x07d364,axis,1D,,,,high
-60E1D400,Table 2D - 240_,0x07d3c0,table,1D,,,,high
-60E1D400,Y,0x07d39c,axis,1D,,,,high
-60E1D400,Table 2D - 241_,0x07d3f8,table,1D,,,,high
-60E1D400,Y,0x07d3d4,axis,1D,,,,high
-60E1D400,Table 2D - 242_,0x07d430,table,1D,,,,high
-60E1D400,Y,0x07d40c,axis,1D,,,,high
-60E1D400,Table 2D - 243_,0x07d468,table,1D,,,,high
-60E1D400,Y,0x07d444,axis,1D,,,,high
-60E1D400,Table 2D - 244_,0x07d52c,table,1D,,,,high
-60E1D400,Y,0x07d4ec,axis,1D,,,,high
-60E1D400,Table 2D - 245_,0x07d578,table,1D,,,,high
-60E1D400,Y,0x07d554,axis,1D,,,,high
-60E1D400,Table 2D - 246_,0x07d5c4,table,1D,,,,high
-60E1D400,Y,0x07d584,axis,1D,,,,high
-60E1D400,Table 2D - 247_,0x07d608,table,1D,,,,high
-60E1D400,Y,0x07d5e4,axis,1D,,,,high
-60E1D400,Table 2D - 248_,0x07d640,table,1D,,,,high
-60E1D400,Y,0x07d61c,axis,1D,,,,high
-60E1D400,Table 2D - 249_,0x07d728,table,1D,,,,high
-60E1D400,Y,0x07d700,axis,1D,,,,high
-60E1D400,Table 2D - 250_,0x07d79c,table,1D,,,,high
-60E1D400,Y,0x07d77c,axis,1D,,,,high
-60E1D400,Table 2D - 251_,0x07d7cc,table,1D,,,,high
-60E1D400,Y,0x07d7ac,axis,1D,,,,high
-60E1D400,Table 2D - 252_,0x07d81c,table,1D,,,,high
-60E1D400,Y,0x07d7f8,axis,1D,,,,high
-60E1D400,Table 2D - 253_,0x07d854,table,1D,,,,high
-60E1D400,Y,0x07d830,axis,1D,,,,high
-60E1D400,Table 2D - 254_,0x07a7f0,table,1D,,,,high
-60E1D400,Y,0x07a7c8,axis,1D,,,,high
+60E1D400,Fuel Injection Control Callback (Map),0x07a698,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Injection Control Callback (Map) Y Axis,0x07a66c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Injection Control Callback (Map) 2,0x07a6dc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Injection Control Callback (Map) 2 Y Axis,0x07a6b0,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Injection Control Callback (Map) 3,0x07a720,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Injection Control Callback (Map) 3 Y Axis,0x07a6f4,axis,1D,,,,high,axis_propagation2
+60E1D400,Diag Detector (Map),0x07d274,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Diag Detector (Map) Y Axis,0x07d254,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map),0x07d2e0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) Y Axis,0x07d2bc,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 2,0x07d318,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 2 Y Axis,0x07d2f4,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 3,0x07d350,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 3 Y Axis,0x07d32c,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 4,0x07d388,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 4 Y Axis,0x07d364,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 5,0x07d3c0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 5 Y Axis,0x07d39c,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 6,0x07d3f8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 6 Y Axis,0x07d3d4,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 7,0x07d430,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 7 Y Axis,0x07d40c,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 8,0x07d468,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 8 Y Axis,0x07d444,axis,1D,,,,high,axis_propagation2
+60E1D400,Coil Control (Map) 9,0x07d52c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Coil Control (Map) 9 Y Axis,0x07d4ec,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - eeprom_manager),0x07d578,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - eeprom_manager) Y Axis,0x07d554,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - linear_interp_2d),0x07d5c4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - linear_interp_2d) Y Axis,0x07d584,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - linear_interp_2d) 2,0x07d608,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - linear_interp_2d) 2 Y Axis,0x07d5e4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - linear_interp_2d) 3,0x07d640,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - linear_interp_2d) 3 Y Axis,0x07d61c,axis,1D,,,,high,axis_propagation2
+60E1D400,Diag Request (Map),0x07d728,table,1D,,,,high,consumer_cdiag_request_51f04_51f04_mapscan
+60E1D400,Diag Request (Map) Y Axis,0x07d700,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - queue_handler),0x07d79c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - queue_handler) Y Axis,0x07d77c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - queue_handler) 2,0x07d7cc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - queue_handler) 2 Y Axis,0x07d7ac,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - isr_checker),0x07d81c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - isr_checker) Y Axis,0x07d7f8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - isr_checker) 2,0x07d854,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - isr_checker) 2 Y Axis,0x07d830,axis,1D,,,,high,axis_propagation2
+60E1D400,Dtc Snapshot Manager (Map),0x07a7f0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Dtc Snapshot Manager (Map) Y Axis,0x07a7c8,axis,1D,,,,high,axis_propagation2
 60E1D400,Compensated Barometric Pressure,0x07a80c,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Compensated Barometric Pressure Y Axis,0x07a7fc,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 256_,0x07a8f8,table,1D,,,,high
-60E1D400,Y,0x07a8dc,axis,1D,,,,high
+60E1D400,Uds Protocol (Map),0x07a8f8,table,1D,,,,high,consumer_cuds_protocol_3e1f8_3e1f8_mapscan
+60E1D400,Uds Protocol (Map) Y Axis,0x07a8dc,axis,1D,,,,high,axis_propagation2
 60E1D400,Off Throttle Leading Timing Realted,0x07a9f8,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Leading Timing Realted Y Axis,0x07a9d4,axis,1D,,,,high,axis_propagation
 60E1D400,Ignition Trailing - Cranking Timing Advance,0x07aa28,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Ignition Trailing - Cranking Timing Advance Y Axis,0x07aa04,axis,1D,,,,high,axis_propagation
-60E1D400,Table 2D - 259_,0x07ae7c,table,1D,,,,high
-60E1D400,Y,0x07ae34,axis,1D,,,,high
+60E1D400,(Unknown - transmission_control),0x07ae7c,table,1D,,,,high,consumer_ctransmission_control_42BA6_42b4c_mapscan
+60E1D400,(Unknown - transmission_control) Y Axis,0x07ae34,axis,1D,,,,high,axis_propagation2
 60E1D400,Injection Angle Related AFR Input,0x07af48,table,,,,,high
 60E1D400,Y,0x07af24,axis,1D,,,,high
 60E1D400,Unknown Lambda Input,0x07af74,table,,,,,high
 60E1D400,Y,0x07af54,axis,1D,,,,high
-60E1D400,Table 2D - 262_,0x07af9c,table,1D,,,,high
-60E1D400,Y,0x07af7c,axis,1D,,,,high
+60E1D400,(Unknown - fpu_accumulate_ch0),0x07af9c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch0) Y Axis,0x07af7c,axis,1D,,,,high,axis_propagation2
 60E1D400,AirFlow Inj Angle Related,0x07b008,table,,,,,high
 60E1D400,Y,0x07afa4,axis,1D,,,,high
-60E1D400,Table 2D - 264_,0x07b05c,table,1D,,,,high
-60E1D400,Y,0x07b03c,axis,1D,,,,high
-60E1D400,Table 2D - 265_,0x07b0d0,table,1D,,,,high
-60E1D400,Y,0x07b06c,axis,1D,,,,high
-60E1D400,Table 2D - 266_,0x07b168,table,1D,,,,high
-60E1D400,Y,0x07b104,axis,1D,,,,high
-60E1D400,Table 2D - 267_,0x07b1bc,table,1D,,,,high
-60E1D400,Y,0x07b19c,axis,1D,,,,high
-60E1D400,Table 2D - 268_,0x07b204,table,1D,,,,high
-60E1D400,Y,0x07b1cc,axis,1D,,,,high
-60E1D400,Table 2D - 269_,0x07b240,table,1D,,,,high
-60E1D400,Y,0x07b220,axis,1D,,,,high
-60E1D400,Table 2D - 270_,0x07b55a,table,1D,,,,high
-60E1D400,Y,0x07b43c,axis,1D,,,,high
-60E1D400,Table 2D - 271_,0x07b464,table,1D,,,,high
-60E1D400,Y,0x07b43c,axis,1D,,,,high
-60E1D400,Table 2D - 272_,0x07b4a0,table,1D,,,,high
-60E1D400,Y,0x07b470,axis,1D,,,,high
-60E1D400,Table 2D - 273_,0x07b4d8,table,1D,,,,high
-60E1D400,Y,0x07b4ac,axis,1D,,,,high
-60E1D400,Table 2D - 274_,0x07b510,table,1D,,,,high
-60E1D400,Y,0x07b4e4,axis,1D,,,,high
-60E1D400,Table 2D - 275_,0x07b534,table,1D,,,,high
-60E1D400,Y,0x07b51c,axis,1D,,,,high
-60E1D400,Table 2D - 276_,0x07b554,table,1D,,,,high
+60E1D400,(Unknown - fpu_control_calc),0x07b05c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_control_calc) Y Axis,0x07b03c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_accumulate_ch0) 2,0x07b0d0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch0) 2 Y Axis,0x07b06c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_accumulate_ch0) 3,0x07b168,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch0) 3 Y Axis,0x07b104,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_accumulate_ch0) 4,0x07b1bc,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch0) 4 Y Axis,0x07b19c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_accumulate_ch2),0x07b204,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch2) Y Axis,0x07b1cc,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_accumulate_ch2) 2,0x07b240,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_accumulate_ch2) 2 Y Axis,0x07b220,axis,1D,,,,high,axis_propagation2
+60E1D400,Air Bleed Control (Map) 2,0x07b55a,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Air Bleed Control (Map) Y Axis,0x07b43c,axis,1D,,,,high,axis_propagation2
+60E1D400,Air Bleed Control (Map),0x07b464,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Air Bleed Control (Map) Y Axis,0x07b43c,axis,1D,,,,high,axis_propagation2
+60E1D400,Idle Correction Interpolation (Map),0x07b4a0,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Idle Correction Interpolation (Map) Y Axis,0x07b470,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Knock - RPM Knock Retard,0x07b4d8,table,1D,,,,high,consumer_cknock_control_calc_44824_mapscan
+60E1D400,Ignition Knock - RPM Knock Retard Y Axis,0x07b4ac,axis,1D,,,,high,axis_propagation2
+60E1D400,Air Filter Control (Map),0x07b510,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Air Filter Control (Map) Y Axis,0x07b4e4,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Correction Update (Map),0x07b534,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Correction Update (Map) Y Axis,0x07b51c,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map),0x07b554,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Y,0x07b53c,axis,1D,,,,high
-60E1D400,Table 2D - 277_,0x07c084,table,1D,,,,high
-60E1D400,Y,0x07c050,axis,1D,,,,high
+60E1D400,Fuel Temperature Correction (Map),0x07c084,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Temperature Correction (Map) Y Axis,0x07c050,axis,1D,,,,high,axis_propagation2
 60E1D400,Load Limit C,0x07c354,table,,,,,high
 60E1D400,Y,0x07c32c,axis,1D,,,,high
-60E1D400,Table 2D - 279_,0x07c4b4,table,1D,,,,high
-60E1D400,Y,0x07c48c,axis,1D,,,,high
-60E1D400,Table 2D - 280_,0x07c4e8,table,1D,,,,high
-60E1D400,Y,0x07c4c0,axis,1D,,,,high
-60E1D400,Table 2D - 281_,0x07c51c,table,1D,,,,high
-60E1D400,Y,0x07c4f4,axis,1D,,,,high
-60E1D400,Table 2D - 282_,0x07c6d8,table,1D,,,,high
-60E1D400,Y,0x07c6bc,axis,1D,,,,high
-60E1D400,Table 2D - 283_,0x07c708,table,1D,,,,high
-60E1D400,Y,0x07c6e0,axis,1D,,,,high
-60E1D400,Table 2D - 284_,0x07c750,table,1D,,,,high
-60E1D400,Y,0x07c738,axis,1D,,,,high
-60E1D400,Table 2D - 285_,0x07c780,table,1D,,,,high
-60E1D400,Y,0x07c75c,axis,1D,,,,high
+60E1D400,(Unknown - ctrl_toggle),0x07c4b4,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - ctrl_toggle) Y Axis,0x07c48c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - ctrl_toggle) 2,0x07c4e8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - ctrl_toggle) 2 Y Axis,0x07c4c0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - ctrl_toggle) 3,0x07c51c,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - ctrl_toggle) 3 Y Axis,0x07c4f4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - debug_output),0x07c6d8,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - debug_output) Y Axis,0x07c6bc,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - debug_output) 2,0x07c708,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - debug_output) 2 Y Axis,0x07c6e0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_format),0x07c750,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - datalog_format) Y Axis,0x07c738,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_write),0x07c780,table,1D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - datalog_write) Y Axis,0x07c75c,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 2D - 286_,0x07c8ec,table,1D,,,,high
 60E1D400,Y,0x07c8b0,axis,1D,,,,high
 60E1D400,Table 2D - 287_,0x07c920,table,1D,,,,high
@@ -828,12 +828,12 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED,0x06d364,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED X Axis,0x06d30c,axis,1D,,,,high,axis_propagation
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - NOTUSED Y Axis,0x06d34c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 2_,0x06d41c,table,2D,,,,high
-60E1D400,X,0x06d3c4,axis,1D,,,,high
-60E1D400,Y,0x06d404,axis,1D,,,,high
-60E1D400,Table 3D - 3_,0x06d4d4,table,2D,,,,high
-60E1D400,X,0x06d47c,axis,1D,,,,high
-60E1D400,Y,0x06d4bc,axis,1D,,,,high
+60E1D400,Throttle Plate Something Fuel Cut (Map) 2,0x06d41c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Throttle Plate Something Fuel Cut (Map) 2 X Axis,0x06d3c4,axis,1D,,,,high,axis_propagation2
+60E1D400,Throttle Plate Something Fuel Cut (Map) 2 Y Axis,0x06d404,axis,1D,,,,high,axis_propagation2
+60E1D400,Throttle Plate Something Fuel Cut (Map) 3,0x06d4d4,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Throttle Plate Something Fuel Cut (Map) 3 X Axis,0x06d47c,axis,1D,,,,high,axis_propagation2
+60E1D400,Throttle Plate Something Fuel Cut (Map) 3 Y Axis,0x06d4bc,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Timing Lead,0x06d668,table,,,,,high
 60E1D400,X,0x06d624,axis,1D,,,,high
 60E1D400,Y,0x06d64c,axis,1D,,,,high
@@ -858,15 +858,15 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Ignition 1,0x06e1d4,table,,,,,high
 60E1D400,X,0x06e13c,axis,1D,,,,high
 60E1D400,Y,0x06e18c,axis,1D,,,,high
-60E1D400,Table 3D - 12_,0x06ea88,table,2D,,,,high
-60E1D400,X,0x06ea60,axis,1D,,,,high
-60E1D400,Y,0x06ea7c,axis,1D,,,,high
-60E1D400,Table 3D - 13_,0x06ed78,table,2D,,,,high
-60E1D400,X,0x06ed48,axis,1D,,,,high
-60E1D400,Y,0x06ed6c,axis,1D,,,,high
-60E1D400,Table 3D - 14_,0x06edf4,table,2D,,,,high
-60E1D400,X,0x06eda4,axis,1D,,,,high
-60E1D400,Y,0x06edd4,axis,1D,,,,high
+60E1D400,(Unknown - load_bias_table_interpolator),0x06ea88,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - load_bias_table_interpolator) X Axis,0x06ea60,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - load_bias_table_interpolator) Y Axis,0x06ea7c,axis,1D,,,,high,axis_propagation2
+60E1D400,Load Blend Factor - Coolant Temperature X Blend Variation,0x06ed78,table,2D,,,,high,consumer_cload_blend_factor_limiter_0x16A30_mapscan
+60E1D400,Load Blend Factor - Coolant Temperature X Blend Variation X Axis,0x06ed48,axis,1D,,,,high,axis_propagation2
+60E1D400,Load Blend Factor - Coolant Temperature X Blend Variation Y Axis,0x06ed6c,axis,1D,,,,high,axis_propagation2
+60E1D400,Air Charge - RPM X Charge Temperature,0x06edf4,table,2D,,,,high,consumer_cair_charge_calc_0x19190_mapscan
+60E1D400,Air Charge - RPM X Charge Temperature X Axis,0x06eda4,axis,1D,,,,high,axis_propagation2
+60E1D400,Air Charge - RPM X Charge Temperature Y Axis,0x06edd4,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Trailing B,0x06eeec,table,,,,,high
 60E1D400,X,0x06ee54,axis,1D,,,,high
 60E1D400,Y,0x06eea4,axis,1D,,,,high
@@ -894,33 +894,33 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Closed Loop WOT Enrichment??,0x070924,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Closed Loop WOT Enrichment?? X Axis,0x0708e8,axis,1D,,,,high,axis_propagation
 60E1D400,Closed Loop WOT Enrichment?? Y Axis,0x070918,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 24_,0x070998,table,2D,,,,high
-60E1D400,X,0x070948,axis,1D,,,,high
-60E1D400,Y,0x07097c,axis,1D,,,,high
-60E1D400,Table 3D - 25_,0x070aa0,table,2D,,,,high
-60E1D400,X,0x070a50,axis,1D,,,,high
-60E1D400,Y,0x070a84,axis,1D,,,,high
-60E1D400,Table 3D - 26_,0x070b9c,table,2D,,,,high
-60E1D400,X,0x070b58,axis,1D,,,,high
-60E1D400,Y,0x070b78,axis,1D,,,,high
-60E1D400,Table 3D - 27_,0x070c70,table,2D,,,,high
-60E1D400,X,0x070c2c,axis,1D,,,,high
-60E1D400,Y,0x070c4c,axis,1D,,,,high
-60E1D400,Table 3D - 28_,0x070d44,table,2D,,,,high
-60E1D400,X,0x070d00,axis,1D,,,,high
-60E1D400,Y,0x070d20,axis,1D,,,,high
-60E1D400,Table 3D - 29_,0x070e44,table,2D,,,,high
-60E1D400,X,0x070dd4,axis,1D,,,,high
-60E1D400,Y,0x070e04,axis,1D,,,,high
-60E1D400,Table 3D - 30_,0x071034,table,2D,,,,high
-60E1D400,X,0x070fc4,axis,1D,,,,high
-60E1D400,Y,0x070ff4,axis,1D,,,,high
-60E1D400,Table 3D - 31_,0x071204,table,2D,,,,high
-60E1D400,X,0x0711b4,axis,1D,,,,high
-60E1D400,Y,0x0711e8,axis,1D,,,,high
-60E1D400,Table 3D - 32_,0x07130c,table,2D,,,,high
-60E1D400,X,0x0712bc,axis,1D,,,,high
-60E1D400,Y,0x0712f0,axis,1D,,,,high
+60E1D400,Fuel Control (Map),0x070998,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Control (Map) X Axis,0x070948,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Control (Map) Y Axis,0x07097c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Control (Map) 2,0x070aa0,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Control (Map) 2 X Axis,0x070a50,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Control (Map) 2 Y Axis,0x070a84,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map),0x070b9c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Transmission Load Control (Map) X Axis,0x070b58,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) Y Axis,0x070b78,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) 2,0x070c70,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Transmission Load Control (Map) 2 X Axis,0x070c2c,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) 2 Y Axis,0x070c4c,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) 3,0x070d44,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Transmission Load Control (Map) 3 X Axis,0x070d00,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) 3 Y Axis,0x070d20,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Enrichment Control (Map),0x070e44,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Enrichment Control (Map) X Axis,0x070dd4,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Enrichment Control (Map) Y Axis,0x070e04,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Enrichment Control (Map) 2,0x071034,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Enrichment Control (Map) 2 X Axis,0x070fc4,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Enrichment Control (Map) 2 Y Axis,0x070ff4,axis,1D,,,,high,axis_propagation2
+60E1D400,Vtec Timing Control (Map),0x071204,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Vtec Timing Control (Map) X Axis,0x0711b4,axis,1D,,,,high,axis_propagation2
+60E1D400,Vtec Timing Control (Map) Y Axis,0x0711e8,axis,1D,,,,high,axis_propagation2
+60E1D400,Vtec Timing Control (Map) 2,0x07130c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Vtec Timing Control (Map) 2 X Axis,0x0712bc,axis,1D,,,,high,axis_propagation2
+60E1D400,Vtec Timing Control (Map) 2 Y Axis,0x0712f0,axis,1D,,,,high,axis_propagation2
 60E1D400,Fuelling 9 - Safe Mode,0x07228c,table,,,,,high
 60E1D400,X,0x07223c,axis,1D,,,,high
 60E1D400,Y,0x07226c,axis,1D,,,,high
@@ -951,24 +951,24 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Throttle Position To Torque,0x0734f4,table,,,,,high
 60E1D400,X,0x07346c,axis,1D,,,,high
 60E1D400,Y,0x0734a4,axis,1D,,,,high
-60E1D400,Table 3D - 43_,0x073808,table,2D,,,,high
-60E1D400,X,0x0737dc,axis,1D,,,,high
-60E1D400,Y,0x0737f8,axis,1D,,,,high
-60E1D400,Table 3D - 44_,0x07386c,table,2D,,,,high
-60E1D400,X,0x073824,axis,1D,,,,high
-60E1D400,Y,0x073848,axis,1D,,,,high
-60E1D400,Table 3D - 45_,0x07393c,table,2D,,,,high
-60E1D400,X,0x0738c0,axis,1D,,,,high
-60E1D400,Y,0x073900,axis,1D,,,,high
+60E1D400,Idle Speed Control Task (Map) 3,0x073808,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Idle Speed Control Task (Map) 3 X Axis,0x0737dc,axis,1D,,,,high,axis_propagation2
+60E1D400,Idle Speed Control Task (Map) 3 Y Axis,0x0737f8,axis,1D,,,,high,axis_propagation2
+60E1D400,Idle Speed Control Task (Map) 4,0x07386c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Idle Speed Control Task (Map) 4 X Axis,0x073824,axis,1D,,,,high,axis_propagation2
+60E1D400,Idle Speed Control Task (Map) 4 Y Axis,0x073848,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fault_gated_float_out),0x07393c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fault_gated_float_out) X Axis,0x0738c0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fault_gated_float_out) Y Axis,0x073900,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 3D - 46_,0x073d64,table,2D,,,,high
 60E1D400,X,0x073d40,axis,1D,,,,high
 60E1D400,Y,0x073d54,axis,1D,,,,high
-60E1D400,Table 3D - 47_,0x073e3c,table,2D,,,,high
-60E1D400,X,0x073df4,axis,1D,,,,high
-60E1D400,Y,0x073e20,axis,1D,,,,high
-60E1D400,Table 3D - 48_,0x073ebc,table,2D,,,,high
-60E1D400,X,0x073e8c,axis,1D,,,,high
-60E1D400,Y,0x073ea4,axis,1D,,,,high
+60E1D400,Engine Load Calculation (Map),0x073e3c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Engine Load Calculation (Map) X Axis,0x073df4,axis,1D,,,,high,axis_propagation2
+60E1D400,Engine Load Calculation (Map) Y Axis,0x073e20,axis,1D,,,,high,axis_propagation2
+60E1D400,Engine Load Calculation (Map) 2,0x073ebc,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Engine Load Calculation (Map) 2 X Axis,0x073e8c,axis,1D,,,,high,axis_propagation2
+60E1D400,Engine Load Calculation (Map) 2 Y Axis,0x073ea4,axis,1D,,,,high,axis_propagation2
 60E1D400,Accel Pedal to Throttle Position #1,0x074250,table,,,,,high
 60E1D400,X,0x0741b4,axis,1D,,,,high
 60E1D400,Y,0x074208,axis,1D,,,,high
@@ -984,36 +984,36 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Alternator Voltage Delta - Diagnostic Request,0x0754f0,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Alternator Voltage Delta - Diagnostic Request X Axis,0x075494,axis,1D,,,,high,axis_propagation
 60E1D400,Alternator Voltage Delta - Diagnostic Request Y Axis,0x0754c0,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 54_,0x075630,table,2D,,,,high
-60E1D400,X,0x0755c4,axis,1D,,,,high
-60E1D400,Y,0x0755ec,axis,1D,,,,high
-60E1D400,Table 3D - 55_,0x0757f0,table,2D,,,,high
-60E1D400,X,0x075784,axis,1D,,,,high
-60E1D400,Y,0x0757ac,axis,1D,,,,high
-60E1D400,Table 3D - 56_,0x075e10,table,2D,,,,high
-60E1D400,X,0x075dc0,axis,1D,,,,high
-60E1D400,Y,0x075e04,axis,1D,,,,high
-60E1D400,Table 3D - 57_,0x075ec8,table,2D,,,,high
-60E1D400,X,0x075e78,axis,1D,,,,high
-60E1D400,Y,0x075ebc,axis,1D,,,,high
-60E1D400,Table 3D - 58_,0x075f80,table,2D,,,,high
-60E1D400,X,0x075f30,axis,1D,,,,high
-60E1D400,Y,0x075f74,axis,1D,,,,high
+60E1D400,(Unknown - interp_bilinear_fpu_blend),0x075630,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - interp_bilinear_fpu_blend) X Axis,0x0755c4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - interp_bilinear_fpu_blend) Y Axis,0x0755ec,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - interp_bilinear_fpu_blend_v2) 2,0x0757f0,table,2D,,,,high,consumer_cinterp_bilinear_fpu_blend_v2_29450_29450_mapscan
+60E1D400,(Unknown - interp_bilinear_fpu_blend_v2) 2 X Axis,0x075784,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - interp_bilinear_fpu_blend_v2) 2 Y Axis,0x0757ac,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch),0x075e10,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_dispatch) X Axis,0x075dc0,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch) Y Axis,0x075e04,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch) 2,0x075ec8,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_dispatch) 2 X Axis,0x075e78,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch) 2 Y Axis,0x075ebc,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch) 3,0x075f80,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_dispatch) 3 X Axis,0x075f30,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_dispatch) 3 Y Axis,0x075f74,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Timing Leading - DSC Mode A - Base,0x076144,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Ignition Timing Leading - DSC Mode A - Base X Axis,0x0760b0,axis,1D,,,,high,axis_propagation
 60E1D400,Ignition Timing Leading - DSC Mode A - Base Y Axis,0x0760f8,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 60_,0x076330,table,2D,,,,high
-60E1D400,X,0x07629c,axis,1D,,,,high
-60E1D400,Y,0x0762e4,axis,1D,,,,high
+60E1D400,(Unknown - fpu_div_speed_normalize),0x076330,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_speed_normalize) X Axis,0x07629c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_speed_normalize) Y Axis,0x0762e4,axis,1D,,,,high,axis_propagation2
 60E1D400,Engine Torque,0x076670,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Engine Torque X Axis,0x0765dc,axis,1D,,,,high,axis_propagation
 60E1D400,Engine Torque Y Axis,0x076624,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 62_,0x076988,table,2D,,,,high
-60E1D400,X,0x07691c,axis,1D,,,,high
-60E1D400,Y,0x07693c,axis,1D,,,,high
-60E1D400,Table 3D - 63_,0x076ad8,table,2D,,,,high
-60E1D400,X,0x076ab8,axis,1D,,,,high
-60E1D400,Y,0x076acc,axis,1D,,,,high
+60E1D400,(Unknown - fpu_div_correction_factor),0x076988,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_correction_factor) X Axis,0x07691c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_correction_factor) Y Axis,0x07693c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - divide_float_write_to),0x076ad8,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - divide_float_write_to) X Axis,0x076ab8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - divide_float_write_to) Y Axis,0x076acc,axis,1D,,,,high,axis_propagation2
 60E1D400,Primary Injector Weighted Engine Temp Multiplier,0x077a9c,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Primary Injector Weighted Engine Temp Multiplier X Axis,0x077a44,axis,1D,,,,high,axis_propagation
 60E1D400,Primary Injector Weighted Engine Temp Multiplier Y Axis,0x077a70,axis,1D,,,,high,axis_propagation
@@ -1044,12 +1044,12 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault),0x079434,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault) X Axis,0x079400,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Injection - Warmup Fueling - Engine Speed Based (Coolant Temp Fault) Y Axis,0x07941c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 74_,0x079584,table,2D,,,,high
-60E1D400,X,0x079530,axis,1D,,,,high
-60E1D400,Y,0x079570,axis,1D,,,,high
-60E1D400,Table 3D - 75_,0x079628,table,2D,,,,high
-60E1D400,X,0x0795d4,axis,1D,,,,high
-60E1D400,Y,0x079614,axis,1D,,,,high
+60E1D400,(Unknown - fpu_div_conditional_calc),0x079584,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_conditional_calc) X Axis,0x079530,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_conditional_calc) Y Axis,0x079570,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_conditional_calc) 2,0x079628,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_div_conditional_calc) 2 X Axis,0x0795d4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_div_conditional_calc) 2 Y Axis,0x079614,axis,1D,,,,high,axis_propagation2
 60E1D400,Fuel Pressure Regulator (3D),0x079a54,table,2D,,,,high,docs_crossref
 60E1D400,Fuel Pressure Regulator (3D) X Axis,0x079a20,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Pressure Regulator (3D) Y Axis,0x079a38,axis,1D,,,,high,axis_propagation
@@ -1059,36 +1059,36 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuel Pressure Regulator Compensation 2 (3D),0x079b48,table,2D,,,,high,docs_crossref
 60E1D400,Fuel Pressure Regulator Compensation 2 (3D) X Axis,0x079b0c,axis,1D,,,,high,axis_propagation
 60E1D400,Fuel Pressure Regulator Compensation 2 (3D) Y Axis,0x079b2c,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 79_,0x079dac,table,2D,,,,high
-60E1D400,X,0x079d78,axis,1D,,,,high
-60E1D400,Y,0x079d90,axis,1D,,,,high
-60E1D400,Table 3D - 80_,0x079e30,table,2D,,,,high
-60E1D400,X,0x079e00,axis,1D,,,,high
-60E1D400,Y,0x079e14,axis,1D,,,,high
-60E1D400,Table 3D - 81_,0x079eac,table,2D,,,,high
-60E1D400,X,0x079e78,axis,1D,,,,high
-60E1D400,Y,0x079e90,axis,1D,,,,high
-60E1D400,Table 3D - 82_,0x079f2c,table,2D,,,,high
-60E1D400,X,0x079f00,axis,1D,,,,high
-60E1D400,Y,0x079f14,axis,1D,,,,high
-60E1D400,Table 3D - 83_,0x079f94,table,2D,,,,high
-60E1D400,X,0x079f68,axis,1D,,,,high
-60E1D400,Y,0x079f7c,axis,1D,,,,high
+60E1D400,(Unknown - fpu_calc_with_state_routing) 3,0x079dac,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_routing) 3 X Axis,0x079d78,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_routing) 3 Y Axis,0x079d90,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_routing) 4,0x079e30,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_routing) 4 X Axis,0x079e00,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_routing) 4 Y Axis,0x079e14,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_conditional_branch) 2,0x079eac,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_conditional_branch) 2 X Axis,0x079e78,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_conditional_branch) 2 Y Axis,0x079e90,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_conditional_branch) 3,0x079f2c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_conditional_branch) 3 X Axis,0x079f00,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_conditional_branch) 3 Y Axis,0x079f14,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_transition) 2,0x079f94,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_calc_with_state_transition) 2 X Axis,0x079f68,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_calc_with_state_transition) 2 Y Axis,0x079f7c,axis,1D,,,,high,axis_propagation2
 60E1D400,Knock Rel #4,0x07a450,table,,,,,high
 60E1D400,X,0x07a40c,axis,1D,,,,high
 60E1D400,Y,0x07a424,axis,1D,,,,high
 60E1D400,Knock Rel #0,0x07a4d8,table,,,,,high
 60E1D400,X,0x07a494,axis,1D,,,,high
 60E1D400,Y,0x07a4ac,axis,1D,,,,high
-60E1D400,Table 3D - 86_,0x07a838,table,2D,,,,high
-60E1D400,X,0x07a810,axis,1D,,,,high
-60E1D400,Y,0x07a828,axis,1D,,,,high
-60E1D400,Table 3D - 87_,0x07ac44,table,2D,,,,high
-60E1D400,X,0x07abfc,axis,1D,,,,high
-60E1D400,Y,0x07ac20,axis,1D,,,,high
-60E1D400,Table 3D - 88_,0x07ad30,table,2D,,,,high
-60E1D400,X,0x07ace8,axis,1D,,,,high
-60E1D400,Y,0x07ad0c,axis,1D,,,,high
+60E1D400,(Unknown - motor_control_task),0x07a838,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - motor_control_task) X Axis,0x07a810,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - motor_control_task) Y Axis,0x07a828,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Calculation Callback (Map),0x07ac44,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Calculation Callback (Map) X Axis,0x07abfc,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Calculation Callback (Map) Y Axis,0x07ac20,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Calculation Callback (Map) 2,0x07ad30,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Calculation Callback (Map) 2 X Axis,0x07ace8,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Calculation Callback (Map) 2 Y Axis,0x07ad0c,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 3D - 89_,0x07addc,table,2D,,,,high
 60E1D400,X,0x07add4,axis,1D,,,,high
 60E1D400,Y,0x07add8,axis,1D,,,,high
@@ -1098,42 +1098,42 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Injection Angle,0x07b2b8,table,,,,,high
 60E1D400,X,0x07b250,axis,1D,,,,high
 60E1D400,Y,0x07b298,axis,1D,,,,high
-60E1D400,Table 3D - 92_,0x07b59c,table,2D,,,,high
-60E1D400,X,0x07b570,axis,1D,,,,high
-60E1D400,Y,0x07b58c,axis,1D,,,,high
-60E1D400,Table 3D - 93_,0x07b600,table,2D,,,,high
-60E1D400,X,0x07b5d4,axis,1D,,,,high
-60E1D400,Y,0x07b5f0,axis,1D,,,,high
-60E1D400,Table 3D - 94_,0x07b664,table,2D,,,,high
-60E1D400,X,0x07b638,axis,1D,,,,high
-60E1D400,Y,0x07b654,axis,1D,,,,high
-60E1D400,Table 3D - 95_,0x07b6c8,table,2D,,,,high
-60E1D400,X,0x07b69c,axis,1D,,,,high
-60E1D400,Y,0x07b6b8,axis,1D,,,,high
-60E1D400,Table 3D - 96_,0x07b72c,table,2D,,,,high
-60E1D400,X,0x07b700,axis,1D,,,,high
-60E1D400,Y,0x07b71c,axis,1D,,,,high
-60E1D400,Table 3D - 97_,0x07b7ac,table,2D,,,,high
-60E1D400,X,0x07b764,axis,1D,,,,high
-60E1D400,Y,0x07b78c,axis,1D,,,,high
-60E1D400,Table 3D - 98_,0x07b894,table,2D,,,,high
-60E1D400,X,0x07b84c,axis,1D,,,,high
-60E1D400,Y,0x07b874,axis,1D,,,,high
-60E1D400,Table 3D - 99_,0x07b97c,table,2D,,,,high
-60E1D400,X,0x07b934,axis,1D,,,,high
-60E1D400,Y,0x07b95c,axis,1D,,,,high
-60E1D400,Table 3D - 100_,0x07c7d0,table,2D,,,,high
-60E1D400,X,0x07c794,axis,1D,,,,high
-60E1D400,Y,0x07c7b8,axis,1D,,,,high
-60E1D400,Table 3D - 101_,0x07c844,table,2D,,,,high
-60E1D400,X,0x07c808,axis,1D,,,,high
-60E1D400,Y,0x07c82c,axis,1D,,,,high
+60E1D400,Exhaust Control (Map) 2,0x07b59c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Exhaust Control (Map) 2 X Axis,0x07b570,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 2 Y Axis,0x07b58c,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 3,0x07b600,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Exhaust Control (Map) 3 X Axis,0x07b5d4,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 3 Y Axis,0x07b5f0,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 4,0x07b664,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Exhaust Control (Map) 4 X Axis,0x07b638,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 4 Y Axis,0x07b654,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 5,0x07b6c8,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Exhaust Control (Map) 5 X Axis,0x07b69c,axis,1D,,,,high,axis_propagation2
+60E1D400,Exhaust Control (Map) 5 Y Axis,0x07b6b8,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Advance - Interpolated Map,0x07b72c,table,2D,,,,high,consumer_cignition_advance_interp_446BC_mapscan
+60E1D400,Ignition Advance - Interpolated Map X Axis,0x07b700,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Advance - Interpolated Map Y Axis,0x07b71c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 8,0x07b7ac,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure (Map) 8 X Axis,0x07b764,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 8 Y Axis,0x07b78c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 9,0x07b894,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure (Map) 9 X Axis,0x07b84c,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 9 Y Axis,0x07b874,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 10,0x07b97c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Pressure (Map) 10 X Axis,0x07b934,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Pressure (Map) 10 Y Axis,0x07b95c,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_write) 2,0x07c7d0,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - datalog_write) 2 X Axis,0x07c794,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_write) 2 Y Axis,0x07c7b8,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_write) 3,0x07c844,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - datalog_write) 3 X Axis,0x07c808,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - datalog_write) 3 Y Axis,0x07c82c,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 3D - 102_,0x07c9b4,table,2D,,,,high
 60E1D400,X,0x07c92c,axis,1D,,,,high
 60E1D400,Y,0x07c98c,axis,1D,,,,high
-60E1D400,Table 3D - 103_,0x06d230,table,2D,,,,high
-60E1D400,X,0x06d200,axis,1D,,,,high
-60E1D400,Y,0x06d218,axis,1D,,,,high
+60E1D400,Engine Load Correction (Map),0x06d230,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Engine Load Correction (Map) X Axis,0x06d200,axis,1D,,,,high,axis_propagation2
+60E1D400,Engine Load Correction (Map) Y Axis,0x06d218,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Leading 5,0x06e358,table,,,,,high
 60E1D400,X,0x06e33c,axis,1D,,,,high
 60E1D400,Y,0x06e34c,axis,1D,,,,high
@@ -1146,18 +1146,18 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Ignition 3,0x06f4cc,table,,,,,high
 60E1D400,X,0x06f454,axis,1D,,,,high
 60E1D400,Y,0x06f4a0,axis,1D,,,,high
-60E1D400,Table 3D - 108_,0x071408,table,2D,,,,high
-60E1D400,X,0x0713c4,axis,1D,,,,high
-60E1D400,Y,0x0713ec,axis,1D,,,,high
-60E1D400,Table 3D - 109_,0x073f14,table,2D,,,,high
-60E1D400,X,0x073ee0,axis,1D,,,,high
-60E1D400,Y,0x073ef8,axis,1D,,,,high
+60E1D400,Transmission Load Control (Map) 4,0x071408,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Transmission Load Control (Map) 4 X Axis,0x0713c4,axis,1D,,,,high,axis_propagation2
+60E1D400,Transmission Load Control (Map) 4 Y Axis,0x0713ec,axis,1D,,,,high,axis_propagation2
+60E1D400,Knock Sensor Filter (Map),0x073f14,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Knock Sensor Filter (Map) X Axis,0x073ee0,axis,1D,,,,high,axis_propagation2
+60E1D400,Knock Sensor Filter (Map) Y Axis,0x073ef8,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 3D - 110_,0x075d5c,table,2D,,,,high
 60E1D400,X,0x075cf8,axis,1D,,,,high
 60E1D400,Y,0x075d0c,axis,1D,,,,high
-60E1D400,Table 3D - 111_,0x0774c0,table,2D,,,,high
-60E1D400,X,0x077488,axis,1D,,,,high
-60E1D400,Y,0x0774ac,axis,1D,,,,high
+60E1D400,Torque Limit Multipoint (Map),0x0774c0,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Torque Limit Multipoint (Map) X Axis,0x077488,axis,1D,,,,high,axis_propagation2
+60E1D400,Torque Limit Multipoint (Map) Y Axis,0x0774ac,axis,1D,,,,high,axis_propagation2
 60E1D400,Table 3D - 112_,0x0775b0,table,2D,,,,high
 60E1D400,X,0x077574,axis,1D,,,,high
 60E1D400,Y,0x07759c,axis,1D,,,,high
@@ -1182,30 +1182,30 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Barometric Pressure Based Oil Injection Amount,0x0792dc,table,2D,,,,high,rx8_defs_60E1D400
 60E1D400,Barometric Pressure Based Oil Injection Amount X Axis,0x0792b0,axis,1D,,,,high,axis_propagation
 60E1D400,Barometric Pressure Based Oil Injection Amount Y Axis,0x0792c8,axis,1D,,,,high,axis_propagation
-60E1D400,Table 3D - 120_,0x07d150,table,2D,,,,high
-60E1D400,X,0x07d108,axis,1D,,,,high
-60E1D400,Y,0x07d128,axis,1D,,,,high
-60E1D400,Table 3D - 121_,0x07d1e8,table,2D,,,,high
-60E1D400,X,0x07d1a0,axis,1D,,,,high
-60E1D400,Y,0x07d1c0,axis,1D,,,,high
-60E1D400,Table 3D - 122_,0x07aabc,table,2D,,,,high
-60E1D400,X,0x07aa74,axis,1D,,,,high
-60E1D400,Y,0x07aa98,axis,1D,,,,high
-60E1D400,Table 3D - 123_,0x07ab58,table,2D,,,,high
-60E1D400,X,0x07ab10,axis,1D,,,,high
-60E1D400,Y,0x07ab34,axis,1D,,,,high
-60E1D400,Table 3D - 124_,0x07bb3c,table,2D,,,,high
-60E1D400,X,0x07baf4,axis,1D,,,,high
-60E1D400,Y,0x07bb18,axis,1D,,,,high
-60E1D400,Table 3D - 125_,0x07bbd8,table,2D,,,,high
-60E1D400,X,0x07bb90,axis,1D,,,,high
-60E1D400,Y,0x07bbb4,axis,1D,,,,high
-60E1D400,Table 3D - 126_,0x07bd94,table,2D,,,,high
-60E1D400,X,0x07bd28,axis,1D,,,,high
-60E1D400,Y,0x07bd50,axis,1D,,,,high
-60E1D400,Table 3D - 127_,0x07c0dc,table,2D,,,,high
-60E1D400,X,0x07c094,axis,1D,,,,high
-60E1D400,Y,0x07c0bc,axis,1D,,,,high
+60E1D400,Oxygen Sensor Monitor (Map),0x07d150,table,2D,,,,high,consumer_coxygen_sensor_monitor_0x4F9C2_4f9c2_mapscan
+60E1D400,Oxygen Sensor Monitor (Map) X Axis,0x07d108,axis,1D,,,,high,axis_propagation2
+60E1D400,Oxygen Sensor Monitor (Map) Y Axis,0x07d128,axis,1D,,,,high,axis_propagation2
+60E1D400,Oxygen Sensor Monitor (Map) 2,0x07d1e8,table,2D,,,,high,consumer_coxygen_sensor_monitor_0x4F9C2_4f9c2_mapscan
+60E1D400,Oxygen Sensor Monitor (Map) 2 X Axis,0x07d1a0,axis,1D,,,,high,axis_propagation2
+60E1D400,Oxygen Sensor Monitor (Map) 2 Y Axis,0x07d1c0,axis,1D,,,,high,axis_propagation2
+60E1D400,Sensor Processing (Map),0x07aabc,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Sensor Processing (Map) X Axis,0x07aa74,axis,1D,,,,high,axis_propagation2
+60E1D400,Sensor Processing (Map) Y Axis,0x07aa98,axis,1D,,,,high,axis_propagation2
+60E1D400,Boost Pressure Feedback (Map),0x07ab58,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Boost Pressure Feedback (Map) X Axis,0x07ab10,axis,1D,,,,high,axis_propagation2
+60E1D400,Boost Pressure Feedback (Map) Y Axis,0x07ab34,axis,1D,,,,high,axis_propagation2
+60E1D400,Omp Fault Detect (Map),0x07bb3c,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Omp Fault Detect (Map) X Axis,0x07baf4,axis,1D,,,,high,axis_propagation2
+60E1D400,Omp Fault Detect (Map) Y Axis,0x07bb18,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Knock - Retard Limit,0x07bbd8,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Ignition Knock - Retard Limit X Axis,0x07bb90,axis,1D,,,,high,axis_propagation2
+60E1D400,Ignition Knock - Retard Limit Y Axis,0x07bbb4,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_division_calc),0x07bd94,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,(Unknown - fpu_division_calc) X Axis,0x07bd28,axis,1D,,,,high,axis_propagation2
+60E1D400,(Unknown - fpu_division_calc) Y Axis,0x07bd50,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Flow Limiter (Map),0x07c0dc,table,2D,,,,high,consumer_noc_mapscan
+60E1D400,Fuel Flow Limiter (Map) X Axis,0x07c094,axis,1D,,,,high,axis_propagation2
+60E1D400,Fuel Flow Limiter (Map) Y Axis,0x07c0bc,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Dwell Time_,0x07cb20,table,,,,,high
 60E1D400,X,0x07cad8,axis,1D,,,,high
 60E1D400,Y,0x07cafc,axis,1D,,,,high
