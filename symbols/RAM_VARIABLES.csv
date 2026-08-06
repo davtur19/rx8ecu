@@ -14,7 +14,7 @@ address,proposed_name,confidence,source,notes
 0xffff17de,uds_iocontrol_entry,high,function_names+renames,fns: uds_2f_iocontrol_entry_17de (x1); roles: uds_2f_iocontrol_entry_17de; cats: OBD / UDS(x1)
 0xffff17df,obd_control_pid,high,function_names+renames,fns: obd_control_pid_17df_handler (x1); roles: obd_control_pid_17df_handler; cats: OBD / UDS(x1)
 0xffff17e1,obd_control_pid,high,function_names+renames,fns: obd_control_pid_17e1_handler (x1); roles: obd_control_pid_17e1_handler; cats: OBD / UDS(x1)
-0xffff3b3c,dtc,medium,function_names+renames,fns: dtc_3b3c_qualification (x1); dtc_3b3c_delta_detect (x1); roles: dtc_3b3c_qualification; dtc_3b3c_delta_detect; cats: Faults & DTC(x2); CAUTION: low16 also collides with a ROM function address
+0xffff3b3c,dtc,low,function_names+renames,fns: dtc_3b3c_qualification (x1); dtc_3b3c_delta_detect (x1); roles: dtc_3b3c_qualification; dtc_3b3c_delta_detect; cats: Faults & DTC(x2); CAUTION: low16 also collides with a ROM function address
 0xffff4873,dtc_status_write_pair,high,function_names+renames,fns: dtc_status_write_pair_4873 (x1); roles: dtc_status_write_pair_4873; cats: Faults & DTC(x1)
 0xffff5348,ram_5348,low,function_names+renames,fns: set_sr_delay_thunk_5348 (x1); roles: set_sr_delay_thunk_5348; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffff6000,memcpy_loops_over_ram_ranges,medium,renames,roles: diag_transfer_data_handler; boot_ram_selftest_relocate; ctx: memcpy_loops_over_ram_ranges(x1)
@@ -273,7 +273,7 @@ address,proposed_name,confidence,source,notes
 0xffff9ef6,evap_pressure_raw_convert,medium,renames,roles: evap_pressure_raw_convert; ctx: evap_pressure_raw_convert(x1)
 0xffff9efc,running_average_of_raw,medium,renames,roles: learned_value_average_crc_store; ctx: running_average_of_raw(x1)
 0xffff9f08,copies_raw_scaled,medium,renames,roles: aux_input_signal_mirror_filter; sensor_calc_latch_first; ctx: copies_raw_scaled(x1)
-0xffff9f0a,copies,medium,renames,roles: sensor_latch_copy_to_adc2_adea_ad98; ram_mirror_value_copies; ctx: copies(x2)
+0xffff9f0a,copies,low,renames,roles: sensor_latch_copy_to_adc2_adea_ad98; ram_mirror_value_copies; ctx: copies(x2)
 0xffff9f18,conversion,medium,renames,roles: sensor_word_to_float_store_b7ec; ctx: conversion(x1)
 0xffff9f24,phase_state_machine_increments,medium,renames,"roles: boot_phase_output_config; boot_output_phase_state_machine; ctx: boot_init_state_machine(x1), phase_state_machine_increments(x1)"
 0xffff9f25,ram_9f25,low,renames,roles: boot_phase_output_config; boot_output_phase_state_machine; boot_hw_timer_channel_setup; adc_convert_state_dispatch
@@ -297,7 +297,7 @@ address,proposed_name,confidence,source,notes
 0xffff9f95,ram_9f95,low,renames,roles: crank_period_ratio_calc_clamped; table_d76d_to_port_f6d8_output; crank_angle_timeout_calc
 0xffff9f96,if_engine_run,medium,renames,roles: e_shaft_angle_store_validated; crank_state_timeout_countdown; crank_angle_timeout_calc; ctx: if_engine_run(x1)
 0xffff9f97,ram_9f97,low,renames,roles: crank_angle_timeout_calc; ign_timing_hw_output_update
-0xffff9f98,copies,medium,renames,roles: injector_fuel_correction_calc; ignition_timing_update_all4; ctx: copies(x1)
+0xffff9f98,copies,low,renames,roles: injector_fuel_correction_calc; ignition_timing_update_all4; ctx: copies(x1)
 0xffff9f9c,per_injector_pulse_compute_rpm,medium,renames,roles: injector_pulse_width_calc; ctx: per_injector_pulse_compute_rpm(x1)
 0xffff9fa0,ram_9fa0,low,renames,roles: crank_sub_flags_clear_9fcc
 0xffff9fa2,ram_9fa2,low,renames,roles: fuel_cut_timer_cc96_count; fuel_cut_counter_cc90_update
@@ -337,7 +337,7 @@ address,proposed_name,confidence,source,notes
 0xffffa118,rtos_task_stub_0,high,function_names+renames,fns: rtos_task_stub_0_a118 (x1); roles: rtos_task_table_dispatch_load; rtos_task_stub_0_a118; cats: RTOS(x1); ctx: callers_use_task_flag_table(x1)
 0xffffa140,rtos_task_register,high,function_names+renames,fns: rtos_task_register_a140 (x1); roles: rtos_task_register_a140; cats: RTOS(x1); ctx: invokes_task_fn(x1)
 0xffffa154,rtos_task_stub_3,high,function_names+renames,fns: rtos_task_stub_3_a154 (x1); roles: rtos_task_stub_3_a154; cats: RTOS(x1)
-0xffffa168,callback,medium,renames,roles: can_tx_word_763c_fetch; ctx: callback(x1)
+0xffffa168,callback,low,renames,roles: can_tx_word_763c_fetch; ctx: callback(x1)
 0xffffa16c,ram_a16c,low,renames,roles: get_main_init_done_bool
 0xffffa188,clear_counter_word,high,function_names+renames,"fns: clear_counter_word_a188 (x1); roles: sensor_tick_flags_init; timeout_counter_flash_tick; clear_counter_word_a188; cats: Throttle & Torque(x1); ctx: resets(x1), periodic_tick_incr(x1)"
 0xffffa18a,ram_a18a,low,renames,roles: sensor_tick_flags_init; timeout_counter_flash_tick
@@ -371,15 +371,15 @@ address,proposed_name,confidence,source,notes
 0xffffa229,are_cal_modes_when,medium,renames,roles: dtc_fault94_counter_update; ctx: are_cal_modes_when(x1)
 0xffffa22a,ram_a22a,low,renames,roles: adc_channel_data_store
 0xffffa2a2,ram_a2a2,low,renames,roles: adc_dma_scan_step_handler
-0xffffa2de,table,high,function_names+renames,fns: table_a2de_read_copy (x1); roles: adc_dma_scan_step_handler; table_a2de_read_copy; cats: Throttle & Torque(x1); ctx: step_complete_copies_staged(x1)
+0xffffa2de,table,low,function_names+renames,fns: table_a2de_read_copy (x1); roles: adc_dma_scan_step_handler; table_a2de_read_copy; cats: Throttle & Torque(x1); ctx: step_complete_copies_staged(x1)
 0xffffa31d,ram_a31d,low,renames,roles: adc_channel_data_store
 0xffffa31f,ram_a31f,low,renames,roles: adc_channel_data_store
 0xffffa320,ram_a320,low,renames,roles: table_a2de_read_copy
-0xffffa323,flag,high,function_names+renames,fns: flag_a323_clear (x1); roles: port_f69e_set_2f_dispatch_b5fa; flag_a323_clear; cats: Utilities(x1)
+0xffffa323,flag,low,function_names+renames,fns: flag_a323_clear (x1); roles: port_f69e_set_2f_dispatch_b5fa; flag_a323_clear; cats: Utilities(x1)
 0xffffa326,ram_a326,low,renames,roles: knock_adc_store_clear_port
 0xffffa390,copy_floats,high,function_names+renames,fns: copy_floats_a390_b6a0 (x1); roles: copy_floats_a390_b6a0; cats: Math / FPU(x1)
-0xffffa3b0,byte,high,function_names+renames,fns: byte_a3b0_to_b69c (x1); roles: byte_a3b0_to_b69c; cats: Math / FPU(x1)
-0xffffa3d0,shadow,high,function_names+renames,fns: shadow_a3d0_region_init (x1); roles: shadow_a3d0_region_init; cats: CAN Bus(x1)
+0xffffa3b0,byte,low,function_names+renames,fns: byte_a3b0_to_b69c (x1); roles: byte_a3b0_to_b69c; cats: Math / FPU(x1)
+0xffffa3d0,shadow,low,function_names+renames,fns: shadow_a3d0_region_init (x1); roles: shadow_a3d0_region_init; cats: CAN Bus(x1)
 0xffffa3d6,ram_a3d6,low,renames,roles: sr_protected_shadow_pair_write
 0xffffa3d7,maininit_called_init,medium,renames,roles: shadow_a3d0_region_init; ctx: maininit_called_init(x1)
 0xffffa3dc,ram_a3dc,low,renames,roles: coolant_temp_source_select_b804
@@ -387,7 +387,7 @@ address,proposed_name,confidence,source,notes
 0xffffa3e8,boot_ram,high,function_names+renames,fns: boot_ram_a3e8_validate (x1); roles: boot_ram_a3e8_validate; cats: Boot & Init(x1)
 0xffffa3f0,shadow_init_if_idle,medium,renames,roles: boot_ram_selftest_relocate; idle_learn_counter_update; idle_learn_shadow_8768_876a_update; ctx: shadow_init_if_idle(x1)
 0xffffa3f8,ram_a3f8,low,renames,roles: state_slot_acquire_if_idle
-0xffffa3f9,clear,high,function_names+renames,fns: clear_a3f9_if_not_state_2 (x1); roles: dtc_fault_counter_threshold_set; state_slot_acquire_if_idle; clear_a3f9_if_not_state_2; sensor_cal_state_clear; cats: Faults & DTC(x1)
+0xffffa3f9,clear,low,function_names+renames,fns: clear_a3f9_if_not_state_2 (x1); roles: dtc_fault_counter_threshold_set; state_slot_acquire_if_idle; clear_a3f9_if_not_state_2; sensor_cal_state_clear; cats: Faults & DTC(x1)
 0xffffa3fa,ram_a3fa,low,renames,roles: dtc_fault_counter_threshold_set; state_slot_acquire_if_idle; clear_a3f9_if_not_state_2
 0xffffa3fb,sensor_cal_flag_set,high,function_names+renames,fns: sensor_cal_flag_set_a3fb (x1); roles: sensor_cal_flag_set_a3fb; cats: Sensors(x1)
 0xffffa3fc,boot_clear_flag,high,function_names+renames,fns: boot_clear_flag_a3fc (x1); set_flag_byte_a3fc (x1); roles: f6e8_write_0b_init_chain; set_flag_byte_a3fc; boot_clear_flag_a3fc; cats: Boot & Init(x2)
@@ -593,7 +593,7 @@ address,proposed_name,confidence,source,notes
 0xffffb5ac,ram_b5ac,low,renames,roles: float_copy_b594_to_b5a0
 0xffffb5b0,float_zero,high,function_names+renames,fns: float_zero_b5a8_b5b0 (x1); roles: float_zero_b5a8_b5b0; cats: Ignition & Knock(x1)
 0xffffb5b4,engine_state_cal_copy,high,function_names+renames,fns: engine_state_cal_copy_b5b4_dispatch_74e0 (x1); roles: engine_state_cal_copy_b5b4_dispatch_74e0; cats: Memory & CRC(x1)
-0xffffb5b5,set,high,function_names+renames,fns: set_b5b5_flag_if_cca0 (x1); roles: set_b5b5_flag_if_cca0; cats: Boot & Init(x1)
+0xffffb5b5,set,low,function_names+renames,fns: set_b5b5_flag_if_cca0 (x1); roles: set_b5b5_flag_if_cca0; cats: Boot & Init(x1)
 0xffffb5b8,ram_b5b8,low,renames,roles: timer_engoff_counter_reload
 0xffffb5bc,uds_fault_status_mask,medium,function_names+renames,"fns: float_div_store_b5bc (x1); uds_fault_status_mask_getter_b5bc_b5d0 (x1); roles: float_div_store_b5bc; uds_fault_status_mask_getter_b5bc_b5d0; cats: Math / FPU(x1), OBD / UDS(x1); CAUTION: low16 also collides with a ROM function address"
 0xffffb5c0,ram_b5c0,low,renames,roles: throttle_tpsStatusOutputPort
@@ -604,7 +604,7 @@ address,proposed_name,confidence,source,notes
 0xffffb5cf,sr_protected_inc,high,function_names+renames,fns: sr_protected_inc_b5cf (x1); roles: sr_protected_inc_b5cf; cats: Peripherals & ISR(x1)
 0xffffb5d0,ram_b5d0,low,function_names+renames,fns: uds_fault_status_mask_getter_b5bc_b5d0 (x1); roles: uds_fault_status_mask_getter_b5bc_b5d0; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffb5d4,ram_set_flag_byte,medium,function_names+renames,"fns: set_b5d4_flag (x1); ram_set_flag_byte_b5d4 (x1); set_b5d4_then_25df0 (x1); roles: ram_set_flag_byte_b5d4; set_b5d4_flag; set_b5d4_then_25df0; cats: Boot & Init(x2), Memory & CRC(x1); CAUTION: low16 also collides with a ROM function address"
-0xffffb5d8,float,high,function_names+renames,"fns: copy_float_9f68_b5d8 (x1); float_add_74dc8_b5d8_b694 (x1); float_add_74dc8_b5d8_b698 (x1); roles: fanout_float_9f68_to_b5d8_b5dc_b5e0; copy_float_9f68_b5d8; float_add_74dc8_b5d8_b694; float_add_74dc8_b5d8_b698; cats: Faults & DTC(x2), Boot & Init(x1)"
+0xffffb5d8,float,low,function_names+renames,"fns: copy_float_9f68_b5d8 (x1); float_add_74dc8_b5d8_b694 (x1); float_add_74dc8_b5d8_b698 (x1); roles: fanout_float_9f68_to_b5d8_b5dc_b5e0; copy_float_9f68_b5d8; float_add_74dc8_b5d8_b694; float_add_74dc8_b5d8_b698; cats: Faults & DTC(x2), Boot & Init(x1)"
 0xffffb5dc,first_order_filter,high,function_names+renames,"fns: fanout_float_9f68_to_b5d8_b5dc_b5e0 (x1); first_order_filter_b5dc (x1); sensor_b5dc_thresh_hysteresis_check (x1); roles: evap_pressure_fault_flag_eval; sensor_b5dc_thresh_hysteresis_check; fanout_float_9f68_to_b5d8_b5dc_b5e0; first_order_filter_b5dc; cats: Sensors(x2), Boot & Init(x1); ctx: compares(x1)"
 0xffffb5e0,fanout_float,high,function_names+renames,fns: fanout_float_9f68_to_b5d8_b5dc_b5e0 (x1); roles: fanout_float_9f68_to_b5d8_b5dc_b5e0; cats: Sensors(x1)
 0xffffb5e8,uds_mode22,high,function_names+renames,fns: uds_mode22_get_b5e8_16bit (x1); roles: uds_mode22_get_b5e8_16bit; cats: OBD / UDS(x1)
@@ -690,13 +690,13 @@ address,proposed_name,confidence,source,notes
 0xffffbb3a,can201_value,high,function_names+renames,fns: can201_value_bb3a (x1); roles: can201_value_bb3a; cats: CAN Bus(x1)
 0xffffbb3c,cal_filtered_float_update,high,function_names+known+renames,cal filter pair 0xFFFFBB3C; fns: cal_filtered_float_update_bb3c (x1); roles: cal_filtered_float_update_bb3c; cats: Math / FPU(x1)
 0xffffbb40,cal_filter,high,known+renames,cal filter pair 0xFFFFBB40; roles: cal_filtered_float_update_bb3c
-0xffffbb44,clear,high,function_names+renames,fns: clear_bb44_cnt (x1); roles: clear_bb44_cnt; cats: CAN Bus(x1)
+0xffffbb44,clear,low,function_names+renames,fns: clear_bb44_cnt (x1); roles: clear_bb44_cnt; cats: CAN Bus(x1)
 0xffffbb50,ram_bb50,low,function_names+renames,fns: can203_copy_byte_bb50_to_bb5f (x1); roles: can203_copy_byte_bb50_to_bb5f; cats: CAN Bus(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffbb51,can203_copy_byte,high,function_names+renames,fns: can203_copy_byte_bb51_to_bb61 (x1); roles: can203_copy_byte_bb51_to_bb61; cats: CAN Bus(x1)
 0xffffbb52,can203_copy_byte,medium,function_names+renames,fns: can203_copy_byte_bb52_to_bb60 (x1); can_out_byte_bb52_calc (x1); roles: can203_copy_byte_bb52_to_bb60; can_out_byte_bb52_calc; cats: CAN Bus(x2); CAUTION: low16 also collides with a ROM function address
 0xffffbb53,can203_copy_byte,high,function_names+renames,fns: can203_copy_byte_bb53_to_bb62 (x1); can_out_byte_bb53_calc (x1); roles: can203_copy_byte_bb53_to_bb62; can_out_byte_bb53_calc; cats: CAN Bus(x2)
 0xffffbb5c,can_fault_active_flag,high,function_names+renames,fns: can_fault_active_flag_bb5c (x1); roles: can_fault_active_flag_bb5c; cats: CAN Bus(x1)
-0xffffbb5d,flag,high,function_names+renames,fns: flag_bb5d_condition_eval (x1); roles: flag_bb5d_condition_eval; cats: CAN Bus(x1)
+0xffffbb5d,flag,low,function_names+renames,fns: flag_bb5d_condition_eval (x1); roles: flag_bb5d_condition_eval; cats: CAN Bus(x1)
 0xffffbb5e,ram_bb5e,low,function_names+renames,fns: torque_flag_bb5e_eval (x1); roles: torque_flag_bb5e_eval; cats: Throttle & Torque(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffbb5f,can203_copy_byte,high,function_names+renames,fns: can203_copy_byte_bb50_to_bb5f (x1); roles: can203_copy_byte_bb50_to_bb5f; cats: CAN Bus(x1)
 0xffffbb60,can203_copy_byte,high,function_names+renames,fns: can203_copy_byte_bb52_to_bb60 (x1); roles: can203_copy_byte_bb52_to_bb60; cats: CAN Bus(x1)
@@ -717,7 +717,7 @@ address,proposed_name,confidence,source,notes
 0xffffbb94,can_reset_counter,high,function_names+renames,fns: can_reset_counter_bb94 (x1); roles: can_periodic_throttle_tx_tick; can_reset_counter_bb94; cats: CAN Bus(x1); ctx: trivial_reset(x1)
 0xffffbb96,ram_bb96,low,renames,roles: dsc_state_filter_bb90
 0xffffbb98,ram_bb98,low,function_names+renames,fns: flag_bb98_from_bddc (x1); roles: flag_bb98_from_bddc; cats: Math / FPU(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xffffbb99,flag,high,function_names+renames,fns: flag_bb99_gated_a4a6 (x1); roles: flag_bb99_gated_a4a6; cats: Math / FPU(x1)
+0xffffbb99,flag,low,function_names+renames,fns: flag_bb99_gated_a4a6 (x1); roles: flag_bb99_gated_a4a6; cats: Math / FPU(x1)
 0xffffbb9c,hist4_shift_extract,high,function_names+renames,fns: f32_hist4_shift_extract_bb9c (x1); roles: f32_hist4_shift_extract_bb9c; cats: Math / FPU(x1)
 0xffffbba5,ram_bba5,low,renames,roles: veh_speed_filter_rate_limit
 0xffffbbac,ram_bbac,low,renames,roles: f32_hist4_shift_extract_bb9c
@@ -726,7 +726,7 @@ address,proposed_name,confidence,source,notes
 0xffffbbd3,ram_bbd3,low,renames,roles: veh_speed_filter_rate_limit
 0xffffbbe4,copy_timer_reset,medium,function_names+renames,"fns: copy_timer_reset_6d480_to_bbe4 (x1); dtc_timer_bbe4_dec (x1); roles: copy_timer_reset_6d480_to_bbe4; dtc_timer_bbe4_dec; cats: CAN Bus(x1), Faults & DTC(x1); CAUTION: low16 also collides with a ROM function address"
 0xffffbbe8,sample_copy_float,high,function_names+renames,fns: sample_copy_float_bbe8_to_bfbc (x1); roles: diag_window_flags_cef9_cefa_eval; f32_hist4_shift_extract_bb9c; alternator_current_delta_c608; sample_copy_float_bbe8_to_bfbc; cats: Memory & CRC(x1); ctx: hysteresis_window_eval(x1)
-0xffffbc03,flag,high,function_names+renames,fns: flag_bc03_bit3_bc12 (x1); roles: cruise_control_state_timer_b; flag_bc03_bit3_bc12; cats: CAN Bus(x1)
+0xffffbc03,flag,low,function_names+renames,fns: flag_bc03_bit3_bc12 (x1); roles: cruise_control_state_timer_b; flag_bc03_bit3_bc12; cats: CAN Bus(x1)
 0xffffbc04,ram_bc04,low,function_names+renames,fns: flag_bc04_threshold_bc24 (x1); roles: flag_bc04_threshold_bc24; cats: CAN Bus(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffbc10,ram_bc10,low,function_names+renames,fns: dtc_timer_bc10_dec (x1); roles: dtc_timer_bc10_dec; cats: Faults & DTC(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffbc12,ram_bc12,low,function_names+renames,fns: flag_bc03_bit3_bc12 (x1); roles: flag_bc03_bit3_bc12; cats: CAN Bus(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
@@ -863,7 +863,7 @@ address,proposed_name,confidence,source,notes
 0xffffc297,ram_c297,low,renames,roles: immo_eeprom_write_request_01; immo_eeprom_write_request_09; immo_eeprom_write_request_08; immo_eeprom_write_request_0f
 0xffffc29b,ram_c29b,low,renames,roles: immo_eeprom_write_request_01
 0xffffc29c,ram_c29c,low,renames,roles: immo_eeprom_write_request_01
-0xffffc2aa,buf,high,function_names+renames,fns: e2_buf_c2aa_addr_get (x1); roles: e2_buf_c2aa_addr_get; cats: Memory & CRC(x1); ctx: returns(x1)
+0xffffc2aa,buf,low,function_names+renames,fns: e2_buf_c2aa_addr_get (x1); roles: e2_buf_c2aa_addr_get; cats: Memory & CRC(x1); ctx: returns(x1)
 0xffffc2ae,ram_c2ae,low,renames,roles: immo_eeprom_write_request_09
 0xffffc2af,ram_c2af,low,renames,roles: immo_eeprom_write_request_09
 0xffffc2b0,ram_c2b0,low,renames,roles: immo_eeprom_write_request_08
@@ -873,7 +873,7 @@ address,proposed_name,confidence,source,notes
 0xffffc2d1,ram_c2d1,low,renames,roles: immo_eeprom_write_request_01; immo_eeprom_write_request_09; immo_eeprom_write_request_08; immo_eeprom_write_request_0f
 0xffffc2f8,ram_c2f8,low,renames,roles: immo_eeprom_write_request_0e; immo_eeprom_write_request_02; immo_eeprom_write_request_01; immo_eeprom_write_request_09
 0xffffc4b2,ram_c4b2,low,renames,roles: eeprom_shadow_write_state_task
-0xffffc4b9,shadow,high,function_names+renames,fns: e2_shadow_c4b9_c4ba_init (x1); roles: e2_shadow_c4b9_c4ba_init; cats: Boot & Init(x1)
+0xffffc4b9,shadow,low,function_names+renames,fns: e2_shadow_c4b9_c4ba_init (x1); roles: e2_shadow_c4b9_c4ba_init; cats: Boot & Init(x1)
 0xffffc4ba,ram_c4ba,low,function_names+renames,fns: e2_shadow_c4b9_c4ba_init (x1); roles: e2_shadow_c4b9_c4ba_init; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffc4d4,fault_confirm_counter,medium,function_names+renames,"fns: fault_cell_c4d4_from_6d487 (x1); fault_confirm_counter_c4d4 (x1); roles: fault_cell_c4d4_from_6d487; fault_confirm_counter_c4d4; cats: CAN Bus(x1), Faults & DTC(x1); CAUTION: low16 also collides with a ROM function address"
 0xffffc4dc,ram_c4dc,low,renames,roles: fault_cd0c_load_gated
@@ -887,7 +887,7 @@ address,proposed_name,confidence,source,notes
 0xffffc522,ram_c522,low,function_names+renames,fns: float_state_accum_c522 (x1); roles: float_state_accum_c522; cats: Math / FPU(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffc528,rtos_task_state_switch,high,function_names+renames,fns: rtos_task_state_switch_c528 (x1); roles: rtos_task_state_switch_c528; cats: RTOS(x1)
 0xffffc532,ram_c532,low,renames,roles: mem_cellflag_sensor_cond_write
-0xffffc534,float,high,function_names+renames,"fns: float_c534_init_one (x1); fault_ref_float_c534_update (x1); roles: float_c534_init_one; fault_ref_float_c534_update; cats: Boot & Init(x1), Faults & DTC(x1)"
+0xffffc534,float,low,function_names+renames,"fns: float_c534_init_one (x1); fault_ref_float_c534_update (x1); roles: float_c534_init_one; fault_ref_float_c534_update; cats: Boot & Init(x1), Faults & DTC(x1)"
 0xffffc53e,fault_confirm_counter,high,function_names+renames,fns: fault_confirm_counter_c53e (x1); roles: fault_confirm_counter_c53e; cats: Faults & DTC(x1)
 0xffffc53f,fault_monitor_sample,high,function_names+renames,fns: fault_monitor_sample_c53f_79570 (x1); roles: fault_monitor_sample_c53f_79570; cats: Faults & DTC(x1)
 0xffffc543,dtc_report,high,function_names+renames,fns: dtc_report_2a_from_c542_c543 (x1); roles: dtc_report_2a_from_c542_c543; cats: Faults & DTC(x1)
@@ -1015,7 +1015,7 @@ address,proposed_name,confidence,source,notes
 0xffffc944,sanitize_float_gate,high,function_names+renames,fns: sanitize_float_c8b0_gate_c944 (x1); roles: sanitize_float_c8b0_gate_c944; cats: Math / FPU(x1); ctx: if_mode(x1)
 0xffffc94c,ram_c94c,low,function_names+renames,fns: torque_sensor_check_c94c (x1); roles: torque_sensor_check_c94c; cats: Throttle & Torque(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffc94e,ram_c94e,low,renames,roles: fault_flag_cca4_eval
-0xffffc94f,flag,high,function_names+renames,fns: flag_c94f_update (x1); roles: flag_c94f_update; cats: Ignition & Knock(x1)
+0xffffc94f,flag,low,function_names+renames,fns: flag_c94f_update (x1); roles: flag_c94f_update; cats: Ignition & Knock(x1)
 0xffffc954,ram_c954,low,renames,roles: ign_timing_3d_lookup_set
 0xffffc994,ram_c994,low,renames,roles: coolant_temp_flag_copy
 0xffffc999,ram_c999,low,renames,roles: coolant_temp_flag_copy
@@ -1111,7 +1111,7 @@ address,proposed_name,confidence,source,notes
 0xffffcbc4,batt_temp_delta_comp_calc,high,function_names+renames,fns: batt_temp_delta_comp_calc_cbc4 (x1); roles: batt_temp_delta_comp_calc_cbc4; cats: Faults & DTC(x1)
 0xffffcbd0,flag_setter_bit8,high,function_names+renames,fns: flag_setter_f76c_bit8_cbd0 (x1); roles: flag_setter_f76c_bit8_cbd0; cats: Peripherals & ISR(x1)
 0xffffcbd1,ram_cbd1,low,renames,roles: flag_setter_f76c_bit8_cbd0
-0xffffcbd4,status,high,function_names+renames,fns: status_cbd4_bits_to_d09c (x1); status_cbd4_bits_to_d09d (x1); roles: fault_cd0c_load_gated; status_cbd4_bits_to_d09c; status_cbd4_bits_to_d09d; cats: OBD / UDS(x2)
+0xffffcbd4,status,low,function_names+renames,fns: status_cbd4_bits_to_d09c (x1); status_cbd4_bits_to_d09d (x1); roles: fault_cd0c_load_gated; status_cbd4_bits_to_d09c; status_cbd4_bits_to_d09d; cats: OBD / UDS(x2)
 0xffffcbd6,ram_cbd6,low,function_names+renames,fns: can630_status_byte_bff9_from_cbd6 (x1); roles: can630_status_byte_bff9_from_cbd6; cats: CAN Bus(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffcbd7,rom_id_word_check_flag,high,function_names+renames,fns: rom_id_word_check_flag_cbd7 (x1); roles: rom_id_word_check_flag_cbd7; cats: Rev Limit(x1)
 0xffffcbd8,rom_id_long_check_flag,high,function_names+renames,fns: rom_id_long_check_flag_cbd8 (x1); roles: rom_id_long_check_flag_cbd8; cats: Rev Limit(x1)
@@ -1157,8 +1157,8 @@ address,proposed_name,confidence,source,notes
 0xffffcca4,uds_fault_status_mask,high,function_names+renames,"fns: fault_flag_cca4_eval (x1); uds_fault_status_mask_getter_bf58_ad7c_cca4 (x1); roles: fault_flag_cca4_eval; uds_fault_status_mask_getter_bf58_ad7c_cca4; cats: Faults & DTC(x1), OBD / UDS(x1)"
 0xffffcca5,fault_clear_flag_gated_copy,high,function_names+renames,fns: fault_flag_byte_copy_cca5_cca9 (x1); fault_all_clear_flag_eval_cca5 (x1); fault_clear_flag_gated_copy_cca5_to_cca6 (x1); roles: fault_all_clear_flag_eval_cca5; fault_cca8_change_debounce; fault_clear_flag_gated_copy_cca5_to_cca6; fault_flag_byte_copy_cca5_cca9; cats: Faults & DTC(x3); ctx: input(x1)
 0xffffcca6,fault_clear_flag_gated_copy,high,function_names+renames,fns: fault_clear_flag_gated_copy_cca5_to_cca6 (x1); roles: fault_flag_cca4_eval; fault_clear_flag_gated_copy_cca5_to_cca6; cats: Faults & DTC(x1)
-0xffffcca7,fault,high,function_names+renames,fns: fault_cca7_cond_counter (x1); roles: fault_cca7_cond_counter; cats: Faults & DTC(x1)
-0xffffcca8,fault,high,function_names+renames,"fns: fault_cca8_change_debounce (x1); roles: fault_cca8_change_debounce; fault_clear_flag_gated_copy_cca5_to_cca6; cats: Faults & DTC(x1); ctx: change_reload(x1), if_gate(x1)"
+0xffffcca7,fault,low,function_names+renames,fns: fault_cca7_cond_counter (x1); roles: fault_cca7_cond_counter; cats: Faults & DTC(x1)
+0xffffcca8,fault,low,function_names+renames,"fns: fault_cca8_change_debounce (x1); roles: fault_cca8_change_debounce; fault_clear_flag_gated_copy_cca5_to_cca6; cats: Faults & DTC(x1); ctx: change_reload(x1), if_gate(x1)"
 0xffffcca9,fault_flag_byte_copy,high,function_names+renames,fns: fault_flag_byte_copy_cca5_cca9 (x1); roles: fault_cca8_change_debounce; fault_flag_byte_copy_cca5_cca9; cats: Faults & DTC(x1)
 0xffffccb1,fuel_resume_plausibility_cnt,high,function_names+renames,fns: fuel_resume_plausibility_cnt_ccb1 (x1); roles: fuel_resume_plausibility_cnt_ccb1; cats: Fuel & Lambda(x1)
 0xffffccc0,ram_ccc0,low,renames,roles: fuel_enrichment_multiplier_calc
@@ -1239,7 +1239,7 @@ address,proposed_name,confidence,source,notes
 0xffffcedc,fault_monitor_sample,high,function_names+renames,fns: fault_float_calc_cedc (x1); fault_monitor_sample_cee0_cedc (x1); roles: fault_state_latch_float_reset; fault_float_calc_cedc; fault_monitor_sample_cee0_cedc; cats: Faults & DTC(x2); ctx: zero_writes_float_const(x1)
 0xffffcee0,fault_monitor_sample,high,function_names+renames,"fns: fault_float_latch_cee0 (x1); fault_float_copy_cee0 (x1); uds_mode22_get_cee0_16bit (x1); fault_monitor_sample_cee0_cedc (x1); roles: uds_mode22_get_cee0_16bit; fault_float_latch_cee0; fault_float_copy_cee0; fault_monitor_sample_cee0_cedc; cats: Faults & DTC(x3), OBD / UDS(x1)"
 0xffffcee4,fault_float_filter,high,function_names+renames,fns: fault_float_filter_cee4 (x1); roles: fault_float_filter_cee4; cats: Faults & DTC(x1)
-0xffffcef0,fault,high,function_names+renames,fns: fault_cef0_cond_timer (x1); roles: fault_cef0_cond_timer; cats: Faults & DTC(x1)
+0xffffcef0,fault,low,function_names+renames,fns: fault_cef0_cond_timer (x1); roles: fault_cef0_cond_timer; cats: Faults & DTC(x1)
 0xffffcef1,fault_flag_condition,high,function_names+renames,fns: fault_flag_condition_cef1 (x1); roles: fault_cef0_cond_timer; fault_flag_condition_cef1; cats: Faults & DTC(x1)
 0xffffcef2,ram_cef2,low,renames,roles: fault_state_latch_float_reset
 0xffffcef3,latches,medium,renames,roles: fault_state_latch_float_reset; ctx: latches(x1)
@@ -1346,7 +1346,7 @@ address,proposed_name,confidence,source,notes
 0xffffd051,latch_shadow,high,known+renames,latch shadow 0xFFFFD051; roles: fault_input_latch_c520
 0xffffd052,reset_flag_store,high,function_names+renames,fns: reset_flag_11f54_store_d052 (x1); roles: dtc_fault_value_record_update; diag_fault_cond_eval_90E8; reset_flag_11f54_store_d052; cats: Boot & Init(x1)
 0xffffd053,reset_flag_store,high,function_names+renames,fns: reset_flag_11f54_store_d053 (x1); roles: diag_fault_cond_eval_9108; reset_flag_11f54_store_d053; cats: Boot & Init(x1)
-0xffffd054,fault,high,function_names+renames,fns: fault_d054_counter_load (x1); fault_d054_counter_dec (x1); roles: fault_d054_counter_load; fault_d054_counter_dec; cats: Faults & DTC(x2)
+0xffffd054,fault,low,function_names+renames,fns: fault_d054_counter_load (x1); fault_d054_counter_dec (x1); roles: fault_d054_counter_load; fault_d054_counter_dec; cats: Faults & DTC(x2)
 0xffffd056,ram_d056,low,renames,roles: fault_d054_counter_load
 0xffffd057,obd_pending_flag_clear,high,function_names+renames,fns: obd_pending_flag_clear_d057 (x1); roles: fault_d054_counter_load; uds_nrc_reason_emit_65570; obd_pending_flag_clear_d057; cats: OBD / UDS(x1); ctx: response_pending(x1)
 0xffffd058,ram_d058,low,function_names+renames,fns: uds_param_source_select_d058 (x1); roles: uds_param_source_select_d058; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
@@ -1444,7 +1444,7 @@ address,proposed_name,confidence,source,notes
 0xffffd2a2,ram_d2a2,low,renames,roles: timer_state_debounce_latch
 0xffffd2e8,ram_d2e8,low,function_names+renames,fns: sensor_diag_bool_report_d2e8 (x1); roles: sensor_diag_bool_report_d2e8; cats: Sensors(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
 0xffffd2f6,dtc_fault_state_machine,high,function_names+renames,fns: status_buf_d2f6_clear_8c (x1); dtc_fault_state_machine_d2f6 (x1); roles: status_buf_d2f6_clear_8c; dtc_fault_state_machine_d2f6; cats: Faults & DTC(x2)
-0xffffd330,copies,medium,renames,roles: can_uds_memread_response_tx; ctx: copies(x1)
+0xffffd330,copies,low,renames,roles: can_uds_memread_response_tx; ctx: copies(x1)
 0xffffd34b,uds_byte,high,function_names+renames,fns: uds_byte_getter_d34b_transform (x1); roles: uds_byte_getter_d34b_transform; cats: OBD / UDS(x1)
 0xffffd380,ram_d380,low,renames,roles: dtc_flag_set_orr
 0xffffd382,clear_fault_status_ram,high,function_names+renames,"fns: clear_ram_d382_thunk (x1); clear_fault_status_ram_d382 (x1); roles: dtc_flag_set_orr; uds_mode22_did_202_getter; clear_ram_d382_thunk; clear_fault_status_ram_d382; cats: Memory & CRC(x1), Faults & DTC(x1); ctx: fault_status_byte_array(x1)"
@@ -1478,7 +1478,7 @@ address,proposed_name,confidence,source,notes
 0xffffd760,obd_mode6_word_report,high,function_names+known+renames,OBD output counter 0xFFFFD760; fns: obd_mode6_word_report_d760 (x1); roles: obd_mode6_word_report_d760; obd_mode6_send_dispatch; cats: OBD / UDS(x1)
 0xffffd768,boot_flag_clear,high,function_names+renames,"fns: boot_flag_clear_d768 (x1); obd_clear_d768_send (x1); roles: uds_service_response_dispatch; boot_flag_clear_d768; obd_clear_d768_send; cats: Boot & Init(x1), OBD / UDS(x1)"
 0xffffd76c,obd_channel_fifo,high,function_names+known+renames,"OBD channel FIFO at 0xFFFFD76C (stride 0x46C); fns: obd_chan_rec_zero_d76c (x1); obd_chan_fifo_read_d76c (x1); roles: obd_resp_slot_counter_step; task_event_store_dc03_stall_counter; obd_chan_rec_zero_d76c; obd_chan_fifo_read_d76c; cats: Boot & Init(x1), OBD / UDS(x1); ctx: response_buffers(x1)"
-0xffffd76d,table,high,function_names+renames,fns: table_d76d_to_port_f6d8_output (x1); roles: table_d76d_to_port_f6d8_output; cats: Peripherals & ISR(x1)
+0xffffd76d,table,low,function_names+renames,fns: table_d76d_to_port_f6d8_output (x1); roles: table_d76d_to_port_f6d8_output; cats: Peripherals & ISR(x1)
 0xffffd8d8,fnptr_dispatch,high,function_names+renames,fns: fnptr_dispatch_d8d8_thunk (x1); fnptr_dispatch_d8d8_thunk_5eee (x1); fnptr_dispatch_d8d8 (x1); roles: fnptr_dispatch_d8d8; thunk_to_9c86; thunk_to_9c86_5eee; cats: Utilities(x3); ctx: jmp_fnptr(x1)
 0xffffd8dc,port_bit0_set_dispatch,high,function_names+renames,"fns: port_e612_bit0_set_dispatch_d8dc (x1); fnptr_dispatch_d8dc (x1); roles: port_e612_bit0_set_dispatch_d8dc; port_e412_bit0_set_dispatch_9c9c; fnptr_dispatch_d8dc; cats: Peripherals & ISR(x1), Utilities(x1); ctx: indirect_call_via_fn(x2), jmp_fnptr(x1)"
 0xffffdbd8,ram_dbd8,low,renames,roles: obd_pack_12bit_value_response; obd_mode22_pid_value_pack; can_hdr_code_clamp
@@ -1507,108 +1507,108 @@ address,proposed_name,confidence,source,notes
 0xffffdfc0,ram_dfc0,low,renames,roles: diag_transfer_data_sid36
 0xffffdfc6,neg_resp_builder_frame,medium,renames,"roles: diag_transfer_data_handler; diag_transfer_data_sid36; diag_security_access_sid27; uds_neg_resp_build_b1; ctx: neg_resp_builder_frame(x9), neg_resp_into(x1)"
 0xffffdffc,family_as_warm_boot_magic,medium,renames,roles: boot_ram_selftest_relocate; ctx: family_as_warm_boot_magic(x1)
-0xffffe0a0,ram_e0a0,low,renames,roles: obd_control_pid_17e1_handler
-0xffffe406,polls_can_status,medium,renames,roles: can_mbox_send8_wait_ready; ctx: polls_can_status(x1)
-0xffffe40a,ram_e40a,low,renames,roles: can_mbox_send8_wait_ready; hcan_mbox_word_byteswap_write
-0xffffe40e,handler_tests_rx,medium,renames,roles: can_rx_mailbox_ready_process; can_mailbox_tx_write; ctx: handler_tests_rx(x1)
-0xffffe412,out_reg,high,function_names+renames,fns: out_reg_e412_or_6000_delay (x1); out_reg_e412_or_9910_delay (x1); port_e412_bit0_set_dispatch_9c9c (x1); roles: out_reg_e412_or_6000_delay; out_reg_e412_or_9910_delay; port_e412_bit0_set_dispatch_9c9c; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x2); CONFLICT-RESOLVED: kept out_reg; alt: port_bit0_set_dispatch
-0xffffe41a,ram_e41a,low,renames,roles: can_rx_mailbox_ready_process; can_mailbox_tx_write
-0xffffe528,ram_e528,low,renames,roles: can_mbox_send8_wait_ready; copy_bytes_readback_verify
-0xffffe60a,ram_e60a,low,renames,roles: hcan_mbox_word_byteswap_write
-0xffffe612,out_reg,high,function_names+renames,fns: out_reg_e612_or_6000_delay (x1); out_reg_e612_or_9910_delay (x1); port_e612_bit0_set_dispatch_d8dc (x1); roles: port_e612_bit0_set_dispatch_d8dc; out_reg_e612_or_6000_delay; out_reg_e612_or_9910_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x2); CONFLICT-RESOLVED: kept out_reg; alt: port_bit0_set_dispatch
-0xffffe901,obd_control_pid,high,function_names+renames,fns: obd_control_pid_e901_handler (x1); roles: obd_control_pid_e901_handler; cats: OBD / UDS(x1)
-0xffffe906,ram_e906,low,function_names+renames,fns: uds_2f_iocontrol_entry_e906 (x1); roles: uds_2f_iocontrol_entry_e906; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xffffe909,uds_iocontrol_entry,high,function_names+renames,fns: uds_2f_iocontrol_entry_e909 (x1); roles: uds_2f_iocontrol_entry_e909; cats: OBD / UDS(x1)
-0xffffe91a,ram_e91a,low,function_names+renames,fns: obd_control_pid_e91a_handler (x1); roles: obd_control_pid_e91a_handler; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xffffec00,timer_sfr,high,function_names+renames,fns: timer_sfr_ec00_init_max (x1); roles: timer_sfr_ec00_init_max; cats: Boot & Init(x1)
-0xffffec04,ram_ec04,low,renames,roles: timer_sfr_ec00_init_max
-0xffffec08,ram_ec08,low,renames,roles: timer_sfr_ec00_init_max
-0xffffec0a,ram_ec0a,low,renames,roles: timer_sfr_ec00_init_max
-0xffffec10,ram_ec10,low,renames,roles: rtos_noop_stub_5028
-0xffffec12,ram_ec12,low,renames,roles: rtos_noop_stub_5028
-0xffffecb0,configures_descriptor_regs,medium,renames,roles: dma_ringbuf_transfer_start_poll; ctx: configures_descriptor_regs(x1)
-0xffffeccc,boot_sfr,high,function_names+renames,fns: boot_sfr_ECCC_and_FD_delay (x1); roles: dma_ringbuf_transfer_start_poll; boot_sfr_ECCC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
-0xffffecdc,out_reg,high,function_names+renames,fns: out_reg_ecdc_bit1_clear_delay (x1); roles: out_reg_ecdc_bit1_clear_delay; cats: Peripherals & ISR(x1); ctx: longword(x1)
-0xffffecec,boot_sfr,high,function_names+renames,fns: boot_sfr_ECEC_and_FD_delay (x1); roles: boot_sfr_ECEC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
-0xffffecfc,boot_sfr,high,function_names+renames,fns: boot_sfr_ECFC_and_FD_delay (x1); roles: boot_sfr_ECFC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
-0xffffed00,ram_ed00,low,function_names+renames,fns: boot_clear_atu_ed00_block (x1); roles: boot_clear_atu_ed00_block; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xffffed1a,out_reg,high,function_names+renames,"fns: out_reg_ed1a_write_7f_delay (x1); out_reg_ed1a_write_bf_delay (x1); out_reg_ed1a_write_df_delay (x1); out_reg_ed1a_write_ef_delay (x1); roles: out_reg_ed1a_write_7f_delay; out_reg_ed1a_write_bf_delay; out_reg_ed1a_write_df_delay; out_reg_ed1a_write_ef_delay; cats: Peripherals & ISR(x7), Faults & DTC(x1); ctx: sfr_shift_bit_step(x7); CONFLICT-RESOLVED: kept out_reg; alt: fault_vector_ack"
-0xfffff000,ram_f000,low,renames,roles: rtos_noop_stub_5042
-0xfffff003,ram_f003,low,renames,roles: adc_serial_channel_convert
-0xfffff004,out_reg,high,function_names+renames,fns: out_reg_f004_or_c0_delay (x1); out_reg_f004_or_b8_delay (x1); out_reg_f004_or_f8_delay (x1); roles: adc_serial_channel_convert; out_reg_f004_or_c0_delay; out_reg_f004_or_b8_delay; out_reg_f004_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
-0xfffff005,ram_f005,low,renames,roles: adc_serial_channel_convert
-0xfffff00c,out_reg,high,function_names+renames,fns: out_reg_f00c_or_c0_delay (x1); out_reg_f00c_or_b8_delay (x1); out_reg_f00c_or_f8_delay (x1); roles: out_reg_f00c_or_c0_delay; out_reg_f00c_or_b8_delay; out_reg_f00c_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
-0xfffff014,out_reg,high,function_names+renames,fns: out_reg_f014_or_c0_delay (x1); out_reg_f014_or_b8_delay (x1); out_reg_f014_or_f8_delay (x1); roles: out_reg_f014_or_c0_delay; out_reg_f014_or_b8_delay; out_reg_f014_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
-0xfffff01c,out_reg,high,function_names+renames,fns: out_reg_f01c_or_c0_delay (x1); out_reg_f01c_or_b8_delay (x1); out_reg_f01c_or_f8_delay (x1); roles: out_reg_f01c_or_c0_delay; out_reg_f01c_or_b8_delay; out_reg_f01c_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
-0xfffff020,sensor_port,medium,function_names+renames,"fns: sensor_port_init_f020_f026 (x1); boot_port_init_f020_f026_sr (x1); roles: sensor_port_init_f020_f026; boot_port_init_f020_f026_sr; cats: Sensors(x1), Boot & Init(x1); CAUTION: low16 also collides with a ROM function address"
-0xfffff024,out_reg,high,function_names+renames,fns: out_reg_f024_or_c0_delay (x1); out_reg_f024_or_b8_delay (x1); out_reg_f024_or_f8_delay (x1); roles: out_reg_f024_or_c0_delay; out_reg_f024_or_b8_delay; out_reg_f024_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
-0xfffff026,sensor_port,medium,function_names+renames,"fns: sensor_port_init_f020_f026 (x1); boot_port_init_f020_f026_sr (x1); roles: sensor_port_init_f020_f026; boot_port_init_f020_f026_sr; cats: Sensors(x1), Boot & Init(x1); CAUTION: low16 also collides with a ROM function address"
-0xfffff100,ram_f100,low,function_names+renames,fns: obd_send_f100_b2_msg (x1); roles: obd_send_f100_b2_msg; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff400,init_constants_to_many_sfrs,medium,renames,roles: sfr_output_module_bulk_init; ctx: init_constants_to_many_sfrs(x1)
-0xfffff42c,out_reg,high,function_names+renames,fns: out_reg_f42c_write_001f_delay (x1); out_reg_f42c_write_fe_delay (x1); out_reg_f42c_write_fd_delay (x1); out_reg_f42c_write_fb_delay (x1); roles: out_reg_f42c_write_fe_delay; out_reg_f42c_write_fd_delay; out_reg_f42c_write_fb_delay; out_reg_f42c_write_f7_delay; cats: Peripherals & ISR(x6); ctx: sfr_shift_bit_step(x5)
-0xfffff430,obd_byte_reorder,high,function_names+renames,fns: obd_byte_reorder_f430_to_c293 (x1); roles: obd_byte_reorder_f430_to_c293; obd_challenge_seed_gen_cfe9; cats: OBD / UDS(x1); ctx: samples(x1)
-0xfffff440,running_timer,medium,renames,roles: boot_hw_timer_channel_setup; ctx: running_timer(x1)
-0xfffff450,ram_f450,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff452,ram_f452,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff458,ram_f458,low,function_names+renames,fns: boot_ports_cfg_f458_f45b (x1); roles: boot_ports_cfg_f458_f45b; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff45a,ram_f45a,low,function_names+renames,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff45b,boot_ports_cfg,high,function_names+renames,fns: boot_ports_cfg_f458_f45b (x1); roles: boot_ports_cfg_f458_f45b; cats: Boot & Init(x1)
-0xfffff45e,out_reg,high,function_names+renames,fns: out_regs_f45e_f460_write_delay (x1); out_reg_f45e_write_01fd_delay (x1); out_reg_f45e_write_01fb_delay (x1); out_reg_f45e_write_01f7_delay (x1); roles: out_regs_f45e_f460_write_delay; out_reg_f45e_write_01fd_delay; out_reg_f45e_write_01fb_delay; out_reg_f45e_write_01f7_delay; cats: Peripherals & ISR(x8); ctx: sfr_shift_bit_step(x7); CONFLICT-RESOLVED: kept out_reg; alt: out_regs_write_delay
-0xfffff460,out_regs,high,function_names+renames,fns: out_regs_f45e_f460_write_delay (x1); out_regs_cond_f460_check_or_f62c_write_delay (x1); roles: out_regs_cond_f460_check_or_f62c_write_delay; out_regs_f45e_f460_write_delay; cats: Peripherals & ISR(x2)
-0xfffff480,boot_sfr,high,function_names+renames,"fns: out_reg_f480_write_7ffe_delay (x1); out_reg_f480_write_7ffd_delay (x1); out_reg_f480_write_7ffb_delay (x1); out_reg_f480_write_7ff7_delay (x1); roles: boot_sfr_F480_and_7FDF_delay; boot_sfr_F480_and_7F7F_delay; boot_sfr_F480_and_7EFF_delay; boot_sfr_F480_and_7DFF_delay; cats: Boot & Init(x8), Peripherals & ISR(x5); ctx: boot_sfr_step(x8), sfr_shift_bit_step(x4); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay"
-0xfffff4c0,peripheral_ack_wait,high,function_names+renames,fns: peripheral_ack_wait_f4c0 (x1); roles: peripheral_ack_wait_f4c0; cats: Boot & Init(x1)
-0xfffff4e0,peripheral_ack_wait,high,function_names+renames,fns: peripheral_ack_wait_f4e0 (x1); roles: peripheral_ack_wait_f4e0; cats: Boot & Init(x1)
-0xfffff522,boot_sfr,high,function_names+renames,"fns: boot_sfr_F522_write_0E_delay (x1); boot_sfr_F522_write_0D_delay (x1); boot_sfr_F522_write_0B_delay (x1); out_reg_f522_write_delay (x1); roles: out_reg_f522_write_delay; boot_sfr_F522_write_0E_delay; boot_sfr_F522_write_0D_delay; boot_sfr_F522_write_0B_delay; cats: Boot & Init(x3), Peripherals & ISR(x1); ctx: boot_sfr_step(x3); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay"
-0xfffff58e,ram_f58e,low,function_names+renames,fns: boot_pwm_ports_init_f58e_f59e (x1); roles: boot_pwm_ports_init_f58e_f59e; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff596,ram_f596,low,function_names+renames,fns: pwm_duty_store_scaled_f596 (x1); roles: pwm_duty_store_scaled_f596; cats: Math / FPU(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff59e,ram_f59e,low,function_names+renames,fns: boot_pwm_ports_init_f58e_f59e (x1); roles: boot_pwm_ports_init_f58e_f59e; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff5a2,boot_sfr,high,function_names+renames,fns: boot_sfr_F5A2_write_0E_delay (x1); boot_sfr_F5A2_write_0D_delay (x1); boot_sfr_F5A2_write_0B_delay (x1); boot_sfr_F5A2_write_07_delay (x1); roles: boot_sfr_F5A2_write_0E_delay; boot_sfr_F5A2_write_0D_delay; boot_sfr_F5A2_write_0B_delay; boot_sfr_F5A2_write_07_delay; cats: Boot & Init(x4); ctx: boot_sfr_step(x4)
-0xfffff5ca,out_reg,high,function_names+renames,fns: out_reg_f5ca_write_03_delay (x1); roles: out_reg_f5ca_write_03_delay; cats: Peripherals & ISR(x1); ctx: sfr_output_step(x1)
-0xfffff622,ram_f622,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff626,ram_f626,low,renames,roles: ign_configureSparkOutputRegs
-0xfffff628,ram_f628,low,function_names+renames,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff629,knock_ic_port,high,function_names+renames,fns: knock_ic_port_init_f629 (x1); roles: knock_ic_port_init_f629; cats: Ignition & Knock(x1)
-0xfffff62c,out_regs,high,function_names+renames,fns: out_regs_f62c_f62e_write_delay (x1); out_regs_f62c_f62e_write_01fd_delay (x1); out_regs_f62c_f62e_write_01fb_delay (x1); out_regs_f62c_f62e_write_01f7_delay (x1); roles: out_regs_f62c_f62e_write_delay; out_regs_f62c_f62e_write_01f7_delay; out_regs_f62c_f62e_write_01fd_delay; out_regs_f62c_f62e_write_01fb_delay; cats: Peripherals & ISR(x8)
-0xfffff62e,out_regs,high,function_names+renames,fns: out_regs_f62c_f62e_write_delay (x1); out_regs_f62c_f62e_write_01fd_delay (x1); out_regs_f62c_f62e_write_01fb_delay (x1); out_regs_f62c_f62e_write_01f7_delay (x1); roles: out_regs_f62c_f62e_write_delay; out_regs_f62c_f62e_write_01f7_delay; out_regs_f62c_f62e_write_01fd_delay; out_regs_f62c_f62e_write_01fb_delay; cats: Peripherals & ISR(x8)
-0xfffff632,boot_port,high,function_names+renames,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1)
-0xfffff64c,ram_f64c,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff64e,ram_f64e,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff65e,ram_f65e,low,renames,roles: boot_hw_timer_channel_setup
-0xfffff66a,boot_sfr,high,function_names+renames,"fns: boot_sfr_F66A_and_FDFF_delay (x1); boot_sfr_F66A_and_FBFF_delay (x1); boot_sfr_F66A_and_F7FF_delay (x1); port_f66a_mask_efff_dispatch_c276 (x1); roles: out_reg_f66a_mask_clear_delay; injector_pulse_stub_clearbit; boot_sfr_F66A_and_FDFF_delay; boot_sfr_F66A_and_FBFF_delay; cats: Peripherals & ISR(x4), Boot & Init(x3); ctx: boot_sfr_step(x3), sfr_output_step(x2); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay, port_mask_dispatch, out_reg_mask_clear_delay"
-0xfffff66c,ram_f66c,low,renames,roles: knock_adc_store_clear_port
-0xfffff69e,out_reg,high,function_names+renames,"fns: fault_vector_ack_f69e (x1); out_reg_f69e_write_3d_delay (x1); out_reg_f69e_write_3b_delay (x1); out_reg_f69e_write_37_delay (x1); roles: out_reg_f69e_write_3d_delay; out_reg_f69e_write_3b_delay; out_reg_f69e_write_37_delay; out_reg_f69e_write_1f_delay; cats: Peripherals & ISR(x5), Faults & DTC(x1); ctx: sfr_output_step(x4); CONFLICT-RESOLVED: kept out_reg; alt: fault_vector_ack, port_set_dispatch"
-0xfffff6c4,ram_f6c4,low,renames,roles: table_d76d_to_port_f6d8_output
-0xfffff6d8,table_to_port,high,function_names+renames,fns: table_d76d_to_port_f6d8_output (x1); roles: table_d76d_to_port_f6d8_output; cats: Peripherals & ISR(x1)
-0xfffff6e8,crank_sub_flags_clear,high,function_names+renames,"fns: out_reg_f6e8_write_0e_delay (x1); crank_sub_flags_clear_9fce_f6e8 (x1); roles: crank_sub_flags_clear_9fce_f6e8; out_reg_f6e8_write_0e_delay; cats: Peripherals & ISR(x1), Sensors(x1); ctx: sfr_output_step(x1)"
-0xfffff710,sfr_timer,high,function_names+renames,"fns: sfr_timer_init_f710_f71c (x1); boot_sfr_init_f710_f71c (x1); roles: sfr_timer_init_f710_f71c; boot_sfr_init_f710_f71c; cats: Sensors(x1), Boot & Init(x1)"
-0xfffff712,out_reg,high,function_names+renames,fns: out_reg_f712_bit7_clear_delay (x1); roles: out_reg_f712_bit7_clear_delay; cats: Peripherals & ISR(x1); ctx: sfr_output_step(x1)
-0xfffff718,port,high,function_names+renames,fns: port_f718_bit7_clear_dispatch_a522 (x1); roles: port_f718_bit7_clear_dispatch_a522; cats: Peripherals & ISR(x1)
-0xfffff71c,sfr_timer,high,function_names+renames,"fns: sfr_timer_init_f710_f71c (x1); boot_sfr_init_f710_f71c (x1); roles: sfr_timer_init_f710_f71c; boot_sfr_init_f710_f71c; cats: Sensors(x1), Boot & Init(x1)"
-0xfffff720,init_fills_fault,medium,renames,roles: periph_sfr_block_init; init_fault_counter_table; ctx: init_fills_fault(x1)
-0xfffff722,port_regs_bulk_config,high,function_names+renames,fns: port_regs_bulk_config_f722 (x1); roles: port_regs_bulk_config_f722; cats: Peripherals & ISR(x1); ctx: constants_to_port_sfr(x1)
-0xfffff72c,ram_f72c,low,renames,roles: ign_drive_coil_output_ports
-0xfffff72e,ram_f72e,low,renames,roles: atu2_edge_capture_config_en_dis
-0xfffff738,output,medium,function_names+renames,"fns: output_f738_bit15_toggle (x1); output_f738_bit15_pulse (x1); roles: output_f738_bit15_toggle; output_f738_bit15_pulse; cats: Peripherals & ISR(x1), Sensors(x1); CAUTION: low16 also collides with a ROM function address"
-0xfffff746,uds_fault_status_mask,high,function_names+renames,"fns: task_setup_9f52_f746 (x1); diag_reg_sync_f746_f754_from_cdb3_cdb4 (x1); uds_fault_status_mask_getter_f754_f746 (x1); roles: throttle_tpsStatusOutputPort; task_setup_9f52_f746; diag_reg_sync_f746_f754_from_cdb3_cdb4; uds_fault_status_mask_getter_f754_f746; cats: OBD / UDS(x2), Boot & Init(x1)"
-0xfffff74e,boot_init_port,high,function_names+renames,"fns: boot_init_port_f764_f74e (x1); boot_init_port_f74e_guarded (x1); boot_init_clear_wait_f74e (x1); boot_clear_wait_f74e_sr_masked (x1); roles: f74e_bit15_flag_latch_caa0; port_f74e_bit0_latch_cdb5; input_port_f74e_bit15_flag_capture; boot_init_port_f764_f74e; cats: Boot & Init(x4), Peripherals & ISR(x2); ctx: gpio_eeprom_cs_sfr(x1)"
-0xfffff754,uds_fault_status_mask,high,function_names+renames,"fns: init_diag_reg_f754_bit2_from_bdf8 (x1); obd_diag_reg_f754_bits_from_bdf8_bddc (x1); diag_reg_sync_f746_f754_from_cdb3_cdb4 (x1); uds_fault_status_mask_getter_f754 (x1); roles: uds_fault_status_mask_getter_f754; init_diag_reg_f754_bit2_from_bdf8; obd_diag_reg_f754_bits_from_bdf8_bddc; diag_reg_sync_f746_f754_from_cdb3_cdb4; cats: OBD / UDS(x6), Boot & Init(x1); ctx: status_getter(x1); CONFLICT-RESOLVED: kept uds_fault_status_mask; alt: init_diag_reg_bit2, obd_diag_reg_bits, diag_reg_sync"
-0xfffff75e,ram_f75e,low,function_names+renames,fns: boot_flags_port_f75e_init (x1); roles: boot_flags_port_f75e_init; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff764,boot_init_port,high,function_names+renames,fns: boot_init_port_f764_f74e (x1); roles: adc_serial_channel_convert; boot_init_port_f764_f74e; cats: Boot & Init(x1)
-0xfffff76c,diag_reg,high,function_names+renames,"fns: obd_diag_reg_f76c_bit80_from_bd88 (x1); ac_diag_reg_f76c_bit80_from_bd88 (x1); flag_setter_f76c_bit8_cbd0 (x1); uds_fault_status_mask_getter_f76c_bf88 (x1); roles: flag_setter_f76c_bit8_cbd0; obd_diag_reg_f76c_bit80_from_bd88; ac_diag_reg_f76c_bit80_from_bd88; uds_fault_status_mask_getter_f76c_bf88; cats: OBD / UDS(x2), Faults & DTC(x1), Peripherals & ISR(x1)"
-0xfffff76e,ram_f76e,low,renames,roles: atu2_edge_capture_config_en_dis
-0xfffff800,adc_data_regs,medium,renames,roles: adc_regs_capture_to_ram_buf; ctx: adc_data_regs(x1)
-0xfffff816,also_samples_adc_result_regs,medium,renames,roles: boot_hw_timer_channel_setup; adc_regs_capture_to_ram_buf; ctx: also_samples_adc_result_regs(x1)
-0xfffff818,channel_mode_config,high,function_names+renames,fns: adc_channel_mode_config_f818 (x1); roles: boot_output_phase_state_machine; atu2_edge_capture_config_en_dis; adc_channel_mode_config_f818; cats: Sensors(x1); ctx: per_mode_divider(x1)
-0xfffff819,ram_f819,low,renames,roles: atu2_edge_capture_config_en_dis; adc_channel_mode_config_f818
-0xfffff820,word_block_copy,high,function_names+renames,fns: word_block_copy_from_f820 (x1); roles: word_block_copy_from_f820; cats: Memory & CRC(x1)
-0xfffff828,adc_data_regs,medium,renames,roles: adc_regs_capture_bank2_to_ram_buf; ctx: adc_data_regs(x1)
-0xfffff836,ram_f836,low,renames,roles: boot_hw_timer_channel_setup; adc_regs_capture_bank2_to_ram_buf; adc_reg_capture_a1fc_a200
-0xfffff838,port,high,function_names+renames,fns: port_f838_bit7_clear_dispatch_6b60 (x1); roles: boot_phase_output_config; boot_output_phase_state_machine; atu2_edge_capture_config_en_dis; port_f838_bit7_clear_dispatch_6b60; cats: Peripherals & ISR(x1)
-0xfffff839,ram_f839,low,renames,roles: atu2_edge_capture_config_en_dis
-0xfffff916,ram_f916,low,renames,roles: adc_reg_capture_a1fc_a200
-0xfffff922,ram_f922,low,function_names+renames,fns: atomic_float_store_f922 (x1); roles: atomic_float_store_f922; cats: Fuel & Lambda(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffff964,ram_f964,low,function_names+renames,fns: atomic_bytefloat_store_f964 (x1); roles: atomic_bytefloat_store_f964; cats: Fuel & Lambda(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
-0xfffffff9,fault_state_decision,high,function_names+renames,fns: fault_state_decision_fff9 (x1); roles: fault_state_decision_fff9; cats: Faults & DTC(x1)
-0xfffffffd,ram_fffd,low,renames,roles: out_reg_ecdc_bit1_clear_delay; boot_sfr_ECCC_and_FD_delay; boot_sfr_ECEC_and_FD_delay; boot_sfr_ECFC_and_FD_delay
-0xfffffffe,can240_timer,medium,function_names+renames,"fns: ram_init_fffe_29FCC (x1); ram_write_fffe_2A23C (x1); can240_timer_init_fffe (x1); can250_timer_init_fffe (x1); roles: can240_timer_init_fffe; can250_timer_init_fffe; cats: CAN Bus(x2), Boot & Init(x1), Memory & CRC(x1); CAUTION: low16 also collides with a ROM function address"
-0xffffffff,init_word_set,high,function_names+renames,"fns: can_231_buf_set_bc98_ffff (x1); init_word_bdfc_set_ffff (x1); init_d49c_ffff_region (x1); roles: can_231_buf_set_bc98_ffff; init_word_bdfc_set_ffff; init_d49c_ffff_region; cats: Boot & Init(x2), CAN Bus(x1)"
+0xffffe0a0,ram_e0a0,low,renames;SFR,roles: obd_control_pid_17e1_handler
+0xffffe406,polls_can_status,medium,renames;SFR,roles: can_mbox_send8_wait_ready; ctx: polls_can_status(x1)
+0xffffe40a,ram_e40a,low,renames;SFR,roles: can_mbox_send8_wait_ready; hcan_mbox_word_byteswap_write
+0xffffe40e,handler_tests_rx,medium,renames;SFR,roles: can_rx_mailbox_ready_process; can_mailbox_tx_write; ctx: handler_tests_rx(x1)
+0xffffe412,out_reg,high,function_names+renames;SFR,fns: out_reg_e412_or_6000_delay (x1); out_reg_e412_or_9910_delay (x1); port_e412_bit0_set_dispatch_9c9c (x1); roles: out_reg_e412_or_6000_delay; out_reg_e412_or_9910_delay; port_e412_bit0_set_dispatch_9c9c; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x2); CONFLICT-RESOLVED: kept out_reg; alt: port_bit0_set_dispatch
+0xffffe41a,ram_e41a,low,renames;SFR,roles: can_rx_mailbox_ready_process; can_mailbox_tx_write
+0xffffe528,ram_e528,low,renames;SFR,roles: can_mbox_send8_wait_ready; copy_bytes_readback_verify
+0xffffe60a,ram_e60a,low,renames;SFR,roles: hcan_mbox_word_byteswap_write
+0xffffe612,out_reg,high,function_names+renames;SFR,fns: out_reg_e612_or_6000_delay (x1); out_reg_e612_or_9910_delay (x1); port_e612_bit0_set_dispatch_d8dc (x1); roles: port_e612_bit0_set_dispatch_d8dc; out_reg_e612_or_6000_delay; out_reg_e612_or_9910_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x2); CONFLICT-RESOLVED: kept out_reg; alt: port_bit0_set_dispatch
+0xffffe901,obd_control_pid,high,function_names+renames;SFR,fns: obd_control_pid_e901_handler (x1); roles: obd_control_pid_e901_handler; cats: OBD / UDS(x1)
+0xffffe906,ram_e906,low,function_names+renames;SFR,fns: uds_2f_iocontrol_entry_e906 (x1); roles: uds_2f_iocontrol_entry_e906; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xffffe909,uds_iocontrol_entry,high,function_names+renames;SFR,fns: uds_2f_iocontrol_entry_e909 (x1); roles: uds_2f_iocontrol_entry_e909; cats: OBD / UDS(x1)
+0xffffe91a,ram_e91a,low,function_names+renames;SFR,fns: obd_control_pid_e91a_handler (x1); roles: obd_control_pid_e91a_handler; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xffffec00,timer_sfr,high,function_names+renames;SFR,fns: timer_sfr_ec00_init_max (x1); roles: timer_sfr_ec00_init_max; cats: Boot & Init(x1)
+0xffffec04,ram_ec04,low,renames;SFR,roles: timer_sfr_ec00_init_max
+0xffffec08,ram_ec08,low,renames;SFR,roles: timer_sfr_ec00_init_max
+0xffffec0a,ram_ec0a,low,renames;SFR,roles: timer_sfr_ec00_init_max
+0xffffec10,ram_ec10,low,renames;SFR,roles: rtos_noop_stub_5028
+0xffffec12,ram_ec12,low,renames;SFR,roles: rtos_noop_stub_5028
+0xffffecb0,configures_descriptor_regs,medium,renames;SFR,roles: dma_ringbuf_transfer_start_poll; ctx: configures_descriptor_regs(x1)
+0xffffeccc,boot_sfr,high,function_names+renames;SFR,fns: boot_sfr_ECCC_and_FD_delay (x1); roles: dma_ringbuf_transfer_start_poll; boot_sfr_ECCC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
+0xffffecdc,out_reg,high,function_names+renames;SFR,fns: out_reg_ecdc_bit1_clear_delay (x1); roles: out_reg_ecdc_bit1_clear_delay; cats: Peripherals & ISR(x1); ctx: longword(x1)
+0xffffecec,boot_sfr,high,function_names+renames;SFR,fns: boot_sfr_ECEC_and_FD_delay (x1); roles: boot_sfr_ECEC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
+0xffffecfc,boot_sfr,high,function_names+renames;SFR,fns: boot_sfr_ECFC_and_FD_delay (x1); roles: boot_sfr_ECFC_and_FD_delay; cats: Boot & Init(x1); ctx: boot_sfr_step(x1)
+0xffffed00,ram_ed00,low,function_names+renames;SFR,fns: boot_clear_atu_ed00_block (x1); roles: boot_clear_atu_ed00_block; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xffffed1a,out_reg,high,function_names+renames;SFR,"fns: out_reg_ed1a_write_7f_delay (x1); out_reg_ed1a_write_bf_delay (x1); out_reg_ed1a_write_df_delay (x1); out_reg_ed1a_write_ef_delay (x1); roles: out_reg_ed1a_write_7f_delay; out_reg_ed1a_write_bf_delay; out_reg_ed1a_write_df_delay; out_reg_ed1a_write_ef_delay; cats: Peripherals & ISR(x7), Faults & DTC(x1); ctx: sfr_shift_bit_step(x7); CONFLICT-RESOLVED: kept out_reg; alt: fault_vector_ack"
+0xfffff000,ram_f000,low,renames;SFR,roles: rtos_noop_stub_5042
+0xfffff003,ram_f003,low,renames;SFR,roles: adc_serial_channel_convert
+0xfffff004,out_reg,high,function_names+renames;SFR,fns: out_reg_f004_or_c0_delay (x1); out_reg_f004_or_b8_delay (x1); out_reg_f004_or_f8_delay (x1); roles: adc_serial_channel_convert; out_reg_f004_or_c0_delay; out_reg_f004_or_b8_delay; out_reg_f004_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
+0xfffff005,ram_f005,low,renames;SFR,roles: adc_serial_channel_convert
+0xfffff00c,out_reg,high,function_names+renames;SFR,fns: out_reg_f00c_or_c0_delay (x1); out_reg_f00c_or_b8_delay (x1); out_reg_f00c_or_f8_delay (x1); roles: out_reg_f00c_or_c0_delay; out_reg_f00c_or_b8_delay; out_reg_f00c_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
+0xfffff014,out_reg,high,function_names+renames;SFR,fns: out_reg_f014_or_c0_delay (x1); out_reg_f014_or_b8_delay (x1); out_reg_f014_or_f8_delay (x1); roles: out_reg_f014_or_c0_delay; out_reg_f014_or_b8_delay; out_reg_f014_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
+0xfffff01c,out_reg,high,function_names+renames;SFR,fns: out_reg_f01c_or_c0_delay (x1); out_reg_f01c_or_b8_delay (x1); out_reg_f01c_or_f8_delay (x1); roles: out_reg_f01c_or_c0_delay; out_reg_f01c_or_b8_delay; out_reg_f01c_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
+0xfffff020,sensor_port,medium,function_names+renames;SFR,"fns: sensor_port_init_f020_f026 (x1); boot_port_init_f020_f026_sr (x1); roles: sensor_port_init_f020_f026; boot_port_init_f020_f026_sr; cats: Sensors(x1), Boot & Init(x1); CAUTION: low16 also collides with a ROM function address"
+0xfffff024,out_reg,high,function_names+renames;SFR,fns: out_reg_f024_or_c0_delay (x1); out_reg_f024_or_b8_delay (x1); out_reg_f024_or_f8_delay (x1); roles: out_reg_f024_or_c0_delay; out_reg_f024_or_b8_delay; out_reg_f024_or_f8_delay; cats: Peripherals & ISR(x3); ctx: sfr_output_step(x3)
+0xfffff026,sensor_port,medium,function_names+renames;SFR,"fns: sensor_port_init_f020_f026 (x1); boot_port_init_f020_f026_sr (x1); roles: sensor_port_init_f020_f026; boot_port_init_f020_f026_sr; cats: Sensors(x1), Boot & Init(x1); CAUTION: low16 also collides with a ROM function address"
+0xfffff100,ram_f100,low,function_names+renames;SFR,fns: obd_send_f100_b2_msg (x1); roles: obd_send_f100_b2_msg; cats: OBD / UDS(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff400,init_constants_to_many_sfrs,medium,renames;SFR,roles: sfr_output_module_bulk_init; ctx: init_constants_to_many_sfrs(x1)
+0xfffff42c,out_reg,high,function_names+renames;SFR,fns: out_reg_f42c_write_001f_delay (x1); out_reg_f42c_write_fe_delay (x1); out_reg_f42c_write_fd_delay (x1); out_reg_f42c_write_fb_delay (x1); roles: out_reg_f42c_write_fe_delay; out_reg_f42c_write_fd_delay; out_reg_f42c_write_fb_delay; out_reg_f42c_write_f7_delay; cats: Peripherals & ISR(x6); ctx: sfr_shift_bit_step(x5)
+0xfffff430,obd_byte_reorder,high,function_names+renames;SFR,fns: obd_byte_reorder_f430_to_c293 (x1); roles: obd_byte_reorder_f430_to_c293; obd_challenge_seed_gen_cfe9; cats: OBD / UDS(x1); ctx: samples(x1)
+0xfffff440,running_timer,medium,renames;SFR,roles: boot_hw_timer_channel_setup; ctx: running_timer(x1)
+0xfffff450,ram_f450,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff452,ram_f452,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff458,ram_f458,low,function_names+renames;SFR,fns: boot_ports_cfg_f458_f45b (x1); roles: boot_ports_cfg_f458_f45b; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff45a,ram_f45a,low,function_names+renames;SFR,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff45b,boot_ports_cfg,high,function_names+renames;SFR,fns: boot_ports_cfg_f458_f45b (x1); roles: boot_ports_cfg_f458_f45b; cats: Boot & Init(x1)
+0xfffff45e,out_reg,high,function_names+renames;SFR,fns: out_regs_f45e_f460_write_delay (x1); out_reg_f45e_write_01fd_delay (x1); out_reg_f45e_write_01fb_delay (x1); out_reg_f45e_write_01f7_delay (x1); roles: out_regs_f45e_f460_write_delay; out_reg_f45e_write_01fd_delay; out_reg_f45e_write_01fb_delay; out_reg_f45e_write_01f7_delay; cats: Peripherals & ISR(x8); ctx: sfr_shift_bit_step(x7); CONFLICT-RESOLVED: kept out_reg; alt: out_regs_write_delay
+0xfffff460,out_regs,high,function_names+renames;SFR,fns: out_regs_f45e_f460_write_delay (x1); out_regs_cond_f460_check_or_f62c_write_delay (x1); roles: out_regs_cond_f460_check_or_f62c_write_delay; out_regs_f45e_f460_write_delay; cats: Peripherals & ISR(x2)
+0xfffff480,boot_sfr,high,function_names+renames;SFR,"fns: out_reg_f480_write_7ffe_delay (x1); out_reg_f480_write_7ffd_delay (x1); out_reg_f480_write_7ffb_delay (x1); out_reg_f480_write_7ff7_delay (x1); roles: boot_sfr_F480_and_7FDF_delay; boot_sfr_F480_and_7F7F_delay; boot_sfr_F480_and_7EFF_delay; boot_sfr_F480_and_7DFF_delay; cats: Boot & Init(x8), Peripherals & ISR(x5); ctx: boot_sfr_step(x8), sfr_shift_bit_step(x4); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay"
+0xfffff4c0,peripheral_ack_wait,high,function_names+renames;SFR,fns: peripheral_ack_wait_f4c0 (x1); roles: peripheral_ack_wait_f4c0; cats: Boot & Init(x1)
+0xfffff4e0,peripheral_ack_wait,high,function_names+renames;SFR,fns: peripheral_ack_wait_f4e0 (x1); roles: peripheral_ack_wait_f4e0; cats: Boot & Init(x1)
+0xfffff522,boot_sfr,high,function_names+renames;SFR,"fns: boot_sfr_F522_write_0E_delay (x1); boot_sfr_F522_write_0D_delay (x1); boot_sfr_F522_write_0B_delay (x1); out_reg_f522_write_delay (x1); roles: out_reg_f522_write_delay; boot_sfr_F522_write_0E_delay; boot_sfr_F522_write_0D_delay; boot_sfr_F522_write_0B_delay; cats: Boot & Init(x3), Peripherals & ISR(x1); ctx: boot_sfr_step(x3); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay"
+0xfffff58e,ram_f58e,low,function_names+renames;SFR,fns: boot_pwm_ports_init_f58e_f59e (x1); roles: boot_pwm_ports_init_f58e_f59e; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff596,ram_f596,low,function_names+renames;SFR,fns: pwm_duty_store_scaled_f596 (x1); roles: pwm_duty_store_scaled_f596; cats: Math / FPU(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff59e,ram_f59e,low,function_names+renames;SFR,fns: boot_pwm_ports_init_f58e_f59e (x1); roles: boot_pwm_ports_init_f58e_f59e; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff5a2,boot_sfr,high,function_names+renames;SFR,fns: boot_sfr_F5A2_write_0E_delay (x1); boot_sfr_F5A2_write_0D_delay (x1); boot_sfr_F5A2_write_0B_delay (x1); boot_sfr_F5A2_write_07_delay (x1); roles: boot_sfr_F5A2_write_0E_delay; boot_sfr_F5A2_write_0D_delay; boot_sfr_F5A2_write_0B_delay; boot_sfr_F5A2_write_07_delay; cats: Boot & Init(x4); ctx: boot_sfr_step(x4)
+0xfffff5ca,out_reg,high,function_names+renames;SFR,fns: out_reg_f5ca_write_03_delay (x1); roles: out_reg_f5ca_write_03_delay; cats: Peripherals & ISR(x1); ctx: sfr_output_step(x1)
+0xfffff622,ram_f622,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff626,ram_f626,low,renames;SFR,roles: ign_configureSparkOutputRegs
+0xfffff628,ram_f628,low,function_names+renames;SFR,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff629,knock_ic_port,high,function_names+renames;SFR,fns: knock_ic_port_init_f629 (x1); roles: knock_ic_port_init_f629; cats: Ignition & Knock(x1)
+0xfffff62c,out_regs,high,function_names+renames;SFR,fns: out_regs_f62c_f62e_write_delay (x1); out_regs_f62c_f62e_write_01fd_delay (x1); out_regs_f62c_f62e_write_01fb_delay (x1); out_regs_f62c_f62e_write_01f7_delay (x1); roles: out_regs_f62c_f62e_write_delay; out_regs_f62c_f62e_write_01f7_delay; out_regs_f62c_f62e_write_01fd_delay; out_regs_f62c_f62e_write_01fb_delay; cats: Peripherals & ISR(x8)
+0xfffff62e,out_regs,high,function_names+renames;SFR,fns: out_regs_f62c_f62e_write_delay (x1); out_regs_f62c_f62e_write_01fd_delay (x1); out_regs_f62c_f62e_write_01fb_delay (x1); out_regs_f62c_f62e_write_01f7_delay (x1); roles: out_regs_f62c_f62e_write_delay; out_regs_f62c_f62e_write_01f7_delay; out_regs_f62c_f62e_write_01fd_delay; out_regs_f62c_f62e_write_01fb_delay; cats: Peripherals & ISR(x8)
+0xfffff632,boot_port,high,function_names+renames;SFR,fns: boot_port_init_f45a_f628_f632 (x1); roles: boot_port_init_f45a_f628_f632; cats: Boot & Init(x1)
+0xfffff64c,ram_f64c,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff64e,ram_f64e,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff65e,ram_f65e,low,renames;SFR,roles: boot_hw_timer_channel_setup
+0xfffff66a,boot_sfr,high,function_names+renames;SFR,"fns: boot_sfr_F66A_and_FDFF_delay (x1); boot_sfr_F66A_and_FBFF_delay (x1); boot_sfr_F66A_and_F7FF_delay (x1); port_f66a_mask_efff_dispatch_c276 (x1); roles: out_reg_f66a_mask_clear_delay; injector_pulse_stub_clearbit; boot_sfr_F66A_and_FDFF_delay; boot_sfr_F66A_and_FBFF_delay; cats: Peripherals & ISR(x4), Boot & Init(x3); ctx: boot_sfr_step(x3), sfr_output_step(x2); CONFLICT-RESOLVED: kept boot_sfr; alt: out_reg_write_delay, port_mask_dispatch, out_reg_mask_clear_delay"
+0xfffff66c,ram_f66c,low,renames;SFR,roles: knock_adc_store_clear_port
+0xfffff69e,out_reg,high,function_names+renames;SFR,"fns: fault_vector_ack_f69e (x1); out_reg_f69e_write_3d_delay (x1); out_reg_f69e_write_3b_delay (x1); out_reg_f69e_write_37_delay (x1); roles: out_reg_f69e_write_3d_delay; out_reg_f69e_write_3b_delay; out_reg_f69e_write_37_delay; out_reg_f69e_write_1f_delay; cats: Peripherals & ISR(x5), Faults & DTC(x1); ctx: sfr_output_step(x4); CONFLICT-RESOLVED: kept out_reg; alt: fault_vector_ack, port_set_dispatch"
+0xfffff6c4,ram_f6c4,low,renames;SFR,roles: table_d76d_to_port_f6d8_output
+0xfffff6d8,table_to_port,high,function_names+renames;SFR,fns: table_d76d_to_port_f6d8_output (x1); roles: table_d76d_to_port_f6d8_output; cats: Peripherals & ISR(x1)
+0xfffff6e8,crank_sub_flags_clear,high,function_names+renames;SFR,"fns: out_reg_f6e8_write_0e_delay (x1); crank_sub_flags_clear_9fce_f6e8 (x1); roles: crank_sub_flags_clear_9fce_f6e8; out_reg_f6e8_write_0e_delay; cats: Peripherals & ISR(x1), Sensors(x1); ctx: sfr_output_step(x1)"
+0xfffff710,sfr_timer,high,function_names+renames;SFR,"fns: sfr_timer_init_f710_f71c (x1); boot_sfr_init_f710_f71c (x1); roles: sfr_timer_init_f710_f71c; boot_sfr_init_f710_f71c; cats: Sensors(x1), Boot & Init(x1)"
+0xfffff712,out_reg,high,function_names+renames;SFR,fns: out_reg_f712_bit7_clear_delay (x1); roles: out_reg_f712_bit7_clear_delay; cats: Peripherals & ISR(x1); ctx: sfr_output_step(x1)
+0xfffff718,port,low,function_names+renames;SFR,fns: port_f718_bit7_clear_dispatch_a522 (x1); roles: port_f718_bit7_clear_dispatch_a522; cats: Peripherals & ISR(x1)
+0xfffff71c,sfr_timer,high,function_names+renames;SFR,"fns: sfr_timer_init_f710_f71c (x1); boot_sfr_init_f710_f71c (x1); roles: sfr_timer_init_f710_f71c; boot_sfr_init_f710_f71c; cats: Sensors(x1), Boot & Init(x1)"
+0xfffff720,init_fills_fault,medium,renames;SFR,roles: periph_sfr_block_init; init_fault_counter_table; ctx: init_fills_fault(x1)
+0xfffff722,port_regs_bulk_config,high,function_names+renames;SFR,fns: port_regs_bulk_config_f722 (x1); roles: port_regs_bulk_config_f722; cats: Peripherals & ISR(x1); ctx: constants_to_port_sfr(x1)
+0xfffff72c,ram_f72c,low,renames;SFR,roles: ign_drive_coil_output_ports
+0xfffff72e,ram_f72e,low,renames;SFR,roles: atu2_edge_capture_config_en_dis
+0xfffff738,output,low,function_names+renames;SFR,"fns: output_f738_bit15_toggle (x1); output_f738_bit15_pulse (x1); roles: output_f738_bit15_toggle; output_f738_bit15_pulse; cats: Peripherals & ISR(x1), Sensors(x1); CAUTION: low16 also collides with a ROM function address"
+0xfffff746,uds_fault_status_mask,high,function_names+renames;SFR,"fns: task_setup_9f52_f746 (x1); diag_reg_sync_f746_f754_from_cdb3_cdb4 (x1); uds_fault_status_mask_getter_f754_f746 (x1); roles: throttle_tpsStatusOutputPort; task_setup_9f52_f746; diag_reg_sync_f746_f754_from_cdb3_cdb4; uds_fault_status_mask_getter_f754_f746; cats: OBD / UDS(x2), Boot & Init(x1)"
+0xfffff74e,boot_init_port,high,function_names+renames;SFR,"fns: boot_init_port_f764_f74e (x1); boot_init_port_f74e_guarded (x1); boot_init_clear_wait_f74e (x1); boot_clear_wait_f74e_sr_masked (x1); roles: f74e_bit15_flag_latch_caa0; port_f74e_bit0_latch_cdb5; input_port_f74e_bit15_flag_capture; boot_init_port_f764_f74e; cats: Boot & Init(x4), Peripherals & ISR(x2); ctx: gpio_eeprom_cs_sfr(x1)"
+0xfffff754,uds_fault_status_mask,high,function_names+renames;SFR,"fns: init_diag_reg_f754_bit2_from_bdf8 (x1); obd_diag_reg_f754_bits_from_bdf8_bddc (x1); diag_reg_sync_f746_f754_from_cdb3_cdb4 (x1); uds_fault_status_mask_getter_f754 (x1); roles: uds_fault_status_mask_getter_f754; init_diag_reg_f754_bit2_from_bdf8; obd_diag_reg_f754_bits_from_bdf8_bddc; diag_reg_sync_f746_f754_from_cdb3_cdb4; cats: OBD / UDS(x6), Boot & Init(x1); ctx: status_getter(x1); CONFLICT-RESOLVED: kept uds_fault_status_mask; alt: init_diag_reg_bit2, obd_diag_reg_bits, diag_reg_sync"
+0xfffff75e,ram_f75e,low,function_names+renames;SFR,fns: boot_flags_port_f75e_init (x1); roles: boot_flags_port_f75e_init; cats: Boot & Init(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff764,boot_init_port,high,function_names+renames;SFR,fns: boot_init_port_f764_f74e (x1); roles: adc_serial_channel_convert; boot_init_port_f764_f74e; cats: Boot & Init(x1)
+0xfffff76c,diag_reg,high,function_names+renames;SFR,"fns: obd_diag_reg_f76c_bit80_from_bd88 (x1); ac_diag_reg_f76c_bit80_from_bd88 (x1); flag_setter_f76c_bit8_cbd0 (x1); uds_fault_status_mask_getter_f76c_bf88 (x1); roles: flag_setter_f76c_bit8_cbd0; obd_diag_reg_f76c_bit80_from_bd88; ac_diag_reg_f76c_bit80_from_bd88; uds_fault_status_mask_getter_f76c_bf88; cats: OBD / UDS(x2), Faults & DTC(x1), Peripherals & ISR(x1)"
+0xfffff76e,ram_f76e,low,renames;SFR,roles: atu2_edge_capture_config_en_dis
+0xfffff800,adc_data_regs,medium,renames;SFR,roles: adc_regs_capture_to_ram_buf; ctx: adc_data_regs(x1)
+0xfffff816,also_samples_adc_result_regs,medium,renames;SFR,roles: boot_hw_timer_channel_setup; adc_regs_capture_to_ram_buf; ctx: also_samples_adc_result_regs(x1)
+0xfffff818,channel_mode_config,high,function_names+renames;SFR,fns: adc_channel_mode_config_f818 (x1); roles: boot_output_phase_state_machine; atu2_edge_capture_config_en_dis; adc_channel_mode_config_f818; cats: Sensors(x1); ctx: per_mode_divider(x1)
+0xfffff819,ram_f819,low,renames;SFR,roles: atu2_edge_capture_config_en_dis; adc_channel_mode_config_f818
+0xfffff820,word_block_copy,high,function_names+renames;SFR,fns: word_block_copy_from_f820 (x1); roles: word_block_copy_from_f820; cats: Memory & CRC(x1)
+0xfffff828,adc_data_regs,medium,renames;SFR,roles: adc_regs_capture_bank2_to_ram_buf; ctx: adc_data_regs(x1)
+0xfffff836,ram_f836,low,renames;SFR,roles: boot_hw_timer_channel_setup; adc_regs_capture_bank2_to_ram_buf; adc_reg_capture_a1fc_a200
+0xfffff838,port,low,function_names+renames;SFR,fns: port_f838_bit7_clear_dispatch_6b60 (x1); roles: boot_phase_output_config; boot_output_phase_state_machine; atu2_edge_capture_config_en_dis; port_f838_bit7_clear_dispatch_6b60; cats: Peripherals & ISR(x1)
+0xfffff839,ram_f839,low,renames;SFR,roles: atu2_edge_capture_config_en_dis
+0xfffff916,ram_f916,low,renames;SFR,roles: adc_reg_capture_a1fc_a200
+0xfffff922,ram_f922,low,function_names+renames;SFR,fns: atomic_float_store_f922 (x1); roles: atomic_float_store_f922; cats: Fuel & Lambda(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffff964,ram_f964,low,function_names+renames;SFR,fns: atomic_bytefloat_store_f964 (x1); roles: atomic_bytefloat_store_f964; cats: Fuel & Lambda(x1); AMBIGUOUS: single weak ref; low16 collides with ROM fn addr & no 0xffff literal in reasons
+0xfffffff9,fault_state_decision,high,function_names+renames;SFR,fns: fault_state_decision_fff9 (x1); roles: fault_state_decision_fff9; cats: Faults & DTC(x1)
+0xfffffffd,ram_fffd,low,renames;SFR,roles: out_reg_ecdc_bit1_clear_delay; boot_sfr_ECCC_and_FD_delay; boot_sfr_ECEC_and_FD_delay; boot_sfr_ECFC_and_FD_delay
+0xfffffffe,can240_timer,medium,function_names+renames;SFR,"fns: ram_init_fffe_29FCC (x1); ram_write_fffe_2A23C (x1); can240_timer_init_fffe (x1); can250_timer_init_fffe (x1); roles: can240_timer_init_fffe; can250_timer_init_fffe; cats: CAN Bus(x2), Boot & Init(x1), Memory & CRC(x1); CAUTION: low16 also collides with a ROM function address"
+0xffffffff,init_word_set,high,function_names+renames;SFR,"fns: can_231_buf_set_bc98_ffff (x1); init_word_bdfc_set_ffff (x1); init_d49c_ffff_region (x1); roles: can_231_buf_set_bc98_ffff; init_word_bdfc_set_ffff; init_d49c_ffff_region; cats: Boot & Init(x2), CAN Bus(x1)"
