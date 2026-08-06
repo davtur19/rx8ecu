@@ -1,29 +1,29 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4247 entries, 85.8M.** Regenerated 2026-08-02 for the
+in the working repository. **4249 entries, 85.8M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 630.8K |
+| (root) | 11 | 679.3K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
-| symbols/ | 32 | 9.3M |
-| c/ | 1637 | 3.6M |
-| c/tests/ | 1704 | 12.8M |
+| symbols/ | 32 | 9.4M |
+| c/ | 1638 | 3.6M |
+| c/tests/ | 1705 | 12.8M |
 | tools/ | 29 | 678.3K |
 | tools/tests/ | 3 | 52.0K |
-| docs/ | 225 | 839.8K |
+| docs/ | 225 | 832.2K |
 | hardware/ | 1 | 2.0K |
-| web/ | 11 | 874.9K |
+| web/ | 11 | 869.2K |
 | analysis/ | 40 | 9.4M |
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4247** | 85.8M |
+| **Total** | **4249** | 85.8M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `71d6b2e14f2e52b4fe8e7ee784ab095eaeb43c1cc2d1892536da6a9ea14b1ddb` | 6.9K | Project README |
+| `README.md` | `300c68878758645d47dce36cc3bc54c9ca8e176aa25bded9b963f34e138aec24` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -109,8 +109,8 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `symbols/CATALOG_MASTER.csv` | `da2e2be520ac4fa37b5c3c2dfa77b1f8957c1dd67494d6fe9a5264f187dc1ac8` | 3.2M | Tracked file |
 | `symbols/CATALOG_STATUS.md` | `5d6e688036ce234b53b85b1981a98968744aae66740b3c7424101651d105db81` | 3.2K | Tracked file |
-| `symbols/FUNCTION_CATEGORIES.csv` | `0dcca6fc76300d93bf191f981a0d3755f33081503a8b5cc0ec653d3851b10a43` | 393.6K | Tracked file |
-| `symbols/FUNCTION_RENAMES.csv` | `f4d670680c62d63cacda9e744540d69faa94a68377af615b622b00c2c1a5f7a9` | 479.4K | Tracked file |
+| `symbols/FUNCTION_CATEGORIES.csv` | `44c785fc8cecf94b03c186f355074ddc05f981e6016770c6e1c79e2af4e55b3d` | 396.5K | Tracked file |
+| `symbols/FUNCTION_RENAMES.csv` | `60cf24cd03259368bb83daf2aa5dbfc35f478d98fac013b2405bdde4d5419c87` | 511.2K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `c45aa6301c32e9975f16be449942274a0e6b6570e712dc9c566cc531c3001ef3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
 | `symbols/UNCLASSIFIED_RESIDUE.csv` | `abe9401d09e6344c51eb39e9b57b2991cada07ec2fb9dbc5d2403993214daa83` | 9.9K | Tracked file |
@@ -135,8 +135,8 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E1C500.csv` | `ffc00f7a6c870232c90d7e51577fb8cae5e352ac7acc0a28c77983449007d400` | 283.8K | Tracked file |
 | `symbols/symbols_60E1C500_connor.csv` | `ed5de8ea2c23f6904de1e7f75d84e504aa3969c2993170c4c28407e4bd659ea3` | 727B | Tracked file |
 | `symbols/symbols_60E1D400_connor.csv` | `b76264faafb564f7fd11cd13c5d57f2950572037050b7ae4f505c1c5b87ea66b` | 1.5K | Tracked file |
-| `symbols/symbols_60E1D400_ida.csv` | `f7502fb637eba7c4ac660252f43ad961f100c577b634d6e8b3f467800bb55cb4` | 139.0K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E1D400_merged.csv` | `8710dc436ab599fea89b8648fb5d1f97daa4c2ff5d1ad4b341f91bf9444503bf` | 141.1K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_ida.csv` | `076b8cc7926b912dcf212dafb55f7dcf27e8a3f6aea9fb36abf8143398329a93` | 139.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E1D400_merged.csv` | `d013ce169016af21db2fa15fc734109567b073a3a2c9a751222d7dc171ac8880` | 141.2K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E32000.csv` | `31e41579bde56ba955ce61ce14f41dc4ea4ae66691dbf74825a9a55b7186a585` | 267.1K | Tracked file |
 | `symbols/symbols_60E32000_connor.csv` | `8ebc5dce975b095de8f8617a5d24d21cc64f396532264ded73d3d0c06d43e286` | 727B | Tracked file |
 
@@ -590,6 +590,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/clear_task_flag_dd_3f9c.c` | `556ff7663ea8bab1b7cca2917a2e89f7a248ccb1ea1dd8380636ff08b99c128c` | 632B | Tracked file |
 | `c/coil_charge_enabled_query_e450.c` | `733453c4076f8362f3912d1350e23aa4982f4a21e7213e65f97ded91fb6b22d9` | 1.3K | Tracked file |
 | `c/coil_correction_write_0x50A54.c` | `a64fe38f2b119ad423af6576a152fd76b8c2be09246a734b00e202a1f2471888` | 6.4K | Tracked file |
+| `c/coil_output_dispatcher_0x110A8.c` | `2dc1d41e7148f896ccac0b46040defc3989a6a7134c5d5f4516b1cdf6deb878a` | 4.1K | Tracked file |
 | `c/cold_start_rpm_limiter_f11a.c` | `962d560eaf990893e894bc38dcd59337563033f240e59ca606c9f9b05a57f3f8` | 5.2K | Tracked file |
 | `c/combustion_state_flag_calc_2A8E4_2a8e4.c` | `0f4a334e9e468cd7c827f74da01996a3255c413f0d517585026e6fc9e5ca2c10` | 3.8K | Tracked file |
 | `c/compare_update_float_0x4F172_4f172.c` | `92ef27001eaf6f0687a2eec937b065b11a0a2bd3c9fbd1c1a42c3f9e8349184f` | 1.2K | Tracked file |
@@ -2498,6 +2499,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_clear_task_flag_dd_3f9c.py` | `f91f40474453fdd441bfbc3490bdf8cd212c807cfdfe9c7906fe06b1ae17fcdc` | 6.4K | Tracked file |
 | `c/tests/test_coil_charge_enabled_query_e450.py` | `b24de4d8502ba84c8255f4148c4731cce6e4bacc72295549c55264e6a8e9af6a` | 6.9K | Tracked file |
 | `c/tests/test_coil_correction_write_0x50A54.py` | `916a6b803d755218fd27a240f2bc3cb93cdbb87db60164e7d64bb622cdec1ec6` | 6.1K | Tracked file |
+| `c/tests/test_coil_output_dispatcher_0x110A8.py` | `5ff13c07e4228b1506149e04c2dd9a3d3caa595efd72b054e32b07cdcafe9cd3` | 7.9K | Tracked file |
 | `c/tests/test_cold_start_rpm_limiter_f11a.py` | `e491fd7fa13f6b68a3d449b56bd5785d4341e9e03cb4d2daeb7cc80b1816cdc2` | 13.3K | Tracked file |
 | `c/tests/test_combustion_state_flag_calc_2A8E4_2a8e4.py` | `5cce8923a5a4f7e5b8c6ac1e41c0f8d12b7c6e4a1e5d7b4b4a89fbed7532dc66` | 11.6K | Tracked file |
 | `c/tests/test_compare_update_float_0x4F172_4f172.py` | `3265fd3dc8fb064ef0bfaaa0260fad25d984eae90242e14348e5691359a2ba83` | 8.5K | Tracked file |
@@ -3538,7 +3540,7 @@ or the toolchain install (git-ignored; re-create with
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
 | `docs/README.md` | `62526603665c28abdd53c076fdb98c584b28798bdfa56cc3d6ddbea04657b856` | 14.7K | Documentation index (generated/verified against current tree) |
-| `docs/functions/E2IntoRAM.md` | `588be02044fbee6f02f219126aab4adcde5e6883e0142398aa04205f255b6380` | 3.0K | Per-function documentation |
+| `docs/functions/E2IntoRAM.md` | `5b96849fa9ec51dab164ef36b5b13de1ffda545d036a8d99e4814efb1b709417` | 2.8K | Per-function documentation |
 | `docs/functions/INT_ATU101_IMI10AG.md` | `791d3f2554a3cc5344f9d9847d9dfd66217d4e83f157a6fd855ed07be6234698` | 1.9K | Per-function documentation |
 | `docs/functions/ImmoBadStateSet.md` | `c5272a38d7210da49888b767206c96babd27723ca3555832340069be016de857` | 1.6K | Per-function documentation |
 | `docs/functions/ImmoStateReadyToDriveEngineOff.md` | `7f373908a541d06bc4d726453b7a190334c4f13db0fece49a0ad16f5d2fcdefe` | 1.9K | Per-function documentation |
@@ -3554,57 +3556,57 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/VDIControl.md` | `a98dde29ca5b145eabd5f9d5d8a12690456a9c392a3280e378c5f0230c392c75` | 1.9K | Per-function documentation |
 | `docs/functions/adcIAT2Volts.md` | `ffa42d97fcf8d31bdf13937f8bbff1d93701e382324ac67012398b7e0e4dce3d` | 1.1K | Per-function documentation |
 | `docs/functions/adcVoltageOutOfRangeCheck.md` | `0089a70f67836ace1402744ec72caaf6cf96696a992c39275b195da180df65c0` | 1.5K | Per-function documentation |
-| `docs/functions/addS32Saturate.md` | `3bb5d583ec5943432673345494517f6eb56b63a757443bd6c3273313942130ae` | 1.6K | Per-function documentation |
+| `docs/functions/addS32Saturate.md` | `4cb25c79a59287fc784c9c8fc1c03b7ab7a1304229f0f4664b460f56303476b1` | 1.5K | Per-function documentation |
 | `docs/functions/arbitrateFuelCut.md` | `ff434072868175527b7b8d86b75b27bc54be8794d85b8eacce6125e1be74c4e2` | 2.6K | Per-function documentation |
-| `docs/functions/bitfield_extract_merge.md` | `aee7cd41dd46b03e4007d897555f9fbbfbc7879462899e44da64aede8e37b014` | 6.9K | Per-function documentation |
+| `docs/functions/bitfield_extract_merge.md` | `860e654649803c1715360046c34d0afa28a9c6b6c56d63cbc9a4c74bd2ee3c44` | 6.7K | Per-function documentation |
 | `docs/functions/byteToUDS_SERVICE_DATA.md` | `2e5736e7435acb086b21c33cfeb086f9fcc183b6d11c74ddbbc8497a5962229a` | 166B | Per-function documentation |
 | `docs/functions/calcDesiredAlternatorVoltage.md` | `ec07710465352821a2f7201a6cf184ef68193ea6e55018e69befc7c8a3cd5ef9` | 4.5K | Per-function documentation |
-| `docs/functions/calcDiagFuelInjectorTrim.md` | `d4579b1c4f8167a9201e477e52af5c0cff8d82f6dacf689c5659cd02b31ed4bc` | 2.5K | Per-function documentation |
+| `docs/functions/calcDiagFuelInjectorTrim.md` | `aabeeada1abc11acd1ced201388460e47fdbd9fc9c6acc694b3513b92ccb5530` | 2.4K | Per-function documentation |
 | `docs/functions/calcInjectorCrankingTime.md` | `ca58a7d19281aba48d4c0063544726ab0f8d76ba4d055e263ce0204f6b8f6003` | 2.3K | Per-function documentation |
-| `docs/functions/calc_adaptive_fuel_trim.md` | `54fd6701c0622dc0eb032e3105d9791d2c7d44b27f472412552e7c8874d7b0af` | 5.7K | Per-function documentation |
-| `docs/functions/calc_decel_fuel_cut_445AA.md` | `05d3eae839eef36eecf663bdb988e83d793a0f3e25e095b63477f2458dd2616e` | 4.3K | Per-function documentation |
-| `docs/functions/calc_fuel_injection_all_rotors.md` | `6b1c087c2fd8e0ffcb140d52887d5538a80f0376e6be00f8433d1e86a75a2bd3` | 2.9K | Per-function documentation |
-| `docs/functions/calc_ignition_all_rotors_13C2C.md` | `2efef84d97c862eeae983ed3b3fb681fd69198710fee37219f3b601b2d0ffa2c` | 9.1K | Per-function documentation |
-| `docs/functions/calculate12VBatteryTemperature.md` | `e68f25bdf232b670fb224bf8fe6b025e1ac38b88bb0572975a6c5dc5c3acffc9` | 3.1K | Per-function documentation |
+| `docs/functions/calc_adaptive_fuel_trim.md` | `dd0665ff307046b7b6ae94c2655c942a7b7c6e6d33409e05154553232a699aa2` | 5.6K | Per-function documentation |
+| `docs/functions/calc_decel_fuel_cut_445AA.md` | `1dfdd156ca3321830d03ecb0e2c28216035043d3ba156fb31ccbf17e387b0512` | 4.2K | Per-function documentation |
+| `docs/functions/calc_fuel_injection_all_rotors.md` | `d302c22153cce0dc01c1cadd9e7092acb09a6907af94eecc118acd4a1b6924db` | 2.7K | Per-function documentation |
+| `docs/functions/calc_ignition_all_rotors_13C2C.md` | `b78371e0609db7cf3f811d0cec4925b0e085be87d1258f1a36c1502228a781e9` | 8.6K | Per-function documentation |
+| `docs/functions/calculate12VBatteryTemperature.md` | `eb44048d58e5f90b8e8bd169ca08a5c27c413d19df062137178636e1ca14cb28` | 3.0K | Per-function documentation |
 | `docs/functions/calculateCruiseControlSwitchVolt.md` | `01f55e8660bcc93f62fecacfbf00de1e3a33cd362fd2ef9014e0c0cab7619b2e` | 1.3K | Per-function documentation |
 | `docs/functions/calculateEngineTemperatures.md` | `5a99dda07e6285e55f1d6dcf2767c091f402d6d31de290cb684554bd8a3f2826` | 2.4K | Per-function documentation |
 | `docs/functions/calculatePerRotorIgnitionDwell.md` | `d2e0ec552534a68d62493cea42df600642db1d4b7992c5d34a8a740f34d5e393` | 1.8K | Per-function documentation |
 | `docs/functions/calledLots.md` | `88c600ca47712e6bf66f2943e9e2d627b4e96265db64c327302b30c55c022ccc` | 1.7K | Per-function documentation |
-| `docs/functions/canSetup.md` | `f98d793b7a67f50b4d9915794cf16b8ad0ccc6995c0bce1872b8d8e982e44f16` | 2.1K | Per-function documentation |
+| `docs/functions/canSetup.md` | `ce2e75cfcfe270c6cd379eadbd715c8039f116ae5623a6992e8664cee34c2d4a` | 2.0K | Per-function documentation |
 | `docs/functions/can_message_handler_24588.md` | `e84de9ffccaf5d0f0956ac8e9787539c7b5f7dd8d511d9efb73f28cfe55991be` | 444B | Per-function documentation |
 | `docs/functions/can_message_setup_dispatcher_33974.md` | `f2b5320509d41b5dd146f1731d645fa9302efff6d884eabd2d9468b5e2d096c9` | 1.1K | Per-function documentation |
 | `docs/functions/can_rx_handler_49100.md` | `4dcd9725ea119e4a86a7e16ca3189ab4c58377ea3d03cbe4e6ac2faeb65340b4` | 788B | Per-function documentation |
 | `docs/functions/checkFloatValidity.md` | `737d1fe0cab46dcb6411dcd20e93816d1be2ef7937c27d5f47d96aa281fa806e` | 1.5K | Per-function documentation |
 | `docs/functions/checkSubFunctionCurrentlyRunning.md` | `da8b88e03fc2b4027b19c7937650188d1da65632a646a6214f6226838983f11b` | 1018B | Per-function documentation |
 | `docs/functions/checksum_complement_add.md` | `1e41dce792a03789dd089c9ef377953c78ea56d0ebd564bfce79a632bcbc795f` | 1.4K | Per-function documentation |
-| `docs/functions/consistencyCheck.md` | `86d21a00f405dd82253fdec0756664cc8dab0731ed530cf8a79e849ce5cad669` | 2.2K | Per-function documentation |
+| `docs/functions/consistencyCheck.md` | `c65fcc079b26a614c5176fbed5fdb7b6d7defba9b3304d431c8dfb653f4ecc02` | 2.2K | Per-function documentation |
 | `docs/functions/crankSensorInit.md` | `7ed8a9ec49bc50488823a913a3aa50dd30b452e0b850a69b8258b362453dcb36` | 1.1K | Per-function documentation |
 | `docs/functions/debounceCalculatedGear.md` | `d33b34d24124027749669b3323528cbfe18a1804a3240aa190554e713f1e5ab6` | 2.1K | Per-function documentation |
 | `docs/functions/delay.md` | `4450eaa55e34401b0a82c1f75d75d3d2d5fce23839ef05587ffc0da013b2d777` | 636B | Per-function documentation |
 | `docs/functions/delay_loop_n8.md` | `764bafea166cc032f09aefc22c2993f2160b4a949a1adc824066e73eb5f6c2ee` | 384B | Per-function documentation |
-| `docs/functions/div32_signed.md` | `c4f8334965ec26712b2fa0c5ceaa6fa6d1a79a7024048621589413b7afa2a8ec` | 1.4K | Per-function documentation |
-| `docs/functions/driveCycleDetect.md` | `51ba3930570dc1a126fe091ab6054047f4d043e7ac3e79a1ac32294c23aabe96` | 3.9K | Per-function documentation |
+| `docs/functions/div32_signed.md` | `592680276d8e32f732026e490f3e0d5769a9e016c8f23fcaf40dc73da573ecea` | 1.2K | Per-function documentation |
+| `docs/functions/driveCycleDetect.md` | `73524cf39e46b0721d220f9b953fb5f0a9d115133d616b642416642f7dc77544` | 3.6K | Per-function documentation |
 | `docs/functions/dtcCodeTypeInit.md` | `4316f081d27b2574ad72c6b473a526147c0a9f281ff12611539249c77a552aaa` | 369B | Per-function documentation |
-| `docs/functions/dtcRelated.md` | `b643bc9ecf119ca1ed36264c6aa6fd8fb9cad3619a1cb019aceffc82ae59242c` | 3.4K | Per-function documentation |
+| `docs/functions/dtcRelated.md` | `0daa97a1c29529484d3b36a230a066b574f6bb60ddb587fcff41c8a2c1aec114` | 3.4K | Per-function documentation |
 | `docs/functions/dtc_data_read_60F58.md` | `ba7e0dc0338b04ebdc790af24a6cff2c0fe57bce8e623e1a3007952eb5fac72e` | 770B | Per-function documentation |
-| `docs/functions/dtc_management.md` | `78251d9abc1a2cb2e26cdd5f6facbf15408d7ee9b2dc244299a186d9a5578982` | 6.4K | Per-function documentation |
-| `docs/functions/eShaftLearn.md` | `4afb8fd66dab56ad688a4420788fed974e2cc176696f0477ff41a65eee03bc05` | 3.7K | Per-function documentation |
+| `docs/functions/dtc_management.md` | `58b91f111d13df593307f154efe493859d6717b7296b6edbfada91f438842b68` | 6.3K | Per-function documentation |
+| `docs/functions/eShaftLearn.md` | `287963a04ee550e30dedcea09416338b640669b0da2680f3dee49ee379e51344` | 3.5K | Per-function documentation |
 | `docs/functions/enableDisableCruiseControl.md` | `bbd6f4782e0e15c9009e893c8124a8a3148c8002cf7ef5a40969be4f663506cb` | 1.3K | Per-function documentation |
-| `docs/functions/engineControlCalculateTiming.md` | `ff33baa5b9eb599b4997ee372cfb65263d9ce82bfc93e315274d4a7797b52411` | 23.0K | Per-function documentation |
+| `docs/functions/engineControlCalculateTiming.md` | `b3ab9231399c939592c9e92a96a88d35cd9379a0c886cc234dbf301ce35338c3` | 21.8K | Per-function documentation |
 | `docs/functions/engineSpeedInit.md` | `8be9c3c37f2a0556f85055a329ae51cca8b004f2fc90e730c16b93537489fb55` | 1.5K | Per-function documentation |
 | `docs/functions/evapRelated.md` | `1d87ba2dfc2d6d1f6894d14d2f57ac986556ea3c8e32e7ec1497fb6893a91c23` | 2.1K | Per-function documentation |
 | `docs/functions/faultEnableStatus2.md` | `f574a7b032bb58bd13ecf582251ac25b3d0cc175f6165a3b9665048aa03b51cb` | 922B | Per-function documentation |
 | `docs/functions/faultSomethingIdunno.md` | `2ae474e67603c23b567fe714402c7052bbc6d09a0a586088f063c134c2c16d60` | 1.5K | Per-function documentation |
 | `docs/functions/floatDivideDiv0errCheck_SIG_DIVISOR.md` | `095a7629c7aa8a3652bbcb3b531bced7dd607ca9a893132aa557778b086e6bb8` | 2.2K | Per-function documentation |
-| `docs/functions/fuelInjectionRelated.md` | `a13395f1921efd61dd65e2895906c7a49b1da09ef3d1e120b3855a44a9242a87` | 2.4K | Per-function documentation |
-| `docs/functions/fuelingInit.md` | `c3642d37cdea881e3661deaef13ea190eaf818c4507a4ee83df7996147cff9dd` | 2.0K | Per-function documentation |
+| `docs/functions/fuelInjectionRelated.md` | `303fe7e096a27ede5e1bd08813ed414d57ccf1f62bf4f6887a9bc112eccfbc27` | 2.3K | Per-function documentation |
+| `docs/functions/fuelingInit.md` | `79d9d78fb0c097c427feb8a4b8e10a37d760e192df7ec3fc22473049edd5bab1` | 2.0K | Per-function documentation |
 | `docs/functions/fuelingRelatedInitialVals.md` | `6dfbe75bfebd835c0c30c14220b3001d1ab76c6f1fcff205d50bb5c210a2a1ca` | 2.9K | Per-function documentation |
 | `docs/functions/fuelinjectorSet0.md` | `f8528e4bb6eb5fce381b22377efc55c55ea5f4a5c9ea92d2c468d1dfd07f6a00` | 1.4K | Per-function documentation |
 | `docs/functions/getACSwitchStatus.md` | `d3800e0b0f17c9eb0b4c283129cca2255e98ee3c56f9d7f1fdd6649d2fd817eb` | 784B | Per-function documentation |
 | `docs/functions/getAPVPosVoltage.md` | `7bd50dbc260b684b7788afbef2651da0315807eb29a6751f42ae96a430d3cbee` | 1.4K | Per-function documentation |
 | `docs/functions/getAutoTransCal.md` | `9645458a4291081b6b2500d150c8e4a1cdcde2bd95772e49531cf4379126ce8b` | 741B | Per-function documentation |
-| `docs/functions/getBaroSensorVal.md` | `632c155f56d6490662f91ce9a21147641b4fedbad3fa740f4c8de76e9e442cbc` | 2.6K | Per-function documentation |
-| `docs/functions/getConditionalsForRevLimit.md` | `6e884652dca8001bf37df1b609decb151ef0c02a126e271712b3af0af59db26d` | 2.7K | Per-function documentation |
+| `docs/functions/getBaroSensorVal.md` | `22e933203c6ffbaea21f1510403e1cb98ef463ac5d66bec32d3eda473711f02c` | 2.5K | Per-function documentation |
+| `docs/functions/getConditionalsForRevLimit.md` | `28c844d63c8b2a729b95349f472f3aaf5520f65e8fccc44116c3fbd55ec656d3` | 2.6K | Per-function documentation |
 | `docs/functions/getCoolantTempforOBD.md` | `2e691728498506754ad09ff86c76481b4706dfd40c46b52e5faae8f2fa997a04` | 1.4K | Per-function documentation |
 | `docs/functions/getCrankAngle.md` | `14d08312c4cc92e00f07c4019925f0f95bc6125a37b58dfad7c8f54ed4d66dac` | 2.2K | Per-function documentation |
 | `docs/functions/getCrankingInjectorPulseTime.md` | `1d99b2a6d8ed7a943961a6c821b7f93d7c727862ec69da9fa97bf30c9dce1411` | 1.6K | Per-function documentation |
@@ -3612,8 +3614,8 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/getEngineLoadforOBD.md` | `ad6b057294874e8b2d43831226f6d9ab847650c5e06ccbc1eec5248d81f074a4` | 2.1K | Per-function documentation |
 | `docs/functions/getEngineOffTimer.md` | `7af5c47cb4dac68bd53c82ed77d9b0083734f49a123f1c9164ab00dbe858237d` | 1.1K | Per-function documentation |
 | `docs/functions/getEngineOnTimeForOilMetering.md` | `d0866f67f00f21cce47bacbef4d27054bc2102ce7ea12219805ae83d5a4ae00c` | 1.5K | Per-function documentation |
-| `docs/functions/getFaultStatus.md` | `64a6141d096750befdeee0e096b5d8891007bc5a0a6523bc7ca1668ca200de76` | 2.5K | Per-function documentation |
-| `docs/functions/getFromE2_E2ADDR_RAMADDR_LEN.md` | `9b8a258de4063a2157954934d9d1c76567ff3f8af61a9a36dd9598b2c4af489a` | 4.1K | Per-function documentation |
+| `docs/functions/getFaultStatus.md` | `8bee4b1b2f71050b4b2b701aab284f3b255b507e489fdd257c51e18a8b933a10` | 2.4K | Per-function documentation |
+| `docs/functions/getFromE2_E2ADDR_RAMADDR_LEN.md` | `8963fd4ebe83f544993dcbce755249be01d0ab6dbd225dd9002a8ef4974fb7ad` | 3.8K | Per-function documentation |
 | `docs/functions/getFromGPIO.md` | `36ed85a9f6d6031179a72d01bf463747b88cc6e877a5e42d258b328be34c7f0a` | 1.7K | Per-function documentation |
 | `docs/functions/getFuelCutRequestStatus.md` | `6ffd484eb96a99e8cb42849757b1df4a910992fcd788162080128669f8af1e54` | 559B | Per-function documentation |
 | `docs/functions/getHCANRegisterAddress.md` | `2e420c3875edbe4f311de1a3b2373b60dd740499c9b5853ba260d58e8524f300` | 932B | Per-function documentation |
@@ -3627,38 +3629,38 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/getMAFOBD.md` | `3dc4a1df1f9bfc638fd29e8cc248ed5c806e9f96ec509f292347dc1daaef4ba9` | 1.8K | Per-function documentation |
 | `docs/functions/getMAFSensorValue.md` | `e87cc1b4a8e81ff9ecbfe51992bd4984d4fc506128b97d1c3b7ee4430acb3997` | 1.7K | Per-function documentation |
 | `docs/functions/getOBDFuelModificationRequest.md` | `8cc9c22268fb1fcd3f94c49b82808007ba8bf546f4a71f079ea4bb32111b6c1b` | 2.1K | Per-function documentation |
-| `docs/functions/getOLStatusforOBD.md` | `41d8f39bf78bd52064d4ecc8597cf9b3673ccb28464f80ad4c868d30dab585ca` | 2.3K | Per-function documentation |
+| `docs/functions/getOLStatusforOBD.md` | `8669d2eb8c2ac023e432e4110d12ee137fcb356454d14a58293670efa518e6e2` | 2.1K | Per-function documentation |
 | `docs/functions/getRearO2Voltage.md` | `092e6a2295949276c5f28c972303d12b99ecd937c253f782928349bd72da85c7` | 1.3K | Per-function documentation |
 | `docs/functions/getRotorNumberForControl.md` | `d1143b435b8307af26b453ced08633163288b976cd02aa8fb7ca3e54e367d026` | 926B | Per-function documentation |
 | `docs/functions/getSR.md` | `df7b35ffa0ddf5786f3a57fb53af72579c9ae1e9ed632103431d2d0f3b1c995b` | 799B | Per-function documentation |
 | `docs/functions/getSTFTforOBD.md` | `b0c703dc98c4d15809d0b7f230223b0d8f00d7a06859df6848b8c9dbf1b821b7` | 1.6K | Per-function documentation |
 | `docs/functions/getSecondaryAirPumpRequestForMode22.md` | `9d349ea4bdc683978bcefae0aefced0dcdefac9f9bb44fc3bb2bbdd4df29df9f` | 414B | Per-function documentation |
 | `docs/functions/getSensorStuff.md` | `915799cd1101eddf7ae0a16e951eb9e8edc8be37de7ed95eea9760dfa39a2ddb` | 1.8K | Per-function documentation |
-| `docs/functions/getSpeedLimitCal.md` | `aa61a5d836d8f8543ff7a65f08b77fd26971d1f24504c8eb7d3b4771696f0055` | 2.2K | Per-function documentation |
+| `docs/functions/getSpeedLimitCal.md` | `f35dd61b3e75710f98b73fc129191880ccb49bf8edcd82e57aeb2b84c19b7e05` | 2.1K | Per-function documentation |
 | `docs/functions/getThrottlePlatePosForOBD.md` | `746c1dc6252c113f2b9eaac09933e1cce6424e81424b39477ae78b7be8a44c2a` | 1.0K | Per-function documentation |
 | `docs/functions/handleDiagInjectorPulse.md` | `cb69b88cb469691727ece01c7e9c019852fb99b3a1dd7ce1d1ba6a1484b526a3` | 4.5K | Per-function documentation |
 | `docs/functions/ignitionCoilPulse.md` | `9fef8deaba5139950aa6f4da07a7396ba8a2612650d6e7f113ec25363c992f1f` | 1.2K | Per-function documentation |
-| `docs/functions/ignitionDwellOutputInit.md` | `75b7355256d86610d98c2d044f7ec1d8669303b6a2dd611db59496a5096cb0ae` | 2.6K | Per-function documentation |
-| `docs/functions/ignitionTimingHardwareTimerSomething.md` | `b7926a5424f66069b70fa4142e1db7ccfe5af379797a0f19f270e496c4c177f8` | 3.4K | Per-function documentation |
+| `docs/functions/ignitionDwellOutputInit.md` | `79185d3695fc368bbe3e8be608c649c951c186b661e888cbd41db63e1c6ed03d` | 2.3K | Per-function documentation |
+| `docs/functions/ignitionTimingHardwareTimerSomething.md` | `09713e4ebd7129933ef3fef28d9c3864cd8c7dd70320b33ff9f2e9a031d85929` | 3.4K | Per-function documentation |
 | `docs/functions/ignition_advance_limiter.md` | `f4e65ebfab738d83a7b8168cbb866d982a5a72cee8ec752c2e0a2fc09edeacc6` | 1.2K | Per-function documentation |
 | `docs/functions/ignitonSomethingCalc.md` | `6c83e4695687ee07f748b4febe375936c26b62a9f14c22d730bcd1b13e31aec7` | 2.0K | Per-function documentation |
 | `docs/functions/initSparkOutput.md` | `2104b420d78d42ac6e2fc05050d0f0b2cd41b19ba95854b0819599e3672bc802` | 1.7K | Per-function documentation |
 | `docs/functions/injectionTiming.md` | `ab3a677761eee44d9e54bf15b6d48ca709524c321515b108e9dd0565b02a36ba` | 2.2K | Per-function documentation |
 | `docs/functions/injectorPulseSet.md` | `ba18fb62e470e618e518618632fd6c00fd0933f960c1c7891fb9fe840f4f7e5f` | 2.8K | Per-function documentation |
-| `docs/functions/injectorRelatedFunc.md` | `b592f4ca6f0e6a109c63d0babdd05df0736698dd74fd2d26eba61073eed6454f` | 2.7K | Per-function documentation |
+| `docs/functions/injectorRelatedFunc.md` | `542de311b1b745879c4aa6feec2110cafef4de87b7c34a58c391621ec9f2f53c` | 2.6K | Per-function documentation |
 | `docs/functions/intToUDS_SERVICE_DATA.md` | `638f12e0e6de432ca4c41d5b6584b1c9aab191b8de266913a038aa2601f9529b` | 223B | Per-function documentation |
 | `docs/functions/knockFunctionInit.md` | `9a2f6662c6d2ebc68acb2a6d643ab903e7f8e2261b8a0d96682547ae66dd7095` | 2.0K | Per-function documentation |
-| `docs/functions/knockRelatedInit.md` | `e483a5006afa4bf72e174cb0aa662b944af44dc584731b01956877ccc64884a1` | 3.9K | Per-function documentation |
+| `docs/functions/knockRelatedInit.md` | `c9b715a593a8e68862e14f035f518a64c1b0947cf4737097a1f1b0f485914083` | 3.7K | Per-function documentation |
 | `docs/functions/knockSensorADCFault.md` | `2130b6454a85c0e19661eee1a92909d1176cef59b0ca5a5d36d0f693767c6665` | 2.1K | Per-function documentation |
 | `docs/functions/limitKnockRetardMax_ConditonalRPM.md` | `75477c74ef9010bc883858382c2572d54011c4090f7523c2df9ae3ccf43ced8f` | 2.4K | Per-function documentation |
 | `docs/functions/loadStatusRegister_ADDR.md` | `acf1c845d4bc422efb130fa1c6c6805a4e120a62dff612fde57379be3fcfb4c0` | 309B | Per-function documentation |
 | `docs/functions/memcpy_bytewise_unroll4.md` | `726e62d24088757044e7498f9d9fd285ee62eff16490619ae0ec885db0ff2242` | 1.1K | Per-function documentation |
-| `docs/functions/memory_match_accumulate_583E4.md` | `9977a3918be1f134260661936b159bee07d749a4a922391049b946c55684d57a` | 2.9K | Tracked file |
-| `docs/functions/mod32_signed.md` | `04a41a31ffd31f7682296d05058348e644b28d66c382319d42135817ecde28f5` | 1.1K | Per-function documentation |
-| `docs/functions/osTaskScheduler.md` | `b1c55f1978f4c82221d47fd3fc824f1b1c2a6a0bedcff6d63d0324a6bdc9f78b` | 2.6K | Per-function documentation |
+| `docs/functions/memory_match_accumulate_583E4.md` | `ca09d1519a3ab5fd1617f8c595a565d9415b9b0a47bdd52da0312c8772b3eb32` | 2.6K | Tracked file |
+| `docs/functions/mod32_signed.md` | `95933267e788bde7fab887fe9b74bfcb12d67bc69f2b4c76d8baef03a085dbf8` | 1.1K | Per-function documentation |
+| `docs/functions/osTaskScheduler.md` | `2fdea61647508ece0942341ba870786643e1619dff8b91b0da9fbaad8124a4d0` | 2.6K | Per-function documentation |
 | `docs/functions/outputSpark1.md` | `4d0e9e3103056206fb466c2981eb73e3ffd9770cf480062feb82d8e65ee39698` | 2.9K | Per-function documentation |
 | `docs/functions/outputSpark2.md` | `4d3b7ee547825ad032726a5d0a9d75eedfbf5c28a31638ed42cae20ff7286fa9` | 2.2K | Per-function documentation |
-| `docs/functions/pack_for_OBD_response.md` | `236e406a8e2dbdfcf1c789f521e3383bb22f22337e6096457fdf37a9d0f1ed88` | 2.3K | Per-function documentation |
+| `docs/functions/pack_for_OBD_response.md` | `b5b9a30432491055bd318f081e5b4143756849ba9e2daa6c9fd2e050162bf04d` | 2.1K | Per-function documentation |
 | `docs/functions/pcmBoardTempADCtoVolts.md` | `bd26c23079c162dbbf967914b02bd8feb9b404f6719ce934baae107980cdc133` | 1.5K | Per-function documentation |
 | `docs/functions/placeCANRX.md` | `4a5f33ebff56f05835c2d9933b0316f3efcef6c2961f808ced88664c734f0084` | 1.9K | Per-function documentation |
 | `docs/functions/putFuelingStuffInArray.md` | `32c39cd989ff01b2b35a3ab094a9db45cd450da1750012c2be1f235b539b419a` | 2.7K | Per-function documentation |
@@ -3677,17 +3679,17 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/revLimitFuelCutInit.md` | `e5e7ce1067e327b208b632c1c525269c449b3dfa83048f336fd4fb42d85ef95b` | 1.6K | Per-function documentation |
 | `docs/functions/secondaryAirRelated.md` | `62b6f82f5c74ac2e41ec0e680106f31b9924814959445bc82b4467f20e9bdc75` | 1.8K | Per-function documentation |
 | `docs/functions/securityNotUnlocked.md` | `6c251c6925f02e1f7de6d2ea1d39ac322c0cd1c8958c35d1e9392b803d88a1fa` | 2.1K | Per-function documentation |
-| `docs/functions/security_access_handler.md` | `30cca646483190db95f71f5e7fc0b174052f4f718bed995f5a619afb3c1d5ddf` | 16.6K | Per-function documentation |
+| `docs/functions/security_access_handler.md` | `2a793fe45fc76a70e636cdae333a9311791e7227307a3dd010d78e43e4aba883` | 15.7K | Per-function documentation |
 | `docs/functions/sensorADCRead.md` | `87bd6fd0e4b70493206263d2c981d7466b702334d98b1e43ff330bea4e05dfb1` | 2.0K | Per-function documentation |
 | `docs/functions/sentinel_equality_check_5687A.md` | `67610e69590288d13a721394295673dcb21475b5f6a41c73f2f7e39e9cf22844` | 263B | Tracked file |
-| `docs/functions/setAlternatorWarningLight.md` | `06acb1825223fe3dda3edca99f70d4d62fe3bf4f75323bd8e0e49a1ba8cae411` | 1.8K | Per-function documentation |
+| `docs/functions/setAlternatorWarningLight.md` | `0251b672729b38eb93c76e530bd3704bd3be0893849f545b99e2d03129a13a42` | 1.7K | Per-function documentation |
 | `docs/functions/setCANRXBool.md` | `f070e22713ae9cb670efcf18c4813102bde79758a52781d460727f2ab63659b9` | 275B | Per-function documentation |
 | `docs/functions/setCANRegisters.md` | `a16f382cda727ba5b05cc1423bf82e5bb9b15e323d1a8da91fe961eef4924682` | 1.8K | Per-function documentation |
 | `docs/functions/setEngineLoadInitalVal.md` | `29c9c1cf5fc23a6e58f823477353b78648d7e6a9103e424a87e5c611aa3cd6f5` | 657B | Per-function documentation |
 | `docs/functions/setEngineRunningInjectorsOffFlag.md` | `1b7550a34383be29181870617947467fea55fd6e9f31efca18be614c341403a1` | 1.2K | Per-function documentation |
 | `docs/functions/setFuelInjectorLatency.md` | `2d48a37cd31fd30290127fccf34d44885c905457676c4c89bf55bf057b6acd42` | 1.8K | Per-function documentation |
-| `docs/functions/setImmoCANTXData.md` | `f3765a7e9730b7714026bd7e707417d295868b047c2331489f17c21daf741612` | 3.5K | Per-function documentation |
-| `docs/functions/setImmoLight.md` | `d86f9efd0bdef678bbfe6658a667d19afbe2ad73c3a9934e46ec86f4bf132d0b` | 2.9K | Per-function documentation |
+| `docs/functions/setImmoCANTXData.md` | `0fca7f6035b06d93557a5063766faec8d13459a8ea9aac24d271fe35d82fda71` | 3.4K | Per-function documentation |
+| `docs/functions/setImmoLight.md` | `e0bd92129e61dcba60d2ebc283042dd252075642ddc1590efe9962f1c7c0f570` | 2.8K | Per-function documentation |
 | `docs/functions/setMainInitDoneBool.md` | `b436136a1f02fed265bb98daebc14b78a440a96c48d095385034cdf6e1862251` | 406B | Per-function documentation |
 | `docs/functions/setMemInsideFUNCto1.md` | `7a9424d993d4d790fc5d153d687aac2013e530904510b5b7a01d724a676b3538` | 256B | Per-function documentation |
 | `docs/functions/setMessageRXBool.md` | `b9d4a8e64e0b1729a4bed26b0931836b6a944c2bdf8959ca036d231790c2e7ad` | 697B | Per-function documentation |
@@ -3700,21 +3702,21 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/shift_left_logical_r0.md` | `95fc5eabd9b248dd6de712c21f6f45f899e8aae71e5f83a68c48ca45bdb26618` | 1.4K | Per-function documentation |
 | `docs/functions/shift_right_8_r0.md` | `9df0404319221568f90bdf3bd83800c1d9350bc06e1805f68a9c842ff510713c` | 188B | Per-function documentation |
 | `docs/functions/shift_right_arithmetic_r0.md` | `4120f7c6bc2d2e511d599f3de5f951327c6e00bf29342e8606b6e7e95fa26051` | 2.0K | Per-function documentation |
-| `docs/functions/shift_right_logical_r0.md` | `38e1bdec216e6f1f80ef52282b3d215158ca7b412f4e23387f63c600daa8bfca` | 1.3K | Per-function documentation |
-| `docs/functions/somethingFuelCutRelated.md` | `c09b7882868736e5964022a71f3f12b6772c6853f0c67afb4287c103380a3f87` | 2.6K | Per-function documentation |
+| `docs/functions/shift_right_logical_r0.md` | `c2a708e685b0616a2f9bce3a5305e1ee7628aa3c4fb302e3040802e70366221b` | 1.2K | Per-function documentation |
+| `docs/functions/somethingFuelCutRelated.md` | `99f41d8e7a3f710d95246739a496fd776abdda541d59fae71d1e85b9dfe7efdc` | 2.5K | Per-function documentation |
 | `docs/functions/sourceOf10kReset.md` | `27a1b0629e84cb07e7e0258c510a0890a1964bd9a9a371a6756348d7ac6d5154` | 1.9K | Per-function documentation |
-| `docs/functions/ssvControl.md` | `da891cbd93938f49b7677c17a8bffa30b6d268338a8a89e5ccdba68a92e59d9d` | 2.5K | Per-function documentation |
+| `docs/functions/ssvControl.md` | `e92bf46a332a73a3c409156bfa13720a8e60bc30f3b8b5f51b450ae4d7bdf9fb` | 2.4K | Per-function documentation |
 | `docs/functions/store_knock_learn_buffer.md` | `c149ae632d8d267675cd9eedc041358c600f866406d54fb16f589f56fe4438b3` | 2.0K | Per-function documentation |
-| `docs/functions/taskEndRoutine.md` | `fe64b3e04202eebd24f722848396ecb2b924bd567255db09ba353d103fbfb29c` | 2.7K | Per-function documentation |
+| `docs/functions/taskEndRoutine.md` | `2f5b2c575ca4d36f81ee143d08e9b8b8ba3bad4b0513d41f9c1a444ebce02fdd` | 2.5K | Per-function documentation |
 | `docs/functions/task_flag_run_C.md` | `fc5a8f283d5b6ed03360c2a87ae9f380e5c09cef2ba7cc325fec656e431a4b2d` | 1005B | Per-function documentation |
-| `docs/functions/throttleDownDeFloodCheck.md` | `ffb3f2e98a40e92dc2c168b5070fca155d455ffd8d41f35aaaad98aed6e77620` | 2.7K | Per-function documentation |
+| `docs/functions/throttleDownDeFloodCheck.md` | `d71ed25541a3cb2386859d7adecdef3ea92daddd7313fb93fe00438fea978800` | 2.6K | Per-function documentation |
 | `docs/functions/throttlePedalADCRead.md` | `8a1fd1a5bce65f6dffd0712a28f69ece74fc60583630f3ff19abaf84ee235c5b` | 783B | Per-function documentation |
 | `docs/functions/throttlePlateSomethingFuelCut.md` | `6b973e7dfa95f5bcda1ba77aa20f6b8280f225ea978820e1e9e6813ed784a1ae` | 3.0K | Per-function documentation |
 | `docs/functions/txCAN_EventBased.md` | `d40f8e23178ce6ab521fc71ce7eb83f0c9c8f18219684c9762b4193065b85ff5` | 1.7K | Per-function documentation |
 | `docs/functions/udserrorresponse.md` | `b32d86bc65d37879ae3adfd194367f002dfe45df9f05aa5e617b68ff190b720c` | 1.4K | Per-function documentation |
 | `docs/functions/udsresponserelated.md` | `93742dc4786fea48a6cd8b328babcbc132366c8a23a48a7904567a4110bbaac6` | 1.5K | Per-function documentation |
 | `docs/functions/udsserviceresponse.md` | `fc7dc8ceacc70eca0a3c382db5086ea01e3b436a4fa7ff6e22188f179cdb652f` | 1.3K | Per-function documentation |
-| `docs/functions/unknownMode22Func.md` | `97467c2818528fd09df7ce43c51d38ccd4a4c3170782ad192ba9acc2878fbcbe` | 3.7K | Per-function documentation |
+| `docs/functions/unknownMode22Func.md` | `388ddeb2a2c0fee5ba1f67dcbd244064dd3c83f448690bb176f8674db90627b4` | 3.6K | Per-function documentation |
 | `docs/functions/updateE2RAMBasedOnInput.md` | `c77a5539104c27b37b7005d8a9feb2990e3d695dd20cd8eddcf50a6b5ffc16a1` | 3.8K | Per-function documentation |
 | `docs/functions/updateMemoryAtAddress_16bit_ADDR_VAL.md` | `1dc2780e6cc10d1c5d945d4453309d9eae87524a28991ac99cbda33733f9fc3c` | 1.2K | Per-function documentation |
 | `docs/functions/updateMemoryAtAddress_8bit_ADDR_VAL.md` | `e2659afacf4c583ce3ccc978442320202777d785d7444d11637c6ba338cd3a84` | 1.3K | Per-function documentation |
@@ -3723,8 +3725,8 @@ or the toolchain install (git-ignored; re-create with
 | `docs/functions/updatefaultstatusthunk.md` | `1f5b1c3325a4b72a44beae5b4a1bf616f569c2f421f255a6d6e050e487e09e3d` | 799B | Per-function documentation |
 | `docs/functions/validateAddressCopy_16bit_ADDRESS.md` | `88834367aee86b0925348de3fa6a3c48d7f10221abc5097f8c471f0f03c18406` | 1.8K | Per-function documentation |
 | `docs/functions/validateAddressCopy_8bit_ADDRESS.md` | `5af3fb9c3180ef4a1633354abfddf87fc3a57afd5616ab66e97eca05bd47b7ce` | 2.0K | Per-function documentation |
-| `docs/functions/vfadControl.md` | `7217626feefbbdbc68d81d94daa435859ba45cb8b700c3695dcaaccad4a57c85` | 1.9K | Per-function documentation |
-| `docs/functions/vfad_control_35BBC.md` | `28bd8515cd0e202c05910c5df3c6f94349d7b56593d9c6c12b7dab8822851c63` | 2.6K | Per-function documentation |
+| `docs/functions/vfadControl.md` | `750e2d3cf105bce9a6eb128ed2666f2128b821b079e605bab8c73633a95eaf5b` | 1.9K | Per-function documentation |
+| `docs/functions/vfad_control_35BBC.md` | `cfc7e8d0af262ac9f2d144a661c2575355438fd9a7038d49eb8dae95b48d8cf3` | 2.6K | Per-function documentation |
 | `docs/functions/whileLoop.md` | `0a87829e651434182566f7911a13121090c87d0cfadc41a07a46147cabe9ffcc` | 890B | Per-function documentation |
 | `docs/functions/writeO2SensorForApplication.md` | `9831cfc11bce8ad648c5e6b421780a1e8042b9dbd0fd83c5f5986c8eb8866a5e` | 456B | Per-function documentation |
 | `docs/functions/writeToE2RAMArea_INDEX_ADDR_LEN.md` | `3762b871a6ea6824ba725fd2f84189732fbd1a2fae65612ae0c27b1fc09f6c9d` | 2.4K | Per-function documentation |
@@ -3775,7 +3777,7 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `web/explorer/.gitignore` | `9e38f3635d6b89b9d202765b2624d45192da67b8c0c593bfb75c405b070e6a9b` | 66B | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/Makefile` | `db9f6b8a342ee379c193034adaa04bd581a7a2f900c17de78e3850c0a3525cd4` | 2.3K | Web explorer (static firmware browser; see web/explorer/README.md) |
-| `web/explorer/README.md` | `a2cd2eb0b206aae958659d9db46d54547258d468fee0b7fface65976c274f81c` | 12.6K | Web explorer (static firmware browser; see web/explorer/README.md) |
+| `web/explorer/README.md` | `22338f34b5ba479dca6a025bc8794285346448c6827ecc1a103ee0f054078afa` | 6.9K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/build_site.py` | `74e35428220d6d42736cc7c60e5e25fdbecd62b55587574aa7e9c574529c064c` | 43.9K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/MAPPING_NOTES.md` | `b560623208d860ecd62546c53f574b837261c6e6ea87b3d83618c24bc1060a00` | 8.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/data/roms_meta.json` | `dad8fd3738c7f3aeaab92fb6879c64a0a84c774784c09805fb0057f05f2631d3` | 6.5K | Web explorer (static firmware browser; see web/explorer/README.md) |
