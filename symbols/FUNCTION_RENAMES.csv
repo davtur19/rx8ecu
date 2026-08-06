@@ -1568,7 +1568,7 @@
 60E0FC00,0x566BC,FUN_000566bc,noop_return_zero_stub,0.7,"rts; mov #0,r0; trivial constant-zero return stub (noop handler slot in EEPROM-access block, cf 0x566CC)"
 60E0FC00,0x566C0,FUN_000566c0,noop_return_zero_stub_a,0.7,"rts; mov #0,r0; constant-zero return stub (third of adjacent 0x566BC/0x566C0/0x566C4 run)"
 60E0FC00,0x566C8,FUN_000566c8,noop_return_one_stub,0.7,"rts; mov #1,r0; constant-one (success) return stub, end of adjacent stub run before real func 0x566CC"
-60E0FC00,0x59F3C,FUN_00059f3c,FUN_00059f3c,0.1,"literal-pool data entry 0x0005E024 loaded via mov.l L_059f3c in FUN_00059ef4; bytes decode as garbage (mov.w r0,@(r0,r0)), not real code"
+60E0FC00,0x59F3C,FUN_00059f3c,uds_service_dispatch_59f3e,0.7,"mis-split row: 0x59F3C is literal-pool data (0x0005), real entry 0x59F3E; UDS service using 0x52A12/0x52A5A/0x541F0/0x66A74"
 60E0FC00,0x54D12,FUN_00054d12,uds_mode22_get_ign_lead_advance,0.9,jsr getIgnLeadingOBD 0x53614 then jmp byteToUDS 0x55EEE with value in r5; UDS Mode-22 getter for leading-rotor ignition advance (callgraph 0x54D14)
 60E0FC00,0x770CD,FUN_000770cd,FUN_000770cd,0.1,"data table: float constants (0x3F800000=1.0, 0x3D935FC4) and stc SPC/stray bytes; sibling of 0x770C7 data block, not code"
 60E0FC00,0x66B2,thunk_FUN_00011c6e,noop_stub_thunk_11c6e,0.8,6-byte jmp @0x11C6E which is pure rts;nop no-op stub; consecutive table slot with 0x66A6/0x66AC
@@ -2824,3 +2824,102 @@
 60E0FC00,0x56B1E,FUN_00056b1e,fault_record_verify_908c,0.7,thunk: r4=0xFFFF908C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
 60E0FC00,0x56B24,FUN_00056b24,fault_record_clear_908c,0.7,"thunk: r4=0xFFFF908C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208, clears fault-record cell); re-cat from Ignition"
 60E0FC00,0x56B64,FUN_00056b64,fault_monitor_sample_c9c4,0.7,"samples float@0xC9C4 * float@0x7C2C4 via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF908C"
+60E0FC00,0x56BE2,FUN_00056be2,fault_input_latch_ce4a,0.7,"latches byte pair 0xCE4A/0xCE4B -> shadows 0xFFFFD047/0xFFFFD048; input latch for fault monitor cell 0xFFFF909C (called by dispatcher 0x56BF4, re-cat from Boot & Init)"
+60E0FC00,0x56C50,FUN_00056c50,fault_record_verify_909c,0.7,thunk: r4=0xFFFF909C -> jmp 0x577BC (4x validateAddressCopy_16bit 0x3E2DA verify of fault-record cell)
+60E0FC00,0x56C56,FUN_00056c56,fault_record_clear_909c,0.7,thunk: r4=0xFFFF909C -> jmp 0x577E8 (checksummed 16-bit store 0x3E208 clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x56C90,FUN_00056c90,fault_monitor_sample_86ac,0.7,"samples float@0x86AC and @0x86BC via checksummed load 0x3E1AA, x1000.0, FP16 via 0x2490 -> 3-word buffer + 0xFFFF sentinel, checksummed-store 0x5781C to cell 0xFFFF909C"
+60E0FC00,0x56D20,FUN_00056d20,fault_input_latch_ce4d,0.7,latches byte pair 0xCE4D/0xCE4E -> shadows 0xFFFFD049/0xFFFFD04A; input latch for fault monitor cell 0xFFFF90AC (re-cat from Boot & Init)
+60E0FC00,0x56D8E,FUN_00056d8e,fault_record_verify_90ac,0.7,thunk: r4=0xFFFF90AC -> jmp 0x577BC (4x 16-bit checksum verify of fault-record cell)
+60E0FC00,0x56D94,FUN_00056d94,fault_record_clear_90ac,0.7,thunk: r4=0xFFFF90AC -> jmp 0x577E8 (checksummed 16-bit store clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x56DD8,FUN_00056dd8,fault_monitor_sample_86ac_86b4,0.7,"samples float@0x86AC and @0x86B4 via 0x3E1AA, x1000.0, FP16 via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF90AC (sibling of 0x56C90)"
+60E0FC00,0x56E68,FUN_00056e68,fault_input_latch_cebd,0.7,latches byte pair 0xCEBD/0xCEBE -> shadows 0xFFFFD04B/0xFFFFD04C; input latch for fault monitor cell 0xFFFF90BC (re-cat from Boot & Init)
+60E0FC00,0x56ED6,FUN_00056ed6,fault_record_verify_90bc,0.7,thunk: r4=0xFFFF90BC -> jmp 0x577BC (4x 16-bit checksum verify of fault-record cell)
+60E0FC00,0x56EDC,FUN_00056edc,fault_record_clear_90bc,0.7,thunk: r4=0xFFFF90BC -> jmp 0x577E8 (checksummed 16-bit store clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x56F20,FUN_00056f20,fault_monitor_sample_86d0,0.7,"samples float@0x86D0 and @0x86D8 via 0x3E1AA, x1000.0, FP16 via 0x2490 -> buffer, checksummed-store 0x5781C to cell 0xFFFF90BC"
+60E0FC00,0x56FA4,FUN_00056fa4,fault_input_latch_cef5,0.7,latches byte pair 0xCEF5/0xCEF6 -> shadows 0xFFFFD04D/0xFFFFD04E; input latch for fault monitor cell 0xFFFF90CC (re-cat from Boot & Init)
+60E0FC00,0x57012,FUN_00057012,fault_record_verify_90cc,0.7,thunk: r4=0xFFFF90CC -> jmp 0x577BC (4x 16-bit checksum verify of fault-record cell)
+60E0FC00,0x57018,FUN_00057018,fault_record_clear_90cc,0.7,thunk: r4=0xFFFF90CC -> jmp 0x577E8 (checksummed 16-bit store clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x57058,FUN_00057058,fault_monitor_sample_cee0_cedc,0.7,"samples float@0xCEE0 and @0xCEDC directly (fmov.s), x1000.0, FP16 via 0x2490 -> buffer [A,0,B], checksummed-store 0x5781C to cell 0xFFFF90CC"
+60E0FC00,0x570DC,FUN_000570dc,opt_byte_latch_8fe2_d04f,0.4,"redundant 8-bit read 0x3E0DC of 0x8FE2 -> latch to 0xFFFFD04F (option/bypass byte shadow, family of 0x566CC/0x56ACC)"
+60E0FC00,0x5712E,FUN_0005712e,fault_record_verify_90dc,0.7,thunk: r4=0xFFFF90DC -> jmp 0x577BC (4x 16-bit checksum verify of fault-record cell)
+60E0FC00,0x57134,FUN_00057134,fault_record_clear_90dc,0.7,thunk: r4=0xFFFF90DC -> jmp 0x577E8 (checksummed 16-bit store clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x57170,FUN_00057170,fault_monitor_sample_c53f_79570,0.7,"samples byte@0xC53F and byte@0x79570 via fixedPointToFloat8 0x2500 + FP16 0x2490 (1.0 scale) -> buffer [A,0,B], checksummed-store 0x5781C to cell 0xFFFF90DC; re-cat from Math / FPU"
+60E0FC00,0x572DE,FUN_000572de,dtc_fault_state_verify_913c,0.7,verifies fault values 0xFFFF913C/0xFFFF9140 (16-bit via 0x3E2DA) and record cells 0xFFFF90EC/0xFFFF90FC (via 0x577BC); verify twin of 0x572FC
+60E0FC00,0x572FC,FUN_000572fc,dtc_fault_state_clear_913c,0.7,zeroes fault values 0xFFFF913C/0xFFFF9140 via checksummed store 0x3E208 and clears record cells 0xFFFF90EC/0xFFFF90FC via 0x577E8; re-cat from Ignition & Knock
+60E0FC00,0x5731A,FUN_0005731a,dtc_fault_value_smooth_0p1_0p9,0.6,"first-order 0.1/0.9 IIR: new913C = 0.1*val9140 + 0.9*old913C via 0x24C0/0x2490, checksummed-store 0x3E208; then 0xFFFF9140 = word@0xB6D0; re-cat from Memory & CRC"
+60E0FC00,0x57424,FUN_00057424,dtc_fault_value_record_update_9144,0.7,"on fault byte 0xFFFF914C==1 snapshots values 0xFFFF9144/0xFFFF9148 into records 0xFFFF910C/0xFFFF911C via 0x5781C; 0xCFD9 reset -> 0x57526 clear, 0->1 edge -> 0x57544 smooth (sibling of 0x57212)"
+60E0FC00,0x57508,FUN_00057508,dtc_fault_values_verify_9144,0.7,verifies fault values 0xFFFF9144/0xFFFF9148 (16-bit via 0x3E2DA) and record cells 0xFFFF910C/0xFFFF911C (via 0x577BC); verify twin of the 0x57526 clear
+60E0FC00,0x575FE,FUN_000575fe,fault_input_latch_c520,0.7,latches byte pair 0xC520/0xC521 -> shadows 0xFFFFD050/0xFFFFD051; input latch for fault monitor cell 0xFFFF912C (re-cat from Boot & Init)
+60E0FC00,0x576C0,FUN_000576c0,fault_record_verify_912c,0.7,thunk: r4=0xFFFF912C -> jmp 0x577BC (4x 16-bit checksum verify of fault-record cell)
+60E0FC00,0x576C6,FUN_000576c6,fault_record_clear_912c,0.7,thunk: r4=0xFFFF912C -> jmp 0x577E8 (checksummed 16-bit store clears fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x576CC,FUN_000576cc,fault_monitor_sample_c5f4_792d4,0.7,"samples float@0xC5F4 and @0x792D4 via FP16 0x2490 (0.1 scale / -40.0 clamp consts) -> buffer, checksummed-store 0x5781C to cell 0xFFFF912C"
+60E0FC00,0x5777C,FUN_0005777c,dtc_flag_update_914c,0.6,DTC-gated flag: byte@0xCA9A or 0xCA99 set -> 0xFFFF914C=1 via 0x3E1F8; 0xCFD9 reset -> =0; drives record-snapshot gate in 0x57424/0x57212
+60E0FC00,0x577AC,FUN_000577ac,fault_flag_verify_914c,0.7,thunk: r4=0xFFFF914C -> jmp 0x3E29E (checksummed byte verify of DTC flag byte)
+60E0FC00,0x577B4,FUN_000577b4,fault_flag_clear_914c,0.7,"thunk: r4=0xFFFF914C -> jmp 0x3E1F8 (checksummed byte store r5=0, clears DTC flag byte); re-cat from Ignition & Knock"
+60E0FC00,0x577BC,FUN_000577bc,fault_record_verify_4x16bit,0.9,"canonical helper: loops 4x validateAddressCopy_16bit 0x3E2DA at r4, r4+4, r4+8, r4+0xC (verify checksummed fault-record cell)"
+60E0FC00,0x577E8,FUN_000577e8,fault_record_clear_4x16bit,0.9,canonical helper: checksummed 16-bit store 0x3E208 writes 1 to 4th word and 0 to first 3 words (clears 4-word fault-record cell); re-cat from Ignition & Knock
+60E0FC00,0x5781C,FUN_0005781c,fault_record_store_3x16bit,0.9,canonical helper: copies 3 words from buffer r5 to cell r4 via 0x3E208 then writes 0 to 4th word (checksummed 3-word record store + terminator); re-cat from Faults & DTC
+60E0FC00,0x57870,FUN_00057870,uds_nrc_reason_emit_65570,0.5,"builds 1-byte response status 0x00/0x12(subFunctionNotSupported)/0x22(conditionsNotCorrect) from flag r5 and byte@0xA41C, sets pending 0xFFFFD057, emits via 0x65570"
+60E0FC00,0x578BE,FUN_000578be,obd_pending_flag_clear_d057,0.5,clears OBD response-pending flag byte 0xFFFFD057 to 0 (counterpart of the set in 0x57870); re-cat from Boot & Init
+60E0FC00,0x5792C,FUN_0005792c,uds_capability_match_d1c8,0.5,"scans table @0x5DF98 (via 0x42B0) for entry matching input byte, returns 1 if capability word@0xD1C8 AND entry mask nonzero (UDS service-capability lookup)"
+60E0FC00,0x57984,FUN_00057984,util_bool_normalize,0.5,normalizes r5 to boolean: returns 1 if r5!=0 else 0 (generic predicate helper in UDS region); re-cat from OBD / UDS
+60E0FC00,0x57A4C,FUN_00057a4c,uds_service_available_check_d064,0.5,returns 1 if current service byte@0xD064 == r4 and per-service busy flag for svc 2/0x82/0x0F (0xD075/0xD07A/0xD083) is clear
+60E0FC00,0x57A9C,FUN_00057a9c,uds_service_inprogress_check_d064,0.4,returns 1 if service byte@0xD064 != requested r4 (or idle): inverse availability check; asm leaves r5 undefined on match path (compiler artifact)
+60E0FC00,0x57AB6,FUN_00057ab6,uds_service_0f_check_d083,0.5,tiny predicate: returns 1 if r4==0x0F and byte@0xD083==1 (service-0x0F session condition check)
+60E0FC00,0x57AD0,FUN_00057ad0,uds_service_activate_d064,0.6,sets current-service byte@0xD064 = r4 and latches per-service busy flags 0xD068/0xD069/0xD06A + 0xD075/0xD07A/0xD083 for svc 2/0x82/0x0F; sets 0xD06E/0xD070 if any active
+60E0FC00,0x57B3E,FUN_00057b3e,uds_service_clear_d064,0.6,clears current-service byte@0xD064 to 0 (service deactivation/reset)
+60E0FC00,0x57B64,FUN_00057b64,uds_service_pending_flag_set_d06b,0.5,sets per-service response-pending byte 0xD06B/0xD06C/0xD06D = 1 for svc id 2/0x82/0x0F
+60E0FC00,0x57B92,FUN_00057b92,uds_state_byte_store_d087,0.5,stores param byte r4 into UDS state byte 0xFFFFD087 (session/service state setter)
+60E0FC00,0x57B98,FUN_00057b98,uds_state_block_clear_d087,0.7,"clears UDS state block 0xFFFFD087/0xFFFFD088/0xFFFFD08A-D090 to 0 (reset of UDS session state, entry before state machine 0x57BB8); re-cat from Boot & Init"
+60E0FC00,0x57F90,FUN_00057f90,uds_busy_or_flags_d071,0.6,ORs per-service busy flags 0xD075/0xD07A/0xD083 into byte@0xD071 (aggregate UDS busy indicator); re-cat from RTOS
+60E0FC00,0x57FC4,FUN_00057fc4,uds_pending_flag_latch_d06f,0.5,"if run flag@0xD070 set: latches byte@0xD06F=1 when any sub-flag 0xD076/0xD07B/0xD084 set, then clears them (UDS response-pending manager); re-cat from RTOS"
+60E0FC00,0x580F0,FUN_000580f0,uds_session_state_update_d065,0.4,"SR-protected (getSR 0x3920 #0x10) UDS session state machine on byte@0xD065: gates 0xD072/0xD070/0xD06B/0xD068, clears session on 0x30 or conditions (re-cat from RTOS)"
+60E0FC00,0x58210,FUN_00058210,uds_service_flag_decode_d065,0.7,decodes UDS service byte @0xFFFFD065: 0x30/0x10/0x20 -> sets D076/D077/D078 flags; pre-cat RTOS
+60E0FC00,0x58268,FUN_00058268,uds_service_state_machine,0.7,"SR-protected (getSR 0x3920/setSR 0x3934) UDS dispatch: D1AC word, 0x7B114 mem, 0x00FF/0x3031/0x3032 pattern -> D07A; big branch tree to 0x58536; pre-cat Boot & Init"
+60E0FC00,0x58538,FUN_00058538,uds_flag_set_80_d07b,0.7,D066==0x80 -> D07B=1; UDS service-flag latch; pre-cat RTOS
+60E0FC00,0x58550,FUN_00058550,uds_service_flag_decoder,0.7,"decodes D070/D066/D060 vs 0x7C27E/0x7C275, D079, D07F range 0x10-0x20, D080>=0x30, D082==0x60; pre-cat RTOS"
+60E0FC00,0x58648,FUN_00058648,uds_param_source_select_d058,0.7,D066>=0x30 selects float @0xA7B0 else const @0x7C290 -> D058 (RPM/param source); pre-cat RTOS
+60E0FC00,0x58666,FUN_00058666,uds_readiness_state_update,0.7,"UDS readiness state: D074/D070/D06D/D067==0x20, D062 vs 0x7C27C, getSR/setSR wrappers; pre-cat RTOS"
+60E0FC00,0x58758,FUN_00058758,uds_fault_compare_d084_d085,0.7,D067==0x20 -> D084=1; float @0xBBE8 vs 0x7C294/0x7C298 -> D085 (fault threshold compare); pre-cat RTOS
+60E0FC00,0x587D8,FUN_000587d8,status_cbd4_bits_to_d09c,0.7,decodes 0xCBD4 flag bits 0x40/0x20/0x10/0x08/0x04 -> D09C; pre-cat Boot & Init
+60E0FC00,0x5885A,FUN_0005885a,status_cbd4_bits_to_d09d,0.7,same 0xCBD4 flags -> D09D; sets 0x6D on match; pre-cat Boot & Init
+60E0FC00,0x58A6E,FUN_00058a6e,fault_rec_verify_9150_9158,0.9,verify thunk: 0x9150 and 0x9158 via checksummed verify 0x3E38A; pre-cat Math/FPU
+60E0FC00,0x58A80,FUN_00058a80,fault_rec_clear_9150_9158,0.9,clears floats @0x9150/0x9158 via 0x3E258 (fldi0 checksummed store); re-cat from Ignition & Knock
+60E0FC00,0x58A9A,FUN_00058a9a,uds_calibration_check_d09b,0.7,loads 0x8FFC via 0x3E0DC; 0xC014/0xC015/0xC016 vs cal 0x79711/0x79717 -> D09B; multi-entry 0x58AAC; pre-cat Boot & Init
+60E0FC00,0x58B70,FUN_00058b70,fault_flags_init_d0ef,0.9,"D0F0=0, D0EF=1 (fault-subsys flag init); pre-cat Boot & Init"
+60E0FC00,0x58B7E,FUN_00058b7e,fault_rec_verify_9168_9160,0.9,verify 0x9168 via 0x3E29E + 0x9160 via 0x3E330 (checksummed)
+60E0FC00,0x58B90,FUN_00058b90,fault_rec_clear_9168_9160,0.9,"clears 0x9168 via 0x3E1F8 + 0x9160 via 0x3E218, sets D0EF=1; re-cat from Ignition & Knock"
+60E0FC00,0x58BAC,FUN_00058bac,fault_records_scan_process,0.7,"large scan: 0x1000 entries via D0C0 ptr, callbacks 0x3FE8/0x4144, ranges 0x7FB00/0x7FB80, 0x7C240, tail bsr 0x58ECC, D0CB; pre-cat Memory & CRC"
+60E0FC00,0x58D5E,FUN_00058d5e,fault_rec_latch_d0f0,0.7,latches D0F0 from 0x9168/0x9160 loads + 0xC638 flag; returns D0F0; pre-cat Memory & CRC
+60E0FC00,0x58DD4,FUN_00058dd4,fault_recs_shadow_copy_916c,0.7,loop 0..7 calls 0x591F0: copies 0xFFFF916C words into 0xFFFFD0CC shadow; pre-cat Boot & Init
+60E0FC00,0x58DF2,FUN_00058df2,fault_recs_clear_916c_area,0.9,clears 0xFFFF916C..0xFFFF91AC (8x8B records) via checksummed 0x3E330
+60E0FC00,0x58E1A,FUN_00058e1a,fault_recs_clear_all_resync,0.7,clears 8 records @0x916C via 0x3E218 + resync shadow via 0x591F0; re-cat from Ignition & Knock
+60E0FC00,0x58ECC,FUN_00058ecc,uds_fault_response_build,0.7,"builds UDS response from config @0x5DFE8 (4 channels) via 0x38610, cal 0x7C240, accumulates D0C4/D0C6 via 0x3FE8/0x4144; pre-cat Memory & CRC"
+60E0FC00,0x5959A,FUN_0005959a,fault_monitor_aa08_ae44,0.7,"fault monitor: float @0xAA08 vs @0xAE44, D0EC gate, thresholds 0x7C258/0x7C25C/0x7C260/0x7C244, CE4D/CE4E, D0BC/D0B3/D0AA"
+60E0FC00,0x59806,FUN_00059806,uds_state_jump_dispatch,0.7,D0F4 state machine 0/1/2/3 tail-jumps 0x9EFE; pre-cat Boot & Init
+60E0FC00,0x59866,FUN_00059866,uds_setup_sid_51,0.9,setupForUdsResponse 0x66A14 with service 0x51
+60E0FC00,0x59884,FUN_00059884,uds_sid_12_dispatch,0.9,"UDS SID 0x12 dispatcher: 0x66A74, error 0x52A5A, subfunction/routing 0x59AE2"
+60E0FC00,0x5992A,FUN_0005992a,uds_sid_callback_dispatch,0.7,"UDS dispatch gated by D0F8, callbacks 0x5E296/0x5E270, D0FA, 0x61B1A/0x664AC/0x5E1D8, 0xC0/0xC1 checks; pre-cat Math/FPU"
+60E0FC00,0x59A56,FUN_00059a56,uds_sid_handler_59a56,0.7,UDS SID handler via setupForUdsResponse 0x66A14 (+0x66A74 tail)
+60E0FC00,0x59B2A,FUN_00059b2a,uds_sid_handler_59b2a,0.7,UDS SID handler via 0x66A14
+60E0FC00,0x59C82,FUN_00059c82,uds_sid_handler_59c82,0.7,UDS SID handler using config table @0x5DFE8
+60E0FC00,0x59DA0,FUN_00059da0,uds_sid_handler_59da0,0.7,UDS SID handler: 0x5DFE8 config + 0x38610 conversion + 0x66A14
+60E0FC00,0x5A174,FUN_0005a174,uds_routing_range_check,0.7,"range gate 0x80000080-0x80000100, calls 0x386F4, updates D108/D10C/D110"
+60E0FC00,0x5A1D0,FUN_0005a1d0,uds_sid_tail_dispatch_r4_0,0.9,thunk: r4=0 -> tail 0x5A2F0; pre-cat Boot & Init
+60E0FC00,0x5A1D4,FUN_0005a1d4,uds_sid_dispatch_cfe0_gate,0.9,CFE0 check -> tail 0x5A3B6 (r4=0); pre-cat RTOS
+60E0FC00,0x5A2F0,FUN_0005a2f0,uds_sid_switch_d122_d124,0.7,"getSR/setSR-protected, writes D122=625 / D124, switch on r4; pre-cat Utilities"
+60E0FC00,0x5A382,FUN_0005a382,uds_sid_dispatch_d120,0.7,"SR-protected, calls 0x5A41C + 0x5A3B6, D120; pre-cat CAN Bus"
+60E0FC00,0x5A3B6,FUN_0005a3b6,uds_sid_tail_dispatch_d120,0.7,dispatcher on D120 -> tail jmp 0xDAF0/0xDAE8; pre-cat CAN Bus
+60E0FC00,0x5A3DE,FUN_0005a3de,uds_setup_sid_68,0.9,setupForUdsResponse 0x66A14 with service 0x68
+60E0FC00,0x5A41C,FUN_0005a41c,uds_sid_guard_625,0.7,D122 >= 0x271 (625) returns 0 else 1; guard for SID handler; pre-cat CAN Bus
+60E0FC00,0x5A65C,FUN_0005a65c,uds_2f_iocontrol_dispatch,0.7,"UDS 0x2F IOControl dispatch: 0x5E040 table of entries, errors 0x52A5A/0x52A12, SR-protected"
+60E0FC00,0x5A740,FUN_0005a740,uds_iocontrol_table_init,0.9,"clears 26 IO entries @0x5E034, stride 0x10"
+60E0FC00,0x5A7EE,FUN_0005a7ee,uds_2f_iocontrol_idx_supported,0.7,idx<0x1A(26) and 0x5E040 entry active -> 1/0 (IOControl support check); pre-cat Sensors
+60E0FC00,0x5A8E0,FUN_0005a8e0,uds_2f_iocontrol_entry_e909,0.7,"IOControl entry table 0x5E034+0x10, ioctl 0xE909; 0x2490 float->fp16, buf 0xFFFFD149+0x2; re-cat from Ignition & Knock"
+60E0FC00,0x5A9F4,FUN_0005a9f4,uds_2f_iocontrol_entry_e906,0.7,"IOControl entry table 0x5E054, ioctl 0xE906; state D12D, buf D149+0x4"
+60E0FC00,0x5AD5C,FUN_0005ad5c,uds_2f_iocontrol_entry_17c6,0.7,"IOControl entry table 0x5E094, ioctl 0x17C6; buf D149+0xC; re-cat from Faults & DTC"
+60E0FC00,0x5B284,FUN_0005b284,uds_2f_iocontrol_entry_096e,0.7,"IOControl entry table 0x5E034+0xC0, ioctl 0x096E; float->fp16 0x2490, buf D149+0x18; re-cat from Idle Control"
+60E0FC00,0x5B4A4,FUN_0005b4a4,uds_2f_iocontrol_entry_091a,0.7,"IOControl entry table 0x5E034+0xE0, ioctl 0x091A; buf D149+0x1C; re-cat from Throttle & Torque"
+60E0FC00,0x5BA00,FUN_0005ba00,uds_2f_iocontrol_entry_17de,0.7,"IOControl entry table 0x5E174, ioctl 0x17DE; buf D149+0x28; re-cat from Faults & DTC"
+60E0FC00,0x5BADC,FUN_0005badc,uds_2f_iocontrol_entry_175c,0.7,"IOControl entry table 0x5E184, ioctl 0x175C; buf D149+0x2A; re-cat from Sensors"
+60E0FC00,0x5BB78,FUN_0005bb78,uds_2f_iocontrol_entry_175d,0.7,"IOControl entry table 0x5E194, ioctl 0x175D; buf D149+0x2C; re-cat from Sensors"
