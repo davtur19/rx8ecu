@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5102 entries, 92.1M.** Regenerated 2026-08-02 for the
+in the working repository. **5106 entries, 92.1M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 790.1K |
+| (root) | 11 | 790.7K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2064 | 4.7M |
-| c/tests/ | 2131 | 16.9M |
+| c/ | 2066 | 4.7M |
+| c/tests/ | 2133 | 16.9M |
 | tools/ | 29 | 695.3K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5102 entries, 92.1M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5102** | 92.1M |
+| **Total** | **5106** | 92.1M |
 
 ## External dependencies
 
@@ -112,10 +112,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/FUNCTION_CATEGORIES.csv` | `938d4cae1cc8622252be8b2b73b6915a9553d4bdbc909e2a967317716b79bb84` | 397.1K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `4f554fe49c1eaeda7e9388b08856055c4925fb69ad2960e3050732489c161544` | 528.6K | Tracked file |
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
-| `symbols/RAM_VARIABLES.csv` | `9dbf6a9402c77e356a4be14666309133078528be357a14fb78cdb52cb2b623f6` | 262.2K | Tracked file |
+| `symbols/RAM_VARIABLES.csv` | `42e9fe730d64868b207f6d0009677b009116f0f4a82724499e490962488215cf` | 262.6K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
 | `symbols/UNCLASSIFIED_RESIDUE.csv` | `abe9401d09e6344c51eb39e9b57b2991cada07ec2fb9dbc5d2403993214daa83` | 9.9K | Tracked file |
-| `symbols/cal_tables.csv` | `48b14c8d7cd6cc1dce4c629e105fa477de43c15391678477626e1a99b911a1fd` | 104.4K | Calibration table descriptors (1,210 tables) |
+| `symbols/cal_tables.csv` | `b66c7d0b177dda5d7751d5f8e13d3a399b2278ba09ddfcbdcea2b826c7d87613` | 106.3K | Calibration table descriptors (1,210 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
 | `symbols/romraider_rx8_tables.csv` | `4cc0863d9b1278e2fb03340441807f7d098d6a1d3ddc025229a72a5cb2b53bd2` | 2.4M | Tracked file |
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `ed140c9f65723e2c534d13edf3dbb1bba3e5a0d36b97e42ee3286b0072c24e27` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `92cd56fde9e84723a4de2bb570604c355bde5befe9808a59714762305b850145` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `54b3f7e10be42ffbb3603f0850443a7dd6467815e07dba9f20e862d45023a2fc` | 166.4K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `5c229be8fa37949155c4f04151f409b68f1b4bdfad0cd761e63481f726d58632` | 166.4K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -540,6 +540,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calculateIgnitionDwellAdder_4b89c.c` | `95543ee804350de8305437b6c1683f876626a54d6f694358ac1311fe14b649f4` | 643B | Tracked file |
 | `c/calculateImmoSeed.c` | `d95e3de7fafe4260043f271b62314cc3e9d4f114db2c8334df15b3860131792a` | 3.1K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/calculateKnockConditonActiveTimingDerate_0x138A4.c` | `60db011192bf89660e0ade34d6265efbd5f2bd59a2b8ff98a00d3cf2284e36a1` | 8.5K | Tracked file |
+| `c/calculateKnockTimingDerateConditionEvents_0x178E8.c` | `bb9ddb8d9481aefce9836b55f91447ae82e85ed89545da1fb2ed443c6e34a0b3` | 4.0K | Tracked file |
 | `c/calculateLeadingDerateRetard_0x1253C.c` | `14dddfc01d7764501f0cec5e9729d2f08fe1cc362df4a9aee4165f85a59a0f3a` | 4.7K | Tracked file |
 | `c/calculateLeadingTimingBaseFinal_0x12362.c` | `62832b0a3fb5f8e96f53343e5a8cf8602411d1651616bd7231195f592170ca23` | 7.6K | Tracked file |
 | `c/calculateLeadingTimingBase_0x11F78.c` | `fe53a37918a1bccab2132e329f155a1037d13fc43fe9ffc750400f3393a58dce` | 9.0K | Tracked file |
@@ -1116,6 +1117,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/getCatTempConditional_3ed02.c` | `0aab6c9010e43127a2e78b562a49c5017fdaf2c67e1503e8a2772474ccc74d1d` | 2.0K | Tracked file |
 | `c/getCommandedLamdaOBD___53a62.c` | `a238d6729eb142baf8aab24b023deb6781787bcf3471c8a43b18b240c4adc16a` | 579B | Tracked file |
 | `c/getConditionalsForRevLimit___ee86.c` | `f734a43db5e9d28775ee831bb3e23d7077d59bb6a5a043e85cd1ea4ce297afe3` | 5.2K | Tracked file |
+| `c/getCoolantBasedTimingDerate_0x13E30.c` | `894158843397d2ab206101c4b0b5040f63ba3462371d8afe5ce79847d3583d45` | 3.9K | Tracked file |
 | `c/getCoolantTempConditional_5e5c8.c` | `fecb450f545e7a3b55dd9218c4a71655fbe9f2cb493a2249a168d60d90cb8d3f` | 2.0K | Tracked file |
 | `c/getCruiseControlAllowedBool.c` | `1d114891643ffa075fb44e252bcef6c1bc52237a4245d3764b5ebb9edc23066e` | 2.6K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/getCruiseControlAllowedBool___2dbc4.c` | `3bdb698b26d7a3b6c2b16be4d179353def603054717b4fb7a9e1f2542c3c7b11` | 4.3K | Tracked file |
@@ -2619,6 +2621,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calculateIgnitionDwellAdder_4b89c.py` | `b89d4e45042ac21742a4a8244f7b30d920b5bdad6bef6486c3ef8e30ebaa7af7` | 6.4K | Tracked file |
 | `c/tests/test_calculateImmoSeed_3675C.py` | `1f321ad9af17013e4f53bb730019532f9b818d45e27c7fb833f3cb6d3b3859b2` | 3.2K | Tracked file |
 | `c/tests/test_calculateKnockConditonActiveTimingDerate_0x138A4.py` | `6b0e86bb2ce1f26e5453b13c883a14309b37e025fa70fdc0cf6cb5f4111a9041` | 8.5K | Tracked file |
+| `c/tests/test_calculateKnockTimingDerateConditionEvents_0x178E8.py` | `4be53e58e7e181ec8c7c619f2ea3e08aac25df4839116f07ee7431f9ff9de771` | 5.0K | Tracked file |
 | `c/tests/test_calculateLeadingDerateRetard_0x1253C.py` | `07438880aa5c4212dff195691bde120f17ac087f20547b31cb23d49bd3c85c81` | 6.3K | Tracked file |
 | `c/tests/test_calculateLeadingTimingBaseFinal_0x12362.py` | `f07cf3ff5ef6a33588a3a7fed2983a84a30e0f24af4ea85ed0e0b8aaf87b5e17` | 9.6K | Tracked file |
 | `c/tests/test_calculateLeadingTimingBase_0x11F78.py` | `5c028e3c1d786e7cd121f3d5f6c9ffb28095650deae5d1b87aa0071698c6e32b` | 9.1K | Tracked file |
@@ -3581,6 +3584,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_getCatTempConditional_3ed02.py` | `4a8f49e3152a9213563e1c0d404d4cae975dde82efe2cc40e9e98b07f0511bd3` | 10.3K | Tracked file |
 | `c/tests/test_getCommandedLamdaOBD___53a62.py` | `c691d720be4ad9d09bb3dee8737d3d32ac5b9acb2ebfca805243262a34db1800` | 2.2K | Tracked file |
 | `c/tests/test_getConditionalsForRevLimit___ee86.py` | `dab994ec50aaeaf867b5f5fa97cc8d9e8b28fa35d00dc77466f3a57fee01675d` | 14.2K | Tracked file |
+| `c/tests/test_getCoolantBasedTimingDerate_0x13E30.py` | `d52198286555f820b38dcf163711a68fe642e450537df176bf2d813be135edc1` | 4.7K | Tracked file |
 | `c/tests/test_getCoolantTempConditional_5e5c8.py` | `30dcf2319c207aa51f693148ba647cbada34fb61167759a26ad067f993df9a30` | 10.3K | Tracked file |
 | `c/tests/test_getCruiseControlAllowedBool.py` | `d737ce0603c9c1258763440f03c7a930a44cab9455412003ac0814b1b9cb5b27` | 1.8K | Python per-function behavior-equivalence test |
 | `c/tests/test_getCruiseControlAllowedBool___2dbc4.py` | `a525b2265923ec7ab02ba321d60e528158675a5dfee50d7320507aa584b37253` | 12.7K | Tracked file |
