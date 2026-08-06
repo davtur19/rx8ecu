@@ -16,7 +16,7 @@
 #                 standard runner on a public repo; its default cpu_count-1
 #                 would be 3 workers).
 #
-# The three jobs run in parallel and each fails the workflow on any failing step.
+# The four jobs run in parallel and each fails the workflow on any failing step.
 # (catalog job: determinism gate for tools/classify_functions.py + gen_catalog.py.)
 #
 # Environment reproduced from the local dev box:
