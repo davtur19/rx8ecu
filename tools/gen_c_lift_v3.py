@@ -1827,7 +1827,7 @@ def scan_unmapped_reali(cats, rom, catalog, outdir, root=ROOT):
 #    'c': [C lines], 'mnem', 'target': int|None, 'slot': record|None}
 # labels = set of branch-target pcs (each gets `L_<pc>: ;`).
 # ---------------------------------------------------------------------------
-def walk_v3(rom, addr, end):
+def walk_v3(rom, addr, end, relax_chain=False):
     bound = min(end, len(rom))
     st = {'written': set(), 'lits': {}, 'tmp': [0], 'trk': {},
           'gbr_known': False, 'gbr_value': None,
@@ -2099,8 +2099,17 @@ def walk_v3(rom, addr, end):
             else:
                 r = _trk_fold(st['trk'], st['written'], base_reg)
                 if not r:
-                    return None
-                if r[0] == 'lit':
+                    if not (relax_chain and m['dir'] == 'load'):
+                        return None
+                    # (B) conservative callee-walk chain: a dependent load whose
+                    # base register was WRITTEN earlier but has no foldable value
+                    # (e.g. loaded from RAM after a branch — ram_known disabled
+                    # by branches_seen) cannot bake an address.  Emit the mem
+                    # register-relative so the mirror reads the same runtime RAM
+                    # as sh2emu; loads only, never stores (a store through an
+                    # unknown register can't be proven side-effect-free).
+                    bkind, abs_addr = 'param', None
+                elif r[0] == 'lit':
                     bkind, abs_addr = 'literal', r[1]
                 else:
                     bkind, abs_addr = 'param', None
