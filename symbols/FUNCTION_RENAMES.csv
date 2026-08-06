@@ -1976,3 +1976,103 @@
 60E0FC00,0x23E6C,FUN_00023e6c,tamper_counter_seed,0.5,byte 0xFFFFA228; B484 counter via add16bitSaturate 0x2460; B4C4 vs 0x5AA5 via 0xB958; seed B489/B48A
 60E0FC00,0x23FC2,FUN_00023fc2,atomic_tamper_wrap,1.0,SR wrapper calling 0x23E6C tamper counter
 60E0FC00,0x23FEE,FUN_00023fee,atomic_dtc_cal_init,1.0,SR wrapper two sections: 0x24B22 dtc_fault_status_flags + 0x24D3E fp_cal_table_b48c_init_alt
+60E0FC00,0x240B8,FUN_000240b8,fp_cal_table_b48c_apply_expand,0.7,"expands fp_cal_table at 0xB4C4 (successor of fp_cal_table_b48c_init 0x24040): converts words via fixedPointToFloat 0x24C0/0x2500 into 0xB4FC..0xB520, calls 0x25388 to merge bytes into 0xFFFFB572+ then bit-extracts into flags 0xB538..0xB567"
+60E0FC00,0x25388,FUN_00025388,shadow_byte_store_b579,0.8,store byte r4->@r5(0xFFFFB579) merging changed bits with shadow @r6(0xFFFFB572) via not/xor/and/or; used repeatedly by 0x240B8 for protected param bytes
+60E0FC00,0x25414,FUN_00025414,sensor_plausibility_diag_check,0.4,"large gate fn on bytes B580/B589/B58B/B586/B58C/BB24/B587/BFB8; sets B586 flag, counters B584/B585 via 0x2478, float thresholds 0x77B34/0x77B38 vs BBE8/B594, cal bytes 0x77B19..0x77B22, flags B588/B58A"
+60E0FC00,0x25700,FUN_00025700,float_zero_b594,0.9,fldi0 -> 0.0f stored to 0xB594 (delay-slot store)
+60E0FC00,0x25708,FUN_00025708,float_copy_b594_to_b5a0,0.9,"copies float 0xB594 to 0xB59C/0xB5A0, zeroes 0xB598 and 0xFFFFB5AC"
+60E0FC00,0x25722,FUN_00025722,float_zero_b5a8_b5b0,0.9,fldi0 -> 0.0f to 0xB5A8 and 0xFFFFB5B0
+60E0FC00,0x25862,FUN_00025862,set_b5b5_flag_if_cca0,0.9,if byte@0xCCA0==1 then byte@0xB5B5=1; flag gate setter
+60E0FC00,0x25878,FUN_00025878,run_state_reinit_crank_timer,0.6,"engine run-state timer on B5B7/B5B5/B5B6(0x40 countdown) and B5B4 (sourced from 0x749C4, decremented by 0xFF); tail-jmp 0x74E0 eshaft_onRunStateReinitCrank with r4=B5B4>0"
+60E0FC00,0x25914,FUN_00025914,peripheral_ack_wait_f4c0,0.4,"builds task struct at 0xFFFF9F38 (0x61A8/0xE0 counters), increments F4C0->F4C4, sets F4CB|=0x20, pokes F480/F582, jsr 0x9F12(0x5A), spin-waits F480 bit 0x40 with 0x09C5, setSR/loadSR wrappers"
+60E0FC00,0x259A8,FUN_000259a8,fuel_rate_float_calc_9f38,0.4,"float 0xB34C via 0x2404, fdiv 0x42C8(100.0), fmul 0x4780, ftrc, mul32_saturated 0x231C with word@0xFFFF9F38 -> store +4"
+60E0FC00,0x25A20,FUN_00025a20,float_div_store_b5bc,0.4,"float 0xB3B0 via 0x2404, fdiv 0x42C8, store float 0xB5BC, then jmp 0xB2C0 with r4=0"
+60E0FC00,0x25A9E,FUN_00025a9e,os_task_gate_b5c1_cb96,0.7,task gate: if B5C1==0 && CB96==1 call osTaskScheduler 0x9630(r5=2); if B5C1==1 && CB96==0 call r5=3; then B5C1=CB96
+60E0FC00,0x25B26,FUN_00025b26,update_mem8_812c_thunk,0.9,thunk: jmp 0x3E1F8 updateMemoryAtAddress_8bit with r4=0x812C r5=0
+60E0FC00,0x25B2E,FUN_00025b2e,validate_mem8_812c_thunk,0.9,thunk: jmp 0x3E29E validateAddressCopy_8bit with r4=0x812C
+60E0FC00,0x25B4A,FUN_00025b4a,diag_timeout_counter_b5c6,0.4,"gate 0xAACC; if B5C6==0 write 0x5A->0xDF99 set B5C5=1 clear B5CC; else update 0x812C then jmp whileLoop 0x9EFE; else-branch: compare B5CC vs 0x749C8, counter B5C8 vs 0x749CC/0x19, byte counters B5CE/B5CF"
+60E0FC00,0x25C40,FUN_00025c40,sr_protected_inc_b5ce,0.9,"getSR 0x3920(r4=0x10), jsr 0x25B36 (increment 0xFFFFB5CE), setSR 0x3934 -> SR-protected counter inc"
+60E0FC00,0x25C58,FUN_00025c58,sr_protected_inc_b5cf,0.9,same pattern as 0x25C40 but via 0x25B40 increments 0xFFFFB5CF
+60E0FC00,0x25C70,FUN_00025c70,sr_protected_diag_counter,0.9,"setSR_PARAM 0x2054(0xE0), jsr 0x25B4A diag_timeout_counter, loadStatus 0x2064 -> SR-protected wrapper around 0x25B4A"
+60E0FC00,0x25CC0,FUN_00025cc0,task_setup_9f52_f746,0.4,"task struct init at 0xFFFF9F52 (0x100/0xE0, mul32_saturated 0x231C), addr 0xF746, jsr 0x4BBC(r6=1/0 based on counter), setSR_PARAM 0x2054/loadStatus 0x2064"
+60E0FC00,0x25D98,FUN_00025d98,set_b5d4_flag,0.9,"byte@0xB5D4 = 1 (mov.b r3,#1); duplicate pair 0x25DA0 same op"
+60E0FC00,0x25DAC,FUN_00025dac,set_b5d4_then_25df0,0.9,jsr 0x25D98 (set B5D4=1) then tail jmp 0x25DF0
+60E0FC00,0x25E9C,FUN_00025e9c,copy_float_9f68_b5d8,0.9,copy float 0xFFFF9F68 -> 0xB5D8
+60E0FC00,0x25EA6,FUN_00025ea6,first_order_filter_b5dc,0.8,firstOrderFilter 0x23B0: fr4=@0xB5D8 fr5=@0xB5DC fr6=@0x749E4 fr7=const -> store 0xB5DC; twin 0x25EC4 uses 0x749E8->B5E0
+60E0FC00,0x25EFC,FUN_00025efc,peripheral_ack_wait_f4e0,0.4,"mirror of 0x25914 with struct 0xFFFF9F44 (0x03E8/0xE0), increments F4E0->F4E4, sets F4EB|=0x10, pokes F480/F482 bit 0x0800, jsr 0x9F12(0x17,0x5A), spin-wait 0x09C5"
+60E0FC00,0x26018,FUN_00026018,battery_voltage_temp_update,0.9,"copies 0x749F2->0xB658, calls calculate12VBatteryTemperature 0x2644C ->0xB65A, calcDesiredAlternatorVoltage 0x26520 ->0xB5E8, 0x749FA->0xB65E"
+60E0FC00,0x26C62,FUN_00026c62,first_order_filter_b5f0,0.8,firstOrderFilter 0x23B0: fr4=@0xB62C fr5=@0xB5F0 fr6=@0x74A98 fr7=const -> store 0xB5F0
+60E0FC00,0x26E14,FUN_00026e14,sensor_filter_comp_b62c,0.5,"float pipeline on 0xB62C: diffs 0x74AB4/0x74AB8/0x74AC8/0x74AC4, firstOrderFilter 0x23B0, floatDivideDiv0errCheck 0x3E0AC, 0x2404, saturateLow 0x23E4, gates 0xA428/0x74ABC vs B594, writes B630/B634/B638/B5F4/B665/B5FF"
+60E0FC00,0x27174,FUN_00027174,sr_protected_filter_b5f0,0.9,"getSR 0x3920(0x10), jsr 0x26C62 firstOrderFilter_b5f0, setSR 0x3934 -> SR-protected wrapper"
+60E0FC00,0x27200,FUN_00027200,fixed_to_float_9ef4_b68c,0.8,fixedPointToFloat 0x24C0 on word@0xFFFF9EF4 -> float 0xB68C and 0xB690
+60E0FC00,0x2721C,FUN_0002721c,float_add_74dc8_b5d8_b694,0.7,fadd float 0x74DC8 + float 0xB5D8 -> store 0xB694
+60E0FC00,0x2722C,FUN_0002722c,float_add_74dc8_b5d8_b698,0.7,fadd float 0x74DC8 + float 0xB5D8 -> store 0xB698 (twin of 0x2721C)
+60E0FC00,0x27258,FUN_00027258,thunk_ba96_ba97_cf30,0.6,thunk: jmp 0xCF30 with r4=byte@0xBA96 r5=byte@0xBA97
+60E0FC00,0x27264,FUN_00027264,copy_floats_a390_b6a0,0.9,copies 8 floats 0xFFFFA390(+0/4/8/C/10/14/18/1C) -> 0xB6A0..0xB6BC
+60E0FC00,0x272A6,FUN_000272a6,byte_a3b0_to_b69c,0.9,byte@0xFFFFA3B0 extu.b -> word 0xB69C
+60E0FC00,0x272B2,FUN_000272b2,os_task_gate_b6c0_b707,0.7,task gate mirror of 0x25A9E: B6C0==0 && B707==1 -> osTaskScheduler 0x9630(r5=2); B6C0==1 && B707==0 -> r5=3; B6C0=B707
+60E0FC00,0x27334,FUN_00027334,clear_b6c4_block_flags,0.8,if byte@0xCFD9==1 && byte@0xA41C==1 zero words 0xB6C4/0xB6C6/0xB6C8/0xB6CA and byte 0xB6D4
+60E0FC00,0x27366,FUN_00027366,b6c4_block_update_dispatch,0.4,"if CFD9==1 clear B6C4 block else copy bytes 0xFFFFBA62/0xFFFFBA60 into B6C8/B6C4 or B6CA/B6C6 by bit0 of 0xB69C, then shared tail 0x274CE add16bitSaturate 0x2460 sets B6D4"
+60E0FC00,0x273C4,FUN_000273c4,max_word_select_b6cc_b6ce,0.7,"selects max word: if BAD4==0x190 -> B6CC=max(CA74,CA78); if BAD6==0x7D0 -> B6CE=max(CA76,CA7A)"
+60E0FC00,0x27444,FUN_00027444,float_counters_update_b6c4,0.4,float compares 0x7ADC6/B6CC/CA60/BAD4 vs 0x190; add16bitSaturate 0x2460 on B6C4/B6D0 and B6C6/B6D2; sets flags B6D4/B6D5; falls into shared tail 0x274CE
+60E0FC00,0x27550,FUN_00027550,cal_copy_751a2_b6e4,0.8,"copies word 0x751A4->0xFFFFB6E4, word 0x751A2->0xFFFFB6E6, sets byte 0xFFFFB6FE=1 (cal->RAM mirror)"
+60E0FC00,0x27568,FUN_00027568,cal_copy_b6e4_ext,0.8,"extended cal copy: clears B6EC, byte 0xCFD9->0xFFFFB700, 0x751A4->B6E4, 0x751A2->B6E6, B6FE=1, B6FF=0"
+60E0FC00,0x27592,FUN_00027592,cal_countdown_b6f8_b6ea,0.6,if float 0x751A8 > 0xC16C copy word 0x75198->0xFFFFB6F8 clear B6EA; else if B6F8>0 decrement B6F8(+0xFFFF) clear B6EA; else set B6EA=1
+60E0FC00,0x2760C,FUN_0002760c,delta_exceed_check_b6ed,0.7,subtractAbsolute 0x23DC of float@0xADB4; if result > float@0x751AC set byte 0xFFFFB6ED=1
+60E0FC00,0x27630,FUN_00027630,counter_b6e8_flag_b6eb,0.5,"if B6ED==1 clear B6EB/B6E8/B6ED; else B6E8=add16bitSaturate 0x2460 capped 0xFF, compare vs word 0x7519C -> set/clear byte 0xFFFFB6EB"
+60E0FC00,0x276EC,FUN_000276ec,td_lookup_68bd8_b6d8,0.9,"2DLookup 0x2068 with table 0x68BD8, input float@0xB594 -> store float 0xB6D8"
+60E0FC00,0x2786E,FUN_0002786e,cal_mirror_update_b6e4,0.5,cal mirror update: if float 0x751C8 > float 0xB594 clear B6FE; if 0xA41C==0 && B6FE==1 copy 0x751A4/0x751A2->B6E4/B6E6; elif B6EC==0 copy 0x751A6/0x751A2; else decrement B6E4
+60E0FC00,0x2792E,FUN_0002792e,dec_counter_b6e6,0.8,if byte@0xFFFFB6EC==1 && word@0xFFFFB6E6>0 decrement B6E6 (+0xFFFF)
+60E0FC00,0x27950,FUN_00027950,set_b6dc_flag_cond,0.5,if float 0x751D4 > float 0xB5DC and (B6E4==0 or B6E6==0) set byte 0xB6DC=1 else 0
+60E0FC00,0x279A0,FUN_000279a0,protected_bank_zero_clear,0.9,"clears protected float bank 0xFFFF8130 (updateMemoryAtAddress_float 0x3E258 fldi0, stride 8, 0x44 iters x2) and byte bank 0xFFFF8570 (0x3E1F8=0, stride 2)"
+60E0FC00,0x27A0A,FUN_00027a0a,update_mem8_8680_thunk,0.9,thunk: jmp 0x3E1F8 updateMemoryAtAddress_8bit with r4=0x8680 r5=0
+60E0FC00,0x27A12,FUN_00027a12,clear_byte_8682_8684,0.9,clear two scratch bytes 0x8682/0x8684 via updateMemoryAtAddress_8bit 0x3E1F8 (r5=0); small standalone wrapper
+60E0FC00,0x27A26,FUN_00027a26,sensor_ram_clear_8130_8570_868x,0.9,protected RAM clear: floats at 0xFFFF8130 stride8 x0x44 + bytes 0xFFFF8570 stride2 x2 via validateAddressCopy_32bit 0x3E38A and validateAddressCopy_8bit 0x3E29E; then clears 0x8680/0x8682/0x8684
+60E0FC00,0x27A96,FUN_00027a96,thresh_word_b704_from_ba,0.4,"sensor-vs-cal threshold: read float 0xC0 / 2DLookup_FP_16bit 0x20C4(68BEC), compare vs 0x75250/0x75254, calls add16bitSaturate 0x2460 with 0x11/0x22/0x33, writes word to 0xB704"
+60E0FC00,0x27B2C,FUN_00027b2c,sensor_2dlut_corr_fix_b92c_b930,0.4,"large 2D-lookup sensor correction: fixedPointToFloat 0x24C0 to 0xFFFFB92C, 2DLookup 0x2068(68BF8) to 0xFFFFB930, gate on 0xFFFFB930 vs B594, writes 0xB706 flag"
+60E0FC00,0x27C82,FUN_00027c82,dec_counter_word_baf44,0.7,"if (0xB69C&1): word@0xFFFFBA44>0 then -=1 (add 0xFFFF), saturating down counter"
+60E0FC00,0x27CD8,FUN_00027cd8,diag_flag_ba54_cond,0.6,plausibility enable: float 0x75258>AAD4 and byte 0xB126==0 -> addSaturate8Bit 0x2478 on byte@0xFFFFBA54; else clear; stores BA54
+60E0FC00,0x27D38,FUN_00027d38,thresh_flag_ba49_word_arr,0.6,"multi-threshold gate on float 0xC828 vs BAB8/BA88, word checks 0xCA60,B6C4,B6C6 vs 0x7523C + float bounds 0x7525C/75260; if word 0xFFFFBA44>0 set byte 0xFFFFBA49=1"
+60E0FC00,0x27E68,FUN_00027e68,sensor_multi_gate_ba4a_ba46,0.4,"large sensor enable chain: floats 0xB594/B34C via 0x2440(subtractAbsolute), gates on B6DC, A424, A42C, BA55/0x75235, 0x75264/0x75268 vs C16C, B126, BA56/0x75236, 0x7526C vs A9FC, 0x75270/75274 vs fr14, AAE5, BA58/0x75237/38+; sets BA4A byte + BA46 word"
+60E0FC00,0x28034,FUN_00028034,sensor_avg_build_b70c_b934,0.4,"sensor averaging: reads float B594, 0xFFFFB930, words B704/B69C and counter 0xFFFFBA44; computes index into 0xFFFFB934 and 0xFFFFB70C arrays; writes via add16bitSaturate 0x2460 and saturateLow 0x23E4"
+60E0FC00,0x28150,FUN_00028150,sensor_table_build_90_x2,0.4,"build 0x44-entry sensor table (x2 slots stride0x020): gate 0xFFFFBA44/BA49, floats via 0x3E1AA, filter 0x23B0, updateMemoryAtAddress_float 0x3E258; calls 0x28834 per index"
+60E0FC00,0x28320,FUN_00028320,sensor_hw_gate_tbl_b8682,0.4,"gated sensor build: AACC/BA5D gate, reads byte via read_value_8bit_redundant 0x3E0DC, fills floats 0xFFFF8130 (stride 8) and bytes 0xFFFF8570 (stride 2) via floatToInt 0x24D0 and 0x385C4; then clears 0x8680; tail to 0x2845C debounce latch"
+60E0FC00,0x2864E,FUN_0002864e,sensor_hw_gated_tbl_ba5b,0.4,"gated sensor table build: AACC/A41C + BA5C gate, fills 0xFFFF8130/0xFFFF8570 via floatToInt 0x24D0 and 0x385C4 (0x22 iterations), dispatch counters via add16bitSaturate 0x2460, sets BA59/BA5A/BA5B"
+60E0FC00,0x28834,FUN_00028834,sensor_channel_tbl_fill,0.5,"per-channel table fill: given index r4 build 0xFFFF8130/0xFFFF8570 offsets, addSaturate8Bit 0x2478 then 0x420C WordCopy into channels (8x3), 2 iterations"
+60E0FC00,0x288FC,FUN_000288fc,pl_flag_ba60_cond,0.5,"plausibility flag: B69C&1, fixedPointToFloat_MULT_OFF_SIG 0x2500 result vs float C0D8, checks B6DC/B706/BAB0/BA78 -> set or clear byte 0xFFFFBA60"
+60E0FC00,0x2896C,FUN_0002896c,pl_flag_ba62_cond,0.5,plausibility B69C&1 && float BAB8>BA88 && B6DC==1: set/clear byte 0xFFFFBA62
+60E0FC00,0x289C8,FUN_000289c8,copy_calbyte_ba96_ba97,0.8,copy cal bytes 0x0007537C->0xBA96 and 0x0007537E->0xBA97; set byte 0xBA98=0 (mirror sync)
+60E0FC00,0x289E0,FUN_000289e0,copy_calbyte_ba96_ba97_b,0.8,"twin: cal bytes 0x7537C->0xBA96, 0x7537E->0xBA97 from 0xBA98 phase reset"
+60E0FC00,0x289F8,FUN_000289f8,clear_ba94_float_baa4,0.8,write word 0xBA94=0 and float 0xFFFFBAA4=0.0 (fldi0)
+60E0FC00,0x28A06,FUN_00028a06,hysteresis_flag_ba98,0.4,hysteresis: gate float B594 vs 0x75384/0x7538C (incremental) -> set byte 0xFFFFBAA8 1/0; sync 0xBA98/0xBA96/0xBA97 from cal bytes
+60E0FC00,0x28A60,FUN_00028a60,counter_ba94_thresh_8000,0.6,counter 0xBA94 ./A41C gate; if <0x8000 addSaturate 0x2460 else max0x8000; then float diff 0xB6BC-B6B8 store 0xFFFFBAA4 via 0x23E4 (counter/wrap)
+60E0FC00,0x28AE0,FUN_00028ae0,float_interp_table_ba7c,0.4,"interpolation: reads 0xB594/B6A4/B704/B69C and 0x75334 base; 0x3E1AA read floats into 0xFFFFBA9C, fmac interp, writes BA7C/BA80/BA78/BA64..., cap0x100"
+60E0FC00,0x28BE8,FUN_00028be8,float_interp_cont_ba4c,0.3,"continuation/alternative entry of interpolation at 0x28C28: reuses tables, 0x2490 floatToFP, writes BA0x; overlaps 0x28AE0 family"
+60E0FC00,0x28CC4,FUN_00028cc4,sensor_shift_filter_ba6c,0.5,gated dual-channel first-order filter: if B69C&1 and byte B706==1
+60E0FC00,0x28D74,FUN_00028d74,sensor_deriv_shift_ba90,0.5,offset deltas: BA8C->BA90 shift; BA84 with (B6A0-B6A4) and float refs; write 0xFFFFBAA4 via ftoi 0x23E4
+60E0FC00,0x28DCC,FUN_00028dcc,write_can_float_slot_8130,0.5,"write two float values to protected array slot: 0x3E1AA read two floats (base0xFFFF8130 + stride), store both, honoring offset flag"
+60E0FC00,0x28E58,FUN_00028e58,init_floats_baac_bab8,0.9,init four floats 0xBAAC/0xBAB0/0xBAB4/0xBAB8 with ROM constant 0x3727c5ac
+60E0FC00,0x28E6E,FUN_00028e6e,init_floats_baac_bab8_b,0.9,twin ctor: same constant into 0xBAAC/0xBAB0/0xBAB4/0xBAB8
+60E0FC00,0x28FAC,FUN_00028fac,can_fn_float_bab4_flags,0.4,"sensor func: float 0xBAB4/BAB8 shifted; via 0x20DC/read 0x68BBC; flags 0xB586, 0xA6A7-0xA6A9 pick 0x74DCE/74DDC/74DE0/74DE4 -> compute into BA-D; store BAB4 (CAN value)"
+60E0FC00,0x290D0,FUN_000290d0,dispatch_chain_tbl_A,0.9,"SR-less dispatch: sequentially calls 0x289C8,0x27258,0x28E58,0x27550,0x44188,0x284D6,0x2945C,0x29464 then jmp 0x2946C"
+60E0FC00,0x29108,FUN_00029108,dispatch_chain_tbl_B,0.9,"SR-less dispatch: calls 0x289E0,0x289F8,0x27258,0x27568,0x28E6E,0x2945C then jmp 0x29464"
+60E0FC00,0x29248,FUN_00029248,sr_task_table_c,0.9,"SR-protected dispatcher (getSR/setSR r4=0x10): calls 0x2760C,0x284D6,0x28150,0x28320,0x2864E,0x272B2 in order"
+60E0FC00,0x2927E,FUN_0002927e,sr_task_table_d,0.9,"SR-protected dispatcher: 0x29474,0x43FD0,0x27334,0x44190,0x43C28,0x442EC,0x43D8C"
+60E0FC00,0x292D8,FUN_000292d8,sr_task_single_call,0.9,SR-protected single call to 0x2792E
+60E0FC00,0x29308,FUN_00029308,reset_chain_clear,0.9,"reset chain: 0x279A0 (protected zero clear), 0x27A0A, jmp 0x27A12 (clear scratch)"
+60E0FC00,0x2945C,FUN_0002945c,set_word_flag_bad8,0.9,write 0xBAD8 = 1 (CAN counter active flag)
+60E0FC00,0x29464,FUN_00029464,clear_word_bad4,0.9,write word 0xBAD4 = 0
+60E0FC00,0x2946C,FUN_0002946c,clear_word_bad6,0.9,write word 0xBAD6 = 0
+60E0FC00,0x29474,FUN_00029474,reset_counters_cfd9_gated,0.7,if byte 0xCFD9==1 and 0xA41C==1 -> clear BAD4/0xBAD6 to 0 and set BAD8=1; else leave
+60E0FC00,0x294A0,FUN_000294a0,counter_bad4_rst_can,0.6,increment word counter 0xBAD4; on>=0x0190 trigger CAN data calls + reset; gate 0xB6DC addSaturate
+60E0FC00,0x294F0,FUN_000294f0,counter_bad6_7d0_thresh,0.6,counter word 0xBAD6; reset at>=0x07D0; on 0xB6DC addSaturate; sets 0xBAD8
+60E0FC00,0x295DE,FUN_000295de,sync_byte_bae8_can,0.7,CAN TX/RX field sync: relay byte 0xBAE3->0xFFFFBAE4 and 0xBC31->0xFFFFBAE5+BAE6; checks 0xBC48 to set 0xFFFFBAE8
+60E0FC00,0x29760,FUN_00029760,validate_mem_8688_thunk,0.9,thunk: jmp validateAddressCopy_8bit 0x3E29E with r4=0x8688 (clear/validate scratch byte)
+60E0FC00,0x29792,FUN_00029792,decrement_counter_bb0a,0.7,decrement word 0xFFFFBB0A (0x3E or wrap 0xFFFF); 0xFFFFBB0C!=0xFFFF gate
+60E0FC00,0x297C2,FUN_000297c2,can_data_snapshot_ba_ip,0.4,CAN snapshot: if 0x77B18==0 and counter 0xFFFFBB0A>0 and flags 0xBB5C/BB5E/A428/A402/A40A clear -> copy 0x77B28 float to 0xBAFC
+60E0FC00,0x29ADC,FUN_00029adc,cal_byte_bb28,0.7,copy cal byte 0x6D486->0xBB28 (CAN calibration mirror)
+60E0FC00,0x29AE6,FUN_00029ae6,can_201_cal_bb28,0.6,if 0xA400>0 copy 0x6D486->0xBB28 else decrement 0xBB28; CAN201 base value update
+60E0FC00,0x29B7C,FUN_00029b7c,clear_bb44_cnt,0.9,write word 0xFFFFBB44 = 0 (CAN201 timer reset)
+60E0FC00,0x29BDE,FUN_00029bde,can201_value_bb34,0.6,CAN201 value: if 0xCC88==1 set 0xFFFFBB34=0xFFFF else float 0x2490 compute capped at 0xFFFE
+60E0FC00,0x29C24,FUN_00029c24,can201_value_bb38,0.6,CAN201 value: if 0xBBEF==1 set 0xFFFFBB38=0xFFFF else float 0x2490 compute capped 0x9C40
+60E0FC00,0x29CA0,FUN_00029ca0,can201_value_bb3a,0.6,CAN201 value: if 0xCB61>=0x77A6C set 0xFFFFBB3A=0xFF else float 0x24D0 compute capped 0xC8
