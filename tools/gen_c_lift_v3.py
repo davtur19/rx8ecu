@@ -281,6 +281,13 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
     gbr_value = None
     stack_ok = True
     frame_live = False
+    # v7: known-store RAM model + path gate for literal-base LOAD propagation.
+    # `ram_known` = {byte_addr: byte} written by KNOWN stores to literal RAM
+    # addresses; `branches_seen` guards RAM folds — once a branch is admitted the
+    # linear walk can no longer prove a store precedes a later load on every
+    # path, so RAM loads stay unresolved (ROM loads always fold: deterministic).
+    ram_known = {}
+    branches_seen = False
 
     def temp():
         tmp[0] += 1
@@ -320,6 +327,7 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
                 gcl._count_branch(branch_stats, det)
                 if admit:
                     brs.append((det, pc, target))
+                    branches_seen = True
                     pc += 2
                     continue
                 return None, ('branch_v3', det)
@@ -394,8 +402,24 @@ def _scan_mem_v3(rom, c, end, branch_stats=None):
                              'disp': m.get('disp', 0), 'auto': m.get('auto'),
                              'idx': m.get('idx'), 'gbr': False})
             gcl._apply_mem_writes(m, written, lits)
+            # v7: propagate LOADs from literal bases (base is a known pool
+            # literal / copy+arith): a ROM effective address is deterministic
+            # (read from the .bin); a RAM effective address folds only when a
+            # KNOWN store wrote the slot earlier on the linear path (no branch
+            # admitted yet).  Otherwise the dest stays UNKNOWN (base_unresolved
+            # survives for any later use) — conservative.
+            if kind[0] == 'LITERAL' and m.get('idx') is None:
+                eff = (kind[1] + m.get('disp', 0)) & gcl.MASK
+                if m['dir'] == 'load' and m.get('dest') is not None:
+                    v = ops.lit_load_value(rom, eff, m['size'], m.get('sext', False),
+                                           ram_known if not branches_seen else None)
+                    trk['r%d' % m['dest']] = ('lit', v) if v is not None else None
+                elif m['dir'] == 'store' and m.get('src') is not None:
+                    sv = _trk_fold(trk, written, m['src'])
+                    ops.lit_store_bytes(ram_known, eff, m['size'],
+                                        sv[1] if sv and sv[0] == 'lit' else None)
             if m['dir'] == 'load' and m.get('dest') is not None:
-                trk['r%d' % m['dest']] = None
+                trk.setdefault('r%d' % m['dest'], None)
             if m.get('auto') in ('post', 'pre'):
                 trk['r%d' % m['base_reg']] = None
             pc += 2
@@ -829,6 +853,10 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
     gbr_value = None
     stack_ok = True
     frame_live = False
+    # v7: known-store RAM model + path gate for literal-base LOAD propagation
+    # (identical to _scan_mem_v3).
+    ram_known = {}
+    branches_seen = False
 
     def temp():
         tmp[0] += 1
@@ -867,6 +895,7 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                 gcl._count_branch(branch_stats, det)
                 if admit:
                     brs.append((det, pc, target))
+                    branches_seen = True
                     pc += 2
                     continue
                 return None, ('branch_v3', det)
@@ -935,8 +964,19 @@ def _scan_fpu_function(rom, c, end, branch_stats=None):
                              'disp': m.get('disp', 0), 'auto': m.get('auto'),
                              'idx': m.get('idx'), 'gbr': False})
             gcl._apply_mem_writes(m, written, lits)
+            # v7: literal-base LOAD propagation (identical to _scan_mem_v3).
+            if kind[0] == 'LITERAL' and m.get('idx') is None:
+                eff = (kind[1] + m.get('disp', 0)) & gcl.MASK
+                if m['dir'] == 'load' and m.get('dest') is not None:
+                    v = ops.lit_load_value(rom, eff, m['size'], m.get('sext', False),
+                                           ram_known if not branches_seen else None)
+                    trk['r%d' % m['dest']] = ('lit', v) if v is not None else None
+                elif m['dir'] == 'store' and m.get('src') is not None:
+                    sv = _trk_fold(trk, written, m['src'])
+                    ops.lit_store_bytes(ram_known, eff, m['size'],
+                                        sv[1] if sv and sv[0] == 'lit' else None)
             if m['dir'] == 'load' and m.get('dest') is not None:
-                trk['r%d' % m['dest']] = None
+                trk.setdefault('r%d' % m['dest'], None)
             if m.get('auto') in ('post', 'pre'):
                 trk['r%d' % m['base_reg']] = None
             pc += 2
@@ -1792,7 +1832,10 @@ def walk_v3(rom, addr, end):
     st = {'written': set(), 'lits': {}, 'tmp': [0], 'trk': {},
           'gbr_known': False, 'gbr_value': None,
           'stack_ok': True, 'frame_live': False, 'frame_off': None,
-          'sp_off': 0x400}
+          'sp_off': 0x400,
+          # v7: literal-base LOAD propagation (must mirror _scan_mem_v3 so the
+          # walker accepts exactly the spans the selector admitted).
+          'ram_known': {}, 'branches_seen': False}
     info = {'stack_offs': set(), 'ram_addrs': set(),
             'has_stack': False, 'has_literal': False, 'gbr_input': False}
     labels = set()
@@ -2064,13 +2107,45 @@ def walk_v3(rom, addr, end):
             if bkind == 'literal':
                 info['has_literal'] = True
                 info['ram_addrs'].add(abs_addr)
+            _dyn = ((pc in reentry)
+                    or ('r%d' % base_reg) in carried.get(pc, ())
+                    # v7.1: path-sensitivity guard — a literal base folded from
+                    # the copy+arith tracker (i.e. NOT a fresh pool load still
+                    # in st['lits']) can be stale once any branch was admitted:
+                    # a forward conditional branch may SKIP a write in the
+                    # chain, so the runtime register differs from the baked
+                    # linear value (seen at 0x5B194 diagMeteringPumpPosition
+                    # Control: bf@0x5B176 taken skips `r6+=0x14`@0x5B17A, so
+                    # the runtime effective address was 0xFFFFD15D vs the
+                    # linear-baked 0xFFFFD171 -> generated test case 52 FAIL).
+                    # Emit register-relative (dynbase) for those; the fold then
+                    # stays off (dest UNKNOWN), so a dependent mem drops the
+                    # function — conservative and always runtime-correct.
+                    or (st['branches_seen']
+                        and 'r%d' % base_reg not in st['lits']))
             c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
-                                    dynbase=((pc in reentry)
-                                             or ('r%d' % base_reg)
-                                             in carried.get(pc, ())))
+                                    dynbase=_dyn)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
+            # v7: literal-base LOAD propagation (mirrors _scan_mem_v3).  A ROM
+            # effective address folds to the .bin bytes; a RAM slot folds only
+            # when a KNOWN store wrote it earlier on the linear path (no branch
+            # admitted yet).  dynbase (re-entry pc / loop-carried base) never
+            # folds — the runtime address can differ on a later visit, so the
+            # dest stays UNKNOWN and any dependent mem just drops the function.
+            if bkind == 'literal' and m.get('idx') is None:
+                eff = (abs_addr + m.get('disp', 0)) & gcl.MASK
+                if m['dir'] == 'load' and m.get('dest') is not None:
+                    if not _dyn:
+                        v = ops.lit_load_value(
+                            rom, eff, m['size'], m.get('sext', False),
+                            st['ram_known'] if not st['branches_seen'] else None)
+                        st['trk']['r%d' % m['dest']] = ('lit', v) if v is not None else None
+                elif m['dir'] == 'store' and m.get('src') is not None and not _dyn:
+                    sv = _trk_fold(st['trk'], st['written'], m['src'])
+                    ops.lit_store_bytes(st['ram_known'], eff, m['size'],
+                                        sv[1] if sv and sv[0] == 'lit' else None)
             if m['dir'] == 'load' and m.get('dest') is not None:
-                st['trk']['r%d' % m['dest']] = None
+                st['trk'].setdefault('r%d' % m['dest'], None)
             if m.get('auto') in ('post', 'pre'):
                 st['trk']['r%d' % m['base_reg']] = None
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
@@ -2331,6 +2406,7 @@ def walk_v3(rom, addr, end):
             records.append({'pc': pc, 'op': op, 'kind': 'branch',
                             'c': [line], 'mnem': mnem,
                             'target': target, 'slot': slot})
+            st['branches_seen'] = True
             pc += 2
             continue
         rec = emit_one(pc, op)
