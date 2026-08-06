@@ -226,7 +226,23 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                         'c': [], 'py': [], 'target': None, 'slot': None,
                         'mnem': 'mov r15,r14 (frame pointer — implicit)'}
             if 'r15' in writes:
-                st['stack_ok'] = False
+                if op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15:
+                    # `add #imm,r15` is a stack allocation, NOT a loss of the
+                    # r15 stack model: keep stack_ok, shift sp_off by the
+                    # signed immediate (every subsequent @r15/@(disp,r15) offset
+                    # must move with the runtime pointer) and make the mirror's
+                    # `sp` alias follow or the final r15 compare diverges from
+                    # sh2emu (unbalanced prologue) — mirrors walk_v3.
+                    _imm = op & 0xFF
+                    if _imm & 0x80:
+                        _imm -= 0x100
+                    st['sp_off'] += _imm
+                    d = dict(d)
+                    d['py'] = list(d.get('py') or [])
+                    d['py'].append('sp = (sp + s8(0x%02X)) & 0xFFFFFFFF'
+                                   % (op & 0xFF))
+                else:
+                    st['stack_ok'] = False
             if 'r14' in writes:
                 st['frame_live'] = False
             if not gcl._apply_stmt(rom, pc, op, d, st['written'], st['lits']):
@@ -410,6 +426,32 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': list(gbd['c']),
                     'py': list(gbd['py']), 'target': None, 'slot': None,
                     'mnem': gbd['ann']}
+        if (op & 0xF0FF) == 0x60F6:                # 0x6nF6 == mov.l @r15+,Rn
+            # Epilogue stack pop into ANY dest register n (0..14), e.g.
+            # 0x64F6 (mov.l @r15+,r4) and 0x6EF6 (mov.l @r15+,r14).  The
+            # generic r15/r14 mem-shape block below already covers these
+            # encodings via _mem_shape (base 15, nib 6); this explicit branch
+            # documents the family and guarantees the pop decodes for every n
+            # without depending on the generic base-resolution rules.  Same
+            # stack-slot model as _mem_shape / _stack_record: auto='post', so
+            # off = sp_off BEFORE the pop.
+            _dn = (op >> 8) & 0xF
+            if not st['stack_ok'] or _dn == 15:
+                return None
+            off = st['sp_off']
+            st['sp_off'] += 4
+            info['has_stack'] = True
+            info['stack_offs'].add(off)
+            c = ['r%d = local_%x;' % (_dn, off)]
+            py = ['r[%d] = _rdw(ram, STACK_BASE + 0x%X, 4)' % (_dn, off),
+                  'sp = (sp + 4) & 0xFFFFFFFF']
+            st['written'].add('r%d' % _dn)
+            st['lits'].pop('r%d' % _dn, None)
+            st['written'].add('r15')
+            st['lits'].pop('r15', None)
+            return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
+                    'target': None, 'slot': None,
+                    'mnem': 'mov.l @r15+,r%d' % _dn}
         sh = gcl._mem_shape(op)
         if sh is not None and sh['base'] in (14, 15):
             breg = sh['base']
@@ -659,10 +701,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
                     labels.add(tgt)
                     pending.append(tgt)
                 slot = slot_record(pc + 2) if pc + 2 < end else None
-                # PR LOOP GUARD: a `lds.l @r15+,pr` delay slot (0x4F26) loads
-                # the callee's return address from the (random) stack, so the
-                # mirror's pr-return and sh2emu diverge (known case: 0x298F4).
-                if slot is not None and pc + 3 < bound and \
+                # PR LOOP GUARD: a `lds.l @r15+,pr` delay slot (0x4F26) after a
+                # `jsr` leaves pr = stack-popped value, which the inlined callee's
+                # `rts` then consumes while sh2emu's real call/return runs the
+                # callee's own frame — the two pr values diverge (known case:
+                # 0x298F4).  The guard deliberately does NOT apply to the tail
+                # `jmp` (set_pr=False) epilogue: there the 0x4F26 slot is this
+                # function's own prologue-pop (`sts.l pr,@-r15` balance) and the
+                # mirror and sh2emu pop the SAME RAM slot, so the callee's rts
+                # resolves identically on both sides (0x25C40 / 0x292BA).
+                if kind == 'jsr' and slot is not None and pc + 3 < bound and \
                         (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
                     res.reject = ('pr_loop', pc)
                     return res
