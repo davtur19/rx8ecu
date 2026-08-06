@@ -1,19 +1,19 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **5106 entries, 92.1M.** Regenerated 2026-08-02 for the
+in the working repository. **5110 entries, 92.1M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 790.7K |
+| (root) | 11 | 791.3K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 33 | 10.3M |
-| c/ | 2066 | 4.7M |
-| c/tests/ | 2133 | 16.9M |
+| c/ | 2068 | 4.7M |
+| c/tests/ | 2135 | 16.9M |
 | tools/ | 29 | 695.3K |
 | tools/tests/ | 3 | 50.8K |
 | docs/ | 225 | 832.3K |
@@ -23,7 +23,7 @@ in the working repository. **5106 entries, 92.1M.** Regenerated 2026-08-02 for t
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **5106** | 92.1M |
+| **Total** | **5110** | 92.1M |
 
 ## External dependencies
 
@@ -125,10 +125,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `92cd56fde9e84723a4de2bb570604c355bde5befe9808a59714762305b850145` | 167.0K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `13531f7314adbc47e889547ef5cdd67ca90f8d4c2fa23b7bc9e6ded8440753cd` | 167.0K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `5c229be8fa37949155c4f04151f409b68f1b4bdfad0cd761e63481f726d58632` | 166.4K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `cfaf1d27b3a59a3f29ad421021bb409a3e648efdb9502702378dfdd255106b5a` | 163.0K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -520,6 +520,8 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_spark_lead_trail_split_19220.c` | `325eeef22b0a10b48844808a6e51127352abb403688c349b7175aa4994ea0433` | 7.5K | Tracked file |
 | `c/calc_traction_control_mode_11166.c` | `d69427ce700573758d093bd36d990118d3d029915633297a9e1ae2d8ea759105` | 1.1K | Tracked file |
 | `c/calc_vis_solenoid_duty_cycle_1261C.c` | `434c34c7adbdd753326922f4f95b2f950ad0b96ca82e01d071783bf6a8398e86` | 5.7K | Tracked file |
+| `c/calculateCrankingTimingLeading_0x43168.c` | `a9f5fc8540ff2fc00d8d65ca130fc3a1cab2deead1d7c5fd137a3aa459571c28` | 7.7K | Tracked file |
+| `c/calculateCrankingTimingTrailing_0x431E6.c` | `2a4856b80f2900507731be9d8708971b2ab6dfba3d8e3247b1107790181b37a0` | 5.2K | Tracked file |
 | `c/calculateCruiseControlDriverRequest_2c5f8.c` | `b9772760fd43caa009d8c9cbec5f806c4c5c915e45017c23d2ad88aaf69ef77e` | 1007B | Tracked file |
 | `c/calculateCruiseControlSwitchVolt_2c5d0.c` | `6c1c2d6712f4f4e1350f24732dcf54c93df6e1eaf4be14bc30fb98dd5b5a17a4` | 1.4K | Tracked file |
 | `c/calculateDSCLeadingTimingDerate_0x121A4.c` | `1d48fe4336d90afe332cb018ab51e836b78bda3863d9e8a634e3b33af0b1ad61` | 7.8K | Tracked file |
@@ -2601,6 +2603,8 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_traction_control_mode_11166.py` | `a36a062b464a28530a5d42b62be35239b5f336531c6b0d2e280d2f906ef4d5db` | 6.5K | Tracked file |
 | `c/tests/test_calc_vehicle_speed_filter_133F8.py` | `0eb23bc35c08331e2da174ad811ff95b8a2f04e34218cd5b02eb6c7a883d02fe` | 5.7K | Tracked file |
 | `c/tests/test_calc_vis_solenoid_duty_cycle_1261C.py` | `2c93012938d4b7f7c7cfb9103a498aba3cc7f4bed46581c14ca1ca115e25334d` | 6.9K | Tracked file |
+| `c/tests/test_calculateCrankingTimingLeading_0x43168.py` | `84f61430967f9450fd8e12c6ec7c954736e063cdf006a4c240de11fa39ce50f0` | 7.8K | Tracked file |
+| `c/tests/test_calculateCrankingTimingTrailing_0x431E6.py` | `5546212dc49ddbd1296a46afae6a21fe2f87d16bdb253aec6449728b5b82fb9f` | 6.7K | Tracked file |
 | `c/tests/test_calculateCruiseControlDriverRequest_2c5f8.py` | `3b13359af4ddcc651da6f169637b911da1a47314e6a4c9bfcb9cab49b2e9c79a` | 6.8K | Tracked file |
 | `c/tests/test_calculateCruiseControlSwitchVolt_2c5d0.py` | `601add4d3db0222bc709679bc7240310e15168a52d6d2d8353a616fff5c12798` | 7.4K | Tracked file |
 | `c/tests/test_calculateDSCLeadingTimingDerate_0x121A4.py` | `c5ba10832c408f9eed49f3cf37c2aca5d532daa123184c7b2a059f10e8a7cc76` | 8.1K | Tracked file |
