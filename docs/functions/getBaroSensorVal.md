@@ -29,5 +29,5 @@ uint8_t getBaroSensorVal(BaroSensorResult *out) {
     return 2;  // Over range low
 }
 ```
-**Status:** med — control flow and float operations are clear, but exact semantics of fixedPointScaling and threshold interpretation unclear. Status code mapping is inferred.
-**Uncertainties:** What are the r5, r6 arguments to fixedPointScaling? ; Why two separate range checks? (Logic seems inverted) ; Is 0xFFFFA3E0 an output or something else? ; Float constant derivation (1/13107)?
+**Status:** med — flow and float ops clear; fixedPointScaling semantics, threshold interpretation, and status mapping inferred.
+**Uncertainties:** r5/r6 args to fixedPointScaling? Two separate range checks (logic seems inverted)? 0xFFFFA3E0 an output? Float constant derivation (1/13107)?

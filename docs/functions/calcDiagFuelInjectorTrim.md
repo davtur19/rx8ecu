@@ -33,5 +33,5 @@ void calcDiagFuelInjectorTrim() {
     callFunction_0x5BA00(trimValid);
 }
 ```
-**Status:** med - Core structure clear; exact threshold comparison and enable logic unconfirmed.
-**Uncertainties:** Whether injector ID 1-5 maps to rotors or rotary runners ; Whether comparison is > or >= ; Semantics of 0x7B7A6 enable flag (calibration point or runtime flag?) ; What function 0x5BA00 does with the result (write register, CAN message?) ; Whether all 5 injectors are checked or just active rotor
+**Status:** med — core structure clear; threshold comparison and enable logic unconfirmed.
+**Uncertainties:** ID 1-5 maps to rotors or runners? Comparison `>` or `>=`? 0x7B7A6 enable semantics (cal point vs runtime)? What 0x5BA00 does with the result? All 5 injectors or active rotor only?

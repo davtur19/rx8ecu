@@ -4,15 +4,13 @@
 
 ## Overview
 
-Scans the 21-entry DTC handler context table at 0xFFFF87D8 (16 bytes per
-entry) and appends the 16-bit DTC code of every entry whose "type" byte
-(entry offset +6) matches the requested type selector to a caller-supplied
-word array.  Returns the match count in r0.
+Scans the 21-entry DTC handler context table @0xFFFF87D8 (16 B/entry), appending
+the 16-bit DTC code of every entry whose type byte (entry+6) matches the requested
+type selector to a caller-supplied word array. Returns the count in r0.
 
-**The matches are written consecutively (packed):** out[0], out[1], ... in
-scan order.  The running count doubles as the output index
-(`r12 = out + 2·count` at 0x6207A–0x62088).  The output array is *not*
-indexed by DTC entry number.
+**Matches are written consecutively (packed):** out[0], out[1], ... in scan order;
+the running count doubles as the output index (`r12 = out + 2·count` @0x6207A–0x62088).
+The output array is *not* indexed by DTC entry number.
 
 ## Inputs
 

@@ -7,14 +7,13 @@
 
 ## Overview
 
-Implements ISO 14229 UDS Service 0x27 (SecurityAccess) for the Mazda RX-8 PCM.  
-This service controls access to privileged diagnostic operations (flashing, calibration
-changes, immobilizer programming) using a seed/key challenge-response protocol.
+ISO 14229 UDS Service 0x27 (SecurityAccess) for the Mazda RX-8 PCM. Controls access
+to privileged diagnostics (flashing, calibration, immobilizer programming) via a
+seed/key challenge-response protocol.
 
-The ECU generates a pseudo-random 3-byte **seed** in response to subfunction `0x01`
-(RequestSeed).  The external tool must compute a 3-byte **key** using a 24-bit Galois
-LFSR with a shared secret, and send it via subfunction `0x04` (SendKey).  If the key
-matches, the ECU unlocks security and allows the requested operations.
+Subfunction `0x01` (RequestSeed): ECU returns a pseudo-random 3-byte **seed**. The
+tool computes a 3-byte **key** with a 24-bit Galois LFSR + shared secret and sends
+it via subfunction `0x04` (SendKey). On match the ECU unlocks security.
 
 ## Call Tree
 
@@ -104,21 +103,18 @@ Address   Bytes             24-bit Value    Interpretation
 0x5FACE   FF FF 00          —               LFSR init (level 3/4) padding + table tail
 ```
 
-**Important:** The table at `0x5FAC5` is a **per-level LFSR INIT table**, indexed
-as `base + level*3` (3 bytes per level).  The 24-bit init value is read from the
-entry in address order (`entry[0]` is MSB), so level 1 `C5 41 A9` → `0xC541A9`.
+**Important:** `0x5FAC5` is a **per-level LFSR INIT table**, indexed `base + level*3`
+(3 bytes/level). Init read in address order (`entry[0]` = MSB); level 1 `C5 41 A9`
+→ `0xC541A9`. Taps are **not** in this table — **hardcoded** in ROM code inside
+`SeedKeyRelated` @0x56ADA (XOR constants 0x56C1E–0x56C38), bits {23,20,15,12,5,3}
+= **0x909028**, identical to ECOMcat.
 
-The taps are **not** stored in this table — they are **hardcoded in the ROM
-code** inside `SeedKeyRelated` @0x56ADA (XOR constants at 0x56C1E–0x56C38),
-bits {23,20,15,12,5,3} = **0x909028**, identical to the ECOMcat reference.
-
-**RESOLVED (2026-08-01, commit `a84eaba`, emulator-verified):** the stock LFSR
-**is** the ECOMcat/Craig-Smith 24-bit Galois algorithm. The legacy stock vector
-`0x3B15E1` was wrong; the ROM-verified value for seed `0x45820A` / `"MazdA"` /
-level 1 is **`0xA07258`** (levels 1–4 × 3 seeds validated against
-`SeedKeyRelated` @0x56ADA).  Remaining unknowns: UDS subfunction→level mapping,
-`seed_gen` (@0x5699A) internals for level≠3, and the `key_validate` middle-byte
-source.
+**RESOLVED (2026-08-01, commit `a84eaba`, emulator-verified):** stock LFSR **is**
+the ECOMcat/Craig-Smith 24-bit Galois algorithm. Legacy vector `0x3B15E1` was
+wrong; ROM-verified key for seed `0x45820A` / `"MazdA"` / level 1 is **`0xA07258`**
+(levels 1–4 × 3 seeds validated vs `SeedKeyRelated` @0x56ADA). Remaining unknowns:
+subfunction→level mapping, `seed_gen` internals for level≠3, `key_validate`
+middle-byte source.
 
 ## LFSR Algorithm
 
@@ -148,11 +144,10 @@ Result: byteswap(key) → [key[2], key[1], key[0]]
 
 ### ROM Implementation (SeedKeyRelated @ 0x56ADA)
 
-The ROM's `SeedKeyRelated` function is a byte-oriented implementation of the
-**same** ECOMcat 24-bit Galois LFSR (RESOLVED 2026-08-01, commit `a84eaba`):
-its structure is a byte-wise 8-byte shift + 3-byte state shift with the taps
-hardcoded at 0x56C1E–0x56C38 (bits {23,20,15,12,5,3} = 0x909028, identical to
-ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
+The ROM's `SeedKeyRelated` is a byte-oriented implementation of the **same** ECOMcat
+24-bit Galois LFSR (RESOLVED 2026-08-01, commit `a84eaba`): byte-wise 8-byte shift
++ 3-byte state shift, taps hardcoded at 0x56C1E–0x56C38 (bits {23,20,15,12,5,3} =
+0x909028), `tools/mazda_security.py` bit-equivalent at level 1:
 
 1. **8-byte buffer** = 3 seed bytes + 5 secret bytes  
 2. **Three 24-bit states** (loaded from the per-level init table @0x5FAC5)
@@ -170,7 +165,7 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 ### Subfunction 0x01 — RequestSeed
 
 > CONFIRMED 2026-08-04 — see `docs/notes/UDS_SECURITY_MAPPING.md §7.1` for the
-> row-by-row ROM evidence.  Corrections to the previous (DRAFT) description:
+> row-by-row ROM evidence. Corrections to the previous DRAFT:
 
 1. Read `SECURITY_STATE_1` (0xFFFFD20B, state_check1 @0x56866) and
    `SECURITY_STATE_2` (0xFFFFD20C, state_check2 @0x568E6) — reads only, **no** NRC
@@ -193,17 +188,14 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 ### Subfunction 0x04 — SendKey
 
 > **RESOLVED 2026-08-04 — verdict (b): dead code in ALL 9 public stock ROMs.**
-> (was: FLAG 2026-08-04 — unreachable in 60E1D400.)  Cross-ROM scan
-> (`docs/notes/UDS_SECURITY_MAPPING.md §7.3`): the SendKey body is present with
+> Cross-ROM scan (`docs/notes/UDS_SECURITY_MAPPING.md §7.3`): body present with
 > identical structure in every stock image (60E1D400 `0x58592`-`0x58610`;
 > 60E0E500 `0x56F3E`, 60E0E700 `0x57196`, 60E0FB00/60E0FC00 `0x56026`,
 > 60E15120 `0x57B56`, 60E1B900 `0x562BE`, 60E1C500 `0x57202`, 60E32000
-> `0x5D4D2`) but is unreachable in every one: the entry dispatch routes only
-> `subfunc == 0x01` into the handler; the only incoming branch to the body is
-> the abs-trick even-branch `bf/s` (never taken — `subfunc==1` is odd), and
-> there are no indirect refs (pools/jump tables) to it.  Subfunctions != 1
-> fall to the else path: `subfunc==0` → response, `subfunc!=0` → no response
-> (silent).  The flow below is kept for reference as the ROM-accurate
+> `0x5D4D2`) but unreachable everywhere: entry dispatch admits only `subfunc==1`;
+> the sole incoming branch is the never-taken abs-trick even-branch `bf/s`
+> (`subfunc==1` is odd); no indirect refs. `subfunc!=1` → else path:
+> `subfunc==0` → response, `subfunc!=0` → silent. Flow below kept as ROM-accurate
 > reconstruction of a shared-codebase remnant (no removal).
 
 1. Retrieve cached seed via `data_copy`
@@ -214,10 +206,9 @@ ECOMcat), and `tools/mazda_security.py` is bit-equivalent to it at level 1:
 
 ### Negative Response Codes (NRC)
 
-NRCs actually emitted by the handler body 0x584A0-0x58648 (whole-body literal scan):
-**{0x12, 0x31, 0x22, 0x35}** — 0x11/0x33/0x36/0x37 are **not** emitted by this
-handler (0x11 was previously claimed for "already unlocked" — wrong; the state reads
-do not gate anything).
+NRCs emitted by the handler body 0x584A0-0x58648 (whole-body literal scan):
+**{0x12, 0x31, 0x22, 0x35}**. 0x11/0x33/0x36/0x37 are **not** emitted (0x11 was
+wrongly claimed for "already unlocked"; the state reads gate nothing).
 
 | NRC  | Meaning                        | Condition                                   |
 |------|--------------------------------|---------------------------------------------|
@@ -263,31 +254,26 @@ The SecurityAccess handler uses these RAM locations for state:
 | C reconstruction        | Confirmed  | Core VERIFIED + RequestSeed CONFIRMED 2026-08-04; SendKey reachability **RESOLVED 2026-08-04** — dead code in all 9 public stock ROMs (see below) |
 
 **Open questions (core RESOLVED; no remaining items):**
-1. ~~**UDS subfunction→level mapping**~~ **RESOLVED** — `seed_gen` is always
-   called with a fixed level 3; the controlling level is the `position_check`
-   table index derived from the RequestSeed payload byte (see
-   `docs/notes/UDS_SECURITY_MAPPING.md` §1).
-2. ~~**`seed_gen` (@0x5699A) internals for level≠3**~~ **RESOLVED** — the entropy
-   path (XOR-mix `b0^bN`, state==4 → `55AA55`, retry<=16 fallback `FFFFFF`)
-   is traced and VERIFIED 2026-08-03 via `c/tests/test_seed_gen_5699A.py`
-   (0 mismatches). See `c/security_access.c` §5.
-3. ~~**`key_validate` middle-byte source**~~ **RESOLVED** — the middle argument
-   is **`SECURITY_STATE_2`** (state_check2 @0x568E6), held in r10; the handler
-   calls `key_validate(state1, state, chk)` (see `c/security_access.c`
-   ~lines 232-240; commits `8e259f8`, `b483523`).
+1. ~~**subfunction→level mapping**~~ **RESOLVED** — `seed_gen` always called with
+   fixed level 3; the controlling level is the `position_check` table index from
+   the RequestSeed payload byte (`docs/notes/UDS_SECURITY_MAPPING.md` §1).
+2. ~~**`seed_gen` (@0x5699A) internals for level≠3**~~ **RESOLVED** — entropy path
+   (XOR-mix `b0^bN`, state==4 → `55AA55`, retry<=16 fallback `FFFFFF`) VERIFIED
+   2026-08-03 via `c/tests/test_seed_gen_5699A.py` (0 mismatches). `c/security_access.c` §5.
+3. ~~**`key_validate` middle-byte source**~~ **RESOLVED** — middle arg is
+   **`SECURITY_STATE_2`** (state_check2 @0x568E6), held in r10; handler calls
+   `key_validate(state1, state, chk)` (`c/security_access.c` ~232-240; commits
+   `8e259f8`, `b483523`).
 
-**RESOLVED 2026-08-04 — SendKey reachability:** **SendKey body is dead code in
-all 9 public stock ROMs** (60E1D400 + 8 aux).  Cross-ROM whole-family scan
-(entry dispatch, incoming branches, indirect refs) confirms the body is present
-but unreachable in every image — the entry dispatch admits only `subfunc==1`,
-and the only incoming branch is the never-taken abs-trick even-branch `bf/s`.
-The earlier "VERIFIED" SendKey work (commit `fd56201` SeedKeyRelated transform;
-`31bb0ac` flow aligned to the ROM body) covered the algorithm/flow against the
-ROM body, not the reachability of that body from the UDS dispatch.  Verdict (b):
-definitive dead code, shared-codebase remnant — kept in the C reconstruction,
-no removal.  See `docs/notes/UDS_SECURITY_MAPPING.md §7.3` for the ROM-by-ROM table
-and per-ROM branch addresses, and `docs/notes/UDS_SECURITY_MAPPING.md §7.1`
-discrepancy (e) for the original 60E1D400 finding.
+**RESOLVED 2026-08-04 — SendKey reachability:** **SendKey body is dead code in all
+9 public stock ROMs** (60E1D400 + 8 aux). Cross-ROM scan (entry dispatch, incoming
+branches, indirect refs): body present but unreachable everywhere — dispatch admits
+only `subfunc==1`; only incoming branch is the never-taken abs-trick `bf/s`. The
+earlier VERIFIED SendKey work (commits `fd56201`, `31bb0ac`) covered the algorithm
+vs the ROM body, not dispatch reachability. Verdict (b): dead code, shared-codebase
+remnant — kept in the C reconstruction, no removal. See
+`docs/notes/UDS_SECURITY_MAPPING.md §7.3` (ROM-by-ROM table, per-ROM branch addrs)
+and §7.1 discrepancy (e) for the original 60E1D400 finding.
 
 ## References
 

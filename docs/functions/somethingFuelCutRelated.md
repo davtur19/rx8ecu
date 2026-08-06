@@ -31,4 +31,4 @@ void somethingFuelCutRelated(uint8_t rotor_idx, float fuel_cut_level) {
   }
 }
 ```
-**Status:** med ; Overall flow is clear: fetch status → scale threshold → per-rotor bit testing → conditional call ; Exact bit mask structure (16-bit words? bytes?) inferred from address spacing (0x4BD74 indexed) ; The 0x4BDC0 vs 0x4BDC6 distinction (command vs enable flag) not fully confirmed ; Rotor mask bit positions and meanings unclear without calibration data
+**Status:** med — flow clear (status → scale threshold → per-rotor bit test → conditional call); mask width inferred from address spacing; 0x4BDC0 vs 0x4BDC6 (command vs enable) unconfirmed; mask bit meanings need calibration data.

@@ -51,5 +51,5 @@ void unknownMode22Func(uint8_t requested_pid) {
     return;
 }
 ```
-**Status:** med (dispatcher structure clear, handler and transmission paths recovered, full response assembly uncertain)
-Notes: PID table appears to have only 1 entry (r5=1), suggesting this may be a stub or partial implementation ; Stride of 2 bytes per entry suggests packed table (u8 PID + u8 padding or attribute) ; Response structure: [service_code, high_id, low_id, separator, data...] ; Status bits at 0xFFFFDC05: bit 6 = validity check, bit 4 = response flag ; UNKNOWN: full PID table size/contents, meaning of status bits, handler return values, FUN_000674b6/thunk behavior
+**Status:** med — dispatcher clear, handler/transmission recovered, response assembly uncertain.
+Notes: PID table appears to hold 1 entry (r5=1) — possible stub. Stride 2 → packed (u8 PID + u8 attr). Response: [service_code, high_id, low_id, separator, data...]. Status bits @0xFFFFDC05: bit6 = validity, bit4 = response flag. UNKNOWN: table size/contents, status-bit meaning, handler returns, FUN_000674b6/thunk behavior.

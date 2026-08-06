@@ -5,11 +5,10 @@
 
 ## Overview
 
-This function computes the **fuel injection timing for all rotors**. It is
-structurally very similar to `calc_ignition_all_rotors_13C2C`, sharing the same
-three final dispatch helpers (0x13ED2, 0x13E6C, 0x13EE6). It reads engine
-speed, fuel cut flags, and injection mode status; computes the corrected fuel
-injection quantity; and writes the result to per-rotor output registers.
+Computes **fuel injection timing for all rotors**. Structurally very similar to
+`calc_ignition_all_rotors_13C2C`, sharing the same three dispatch helpers (0x13ED2,
+0x13E6C, 0x13EE6). Reads engine speed, fuel-cut flags and injection mode status;
+computes the corrected injection quantity; writes per-rotor outputs.
 
 ## Subcalls
 
@@ -57,12 +56,10 @@ injection quantity; and writes the result to per-rotor output registers.
 
 Both `calc_fuel_injection_all_rotors` and `calc_ignition_all_rotors_13C2C`:
 
-- Read from the same output address (0xFFFFA744) as input
+- Read the same input address (0xFFFFA744)
 - Call the same three dispatch helpers (0x13ED2, 0x13E6C, 0x13EE6)
-- Write to the same output addresses (0xFFFFA734, 0xFFFFA738), which are
-  written identically by calc_ignition_all_rotors_13C2C; the lead/trail split
-  is applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A), unverified)
-- Execute in the same scheduler tick (Phase 1 for ignition, Phase 2 for fuel)
+- Write the same output addresses (0xFFFFA734, 0xFFFFA738) — written identically; lead/trail split applied later in rotor_sync_gate_state_ctrl_2100A (0x2100A, unverified)
+- Run in the same scheduler tick (Phase 1 ignition, Phase 2 fuel)
 
-This suggests that the final output arbitration (pressure compensation, 
-leading/trailing separation) is shared between fuel and ignition subsystems.
+→ Final output arbitration (pressure compensation, lead/trail separation) is shared
+between the fuel and ignition subsystems.

@@ -35,4 +35,4 @@ void fuelingInit(void) {
   unknown_0x7F90();
 }
 ```
-**Status:** med — the structure is clear (initialize flags/HW) but the exact meaning of each flag and helper function requires tracing. The name suggests fueling but involves crank sensor heavily.
+**Status:** med — structure clear (init flags/HW); flag/helper meanings need tracing. Name says fueling, but crank-sensor init features heavily.

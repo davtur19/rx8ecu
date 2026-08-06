@@ -41,5 +41,5 @@ u8 memory_match_accumulate_583E4(u8 mask, u8 filter_val) {
   return sum & mask;
 }
 ```
-**Status:** med ; Loop structure over 36 fixed entries is clear ; Accumulation and masking semantics clear ; Reference data and filter comparisons are definite ; Bit test logic inferred from bitmask operations
-**Uncertainties:** What is the exact structure layout? (36 entries of 6 bytes strongly suggests this, but offsets +3, +4, +6 are partly speculative) ; What does the redundancy check (comparing against 0xFFFFCFFE) actually verify? ; What is the semantic meaning of the bitmask filter @ 0xFFFFCFFE? ; Is r4 (mask) a field selector or a result bit mask? ; Are there multiple array bases or only 0x0005DEBE?
+**Status:** med — 36-entry loop, accumulation and masking clear; reference/filter comparisons definite; bit-test logic inferred.
+**Uncertainties:** Exact layout (6 B/entry suggests offsets +3/+4/+6, partly speculative)? What the 0xFFFFCFFE redundancy check verifies? Bitmask semantics? r4 = field selector or result mask? Other array bases besides 0x0005DEBE?

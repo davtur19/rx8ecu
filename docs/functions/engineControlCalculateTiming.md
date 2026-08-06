@@ -2,9 +2,8 @@
 
 **Size:** 414 bytes (0x14584–0x14722)
 
-The **largest flat dispatch function** in the callgraph — calls 66 unique subfunctions
-with zero branches. It is the central engine control loop, invoked once per scheduler
-tick from `engineControlTASK` (0x11E94).
+Central engine control loop; largest flat dispatch in the callgraph (66 calls, 0
+branches). Runs once per scheduler tick from `engineControlTASK` (0x11E94).
 
 ## Caller
 
@@ -12,12 +11,8 @@ tick from `engineControlTASK` (0x11E94).
 |---------|------|---------|
 | 0x11E94 | `engineControlTASK` | Calls via `mov.l 0x12020,r2; jsr @r2` where literal 0x12020 = 0x14584 |
 
-`engineControlTASK` runs our function as the 3rd of 5 sequential control stages:
-1. Call `updateMemoryAtAddress`-like function
-2. `FUN_00021c40`
-3. **`engineControlCalculateTiming`** ← here
-4. `FUN_00016f70`
-5. Conditional getSR chain
+Stage 3 of 5 in `engineControlTASK`: `updateMemoryAtAddress`-like fn → `FUN_00021c40`
+→ **this** → `FUN_00016f70` → conditional getSR chain.
 
 ## Structure
 
@@ -138,11 +133,9 @@ tick from `engineControlTASK` (0x11E94).
 └─────────────────────────────────────────────────────────────┘
 ```
 
-> **Note on naming:** the C lift at `c/calc_rotor_sync_idle_gate_B.c` retains its
-> IDA-derived filename for provenance, but the function it implements is the
-> rotor-sync idle/anti-stall gate `calc_rotor_sync_idle_gate_B` (0x12BC8). A rotary engine
-> has no camshafts; the "cam timing" here refers to per-rotor synchronization
-> of the eccentric-shaft angle.
+> Naming: `c/calc_rotor_sync_idle_gate_B.c` keeps its IDA-derived filename; it
+> implements rotor-sync idle/anti-stall gate (0x12BC8). Rotary has no camshafts;
+> "cam timing" = per-rotor sync of the eccentric-shaft angle.
 
 ## Disassembly (SH-2E, big-endian)
 
@@ -286,30 +279,18 @@ engineControlCalculateTiming:
 
 ## Key observations
 
-1. **Zero branches** — The function is a flat sequential dispatch with no `bf`/`bt`/`bra`.
-   Every subfunction is called unconditionally every invocation. This means all
-   conditional logic is pushed *into* each subfunction.
+1. **Zero branches** — flat sequential dispatch, no `bf`/`bt`/`bra`; every subfunction
+   called unconditionally each tick, so all conditional logic is inside the callees.
 
-2. **SR barrier between phases** — The getSR/setSR pair at the phase boundary
-   (`0x145C4–0x145CE`) likely changes the interrupt mask level. Phase 1 runs at one
-   priority (perhaps higher for time-critical knock/cooling), Phase 2 at another.
-
-3. **`incomplete_stack_save_r14_r13`** at 0x14B04 is a non-standard prologue that
-   pushes r14 and r13 in addition to the normal r15 SP management. This strongly
-   suggests this function may be invoked from an interrupt context where additional
-   register preservation is needed.
-
-4. **No passage of data** — Every callee reads/writes global RAM (`0xFFFFxxxx` range)
-   directly. No parameters are passed (beyond getSR/setSR receiving `r4=16`). The
-   function is purely a *scheduling/timing trigger* — it ensures each subsystem runs
-   at the right point in the control cycle.
-
-5. **Widest call breadth in the ROM** — With 66 unique callees spanning every major
-   control subsystem, this is the single best entry point for understanding the
-   overall engine control architecture.
-
-6. **Caller** — `engineControlTASK` at 0x11E94, itself a flat dispatch of ~5
-   functions, with this function as the 3rd stage.
+2. **SR barrier** — getSR/setSR at `0x145C4–0x145CE` likely changes interrupt mask:
+   Phase 1 at higher priority (time-critical knock/cooling), Phase 2 at another.
+3. **`incomplete_stack_save_r14_r13`** (0x14B04) — non-standard prologue pushing
+   r14/r13 beyond normal r15 SP → likely interrupt-context invocation.
+4. **No data passage** — all callees use global RAM directly; only args are
+   getSR/setSR `r4=16`. Purely a scheduling/timing trigger.
+5. **Widest call breadth in ROM** — 66 callees across every major subsystem; best
+   entry point for the engine control architecture.
+6. **Caller** — `engineControlTASK` (0x11E94), flat dispatch of ~5; this is stage 3.
 
 ## Draft C
 
@@ -404,18 +385,13 @@ void engineControlCalculateTiming(void)
 
 ## Uncertainties
 
-- **getSR(16) semantics** — `r4 = 16` may select a specific SR bitmask (IMASK bits).
-  The exact interrupt priority level being set is unknown.
-- **SR barrier purpose** — The Phase 1→Phase 2 transition may change interrupt
-  masking to allow certain interrupts between phases.
-- **`incomplete_stack_save_r14_r13`** — The function at 0x14B04 saves r14, r13 then
-  does more work. Its full behavior needs separate analysis.
-- **Callee signatures** — Each subfunction's parameter/return convention is
-  inferred as `void func(void)` since no registers are explicitly set before calls
-  (the `mov #16,r4` before getSR is the only argument setup). Most likely all
-  subfunctions operate purely on globals.
-- **The callgraph at 0x141FC** — The `callgraph.csv` built from the 60E0FC00 symbol
-  set maps `engineControlCalculateTiming` to address 0x141FC with a *different*
-  set of callees (mostly timing/ignition-specific). This suggests either a
-  firmware version offset or a symbol relocation. The 60E1D400 ROM places the
-  function at 0x14584 with the callees listed above.
+- **getSR(16) semantics** — `r4 = 16` may select an SR bitmask (IMASK); exact
+  interrupt priority unknown.
+- **SR barrier purpose** — Phase 1→2 transition may change interrupt masking.
+- **`incomplete_stack_save_r14_r13`** (0x14B04) — saves r14/r13 then more work.
+  needs separate analysis.
+- **Callee signatures** — inferred `void func(void)`; no registers set before calls
+  (only `mov #16,r4` before getSR); subfunctions likely operate on globals.
+- **callgraph at 0x141FC** — `callgraph.csv` (60E0FC00 set) maps it to 0x141FC with
+  different callees (timing/ignition-specific) → firmware offset or symbol
+  relocation; 60E1D400 ROM places it at 0x14584 (callees above).

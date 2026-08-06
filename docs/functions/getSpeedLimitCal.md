@@ -29,5 +29,5 @@ void getSpeedLimitCal() {
     // apply limiter status logic
 }
 ```
-**Status:** med - High-level flow clear; subroutine purposes and exact status logic need verification.
-**Uncertainties:** Exact vehicle mode semantics (gear, speed class, transmission state?) ; What throttleCond and limiterStatus values represent ; Whether switches use == or <= comparisons ; Exact condition bit patterns and their meaning
+**Status:** med — high-level flow clear; subroutine purposes and exact status logic need verification.
+**Uncertainties:** Vehicle mode semantics (gear/speed class/transmission)? throttleCond and limiterStatus meanings? `==` vs `<=` in switches? Condition bit patterns?

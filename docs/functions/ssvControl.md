@@ -42,4 +42,4 @@ void ssvControl(void) {
   }
 }
 ```
-**Status:** med ; SSV purpose inferred from function name (secondary shutter valve on rotary) ; Exact control thresholds and ramping constants uncertain ; State machine logic partially reconstructed from conditional branches ; Mode/flag meanings unclear (enable? active?)
+**Status:** med — purpose from name (secondary shutter valve); thresholds/ramp constants uncertain; state machine partially reconstructed; mode/flag meanings unclear.

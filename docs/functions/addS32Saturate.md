@@ -6,9 +6,8 @@
 
 Saturating signed 32-bit add: `min(max(a + b, INT32_MIN), INT32_MAX)`.
 
-The IDA label `fpu_compare_float` is wrong — the body is an integer
-helper built on the SH-2 `addv` (signed-overflow detect) instruction with
-no FPU instruction anywhere in it.
+IDA label `fpu_compare_float` is wrong — integer helper on the SH-2 `addv`
+(signed-overflow detect); no FPU instruction in the body.
 
 ## Logic
 

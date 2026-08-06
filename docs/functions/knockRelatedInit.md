@@ -1,5 +1,5 @@
 # knockRelatedInit @ 0xC1F8
-**Purpose:** Initialize knock detection per-rotor (per-chamber) state: copy sensor configs, zero filters, set up gain/threshold constants for 2-rotor rotary (Wankel) engine.
+**Purpose:** Initializes per-rotor knock detection state: copies sensor configs, zeroes filters, sets gain/threshold constants for the 2-rotor rotary.
 **Inputs:** None explicit; reads from ROM tables and hardware registers
 **Out:** RAM 0xFFFFA37E (copy from ROM 0x00078E84): sensor cal value 1 ; RAM 0xFFFFA37C (copy from ROM 0x00078E86): sensor cal value 2 ; RAM 0xFFFFA328: f32 from ROM 0x00078EB0 (sensor constant) ; RAM 0xFFFFA360: f32 = 10.0 (filter coeff or gain) ; RAM 0xFFFFA364: f32 from ROM 0x00078EDC (another sensor const) ; RAM 0xFFFFA384: u8 = 0xFF (limit/threshold) ; RAM 0xFFFFA385: u8 = 0 (counter) ; RAM 0xFFFFA386: u8 = 0 (fault flag) ; RAM 0xFFFFA324: u8 = 0 (fault flag 2) ; RAM 0xFFFFA32C: f32 = 0.0 (filter state) ; RAM 0xFFFFA348: f32 = 0.0 (filter state) ; RAM 0xFFFFA334: f32 = 10.0 (per-rotor 1) ; RAM 0xFFFFA368: f32 from ROM 0x00078EDC (per-rotor 1) ; RAM 0xFFFFA350: f32 = 10.0 (per-rotor 2) ; RAM 0xFFFFA389: u8 sensor ID (from ROM 0x00078E70, 2 bytes read)
 **Calls:** None
@@ -51,4 +51,4 @@ void knockRelatedInit(void) {
     }
 }
 ```
-**Status:** med-high ; Loop structure for the 2 rotors is clear (the engine is a 2-rotor rotary) ; Sensor calibration copy pattern is standard ; Filter/threshold initialization is explicit ; Unknown: exact semantics of ROM table offsets; why threshold=10.0; relationship to knockFunctionInit
+**Status:** med-high — 2-rotor loop clear; cal copy standard; filter/threshold init explicit. Unknown: ROM table offset semantics, why threshold=10.0, relation to knockFunctionInit.

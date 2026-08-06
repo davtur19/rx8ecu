@@ -32,4 +32,4 @@ void setImmoLight(uint8_t state) {
     }
 }
 ```
-**Status:** high ; Register address 0xF754 and bit patterns (0x40, 0x20) are consistent ; Function name matches immobilizer lamp control pattern ; SR save/restore + register sync indicate HW interaction with interrupt protection ; Uncertainties: exact bit meanings (64/32 may be bit-counting artifact), whether ON requires both bits or just one
+**Status:** high — register 0xF754 and bit patterns (0x40/0x20) consistent; name matches immobilizer lamp pattern; SR save/restore + register sync = interrupt-protected HW access. Uncertain: bit meanings (64/32 may be count artifacts); ON = one bit or both.

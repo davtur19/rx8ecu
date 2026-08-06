@@ -1,7 +1,8 @@
 # getFaultStatus @ 0x6743C
 
 ## Purpose
-Check the fault status for a given fault channel index. Returns 1 if a fault is active/pending, 0 otherwise. This is a critical query function with 78+ callers across the ECU firmware.
+Check fault status for a fault channel index. Returns 1 if a fault is active/pending,
+else 0. Critical query: 78+ callers across the firmware.
 
 ## C Implementation
 `c/getFaultStatus.c`
@@ -36,8 +37,7 @@ getFaultStatus
 6. Return 0 (no fault)
 
 ## Callers
-This function is called from approximately 78 locations in the firmware,
-including sensor monitoring tasks, DTC evaluation, and subsystem health checks.
+~78 call sites: sensor monitoring tasks, DTC evaluation, subsystem health checks.
 
 ## Verification Status
 - [ ] Verified against emulator (needs getFaultEvalState stubs)

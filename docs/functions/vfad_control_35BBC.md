@@ -34,5 +34,5 @@ uint8_t vfad_control_35BBC(void)
     return out;
 }
 ```
-**Status:** high — verified against the ROM emulator (10000 random inputs, ; 0 mismatches). The 0x5D800 state machine is verified separately.
-Note on fcmp/gt operand order: the SH-2E emulator evaluates `fcmp/gt FRn,FRm` ; as `FRn > FRm`, so the ROM's `fcmp/gt boost,5250` means `5250 > boost` (i.e. the ; threshold is compared against the signal); the C lift above expresses the ; resulting hysteresis directly.
+**Status:** high — verified against the ROM emulator (10000 random inputs, 0 mismatches); the 0x5D800 state machine is verified separately.
+Note on fcmp/gt order: the emulator evaluates `fcmp/gt FRn,FRm` as `FRn > FRm`, so the ROM's `fcmp/gt boost,5250` means `5250 > boost` (threshold vs signal); the C lift expresses the hysteresis directly.

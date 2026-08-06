@@ -23,12 +23,10 @@ uint32_t shift_right_logical_r0(uint32_t val, int32_t cnt) {
 
 ## SH-2E Assembly
 
-Identical skeleton to `shift_left_logical_r0` (0x4308): the 32-entry
-byte table @0x44C0 holds the **same byte values** as @0x42E8 and indexes
-an unrolled chain of `shlr r0`/`shlr8 r0`/`shlr16 r0` tails based at
-0x450A (7 × `shlr r0` for counts 0..7, then `shlr8`/`shlr16` + remainder
-chains for counts 8..23, and `and #15/7/3/1,r0` + `rotl r0` masked-rotate
-tails for counts 24..31).
+Identical skeleton to `shift_left_logical_r0` (0x4308): the 32-entry byte table
+@0x44C0 holds the **same byte values** as @0x42E8, indexing an unrolled `shlr r0`
+chain @0x450A (7× for counts 0..7; `shlr8`/`shlr16` + remainder for 8..23;
+`and #15/7/3/1,r0` + `rotl r0` masked-rotate tails for 24..31).
 
 This function is shared code: `shift_right_arithmetic_r0` (0x43C8) jumps
 into its table-dispatch block at 0x44EC for the non-negative-value /

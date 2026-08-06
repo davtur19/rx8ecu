@@ -37,4 +37,4 @@ void setAlternatorWarningLight(void) {
   }
 }
 ```
-**Status:** high ; Simple cascading flag check logic ; Multiple fault conditions merged with OR logic ; Warning light purpose confirmed from function name ; No floating-point; direct byte comparisons
+**Status:** high — simple cascading flag checks (OR-merged); purpose from name; integer-only byte comparisons.

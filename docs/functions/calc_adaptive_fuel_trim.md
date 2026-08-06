@@ -5,12 +5,11 @@
 
 ## Overview
 
-This function computes the **adaptive fuel trim** — a closed-loop correction to
-the base fuel injection time based on feedback from the oxygen sensor (lambda).
-It implements long-term fuel adaptation to compensate for component wear,
-manufacturing tolerances, and changes in fuel quality.
+Computes the **adaptive fuel trim** — closed-loop correction to base fuel injection
+time from O2 (lambda) feedback. Long-term fuel adaptation for component wear,
+tolerances, and fuel quality changes.
 
-The equinox guide describes adaptive fuel trim as:
+Equinox guide:
 
 > *"The ECU stores learned fuel trims in a table indexed by engine speed and load.
 > These trims are applied as multipliers to the base injector pulse width and

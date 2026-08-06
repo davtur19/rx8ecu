@@ -4,12 +4,11 @@
 
 ## Overview
 
-Full 32-bit signed remainder (modulo) using the SH-2E's div0s/div1
-algorithm.  The remainder counterpart to `div32_signed` (0x3FE8).
-Computes the remainder with truncation toward zero, matching C99
-`dividend % divisor` semantics.
+Full 32-bit signed remainder (modulo) via the SH-2E div0s/div1 algorithm —
+remainder counterpart of `div32_signed` (0x3FE8). Truncates toward zero (C99
+`dividend % divisor`).
 
-On divide-by-zero: writes error code 0x44E to 0xFFFF7304 and returns 0.
+Divide-by-zero: writes error code 0x44E to 0xFFFF7304, returns 0.
 
 ## Signature
 

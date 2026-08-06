@@ -5,13 +5,11 @@
 
 ## Overview
 
-This function implements the **fuel cut on throttle lift / over-run** strategy.
-When the driver lifts off the throttle at speed, fuel injection is temporarily
-suspended to improve fuel economy and reduce emissions. The function evaluates
-several conditions (throttle position, vehicle speed or RPM, various enable flags)
-and sets a fuel-cut flag accordingly.
+Implements **fuel cut on throttle lift / over-run**: when the driver lifts off the
+throttle at speed, injection is temporarily suspended for economy and emissions.
+Evaluates throttle position, speed/RPM and enable flags, then sets a fuel-cut flag.
 
-The equinox guide describes this as:
+Equinox guide:
 
 > *"Deceleration fuel cut — when throttle is closed and RPM is above a threshold,
 > fuel injectors are disabled until RPM drops or throttle opens."*

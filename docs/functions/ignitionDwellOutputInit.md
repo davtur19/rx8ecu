@@ -26,5 +26,5 @@ void ignitionDwellOutputInit(void) {
     }
 }
 ```
-**Status:** med — loop structure and memory layout are clear; exact function of sub-function at 0x8F94 and semantics of fire_coil(r5=0) need clarification.
-**Uncertainties:** What does sub-function at 0x8F94 do (enable timer? configure interrupt? set default values?) ; Why fire_coil is called with r5=0 during init (actual coil fire or just setup?) ; Why state1 and state2 arrays both exist (redundancy? different purposes?) ; Whether the four coils represent: leading1/trailing1/leading2/trailing2 or four independent spark plugs ; Exact coil_data format and how it maps to hardware coil drivers
+**Status:** med — loop and memory layout clear; 0x8F94 and fire_coil(r5=0) semantics unclear.
+**Uncertainties:** What 0x8F94 does (timer enable / interrupt config / defaults)? Why fire_coil called with r5=0 during init? Why two state arrays? Coil mapping (lead/trail pairs vs 4 plugs)? coil_data format?
