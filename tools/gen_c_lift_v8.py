@@ -42,6 +42,7 @@ Usage:
     python3 tools/gen_c_lift_v8.py --cases 500 --seed 42
 """
 import argparse
+import csv
 import glob
 import os
 import re
@@ -694,6 +695,22 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None):
             res.records.append(rec)
             seen_pc.add(pc)
             pc += 2
+    # ---- span/fallthrough guard (bug d) -----------------------------------
+    # A catalog span cut mid-epilogue leaves `lds.l @r15+,pr` (0x4F26) as its
+    # final in-span instruction with no `rts` following: sh2emu (no span bound)
+    # falls through into the next function and clobbers r0 while the mirror
+    # stops at the span end (MISMATCH, e.g. 0x02C2A8).  Reject when the last
+    # in-span word is 0x4F26 and the word right after the span is NOT an `rts`
+    # (an immediately-following rts is a clean epilogue cut, so those are kept
+    # and the mirror/emu agree on the return path).
+    for _r_ in res.records:
+        if _r_.get('pc') is not None and _r_.get('op') == 0x4F26 \
+                and _r_['pc'] + 2 == bound:
+            _nxt = (rom[bound] << 8) | rom[bound + 1] \
+                if bound + 1 < len(rom) else None
+            if _nxt != 0x000B:
+                res.reject = ('span_no_return', _r_['pc'])
+            return res
     return res
 
 
@@ -715,12 +732,38 @@ def _load_catalog(cat_path, bank):
     return catalog_bank.get(bank, {}), no_spans, bounds.get(bank)
 
 
+def _load_categories_bank(csv_path, bank):
+    """FUNCTION_CATEGORIES.csv rows for ONE bank only.
+
+    gcl.load_categories returns every bank's rows (bank column dropped), so
+    scanning e.g. 60E0FC00 used to evaluate the 2789 60E1D400 rows against the
+    FC00 catalog + FC00 next-addr bounds (cross-bank contamination: 6082
+    candidates scanned, D400 rows like 0x02C2A8 getting FC00 estimated ends).
+    The scan/CLI must only see the selected bank's candidates."""
+    rows = []
+    with open(csv_path) as f:
+        for row in csv.DictReader(f):
+            # the CSV's first header carries a UTF-8 BOM (\ufeffbank)
+            if '\ufeffbank' in row and 'bank' not in row:
+                row['bank'] = row.pop('\ufeffbank')
+            if (row.get('bank') or '').strip() != bank:
+                continue
+            try:
+                addr = int(row['addr'].strip(), 16)
+            except (ValueError, TypeError):
+                continue
+            rows.append({'addr': addr,
+                         'name': (row.get('name') or '').strip(),
+                         'category': (row.get('category') or '').strip()})
+    return rows
+
+
 def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
     rom = open(rom_path, 'rb').read()
     cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
     catalog, no_spans, bounds = _load_catalog(cat_path, bank)
-    categories = gcl.load_categories(
-        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'))
+    categories = _load_categories_bank(
+        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'), bank)
     cands = v3._merge_nospan_cands(categories, no_spans, bounds, bank)
     lifted = _load_lifted()
 
@@ -835,6 +878,69 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
             print('    0x%06X %-32s size=%d base=0x%X n=%d' %
                   (a, n[:32], size, jt['base'], len(jt['entries'])))
     return pool_v8
+
+
+def run_dryrun(rom_path, bank, seed=42):
+    """--dryrun: bank-clean v8 scan, no files written.
+
+    Fixes (B): the candidate universe is the SELECTED bank only (the global
+    FUNCTION_CATEGORIES.csv would evaluate e.g. the 2789 60E1D400 rows against
+    the 60E0FC00 catalog + FC00 next-addr bounds), and an end=0xFFFFFFFF
+    sentinel row is treated as no-end (consistent with load_catalog_nospans and
+    the catalog loader: 60E0FC00 has 129 no-end rows, 1 of which is the
+    0xFFFFFFFF sentinel)."""
+    rom = open(rom_path, 'rb').read()
+    cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
+    catalog, no_spans, bounds = _load_catalog(cat_path, bank)
+    categories = _load_categories_bank(
+        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'), bank)
+    cands = v3._merge_nospan_cands(categories, no_spans, bounds, bank)
+    sent = 0
+    with open(cat_path) as f:
+        for row in csv.DictReader(f):
+            if (row.get('bank') or '').strip() != bank:
+                continue
+            if (row.get('addr') or '').strip().upper() == '0XFFFFFFFF':
+                continue
+            if (row.get('end') or '').strip().upper() == '0XFFFFFFFF':
+                sent += 1
+    lifted = _load_lifted()
+    pool, no_span_est = 0, 0
+    reasons = Counter()
+    for c in cands:
+        addr = c['addr']
+        if glob.glob(os.path.join(ROOT, 'c', '*_%x.c' % addr)):
+            continue
+        if addr in lifted:
+            continue
+        end = catalog.get(addr)
+        if end is None:
+            end = v3._next_addr(addr, bounds)
+            no_span_est += 1
+        if end is None:
+            continue
+        _a, end_s, _r = v3.sanitize_span(addr, end, rom)
+        if not (SIZE_MIN <= end_s - addr <= SIZE_MAX):
+            continue
+        ok, reason, res = scan_v8(rom, c, end_s, lifted, catalog)
+        if not ok:
+            if isinstance(reason, tuple):
+                reasons[reason[0]] += 1
+            else:
+                reasons[reason] += 1
+            continue
+        pool += 1
+    print('== v8 dryrun (bank %s, seed %d) ==' % (bank, seed))
+    no_span_bank = [n for n in no_spans if n['bank'] == bank]
+    print('candidates scanned            : %d' % len(cands))
+    print('  no-span rows (end=None)     : %d' % len(no_span_bank))
+    print('    of which end=0xFFFFFFFF sentinel (treated as no-end): %d' % sent)
+    print('  no-span -> estimated end     : %d' % no_span_est)
+    print('pool_v8 admitted              : %d' % pool)
+    print('rejections (top):')
+    for k, v in reasons.most_common(12):
+        print('    %-28s %d' % (k, v))
+    return pool, len(no_spans)
 
 
 # ---------------------------------------------------------------------------
@@ -955,6 +1061,17 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     if w is None:
         return None, ('walk-fail', t, '0x%X..0x%X' % (t, walk_end))
     records, _info, _lab = w
+    # bug d (walk): a callee whose catalog span is cut mid-epilogue ends its
+    # walk on `lds.l @r15+,pr` (0x4F26) with no rts in-span — the inlined
+    # mirror stops there while sh2emu falls into the next function.  Reject
+    # the walk (same conservative rule as build_cfg) unless an rts follows.
+    if records and rts is None:
+        _lr = records[-1]
+        if _lr.get('op') == 0x4F26 and _lr.get('pc', 0) + 2 >= walk_end:
+            _nxt = (rom[walk_end] << 8) | rom[walk_end + 1] \
+                if walk_end + 1 < len(rom) else None
+            if _nxt != 0x000B:
+                return None, ('span-no-return', t)
     if records and records[0]['kind'] == 'branch' and \
             (records[0].get('mnem') or '').startswith('bra'):
         tgt = records[0]['target']
@@ -1082,8 +1199,8 @@ def run_batch(rom, outdir, catalog, bounds, n=20, seed=42, cases=500,
     delete the caller .c/.py on FAIL.  Returns the summary list."""
     lifted = _load_lifted()
     entries = []
-    categories = gcl.load_categories(
-        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'))
+    categories = _load_categories_bank(
+        os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'), rom_label)
     _, no_spans, _b = _load_catalog(
         os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv'), rom_label)
     cands = v3._merge_nospan_cands(categories, no_spans, bounds, rom_label)
@@ -1186,6 +1303,18 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
             return False, ('callee-walk', t, reason)
         callee_records.extend(w)
     all_records = list(res.records) + callee_records
+    # (bug c) PR-LEAK fix: the composite mirror addresses the stack with the
+    # RUNTIME sp (r15), not per-function fixed STACK_BASE+off slots.  Each
+    # function's records were emitted with its own sp_off starting at 0x400, so
+    # the inlined callee's first @-r15 push collided with the caller's pr save
+    # slot (both at 0x3FC) and the caller epilogue `lds.l @r15+,pr` restored a
+    # clobbered pr.  Real r15 at callee entry is below the caller's frame, so
+    # sp-relative addressing keeps the caller's pr slot untouched.
+    for _rec in all_records:
+        _rec['py'] = _sprel_py(_rec)
+        _slot = _rec.get('slot')
+        if _slot is not None:
+            _slot['py'] = _sprel_py(_slot)
 
     offs_list = sorted(res.info['stack_offs'])
     stack_offs = ', '.join('0x%X' % o for o in offs_list)
@@ -1367,6 +1496,45 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
     return True, None
 
 
+def _sprel_py(rec):
+    """Rewrite an r15-based stack/sys_stack record's py to sp-relative
+    addressing.  Returns the new py list (local[] writes are dropped: they are
+    write-only mirror state that would re-bake the fixed-offset model).  Only
+    r15-based ops are rewritten; r14/frame and literal-RAM ops keep their
+    addressing."""
+    op = rec.get('op', 0)
+    kind = rec.get('kind')
+    if kind == 'sys_stack':
+        if (op >> 8) & 0xF != 15:
+            return list(rec.get('py') or [])
+        sys_store = (op & 0xF) == 0x2
+        addr = '(sp - 4) & 0xFFFFFFFF' if sys_store else 'sp'
+    elif kind == 'stack':
+        sh = gcl._mem_shape(op)
+        if sh is None or sh['base'] != 15 or sh.get('idx') is not None:
+            return list(rec.get('py') or [])
+        if sh['auto'] == 'pre':
+            addr = '(sp - %d) & 0xFFFFFFFF' % sh['size']
+        elif sh['auto'] == 'post':
+            addr = 'sp'
+        else:
+            addr = 'sp + %d' % sh['disp'] if sh['disp'] else 'sp'
+    else:
+        return list(rec.get('py') or [])
+    out = []
+    for ln in (rec.get('py') or []):
+        if re.match(r'^local\[0x[0-9A-Fa-f]+\]\s*=', ln):
+            continue
+        if '_rdw(ram, STACK_BASE + 0x' in ln:
+            ln = re.sub(r'_rdw\(ram, STACK_BASE \+ 0x[0-9A-Fa-f]+, (\d+)\)',
+                        '_rdw(ram, %s, \\1)' % addr, ln)
+        elif '_wrw(ram, STACK_BASE + 0x' in ln:
+            ln = re.sub(r'_wrw\(ram, STACK_BASE \+ 0x[0-9A-Fa-f]+, (\d+),',
+                        '_wrw(ram, %s, \\1,' % addr, ln)
+        out.append(ln)
+    return out
+
+
 def _v8_code_literal(records, labels, jtables):
     """CODE dict for the v8 mirror: branch/jt/call records + callee leaves."""
     lines = []
@@ -1418,6 +1586,8 @@ def main():
     ap = argparse.ArgumentParser(
         description='v8 SH-2 CFG-complete lift selection + ST composition')
     ap.add_argument('--metrics', action='store_true')
+    ap.add_argument('--dryrun', action='store_true',
+                    help='bank-clean scan: count the pool only, write no files')
     ap.add_argument('--emit', default=None, metavar='0xADDR',
                     help='emit caller_<hex>.c + test for this address')
     ap.add_argument('--span', default=None, metavar='END',
@@ -1436,6 +1606,9 @@ def main():
     rom_label = os.path.splitext(os.path.basename(args.rom))[0]
     if args.metrics:
         run_metrics(args.rom, rom_label)
+        return 0
+    if args.dryrun:
+        run_dryrun(args.rom, rom_label, seed=args.seed)
         return 0
     if args.emit:
         addr = int(args.emit, 16)
