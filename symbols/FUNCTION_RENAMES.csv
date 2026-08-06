@@ -2923,3 +2923,202 @@
 60E0FC00,0x5BA00,FUN_0005ba00,uds_2f_iocontrol_entry_17de,0.7,"IOControl entry table 0x5E174, ioctl 0x17DE; buf D149+0x28; re-cat from Faults & DTC"
 60E0FC00,0x5BADC,FUN_0005badc,uds_2f_iocontrol_entry_175c,0.7,"IOControl entry table 0x5E184, ioctl 0x175C; buf D149+0x2A; re-cat from Sensors"
 60E0FC00,0x5BB78,FUN_0005bb78,uds_2f_iocontrol_entry_175d,0.7,"IOControl entry table 0x5E194, ioctl 0x175D; buf D149+0x2C; re-cat from Sensors"
+60E0FC00,0x5BD18,FUN_0005bd18,sensor_word_latch_d179,0.6,D12D-gated status latch: D128 id==0x175F copies D12C->shadow@0x5E1B4+0xC and D12A>>8->D179/D17A else clears; r4>>8+lo written to D179/D17A and read back when stored==5/7
+60E0FC00,0x5BE92,FUN_0005be92,uds_2f_iocontrol_find_index,0.9,linear scan of UDS IOControl table @0x5E034 (26 rec x 0x10) for word match vs r4; returns index else 0xFF; ghidra obd_control_pid_17df_handler
+60E0FC00,0x5BEC8,FUN_0005bec8,uds_2f_iocontrol_validate_value,0.8,validates ioctl r4/value r5 vs record @0x5E034+r4*0x10: byte@+0xA range check vs words@+4/+6 and conversion via 0x467A; returns 0 valid or 0xFF
+60E0FC00,0x5BF6C,FUN_0005bf6c,status_mask_d180_from_flags,0.7,builds D180 status byte: 0x80 if byte@A41C==1 else 0x40 if @AAC7 and @B586 both 1 else 0x20; note 0x5BFA0-0x5BFA8 are literal-pool words (A41C/AAC7/B586/D180) misdecoded as bra
+60E0FC00,0x5C0A4,FUN_0005c0a4,uds_37_transfer_exit_handler,0.7,"UDS service 0x37 handler: 0x541F0(1/2) gating, 0x66A74(0x3B,D186), NRC 0x12/0x22/0x33 via 0x52A5A, tails 0x52A12/0x52A36; ghidra UDSService37Function"
+60E0FC00,0x5C1C8,FUN_0005c1c8,uds_3b_data_handler,0.6,"UDS service 0x3B write-data handler: D189/D18A session flags, 0x66A74(0x3B buf word@D184), D186/D187/D188 state and 0x5DFE8 table; NRC paths 0x5C3CA/0x5C3F6"
+60E0FC00,0x5C328,FUN_0005c328,uds_subservice_table_match_d187,0.7,scans 0x5DFE8 records vs id@D184 honoring 0xD1C8 mask and byte@+4; advances D187 counter; sub-dispatcher used by 0x5C0A4
+60E0FC00,0x5C3CA,FUN_0005c3ca,uds_response_7b_build,0.7,"builds UDS response buffer [0x7B, byte@D186] via 0x66A14(0x3B) then tails 0x52A12; NRC/response emitter called from 0x5C1C8"
+60E0FC00,0x5C3F6,FUN_0005c3f6,uds_3b_subdispatch_nrc_22,0.7,"sub-dispatch error path: 0x52A5A(0x3B,0x22) then tail-jump 0x52A12(0x3B); NRC 0x22 for service 0x3B"
+60E0FC00,0x5C430,FUN_0005c430,thunk_to_5c4e8,0.9,pure 4-byte thunk: bra 0x5C4E8 with r4=0 (UDS Mode 0x85 entry)
+60E0FC00,0x5C4E8,FUN_0005c4e8,uds_mode85_control,0.7,"UDS Mode 0x85 control: SR-protected (getSR 0x3920/setSR 0x3934), switch r4 mode 0-3, D18E=0x271, D190; ghidra UDSMode85Func"
+60E0FC00,0x5C608,FUN_0005c608,uds_85_response_build,0.7,"builds service 0x85 response [0xC5, r4] via 0x66A14(r4=0x85 buf len 2); ghidra setDiagMode85Bool2"
+60E0FC00,0x5C62C,FUN_0005c62c,can_retry_counter_below_625,0.7,returns 1 if word@D18E < 0x271(625) else 0; retry counter threshold check; ghidra can_retry_counter_below_625
+60E0FC00,0x5C740,FUN_0005c740,get_tire_size_wrapper,0.7,bsr 0x5C9AC(r4=0) then clears D19B; wrapper around UDS Mode 0x33 tire-size getter; ghidra getTireSize entry 0x5C70C
+60E0FC00,0x5C814,FUN_0005c814,uds_31_routine_control,0.7,"UDS service 0x31 routine-control handler: 0x66A74(0x32 buf), 0x57A4C and 0x5792C byte checks; ghidra udsMode31Func"
+60E0FC00,0x5C9AC,FUN_0005c9ac,uds_33_request_transfer,0.7,"UDS Mode 0x33 request-transfer: SR-protected switch r4 0-3, D198=0x271, D19A byte; ghidra UDSMode33Func"
+60E0FC00,0x5CA7A,FUN_0005ca7a,uds_31_response_71_build,0.7,"builds response [0x71, r4] via 0x66A14(r4=0x31); ghidra diag_elapsedTimerSetFlagOnce"
+60E0FC00,0x5CA9E,FUN_0005ca9e,uds_32_response_72_build,0.7,"builds response [0x72, r4, 0x64] via 0x66A14(r4=0x32); returns 3"
+60E0FC00,0x5CB04,FUN_0005cb04,verify_ram_91ac_91da,0.9,checksum-verifies RAM words @0x91AC/0x91B4/0x91BC/0x91C4 via 0x3E38A and bytes @0x91CC-0x91DA via 0x3E29E; RAM integrity check
+60E0FC00,0x5CB5A,FUN_0005cb5a,init_ram_91ac_91da,0.9,initializes RAM: float 0.0 stores @0x91AC/0x91B4/0x91BC/0x91C4 (0x3E258) then byte 0xFF/1/0 pattern @0x91CC-0x91DA (0x3E1F8); re-cat from Ignition & Knock
+60E0FC00,0x5CCBE,FUN_0005ccbe,obd_float_pct_write_filter,0.7,OBD float percent write filter: XOR/not chain D19C/D19D/D1A4/D1A5/D1A6 vs 0x91CC/0x91CE via 0x3E0DC and 0x3E1F8; ghidra obd_float_pct_write_filter; re-cat from RTOS
+60E0FC00,0x5CDE8,FUN_0005cde8,get_braking_or_in_neutral,0.7,copies D19C->D1A4 D19D->D1A5 D1A6=0x10; float compare @0xAD84 vs 0x7C2A8 and D1A0 then stores 0x91D0/0x91D2; ghidra getBrakingOrInNeutral; re-cat from Boot & Init
+60E0FC00,0x5CE42,FUN_0005ce42,snapshot_ad84_to_d1a0,0.9,3-instr float getter: fmov.s @0xAD84 -> D1A0; ghidra sensor_ad84_thresh_fall_clear_flag; re-cat from Boot & Init
+60E0FC00,0x5CFF0,FUN_0005cff0,eeprom_0x78_word_load_to_ram,0.8,"loads EEPROM 0x78 word: gate @AACC==1, float @0xC6A8->D1B8 vs const@0x5E1D4, 0x2460(r5=1) saturating add, D1BE count>=25 clears; ghidra eeprom_0x78_word_load_to_ram; re-cat from OBD/UDS"
+60E0FC00,0x5E1D8,FUN_0005e1d8,is_exactly_one_bit_set,0.7,counts set bits in low bits of r4 (3 iterations); returns 1 iff exactly one bit set else 0; ghidra eeprom_shadow_write_state_task
+60E0FC00,0x5E206,FUN_0005e206,fault_status_count_600f0,0.7,calls 0x600F0(0) and 0x600F0(1); tallies results equal 0xC0/0xC1/0x70
+60E0FC00,0x5E2FC,FUN_0005e2fc,dtc_gated_flag_d40e,0.7,"DTC-gated flag: switch r5 0-3, byte @0xFFFFD40E+r6 compared vs 0xC0/0xC1/0x70; ghidra faultConfirmationSomething?; prompt context DTC-gated flag"
+60E0FC00,0x5E474,FUN_0005e474,fault_bitmask_8_callbacks,0.7,loops 8 function pointers @0x5EDE8 building bitmask (0x80 start) and ORs per-callback byte @0x7C622+r4; fault bitmask aggregator
+60E0FC00,0x5E4DE,FUN_0005e4de,nullsub_5e4de,0.9,bare rts/E001 2-byte stub; no-op
+60E0FC00,0x5E4E2,FUN_0005e4e2,read_flag_cfb9,0.9,returns 1 if byte @0xCFB9 nonzero else 0; simple flag read; re-cat from Math/FPU
+60E0FC00,0x5E54C,FUN_0005e54c,device_2d_lookup_d1cc,0.7,"2D lookup (0x2068) with table 0x67B30/0x67BA8 selected by byte@0xB580, fadd const @0x5E630, result -> D1CC; ghidra checkIfDeviceControl?"
+60E0FC00,0x5E578,FUN_0005e578,read_float_d1cc,0.9,3-instr float getter: fmov.s @D1CC -> fr0
+60E0FC00,0x5E590,FUN_0005e590,read_flag_a41c,0.6,reads byte @0xA41C and returns 0/1; feeds 0x5BF6C D180 mask; ghidra returnCoolantTemp2; semantics uncertain
+60E0FC00,0x5E5A4,FUN_0005e5a4,read_inverted_flag_bad9,0.7,returns 0 if byte @0xBAD9==1 else 1; inverted flag read
+60E0FC00,0x5E5BA,FUN_0005e5ba,read_flag_ca82,0.7,returns 1 if byte @0xCA82==1 else 0; flag read
+60E0FC00,0x5E60A,FUN_0005e60a,read_float_a9fc,0.9,3-instr float getter: fmov.s @0xA9FC -> fr0; ghidra returnEngineSpeed; re-cat from Faults & DTC
+60E0FC00,0x5E656,FUN_0005e656,update_fault_status_d49a,0.7,writes D49A=1 when r4==1 else 0; fault-status set/clear; ghidra updateFaultStatusTHUNKNoR6?; entry updateFaultStatus@0x5E648 defaults r6=0xFFFF
+60E0FC00,0x5E678,FUN_0005e678,fault_status_set_1_task,0.7,runs 0x5E7FA 0x5E93C 0x5EAA2 0x5EAFE then tail-calls 0x5E656(r4=1); fault status aggregation task
+60E0FC00,0x5E690,FUN_0005e690,fault_status_task_to_5eb7c,0.7,runs 0x5E7FA 0x5E93C then tail-jumps 0x5EB7C; fault aggregation partial task
+60E0FC00,0x5E6A2,FUN_0005e6a2,clear_faults_loop,0.7,r4=0xF0 records via 0x5FEB6(0); per-record 0x5E2BC check then 0x60418 clear; bulk fault clear loop; ghidra clear_ram_d382_thunk
+60E0FC00,0x5E700,FUN_0005e700,thunk_to_5eb94,0.9,loads word@r4 byte@r4+7 long@r4+8 then tail-jumps 0x5EB94; thunk
+60E0FC00,0x5E954,FUN_0005e954,dtc_fault_state_machine_d2f6,0.7,"state machine on D2F6 per fault id r4 (state r5 0/1/2/4): 0x7C2CA and 0x7C6AE tables, 0x5E2BC/0x600F0/0x60418, 0x5EA80, D382/D1D4 writes; ghidra status_buf_d2f6_clear_8c"
+60E0FC00,0x5EAA2,FUN_0005eaa2,clear_fault_status_ram_d382,0.9,clears fault-status byte array @0xFFFFD382 (0x8C bytes) and word @D1D4; ghidra os_task_schedule_param_stack (entry overlap)
+60E0FC00,0x5EAFE,FUN_0005eafe,dtc_status_buf_refresh_d40e,0.7,"fetches fault-id list via 0x5FEB6, clears D40E via 0x5EB7C, stores 0x600F0(id) into D40E[id] for each; ghidra dtc_flag_set_orr"
+60E0FC00,0x5EB7C,FUN_0005eb7c,clear_fault_status_buf_d40e,0.9,clears byte array @0xFFFFD40E (0x8C=140 entries) to 0
+60E0FC00,0x5EB94,FUN_0005eb94,fault_status_store_single_d40e,0.9,"looks up id table @0x7C2CA, calls 0x600F0(fault idx), stores byte @0xFFFFD40E+idx; single-entry status refresh"
+60E0FC00,0x5EBB8,FUN_0005ebb8,fault_status_buf_write_d40e,0.9,2-instr write: D40E[r4]=r5 byte store
+60E0FC00,0x5EBD0,FUN_0005ebd0,checksum_clear_if_60b8c_set,0.7,calls 0x60B8C; if nonzero tail-jumps 0x3E5A8 (checksummed clear/write) else returns; RAM maintenance
+60E0FC00,0x5EBEC,FUN_0005ebec,checksum_clear_if_60b8c_set_3e3f0,0.7,same shape as 0x5EBD0 but tail-jumps 0x3E3F0; re-cat from Faults & DTC
+60E0FC00,0x5EC08,FUN_0005ec08,task_chain_5ec08,0.4,sequential call chain 0x60BD0 0x5F95E 0x63F06 0x62E02 0x5EE6E 0x5EE08 0x5F376; periodic helper-driven task with unclear subsystem; re-cat from Ignition & Knock
+60E0FC00,0x5ECA2,FUN_0005eca2,dtc_status_count_list_7d8b8,0.7,Loops fault-id list @0x7D8B8 testing D082/D07F status flags per id; celsius addSaturate8Bit(0x2478) accumulator -> active-DTC counter/status scan
+60E0FC00,0x5ED68,FUN_0005ed68,fault_pending_or_confirmed_d26a,0.9,Gates 0x5E2BC; returns true if pending byte @FFFFD26A set or confirmed status @FFFFD40E==0xC0
+60E0FC00,0x5EDB2,FUN_0005edb2,uds_d1c8_mask_byte_get,0.9,Selects hi/lo byte of word @FFFFD1C8 by r4 subindex; tiny diagnostic byte getter
+60E0FC00,0x5EE08,FUN_0005ee08,nullsub_5ee08,0.9,Bare rts+nop; empty stub
+60E0FC00,0x5EE0C,FUN_0005ee0c,init_d49c_ffff_region,0.9,Fills @FFFFD49C..+8 with 0xFFFF sentinel words; RAM area init
+60E0FC00,0x5EE24,FUN_0005ee24,nullsub_5ee24,0.9,Bare rts+nop; empty stub (called from DTC reset chain)
+60E0FC00,0x5EE28,FUN_0005ee28,d49c_fault_rec_write,0.6,"Stores sample {id,0x20/val,0xFFFF} into DTC-sample buffer @FFFFD49C"
+60E0FC00,0x5EE6E,FUN_0005ee6e,encode_word_store_879c,0.4,call 0x2420(0)->0x00FF then stores word @FFFF879C; checksummed redundant-word refresh
+60E0FC00,0x5EE82,FUN_0005ee82,nullsub_5ee82,0.9,Bare rts; empty stub (called from fault-monitor task)
+60E0FC00,0x5EE86,FUN_0005ee86,dtc_record_ops_dispatch,0.6,Multi-mode dispatcher over DTC records via 0x5F2EE/0x5F162/0x5F1B8/0x62288/0x6250C then closes with 0x611C6; record CRUD orchestration
+60E0FC00,0x5EFAE,FUN_0005efae,fault_index_status_monitor,0.6,"Reads DTC index @FFFF8920, status byte @(FFFF87D6+idx*16); if 0x50/0 triggers 0x60E60/0x6210C/0x611C6 processing"
+60E0FC00,0x5EFE6,FUN_0005efe6,dtc_record_find_or_update,0.5,if 0x62288(arg)==0 return 1 else 0x6250C(arg); find-or-update a DTC record
+60E0FC00,0x5F00E,FUN_0005f00e,dtc_slot_select_store,0.6,"Scans 20 slots via 0x62450 picking active/confirmed (0x7CA88==1 & status 0xC0), calls 0x6250C(best) to store"
+60E0FC00,0x5F162,FUN_0005f162,dtc_current_rec_set_fields,0.6,Sets 4 fields of current DTC record @0xFFFF87D0 via 0x62152/0x62262/0x621D2/0x622CC then 0x62344/0x623CA
+60E0FC00,0x5F1B8,FUN_0005f1b8,dtc_storage_build_d4a4,0.5,Builds DTC storage @D4A4 from per-type table 0x5D5E4 v/ 0x52E14; bsr 0x5F29E; tail 0x624C4
+60E0FC00,0x5F29E,FUN_0005f29e,count_active_bits_7c8de,0.5,OR 0x66568(id) into bitmask then counts set bits against words @0x7C8DE..+0xC
+60E0FC00,0x5F2EE,FUN_0005f2ee,dtc_index_acquire_879c,0.5,0x62288 gate then read/inc word @FFFF87B4 / FFFF87A0 via 0x2420; acquires a DTC index slot
+60E0FC00,0x5F376,FUN_0005f376,encode_word_store_87a0,0.4,call 0x2420(0)->0x00FF then word store to FFFF87A0; redundant-byte refresh
+60E0FC00,0x5F386,FUN_0005f386,scan_d5a0_status_mask_87a0,0.6,"Scans D5A0 list v/ 0x61B7A for status 0x80/0xC0, ORs mask bit, stores 0x2420(mask)@FFFF87A0"
+60E0FC00,0x5F404,FUN_0005f404,dtc_set_clear_dispatch,0.7,DTC set/clear op per id+submode (3=set v/ 0x5F5C6/0x601E8/0x60D10/0x60A28/0x5F7F2; 1&2=clear v/ 0x616E8/0x616C8/0x619FA); updates D4CC and 0x60970/0x609D8
+60E0FC00,0x5F56A,FUN_0005f56a,dtc_record_write_60970,0.7,"0x60CA0(val) then 0x60970(id,byte) & 0x609D8(id,byte,0); tail 0x6118A"
+60E0FC00,0x5F596,FUN_0005f596,dtc_status_reset_chain,0.6,Runs 0x5F894/0x5F8D6/0x5F700/0x5F826/0x5EE24(id) then 0x60D10(8); tail 0x611A8
+60E0FC00,0x5F5C6,FUN_0005f5c6,dtc_status_normalize,0.6,"Classify status from 0x616E8, validates 1..0x3F v/ error gate 0x619A8, dispatches 0x5F69E or returns normalized value"
+60E0FC00,0x5F69E,FUN_0005f69e,dtc_count_threshold_7c73a,0.7,"Type byte @FFFF8D74[id*2], compare count v/ 0x7C73A[id], clamp 0xBF/0xC0 => returns 0xC0 or (+1)&0x7F"
+60E0FC00,0x5F6CC,FUN_0005f6cc,dtc_status_change_update,0.7,If new status != prior: 0x616C8 then tail 0x60AC8
+60E0FC00,0x5F700,FUN_0005f700,dtc_record_type_handler,0.5,Dispatch on record type byte @FFFF8D74 (case 0x10/0x11 -> 0x616C8/0x619FA); generic DTC record handler
+60E0FC00,0x5F7F2,FUN_0005f7f2,dtc_c0_notify_6173a,0.6,If record status @(FFFF87D6+idx*16)==0xC0 and config 0x7C9FC[id]==1 -> tail 0x6173A(0xC0)
+60E0FC00,0x5F826,FUN_0005f826,dtc_c1_notify_6173a,0.6,If record status==0xC1 -> tail 0x6173A(0)
+60E0FC00,0x5F848,FUN_0005f848,dtc_confirmed_notify_617ac,0.6,If record status==0xC0 -> tail 0x617AC(0)
+60E0FC00,0x5F894,FUN_0005f894,dtc_counter_notify_617ac,0.7,If type 0x10/0x11 and counter@rec+9 >= 0x7C7C6[id] -> tail 0x617AC(counter+1)
+60E0FC00,0x5F8D6,FUN_0005f8d6,dtc_type10_notify_61988,0.7,If type @FFFF8D74==0x10 -> tail 0x61988(0)
+60E0FC00,0x5F95E,FUN_0005f95e,init_checksum_words_87a4,0.7,Init checksummed redundant words FFFF87A8/87A4 via 0x2430(0) and 0x87AC via 0x2420(0)
+60E0FC00,0x5F982,FUN_0005f982,dtc_record_process_engine,0.7,"Main DTC record proc: 0x7C2CA word lookup->D4D4, record setup v/0x5EE28 & type 0x7C6AE, dispatch 0x631BC/0x63202/0x628F4/0x5EE86; loops D4D4"
+60E0FC00,0x5FBDE,FUN_0005fbde,fault_monitor_task,0.8,"Main fault-monitor: iterates D5A0 via 0x61B7A, dispatch by 0x7C6AE to 0x5F596/0x63208/0x63262/0x628FA, 0x5EFAE, 0x5F386, 0x60930, 0x5EE82"
+60E0FC00,0x600F0,FUN_000600f0,fault_status_normalize,0.8,"Map raw status via 0x616E8 (1..0x3F->0x60, 0x81..0xBF->0x70)"
+60E0FC00,0x601A4,FUN_000601a4,read_word_87a4,0.9,3-instr getter: returns word @FFFF87A4
+60E0FC00,0x601AA,FUN_000601aa,inc_word_87a4,0.8,Increment word @FFFF87A4 (sat 0xFFFF) with 0x2430 redundant re-encode
+60E0FC00,0x601E8,FUN_000601e8,dtc_record_build_601e8,0.6,Build DTC record config from tables 0x7C6AE/0x7CAA/0x7C9FC and write record @FFFF8928
+60E0FC00,0x602AA,FUN_000602aa,dtc_list_copy_d576_d54e,0.7,Fetch fault-id list via 0x5FEB6 from FFFF D576 and copy via 0x6523A to FFFF D54E
+60E0FC00,0x603D6,FUN_000603d6,dtc_find_or_update_wrap,0.6,Thin wrapper over 0x5EFE6
+60E0FC00,0x603E4,FUN_000603e4,dtc_slot_alloc_wrap,0.6,Thin wrapper over 0x5F00E
+60E0FC00,0x603F2,FUN_000603f2,dtc_bulk_store_9630,0.6,"Builds stack record {0x20,id} and calls 0x9630"
+60E0FC00,0x60418,FUN_00060418,dtc_record_store_9630,0.6,Store fault id via 0x9630(type2 idx5)
+60E0FC00,0x60604,FUN_00060604,read_word_87a8,0.9,3-instr getter: word @FFFF87A8
+60E0FC00,0x6060A,FUN_0006060a,dtc_gate_wrap_619a8,0.7,Wrapper calling 0x619A8
+60E0FC00,0x60618,FUN_00060618,dtc_active_ids_collect,0.7,Collect active DTC ids from table @FFFF87D0 (21x0x10) filtered by 0x7C9FC/0x7CA88 into dest buffer; mode dispatch 0/1/2/0x09/0x50
+60E0FC00,0x607A0,FUN_000607a0,dtc_current_rec_write_d4cc,0.7,Compute status via 0x616E3/0x61936 then write status byte+word into D4CC record @FFFF87CC area
+60E0FC00,0x608B0,FUN_000608b0,dtc_status_classify_d4cc,0.6,Classify status (0xC0/0xC1/0x40...) and write into D4CC record
+60E0FC00,0x60930,FUN_00060930,inc_word_87a8_if_set,0.7,If r4==1 increment word @FFFFA8 (sat) re-encode via 0x2430
+60E0FC00,0x60970,FUN_00060970,dtc_type_dispatch_60970,0.7,"Dispatch by fault type @FFFF8D74 via handler table 0x62768/0x609D8, writes into record"
+60E0FC00,0x609D8,FUN_000609d8,dtc_type_dispatch_8d75,0.9,Reads type byte @FFFF8D75 (double-indexed by word r4); r5==0x10/0x11 -> 0x627BC(type|1); r5==0x20 with r6 status 0xC0/0xC1 -> 0x627BC(type|2); else rts. DTC type dispatcher to 0x627BC handler
+60E0FC00,0x60A28,FUN_00060a28,dtc_active_status_update_87d6,0.7,"Loads DTC index @FFFF8920, reads status byte @FFFF87D6+idx*0x10; if ==0xC0 jumps 0x6181E (byte09 update) with r4=0; tail-jumps to DTC record update on active status"
+60E0FC00,0x60A6C,FUN_00060a6c,dtc_threshold_trigger_update_7c7c6,0.7,"Indexes type table @FFFF8D74 via word; if type==0x20 and @FFFF8E9E==1: compares byte 0x7C7C6[word] vs byte @(r4+9) and @(0x08,r4) vs 0x7C852 table; on threshold exceed calls 0x6181E with value+1"
+60E0FC00,0x60AC8,FUN_00060ac8,dtc_mode_dispatch_update_601aa,0.9,"Dispatches on r5 (byte): r5==1 path calls 0x601AA,0x601A4,0x61A6C,0x61AEC; r5==0xC0/0xC1 path (r4 bit 0x80 clear) calls 0x601AA,0x601A4,0x61AEC then tail-jumps 0x61A6C; guards r4==0/0x50"
+60E0FC00,0x60BD0,FUN_00060bd0,dtc_flag_checksummed_init,0.9,"Checksummed boot init: 0x2430(0xFFFF)->FFFF87BC/87C0/87B0/87B4; 0x2420(1)->FFFF87B8 and 0x2420(2)->FFFF87C4/87C6/87C8/87CA/87CC; then 0x62714,0x61590,0x61EDE,0x65D66, tail-jmp 0x66314"
+60E0FC00,0x60C4C,FUN_00060c4c,dtc_flag_restore_or_rebuild,0.7,If byte @FFFF87B8 nonzero: 0x2420(2) restore words to FFFF87C4/87C6/87C8/87CA/87CC; else tail-jumps to 0x61398 to rebuild all DTC flags/tables from RAM sources
+60E0FC00,0x60C90,FUN_00060c90,dtc_flag_refresh_87bc,0.7,Tiny: calls 0x2430 and stores long result to FFFF87BC; refresh of checksummed flag word
+60E0FC00,0x60CA0,FUN_00060ca0,dtc_type2_value_build_8e92,0.7,"If type byte @FFFF87C4==2: reads word @FFFF87BC, indexes table FFFF8D74*2, 0x2420 writes bytes/words to FFFF8E92/8E94/8E90 and FFFF8E8C; if==1 just returns; else 0x2420(1)->FFFF87C4. Builds type-2 DTC value set"
+60E0FC00,0x60D10,FUN_00060d10,dtc_record_create_87c6,0.7,"If type @FFFF87C6==2: 0x2420(1)->87C6, calls 0x6161C(record find), 0x42B0 memcpy of records, 0x6169E(update), or 0x61DA8/0x61C86 to create/select DTC record; else 0x2420(1)->87C6; stores 0x2430 to FFFF87B0"
+60E0FC00,0x60FC4,FUN_00060fc4,dtc_flag_update_87cc,0.7,"If type @FFFF87CC==2: 0x2430(r4)->FFFF87C0, 0x2420(1)->87CC, calls 0x66378 then 0x66418 or 0x665B2; else 0x2420(1)->87CC. Dispatches per-result DTC handler"
+60E0FC00,0x61090,FUN_00061090,dtc_flags_rebuild_all,0.9,Saves DTC flags to stack; getSR(0x10); if byte 87C4==0 rebuilds FFFF8E8C/8E8E/8D74 type table from 8E90/8E92/8E94; if 87C6==0: 0x2430(FFFF8924)->FFFF8920; if 87C8==0: 0x2430(FFFF8D70)->FFFF8D6C; if 87CA==0: 0x65EA0; if 87CC==0: 0x66406; getSR; then 0x2420 restore to all six flags
+60E0FC00,0x6118A,FUN_0006118a,dtc_flag_clear_87c4,0.9,If byte @FFFF87C4==1: 0x2420(0) -> FFFF87C4. Clear/rearm DTC flag 87C4 after full run
+60E0FC00,0x611A8,FUN_000611a8,dtc_flag_clear_87c6,0.9,If byte @FFFF87C6==1: 0x2420(0) -> FFFF87C6. Clear/rearm DTC flag 87C6
+60E0FC00,0x611C6,FUN_000611c6,dtc_flag_clear_87c8,0.9,If byte @FFFF87C8==1: 0x2420(0) -> FFFF87C8. Clear/rearm DTC flag 87C8
+60E0FC00,0x611E4,FUN_000611e4,dtc_flag_clear_87ca,0.9,Calls 0x65EE4 then if byte @FFFF87CA==1: 0x2420(0)->FFFF87CA. Handler + clear flag 87CA
+60E0FC00,0x61208,FUN_00061208,dtc_flag_clear_87cc,0.9,Calls 0x66448 then if byte @FFFF87CC==1: 0x2420(0)->FFFF87CC. Handler + clear flag 87CC
+60E0FC00,0x61398,FUN_00061398,dtc_flags_restore_rebuild,0.7,"Checks each DTC flag byte (87C4/87C6/87C8/87CA/87CC): when 0 rebuilds FFFF8D74 type table from 8E90/8E92/8E94, restores FFFF8920 from FFFF8924, FFFF8D6C from FFFF8D70, calls 0x65EA0/0x66406; then 0x2420 sets all flags back to active"
+60E0FC00,0x61590,FUN_00061590,dtc_record_table_init_87d0,0.9,"0x2430(0)->FFFF8920 and 0x2430(1)->FFFF8924; fills 0x150 bytes at FFFF87D0 (21 records x0x10) with 0xFFFF words, bytes 06=0,07=0,08=3,09=0x28,0A=0x50,0B=0,0C=0,0D=8,0E=0x28"
+60E0FC00,0x6161C,FUN_0006161c,dtc_record_find_realloc_8924,0.9,Loops 0..0x15 records at FFFF87D0; if record word0==r4 and idx!=current(FFFF8920): 0x2430(idx)->FFFF8924 and return 1; returns 0. Find/reassign DTC record
+60E0FC00,0x6169E,FUN_0006169e,dtc_word00_update_cumulative,0.9,"Updates word@0x00 of FFFF87D0+idx*0x10 record: cumulative @0x0E += (old+old_hi) - (new+new_hi), stores r4 word. Byte-pair-summed word update"
+60E0FC00,0x616C8,FUN_000616c8,dtc_byte06_update_cumulative,0.9,"Record byte06 update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @06"
+60E0FC00,0x616E8,FUN_000616e8,dtc_find_word00_get_byte06,0.9,Scans FFFF87D0 records 0..0x15 for word0==r4 (skipping current idx FFFF8920); returns byte 0x06 of matched record
+60E0FC00,0x6173A,FUN_0006173a,dtc_byte07_update_cumulative,0.9,"Record byte07 update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @07"
+60E0FC00,0x617AC,FUN_000617ac,dtc_byte08_update_cumulative,0.9,"Record byte08 update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @08"
+60E0FC00,0x6181E,FUN_0006181e,dtc_byte09_update_cumulative,0.9,"Record byte09 update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @09. Called by 0x60A28/0x60A6C threshold paths"
+60E0FC00,0x61890,FUN_00061890,dtc_byte0a_update_cumulative,0.9,"Record byte0A update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @0A"
+60E0FC00,0x61916,FUN_00061916,dtc_byte0b_update_cumulative,0.9,"Record byte0B update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @0B"
+60E0FC00,0x61936,FUN_00061936,dtc_find_word00_get_byte0b,0.9,Scans FFFF87D0 records 0..0x15 for word0==r4 (skipping current idx); returns byte 0x0B of matched record
+60E0FC00,0x61988,FUN_00061988,dtc_byte0c_update_cumulative,0.9,"Record byte0C update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @0C"
+60E0FC00,0x619A8,FUN_000619a8,dtc_find_word00_get_byte0c,0.9,Scans FFFF87D0 records 0..0x15 for word0==r4 (skipping current idx); returns byte 0x0C of matched record
+60E0FC00,0x619FA,FUN_000619fa,dtc_byte0d_update_cumulative,0.9,"Record byte0D update at FFFF87D0+idx*0x10: cumulative @0x0E += (old-r4), store r4 @0D"
+60E0FC00,0x61A6C,FUN_00061a6c,dtc_word02_update_cumulative,0.9,"Updates word@0x02 of FFFF87D0+idx*0x10 record: cumulative @0x0E += (old+old_hi)-(new+new_hi), stores r4 word. Called from 0x60AC8 dispatch"
+60E0FC00,0x61A9A,FUN_00061a9a,dtc_find_word00_get_word02,0.9,Scans FFFF87D0 records 0..0x15 for word0==r4 (skipping current idx); returns word @0x02 of matched record
+60E0FC00,0x61AEC,FUN_00061aec,dtc_word04_update_cumulative,0.9,"Updates word@0x04 of FFFF87D0+idx*0x10 record: cumulative @0x0E += (old+old_hi)-(new+new_hi), stores r4 word. Called from 0x60AC8 dispatch"
+60E0FC00,0x61B1A,FUN_00061b1a,dtc_find_word00_get_word04,0.9,Scans FFFF87D0 records 0..0x15 for word0==r4 (skipping current idx); returns word @0x04 of matched record
+60E0FC00,0x61B7A,FUN_00061b7a,dtc_snapshot_record_to_d5a0,0.7,"Reads idx @FFFF8920; r4==0 clears FFFFD5AE and sets FFFFD5B0=idx; r4==1 increments FFFFD5AE; if idx<0x15 and record word0!=0xFFFF, copies record (words 0/2/4 + bytes 6-0D) to FFFFD5A0 snapshot; returns 1 else 0"
+60E0FC00,0x61C86,FUN_00061c86,dtc_record_select_matching,0.7,Selects DTC record at FFFF87D0 whose byte 0x0D >= threshold r13 and byte 0x06 within mask range; compares words 0x02/0x04 vs candidate; returns 0/1/2 selection code; on match calls 0x2430(idx)->FFFF8924
+60E0FC00,0x61DA8,FUN_00061da8,dtc_record_create_87d0,0.9,"Creates record at FFFF87D0+idx*0x10: words 0/2/4=0xFFFF, bytes 06=0,07=0,08=3,09=0x28,0A=0x50,0B=0,0C=0,0D=8,0E=0x28; then 0x6169E(word00) and 0x617AC(byte08) with table values 0x7C7C6/0x7C852, tail-jmp 0x6181E(byte09)"
+60E0FC00,0x61EDE,FUN_00061ede,dtc_secondary_table_init_8928,0.9,"0x2430(0)->FFFF8D6C, 0x2430(1)->FFFF8D70; fills FFFF8928..+0x444 (21 records x0x34) with 0xFFFF, bytes 06=0,07=0,08=8, 0x0A..0x32 zeroed except 0x32=0xA3"
+60E0FC00,0x6210C,FUN_0006210c,dtc_secondary_aging_update_8932,0.7,"Secondary DTC aging: byte07 +=0xFF with cumulative @0x32, set byte07=1; byte08 +=0xF9 with cumulative @0x32, set byte08=7; record at FFFF8928+idx*0x34"
+60E0FC00,0x62152,FUN_00062152,dtc_secondary_word00_update,0.7,"Updates word@0x00 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old+old_hi)-(new+new_hi), stores r4 word"
+60E0FC00,0x621D2,FUN_000621d2,dtc_secondary_byte07_update,0.7,"Updates byte07 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old-r4), store r4 @07"
+60E0FC00,0x62210,FUN_00062210,dtc_secondary_find_byte06_get07,0.7,Scans FFFF8928 records 0..0x15 for byte06==r4 (skipping current idx FFFF8D6C); returns byte 0x07 of matched record
+60E0FC00,0x62262,FUN_00062262,dtc_secondary_byte06_update,0.7,"Updates byte06 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old-r4), store r4 @06"
+60E0FC00,0x62288,FUN_00062288,dtc_secondary_find_word00_get06,0.7,Scans FFFF8928 records 0..0x15 for word0==r4 (skipping current idx); returns byte 0x06 of matched record (find by fault id)
+60E0FC00,0x622CC,FUN_000622cc,dtc_secondary_byte08_update,0.7,"Updates byte08 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old-r4), store r4 @08"
+60E0FC00,0x62344,FUN_00062344,dtc_secondary_word02_update,0.7,"Updates word@0x02 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old+old_hi)-(new+new_hi), stores r4 word"
+60E0FC00,0x623CA,FUN_000623ca,dtc_secondary_word04_update,0.7,"Updates word@0x04 of FFFF8928+idx*0x34 record: cumulative @0x32 += (old+old_hi)-(new+new_hi), stores r4 word"
+60E0FC00,0x62450,FUN_00062450,dtc_secondary_find_copy_to_buf,0.7,Scans FFFF8928 records for byte06==r4 (skip current idx); on match copies words 0/2/4 + bytes 6/7/8 to caller buffer r5 and returns 1; else 0
+60E0FC00,0x624C4,FUN_000624c4,dtc_secondary_aging_recalc_895a,0.7,"Aging recompute: 0x28 iters accumulate byte diffs of FFFF8928+idx*0x34 into @0x32 (FFFF895A), idx from FFFF8D6C (reuses batch30 name)"
+60E0FC00,0x6250C,FUN_0006250c,dtc_secondary_find_copy_8928,0.7,"Scan FFFF8928 records 0..0x15 for byte06==fault id (skip current idx), copy 0x28 bytes from +0x0A to r5 buffer"
+60E0FC00,0x625DA,FUN_000625da,dtc_signature_accum_checksum_8e8c,0.5,"Accumulate/sum table bytes, compare vs 0xA5, 0x2420 checksums stored to words FFFF8E8C/8E8E"
+60E0FC00,0x62714,FUN_00062714,dtc_type_table_checksum_init_8d74,0.8,Zero-fill FFFF8D74..+0x73 then 0x2420-checksum words 8E8C/8E8E/8E90/8E92/8E94 (re-assigned from Ignition & Knock)
+60E0FC00,0x62768,FUN_00062768,dtc_checksum_pair_update_8e90_8e92,0.7,"Two-word checksummed counter: 8E90=cksum(8E92-new+8E90), 8E92=cksum(new) via 0x2420"
+60E0FC00,0x627BC,FUN_000627bc,dtc_checksum_pair_update_8e90_8e94,0.7,Same 0x2420 idiom on words FFFF8E90/8E94 (called with type|1 from type dispatch)
+60E0FC00,0x627EC,FUN_000627ec,dtc_type_table_checksum_init_2,0.7,Init FFFF8D74 type table + checksum words 8E8C/8E8E/8E90/8E92/8E94
+60E0FC00,0x62854,FUN_00062854,dtc_mode3_dispatch_chain,0.6,"Mode dispatch: type==3 path 0x62978->0x601E8->0x60D10; if ok -> 0x62A12,0x62BA8,0x60A28,0x62B24,0x62C02"
+60E0FC00,0x628FA,FUN_000628fa,dtc_record_full_update_chain,0.5,"Orchestrated DTC update: 0x60F58,0x60D10 then 0x62BCA,0x60A6C,0x62C4A,0x62CA8,0x62A64,0x62B58,0x62D6E, 0x611A8, tail 0x611E4"
+60E0FC00,0x62978,FUN_00062978,dtc_status_resolve_class,0.6,Resolve status class via 0x616E8 + ranges (0x81..0xBF->0xC0/C1 logic) to type/status byte
+60E0FC00,0x629E4,FUN_000629e4,dtc_type_threshold_status_7c73a,0.7,Type 0x20->status 0xC0; else 0x7F-masked threshold vs table @0x7C73A[id]+1
+60E0FC00,0x62A12,FUN_00062a12,dtc_state_change_mode_dispatch,0.7,"If 0x616E8()!=new status: 0x616C8(new) then tail-jmp 0x60AC8(old,new)"
+60E0FC00,0x62A64,FUN_00062a64,dtc_primary_record_threshold_update,0.6,Primary record FFFF87D0+idx*0x10: status 1..0x3F/C0/C1 vs byte0A/08/09 + thresholds 0x7C7C6/0x7C852 -> 0x616C8/0x619FA updates
+60E0FC00,0x62B58,FUN_00062b58,dtc_status_c1_clear_173a,0.7,If status@FFFF87D6==0xC1: tail-jmp 0x6173A(r4=0)
+60E0FC00,0x62BA8,FUN_00062ba8,dtc_status_c0_clear_17ac,0.7,If current status==0xC0: tail-jmp 0x617AC(r4=0)
+60E0FC00,0x62BCA,FUN_00062bca,dtc_byte09_thr_update_7c7c6,0.7,Type 0x11 && byte09<thr[0x7C7C6[id]]: tail-jmp 0x617AC(byte09+1)
+60E0FC00,0x62C02,FUN_00062c02,dtc_status_to_clear_61890,0.7,Status 1..0x3F or 0x81..0xBF -> 0x61890(0); status 0xC0 -> 0x61890(0x50)
+60E0FC00,0x62C4A,FUN_00062c4a,dtc_byte0a_thr_update_61890,0.7,Type 0x11 -> 0x61890(0x50); type 0x10/0 && byte0A<0x50 -> 0x61890(byte0A+1)
+60E0FC00,0x62CA8,FUN_00062ca8,dtc_secondary_status_reset_check,0.6,(type 0x11 or status 1..0x3F/0x81..0xBF) && secondary@FFFF87DA>=0x50 -> tail 0x61988(0)
+60E0FC00,0x62D08,FUN_00062d08,dtc_snapshot_if_inactive,0.5,"Status 0/0x50 && param==1: snapshot 4 metrics (5E604/5E5FE/5E60A/5E5F0) -> 0x66022, then 0x611E4"
+60E0FC00,0x62D6E,FUN_00062d6e,dtc_primary_status_to_66050,0.7,Current status 0 or 0x50 -> tail-jmp 0x66050
+60E0FC00,0x62E02,FUN_00062e02,dtc_flag_checksum_init_8e98,0.8,Init 0x2420 checksum words FFFF8E98/8E9A over 0 (re-assigned from Ignition & Knock)
+60E0FC00,0x62E20,FUN_00062e20,dtc_type_flag_recheck_8e98,0.7,If byte@FFFF8E9C==1: recompute word 8E98 from FFFF8D74 and 8E9A from FFFF8D76 via 0x2420
+60E0FC00,0x62E4C,FUN_00062e4c,dtc_open_test_engine_run,0.6,Set D5C2=0x619A8(1); if flag8E9C: run 0x60C90/0x60F58/0x6618E/0x611E4/0x61090 for ids 0 and 1; clear D5C3/D5C4
+60E0FC00,0x62F10,FUN_00062f10,dtc_record_process_a_d5c3,0.55,"Orchestrator: gate 0x63AF6+status trans 0x63420, 0x60CA0, 0x60970, 0x609D8 type dispatch; writes FFFFD4CC+4/+7, sets flag D5C3"
+60E0FC00,0x6306C,FUN_0006306c,dtc_record_process_b_d5c4,0.55,"Twin of 0x62F10 using 0x63B60/0x63564; same pipeline, sets flag D5C4"
+60E0FC00,0x631BC,FUN_000631bc,dtc_record_handoff_5f56a,0.6,"0x6175A+0x616E8; if byte07==0x80 -> 0x60D10(8), 0x637AA, 0x611A8; tail-jmp 0x5F56A"
+60E0FC00,0x63208,FUN_00063208,dtc_record_process_engine_a,0.6,"Build FFFFD5B4 working record via 0x63884/638FA/639DA/63A48/63696/63D70/637D4/63C34, then 0x6618E/0x611A8/0x611E4"
+60E0FC00,0x63262,FUN_00063262,dtc_record_process_engine_b,0.6,Same engine pipeline but uses 0x63834 instead of 0x637D4; identical finalize
+60E0FC00,0x632E4,FUN_000632e4,dtc_reset_clear_60_70,0.7,"Status 0x60/0x70 -> full DTC reset chain (60C90,60D10,616C8,619FA,6173A,617AC/6181E from 7C7C7/7C853,61890,61916,61988,611A8,60F58,66050,65F2C,65FB8,611E4,5EFAE,61090)"
+60E0FC00,0x63420,FUN_00063420,dtc_status_transition_a,0.55,Compute next status from current+cond+flags D5C2/D5C3 via 0x63F80/0x63C04/0x63BA4 (type from FFFF8D74)
+60E0FC00,0x63564,FUN_00063564,dtc_status_transition_b,0.55,Twin of 0x63420 using flag D5C4 and checks byte FFFF8E9A
+60E0FC00,0x63664,FUN_00063664,dtc_status_change_dispatch,0.7,"If old!=new status: 0x616C8(new) then tail-jmp 0x60AC8(old,new)"
+60E0FC00,0x63696,FUN_00063696,dtc_state_write_06_0d,0.6,Compute/write byte06+0D of target record from status/type/count + thresholds 0x7C7C6/0x7C852 via 0x616C8/0x619FA
+60E0FC00,0x637AA,FUN_000637aa,dtc_status_c0_or_zero_173a,0.7,status==0xC0 ? 0xC0 : 0; tail-jmp 0x6173A
+60E0FC00,0x637C0,FUN_000637c0,dtc_status_c0_retain_173a,0.7,status==0xC0 -> tail-jmp 0x6173A(0xC0)
+60E0FC00,0x637D4,FUN_000637d4,dtc_byte07_update,0.6,Update target byte07: 0x80/0xC0 status branches + threshold 0x7C7C6; 0x6173A write-back
+60E0FC00,0x63884,FUN_00063884,dtc_byte09_update,0.6,"Update target byte09 via 0x617AC with type0x11/status0xC0/count==0 logic, threshold 0x7C7C6"
+60E0FC00,0x638FA,FUN_000638fa,dtc_byte08_update,0.6,Update target byte08 via 0x6181E with type!=0x20/status0xC1/flag8E9E/thr[0x7C852] logic
+60E0FC00,0x6397C,FUN_0006397c,dtc_status_to_clear_param,0.6,Normalized status 0x60/0x70 -> 0x61890(0); 0xC0 -> 0x61890(0x50)
+60E0FC00,0x639DA,FUN_000639da,dtc_byte0a_update,0.6,Update target byte0A via 0x61890: type0x11&&count0->0x50; type0x10/0 && <0x50 -> +1
+60E0FC00,0x63A48,FUN_00063a48,dtc_byte0c_update,0.55,Update target byte0C via 0x61988 with status 0x60/0x70/type0x11/count logic
+60E0FC00,0x63AF6,FUN_00063af6,dtc_fault_limit_gate_a,0.5,"Gate: status in {0,0x50,0xC1} or flag D5C2 or 0x5E5BA==0 -> short-circuit; count limit via 0x661A4/0x6618E (cap 3)"
+60E0FC00,0x63B60,FUN_00063b60,dtc_fault_limit_gate_b,0.5,Gate: 0x5E5A4==0 -> 0; count limit via 0x661A4/0x6618E (cap 4) -> 1/2
+60E0FC00,0x63BA4,FUN_00063ba4,dtc_snapshot_metrics_660e2,0.5,Snapshot 4 floats (0x5E604/5E5FE/5E60A/5E5F0) into stack struct -> 0x660E2
+60E0FC00,0x63C04,FUN_00063c04,dtc_snapshot_metrics_66022,0.5,Same 4-float snapshot struct -> 0x66022
+60E0FC00,0x63C34,FUN_00063c34,dtc_type20_status_processing,0.55,Type 0x20 && status 0x60/0x70 -> 0x66116 then 0x66022; status 0/0x50/0xC1 -> 0x66050
+60E0FC00,0x63CD0,FUN_00063cd0,dtc_secondary_test_processing,0.45,Open-test chain 0x66568/66554/65FCE/65FB8/6650A/664F6/65F64/65F2C/664AC/66478 -> tail 0x61208
+60E0FC00,0x63D70,FUN_00063d70,dtc_record_open_test_process,0.55,Per-record open-test: status 0/0x50 -> 0x65F2C/0x65FB8; id 0/1 -> 0x600F0/0x6060A; 0x66478/0x664F6/0x66554 -> tail 0x61208
+60E0FC00,0x63E8C,FUN_00063e8c,dtc_status_normalize,0.9,"Status normalize (widely called): raw 1..0x3F->0x60, 0x81..0xBF->0x70, else unchanged"

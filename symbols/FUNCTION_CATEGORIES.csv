@@ -5212,33 +5212,33 @@
 60E1D400,0x5BB76,diag_tolerance_5bb76,Faults & DTC,1.000,name
 60E0FC00,0x5BB78,uds_2f_iocontrol_entry_175d,OBD / UDS,0.700,assembly
 60E0FC00,0x5BC40,FUN_0005bc40,Sensors,1.000,graph
-60E0FC00,0x5BD18,FUN_0005bd18,Sensors,1.000,graph
+60E0FC00,0x5BD18,sensor_word_latch_d179,Sensors,0.600,assembly
 60E1D400,0x5BD2E,writeDTCCodeType,Faults & DTC,1.000,name
 60E1D400,0x5BD76,ctrl_uncertainty_5bd76,Other / Unclassified,0.000,none
 60E0FC00,0x5BDCA,obd_control_pid_17df_handler,OBD / UDS,1.000,name
-60E0FC00,0x5BE92,FUN_0005be92,OBD / UDS,1.000,graph
+60E0FC00,0x5BE92,uds_2f_iocontrol_find_index,OBD / UDS,0.900,assembly
 60E1D400,0x5BEBE,fuel_confidence_5bebe,Other / Unclassified,0.000,none
-60E0FC00,0x5BEC8,FUN_0005bec8,OBD / UDS,1.000,graph
+60E0FC00,0x5BEC8,uds_2f_iocontrol_validate_value,OBD / UDS,0.800,assembly
 60E1D400,0x5BECE,ctrl_quality_5bece,Other / Unclassified,0.000,none
 60E1D400,0x5BF24,ctrl_reliability_5bf24,Other / Unclassified,0.000,none
-60E0FC00,0x5BF6C,FUN_0005bf6c,Boot & Init,1.000,graph
+60E0FC00,0x5BF6C,status_mask_d180_from_flags,Sensors,0.700,assembly
 60E0FC00,0x5BFAC,UDSMode34Func,OBD / UDS,1.000,name
 60E1D400,0x5BFEC,diag_consistency_5bfec,Faults & DTC,1.000,name
 60E0FC00,0x5C024,UDSMode36Function?,OBD / UDS,1.000,name
 60E0FC00,0x5C064,UDSService37Function,OBD / UDS,1.000,name
-60E0FC00,0x5C0A4,FUN_0005c0a4,OBD / UDS,1.000,graph
-60E0FC00,0x5C1C8,FUN_0005c1c8,OBD / UDS,0.667,graph
+60E0FC00,0x5C0A4,uds_37_transfer_exit_handler,OBD / UDS,0.700,assembly
+60E0FC00,0x5C1C8,uds_3b_data_handler,OBD / UDS,0.600,assembly
 60E1D400,0x5C228,can_uds_memread_response_tx,OBD / UDS,1.000,name
 60E1D400,0x5C2FA,checkIfAddressInRange,OBD / UDS,1.000,graph
-60E0FC00,0x5C328,FUN_0005c328,OBD / UDS,1.000,graph
+60E0FC00,0x5C328,uds_subservice_table_match_d187,OBD / UDS,0.700,assembly
 60E1D400,0x5C3C0,math_combine_5c3c0,Math / FPU,1.000,name
-60E0FC00,0x5C3CA,FUN_0005c3ca,OBD / UDS,1.000,graph
-60E0FC00,0x5C3F6,FUN_0005c3f6,OBD / UDS,1.000,graph
+60E0FC00,0x5C3CA,uds_response_7b_build,OBD / UDS,0.700,assembly
+60E0FC00,0x5C3F6,uds_3b_subdispatch_nrc_22,OBD / UDS,0.700,assembly
 60E1D400,0x5C41C,ctrl_aggregate_5c41c,Other / Unclassified,0.000,none
 60E1D400,0x5C420,ctrl_summarize_5c420,Other / Unclassified,0.000,none
-60E0FC00,0x5C430,FUN_0005c430,Boot & Init,1.000,graph
+60E0FC00,0x5C430,thunk_to_5c4e8,OBD / UDS,0.900,assembly
 60E0FC00,0x5C434,UDSMode85Func,OBD / UDS,1.000,name
-60E0FC00,0x5C4E8,FUN_0005c4e8,Utilities,1.000,graph
+60E0FC00,0x5C4E8,uds_mode85_control,OBD / UDS,0.700,assembly
 60E1D400,0x5C53C,ctrl_report_5c53c,Other / Unclassified,0.000,none
 60E0FC00,0x5C568,timeout_counter_inc_sr_atomic_b,Peripherals & ISR,1.000,name
 60E1D400,0x5C592,logging_0x5C592,Utilities,1.000,name
@@ -5246,18 +5246,18 @@
 60E1D400,0x5C5CE,ctrl_archive_5c5ce,Other / Unclassified,0.000,none
 60E0FC00,0x5C5D8,setDiagMode85Bool2,Faults & DTC,1.000,name
 60E1D400,0x5C602,ctrl_finalize_5c602,Other / Unclassified,0.000,none
-60E0FC00,0x5C608,FUN_0005c608,OBD / UDS,1.000,graph
+60E0FC00,0x5C608,uds_85_response_build,OBD / UDS,0.700,assembly
 60E1D400,0x5C62A,ctrl_cleanup_5c62a,Other / Unclassified,0.000,none
-60E0FC00,0x5C62C,FUN_0005c62c,Faults & DTC,1.000,graph
+60E0FC00,0x5C62C,can_retry_counter_below_625,Faults & DTC,0.700,assembly
 60E0FC00,0x5C664,getTireSize,Sensors,1.000,name
 60E1D400,0x5C668,can_timeout_check_5C668,CAN Bus,1.000,name
-60E0FC00,0x5C740,FUN_0005c740,Boot & Init,1.000,graph
+60E0FC00,0x5C740,get_tire_size_wrapper,Utilities,0.700,assembly
 60E0FC00,0x5C750,udsMode31Func,OBD / UDS,1.000,name
-60E0FC00,0x5C814,FUN_0005c814,OBD / UDS,1.000,graph
+60E0FC00,0x5C814,uds_31_routine_control,OBD / UDS,0.700,assembly
 60E1D400,0x5C8A8,diagnostic_task_dispatcher_5C8A8,Faults & DTC,1.000,name
 60E0FC00,0x5C8BE,UDSMode33Func,OBD / UDS,1.000,name
 60E1D400,0x5C98C,control_struct_init_zero_5C98C,Boot & Init,1.000,name
-60E0FC00,0x5C9AC,FUN_0005c9ac,Utilities,0.667,graph
+60E0FC00,0x5C9AC,uds_33_request_transfer,OBD / UDS,0.700,assembly
 60E1D400,0x5C9D8,diag_system_5c9d8,Faults & DTC,1.000,name
 60E1D400,0x5C9E4,sensor_state_bits_update_5C9E4,Sensors,1.000,name
 60E0FC00,0x5C9F4,rtos_setSR_restore_ret_a,RTOS,1.000,name
@@ -5265,29 +5265,29 @@
 60E1D400,0x5CA3A,sensor_index_validate_5CA3A,Sensors,1.000,name
 60E0FC00,0x5CA3E,diag_elapsedTimerSetFlagOnce,Faults & DTC,1.000,name
 60E1D400,0x5CA60,fuel_ignition_interp_compute_5CA60,Fuel & Lambda,1.000,name
-60E0FC00,0x5CA7A,FUN_0005ca7a,OBD / UDS,1.000,graph
-60E0FC00,0x5CA9E,FUN_0005ca9e,OBD / UDS,1.000,graph
+60E0FC00,0x5CA7A,uds_31_response_71_build,OBD / UDS,0.700,assembly
+60E0FC00,0x5CA9E,uds_32_response_72_build,OBD / UDS,0.700,assembly
 60E0FC00,0x5CAE4,can_retry_counter_below_625,CAN Bus,1.000,name
-60E0FC00,0x5CB04,FUN_0005cb04,Memory & CRC,0.617,graph
+60E0FC00,0x5CB04,verify_ram_91ac_91da,Memory & CRC,0.900,assembly
 60E1D400,0x5CB2C,table_lookup_float_interp_5CB2C,Math / FPU,1.000,name
-60E0FC00,0x5CB5A,FUN_0005cb5a,Ignition & Knock,0.632,graph
+60E0FC00,0x5CB5A,init_ram_91ac_91da,Memory & CRC,0.900,assembly
 60E0FC00,0x5CBBA,alt_current_peak_track,Sensors,0.7,assembly
 60E0FC00,0x5CBE4,clt_peak_track,Sensors,1.000,name
 60E0FC00,0x5CC0E,obd_float_pct_write_filter,OBD / UDS,1.000,name
 60E1D400,0x5CC40,alternating_sensor_sm_01_5CC40,Sensors,1.000,name
-60E0FC00,0x5CCBE,FUN_0005ccbe,RTOS,1.000,graph
+60E0FC00,0x5CCBE,obd_float_pct_write_filter,OBD / UDS,0.700,assembly
 60E1D400,0x5CD20,alternating_sensor_sm_02_5CD20,Sensors,1.000,name
 60E0FC00,0x5CD2C,getBrakingOrInNeutral,Throttle & Torque,1.000,name
-60E0FC00,0x5CDE8,FUN_0005cde8,Boot & Init,1.000,graph
+60E0FC00,0x5CDE8,get_braking_or_in_neutral,Sensors,0.700,assembly
 60E1D400,0x5CDFC,alternating_sensor_sm_03_5CDFC,Sensors,1.000,name
 60E0FC00,0x5CE00,sensor_ad84_thresh_fall_clear_flag,Sensors,1.000,name
-60E0FC00,0x5CE42,FUN_0005ce42,Boot & Init,1.000,graph
+60E0FC00,0x5CE42,snapshot_ad84_to_d1a0,Sensors,0.900,assembly
 60E0FC00,0x5CE70,aux_vehicle_cfg_e2_restore,Other / Unclassified,0.000,none
 60E1D400,0x5CED8,alternating_sensor_sm_04_5CED8,Sensors,1.000,name
 60E0FC00,0x5CF54,eeprom_0x9f_once_flag_check,Memory & CRC,1.000,name
 60E1D400,0x5CFA8,alternating_sensor_sm_05_5CFA8,Sensors,1.000,name
 60E0FC00,0x5CFAC,eeprom_0x78_word_load_to_ram,Memory & CRC,1.000,name
-60E0FC00,0x5CFF0,FUN_0005cff0,OBD / UDS,1.000,graph
+60E0FC00,0x5CFF0,eeprom_0x78_word_load_to_ram,Memory & CRC,0.800,assembly
 60E1D400,0x5D084,alternating_sensor_sm_06_5D084,Sensors,1.000,name
 60E0FC00,0x5D0B0,eeprom_shadow_write_state_task,Memory & CRC,1.000,name
 60E1D400,0x5D160,alternating_sensor_sm_07_5D160,Sensors,1.000,name
@@ -5311,47 +5311,47 @@
 60E1D400,0x5E0DE,sensor_state_machine_5E0DE,Sensors,1.000,name
 60E1D400,0x5E114,sensor_state_machine_5E114,Sensors,1.000,name
 60E1D400,0x5E1B8,sensor_state_machine_5E1B8,Sensors,1.000,name
-60E0FC00,0x5E1D8,FUN_0005e1d8,Math / FPU,1.000,graph
-60E0FC00,0x5E206,FUN_0005e206,Faults & DTC,1.000,graph
+60E0FC00,0x5E1D8,is_exactly_one_bit_set,Math / FPU,0.700,assembly
+60E0FC00,0x5E206,fault_status_count_600f0,Faults & DTC,0.700,assembly
 60E0FC00,0x5E25C,returnFaultCode,Faults & DTC,1.000,name
 60E0FC00,0x5E266,dtc_code_table_lookup_7c8de,Faults & DTC,1.000,name
 60E0FC00,0x5E270,lookupCodeTypeAll,Math / FPU,1.000,name
 60E0FC00,0x5E296,lookupCodeTypeMisfire,Math / FPU,1.000,name
 60E0FC00,0x5E2BC,faultEnableStatus2,Faults & DTC,1.000,name
 60E0FC00,0x5E2CE,faultConfirmationSomething?,Faults & DTC,1.000,name
-60E0FC00,0x5E2FC,FUN_0005e2fc,Faults & DTC,0.702,graph
+60E0FC00,0x5E2FC,dtc_gated_flag_d40e,Faults & DTC,0.700,assembly
 60E0FC00,0x5E380,faultSomething0x2,Faults & DTC,1.000,name
 60E0FC00,0x5E3BE,faultSomething0x0,Faults & DTC,1.000,name
 60E1D400,0x5E414,interrupt_state_update_5E414,Peripherals & ISR,1.000,name
-60E0FC00,0x5E474,FUN_0005e474,Faults & DTC,1.000,graph
-60E0FC00,0x5E4DE,FUN_0005e4de,Faults & DTC,1.000,graph
-60E0FC00,0x5E4E2,FUN_0005e4e2,Math / FPU,1.000,graph
+60E0FC00,0x5E474,fault_bitmask_8_callbacks,Faults & DTC,0.700,assembly
+60E0FC00,0x5E4DE,nullsub_5e4de,Utilities,0.900,assembly
+60E0FC00,0x5E4E2,read_flag_cfb9,Sensors,0.900,assembly
 60E0FC00,0x5E524,checkIfDeviceControl?,Boot & Init,1.000,graph
-60E0FC00,0x5E54C,FUN_0005e54c,Boot & Init,1.000,graph
+60E0FC00,0x5E54C,device_2d_lookup_d1cc,Math / FPU,0.700,assembly
 60E1D400,0x5E574,interrupt_state_update_5E574,Peripherals & ISR,1.000,name
-60E0FC00,0x5E578,FUN_0005e578,Rev Limit,1.000,graph
+60E0FC00,0x5E578,read_float_d1cc,Math / FPU,0.900,assembly
 60E0FC00,0x5E57E,returnEngineRPM,Rev Limit,1.000,name
 60E0FC00,0x5E584,returnCoolantTemp,Sensors,1.000,name
 60E0FC00,0x5E58A,returnCoolantTemp2,Sensors,1.000,name
-60E0FC00,0x5E590,FUN_0005e590,Rev Limit,1.000,graph
-60E0FC00,0x5E5A4,FUN_0005e5a4,Faults & DTC,1.000,graph
-60E0FC00,0x5E5BA,FUN_0005e5ba,Faults & DTC,1.000,graph
+60E0FC00,0x5E590,read_flag_a41c,Rev Limit,0.600,assembly
+60E0FC00,0x5E5A4,read_inverted_flag_bad9,Faults & DTC,0.700,assembly
+60E0FC00,0x5E5BA,read_flag_ca82,Faults & DTC,0.700,assembly
 60E0FC00,0x5E5C8,getCoolantTempConditional,Sensors,1.000,name
 60E0FC00,0x5E5F0,returnCoolantTempGreaterThan71,Sensors,1.000,name
 60E0FC00,0x5E5FE,returnEngineLoad,Faults & DTC,1.000,graph
 60E0FC00,0x5E604,returnEngineSpeed,Faults & DTC,1.000,graph
-60E0FC00,0x5E60A,FUN_0005e60a,Faults & DTC,1.000,graph
+60E0FC00,0x5E60A,read_float_a9fc,Math / FPU,0.900,assembly
 60E1D400,0x5E616,interrupt_state_update_5E616,Peripherals & ISR,1.000,name
 60E1D400,0x5E642,interrupt_state_update_5E642,Peripherals & ISR,1.000,name
 60E0FC00,0x5E644,updateFaultStatusTHUNK,Faults & DTC,1.000,name
 60E0FC00,0x5E648,updateFaultStatusTHUNKNoR6?,Faults & DTC,1.000,name
-60E0FC00,0x5E656,FUN_0005e656,Faults & DTC,1.000,graph
-60E0FC00,0x5E678,FUN_0005e678,Boot & Init,1.000,graph
+60E0FC00,0x5E656,update_fault_status_d49a,Faults & DTC,0.700,assembly
+60E0FC00,0x5E678,fault_status_set_1_task,Faults & DTC,0.700,assembly
 60E1D400,0x5E67C,interrupt_state_update_5E67C,Peripherals & ISR,1.000,name
-60E0FC00,0x5E690,FUN_0005e690,Faults & DTC,1.000,graph
+60E0FC00,0x5E690,fault_status_task_to_5eb7c,Faults & DTC,0.700,assembly
 60E0FC00,0x5E69E,clear_ram_d382_thunk,Memory & CRC,1.000,name
-60E0FC00,0x5E6A2,FUN_0005e6a2,Faults & DTC,0.667,graph
-60E0FC00,0x5E700,FUN_0005e700,Faults & DTC,1.000,graph
+60E0FC00,0x5E6A2,clear_faults_loop,Faults & DTC,0.700,assembly
+60E0FC00,0x5E700,thunk_to_5eb94,Faults & DTC,0.900,assembly
 60E0FC00,0x5E72C,updateFaultStatus,Faults & DTC,1.000,name
 60E1D400,0x5E734,interrupt_state_update_5E734,Peripherals & ISR,1.000,name
 60E1D400,0x5E7B4,interrupt_state_update_5E7B4,Peripherals & ISR,1.000,name
@@ -5365,101 +5365,101 @@
 60E0FC00,0x5E918,returnCurrentFaultStatus,Faults & DTC,1.000,name
 60E1D400,0x5E936,interrupt_state_update_5E936,Peripherals & ISR,1.000,name
 60E0FC00,0x5E93C,status_buf_d2f6_clear_8c,Faults & DTC,0.7,assembly
-60E0FC00,0x5E954,FUN_0005e954,Faults & DTC,1.000,graph
+60E0FC00,0x5E954,dtc_fault_state_machine_d2f6,Faults & DTC,0.700,assembly
 60E1D400,0x5E98C,fault_condition_check_5E98C,Faults & DTC,1.000,name
 60E0FC00,0x5EA80,os_task_schedule_param_stack,RTOS,1.000,name
-60E0FC00,0x5EAA2,FUN_0005eaa2,Boot & Init,1.000,graph
+60E0FC00,0x5EAA2,clear_fault_status_ram_d382,Faults & DTC,0.900,assembly
 60E0FC00,0x5EABC,dtc_flag_set_orr,Faults & DTC,1.000,name
-60E0FC00,0x5EAFE,FUN_0005eafe,Faults & DTC,0.625,graph
-60E0FC00,0x5EB7C,FUN_0005eb7c,Faults & DTC,1.000,graph
-60E0FC00,0x5EB94,FUN_0005eb94,Faults & DTC,1.000,graph
-60E0FC00,0x5EBB8,FUN_0005ebb8,Faults & DTC,1.000,graph
-60E0FC00,0x5EBD0,FUN_0005ebd0,Memory & CRC,1.000,graph
+60E0FC00,0x5EAFE,dtc_status_buf_refresh_d40e,Faults & DTC,0.700,assembly
+60E0FC00,0x5EB7C,clear_fault_status_buf_d40e,Faults & DTC,0.900,assembly
+60E0FC00,0x5EB94,fault_status_store_single_d40e,Faults & DTC,0.900,assembly
+60E0FC00,0x5EBB8,fault_status_buf_write_d40e,Faults & DTC,0.900,assembly
+60E0FC00,0x5EBD0,checksum_clear_if_60b8c_set,Memory & CRC,0.700,assembly
 60E1D400,0x5EBDC,fault_condition_check_5EBDC,Faults & DTC,1.000,name
-60E0FC00,0x5EBEC,FUN_0005ebec,Faults & DTC,1.000,graph
+60E0FC00,0x5EBEC,checksum_clear_if_60b8c_set_3e3f0,Memory & CRC,0.700,assembly
 60E1D400,0x5EBFE,fault_condition_check_5EBFE,Faults & DTC,1.000,name
-60E0FC00,0x5EC08,FUN_0005ec08,Ignition & Knock,0.632,graph
+60E0FC00,0x5EC08,task_chain_5ec08,Utilities,0.400,assembly
 60E1D400,0x5EC32,fault_condition_check_5EC32,Faults & DTC,1.000,name
 60E0FC00,0x5EC68,setFaultEvalState?,Faults & DTC,1.000,name
 60E1D400,0x5EC6E,fault_condition_check_5EC6E,Faults & DTC,1.000,name
-60E0FC00,0x5ECA2,FUN_0005eca2,Sensors,1.000,graph
+60E0FC00,0x5ECA2,dtc_status_count_list_7d8b8,Faults & DTC,0.700,assembly
 60E1D400,0x5ECAA,fault_condition_check_5ECAA,Faults & DTC,1.000,name
 60E1D400,0x5ECCE,fault_condition_check_5ECCE,Faults & DTC,1.000,name
 60E1D400,0x5ED14,fault_condition_check_5ED14,Faults & DTC,1.000,name
 60E1D400,0x5ED34,fault_condition_check_5ED34,Faults & DTC,1.000,name
-60E0FC00,0x5ED68,FUN_0005ed68,Faults & DTC,1.000,graph
+60E0FC00,0x5ED68,fault_pending_or_confirmed_d26a,Faults & DTC,0.900,assembly
 60E1D400,0x5ED8A,fault_condition_check_5ED8A,Faults & DTC,1.000,name
-60E0FC00,0x5EDB2,FUN_0005edb2,Faults & DTC,1.000,graph
+60E0FC00,0x5EDB2,uds_d1c8_mask_byte_get,OBD / UDS,0.900,assembly
 60E1D400,0x5EDEA,fault_condition_check_5EDEA,Faults & DTC,1.000,name
-60E0FC00,0x5EE08,FUN_0005ee08,Ignition & Knock,1.000,graph
-60E0FC00,0x5EE0C,FUN_0005ee0c,Boot & Init,1.000,graph
+60E0FC00,0x5EE08,nullsub_5ee08,Utilities,0.900,assembly
+60E0FC00,0x5EE0C,init_d49c_ffff_region,Boot & Init,0.900,assembly
 60E1D400,0x5EE14,fault_condition_check_5EE14,Faults & DTC,1.000,name
-60E0FC00,0x5EE24,FUN_0005ee24,Faults & DTC,1.000,graph
-60E0FC00,0x5EE28,FUN_0005ee28,Faults & DTC,1.000,graph
+60E0FC00,0x5EE24,nullsub_5ee24,Utilities,0.900,assembly
+60E0FC00,0x5EE28,d49c_fault_rec_write,Faults & DTC,0.600,assembly
 60E0FC00,0x5EE50,redundant_cell_879c_validity,Memory & CRC,1.000,name
-60E0FC00,0x5EE6E,FUN_0005ee6e,Ignition & Knock,1.000,graph
+60E0FC00,0x5EE6E,encode_word_store_879c,Memory & CRC,0.400,assembly
 60E0FC00,0x5EE7E,nothingFunc2,Boot & Init,1.000,graph
-60E0FC00,0x5EE82,FUN_0005ee82,Boot & Init,1.000,graph
-60E0FC00,0x5EE86,FUN_0005ee86,OBD / UDS,1.000,graph
+60E0FC00,0x5EE82,nullsub_5ee82,Utilities,0.900,assembly
+60E0FC00,0x5EE86,dtc_record_ops_dispatch,Faults & DTC,0.600,assembly
 60E1D400,0x5EEEE,fault_condition_check_5EEEE,Faults & DTC,1.000,name
 60E1D400,0x5EF5C,init_getbrakingorinneutral_5ef5c,Throttle & Torque,1.000,name
-60E0FC00,0x5EFAE,FUN_0005efae,Faults & DTC,0.647,graph
-60E0FC00,0x5EFE6,FUN_0005efe6,OBD / UDS,0.630,graph
-60E0FC00,0x5F00E,FUN_0005f00e,Faults & DTC,0.850,cal
+60E0FC00,0x5EFAE,fault_index_status_monitor,Faults & DTC,0.600,assembly
+60E0FC00,0x5EFE6,dtc_record_find_or_update,Faults & DTC,0.500,assembly
+60E0FC00,0x5F00E,dtc_slot_select_store,Faults & DTC,0.600,assembly
 60E1D400,0x5F018,fault_condition_check_5F018,Faults & DTC,1.000,name
 60E1D400,0x5F030,fault_condition_check_5F030,Faults & DTC,1.000,name
 60E1D400,0x5F072,fault_condition_check_5F072,Faults & DTC,1.000,name
 60E1D400,0x5F0A0,fault_condition_check_5F0A0,Faults & DTC,1.000,name
 60E1D400,0x5F152,fault_condition_check_5F152,Faults & DTC,1.000,name
-60E0FC00,0x5F162,FUN_0005f162,OBD / UDS,1.000,graph
+60E0FC00,0x5F162,dtc_current_rec_set_fields,Faults & DTC,0.600,assembly
 60E1D400,0x5F184,fault_condition_check_5F184,Faults & DTC,1.000,name
-60E0FC00,0x5F1B8,FUN_0005f1b8,OBD / UDS,1.000,graph
+60E0FC00,0x5F1B8,dtc_storage_build_d4a4,Faults & DTC,0.500,assembly
 60E1D400,0x5F1DC,fault_condition_check_5F1DC,Faults & DTC,1.000,name
 60E1D400,0x5F220,fault_condition_check_5F220,Faults & DTC,1.000,name
-60E0FC00,0x5F29E,FUN_0005f29e,OBD / UDS,1.000,graph
+60E0FC00,0x5F29E,count_active_bits_7c8de,Faults & DTC,0.500,assembly
 60E1D400,0x5F2E0,fault_condition_check_5F2E0,Faults & DTC,1.000,name
-60E0FC00,0x5F2EE,FUN_0005f2ee,OBD / UDS,1.000,graph
+60E0FC00,0x5F2EE,dtc_index_acquire_879c,Faults & DTC,0.500,assembly
 60E1D400,0x5F31A,fault_condition_check_5F31A,Faults & DTC,1.000,name
 60E0FC00,0x5F358,redundant_cell_87a0_validity,Memory & CRC,1.000,name
-60E0FC00,0x5F376,FUN_0005f376,Ignition & Knock,1.000,graph
-60E0FC00,0x5F386,FUN_0005f386,Boot & Init,1.000,graph
+60E0FC00,0x5F376,encode_word_store_87a0,Memory & CRC,0.400,assembly
+60E0FC00,0x5F386,scan_d5a0_status_mask_87a0,Faults & DTC,0.600,assembly
 60E1D400,0x5F3A2,fault_condition_check_5F3A2,Faults & DTC,1.000,name
 60E1D400,0x5F3B2,fault_condition_check_5F3B2,Faults & DTC,1.000,name
 60E1D400,0x5F3BA,fault_condition_check_5F3BA,Faults & DTC,1.000,name
-60E0FC00,0x5F404,FUN_0005f404,Faults & DTC,1.000,graph
-60E0FC00,0x5F56A,FUN_0005f56a,Faults & DTC,1.000,graph
-60E0FC00,0x5F596,FUN_0005f596,Faults & DTC,0.667,graph
-60E0FC00,0x5F5C6,FUN_0005f5c6,Faults & DTC,1.000,graph
-60E0FC00,0x5F69E,FUN_0005f69e,Faults & DTC,1.000,graph
-60E0FC00,0x5F6CC,FUN_0005f6cc,Faults & DTC,1.000,graph
-60E0FC00,0x5F700,FUN_0005f700,Faults & DTC,1.000,graph
-60E0FC00,0x5F7F2,FUN_0005f7f2,Faults & DTC,1.000,graph
-60E0FC00,0x5F826,FUN_0005f826,Faults & DTC,1.000,graph
-60E0FC00,0x5F848,FUN_0005f848,Faults & DTC,1.000,graph
-60E0FC00,0x5F894,FUN_0005f894,Faults & DTC,1.000,graph
-60E0FC00,0x5F8D6,FUN_0005f8d6,Faults & DTC,1.000,graph
+60E0FC00,0x5F404,dtc_set_clear_dispatch,Faults & DTC,0.700,assembly
+60E0FC00,0x5F56A,dtc_record_write_60970,Faults & DTC,0.700,assembly
+60E0FC00,0x5F596,dtc_status_reset_chain,Faults & DTC,0.600,assembly
+60E0FC00,0x5F5C6,dtc_status_normalize,Faults & DTC,0.600,assembly
+60E0FC00,0x5F69E,dtc_count_threshold_7c73a,Faults & DTC,0.700,assembly
+60E0FC00,0x5F6CC,dtc_status_change_update,Faults & DTC,0.700,assembly
+60E0FC00,0x5F700,dtc_record_type_handler,Faults & DTC,0.500,assembly
+60E0FC00,0x5F7F2,dtc_c0_notify_6173a,Faults & DTC,0.600,assembly
+60E0FC00,0x5F826,dtc_c1_notify_6173a,Faults & DTC,0.600,assembly
+60E0FC00,0x5F848,dtc_confirmed_notify_617ac,Faults & DTC,0.600,assembly
+60E0FC00,0x5F894,dtc_counter_notify_617ac,Faults & DTC,0.700,assembly
+60E0FC00,0x5F8D6,dtc_type10_notify_61988,Faults & DTC,0.700,assembly
 60E0FC00,0x5F904,diag_sensorFaultFlagsAny,Faults & DTC,1.000,name
-60E0FC00,0x5F95E,FUN_0005f95e,Ignition & Knock,1.000,graph
-60E0FC00,0x5F982,FUN_0005f982,Faults & DTC,0.692,graph
-60E0FC00,0x5FBDE,FUN_0005fbde,Boot & Init,1.000,graph
+60E0FC00,0x5F95E,init_checksum_words_87a4,Memory & CRC,0.700,assembly
+60E0FC00,0x5F982,dtc_record_process_engine,Faults & DTC,0.700,assembly
+60E0FC00,0x5FBDE,fault_monitor_task,Faults & DTC,0.800,assembly
 60E0FC00,0x5FD40,faultSomethingIdunno,Faults & DTC,1.000,name
 60E0FC00,0x5FEB6,dtcRelated,Faults & DTC,1.000,name
-60E0FC00,0x600F0,FUN_000600f0,Faults & DTC,0.667,graph
-60E0FC00,0x601A4,FUN_000601a4,Faults & DTC,1.000,graph
-60E0FC00,0x601AA,FUN_000601aa,Faults & DTC,1.000,graph
-60E0FC00,0x601E8,FUN_000601e8,Faults & DTC,0.850,cal
-60E0FC00,0x602AA,FUN_000602aa,Faults & DTC,1.000,graph
+60E0FC00,0x600F0,fault_status_normalize,Faults & DTC,0.800,assembly
+60E0FC00,0x601A4,read_word_87a4,Memory & CRC,0.900,assembly
+60E0FC00,0x601AA,inc_word_87a4,Memory & CRC,0.800,assembly
+60E0FC00,0x601E8,dtc_record_build_601e8,Faults & DTC,0.600,assembly
+60E0FC00,0x602AA,dtc_list_copy_d576_d54e,Faults & DTC,0.700,assembly
 60E1D400,0x6038C,returnFaultCode,Faults & DTC,1.000,name
-60E0FC00,0x603D6,FUN_000603d6,OBD / UDS,1.000,graph
-60E0FC00,0x603E4,FUN_000603e4,Faults & DTC,1.000,graph
-60E0FC00,0x603F2,FUN_000603f2,Faults & DTC,0.667,graph
-60E0FC00,0x60418,FUN_00060418,Faults & DTC,0.854,graph
+60E0FC00,0x603D6,dtc_find_or_update_wrap,Faults & DTC,0.600,assembly
+60E0FC00,0x603E4,dtc_slot_alloc_wrap,Faults & DTC,0.600,assembly
+60E0FC00,0x603F2,dtc_bulk_store_9630,Faults & DTC,0.600,assembly
+60E0FC00,0x60418,dtc_record_store_9630,Faults & DTC,0.600,assembly
 60E1D400,0x604EE,faultSomething0x0,Faults & DTC,1.000,name
 60E1D400,0x60544,obd_dtc_enabled_count,Faults & DTC,1.000,name
 60E1D400,0x605A4,obd_status_flags_605A4,OBD / UDS,1.000,name
-60E0FC00,0x60604,FUN_00060604,OBD / UDS,1.000,graph
-60E0FC00,0x6060A,FUN_0006060a,Faults & DTC,1.000,graph
-60E0FC00,0x60618,FUN_00060618,Faults & DTC,0.850,cal
+60E0FC00,0x60604,read_word_87a8,Memory & CRC,0.900,assembly
+60E0FC00,0x6060A,dtc_gate_wrap_619a8,Faults & DTC,0.700,assembly
+60E0FC00,0x60618,dtc_active_ids_collect,Faults & DTC,0.700,assembly
 60E1D400,0x60654,obd_status_flags_60654,OBD / UDS,1.000,name
 60E1D400,0x6067C,sensor_extract_6067c,Sensors,1.000,name
 60E1D400,0x606A8,sensor_extract_606a8,Sensors,1.000,name
@@ -5476,32 +5476,32 @@
 60E1D400,0x6073A,sensor_extract_6073a,Sensors,1.000,name
 60E1D400,0x60778,sensor_extract_60778,Sensors,1.000,name
 60E1D400,0x60786,sensor_extract_60786,Sensors,1.000,name
-60E0FC00,0x607A0,FUN_000607a0,Faults & DTC,1.000,graph
+60E0FC00,0x607A0,dtc_current_rec_write_d4cc,Faults & DTC,0.700,assembly
 60E1D400,0x607A8,sensor_extract_607a8,Sensors,1.000,name
 60E1D400,0x607CE,sensor_extract_607ce,Sensors,1.000,name
 60E1D400,0x607D2,obd_dtc_active_frame_send,Faults & DTC,1.000,name
-60E0FC00,0x608B0,FUN_000608b0,Faults & DTC,1.000,graph
-60E0FC00,0x60930,FUN_00060930,Boot & Init,1.000,graph
+60E0FC00,0x608B0,dtc_status_classify_d4cc,Faults & DTC,0.600,assembly
+60E0FC00,0x60930,inc_word_87a8_if_set,Memory & CRC,0.700,assembly
 60E1D400,0x6096C,sensor_extract_6096c,Sensors,1.000,name
-60E0FC00,0x60970,FUN_00060970,Faults & DTC,1.000,graph
+60E0FC00,0x60970,dtc_type_dispatch_60970,Faults & DTC,0.700,assembly
 60E1D400,0x60996,obd_dtc_status_write,Faults & DTC,1.000,name
-60E0FC00,0x609D8,FUN_000609d8,Faults & DTC,1.000,graph
-60E0FC00,0x60A28,FUN_00060a28,Faults & DTC,1.000,graph
-60E0FC00,0x60A6C,FUN_00060a6c,Faults & DTC,1.000,graph
+60E0FC00,0x609D8,dtc_type_dispatch_8d75,Faults & DTC,0.900,assembly
+60E0FC00,0x60A28,dtc_active_status_update_87d6,Faults & DTC,0.700,assembly
+60E0FC00,0x60A6C,dtc_threshold_trigger_update_7c7c6,Faults & DTC,0.700,assembly
 60E1D400,0x60A86,dtc_data_read_60A86,Faults & DTC,1.000,name
-60E0FC00,0x60AC8,FUN_00060ac8,Faults & DTC,1.000,graph
+60E0FC00,0x60AC8,dtc_mode_dispatch_update_601aa,Faults & DTC,0.900,assembly
 60E0FC00,0x60B8C,diag_aggregate_fault_flags,Faults & DTC,1.000,name
 60E1D400,0x60BAE,dtc_data_read_60BAE,Faults & DTC,1.000,name
 60E1D400,0x60BCC,dtc_data_read_60BCC,Faults & DTC,1.000,name
-60E0FC00,0x60BD0,FUN_00060bd0,Ignition & Knock,1.000,graph
+60E0FC00,0x60BD0,dtc_flag_checksummed_init,Boot & Init,0.900,assembly
 60E1D400,0x60BEE,dtc_data_read_60BEE,Faults & DTC,1.000,name
 60E1D400,0x60C4A,dtc_data_read_60C4A,Faults & DTC,1.000,name
-60E0FC00,0x60C4C,FUN_00060c4c,Boot & Init,1.000,graph
-60E0FC00,0x60C90,FUN_00060c90,Boot & Init,1.000,graph
-60E0FC00,0x60CA0,FUN_00060ca0,Faults & DTC,1.000,graph
+60E0FC00,0x60C4C,dtc_flag_restore_or_rebuild,Faults & DTC,0.700,assembly
+60E0FC00,0x60C90,dtc_flag_refresh_87bc,Boot & Init,0.700,assembly
+60E0FC00,0x60CA0,dtc_type2_value_build_8e92,Faults & DTC,0.700,assembly
 60E1D400,0x60CC8,dtc_data_read_60CC8,Faults & DTC,1.000,name
 60E1D400,0x60D04,dtc_data_read_60D04,Faults & DTC,1.000,name
-60E0FC00,0x60D10,FUN_00060d10,Faults & DTC,1.000,graph
+60E0FC00,0x60D10,dtc_record_create_87c6,Faults & DTC,0.700,assembly
 60E1D400,0x60D1C,dtc_data_read_60D1C,Faults & DTC,1.000,name
 60E1D400,0x60D38,dtc_data_read_60D38,Faults & DTC,1.000,name
 60E1D400,0x60D54,dtc_data_read_60D54,Faults & DTC,1.000,name
@@ -5516,23 +5516,23 @@
 60E1D400,0x60F74,dtc_data_read_60F74,Faults & DTC,1.000,name
 60E1D400,0x60F9C,dtc_data_read_60F9C,Faults & DTC,1.000,name
 60E1D400,0x60FBA,dtc_data_read_60FBA,Faults & DTC,1.000,name
-60E0FC00,0x60FC4,FUN_00060fc4,Faults & DTC,1.000,graph
+60E0FC00,0x60FC4,dtc_flag_update_87cc,Faults & DTC,0.700,assembly
 60E1D400,0x60FCA,ctrl_nullsub_60fca,Utilities,0.9,assembly
 60E1D400,0x60FCE,ctrl_nullsub_60fce,Utilities,0.9,assembly
 60E1D400,0x60FD2,dtc_data_read_60FD2,Faults & DTC,1.000,name
-60E0FC00,0x61090,FUN_00061090,Boot & Init,1.000,graph
+60E0FC00,0x61090,dtc_flags_rebuild_all,Boot & Init,0.900,assembly
 60E1D400,0x610FA,dtc_handler_610FA,Faults & DTC,1.000,name
 60E1D400,0x61132,dtc_handler_61132,Faults & DTC,1.000,name
 60E1D400,0x6115A,dtc_handler_6115A,Faults & DTC,1.000,name
-60E0FC00,0x6118A,FUN_0006118a,Faults & DTC,1.000,graph
-60E0FC00,0x611A8,FUN_000611a8,Faults & DTC,1.000,graph
-60E0FC00,0x611C6,FUN_000611c6,Faults & DTC,0.600,graph
-60E0FC00,0x611E4,FUN_000611e4,Faults & DTC,0.894,graph
-60E0FC00,0x61208,FUN_00061208,Faults & DTC,1.000,graph
+60E0FC00,0x6118A,dtc_flag_clear_87c4,Faults & DTC,0.900,assembly
+60E0FC00,0x611A8,dtc_flag_clear_87c6,Faults & DTC,0.900,assembly
+60E0FC00,0x611C6,dtc_flag_clear_87c8,Faults & DTC,0.900,assembly
+60E0FC00,0x611E4,dtc_flag_clear_87ca,Faults & DTC,0.900,assembly
+60E0FC00,0x61208,dtc_flag_clear_87cc,Faults & DTC,0.900,assembly
 60E0FC00,0x6122C,uds_caldata_validity_gate,OBD / UDS,1.000,name
 60E1D400,0x612AE,dtc_handler_612AE,Faults & DTC,1.000,name
 60E1D400,0x61304,dtc_handler_61304,Faults & DTC,1.000,name
-60E0FC00,0x61398,FUN_00061398,Boot & Init,1.000,graph
+60E0FC00,0x61398,dtc_flags_restore_rebuild,Boot & Init,0.700,assembly
 60E1D400,0x613EA,dtc_handler_613EA,Faults & DTC,1.000,name
 60E1D400,0x6143A,dtc_handler_6143A,Faults & DTC,1.000,name
 60E0FC00,0x61458,dtc_state_table_word_store,Faults & DTC,1.000,name
@@ -5541,169 +5541,169 @@
 60E1D400,0x614D2,dtc_handler_614D2,Faults & DTC,1.000,name
 60E0FC00,0x61500,dtc_ctx_checksum_validate_87d0,Faults & DTC,1.000,name
 60E1D400,0x61550,dtc_handler_61550,Faults & DTC,1.000,name
-60E0FC00,0x61590,FUN_00061590,Ignition & Knock,1.000,graph
-60E0FC00,0x6161C,FUN_0006161c,Faults & DTC,1.000,graph
-60E0FC00,0x6169E,FUN_0006169e,Faults & DTC,1.000,graph
+60E0FC00,0x61590,dtc_record_table_init_87d0,Boot & Init,0.900,assembly
+60E0FC00,0x6161C,dtc_record_find_realloc_8924,Faults & DTC,0.900,assembly
+60E0FC00,0x6169E,dtc_word00_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x616B6,dtc_handler_616B6,Faults & DTC,1.000,name
-60E0FC00,0x616C8,FUN_000616c8,Faults & DTC,1.000,graph
+60E0FC00,0x616C8,dtc_byte06_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x616E2,dtc_handler_616E2,Faults & DTC,1.000,name
-60E0FC00,0x616E8,FUN_000616e8,Faults & DTC,1.000,graph
+60E0FC00,0x616E8,dtc_find_word00_get_byte06,Faults & DTC,0.900,assembly
 60E1D400,0x61712,dtc_handler_61712,Faults & DTC,1.000,name
-60E0FC00,0x6173A,FUN_0006173a,Faults & DTC,1.000,graph
+60E0FC00,0x6173A,dtc_byte07_update_cumulative,Faults & DTC,0.900,assembly
 60E0FC00,0x6175A,dtc_severity_table_lookup_87d0,Faults & DTC,1.000,name
-60E0FC00,0x617AC,FUN_000617ac,Faults & DTC,1.000,graph
+60E0FC00,0x617AC,dtc_byte08_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x617EA,dtc_handler_617EA,Faults & DTC,1.000,name
 60E1D400,0x61818,dtc_handler_61818,Faults & DTC,1.000,name
-60E0FC00,0x6181E,FUN_0006181e,Faults & DTC,1.000,graph
+60E0FC00,0x6181E,dtc_byte09_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x6184C,dtc_handler_6184C,Faults & DTC,1.000,name
-60E0FC00,0x61890,FUN_00061890,Faults & DTC,1.000,graph
-60E0FC00,0x61916,FUN_00061916,Faults & DTC,1.000,graph
-60E0FC00,0x61936,FUN_00061936,Faults & DTC,1.000,graph
+60E0FC00,0x61890,dtc_byte0a_update_cumulative,Faults & DTC,0.900,assembly
+60E0FC00,0x61916,dtc_byte0b_update_cumulative,Faults & DTC,0.900,assembly
+60E0FC00,0x61936,dtc_find_word00_get_byte0b,Faults & DTC,0.900,assembly
 60E1D400,0x6193E,dtc_handler_6193E,Faults & DTC,1.000,name
 60E1D400,0x61972,dtc_handler_61972,Faults & DTC,1.000,name
-60E0FC00,0x61988,FUN_00061988,Faults & DTC,1.000,graph
+60E0FC00,0x61988,dtc_byte0c_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x61994,dtc_handler_61994,Faults & DTC,1.000,name
-60E0FC00,0x619A8,FUN_000619a8,Faults & DTC,1.000,graph
+60E0FC00,0x619A8,dtc_find_word00_get_byte0c,Faults & DTC,0.900,assembly
 60E1D400,0x619E0,dtc_handler_619E0,Faults & DTC,1.000,name
-60E0FC00,0x619FA,FUN_000619fa,Faults & DTC,1.000,graph
+60E0FC00,0x619FA,dtc_byte0d_update_cumulative,Faults & DTC,0.900,assembly
 60E1D400,0x61A22,dtc_handler_61A22,Faults & DTC,1.000,name
 60E1D400,0x61A50,dtc_handler_61A50,Faults & DTC,1.000,name
-60E0FC00,0x61A6C,FUN_00061a6c,Faults & DTC,1.000,graph
-60E0FC00,0x61A9A,FUN_00061a9a,Faults & DTC,1.000,graph
+60E0FC00,0x61A6C,dtc_word02_update_cumulative,Faults & DTC,0.900,assembly
+60E0FC00,0x61A9A,dtc_find_word00_get_word02,Faults & DTC,0.900,assembly
 60E1D400,0x61AAA,dtc_handler_61AAA,Faults & DTC,1.000,name
-60E0FC00,0x61AEC,FUN_00061aec,Faults & DTC,1.000,graph
-60E0FC00,0x61B1A,FUN_00061b1a,Math / FPU,1.000,graph
-60E0FC00,0x61B7A,FUN_00061b7a,Boot & Init,1.000,graph
-60E0FC00,0x61C86,FUN_00061c86,Faults & DTC,1.000,graph
+60E0FC00,0x61AEC,dtc_word04_update_cumulative,Faults & DTC,0.900,assembly
+60E0FC00,0x61B1A,dtc_find_word00_get_word04,Faults & DTC,0.900,assembly
+60E0FC00,0x61B7A,dtc_snapshot_record_to_d5a0,Faults & DTC,0.700,assembly
+60E0FC00,0x61C86,dtc_record_select_matching,Faults & DTC,0.700,assembly
 60E1D400,0x61D2A,dtc_handler_61D2A,Faults & DTC,1.000,name
-60E0FC00,0x61DA8,FUN_00061da8,Faults & DTC,1.000,graph
+60E0FC00,0x61DA8,dtc_record_create_87d0,Faults & DTC,0.900,assembly
 60E0FC00,0x61E30,dtc_region_checksum_validate_8928,Faults & DTC,1.000,name
 60E1D400,0x61E8C,faultSomethingIdunno,Faults & DTC,1.000,name
-60E0FC00,0x61EDE,FUN_00061ede,Ignition & Knock,1.000,graph
+60E0FC00,0x61EDE,dtc_secondary_table_init_8928,Boot & Init,0.900,assembly
 60E0FC00,0x61F70,dtc_storage_find_code_or_free_slot,Faults & DTC,1.000,name
 60E0FC00,0x61FF6,dtc_record_table_dispatch,Faults & DTC,1.000,name
 60E1D400,0x62002,dtcRelated,Faults & DTC,1.000,name
-60E0FC00,0x6210C,FUN_0006210c,Faults & DTC,1.000,graph
-60E0FC00,0x62152,FUN_00062152,OBD / UDS,1.000,graph
-60E0FC00,0x621D2,FUN_000621d2,OBD / UDS,1.000,graph
-60E0FC00,0x62210,FUN_00062210,Faults & DTC,1.000,graph
+60E0FC00,0x6210C,dtc_secondary_aging_update_8932,Faults & DTC,0.700,assembly
+60E0FC00,0x62152,dtc_secondary_word00_update,Faults & DTC,0.700,assembly
+60E0FC00,0x621D2,dtc_secondary_byte07_update,Faults & DTC,0.700,assembly
+60E0FC00,0x62210,dtc_secondary_find_byte06_get07,Faults & DTC,0.700,assembly
 60E1D400,0x6223C,can_encode_handler_6223C,CAN Bus,1.000,name
-60E0FC00,0x62262,FUN_00062262,OBD / UDS,1.000,graph
-60E0FC00,0x62288,FUN_00062288,OBD / UDS,0.701,graph
-60E0FC00,0x622CC,FUN_000622cc,OBD / UDS,1.000,graph
+60E0FC00,0x62262,dtc_secondary_byte06_update,Faults & DTC,0.700,assembly
+60E0FC00,0x62288,dtc_secondary_find_word00_get06,Faults & DTC,0.700,assembly
+60E0FC00,0x622CC,dtc_secondary_byte08_update,Faults & DTC,0.700,assembly
 60E1D400,0x622F0,can_encode_handler_622F0,CAN Bus,1.000,name
 60E1D400,0x622F6,can_encode_handler_622F6,CAN Bus,1.000,name
 60E1D400,0x62334,can_encode_handler_62334,CAN Bus,1.000,name
-60E0FC00,0x62344,FUN_00062344,OBD / UDS,1.000,graph
-60E0FC00,0x623CA,FUN_000623ca,OBD / UDS,1.000,graph
-60E0FC00,0x62450,FUN_00062450,Faults & DTC,1.000,graph
-60E0FC00,0x624C4,FUN_000624c4,OBD / UDS,1.000,graph
-60E0FC00,0x6250C,FUN_0006250c,Faults & DTC,1.000,graph
+60E0FC00,0x62344,dtc_secondary_word02_update,Faults & DTC,0.700,assembly
+60E0FC00,0x623CA,dtc_secondary_word04_update,Faults & DTC,0.700,assembly
+60E0FC00,0x62450,dtc_secondary_find_copy_to_buf,Faults & DTC,0.700,assembly
+60E0FC00,0x624C4,dtc_secondary_aging_recalc_895a,Faults & DTC,0.700,assembly
+60E0FC00,0x6250C,dtc_secondary_find_copy_8928,Faults & DTC,0.700,assembly
 60E1D400,0x62522,can_encode_handler_62522,CAN Bus,1.000,name
 60E1D400,0x62530,can_encode_handler_62530,CAN Bus,1.000,name
 60E1D400,0x6253E,can_encode_handler_6253E,CAN Bus,1.000,name
 60E1D400,0x62564,can_encode_handler_62564,CAN Bus,1.000,name
-60E0FC00,0x625DA,FUN_000625da,Faults & DTC,1.000,graph
+60E0FC00,0x625DA,dtc_signature_accum_checksum_8e8c,Faults & DTC,0.500,assembly
 60E0FC00,0x6267C,eeprom_checksum_verify_8d74,Memory & CRC,1.000,name
-60E0FC00,0x62714,FUN_00062714,Ignition & Knock,1.000,graph
+60E0FC00,0x62714,dtc_type_table_checksum_init_8d74,Boot & Init,0.800,assembly
 60E1D400,0x62750,can_encode_handler_62750,CAN Bus,1.000,name
 60E1D400,0x62756,can_encode_handler_62756,CAN Bus,1.000,name
 60E1D400,0x62764,can_encode_handler_62764,CAN Bus,1.000,name
-60E0FC00,0x62768,FUN_00062768,Faults & DTC,1.000,graph
-60E0FC00,0x627BC,FUN_000627bc,Faults & DTC,1.000,graph
-60E0FC00,0x627EC,FUN_000627ec,Boot & Init,1.000,graph
-60E0FC00,0x62854,FUN_00062854,Faults & DTC,1.000,graph
+60E0FC00,0x62768,dtc_checksum_pair_update_8e90_8e92,Faults & DTC,0.700,assembly
+60E0FC00,0x627BC,dtc_checksum_pair_update_8e90_8e94,Faults & DTC,0.700,assembly
+60E0FC00,0x627EC,dtc_type_table_checksum_init_2,Boot & Init,0.700,assembly
+60E0FC00,0x62854,dtc_mode3_dispatch_chain,Faults & DTC,0.600,assembly
 60E1D400,0x628EC,can_encode_handler_628EC,CAN Bus,1.000,name
 60E0FC00,0x628F4,thunk_FUN_0005f56a,Faults & DTC,1.000,graph
-60E0FC00,0x628FA,FUN_000628fa,Faults & DTC,0.667,graph
-60E0FC00,0x62978,FUN_00062978,Faults & DTC,1.000,graph
-60E0FC00,0x629E4,FUN_000629e4,Faults & DTC,1.000,graph
+60E0FC00,0x628FA,dtc_record_full_update_chain,Faults & DTC,0.500,assembly
+60E0FC00,0x62978,dtc_status_resolve_class,Faults & DTC,0.600,assembly
+60E0FC00,0x629E4,dtc_type_threshold_status_7c73a,Faults & DTC,0.700,assembly
 60E1D400,0x629FC,can_encode_handler_629FC,CAN Bus,1.000,name
-60E0FC00,0x62A12,FUN_00062a12,Faults & DTC,1.000,graph
-60E0FC00,0x62A64,FUN_00062a64,Faults & DTC,1.000,graph
+60E0FC00,0x62A12,dtc_state_change_mode_dispatch,Faults & DTC,0.700,assembly
+60E0FC00,0x62A64,dtc_primary_record_threshold_update,Faults & DTC,0.600,assembly
 60E1D400,0x62A7C,can_encode_handler_62A7C,CAN Bus,1.000,name
 60E1D400,0x62ABC,can_encode_handler_62ABC,CAN Bus,1.000,name
 60E1D400,0x62B24,can_encode_handler_62B24,CAN Bus,1.000,name
-60E0FC00,0x62B58,FUN_00062b58,Faults & DTC,1.000,graph
+60E0FC00,0x62B58,dtc_status_c1_clear_173a,Faults & DTC,0.700,assembly
 60E1D400,0x62B74,can_encode_handler_62B74,CAN Bus,1.000,name
-60E0FC00,0x62BA8,FUN_00062ba8,Faults & DTC,1.000,graph
+60E0FC00,0x62BA8,dtc_status_c0_clear_17ac,Faults & DTC,0.700,assembly
 60E1D400,0x62BB8,can_encode_handler_62BB8,CAN Bus,1.000,name
-60E0FC00,0x62BCA,FUN_00062bca,Faults & DTC,1.000,graph
-60E0FC00,0x62C02,FUN_00062c02,Faults & DTC,1.000,graph
-60E0FC00,0x62C4A,FUN_00062c4a,Faults & DTC,1.000,graph
-60E0FC00,0x62CA8,FUN_00062ca8,Faults & DTC,1.000,graph
+60E0FC00,0x62BCA,dtc_byte09_thr_update_7c7c6,Faults & DTC,0.700,assembly
+60E0FC00,0x62C02,dtc_status_to_clear_61890,Faults & DTC,0.700,assembly
+60E0FC00,0x62C4A,dtc_byte0a_thr_update_61890,Faults & DTC,0.700,assembly
+60E0FC00,0x62CA8,dtc_secondary_status_reset_check,Faults & DTC,0.600,assembly
 60E1D400,0x62CD8,can_encode_handler_62CD8,CAN Bus,1.000,name
-60E0FC00,0x62D08,FUN_00062d08,Faults & DTC,0.667,graph
+60E0FC00,0x62D08,dtc_snapshot_if_inactive,Faults & DTC,0.500,assembly
 60E1D400,0x62D1C,can_encode_handler_62D1C,CAN Bus,1.000,name
-60E0FC00,0x62D6E,FUN_00062d6e,Faults & DTC,1.000,graph
+60E0FC00,0x62D6E,dtc_primary_status_to_66050,Faults & DTC,0.700,assembly
 60E1D400,0x62D98,can_encode_handler_62D98,CAN Bus,1.000,name
 60E0FC00,0x62DD4,redundant_cell_8e98_or_8e9a_validity,Memory & CRC,1.000,name
 60E1D400,0x62DDC,can_encode_handler_62DDC,CAN Bus,1.000,name
 60E1D400,0x62DEC,can_encode_handler_62DEC,CAN Bus,1.000,name
-60E0FC00,0x62E02,FUN_00062e02,Ignition & Knock,1.000,graph
+60E0FC00,0x62E02,dtc_flag_checksum_init_8e98,Boot & Init,0.800,assembly
 60E0FC00,0x62E1C,nothingFunc,Boot & Init,1.000,graph
-60E0FC00,0x62E20,FUN_00062e20,Boot & Init,1.000,graph
-60E0FC00,0x62E4C,FUN_00062e4c,Boot & Init,0.750,graph
+60E0FC00,0x62E20,dtc_type_flag_recheck_8e98,Boot & Init,0.700,assembly
+60E0FC00,0x62E4C,dtc_open_test_engine_run,Boot & Init,0.600,assembly
 60E1D400,0x62E5C,can_encode_handler_62E5C,CAN Bus,1.000,name
-60E0FC00,0x62F10,FUN_00062f10,Faults & DTC,1.000,graph
+60E0FC00,0x62F10,dtc_record_process_a_d5c3,Faults & DTC,0.550,assembly
 60E1D400,0x62FAC,can_encode_handler_62FAC,CAN Bus,1.000,name
-60E0FC00,0x6306C,FUN_0006306c,Faults & DTC,1.000,graph
+60E0FC00,0x6306C,dtc_record_process_b_d5c4,Faults & DTC,0.550,assembly
 60E1D400,0x630A4,obd_service_handler_630A4,OBD / UDS,1.000,name
 60E1D400,0x63110,obd_service_handler_63110,OBD / UDS,1.000,name
-60E0FC00,0x631BC,FUN_000631bc,Faults & DTC,1.000,graph
+60E0FC00,0x631BC,dtc_record_handoff_5f56a,Faults & DTC,0.600,assembly
 60E1D400,0x631DC,obd_service_handler_631DC,OBD / UDS,1.000,name
 60E0FC00,0x63202,thunk_FUN_0005f56a,Faults & DTC,1.000,graph
-60E0FC00,0x63208,FUN_00063208,Faults & DTC,0.667,graph
-60E0FC00,0x63262,FUN_00063262,Faults & DTC,0.667,graph
+60E0FC00,0x63208,dtc_record_process_engine_a,Faults & DTC,0.600,assembly
+60E0FC00,0x63262,dtc_record_process_engine_b,Faults & DTC,0.600,assembly
 60E1D400,0x632D6,obd_service_handler_632D6,OBD / UDS,1.000,name
-60E0FC00,0x632E4,FUN_000632e4,Faults & DTC,0.833,graph
+60E0FC00,0x632E4,dtc_reset_clear_60_70,Faults & DTC,0.700,assembly
 60E1D400,0x632F4,obd_service_handler_632F4,OBD / UDS,1.000,name
 60E1D400,0x63312,obd_service_handler_63312,OBD / UDS,1.000,name
 60E1D400,0x63330,obd_service_handler_63330,OBD / UDS,1.000,name
 60E1D400,0x63354,obd_service_handler_63354,OBD / UDS,1.000,name
 60E1D400,0x63378,obd_service_handler_63378,OBD / UDS,1.000,name
-60E0FC00,0x63420,FUN_00063420,Faults & DTC,1.000,graph
-60E0FC00,0x63564,FUN_00063564,Faults & DTC,1.000,graph
+60E0FC00,0x63420,dtc_status_transition_a,Faults & DTC,0.550,assembly
+60E0FC00,0x63564,dtc_status_transition_b,Faults & DTC,0.550,assembly
 60E1D400,0x6364C,obd_service_handler_6364C,OBD / UDS,1.000,name
-60E0FC00,0x63664,FUN_00063664,Faults & DTC,1.000,graph
-60E0FC00,0x63696,FUN_00063696,Faults & DTC,1.000,graph
+60E0FC00,0x63664,dtc_status_change_dispatch,Faults & DTC,0.700,assembly
+60E0FC00,0x63696,dtc_state_write_06_0d,Faults & DTC,0.600,assembly
 60E1D400,0x636DC,obd_service_handler_636DC,OBD / UDS,1.000,name
 60E1D400,0x63768,obd_service_handler_63768,OBD / UDS,1.000,name
-60E0FC00,0x637AA,FUN_000637aa,Faults & DTC,1.000,graph
-60E0FC00,0x637C0,FUN_000637c0,Faults & DTC,1.000,graph
-60E0FC00,0x637D4,FUN_000637d4,Faults & DTC,1.000,graph
+60E0FC00,0x637AA,dtc_status_c0_or_zero_173a,Faults & DTC,0.700,assembly
+60E0FC00,0x637C0,dtc_status_c0_retain_173a,Faults & DTC,0.700,assembly
+60E0FC00,0x637D4,dtc_byte07_update,Faults & DTC,0.600,assembly
 60E1D400,0x637EA,obd_service_handler_637EA,OBD / UDS,1.000,name
 60E1D400,0x63814,obd_service_handler_63814,OBD / UDS,1.000,name
 60E1D400,0x63834,obd_service_handler_63834,OBD / UDS,1.000,name
-60E0FC00,0x63884,FUN_00063884,Faults & DTC,1.000,graph
+60E0FC00,0x63884,dtc_byte09_update,Faults & DTC,0.600,assembly
 60E1D400,0x63886,obd_service_handler_63886,OBD / UDS,1.000,name
 60E1D400,0x638A6,obd_service_handler_638A6,OBD / UDS,1.000,name
 60E1D400,0x638F8,obd_service_handler_638F8,OBD / UDS,1.000,name
-60E0FC00,0x638FA,FUN_000638fa,Faults & DTC,1.000,graph
+60E0FC00,0x638FA,dtc_byte08_update,Faults & DTC,0.600,assembly
 60E1D400,0x6396A,obd_service_handler_6396A,OBD / UDS,1.000,name
-60E0FC00,0x6397C,FUN_0006397c,Faults & DTC,1.000,graph
-60E0FC00,0x639DA,FUN_000639da,Faults & DTC,1.000,graph
+60E0FC00,0x6397C,dtc_status_to_clear_param,Faults & DTC,0.600,assembly
+60E0FC00,0x639DA,dtc_byte0a_update,Faults & DTC,0.600,assembly
 60E1D400,0x639DC,obd_service_handler_639DC,OBD / UDS,1.000,name
-60E0FC00,0x63A48,FUN_00063a48,Faults & DTC,1.000,graph
+60E0FC00,0x63A48,dtc_byte0c_update,Faults & DTC,0.550,assembly
 60E1D400,0x63A62,obd_service_handler_63A62,OBD / UDS,1.000,name
 60E1D400,0x63A82,obd_service_handler_63A82,OBD / UDS,1.000,name
 60E1D400,0x63AD4,obd_service_handler_63AD4,OBD / UDS,1.000,name
 60E1D400,0x63AF4,obd_service_handler_63AF4,OBD / UDS,1.000,name
-60E0FC00,0x63AF6,FUN_00063af6,Faults & DTC,1.000,graph
+60E0FC00,0x63AF6,dtc_fault_limit_gate_a,Faults & DTC,0.500,assembly
 60E1D400,0x63B46,obd_service_handler_63B46,OBD / UDS,1.000,name
-60E0FC00,0x63B60,FUN_00063b60,Faults & DTC,1.000,graph
-60E0FC00,0x63BA4,FUN_00063ba4,Faults & DTC,0.667,graph
+60E0FC00,0x63B60,dtc_fault_limit_gate_b,Faults & DTC,0.500,assembly
+60E0FC00,0x63BA4,dtc_snapshot_metrics_660e2,Faults & DTC,0.500,assembly
 60E1D400,0x63BB8,obd_service_handler_63BB8,OBD / UDS,1.000,name
 60E1D400,0x63BE6,obd_service_handler_63BE6,OBD / UDS,1.000,name
-60E0FC00,0x63C04,FUN_00063c04,Faults & DTC,0.667,graph
-60E0FC00,0x63C34,FUN_00063c34,Faults & DTC,1.000,graph
+60E0FC00,0x63C04,dtc_snapshot_metrics_66022,Faults & DTC,0.500,assembly
+60E0FC00,0x63C34,dtc_type20_status_processing,Faults & DTC,0.550,assembly
 60E1D400,0x63C38,obd_service_handler_63C38,OBD / UDS,1.000,name
 60E1D400,0x63C66,obd_service_handler_63C66,OBD / UDS,1.000,name
 60E1D400,0x63CC6,obd_service_handler_63CC6,OBD / UDS,1.000,name
-60E0FC00,0x63CD0,FUN_00063cd0,Faults & DTC,1.000,graph
-60E0FC00,0x63D70,FUN_00063d70,Faults & DTC,1.000,graph
+60E0FC00,0x63CD0,dtc_secondary_test_processing,Faults & DTC,0.450,assembly
+60E0FC00,0x63D70,dtc_record_open_test_process,Faults & DTC,0.550,assembly
 60E1D400,0x63DD2,obd_service_handler_63DD2,OBD / UDS,1.000,name
-60E0FC00,0x63E8C,FUN_00063e8c,Faults & DTC,1.000,graph
+60E0FC00,0x63E8C,dtc_status_normalize,Faults & DTC,0.900,assembly
 60E0FC00,0x63ED4,fault_flag_cell_8e9c_or_8e9e_validity,Faults & DTC,1.000,name
 60E1D400,0x63EF4,obd_service_handler_63EF4,OBD / UDS,1.000,name
 60E0FC00,0x63F06,FUN_00063f06,Ignition & Knock,1.000,graph
