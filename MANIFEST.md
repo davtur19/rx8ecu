@@ -1,29 +1,29 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **4925 entries, 89.9M.** Regenerated 2026-08-02 for the
+in the working repository. **4929 entries, 90.0M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
 
 | Area | Files | Bytes |
 |------|------:|------:|
-| (root) | 11 | 767.9K |
+| (root) | 11 | 768.4K |
 | roms/ | 10 | 4.5M |
 | src/ | 10 | 39.6M |
 | symbols/ | 32 | 9.4M |
-| c/ | 1976 | 4.4M |
-| c/tests/ | 2043 | 15.9M |
+| c/ | 1978 | 4.4M |
+| c/tests/ | 2045 | 15.9M |
 | tools/ | 29 | 692.1K |
-| tools/tests/ | 3 | 52.0K |
-| docs/ | 225 | 832.2K |
+| tools/tests/ | 3 | 50.8K |
+| docs/ | 225 | 832.3K |
 | hardware/ | 1 | 2.0K |
 | web/ | 11 | 869.2K |
 | analysis/ | 40 | 9.4M |
 | .github/ | 4 | 16.7K |
 | reconstructed/experiments/match/ | 66 | 215.5K |
 | reconstructed/samples/ | 464 | 3.3M |
-| **Total** | **4925** | 89.9M |
+| **Total** | **4929** | 90.0M |
 
 ## External dependencies
 
@@ -69,7 +69,7 @@ or the toolchain install (git-ignored; re-create with
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `350551b20275cca29997c3af0feed57253eabdc2361d82cb37a1f1a988a13a8b` | 7.7K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `a15102a5fdc787f56ca2b1230a981b9ece998ad3f564b8f259bb6719c6b20e46` | 9.7K | Master plan (single source of truth) |
-| `README.md` | `88c39274155396e37191d08a4bfdce1fd6dcb0fc017dd2de347d43cbbecb27b2` | 6.9K | Project README |
+| `README.md` | `6a7881c4f7a6f88ea109d3bfc9df337bd8506886c20c9780c22da90e003c3272` | 6.9K | Project README |
 | `REPLICATION.md` | `8cea83efe89d753a7e6cb3233feab692be7c8c9f8f8e934952254257a4e50316` | 6.5K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c7e10dabe207204eec55c44d00ebbc778e4c8c4059303467d804e218917ae725` | 8.5K | Evidence: byte-exact table, coverage, test results, hashes |
 
@@ -114,7 +114,7 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/NAMES_STATUS.md` | `4779cf7f2983ff24cdc56334b10d745878a0d117826810fceceadb2518d30ff3` | 6.7K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `8e879ed5482c2c8f9884d33025b3b3a727899b5ac6a997cec2132fc3fd3d2c3b` | 1.6K | Tracked file |
 | `symbols/UNCLASSIFIED_RESIDUE.csv` | `abe9401d09e6344c51eb39e9b57b2991cada07ec2fb9dbc5d2403993214daa83` | 9.9K | Tracked file |
-| `symbols/cal_tables.csv` | `a2026a4196d92e42b84ee5d7bb3b1f7e03bf78a844d63a377e8fe3a8ea32ee99` | 86.2K | Calibration table descriptors (1,210 tables) |
+| `symbols/cal_tables.csv` | `b0da2a221edecab154328b624f3986c70806017eca62aabf8b06efe92163d28b` | 95.4K | Calibration table descriptors (1,210 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
 | `symbols/romraider_rx8_tables.csv` | `fdbfc7f8afcca7581720166a0db103689847de25aaef944a6972859e94f8a05e` | 2.3M | Tracked file |
@@ -124,10 +124,10 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/symbols_60E0E700_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E0FB00.csv` | `f2ee37ca39ece163044080556a2d8e0fce52f1c858ed21f39bda83771074ce15` | 279.7K | Tracked file |
 | `symbols/symbols_60E0FB00_connor.csv` | `71280cd589bf47ee1da1d49f084bbf73bba717de7b94c61a380cea938f30d011` | 363B | Tracked file |
-| `symbols/symbols_60E0FC00.csv` | `ee4747771303b2f34fd625261c97d0573c0ba24f98ca0b799320dc2da99861e3` | 167.2K | Function symbol table (per-ROM) |
+| `symbols/symbols_60E0FC00.csv` | `54d963578634afadcd998e51be57e3eff1375897c4bdbbbddb67f5da50be7e0b` | 167.1K | Function symbol table (per-ROM) |
 | `symbols/symbols_60E0FC00_connor.csv` | `32824648b368e71b3b2920bb196f606286068c4fccaa89e90f7253a2e77130db` | 788B | Tracked file |
 | `symbols/symbols_60E0FC00_ghidra.csv` | `af985c30f6a05dce6891d962edc8976bda234b55b8235c673e7b9742e5f605aa` | 38.7K | Function symbol table (per-ROM) |
-| `symbols/symbols_60E0FC00_merged2.csv` | `aa252e85d2625b8d86cf78300e8b376563bd7910f28ae8be5a468e0b08624332` | 166.6K | Tracked file |
+| `symbols/symbols_60E0FC00_merged2.csv` | `68fe2ebfcc460154008f2155d11e7b09fdbb59414ae460c4d3c6b894c069ef9e` | 166.5K | Tracked file |
 | `symbols/symbols_60E15120.csv` | `c6800b5c929c68cd4ee76810d6e4a047e4b0935b7a776be4a54116c74d2e8c36` | 289.3K | Tracked file |
 | `symbols/symbols_60E15120_connor.csv` | `861328adabe0e5610c9c312ad2431e1a1c346b06767c88a8e169bf050dcc0857` | 424B | Tracked file |
 | `symbols/symbols_60E1B900.csv` | `d11a902aaa6b6099e72abc2b016f6d0d633992fdbc65d3a239497fd3a3922c74` | 278.7K | Tracked file |
@@ -515,6 +515,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/calc_vis_solenoid_duty_cycle_1261C.c` | `434c34c7adbdd753326922f4f95b2f950ad0b96ca82e01d071783bf6a8398e86` | 5.7K | Tracked file |
 | `c/calculateCruiseControlDriverRequest_2c5f8.c` | `b9772760fd43caa009d8c9cbec5f806c4c5c915e45017c23d2ad88aaf69ef77e` | 1007B | Tracked file |
 | `c/calculateCruiseControlSwitchVolt_2c5d0.c` | `6c1c2d6712f4f4e1350f24732dcf54c93df6e1eaf4be14bc30fb98dd5b5a17a4` | 1.4K | Tracked file |
+| `c/calculateDSCLeadingTimingDerate_0x121A4.c` | `1d48fe4336d90afe332cb018ab51e836b78bda3863d9e8a634e3b33af0b1ad61` | 7.8K | Tracked file |
 | `c/calculateDiagSessionConditional_53fa4.c` | `78e85b370d958e53a7dff5569811519d7466cf7179112771bd07f1f7e4520f6d` | 1.8K | Tracked file |
 | `c/calculateDiagSessionConditional_566c4.c` | `2653c2534d24b27d96e37b7884225a73b369ff4b5996cddd8bb8576a109ca460` | 1.8K | Tracked file |
 | `c/calculateDriverConditions_43c4a.c` | `0e3e6786b3ceba9244ef04c8f6bd453c8e14fba5b40000ed5364ff0cab465c2a` | 4.3K | Tracked file |
@@ -1925,6 +1926,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/setOilPressureGaugeStatus_29a7a.c` | `3fdc0209bda03b1c8e3700a61fbfeb51b1d644e65dfee73db814e186aa9fa693` | 1.8K | Tracked file |
 | `c/setPerRotorLevel1FuelCut_47ef2.c` | `225d87381ba7ce85d31e5b37a83c750d70670bee6fb49dbee30547dc7645b456` | 2.8K | Tracked file |
 | `c/setPerRotorTimingValuesLeading_146d4.c` | `45d1ad8c1426a5f514de700a03053358f9aaa0ede8d4185f6b66843fe9d28937` | 2.7K | Tracked file |
+| `c/setPerRotorTimingValuesTrailing_0x1470A.c` | `d2dd632c2efaa95b1e04bc08c36d7fd6f5d0209ee9852db7ceb19fa4a06e2e1e` | 5.1K | Tracked file |
 | `c/setRX4B1Timer_4af5a.c` | `cfb05caf653370c031f5e4dbf4a5bc2ba65c34c8bd3a9494327652d29a45dd9a` | 831B | Tracked file |
 | `c/setRegister_REG_BIT_VAL.c` | `6f9dbe798fbc4128ccf0d335a827511e6723c581a50db491bc261b9a75e26664` | 1.7K | Verified C lift (behavior-equivalent, emulator-proven) |
 | `c/setRegisters_4d2e.c` | `0c7b0a69ff7b96f2aff7a3e1eb674ed473a9f792746c91623bde5c454609af08` | 652B | Tracked file |
@@ -2506,6 +2508,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_calc_vis_solenoid_duty_cycle_1261C.py` | `2c93012938d4b7f7c7cfb9103a498aba3cc7f4bed46581c14ca1ca115e25334d` | 6.9K | Tracked file |
 | `c/tests/test_calculateCruiseControlDriverRequest_2c5f8.py` | `3b13359af4ddcc651da6f169637b911da1a47314e6a4c9bfcb9cab49b2e9c79a` | 6.8K | Tracked file |
 | `c/tests/test_calculateCruiseControlSwitchVolt_2c5d0.py` | `601add4d3db0222bc709679bc7240310e15168a52d6d2d8353a616fff5c12798` | 7.4K | Tracked file |
+| `c/tests/test_calculateDSCLeadingTimingDerate_0x121A4.py` | `c5ba10832c408f9eed49f3cf37c2aca5d532daa123184c7b2a059f10e8a7cc76` | 8.1K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_53fa4.py` | `03ccc9c46c9825dd885bbfaecc71c93f84d69e2f680b07b7ede13d988432400d` | 8.7K | Tracked file |
 | `c/tests/test_calculateDiagSessionConditional_566c4.py` | `adb6ed2537451b9cdc94a0aeece6694ee34cdaffa63c0891ccda1a0032072e23` | 7.4K | Tracked file |
 | `c/tests/test_calculateDriverConditions_43c4a.py` | `6bc632ab29e95c1e87f4594c4bbd528cef00e49469310d5137927aff723bdf30` | 12.3K | Tracked file |
@@ -3971,6 +3974,7 @@ or the toolchain install (git-ignored; re-create with
 | `c/tests/test_setOilPressureGaugeStatus_29a7a.py` | `498594d62c3c67e93699d022dc23242857d83eafe7ff0d1124c17b683b42ece7` | 7.4K | Tracked file |
 | `c/tests/test_setPerRotorLevel1FuelCut_47ef2.py` | `d32e29da9b4667b3dbe68f03d34384cd2bf91bc2b97748ad6fe343277742832d` | 10.1K | Tracked file |
 | `c/tests/test_setPerRotorTimingValuesLeading_146d4.py` | `e1a6fa0d600d734b5c58f235f1b07b68e2c0dbc4c9acee8bd00d5ba2da3470fd` | 10.7K | Tracked file |
+| `c/tests/test_setPerRotorTimingValuesTrailing_0x1470A.py` | `e51f1dfd0c51308e4822d6ad70470da242b8cb982e8e7830d7a2bf2fb42c5c18` | 6.2K | Tracked file |
 | `c/tests/test_setRX4B1Timer_4af5a.py` | `bd3cdf87d2dc48a70c90a4b428f7ca73c58a90a65e94742280bbd99396ff4516` | 6.5K | Tracked file |
 | `c/tests/test_setRegister_REG_BIT_VAL.py` | `8f85bea3c8e621feb3327f9f9cfd003c1dae4a4ab290f235c54f7d1885e29d27` | 2.3K | Python per-function behavior-equivalence test |
 | `c/tests/test_setRegisters_4d2e.py` | `10d6b8db7db3ee2beaf19c2c25dc246961eb9bc9ba16f361dc5d279430356700` | 2.1K | Tracked file |
@@ -4207,7 +4211,7 @@ or the toolchain install (git-ignored; re-create with
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `tools/tests/test_cross_seedkey.py` | `1631b47f1789048a3211b5c8ce946d60c0ef8439506cae7f9fbd42c4e2a0fa3c` | 15.0K | Tracked file |
+| `tools/tests/test_cross_seedkey.py` | `9c2b011928b229ec30581124645df94e50d329f144268bbca6fc04d66137467b` | 13.9K | Tracked file |
 | `tools/tests/test_decode_families.py` | `862d5ad96fa8b41081db62eb78258c937ddeb773b8b9a1bd7fbb772cdd0b5b83` | 14.4K | RE tool (see tools/README.md) |
 | `tools/tests/test_emulator_families.py` | `6472e5aafabbd76dc3a83c2f99814cfdf8d181583c9e2ce3e5756591830a6958` | 22.6K | RE tool (see tools/README.md) |
 
@@ -4415,7 +4419,7 @@ or the toolchain install (git-ignored; re-create with
 | `docs/notes/COOLING_FANS.md` | `86ef51254f24398e661d3bc495e4aba8ac852088934c55531363cad1117c5c45` | 2.0K | Project knowledge / session notes |
 | `docs/notes/DUMP_ALL.md` | `70e26fce297ade9cee8c8eb92fab999cba6d7678b8dca8f6a3ea495f582d2c08` | 4.8K | Project knowledge / session notes |
 | `docs/notes/ECU.md` | `e0681dd6d24ed904386f1a8b5e843b5c52c2bc4506870e0145c522f425e8e52d` | 4.3K | Project knowledge / session notes |
-| `docs/notes/ECU_CAPTURE_PLAN.md` | `da5f03d1249712b047c61f17411066a489c0b18c2b5f5b7702c8d93d98a3e8aa` | 14.7K | Project knowledge / session notes |
+| `docs/notes/ECU_CAPTURE_PLAN.md` | `ca033aa0b785abf97d47e4a2c3aef6656423892ab4a57b20c2035aef3508a8e7` | 14.7K | Project knowledge / session notes |
 | `docs/notes/FINDINGS.md` | `ebf9aa942dcf08e64205fd850478d2beac9d58bed92d3989ff10ddefcbfd2696` | 45.5K | Project knowledge / session notes |
 | `docs/notes/FORMAL_CERT_60E1D400.md` | `1ba5cc4bd4289a8a708db00192deb0f1843976f81b679b9b8daac3afa6e0090f` | 8.2K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `db03bdb0eda4b3f6153042b964c2333d4a998d3ffb668086c7796bdc25e320c3` | 7.4K | Project knowledge / session notes |
@@ -4423,7 +4427,7 @@ or the toolchain install (git-ignored; re-create with
 | `docs/notes/LAUNCH_CONTROL_CHECKSUM_GUARD.md` | `50c55eae3a76659f240dfc457f2ccf137d644c88d575d23355c7077702f9adeb` | 7.1K | Project knowledge / session notes |
 | `docs/notes/RESUME.md` | `293adb94fafa27d8c38c9ada434a27e8ad428b22e4f3eeb334af475fa5d8b10d` | 675B | Project knowledge / session notes |
 | `docs/notes/RUNTIME_CERT_PLAN.md` | `14c08a4f3f2e7393f85c82fa751296b4f96836e63744471545a608e1883784b3` | 5.6K | Project knowledge / session notes |
-| `docs/notes/UDS_SECURITY_MAPPING.md` | `710817e88145252ba73c3ca710c114ac761561ed0ded6431b35a577c4724af69` | 17.6K | Project knowledge / session notes |
+| `docs/notes/UDS_SECURITY_MAPPING.md` | `ddf6e9c1760f5e440af64cd3f34190d4ffa40b373fed9b75fb0b491a908617a0` | 17.7K | Project knowledge / session notes |
 | `docs/notes/V7_NOTES.md` | `b1470234d179923d97641f24fbe2f0877ad38979da477155acdc064f3af2a677` | 4.9K | Project knowledge / session notes |
 | `docs/subsystems/AUXILIARY_CONTROL_SUBSYSTEM.md` | `5f73a904f3fb4ee429fd1f2487be476a2a61352c6e7ce5dd3dc20e36b559e498` | 26.2K | Subsystem / overview documentation |
 | `docs/subsystems/BOOT_SEQUENCE.md` | `68b2df632013b60524640e1603a52feb4107e0fcba3a572c7c71594e37ce7303` | 12.0K | Subsystem / overview documentation |
