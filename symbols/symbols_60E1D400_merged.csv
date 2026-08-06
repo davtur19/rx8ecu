@@ -475,6 +475,7 @@ addr,end,name,source,flag
 0x010B96,0x010D20,sensor_rotor_pair_adaptive_select,ida-ai,
 0x010D20,0x010DAC,sensor_rotor_A_process_and_filter,ida-ai,
 0x010DC8,0x010F30,status_flags_byte_pack,ida-ai,
+0x0110A8,0x01111A,coil_output_dispatcher_0x110A8,c-lift,
 0x011140,0x011166,calc_fuel_cut_flags_merged,ida-ai,
 0x011166,0x01117A,calc_traction_control_mode,ghidra-hand-xmap,
 0x01117A,0x011198,init_rotor_status_flags,ghidra-hand-xmap,
