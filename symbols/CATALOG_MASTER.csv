@@ -22203,7 +22203,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x006de2,0x006EC4,atu2_reconfig_mode_bank1,ida-ai-xmap,DUBIOUS,boot_phase_output_config,,ghidra-auto,Boot & Init
 60E0FC00,0x006ec4,0x006F16,FUN_00006ec4,ghidra-auto,,mode_status_byte_update,,ghidra-auto,Other / Unclassified
 60E0FC00,0x006f16,0x006FB0,atu2_edge_capture_config,ida-ai-xmap,DUBIOUS,atu2_edge_capture_config_en_dis,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x006fb0,0x006FFA,readADCResult,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
+60E0FC00,0x006fb0,0x00705E,readADCResult,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x007070,0x007088,atu_control_bits_set,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
 60E0FC00,0x007088,0x0070AC,atu_fpu_control_wrapper,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Boot & Init
 60E0FC00,0x0070ac,0x007188,atu_fpu_control_wrapper,ghidra-hand,,atu_fpu_control_wrapper,YES,equinox311:getFromGPIO?|ghidra-hand,Math / FPU
@@ -22279,7 +22279,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x008de8,0x008E28,outputSpark2,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
 60E0FC00,0x008e28,0x008EE6,ignitionTimingHardwareTimerSomething,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
 60E0FC00,0x008ee6,0x008F2A,sensor_value_scale,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
-60E0FC00,0x008f2a,0x008F5C,ignitionDwellOutputInit,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
+60E0FC00,0x008f2a,0x008F7A,ignitionDwellOutputInit,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
 60E0FC00,0x008f94,0x009016,sensor_adc_convert_chain,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x009016,0x009038,sensor_periodic_task_B,ida-ai-xmap,DUBIOUS,FUN_00009016,,ghidra-auto,Ignition & Knock
 60E0FC00,0x009038,0x009110,sensor_main_process,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
@@ -22769,8 +22769,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x018d3c,0x018F3C,dscRelatedTiming?,ghidra-hand,,,,equinox311:dscRelatedTiming?|ghidra-hand,Ignition & Knock
 60E0FC00,0x018f3c,0x018F6C,FUN_00018f3c,ghidra-auto,,clear_status_bytes_a9c,,ghidra-auto,Ignition & Knock
 60E0FC00,0x018f6c,0x018F9C,FUN_00018f6c,ghidra-auto,,ram_flags_a9c0_zero_init,,ghidra-auto,Boot & Init
-60E0FC00,0x018f9c,0x018FD6,status_counter_compare,ghidra-auto,,,,ghidra-auto,Ignition & Knock
-60E0FC00,0x018fd6,0x01929C,load_calc_state_machine,ghidra-auto,,,,ghidra-auto,Other / Unclassified
+60E0FC00,0x018f9c,0x0192D4,status_counter_compare,ghidra-auto,,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x01929c,0x0192D4,status_copy_latch_flag,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x0192d4,0x193B2,setsEngineFaultTypeThing,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,Faults & DTC
 60E0FC00,0x0193b4,0x0194A0,getSecondaryAirPumpRequest,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
@@ -23127,7 +23126,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x028fac,0x0290D0,can_fn_float_bab4_flags,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x0290d0,0x029108,dispatch_chain_tbl_A,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x029108,0x02912E,dispatch_chain_tbl_B,ghidra-auto,,,,ghidra-auto,Boot & Init
-60E0FC00,0x02912e,0x02914E,largeFunction,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
+60E0FC00,0x02912e,0x029248,largeFunction,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
 60E0FC00,0x029248,0x02927E,sr_task_table_c,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x02927e,0x0292BA,sr_task_table_d,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x0292ba,0x292D8,getSomeEngineConditions,equinox311,GHIDRA-EQX,,,ghidra-hand,Other / Unclassified
