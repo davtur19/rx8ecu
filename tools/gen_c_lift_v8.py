@@ -210,6 +210,27 @@ def _fpu_mem_rt(pc, op, f, temp):
             'uses': set(f.get('uses') or {}), 'mnem': '%s (rt-base)' % f.get('ann', 'op')}
 
 
+def _v6_reclaim(rom, pc, data, addr, ops, gcl):
+    prev = pc - 2
+    if prev < addr or prev in data:
+        return False
+    _op = (rom[prev] << 8) | rom[prev + 1]
+    _dd = ops.translate(_op, prev, rom)
+    if _dd is None:
+        return False
+    if _dd.get('kind') in ('branch', 'ret'):
+        return False
+    if gcl.is_call_op(_op):
+        return False
+    opc = (rom[pc] << 8) | rom[pc + 1]
+    if ops.translate(opc, pc, rom) is not None:
+        return True
+    ms = gcl._mem_shape(opc)
+    if ms is not None and ms.get('dir') in ('load', 'store'):
+        return True
+    return False
+
+
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
               allow_runtime_base=False, tail_bra_as_call=False):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
@@ -960,8 +981,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             if pc in seen_pc:            # already walked via another path
                 break
             if pc in data:
-                pc += 2
-                continue
+                if _v6_reclaim(rom, pc, data, addr, ops, gcl):
+                    data.discard(pc)
+                else:
+                    pc += 2
+                    continue
             op = (rom[pc] << 8) | rom[pc + 1]
             d = ops.translate(op, pc, rom)
             if (d is not None and d.get('kind') in ('branch', 'ret')) or op == 0x002B:
