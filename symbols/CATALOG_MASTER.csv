@@ -21943,7 +21943,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x003588,0x0035CC,callsAReset,equinox311,GHIDRA-EQX,,,ghidra-auto,Boot & Init
 60E0FC00,0x0035cc,0x0035EE,task_flag_run_B,ida-ai-xmap,DUBIOUS,,,ghidra-auto,RTOS
 60E0FC00,0x0035ee,0x003610,notCalled??,equinox311,GHIDRA-EQX-UNCERTAIN,task_flag_run_C,YES,ghidra-auto,Boot & Init
-60E0FC00,0x003610,0x00366E,checkISRCounter_NotCalled?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,RTOS
+60E0FC00,0x003610,0x0036D4,checkISRCounter_NotCalled?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto|ida-ai-xmap,RTOS
 60E0FC00,0x0036d4,0x00375C,flag_priority_dispatch_lock,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x00375c,0x003854,rtos_task_start,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x003854,0x003920,engineControlFunctionDispatcher,equinox311,GHIDRA-EQX,task_execute_by_index,YES,ghidra-auto|ida-ai-xmap,RTOS
@@ -22295,7 +22295,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0096de,0x0096FE,FUN_000096de,ghidra-auto,,rtos_task_register_a140,,ghidra-auto,RTOS
 60E0FC00,0x0096fe,0x009744,rtos_task_stub_3_a154,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x009744,0x009890,CANControllerSetup,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
-60E0FC00,0x009890,0x009910,placeCANRX,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
+60E0FC00,0x009890,0x009996,placeCANRX,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x0099b0,0x009AC4,txCAN_EventBased,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x009ac4,0x009B08,eeprom_task_handler_A,ida-ai-xmap,DUBIOUS,,,ghidra-auto,CAN Bus
 60E0FC00,0x009b08,0x009B92,getHCANSomething,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
@@ -23053,7 +23053,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x026308,0x26340,getAlternatorSpeedConditonal,equinox311,GHIDRA-EQX,getAlternatorSpeedConditonal,,ghidra-hand,Sensors
 60E0FC00,0x026340,0x026344,updateEngineRunningLessThan60Timer,equinox311,GHIDRA-EQX,updateEngineRunningLessThan60Timer,,ghidra-hand,Peripherals & ISR
 60E0FC00,0x02639a,0x02644C,getVehicleConditionforAlternatorControl,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC
-60E0FC00,0x02644c,0x02646A,calculate12VBatteryTemperature,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
+60E0FC00,0x02644c,0x0264D2,calculate12VBatteryTemperature,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x026520,0x0265C6,calcDesiredAlternatorVoltage,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x026a94,0x026A96,altneratorVoltageController,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x026c62,0x026C80,filterAlternatorDCOutput,equinox311,GHIDRA-EQX,caller,,ghidra-auto,Sensors
@@ -23115,7 +23115,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0289f8,0x028A06,clear_ba94_float_baa4,ghidra-auto,,FUN_000289f8,,ghidra-auto,Boot & Init
 60E0FC00,0x028a06,0x028A60,FUN_00028a06,ghidra-auto,,hysteresis_flag_ba98,,ghidra-auto,Math / FPU
 60E0FC00,0x028a60,0x028AE0,counter_ba94_thresh_8000,ghidra-auto,,,,ghidra-auto,Math / FPU
-60E0FC00,0x028ae0,0x028BE8,float_interp_table_ba7c,ghidra-auto,,,,ghidra-auto,Math / FPU
+60E0FC00,0x028ae0,0x028CC4,float_interp_table_ba7c,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x028be8,0x028CC4,float_interp_cont_ba4c,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x028cc4,0x028D74,sensor_shift_filter_ba6c,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x028d74,0x028DCC,FUN_00028d74,ghidra-auto,,caller,,ghidra-auto,Math / FPU
@@ -24946,7 +24946,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x05e700,0x05E72C,thunk_to_5eb94,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x05e72c,,updateFaultStatus,equinox311,GHIDRA-EQX,updateFaultStatus,,ghidra-hand,Faults & DTC
 60E0FC00,0x05e7fa,0x05E84C,init_clear_bufs_d1d6_d26a,ghidra-auto,,,,ghidra-auto,Boot & Init
-60E0FC00,0x05e84c,0x05E918,checkAndSetFault?,ghidra-hand,,,,equinox311:checkAndSetFault?|ghidra-hand,Faults & DTC
+60E0FC00,0x05e84c,0x05E926,checkAndSetFault?,ghidra-hand,,,,equinox311:checkAndSetFault?|ghidra-hand,Faults & DTC
 60E0FC00,0x05e918,,returnCurrentFaultStatus,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC
 60E0FC00,0x05e93c,0x05EA80,goesThroughFaultArrays?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Faults & DTC
 60E0FC00,0x05e954,,getFaultRelatedInfo??,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Faults & DTC
