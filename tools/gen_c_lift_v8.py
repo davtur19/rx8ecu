@@ -279,6 +279,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         data |= set(data_extra)
     mova_lits = {}
     tbl_base = {}       # reg index -> table base literal (set by indexed load)
+    rt_tbl = {}         # reg index -> (table base literal, index reg) for
+                        # runtime-dispatch target INCLUSION (see below)
+    # runtime-dispatch table bases (target INCLUSION): reg index -> (base
+    # literal, index reg).  Set by an indexed `mov.l @(r0,rB),rN` whose r0
+    # holds the ROM table literal (mova / mov.l @(disp,PC)) while rB is the
+    # runtime index (e.g. 0x20EC mov.l @(r0,r6),r5 / jsr @r5 with mova
+    # 0x210C,r0) — the orientation OPPOSITE of tbl_base (which needs the
+    # base literal + runtime r0).  Cleared on any redefinition of rN (via
+    # _clr_slot / _record_slot_deref) so a stale table is never used.
 
     # v3-style re-entry pre-scan: every static branch target in-span.  A mem at
     # a re-entry pc may be reached again with the base register already modified
@@ -373,16 +382,40 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 if _base is not None and _base < 0x10000 and _base + 4 <= len(rom) \
                         and ops.classify_addr(_base) == 'ROM':
                     st['slotdefs'][_dname] = _base
+                    rt_tbl.pop(mr['dest'], None)
                     return
             st['slotdefs'].pop(_dname, None)
+            rt_tbl.pop(mr['dest'], None)
 
     def _clr_slot(reg):
         """Clear the slot-deref marker when `reg` is redefined (non-slot write).
         Accepts an int register number or an 'rN' name."""
         if isinstance(reg, int):
             st['slotdefs'].pop('r%d' % reg, None)
+            rt_tbl.pop(reg, None)
         elif isinstance(reg, str) and reg[0] == 'r' and reg[1:].isdigit():
             st['slotdefs'].pop(reg, None)
+            rt_tbl.pop(int(reg[1:]), None)
+
+    def _record_tbl_base(mr):
+        """Dispatch-table base bookkeeping for an indexed load `mov.l @(r0,Rm),Rn`.
+        Two orientations:
+          - Rm holds the table literal, r0 is the runtime index (existing
+            jump-table path, tbl_base);
+          - r0 holds the ROM table literal (mova / mov.l @(disp,PC)) and Rm is
+            the runtime index (e.g. 0x20EC mov.l @(r0,r6),r5 / jsr @r5 with
+            mova 0x210C,r0; 0x207A mov.l @(r0,r3),r2 / jsr @r2) — recorded in
+            rt_tbl so the runtime_dispatch target INCLUSION can enumerate the
+            table and put the TARGETS' code in the caller's mirror CODE dict.
+        Called from BOTH mem emission paths (decode_mem and the rt-base
+        fallback, which decode_mem cannot resolve for non-param bases)."""
+        if mr.get('idx') == 'r0' and mr['dir'] == 'load' and mr.get('dest') is not None:
+            if 'r%d' % mr['base_reg'] in st['lits']:
+                tbl_base[mr['dest']] = st['lits']['r%d' % mr['base_reg']]
+            elif 'r0' in st['lits'] and st['lits']['r0'] is not None \
+                    and st['lits']['r0'] + 4 <= len(rom) \
+                    and ops.classify_addr(st['lits']['r0']) == 'ROM':
+                rt_tbl[mr['dest']] = (st['lits']['r0'], mr['base_reg'])
 
     def temp():
         st['tmp'][0] += 1
@@ -641,10 +674,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             _record_slot_deref(m)
             if _rompin is not None:
                 _pin_lit(m['dest'], _rompin, pc)
-            # jump-table base bookkeeping: indexed load @n(r0,rB) with rB literal
-            if m.get('idx') == 'r0' and m['dir'] == 'load' and m.get('dest') is not None:
-                if 'r%d' % base_reg in st['lits']:
-                    tbl_base[m['dest']] = st['lits']['r%d' % base_reg]
+            # dispatch-table base bookkeeping (see _record_tbl_base)
+            _record_tbl_base(m)
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': m['ann']}
         # ---- rt-base fallback: mem op whose base register decode_mem could not
@@ -675,6 +706,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     _record_slot_deref(m2)
                     if _rompin is not None:
                         _pin_lit(m2['dest'], _rompin, pc)
+                    # dispatch-table base bookkeeping (see _record_tbl_base)
+                    _record_tbl_base(m2)
                     return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                             'target': None, 'slot': None,
                             'mnem': '%s (rt-base)' % _rt_mem_mnem(op, sh)}
@@ -862,6 +895,24 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         # marks the table end; a zero/FFFF terminator is acceptable only as the
         # LAST word (not part of the cases).
         return entries, True
+
+    def enum_rt_entries(base):
+        """Enumerate a runtime-dispatch table at `base` (4-byte big-endian
+        words) while each word is a plausible ROM code address (classify_addr
+        'ROM', < 0x100000, even).  Looser than enum_table: the targets need NOT
+        be in-span/lifted/catalog — they are walked as callees (target
+        INCLUSION) so the mirror can execute them after the runtime dispatch.
+        Returns the entry list (may be empty = not a dispatch table)."""
+        entries = []
+        a = base
+        while a + 4 <= len(rom) and len(entries) < 1024:
+            v = int.from_bytes(rom[a:a + 4], 'big')
+            if v == 0 or v == 0xFFFFFFFF or v % 2 != 0 \
+                    or ops.classify_addr(v) != 'ROM' or v >= 0x100000:
+                break
+            entries.append(v)
+            a += 4
+        return entries
 
     pending = [addr]
     visited = set()
@@ -1084,6 +1135,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                         res.reject = ('pr_loop', pc)
                         return res
                     res.edges.append((pc, 'rt-dispatch', None))
+                    # target INCLUSION: rN was loaded from a ROM dispatch table
+                    # (rt_tbl bookkeeping on `mov.l @(r0,rB),rN` with r0 = table
+                    # literal) — enumerate the table targets so the caller's
+                    # mirror CODE can carry their code (walked as callees).
+                    # Without this the mirror nullsub-falls-through while sh2emu
+                    # executes the real target (MISMATCH); with it the mirror
+                    # dispatches to the target address like sh2emu.
+                    _rt = rt_tbl.get(rn)
+                    _rt_entries = enum_rt_entries(_rt[0]) if _rt is not None else []
                     rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
                            'mnem': '%s @r%d (runtime)' % ('jsr' if _is_jsr else 'jmp', rn),
                            'reg': rn, 'is_call': _is_jsr,
@@ -1092,7 +1152,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                 + (['s->pr = 0x%08X;' % ((pc + 4) & MASK)] if _is_jsr else [])
                                 + ['((void(*)(ST*))s->r[%d])(s);' % rn]
                                 + (['return;'] if not _is_jsr else []),
-                           'slot': slot, 'target': None}
+                           'slot': slot, 'target': None,
+                           'rt_entries': _rt_entries or None}
                     res.records.append(rec)
                     seen_pc.add(pc)
                     if slot is not None:
@@ -1458,9 +1519,15 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
 
     # ---- test ----
     out_t = os.path.join(outdir, 'test_caller_%X.py' % addr)
+    # runtime-dispatch table targets (target INCLUSION): every entry enumerated
+    # from a ROM dispatch table must have its code in the caller's mirror CODE
+    # dict, so collect them from the runtime_dispatch records (callees are
+    # walked by _emit_v8_test; rt entries are walked with per-entry tolerance).
+    rt_entries = sorted({e for r in res.records for e in (r.get('rt_entries') or [])})
     ok, reason = _emit_v8_test(addr, rom, end_s, res, callees, out_t,
                                seed=seed, cases=cases, rom_label=rom_label,
-                               catalog=catalog, bounds=bounds)
+                               catalog=catalog, bounds=bounds,
+                               rt_entries=rt_entries)
     return out_c, out_t, ok, reason
 
 
@@ -1843,7 +1910,8 @@ def run_batch(rom, outdir, catalog, bounds, n=20, seed=42, cases=500,
 
 
 def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
-                  rom_label='60E1D400', catalog=None, bounds=None):
+                  rom_label='60E1D400', catalog=None, bounds=None,
+                  rt_entries=None):
     """v7-style differential test.  The CODE dict carries the caller records
     (incl. 'call' -> pc = target, 'jt' -> dynamic table read) plus the inlined
     callee leaf records (fetched via _walk_callee over the callee's own catalog
@@ -1857,7 +1925,40 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         if w is None:
             return False, ('callee-walk', t, reason)
         callee_records.extend(w)
+    # target INCLUSION: runtime_dispatch table entries are additional inlined
+    # callees (their own nested bsr/jsr targets are walked recursively by
+    # _walk_callee).  Entries surface from ANY record — the caller's own
+    # dispatches AND the inlined callees' dispatches (e.g. a callee that does
+    # mova <table>,r0 / mov.l @(r0,rB),rN / jsr @rN) — so collect from
+    # all_records with a fixpoint: an included target's own nested dispatches
+    # add further entries.  Per-entry tolerance: an entry that fails to walk
+    # (e.g. its own span contains an unresolvable dispatch) is dropped — the
+    # mirror keeps the nullsub fallback for its cases and they may diverge;
+    # the remaining entries still get their code included.  Failures are
+    # reported on stdout.
     all_records = list(res.records) + callee_records
+    _seen = set(callees)
+    queue = []
+    for r in all_records:
+        for e in (r.get('rt_entries') or []):
+            if e not in _seen:
+                queue.append(e)
+    while queue:
+        t = queue.pop()
+        if t in _seen:
+            continue
+        _seen.add(t)
+        w, reason = _walk_callee(rom, t, catalog, bounds)
+        if w is None:
+            print('WARN rt-dispatch target 0x%X not included: %r '
+                  '(its cases keep the nullsub fallback -> may diverge)'
+                  % (t, reason))
+            continue
+        all_records.extend(w)
+        for r in w:
+            for e in (r.get('rt_entries') or []):
+                if e not in _seen:
+                    queue.append(e)
     # (bug c) PR-LEAK fix: the composite mirror addresses the stack with the
     # RUNTIME sp (r15), not per-function fixed STACK_BASE+off slots.  Each
     # function's records were emitted with its own sp_off starting at 0x400, so
