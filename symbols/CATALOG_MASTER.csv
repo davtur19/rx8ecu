@@ -23369,7 +23369,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x02f5d4,0x02F5DA,thunk_FUN_0002ecb8,equinox311,GHIDRA-EQX-HEUR,,,ghidra-auto,Boot & Init
 60E0FC00,0x02f5da,0x02F640,acCompressorControlMain???,ghidra-hand,,,,equinox311:acCompressorControlMain???|ghidra-hand,Faults & DTC
 60E0FC00,0x02f640,0x2F694,initFanControl,equinox311,GHIDRA-EQX,,,ghidra-hand,Boot & Init
-60E0FC00,0x02f694,0x02F6AC,setFanOutputGPIO,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
+60E0FC00,0x02f694,0x02F6F8,setFanOutputGPIO,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x02f718,0x02F71E,initFanControl,ghidra-hand,,,,equinox311:initFanControl|ghidra-hand,Boot & Init
 60E0FC00,0x02f71e,0x2F748,fanControlMain,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x02f764,0x02F772,calcFanControlFaultRelated_MAYBE,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC
@@ -23394,7 +23394,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0302b8,0x0302D6,calcRelativePressure,equinox311,GHIDRA-EQX,calcRelativePressure,,ghidra-hand,Sensors
 60E0FC00,0x0302d6,0x0302F4,getInjctorManifoldVacuumCompensationMult,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0302f4,0x30308,getBaroPressureMult,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
-60E0FC00,0x030344,0x030382,injectorPulseTimeArbitrate_crankAddTimer,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
+60E0FC00,0x030344,0x0303E8,injectorPulseTimeArbitrate_crankAddTimer,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030414,0x03045E,getFuelInectorLatencyCals,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0304cc,0x0304DE,getInjectorOnTimeCompensations,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030570,0x030586,setInjectorStuffPrevLoop?,ghidra-hand,,setInjectorStuffPrevLoop_,,equinox311:setInjectorStuffPrevLoop?|ghidra-hand,Fuel & Lambda
