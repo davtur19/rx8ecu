@@ -273,6 +273,38 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             if addr <= _rt < end:
                 reentry.add(_rt)
 
+    # bug c: a literal base whose register is REDEFINED by a non-literal
+    # instruction (add #imm,Rn / mov Rm,Rn / ...) inside a loop that
+    # re-executes the mem op is not path-constant: after the first iteration
+    # the base holds a different runtime value, so the folded constant is
+    # stale (memset-style `mov.b Rn,@r5 / add #1,r5` loops bake the start
+    # address and re-write the same slot forever).  Pre-scan the span once for
+    # (a) loop bodies (backward static-branch intervals) and (b) non-literal
+    # register writes, so a literal-base mem inside such a loop can be emitted
+    # register-relative (dynbase) like a re-entry pc.
+    loop_bodies = []        # (loop_head, loop_end) backward-branch intervals
+    nonlit_writes = {}      # reg ('r5') -> set of pcs of non-literal writes
+    for _lp in range(addr, bound, 2):
+        if _lp in data:
+            continue
+        _lo = (rom[_lp] << 8) | rom[_lp + 1]
+        _lb = ops.branch_info(_lo)
+        if _lb is not None and _lb.get('target_disp') is not None \
+                and _lb['kind'] not in ('rte', 'rts', 'bsrf', 'braf'):
+            _lt = (_lp + 4 + _lb['target_disp'] * 2) & MASK
+            if addr <= _lt < _lp:               # backward edge -> loop body
+                loop_bodies.append((_lt, _lp + (4 if _lb['delayed'] else 2)))
+        _ld = ops.translate(_lo, _lp, rom)
+        if _ld is None or _ld.get('kind') in ('branch', 'ret'):
+            continue
+        # skip literal-pinning statements (mov #imm / mov.w/l @(disp,PC) /
+        # mova): they fold a constant into the reg and are NOT the runtime
+        # redefinition we track.
+        if (_lo & 0xF000) in (0xE000, 0x9000, 0xD000) or (_lo & 0xFF00) == 0xC700:
+            continue
+        for _w in gcl._stmt_writes('\n'.join(_ld.get('c') or [])):
+            nonlit_writes.setdefault(_w, set()).add(_lp)
+
     def _pin_lit(reg, val, pc):
         """Record a literal definition of `reg` at `pc` (path-sensitivity)."""
         st['lits']['r%d' % reg] = val
@@ -513,10 +545,24 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             # (1) mem at a branch-target pc (re-entry) can be reached with the
             # base register already modified on another path; (2) a base with
             # >=2 distinct literal def-sites (e.g. a jsr delay-slot write on a
-            # sibling path) leaks the wrong constant here.  Emit the runtime
-            # register (dynbase) in both cases.
+            # sibling path) leaks the wrong constant here.  (3, bug c) a base
+            # whose literal def-site is followed by a NON-literal write inside
+            # a loop body that re-executes this mem (memset-style counter) —
+            # the folded constant is stale after the first iteration.  Emit
+            # the runtime register (dynbase) in all three cases.
             _dyn = ((pc in reentry)
                     or len(st['litdefs'].get('r%d' % base_reg, ())) > 1)
+            if not _dyn:
+                _bname = 'r%d' % base_reg
+                _pins = st['litdefs'].get(_bname, ())
+                if len(_pins) == 1 and _bname in nonlit_writes:
+                    _bp = min(_pins)
+                    for _lhs, _lend in loop_bodies:
+                        if _lhs <= pc <= _lend and \
+                                any(_bp < _pw <= _lend
+                                    for _pw in nonlit_writes[_bname]):
+                            _dyn = True
+                            break
             c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
                                     dynbase=_dyn)
             _rompin = _rom_deref_value(m)
