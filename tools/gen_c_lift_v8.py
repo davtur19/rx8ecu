@@ -97,6 +97,19 @@ class CfgResult:
         self.reject = None          # (reason, pc) or None when CFG complete
 
 
+def _find_nullsub(rom, start=0x200):
+    """A clean callable nullsub for the call_runtime seed override.  sh2emu
+    executes a call target from ITS bytes only; an address whose first word is
+    `rts` (0x000B) + `nop` (0x0009) returns to pr immediately with no side
+    effects, so ANY such pair is a functional no-op.  Returns the first one at
+    an even offset >= start (skips the low vector area)."""
+    for a in range(start, len(rom) - 4, 2):
+        if rom[a] == 0x00 and rom[a + 1] == 0x0B \
+                and rom[a + 2] == 0x00 and rom[a + 3] == 0x09:
+            return a
+    return None
+
+
 def _load_lifted():
     """Addresses already lifted as c/*_<hex>.c or c/lib/f_<hex>.c (dedup set)."""
     lifted = set()
@@ -249,7 +262,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
           # A later `mov.l @(disp,r15),Rn` / `mov.l @r15+,Rn` of a tracked slot
           # restores that literal into Rn so the runtime stack reload feeds
           # subsequent resolve() (e.g. jsr/jmp @Rn dispatch tables).
-          'stacks': {}}
+          'stacks': {},
+          # RAM/ROM-pointer indirect call slots.  'slotdefs' maps 'rN' -> the
+          # ROM slot ADDRESS when rN's defining instruction was a plain
+          # `mov.l @Rm,Rn` (size-4, no idx/disp) whose base Rm holds a ROM
+          # literal (e.g. 0x4B10).  A later `jsr @rN` with NO literal target
+          # then emits a 'call_runtime' record (the callback value is runtime-
+          # selected; the mirror models it as a no-op — matches sh2emu with the
+          # slot seeded to a nullsub) instead of rejecting 'jsr_unresolved'.
+          # Cleared whenever rN is redefined by any other write.
+          'slotdefs': {}}
     info = res.info
     labels = res.labels
     data = set(gcl._pcrel_pool_words(rom, addr, end))
@@ -309,6 +331,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         """Record a literal definition of `reg` at `pc` (path-sensitivity)."""
         st['lits']['r%d' % reg] = val
         st['litdefs'].setdefault('r%d' % reg, set()).add(pc)
+        st['slotdefs'].pop('r%d' % reg, None)   # a literal def overrides a slot deref
         return val
 
     def _rom_deref_value(mr):
@@ -331,6 +354,35 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         if _out == 0 or ops.classify_addr(_out) != 'ROM':
             return None
         return _out
+
+    def _record_slot_deref(mr):
+        """For a plain `mov.l @Rm,Rn` (size-4 load, no idx/disp) whose base Rm
+        holds a ROM address literal, record slotdefs[dest] = that slot address.
+        Called after _apply_mem_writes so the dest write has already popped
+        lits/written.  The callback VALUE is runtime-selected (ROM slot often
+        0 / a RAM ptr), so the register gets no literal here — only the slot
+        address is tracked for the 'call_runtime' jsr path.  For any OTHER
+        load into a register the dest's slotdef is cleared (stale-mark guard).
+        Note: mirror==sh2emu on the deref itself (both read the real slot word),
+        so only the later `jsr @rN` semantics differ (mirror no-op vs nullsub)."""
+        if mr['dir'] == 'load' and mr.get('dest') is not None:
+            _dname = 'r%d' % mr['dest']
+            if (mr.get('idx') is None and not mr.get('disp') and mr.get('size') == 4
+                    and 'r%d' % mr['base_reg'] in st['lits']):
+                _base = st['lits']['r%d' % mr['base_reg']]
+                if _base is not None and _base < 0x10000 and _base + 4 <= len(rom) \
+                        and ops.classify_addr(_base) == 'ROM':
+                    st['slotdefs'][_dname] = _base
+                    return
+            st['slotdefs'].pop(_dname, None)
+
+    def _clr_slot(reg):
+        """Clear the slot-deref marker when `reg` is redefined (non-slot write).
+        Accepts an int register number or an 'rN' name."""
+        if isinstance(reg, int):
+            st['slotdefs'].pop('r%d' % reg, None)
+        elif isinstance(reg, str) and reg[0] == 'r' and reg[1:].isdigit():
+            st['slotdefs'].pop(reg, None)
 
     def temp():
         st['tmp'][0] += 1
@@ -389,6 +441,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 st['frame_live'] = False
             if not gcl._apply_stmt(rom, pc, op, d, st['written'], st['lits']):
                 return None
+            for _w in writes:
+                _clr_slot(_w)
             # extra literal pinning so jsr/jmp @Rn can resolve a register that
             # was set by `mov #imm,Rn` (0xEnnn) or `mova` (0xC700) — the base
             # tracker only pins mov.l/mov.w @(disp,PC) literal-pool loads.
@@ -467,6 +521,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 mnem = 'ldc.l @r%d+,%s' % (srn, _sr_reg.upper())
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
+            _clr_slot(srn)
             return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
         if op & 0xF0FF in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026):
@@ -507,6 +562,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             info['stack_offs'].add(off)
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
+            _clr_slot(srn)
             if sys_store:
                 c = ['local_%x = %s;' % (off, sys_reg)]
                 py = ['local[0x%X] = %s' % (off, sys_reg),
@@ -567,6 +623,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                     dynbase=_dyn)
             _rompin = _rom_deref_value(m)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
+            _record_slot_deref(m)
             if _rompin is not None:
                 _pin_lit(m['dest'], _rompin, pc)
             # jump-table base bookkeeping: indexed load @n(r0,rB) with rB literal
@@ -600,6 +657,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     c, py = gcl._mem_record(pc, op, m2, 'param', None, temp)
                     _rompin = _rom_deref_value(m2)
                     gcl._apply_mem_writes(m2, st['written'], st['lits'])
+                    _record_slot_deref(m2)
                     if _rompin is not None:
                         _pin_lit(m2['dest'], _rompin, pc)
                     return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
@@ -621,6 +679,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             else:
                 mnem = 'mov.%s @(0x%X,gbr),r0' % (gcl._SIZE_CH[size], disp)
             gcl._apply_mem_writes(gm, st['written'], st['lits'])
+            if gdir == 'load':
+                _clr_slot(0)
             return {'pc': pc, 'op': op, 'kind': 'gbr', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': mnem}
         gb = ops.decode_gbr_bit(op, pc, rom, None)
@@ -655,8 +715,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                   'sp = (sp + 4) & 0xFFFFFFFF']
             st['written'].add('r%d' % _dn)
             st['lits'].pop('r%d' % _dn, None)
+            _clr_slot(_dn)
             st['written'].add('r15')
             st['lits'].pop('r15', None)
+            _clr_slot(15)
             return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
                     'target': None, 'slot': None,
                     'mnem': 'mov.l @r15+,r%d' % _dn}
@@ -700,9 +762,10 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 else:
                     st['stacks'].pop(off, None)
             gcl._apply_mem_writes(sm, st['written'], st['lits'])
-            if breg == 15 and sh['dir'] == 'load' and sh.get('dest') is not None \
-                    and off in st['stacks']:
-                _pin_lit(sh['dest'], st['stacks'][off], pc)
+            if breg == 15 and sh['dir'] == 'load' and sh.get('dest') is not None:
+                _clr_slot(sh['dest'])
+                if off in st['stacks']:
+                    _pin_lit(sh['dest'], st['stacks'][off], pc)
             return {'pc': pc, 'op': op, 'kind': 'stack', 'c': c, 'py': py,
                     'target': None, 'slot': None, 'mnem': gcl._stack_mnem(sh)}
         f = ops.decode_fpu(op, pc, rom, ctx)
@@ -727,6 +790,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     reg = 'r%d' % base_reg
                     st['written'].add(reg)
                     st['lits'].pop(reg, None)
+                    _clr_slot(base_reg)
                 return {'pc': pc, 'op': op, 'kind': 'fpu_mem',
                         'c': list(f.get('c') or []),
                         'py': list(f.get('py') or []),
@@ -735,6 +799,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             for reg in gcl._stmt_writes('\n'.join(f.get('c') or [])):
                 st['written'].add(reg)
                 st['lits'].pop(reg, None)
+                _clr_slot(int(reg[1:]) if reg[0] == 'r' else reg)
             return {'pc': pc, 'op': op, 'kind': 'fpu',
                     'c': list(f.get('c') or []),
                     'py': list(f.get('py') or []),
@@ -798,14 +863,14 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
     # and restore on pop so each block walks from the state at its branch point.
     pending_state = {}     # block pc -> (lits-dict, written-set) snapshot
     def _snapshot_st():
-        return (dict(st['lits']), set(st['written']))
+        return (dict(st['lits']), set(st['written']), dict(st['slotdefs']))
     def _push_with_state(target):
         pending.append(target)
         pending_state[target] = _snapshot_st()
     while pending:
         bs = pending.pop()
         if bs in pending_state:
-            st['lits'], st['written'] = pending_state[bs]
+            st['lits'], st['written'], st['slotdefs'] = pending_state[bs]
         if bs in visited or bs in seen_pc:
             continue
         visited.add(bs)
@@ -818,12 +883,19 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 continue
             op = (rom[pc] << 8) | rom[pc + 1]
             d = ops.translate(op, pc, rom)
-            if d is not None and d.get('kind') in ('branch', 'ret'):
+            if (d is not None and d.get('kind') in ('branch', 'ret')) or op == 0x002B:
                 bi = ops.branch_info(op)
                 kind = bi['kind'] if bi is not None else None
-                if kind is None or kind == 'rte':
+                if kind is None:
                     res.reject = ('rte', pc)
                     return res
+                if kind == 'rte':
+                    # rte (return-from-exception): pops PC/SR from the stack and
+                    # jumps to an arbitrary runtime address, so sh2emu escapes the
+                    # tested span (runaway -> StepLimitExceeded -> case skipped).
+                    # Model it as a terminal return in the mirror (falls out to
+                    # RET), which matches upgraded-to-rts for a clean span end.
+                    kind = 'rts'
                 target = None
                 if kind == 'rts':
                     pass
@@ -952,6 +1024,37 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     continue
                 v = st['lits'].get('r%d' % rn)         # literal target
                 if v is None:
+                    # RAM-pointer indirect call: rN was deref'd from a ROM slot
+                    # address literal (`mov.l @Rm,Rn`, e.g. rN = [0x4B10]).  The
+                    # callback VALUE is runtime-selected and unknown statically;
+                    # model it as a call_runtime no-op (mirror == sh2emu when the
+                    # test seeds the slot with a nullsub address).  Only this
+                    # ROM-slot jsr family is admitted — other truly-runtime
+                    # jsr (indexed-table dispatch) stays 'jsr_unresolved'.
+                    if kind == 'jsr' and ('r%d' % rn) in st['slotdefs']:
+                        _slot_addr = st['slotdefs']['r%d' % rn]
+                        slot = slot_record(pc + 2) if pc + 2 < end else None
+                        # same pr_loop guard as the literal jsr below (0x4F26 slot
+                        # after the jsr clobbers pr -> diverges).
+                        if slot is not None and pc + 3 < bound and \
+                                (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                            res.reject = ('pr_loop', pc)
+                            return res
+                        res.edges.append((pc, 'jsr@romslot', None))
+                        rec = {'pc': pc, 'op': op, 'kind': 'call_runtime',
+                               'mnem': 'jsr @r%d (ROM slot 0x%X)' % (rn, _slot_addr),
+                               'c': (['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
+                                     + ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                     + ['((void(*)(ST*))s->r[%d])(s);' % rn]),
+                               'slot': slot, 'target': None,
+                               'ret_pc': (pc + 4) & MASK, 'set_pr': True,
+                               'slot_addr': _slot_addr, 'reg': rn}
+                        res.records.append(rec)
+                        seen_pc.add(pc)
+                        if slot is not None:
+                            seen_pc.add(pc + 2)
+                        pc += 4 if slot is not None else 2
+                        continue
                     res.reject = (('jsr_unresolved' if kind == 'jsr'
                                    else 'indirect_unresolved'), pc)
                     return res
@@ -1498,6 +1601,8 @@ def _render_st_body(fn, addr, res, callees):
         stmts.append('/* 0x%06X: %s */' % (pc, rec['mnem']))
         if rec['kind'] == 'call':
             stmts.extend(rec['c'])           # already ST-form
+        elif rec['kind'] == 'call_runtime':
+            stmts.extend(rec['c'])           # already ST-form
         elif rec['kind'] == 'jt':
             stmts.extend(rec['c'])
         else:
@@ -1723,6 +1828,23 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         if _slot is not None:
             _slot['py'] = _sprel_py(_slot)
 
+    # call_runtime seed override: every ROM callback slot referenced by a
+    # call_runtime record (caller OR inlined callee) gets its 4 bytes pinned to
+    # a clean nullsub address (big-endian) so sh2emu's `jsr @rN` runs the
+    # nullsub (clean return) exactly like the mirror's no-op call_runtime.
+    _nullsub = _find_nullsub(rom)
+    if _nullsub is None:
+        return False, ('no-nullsub', addr)
+    _seen_slots = set()
+    slot_seeds = []
+    for _rec in all_records:
+        if _rec.get('kind') == 'call_runtime':
+            _sl = _rec.get('slot_addr')
+            if _sl is not None and _sl not in _seen_slots:
+                _seen_slots.add(_sl)
+                slot_seeds.append((_sl, _nullsub))
+    slot_seeds = tuple(slot_seeds)
+
     offs_list = sorted(res.info['stack_offs'])
     stack_offs = ', '.join('0x%X' % o for o in offs_list)
     if len(offs_list) == 1:
@@ -1768,7 +1890,8 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'RAM_MIN = %s\n'
         'RAM_MAX = %s\n'
         'PRET = 0xEEEE0000\n'
-        'JTABLES = %r\n\n'
+        'JTABLES = %r\n'
+        'SLOT_SEEDS = %r\n\n'
         '_WRITES = []\n\n'
         'def _rd(ram, a):\n'
         '    a &= 0xFFFFFFFF\n'
@@ -1833,6 +1956,16 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            if slot_py:\n'
         '                exec(slot_py, ns)\n'
         '            pc = inst["target"]\n'
+        '        elif kind == "call_runtime":\n'
+        '            # RAM/ROM-slot indirect call: the runtime target value is\n'
+        '            # ignored; sh2emu executes the seeded nullsub (clean return)\n'
+        '            # so both sides continue together at ret_pc with pr=pc+4.\n'
+        '            if inst["set_pr"]:\n'
+        '                ns["pr"] = inst["ret_pc"]\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            pc = inst["ret_pc"]\n'
         '        elif kind == "branch":\n'
         '            t = ns["T"]\n'
         '            taken = True\n'
@@ -1871,6 +2004,10 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
         '        for a in range(STACK_BASE, STACK_BASE + 0x400):\n'
         '            ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF\n'
+        '        for _sl, _tv in SLOT_SEEDS:\n'
+        '            _tb = _tv.to_bytes(4, "big")\n'
+        '            for _i in range(4):\n'
+        '                ram[_sl + _i] = _tb[_i]\n'
         '        a = rnd.randint(0, 0xFFFFFFFF); b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF); d = rnd.randint(0, 0xFFFFFFFF)\n'
         '        m = spec_mirror(a, b, c_, d, dict(ram))\n'
@@ -1922,6 +2059,8 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
         '        elif k == "call":\n'
         '            stack.append(inst["ret_pc"])\n'
+        '        elif k == "call_runtime":\n'
+        '            stack.append(inst["ret_pc"])\n'
         '        elif k == "jt":\n'
         '            stack.extend(c for c in inst["cases"] if c is not None)\n'
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
@@ -1942,7 +2081,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
          addr, seed, cases, stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
-         jt_lits,
+         jt_lits, slot_seeds,
          _v8_code_literal(all_records, res.labels, res.jump_tables))
     with open(out_t, 'w') as f:
         f.write(test)
@@ -2033,6 +2172,13 @@ def _v8_code_literal(records, labels, jtables):
                          ' "set_pr": %r, "cond": None},'
                          % (pc, slot_py, rec['target'], rec['ret_pc'],
                             rec['set_pr']))
+            continue
+        if kind == 'call_runtime':
+            lines.append('    %#x: {"kind": "call_runtime", "py": None, '
+                         '"slot_py": %r, "target": None, "ret_pc": %#x,'
+                         ' "set_pr": %r, "cond": None, "slot_addr": %#x},'
+                         % (pc, slot_py, rec['ret_pc'], rec['set_pr'],
+                            rec['slot_addr']))
             continue
         if kind == 'jt':
             lines.append('    %#x: {"kind": "jt", "py": None, '
