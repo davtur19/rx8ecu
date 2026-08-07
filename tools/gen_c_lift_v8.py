@@ -217,17 +217,23 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
     _op = (rom[prev] << 8) | rom[prev + 1]
     _dd = ops.translate(_op, prev, rom)
     if _dd is None:
-        return False
-    if _dd.get('kind') in ('branch', 'ret'):
-        return False
-    if gcl.is_call_op(_op):
+        # prev is a mem op (translate covers pure-int only): accept a register-
+        # based load/store prev (e.g. reclaimed 0xB1C0 mov.w r14,@r1)
+        _pms = gcl._mem_shape(_op)
+        if _pms is None or _pms.get('dir') not in ('load', 'store'):
+            return False
+    elif _dd.get('kind') in ('branch', 'ret') or gcl.is_call_op(_op):
         return False
     opc = (rom[pc] << 8) | rom[pc + 1]
     if ops.translate(opc, pc, rom) is not None:
         return True
+    if gcl.is_call_op(opc):                    # jsr/bsr/jmp (e.g. 0xB1A8 jsr @r13)
+        return True
     ms = gcl._mem_shape(opc)
     if ms is not None and ms.get('dir') in ('load', 'store'):
         return True
+    if opc >> 12 == 0xD or opc >> 12 == 0x9 or (opc & 0xFF00) == 0xC700:
+        return True                            # PC-rel literal load (0xB1C2 mov.l @(disp,PC))
     return False
 
 
