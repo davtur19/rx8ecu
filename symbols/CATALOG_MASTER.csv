@@ -22762,7 +22762,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0192d4,0x193B2,setsEngineFaultTypeThing,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,Faults & DTC
 60E0FC00,0x0193b4,0x0194A0,getSecondaryAirPumpRequest,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0194a0,0x0195F4,getConditonalsFuelCutRelated?,ghidra-hand,,,,equinox311:getConditonalsFuelCutRelated?|ghidra-hand,Fuel & Lambda
-60E0FC00,0x0195f4,0x019600,getVehicleCondtions,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
+60E0FC00,0x0195f4,0x0196E6,getVehicleCondtions,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
 60E0FC00,0x0196e6,0x019730,getConditionals,equinox311,GHIDRA-EQX,,,ghidra-auto,Faults & DTC
 60E0FC00,0x0198fa,0x01992A,evaluateFuelCutCondtionUnknown,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0199b4,0x019A24,fuel_trim_decay_controller,ida-ai-xmap,DUBIOUS,fuel_cut_condition_output_b9b4,,ghidra-auto,Faults & DTC

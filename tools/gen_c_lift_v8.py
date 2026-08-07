@@ -2158,6 +2158,10 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                exec(slot_py, ns)\n'
         '            pc = inst["target"] if taken else (pc + 4 if slot_py is not None else pc + 2)\n'
         '        elif kind == "ret":\n'
+        '            if inst.get("rte"):\n'
+        '                # rte pops PC+SR (8 bytes) off the stack before the\n'
+        '                # delay slot / jump; the mirror returns via pr like rts.\n'
+        '                ns["sp"] = (ns["sp"] + 8) & 0xFFFFFFFF\n'
         '            slot_py = inst["slot_py"]\n'
         '            if slot_py:\n'
         '                exec(slot_py, ns)\n'
@@ -2378,9 +2382,10 @@ def _v8_code_literal(records, labels, jtables):
             bi = ops.branch_info(rec['op'])
             bkind = bi['kind']
             if bkind in ('rts', 'rte'):
+                rte_flag = '"rte": True, ' if bkind == 'rte' else ''
                 lines.append('    %#x: {"kind": "ret", "py": None, '
-                             '"slot_py": %r, "target": None, "cond": None},'
-                             % (pc, slot_py))
+                             '"slot_py": %r, "target": None, "cond": None, %s},'
+                             % (pc, slot_py, rte_flag))
             elif bkind in ('bsrf', 'braf'):
                 lines.append('    %#x: {"kind": "dynbranch", "py": None, '
                              '"slot_py": %r, "target": None, "cond": None, '
