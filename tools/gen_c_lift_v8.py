@@ -540,14 +540,32 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             sys_reg = _SYS[op & 0xF0FF]
             sys_store = (op & 0xF) == 0x2    # low nibble: 2 = sts.l, 6 = lds.l
             srn = (op >> 8) & 0xF
+            _dyn = False    # runtime-r15 pop (no static stack-offset model)
             if srn == 15:
                 if not st['stack_ok']:
-                    return None
+                    if sys_store:
+                        return None   # dynamic r15 PUSH: untrackable -> reject
+                    # dynamic r15 POP: r15 holds a runtime address.  Mirror the
+                    # pop against r[15] directly (== sh2emu's lds.l @r15+,X),
+                    # with no sp_off accounting.  Used by dispatcher epilogues
+                    # that restore r15 from a register then pop.
+                    _dyn = True
             elif srn == 14:
                 if not st['frame_live']:
                     return None
             else:
                 return None
+            st['written'].add('r%d' % srn)
+            st['lits'].pop('r%d' % srn, None)
+            _clr_slot(srn)
+            if _dyn:
+                c = ['%s = *(volatile uint32_t*)r15;' % sys_reg,
+                     'r15 = r15 + 4;']
+                py = ['%s = _rdw(ram, r[15], 4)' % sys_reg,
+                      'r[15] = (r[15] + 4) & 0xFFFFFFFF']
+                mnem = 'lds.l @r15+,%s' % sys_reg.upper()
+                return {'pc': pc, 'op': op, 'kind': 'sys_stack', 'c': c,
+                        'py': py, 'target': None, 'slot': None, 'mnem': mnem}
             if srn == 15:
                 if sys_store:
                     st['sp_off'] -= 4
@@ -560,9 +578,6 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                        else st['sp_off']) + (-4 if sys_store else 0)
             info['has_stack'] = True
             info['stack_offs'].add(off)
-            st['written'].add('r%d' % srn)
-            st['lits'].pop('r%d' % srn, None)
-            _clr_slot(srn)
             if sys_store:
                 c = ['local_%x = %s;' % (off, sys_reg)]
                 py = ['local[0x%X] = %s' % (off, sys_reg),
@@ -1055,9 +1070,35 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                             seen_pc.add(pc + 2)
                         pc += 4 if slot is not None else 2
                         continue
-                    res.reject = (('jsr_unresolved' if kind == 'jsr'
-                                   else 'indirect_unresolved'), pc)
-                    return res
+                    # General runtime dispatch: jmp/jsr @rN with no static
+                    # literal (and not a ROM-slot call_runtime).  rN holds a
+                    # runtime-computed target (e.g. an indexed dispatch table).
+                    # The mirror dispatches to the target if it was lifted into
+                    # CODE (in-span), else jsr->nullsub-return (ret_pc) / jmp->RET.
+                    # Previously this rejected jsr_unresolved/indirect_unresolved;
+                    # now it yields a runtime_dispatch record.
+                    slot = slot_record(pc + 2) if pc + 2 < end else None
+                    _is_jsr = (kind == 'jsr')
+                    if _is_jsr and slot is not None and pc + 3 < bound and \
+                            (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                        res.reject = ('pr_loop', pc)
+                        return res
+                    res.edges.append((pc, 'rt-dispatch', None))
+                    rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
+                           'mnem': '%s @r%d (runtime)' % ('jsr' if _is_jsr else 'jmp', rn),
+                           'reg': rn, 'is_call': _is_jsr,
+                           'ret_pc': (pc + 4) & MASK,
+                           'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                + (['s->pr = 0x%08X;' % ((pc + 4) & MASK)] if _is_jsr else [])
+                                + ['((void(*)(ST*))s->r[%d])(s);' % rn]
+                                + (['return;'] if not _is_jsr else []),
+                           'slot': slot, 'target': None}
+                    res.records.append(rec)
+                    seen_pc.add(pc)
+                    if slot is not None:
+                        seen_pc.add(pc + 2)
+                    pc += 4 if slot is not None else 2
+                    continue
                 tgt = v & MASK
                 res.edges.append((pc, kind, tgt))
                 if addr <= tgt < end:
@@ -1519,8 +1560,8 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
           which the caller mirror owns), so it never crosses into the next
           function and never diverges on the next function's unmapped bytes.
     """
-    if depth > 6:
-        return None, 'depth>6'
+    if depth > 12:
+        return None, 'depth>12'
     if seen is None:
         seen = set()
     if t in seen:
@@ -1602,6 +1643,8 @@ def _render_st_body(fn, addr, res, callees):
         if rec['kind'] == 'call':
             stmts.extend(rec['c'])           # already ST-form
         elif rec['kind'] == 'call_runtime':
+            stmts.extend(rec['c'])           # already ST-form
+        elif rec['kind'] == 'runtime_dispatch':
             stmts.extend(rec['c'])           # already ST-form
         elif rec['kind'] == 'jt':
             stmts.extend(rec['c'])
@@ -1963,10 +2006,31 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            if inst["set_pr"]:\n'
         '                ns["pr"] = inst["ret_pc"]\n'
         '            slot_py = inst["slot_py"]\n'
-        '            if slot_py:\n'
-        '                exec(slot_py, ns)\n'
-        '            pc = inst["ret_pc"]\n'
-        '        elif kind == "branch":\n'
+'            if slot_py:\n'
+         '                exec(slot_py, ns)\n'
+         '            pc = inst["ret_pc"]\n'
+         '        elif kind == "runtime_dispatch":\n'
+         '            # runtime-indexed jmp/jsr: dispatches to r[reg] if that\n'
+         '            # target was lifted into CODE (in-span); else jsr falls\n'
+         '            # through to ret_pc and jmp returns (RET).  Mirrors\n'
+         '            # sh2emu, which runs the real target on the shared seeded\n'
+         '            # RAM (in-span targets match; out-of-span targets drift,\n'
+         '            # but sh2emu escaping is caught by StepLimitExceeded->skip).\n'
+         '            slot_py = inst["slot_py"]\n'
+         '            if slot_py:\n'
+         '                exec(slot_py, ns)\n'
+         '            reg = inst["reg"]\n'
+         '            _tg = r[reg] & 0xFFFFFFFF\n'
+         '            _tgt = CODE.get(_tg)\n'
+         '            if inst["is_call"]:\n'
+         '                ns["pr"] = inst["ret_pc"]\n'
+         '                pc = inst["ret_pc"] if _tgt is None else _tgt\n'
+         '            else:\n'
+         '                if _tgt is None:\n'
+         '                    return ("RET", [x & 0xFFFFFFFF for x in r],\n'
+         '                            list(_WRITES), dict(ram), ns["pr"] & 0xFFFFFFFF)\n'
+         '                pc = _tgt\n'
+         '        elif kind == "branch":\n'
         '            t = ns["T"]\n'
         '            taken = True\n'
         '            if inst["cond"] == "T":\n'
@@ -2059,8 +2123,12 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
         '        elif k == "call":\n'
         '            stack.append(inst["ret_pc"])\n'
-        '        elif k == "call_runtime":\n'
-        '            stack.append(inst["ret_pc"])\n'
+'        elif k == "call_runtime":\n'
+         '            stack.append(inst["ret_pc"])\n'
+         '        elif k == "runtime_dispatch":\n'
+         '            if inst["is_call"]:\n'
+         '                stack.append(inst["ret_pc"])\n'
+         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
         '        elif k == "jt":\n'
         '            stack.extend(c for c in inst["cases"] if c is not None)\n'
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
@@ -2179,6 +2247,13 @@ def _v8_code_literal(records, labels, jtables):
                          ' "set_pr": %r, "cond": None, "slot_addr": %#x},'
                          % (pc, slot_py, rec['ret_pc'], rec['set_pr'],
                             rec['slot_addr']))
+            continue
+        if kind == 'runtime_dispatch':
+            lines.append('    %#x: {"kind": "runtime_dispatch", "py": None, '
+                         '"slot_py": %r, "target": None, "ret_pc": %#x,'
+                         ' "reg": %d, "is_call": %r, "cond": None},'
+                         % (pc, slot_py, rec['ret_pc'], rec.get('reg'),
+                            rec.get('is_call')))
             continue
         if kind == 'jt':
             lines.append('    %#x: {"kind": "jt", "py": None, '
