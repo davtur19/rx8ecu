@@ -1515,6 +1515,20 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
     if end is None:
         return None, None, False, 'no-span'
     _a, end_s, _r = v3.sanitize_span(addr, end, rom)
+    # caller-span fix (truncated-span MISMATCH class, e.g. 0x54B04): the
+    # catalog end (here an estimate) + sanitize_span can cut the caller
+    # mid-epilogue — last record `lds.l @r15+,pr` with the real rts (and its
+    # delay slot) just outside the span -> r15 off-by-4 in the mirror.  Pull
+    # the rts (and delay slot) into the span when none is in-span: first the
+    # rts sitting exactly at end_s, then the bounded rts-scan fallback.
+    if _callee_first_rts(rom, addr, end_s) is None:
+        if end_s + 1 < len(rom) and \
+                (rom[end_s] << 8) | rom[end_s + 1] == 0x000B:
+            end_s = min(end_s + 4, len(rom))
+        else:
+            _ext = _callee_extend_to_rts(rom, addr, end_s, bounds)
+            if _ext is not None:
+                end_s = _ext
     lifted = _load_lifted()
     res = build_cfg(rom, addr, end_s, lifted, catalog, allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
@@ -1576,6 +1590,83 @@ def _callee_span_end(t, catalog, bounds):
     end_c = catalog.get(t)
     if end_c is None and bounds is not None:
         end_c = v3._next_addr(t, bounds)
+    return end_c
+
+
+_GHIDRA_SPANS = None
+
+
+def _load_ghidra_spans():
+    """Lazily load symbols/symbols_60E0FC00.csv (addr -> end) once.  The
+    ghidra spans are the reference disassembly's function bounds: a callee's
+    CATALOG_MASTER end is frequently truncated mid-body while the ghidra span
+    covers the full function (e.g. 0x5F1C: catalog end 0x5F36 vs ghidra
+    0x6010, real rts@0x5FF2)."""
+    global _GHIDRA_SPANS
+    _GHIDRA_SPANS = {}
+    p = os.path.join(ROOT, 'symbols', 'symbols_60E0FC00.csv')
+    if not os.path.exists(p):
+        return
+    with open(p) as f:
+        for row in csv.DictReader(f):
+            try:
+                a = int(row['addr'].strip(), 16)
+                e = int((row['end'] or '').strip(), 16)
+            except (ValueError, TypeError):
+                continue
+            _GHIDRA_SPANS[a] = e
+
+
+def _ghidra_span_end(t):
+    """Ghidra span end for address `t` (symbols_60E0FC00.csv) or None."""
+    if _GHIDRA_SPANS is None:
+        _load_ghidra_spans()
+    return _GHIDRA_SPANS.get(t)
+
+
+def _callee_extend_to_rts(rom, t, end_c, bounds):
+    """Extend a truncated span [t, end_c) that contains NO rts: scan forward
+    from `end_c` for the next real `rts` (opcode 0x000B at an even offset,
+    skipping literal-pool words) and return rts+4 (the rts plus its delay
+    slot) as the new end.  Bounded by the next catalog row start — never
+    extends past a catalogued function — or a +0x400 cap; only the FIRST rts
+    found is used.  Returns None when there is no room to extend or no rts."""
+    cap = min(end_c + 0x400, len(rom))
+    nxt = v3._next_addr(t, bounds) if bounds else None
+    if nxt is None:
+        ub = cap
+    elif end_c < nxt < cap:
+        ub = nxt
+    else:
+        # next catalog row starts at/before end_c: no extension window
+        return None
+    pool = gcl._pcrel_pool_words(rom, t, cap)
+    pc = end_c
+    while pc + 1 < ub:
+        if pc not in pool and (rom[pc] << 8) | rom[pc + 1] == 0x000B:
+            return pc + 4
+        pc += 2
+    return None
+
+
+def _callee_eff_end(rom, t, catalog, bounds):
+    """Effective walk end for callee `t`, fixing truncated spans:
+      1. ghidra-span preference: the symbols_60E0FC00.csv end when it is
+         LONGER than the catalog end (catalog ends are often cut mid-body);
+      2. rts-scan fallback: when the resulting span still has no in-span rts,
+         extend past the catalog end to the next real rts (rts+4), bounded by
+         the next catalog row start / +0x400 cap.
+    Returns the effective end, or None when no span exists."""
+    end_c = _callee_span_end(t, catalog, bounds)
+    if end_c is None:
+        return None
+    g_end = _ghidra_span_end(t)
+    if g_end is not None and g_end > end_c:
+        end_c = g_end
+    if _callee_first_rts(rom, t, end_c) is None:
+        ext = _callee_extend_to_rts(rom, t, end_c, bounds)
+        if ext is not None:
+            end_c = ext
     return end_c
 
 
@@ -1673,7 +1764,7 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     if t in seen:
         return None, 'cycle'
     seen = seen | {t}
-    end_c = _callee_span_end(t, catalog, bounds)
+    end_c = _callee_eff_end(rom, t, catalog, bounds)
     if end_c is None:
         return None, ('no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
@@ -1785,7 +1876,7 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     """Emit c/lib/f_<hex>.c via the CFG engine (build_cfg + ST renderer) — a
     fallback for callees whose v3 walk-based leaf lib (v7.emit_callee) fails
     on undefined branch labels.  Returns (path, None) or (None, reason)."""
-    end_c = _callee_span_end(t, catalog, bounds)
+    end_c = _callee_eff_end(rom, t, catalog, bounds)
     if end_c is None:
         return None, ('callee-no-span', t)
     # The callee leaf is bounded by its first `rts` (plus any conditional-branch
@@ -1830,7 +1921,7 @@ def _ensure_callee_lib(t, rom, catalog, bounds, rom_label=None):
     path = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
     if os.path.exists(path):
         return path, None
-    end_c = _callee_span_end(t, catalog, bounds)
+    end_c = _callee_eff_end(rom, t, catalog, bounds)
     if end_c is None:
         return None, ('callee-no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
