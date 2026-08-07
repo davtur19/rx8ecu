@@ -219,18 +219,29 @@ def _fpu_mem_rt(pc, op, f, temp):
 
 def _v6_reclaim(rom, pc, data, addr, ops, gcl):
     prev = pc - 2
-    if prev < addr or prev in data:
+    if prev < addr:
         return False
-    _op = (rom[prev] << 8) | rom[prev + 1]
-    _dd = ops.translate(_op, prev, rom)
-    if _dd is None:
-        # prev is a mem op (translate covers pure-int only): accept a register-
-        # based load/store prev (e.g. reclaimed 0xB1C0 mov.w r14,@r1)
-        _pms = gcl._mem_shape(_op)
-        if _pms is None or _pms.get('dir') not in ('load', 'store'):
+    # prev is the DELAY SLOT of a walked call (pc-4 is a call op): the slot
+    # executed as part of the call, so the candidate at pc is the call's
+    # ret_pc fallthrough (e.g. 0x1CB26 after jsr at 0x1CB22 in 0x1AA1E).
+    # Skip the prev-op checks entirely: neither the `prev in data` rejection
+    # nor the translate/_mem_shape checks apply (the slot is part of the call
+    # record, not a live back-edge into the lifted region).
+    slot_of_call = (pc - 4 >= addr and
+                    gcl.is_call_op((rom[pc - 4] << 8) | rom[pc - 3]))
+    if prev in data and not slot_of_call:
+        return False
+    if not slot_of_call:
+        _op = (rom[prev] << 8) | rom[prev + 1]
+        _dd = ops.translate(_op, prev, rom)
+        if _dd is None:
+            # prev is a mem op (translate covers pure-int only): accept a
+            # register-based load/store prev (e.g. reclaimed 0xB1C0 mov.w r14,@r1)
+            _pms = gcl._mem_shape(_op)
+            if _pms is None or _pms.get('dir') not in ('load', 'store'):
+                return False
+        elif _dd.get('kind') in ('branch', 'ret') or gcl.is_call_op(_op):
             return False
-    elif _dd.get('kind') in ('branch', 'ret') or gcl.is_call_op(_op):
-        return False
     opc = (rom[pc] << 8) | rom[pc + 1]
     if ops.translate(opc, pc, rom) is not None:
         return True
@@ -1906,8 +1917,8 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
           which the caller mirror owns), so it never crosses into the next
           function and never diverges on the next function's unmapped bytes.
     """
-    if depth > 12:
-        return None, 'depth>12'
+    if depth > 32:
+        return None, 'depth>32'
     if seen is None:
         seen = set()
     if t in seen:
@@ -1945,6 +1956,22 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
             br_rec = {'pc': pc, 'op': op, 'kind': 'branch',
                       'mnem': 'bra %#x' % tgt, 'target': tgt, 'slot': slot}
             return [br_rec] + sub, None
+        if reason == 'midfunc_nop':
+            # NOP-sled padding target (e.g. 0x4C14): synthesize a no-op body
+            # (NOPs until the first rts) instead of failing the whole emit.
+            e2 = pc
+            body = []
+            while e2 + 1 < end_c:
+                w = (rom[e2] << 8) | rom[e2 + 1]
+                if w == 0x000B:
+                    body.append({'pc': e2, 'op': w, 'kind': 'ret',
+                                 'mnem': 'rts', 'c': ['return r0;']})
+                    return body, None
+                if w != 0x0009:
+                    break
+                body.append({'pc': e2, 'op': w, 'kind': 'nop',
+                             'mnem': 'nop', 'c': []})
+                e2 += 2
         return None, (reason, pc)
     records = res.records
     # bug d (walk): a callee whose catalog span is cut mid-epilogue ends its
