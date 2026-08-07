@@ -1052,19 +1052,26 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     if addr <= target < end:
                         labels.add(target)
                         _push_with_state(target)
-                    elif tail_bra_as_call and kind == 'bra':
-                        # out-of-span unconditional bra => tail call to a sibling
+                    elif tail_bra_as_call and (kind == 'bra' or kind in ('bt', 'bts', 'bf', 'bfs')):
+                        # out-of-span static branch => tail call to a sibling.
+                        # bra (unconditional) exits; bt/bf/bt.s/bf.s are CONDITIONAL
+                        # tail calls: `if (T/!T) { f_%X(s); return; }` with fallthrough
+                        # continuing when the branch is not taken.
+                        cond = v3.BRANCH_C[kind].split(' goto ')[0]   # 'if (T)' / 'if (!T)'
                         rec = {'pc': pc, 'op': op, 'kind': 'call',
-                               'mnem': 'bra %#x (tail)' % target,
+                               'mnem': '%s (tail)' % (v3.BRANCH_MNEM[kind] % target),
                                'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
-                                    + ['f_%X(s);' % target, 'return;'],
+                                    + ['%s { f_%X(s); return; }' % (cond, target)],
                                'slot': slot, 'target': target,
                                'ret_pc': (pc + 4) & MASK, 'set_pr': False}
                         res.records.append(rec)
                         seen_pc.add(pc)
                         if slot is not None:
                             seen_pc.add(pc + 2)
-                        break
+                        if kind == 'bra':
+                            break
+                        pc += 4 if slot is not None else 2
+                        continue
                     else:
                         res.reject = ('target_fuori', pc)
                         return res
