@@ -454,7 +454,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             table and put the TARGETS' code in the caller's mirror CODE dict.
         Called from BOTH mem emission paths (decode_mem and the rt-base
         fallback, which decode_mem cannot resolve for non-param bases)."""
-        if mr.get('idx') == 'r0' and mr['dir'] == 'load' and mr.get('dest') is not None:
+        if mr.get('idx') == 'r0' and mr['dir'] == 'load' and mr.get('dest') is not None \
+                and 'r0' not in st['lits']:
+            # NOTE: if the index register r0 itself also holds a literal (e.g.
+            # `mov #imm,r0` immediately before), @(r0,Rm) is a fully-static
+            # indexed deref -> single target ROM[base + lit(r0)], NOT a jump
+            # table; record no table bookkeeping so the jsr falls through to
+            # the runtime-dispatch path instead of jump_table_unresolved.
             if 'r%d' % mr['base_reg'] in st['lits']:
                 tbl_base[mr['dest']] = st['lits']['r%d' % mr['base_reg']]
             elif 'r0' in st['lits'] and st['lits']['r0'] is not None \
