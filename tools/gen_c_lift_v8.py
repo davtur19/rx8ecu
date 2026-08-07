@@ -1888,11 +1888,17 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
 
 
 def _sprel_py(rec):
-    """Rewrite an r15-based stack/sys_stack record's py to sp-relative
+    """Rewrite an r15/r14 based stack/frame record's py to runtime-relative
     addressing.  Returns the new py list (local[] writes are dropped: they are
     write-only mirror state that would re-bake the fixed-offset model).  Only
-    r15-based ops are rewritten; r14/frame and literal-RAM ops keep their
-    addressing."""
+    r15-based and r14-frame ops are rewritten; literal-RAM ops keep their
+    addressing.
+
+    r14-frame records (@(disp,r14) / @r14) are baked to absolute STACK_BASE+off
+    where off uses the record's own sp_off seed (STACK_TOP for an inlined
+    callee), NOT the caller's real sp at the call site.  Since the frame-pointer
+    fix guarantees r14==r15 (runtime sp) in the mirror, emit them as runtime
+    r[14]+disp instead like the r15 ops."""
     op = rec.get('op', 0)
     kind = rec.get('kind')
     if kind == 'sys_stack':
@@ -1902,14 +1908,21 @@ def _sprel_py(rec):
         addr = '(sp - 4) & 0xFFFFFFFF' if sys_store else 'sp'
     elif kind == 'stack':
         sh = gcl._mem_shape(op)
-        if sh is None or sh['base'] != 15 or sh.get('idx') is not None:
+        if sh is None or sh.get('idx') is not None:
             return list(rec.get('py') or [])
-        if sh['auto'] == 'pre':
-            addr = '(sp - %d) & 0xFFFFFFFF' % sh['size']
-        elif sh['auto'] == 'post':
-            addr = 'sp'
+        if sh['base'] == 15:
+            if sh['auto'] == 'pre':
+                addr = '(sp - %d) & 0xFFFFFFFF' % sh['size']
+            elif sh['auto'] == 'post':
+                addr = 'sp'
+            else:
+                addr = 'sp + %d' % sh['disp'] if sh['disp'] else 'sp'
+        elif sh['base'] == 14:
+            if sh['auto'] in ('pre', 'post'):
+                return list(rec.get('py') or [])
+            addr = 'r[14] + %d' % sh['disp'] if sh['disp'] else 'r[14]'
         else:
-            addr = 'sp + %d' % sh['disp'] if sh['disp'] else 'sp'
+            return list(rec.get('py') or [])
     else:
         return list(rec.get('py') or [])
     out = []
