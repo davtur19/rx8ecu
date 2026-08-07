@@ -22362,7 +22362,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00a4be,0x00A4F0,infiniteLoop,equinox311,GHIDRA-EQX,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x00a4f0,0x00A50E,timer1_init_and_start,ida-ai-xmap,DUBIOUS,sfr_timer_init_f710_f71c,,ghidra-auto,Sensors
 60E0FC00,0x00a50e,0x0A522,set_CMCSR1_timer,equinox311,GHIDRA-EQX,FUN_0000a50e,,ghidra-auto|ida-ai-xmap,Boot & Init
-60E0FC00,0x00a522,0x00A53C,genericTaskCaller?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,RTOS
+60E0FC00,0x00a522,0x00A586,genericTaskCaller?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,RTOS
 60E0FC00,0x00a824,0x00A850,port_b_gpio_toggle_bit,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x00a850,0x00A8A4,port_b_set_mask_with_multiply,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Sensors
 60E0FC00,0x00a8a4,0x00A8DC,write_to_memory_with_fpu_sync,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Memory & CRC
@@ -22475,7 +22475,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00daf0,0x00DB58,handleCANReset,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x00db58,0x00DBF6,CANTX_Main,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x00dbf6,0x00DCC0,CANRX_Main,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
-60E0FC00,0x00dcc0,0x00DD2A,checkCANsomethingKeyOnBased,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
+60E0FC00,0x00dcc0,0x00DDBC,checkCANsomethingKeyOnBased,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x00dddc,0x0DE3C,CANSetupSomethingDifferentBasedOnBit,equinox311,GHIDRA-EQX,,,ghidra-hand,CAN Bus
 60E0FC00,0x00de3c,0x00DE46,can_init_copy_a400,ghidra-auto,,FUN_0000de3c,,ghidra-auto,CAN Bus
 60E0FC00,0x00de46,0x00DE72,FUN_0000de46,ghidra-auto,,can_fault_counter_update,,ghidra-auto,Faults & DTC
@@ -23395,7 +23395,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0302d6,0x0302F4,getInjctorManifoldVacuumCompensationMult,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0302f4,0x30308,getBaroPressureMult,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x030344,0x0303E8,injectorPulseTimeArbitrate_crankAddTimer,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x030414,0x03045E,getFuelInectorLatencyCals,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
+60E0FC00,0x030414,0x0304A6,getFuelInectorLatencyCals,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x0304cc,0x0304DE,getInjectorOnTimeCompensations,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x030570,0x030586,setInjectorStuffPrevLoop?,ghidra-hand,,setInjectorStuffPrevLoop_,,equinox311:setInjectorStuffPrevLoop?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x030586,0x03059E,initIPWValue?,equinox311,GHIDRA-EQX-UNCERTAIN,warm_restart_copy_cal_float_be9c,,ghidra-auto,Boot & Init
