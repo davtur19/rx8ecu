@@ -18908,7 +18908,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FB00,0x035f9c,0x036076,Immo_Keygen_related_ADC,ghidra-hand-xmap,,,,,Sensors
 60E0FB00,0x036076,0x0360BC,loadDatafromE2intoRAM?,ghidra-hand-xmap,,,,,Fuel & Lambda
 60E0FB00,0x0360bc,0x0361AC,getDataFromE2RAM,ghidra-hand-xmap,,,,,Fuel & Lambda
-60E0FB00,0x0361ac,0x036278,updateE2RAMBasedOnInput,ghidra-hand-xmap,,,,,Memory & CRC
+60E0FB00,0x0361ac,0x0364A0,updateE2RAMBasedOnInput,ghidra-hand-xmap,,,,,Memory & CRC
 60E0FB00,0x036278,0x036314,FUN_036278,derived,,,,,Memory & CRC
 60E0FB00,0x036314,0x0363A8,FUN_036314,derived,,,,,Memory & CRC
 60E0FB00,0x0363a8,0x0364A0,FUN_0363a8,derived,,,,,Memory & CRC
@@ -23548,7 +23548,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x035f9c,0x036076,Immo_Keygen_related_ADC,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
 60E0FC00,0x036076,0x0360BC,loadDatafromE2intoRAM?,ghidra-hand,,,,equinox311:loadDatafromE2intoRAM?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x0360bc,0x0361AC,getDataFromE2RAM,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x0361ac,0x036278,updateE2RAMBasedOnInput,equinox311,GHIDRA-EQX,,,ghidra-hand,Memory & CRC
+60E0FC00,0x0361ac,0x0364A0,updateE2RAMBasedOnInput,equinox311,GHIDRA-EQX,,,ghidra-hand,Memory & CRC
 60E0FC00,0x036456,,writeToE2RAMAreaTHUNK_INDEX_ADDR_LEN,equinox311,GHIDRA-EQX,,,ghidra-hand,Memory & CRC
 60E0FC00,0x0364a0,0x0365C0,immo_fault_code_param_dispatch,ghidra-auto,,FUN_000364a0,,ghidra-auto,Memory & CRC
 60E0FC00,0x0365c0,0x036684,ImmoUpdateRelated,equinox311,GHIDRA-EQX,immo_update_state_machine,,ghidra-hand,OBD / UDS

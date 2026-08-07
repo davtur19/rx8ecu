@@ -788,8 +788,24 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
     seen_pc = set()        # every pc already consumed (record emitted / slot /
                            # data) — dedups blocks reached by fall-through AND
                            # by a branch target, and skips consumed delay slots.
+    # Path-sensitive literal/state isolation (walker-artifact fix).  pending is a
+    # LIFO walk: the SAME st['lits'] / st['written'] get mutated by every block,
+    # so an epilogue block popped first can `mov.l @r15+,Rn` (0x6Fn6) and pop a
+    # literal def out of a register before the block that LATER does `jsr @Rn`
+    # (e.g. callee 0x361AC: r14=0x385C4 set at 0x361B4, single def, never
+    # overwritten on the real path, yet the jsr at 0x36354 saw r14 gone when the
+    # epilogue was walked first).  Snapshot lits/written at each pending-push
+    # and restore on pop so each block walks from the state at its branch point.
+    pending_state = {}     # block pc -> (lits-dict, written-set) snapshot
+    def _snapshot_st():
+        return (dict(st['lits']), set(st['written']))
+    def _push_with_state(target):
+        pending.append(target)
+        pending_state[target] = _snapshot_st()
     while pending:
         bs = pending.pop()
+        if bs in pending_state:
+            st['lits'], st['written'] = pending_state[bs]
         if bs in visited or bs in seen_pc:
             continue
         visited.add(bs)
@@ -834,7 +850,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     res.edges.append((pc, 'branch', target))
                     if addr <= target < end:
                         labels.add(target)
-                        pending.append(target)
+                        _push_with_state(target)
                     elif tail_bra_as_call and kind == 'bra':
                         # out-of-span unconditional bra => tail call to a sibling
                         rec = {'pc': pc, 'op': op, 'kind': 'call',
@@ -882,7 +898,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     res.edges.append((pc, 'bsr', tgt))
                     if addr <= tgt < end:
                         labels.add(tgt)
-                        pending.append(tgt)
+                        _push_with_state(tgt)
                     rec = {'pc': pc, 'op': op, 'kind': 'call', 'mnem': 'bsr 0x%X' % tgt,
                            'c': ['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
                                 + ([v7.to_st_c(s) for s in slot['c']] if slot else [])
@@ -907,7 +923,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     for e in entries:
                         if addr <= e < end:
                             labels.add(e)
-                            pending.append(e)
+                            _push_with_state(e)
                     slot = slot_record(pc + 2) if pc + 2 < end else None
                     if slot is not None and pc + 3 < bound and \
                             (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
@@ -943,7 +959,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 res.edges.append((pc, kind, tgt))
                 if addr <= tgt < end:
                     labels.add(tgt)
-                    pending.append(tgt)
+                    _push_with_state(tgt)
                 slot = slot_record(pc + 2) if pc + 2 < end else None
                 # PR LOOP GUARD: a `lds.l @r15+,pr` delay slot (0x4F26) after a
                 # `jsr` leaves pr = stack-popped value, which the inlined callee's
@@ -1565,7 +1581,7 @@ def _ensure_callee_lib(t, rom, catalog, bounds, rom_label=None):
         return None, ('callee-no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
     size = (rts + 2 if rts is not None else end_c) - t
-    if size <= 0 or size > 512:
+    if size <= 0 or size > 704:
         return None, ('callee-span', t, size)
     ok, err = v7.emit_callee(t, size, rom, path, rom_label=rom_label)
     if not ok:
