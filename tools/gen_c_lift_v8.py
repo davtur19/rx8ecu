@@ -1328,6 +1328,8 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
         os.path.join(ROOT, 'symbols', 'FUNCTION_CATEGORIES.csv'), bank)
     cands = v3._merge_nospan_cands(categories, no_spans, bounds, bank)
     lifted = _load_lifted()
+    names = _bank_names(bank)
+    drop_set = _fragment_drop_addrs(rom, catalog, bounds, names)
 
     pool_v8 = []
     reasons = Counter()
@@ -1343,6 +1345,8 @@ def run_metrics(rom_path=DEFAULT_ROM, bank='60E1D400', verbose=True):
 
     for c in cands:
         addr = c['addr']
+        if addr in drop_set:
+            continue
         end = catalog.get(addr)
         use_est = False
         if end is None:
@@ -1467,10 +1471,14 @@ def run_dryrun(rom_path, bank, seed=42):
             if (row.get('end') or '').strip().upper() == '0XFFFFFFFF':
                 sent += 1
     lifted = _load_lifted()
+    names = _bank_names(bank)
+    drop_set = _fragment_drop_addrs(rom, catalog, bounds, names)
     pool, no_span_est = 0, 0
     reasons = Counter()
     for c in cands:
         addr = c['addr']
+        if addr in drop_set:
+            continue
         if glob.glob(os.path.join(ROOT, 'c', '*_%x.c' % addr)):
             continue
         if addr in lifted:
@@ -1628,6 +1636,134 @@ def _ghidra_span_end(t):
     if _GHIDRA_SPANS is None:
         _load_ghidra_spans()
     return _GHIDRA_SPANS.get(t)
+
+
+def _fragment_spans(rom, catalog, bounds):
+    """Effective span end per catalog row:
+      1. end = catalog end; else ghidra span end (symbols_60E0FC00.csv);
+         else next-addr estimate (v3 rule).
+      2. sanitize_span(a, end, rom) and use end_s VERBATIM — NO rts+2
+         pull-in, NO forward rts-scan.  Those rts-extensions walked a
+         mislabeled DATA table (e.g. parent 0x26F4 interpolate_charTable) as
+         code and stretched spans past real functions.  Fragments are now
+         identified by the curated NAME (rule 2), so spans stay honest.
+    Returns {addr: end} for rows with end > start."""
+    spans = {}
+    for a in catalog:
+        end = catalog.get(a)
+        if end is None:
+            end = _ghidra_span_end(a)
+        if end is None:
+            end = v3._next_addr(a, bounds)
+        if end is None:
+            continue
+        _a, end, _r = v3.sanitize_span(a, end, rom)
+        if end > a:
+            spans[a] = end
+    return spans
+
+
+_FRAG_NAMES = None
+
+
+def _load_fragment_names():
+    """CATALOG_MASTER.csv -> {bank: {addr: {'end': end_or_None,
+    'src': src_name, 'lift': lift_name}}}, cached module-level.  Mirrors
+    v3.load_catalog_nospans filtering (NOISE rows and the 0xFFFFFFFF addr
+    sentinel excluded; end 0xFFFFFFFF treated as None) so the bank can be
+    resolved exactly from a bare catalog dict via (addr, end) pair match."""
+    global _FRAG_NAMES
+    if _FRAG_NAMES is not None:
+        return _FRAG_NAMES
+    _FRAG_NAMES = {}
+    p = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
+    with open(p) as f:
+        for row in csv.DictReader(f):
+            if (row.get('flag') or '').strip() == 'NOISE':
+                continue
+            try:
+                addr = int(row['addr'].strip(), 16)
+            except (ValueError, TypeError):
+                continue
+            if addr == 0xFFFFFFFF:
+                continue
+            bank = (row.get('bank') or '').strip()
+            try:
+                end = int((row.get('end') or '').strip(), 16)
+            except (ValueError, TypeError):
+                end = None
+            if end == 0xFFFFFFFF:
+                end = None
+            _FRAG_NAMES.setdefault(bank, {})[addr] = {
+                'end': end,
+                'src': (row.get('src_name') or '').strip(),
+                'lift': (row.get('lift_name') or '').strip(),
+            }
+    return _FRAG_NAMES
+
+
+def _bank_names(bank):
+    """{addr: (src_name, lift_name)} for the CATALOG_MASTER rows of `bank`
+    ('frag' is matched case-insensitively against both names)."""
+    return {a: (d['src'], d['lift'])
+            for a, d in _load_fragment_names().get(bank, {}).items()}
+
+
+def _fragment_names_for_catalog(catalog):
+    """Bank {addr: (src_name, lift_name)} resolved from a bare catalog dict
+    (no bank label available): exact (addr, end) pair match against the loaded
+    banks, then a key-subset fallback."""
+    loaded = _load_fragment_names()
+    pairs = set(catalog.items())
+    for rows in loaded.values():
+        if pairs == set((a, d['end']) for a, d in rows.items()):
+            return {a: (d['src'], d['lift']) for a, d in rows.items()}
+    ks = set(catalog)
+    for rows in loaded.values():
+        if ks and ks <= set(rows):
+            return {a: (d['src'], d['lift']) for a, d in rows.items()}
+    return {}
+
+
+def _fragment_drop_addrs(rom, catalog, bounds, names=None):
+    """Catalog rows that are TRUE fragments, judged by NAME only: X is dropped
+    iff (a) X's name (src_name or lift_name, case-insensitive) contains 'frag'
+    — the curated name is authoritative evidence — AND (b) X.start is strictly
+    inside ANOTHER row's effective span (o < X.start < oe).
+
+    The earlier walker-based rule was wrong: it built the parent's CFG and
+    dropped whatever the walker covered, but parent 0x26F4 (interpolate_
+    charTable) is a mislabeled DATA table the walker walks as CODE, so real
+    functions (e.g. 0x2710 ISR_100) sitting inside its span were dropped too.
+    'frag' in the curated catalog name never misfires.
+
+    `names` is the bank's {addr: (src_name, lift_name)} map, loaded once at the
+    call sites; when it can't be passed (bare 3-arg call) the CSV is loaded
+    itself (module-level cache).  Returns a set of dropped addresses."""
+    if names is None:
+        names = _fragment_names_for_catalog(catalog)
+    spans = _fragment_spans(rom, catalog, bounds)
+    drops = set()
+    for a in catalog:
+        nm = names.get(a)
+        if not nm:
+            continue
+        if 'frag' not in ((nm[0] + ' ' + nm[1]).lower()):
+            continue
+        for o, oe in spans.items():
+            if o != a and o < a < oe:
+                drops.add(a)
+                break
+    return drops
+
+
+def _fragment_parent(rom, catalog, bounds, addr):
+    """Address of the catalog row whose effective span strictly contains
+    `addr` (for the 'skipped: fragment of 0xXXXX' message), else None."""
+    for o, oe in _fragment_spans(rom, catalog, bounds).items():
+        if o < addr < oe:
+            return o
+    return None
 
 
 def _callee_extend_to_rts(rom, t, end_c, bounds):
@@ -1962,8 +2098,12 @@ def run_batch(rom, outdir, catalog, bounds, n=20, seed=42, cases=500,
     _, no_spans, _b = _load_catalog(
         os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv'), rom_label)
     cands = v3._merge_nospan_cands(categories, no_spans, bounds, rom_label)
+    names = _bank_names(rom_label)
+    drop_set = _fragment_drop_addrs(rom, catalog, bounds, names)
     for c in cands:
         addr = c['addr']
+        if addr in drop_set:
+            continue
         end = catalog.get(addr)
         if end is None:
             end = v3._next_addr(addr, bounds)
@@ -2585,6 +2725,12 @@ def main():
         addr = int(args.emit, 16)
         cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')
         catalog, _, bounds = _load_catalog(cat_path, rom_label)
+        names = _bank_names(rom_label)
+        drop_set = _fragment_drop_addrs(rom, catalog, bounds, names)
+        if addr in drop_set:
+            parent = _fragment_parent(rom, catalog, bounds, addr)
+            print('skipped: 0x%X is a fragment of 0x%X' % (addr, parent))
+            return 0
         outdir = args.outdir or os.path.join(ROOT, 'tmp', 'v8')
         force_end = int(args.span, 16) if args.span else None
         out_c, out_t, ok, reason = emit_caller(
