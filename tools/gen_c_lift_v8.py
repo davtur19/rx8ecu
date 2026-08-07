@@ -2219,7 +2219,7 @@ def _v8_code_literal(records, labels, jtables):
         if kind == 'branch':
             bi = ops.branch_info(rec['op'])
             bkind = bi['kind']
-            if bkind == 'rts':
+            if bkind in ('rts', 'rte'):
                 lines.append('    %#x: {"kind": "ret", "py": None, '
                              '"slot_py": %r, "target": None, "cond": None},'
                              % (pc, slot_py))
