@@ -325,9 +325,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 if 'r14' not in st['written']:
                     st['frame_live'] = True
                     st['frame_off'] = st['sp_off']
+                # r14 may be READ as a value, not just used as a frame *base* (e.g.
+                # `mov r14,rN` copies the frame ptr into another reg).  Eliding the
+                # assignment would leave r14 unset in the mirror (MISMATCH reg=rN
+                # mirror=00000000).  Always emit r14 = r15 (=SP), which is correct
+                # whenever 0x6EF3 executes.  Keeps frame_live/frame_off intact.
                 return {'pc': pc, 'op': op, 'kind': 'frame',
-                        'c': [], 'py': [], 'target': None, 'slot': None,
-                        'mnem': 'mov r15,r14 (frame pointer — implicit)'}
+                        'c': ['r14 = r15;'],
+                        'py': ['r[14] = r[15]'],
+                        'target': None, 'slot': None,
+                        'mnem': 'mov r15,r14 (frame pointer)'}
             if 'r15' in writes:
                 if op & 0xF000 == 0x7000 and ((op >> 8) & 0xF) == 15:
                     # `add #imm,r15` is a stack allocation, NOT a loss of the
