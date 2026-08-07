@@ -535,8 +535,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     eff, note = '(r%d - 4)' % srn, ''
                 c = ['*(volatile uint32_t*)%s = %s;%s' % (eff, _sr_reg, note),
                      'r%d = r%d - 4;' % (srn, srn)]
-                py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, %s)' % (srn, _sr_reg),
-                      'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (srn, srn)]
+                if srn == 15 and bkind != 'literal':
+                    # r15 push via stc.l: update the runtime `sp` alias too.
+                    # The mirror re-syncs r[15] = sp at the top of every step,
+                    # so an r[15]-only py would silently drop the push from
+                    # stack accounting (MISMATCH on the next sp-relative op).
+                    py = ['_wrw(ram, (sp - 4) & 0xFFFFFFFF, 4, %s)' % _sr_reg,
+                          'sp = (sp - 4) & 0xFFFFFFFF']
+                else:
+                    py = ['_wrw(ram, (r[%d] - 4) & 0xFFFFFFFF, 4, %s)' % (srn, _sr_reg),
+                          'r[%d] = (r[%d] - 4) & 0xFFFFFFFF' % (srn, srn)]
                 mnem = 'stc.l %s,@-r%d' % (_sr_reg.upper(), srn)
             else:
                 if bkind == 'literal':
@@ -549,8 +557,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
                      '%s = %s;' % (_sr_reg, t),
                      'r%d = r%d + 4;' % (srn, srn)]
-                py = ['%s = _rdw(ram, r[%d], 4)' % (_sr_reg, srn),
-                      'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
+                if srn == 15 and bkind != 'literal':
+                    # r15 pop via ldc.l: mirror against the runtime `sp` alias
+                    # (see the stc.l push above — r[15] only would drop the
+                    # pop from stack accounting).
+                    py = ['%s = _rdw(ram, sp, 4)' % _sr_reg,
+                          'sp = (sp + 4) & 0xFFFFFFFF']
+                else:
+                    py = ['%s = _rdw(ram, r[%d], 4)' % (_sr_reg, srn),
+                          'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
                 mnem = 'ldc.l @r%d+,%s' % (srn, _sr_reg.upper())
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
@@ -2271,6 +2286,28 @@ def _sprel_py(rec):
     r[14]+disp instead like the r15 ops."""
     op = rec.get('op', 0)
     kind = rec.get('kind')
+    if kind == 'fpu_mem':
+        # fmov.s frN,@-r15 (pre) / fmov.s @r15+,frN (post): runtime r15 stack
+        # push/pop.  The py was emitted r[15]-relative by _fpu_mem/_fpu_mem_rt;
+        # the mirror re-syncs r[15] = sp at the top of every step, so the
+        # r[15] update alone would silently drop the push/pop from stack
+        # accounting.  Rewrite to the sp alias: write/read at `sp`, then
+        # advance sp.  Only the @-r15 (pre) / @r15+ (post) forms; the plain
+        # @r15 / @(disp,r15) / @(r0,r15) forms keep r[15] addressing.
+        if rec.get('base_reg') == 15 and rec.get('auto') in ('pre', 'post'):
+            out = []
+            for ln in (rec.get('py') or []):
+                ln = re.sub(r'^r\[15\] = \(r\[15\] - 4\) & 0xFFFFFFFF$',
+                            'sp = (sp - 4) & 0xFFFFFFFF', ln)
+                ln = re.sub(r'^r\[15\] = \(r\[15\] \+ 4\) & 0xFFFFFFFF$',
+                            'sp = (sp + 4) & 0xFFFFFFFF', ln)
+                ln = re.sub(r'^_wrw\(ram, r\[15\], 4,',
+                            '_wrw(ram, sp, 4,', ln)
+                ln = re.sub(r'_rdw\(ram, r\[15\], 4\)',
+                            '_rdw(ram, sp, 4)', ln)
+                out.append(ln)
+            return out
+        return list(rec.get('py') or [])
     if kind == 'sys_stack':
         if (op >> 8) & 0xF != 15:
             return list(rec.get('py') or [])
@@ -2294,7 +2331,20 @@ def _sprel_py(rec):
         else:
             return list(rec.get('py') or [])
     else:
-        return list(rec.get('py') or [])
+        # Generic r15 stack model: the mirror re-syncs r[15] = sp at the top
+        # of every step, so a py that addresses memory via r[15] or updates
+        # r[15] (push/pop/restore like mov rN,r15, mov.l rN,@-r15, lds.l
+        # @r15+,...) would silently drop the write from stack accounting —
+        # r[15] gets clobbered back to sp at the next step.  Since r[15] is
+        # synced to sp, substituting the sp alias is value-preserving for any
+        # record that does not already carry sp (those already-relative
+        # records stay untouched).  Mirrors the fpu_mem / sys_stack rewrite
+        # above for the remaining kinds ('mem'/'st'/'reg'/'ldc').
+        py = list(rec.get('py') or [])
+        if not py or any('sp' in ln for ln in py):
+            return py
+        # standalone r[15] only — never mangle fr[15] (fpu) into fsp
+        return [re.sub(r'(?<!f)r\[15\]', 'sp', ln) for ln in py]
     out = []
     for ln in (rec.get('py') or []):
         if re.match(r'^local\[0x[0-9A-Fa-f]+\]\s*=', ln):
@@ -2305,6 +2355,13 @@ def _sprel_py(rec):
         elif '_wrw(ram, STACK_BASE + 0x' in ln:
             ln = re.sub(r'_wrw\(ram, STACK_BASE \+ 0x[0-9A-Fa-f]+, (\d+),',
                         '_wrw(ram, %s, \\1,' % addr, ln)
+        # rt-base/dyn py (kind 'sys_stack'/'stack') is emitted r[15]-relative
+        # (pr = _rdw(ram, r[15], 4) / r[15] = (r[15] - 4) & 0xFFFFFFFF); the
+        # mirror re-syncs r[15] = sp at the top of every step so r[15]-only
+        # pops/pushes would silently drop the stack accounting.  r[15] is
+        # synced to sp, so substituting the sp alias is value-preserving.
+        if 'r[15]' in ln and 'sp' not in ln:
+            ln = re.sub(r'(?<!f)r\[15\]', 'sp', ln)
         out.append(ln)
     return out
 
