@@ -64,6 +64,13 @@ MASK = gcl.MASK
 DEFAULT_ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 SIZE_MIN, SIZE_MAX = 8, 400          # v8 size gate (v3 was 8..160+16)
 
+# Per-function MAXSTEPS override for the emitted test template (default
+# 100000).  0x45E94's callee 0xD2F6 runs a 409,230-step deterministic loop
+# per case: at 100k the mirror+sh2emu both hit the limit and the case is a
+# silent SKIP, so that function needs 1M steps to get real PASS semantics
+# (verified: both complete at 1M and agree).
+MAXSTEPS_OVERRIDE = {0x45E94: 1000000}
+
 ST_STRUCT = v7.ST_STRUCT
 _BRANCH_COND = {'bt': 'T', 'bts': 'T', 'bf': 'notT', 'bfs': 'notT', 'bra': 'always'}
 _MIRROR_KIND = dict(v3._MIRROR_KIND)
@@ -2303,7 +2310,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'ENTRY = 0x%X\n'
         'SEED = %d\n'
         'N = %d\n'
-        'MAXSTEPS = 100000\n'
+        'MAXSTEPS = %d\n'
         'STACK_BASE = 0xFFFFD000\n'
         'STACK_TOP = STACK_BASE + 0x400\n'
         'STACK_OFFS = (%s)\n'
@@ -2527,7 +2534,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'if __name__ == "__main__":\n'
         '    main()\n'
     ) % (fn, addr, end - addr, cases, os.path.basename(out_t), rom_label,
-         addr, seed, cases, stack_offs,
+         addr, seed, cases, MAXSTEPS_OVERRIDE.get(addr, 100000), stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
          jt_lits, slot_seeds,
