@@ -302,8 +302,20 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 continue
             _cs = _memo_sanitized_end(_ca, _ce, rom)
             if _ca < addr < _cs:
-                res.reject = ('midfunc_nested', addr)
-                return res
+                # A genuine nested function is itself a catalog candidate AND
+                # carries a real prologue (`mov.l Rn,@-r15` push 0x2Fxx, or
+                # `lds.l @r15+,pr` 0x4F26).  Those are standalone functions
+                # nested mid-span and lift cleanly — let the walk proceed.
+                # Spurious mid-block entries (no prologue) stay rejected.
+                _op = None
+                if addr + 1 < len(rom):
+                    _op = (rom[addr] << 8) | rom[addr + 1]
+                _genuine = (addr in catalog and _op is not None and
+                            ((_op & 0xFF00) == 0x2F00 or _op == 0x4F26))
+                if not _genuine:
+                    res.reject = ('midfunc_nested', addr)
+                    return res
+                break
     st = {'written': set(), 'lits': {}, 'tmp': [0],
           'gbr_known': False, 'gbr_value': None,
           'stack_ok': True, 'frame_live': False, 'frame_off': None,
