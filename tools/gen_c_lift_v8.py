@@ -252,6 +252,15 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
         return True
     if opc >> 12 == 0xD or opc >> 12 == 0x9 or (opc & 0xFF00) == 0xC700:
         return True                            # PC-rel literal load (0xB1C2 mov.l @(disp,PC))
+    # sts.l/stc.l/lds.l/ldc.l control-register memory forms (c_lift_ops.decode_mem
+    # family: op & 0xF0FF in 0x4002/0x4012/0x4022 sts.l, 0x4006/0x4016/0x4026
+    # lds.l, 0x4003/0x4013 stc.l SR/GBR, 0x4007/0x4017 ldc.l, any base-reg nibble).
+    # A pool word that is one of these is CODE, not data — e.g. 0x4F26
+    # `lds.l @r15+,pr` at 0x7A76: without reclaim the walker skips it (hole at the
+    # branch target/ret_pc), the mirror RETs early and sp/r0 diverge.
+    if (opc & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026,
+                          0x4003, 0x4013, 0x4007, 0x4017):
+        return True
     return False
 
 
