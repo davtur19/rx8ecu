@@ -1044,7 +1044,9 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             if pc in seen_pc:            # already walked via another path
                 break
             if pc in data:
-                if _v6_reclaim(rom, pc, data, addr, ops, gcl):
+                if pc in labels:
+                    data.discard(pc)          # branch target: code wins over pool-data
+                elif _v6_reclaim(rom, pc, data, addr, ops, gcl):
                     data.discard(pc)
                 else:
                     pc += 2
@@ -1096,7 +1098,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                         # bra (unconditional) exits; bt/bf/bt.s/bf.s are CONDITIONAL
                         # tail calls: `if (T/!T) { f_%X(s); return; }` with fallthrough
                         # continuing when the branch is not taken.
-                        cond = v3.BRANCH_C[kind].split(' goto ')[0]   # 'if (T)' / 'if (!T)'
+                        cond = '' if kind == 'bra' else \
+                            v3.BRANCH_C[kind].split(' goto ')[0].replace('T', 's->T')
                         rec = {'pc': pc, 'op': op, 'kind': 'call',
                                'mnem': '%s (tail)' % (v3.BRANCH_MNEM[kind] % target),
                                'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
