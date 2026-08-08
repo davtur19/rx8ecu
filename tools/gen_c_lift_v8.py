@@ -1098,7 +1098,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
                                     + ['%s { f_%X(s); return; }' % (cond, target)],
                                'slot': slot, 'target': target,
-                               'ret_pc': (pc + 4) & MASK, 'set_pr': False}
+                               'ret_pc': (pc + 4) & MASK, 'set_pr': False,
+                               'cond': _BRANCH_COND.get(kind)}
                         res.records.append(rec)
                         seen_pc.add(pc)
                         if slot is not None:
@@ -2484,12 +2485,28 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                return ("ERR", pc)      # table miss -> FAIL (mirror default)\n'
         '            pc = tgt\n'
         '        elif kind == "call":\n'
-        '            if inst["set_pr"]:\n'
-        '                ns["pr"] = inst["ret_pc"]\n'
+        '            # out-of-span conditional tail calls (bt/s, bf/s) carry the\n'
+        '            # branch condition on the record; the mirror must only jump\n'
+        '            # when T matches, else fall through past the branch (the\n'
+        '            # delay slot, if any, still executes on SH/H8).\n'
+        '            _cond = inst["cond"]\n'
+        '            if _cond == "T":\n'
+        '                _taken = (ns["T"] == 1)\n'
+        '            elif _cond == "notT":\n'
+        '                _taken = (ns["T"] == 0)\n'
+        '            else:\n'
+        '                _taken = True\n'
         '            slot_py = inst["slot_py"]\n'
-        '            if slot_py:\n'
-        '                exec(slot_py, ns)\n'
-        '            pc = inst["target"]\n'
+        '            if _taken:\n'
+        '                if inst["set_pr"]:\n'
+        '                    ns["pr"] = inst["ret_pc"]\n'
+        '                if slot_py:\n'
+        '                    exec(slot_py, ns)\n'
+        '                pc = inst["target"]\n'
+        '            else:\n'
+        '                if slot_py:\n'
+        '                    exec(slot_py, ns)\n'
+        '                pc = pc + (4 if slot_py is not None else 2)\n'
         '        elif kind == "call_runtime":\n'
         '            # RAM/ROM-slot indirect call: the runtime target value is\n'
         '            # ignored; sh2emu executes the seeded nullsub (clean return)\n'
@@ -2617,7 +2634,11 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                stack.append(inst["target"])\n'
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
         '        elif k == "call":\n'
-        '            stack.append(inst["ret_pc"])\n'
+        '            if inst["cond"] in ("T", "notT"):\n'
+        '                stack.append(inst["target"])\n'
+        '                stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+        '            else:\n'
+        '                stack.append(inst["ret_pc"])\n'
 '        elif k == "call_runtime":\n'
          '            stack.append(inst["ret_pc"])\n'
          '        elif k == "runtime_dispatch":\n'
@@ -2785,9 +2806,9 @@ def _v8_code_literal(records, labels, jtables):
         if kind == 'call':
             lines.append('    %#x: {"kind": "call", "py": None, '
                          '"slot_py": %r, "target": %#x, "ret_pc": %#x,'
-                         ' "set_pr": %r, "cond": None},'
+                         ' "set_pr": %r, "cond": %r},'
                          % (pc, slot_py, rec['target'], rec['ret_pc'],
-                            rec['set_pr']))
+                            rec['set_pr'], rec.get('cond')))
             continue
         if kind == 'call_runtime':
             lines.append('    %#x: {"kind": "call_runtime", "py": None, '
