@@ -1618,16 +1618,16 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
     if not res.records:
         return None, None, False, 'no_records'
     fn = 'caller_%X' % addr
-    # callees referenced by call records (bsr/jsr/jmp-tail) must exist in lib
+    # callees referenced by call records (bsr/jsr/jmp-tail) must exist in lib:
+    # generate any missing DRAFT f_<hex>.c instead of hard-failing — same
+    # ensure step run_batch performs before calling emit_caller.
     callees = sorted({r['target'] for r in res.records if r['kind'] == 'call'
                       and r.get('target') is not None})
-    missing = []
     for t in callees:
-        lib_p = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
-        if not os.path.exists(lib_p):
-            missing.append(t)
-    if missing:
-        return None, None, False, ('missing-callee-lib', missing)
+        lib_p, err = _ensure_callee_lib(t, rom, catalog, bounds,
+                                        rom_label=rom_label)
+        if err is not None:
+            return None, None, False, ('callee-lib', t, err)
 
     # ---- ST body: labels/goto + branch records + call records ----
     body, fwd = _render_st_body(fn, addr, res, callees)
