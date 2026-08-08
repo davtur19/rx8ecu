@@ -42,6 +42,7 @@ Usage:
     python3 tools/gen_c_lift_v8.py --cases 500 --seed 42
 """
 import argparse
+import bisect
 import csv
 import glob
 import os
@@ -256,7 +257,17 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
         return True
     if opc >> 12 == 0xD or opc >> 12 == 0x9 or (opc & 0xFF00) == 0xC700:
         return True                            # PC-rel literal load (0xB1C2 mov.l @(disp,PC))
-    # sts.l/stc.l/lds.l/ldc.l control-register memory forms (c_lift_ops.decode_mem
+    # FPU block (0xFxxx, + FPUL/FPSCR LDS/STS 0x4Fxx-listed forms): the walker
+    # decodes these as 'fpu'/'fpu_mem' records (fmov.s/fmov.d @-Rn/@Rn+
+    # store/load directions included), so a pool word that is one of them is
+    # CODE, not data (e.g. a spilled FR push between two branches).
+    if ops.is_fpu_op(opc):
+        return True
+    # tas.b @Rn = 0x4n1B: read-modify-write byte store (sets T, writes 0x80).
+    # A pool word decodable as tas.b was executed by sh2emu, so reclaim it.
+    if (opc & 0xF0FF) == 0x401B:
+        return True
+    # sts.l/stc.l/lds.l/ldc.l control-register memory forms (c_lift_ops.decode_mem (c_lift_ops.decode_mem
     # family: op & 0xF0FF in 0x4002/0x4012/0x4022 sts.l, 0x4006/0x4016/0x4026
     # lds.l, 0x4003/0x4013 stc.l SR/GBR, 0x4007/0x4017 ldc.l, any base-reg nibble).
     # A pool word that is one of these is CODE, not data — e.g. 0x4F26
@@ -269,7 +280,8 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
 
 
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
-              allow_runtime_base=False, tail_bra_as_call=False):
+              allow_runtime_base=False, tail_bra_as_call=False,
+              allow_boundary_entry=False):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
     allow_runtime_base=True: a LOAD/STORE whose base register cannot be folded
     to a literal (or param-of-r4..r7) is emitted register-relative
@@ -312,8 +324,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 # span (_ca < addr < _ce), prologue or not — fall through and
                 # let the walk proceed.
                 if addr == _ce:
-                    res.reject = ('midfunc_nested', addr)
-                    return res
+                    # A candidate that starts EXACTLY at the containing row's raw
+                    # end is usually the parent's trailing edge (no prologue).
+                    # But in the CALLEE-WALK path it can be a genuine catalog row
+                    # of its own (parent span end == next function start, e.g.
+                    # 0x3C2A->0x3C68); allow_boundary_entry lets the walk lift it
+                    # from its OWN catalog row's span instead of rejecting.
+                    if not allow_boundary_entry:
+                        res.reject = ('midfunc_nested', addr)
+                        return res
                 break
     st = {'written': set(), 'lits': {}, 'tmp': [0],
           'gbr_known': False, 'gbr_value': None,
@@ -966,34 +985,56 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     'target': None, 'slot': None}
         return rec
 
+    catalog_keys = sorted(catalog)
+    def _cat_contains(v):
+        """Catalog SPAN containment for a table word: a word v is `known` iff
+        the nearest catalog start s <= v has a real end and v < that end.
+        None-end (key-only) catalog rows stay key-only: membership is exact
+        (v in catalog), never span-containment."""
+        i = bisect.bisect_right(catalog_keys, v) - 1
+        if i < 0:
+            return False
+        s = catalog_keys[i]
+        e = catalog.get(s)
+        return e is not None and v < e
+
     def enum_table(base):
         """Enumerate the jump-table words at `base` while each is a valid code
-        address.  Returns (entries, ok).  Table words are marked data."""
+        address.  Returns (entries, ok).  Table words are marked data.
+
+        Span-tolerant: the scan runs over the FULL rom (the table may extend
+        past the caller's sanitized span end, e.g. 0x014140's table at
+        0x4BDFC), non-code words inside/after the table are SKIPPED, and the
+        0/0xFFFFFFFF terminator only ends the table once >= 2 entries were
+        found (a mid-table zero pad, e.g. 0x4BE04 between 0x10D42 and
+        0x10D5C, is skipped like any other non-code word).
+        Accept only when >= 2 entries were collected."""
         entries = []
         a = base
-        while a + 4 <= bound and len(entries) < 1024:
+        while a + 4 <= len(rom) and len(entries) < 1024:
             v = int.from_bytes(rom[a:a + 4], 'big')
-            if v in (0, 0xFFFFFFFF, 0x00000000):
-                break
+            if v in (0, 0xFFFFFFFF):
+                if len(entries) >= 2:
+                    break                    # terminator after real entries
+                a += 4
+                continue                     # pad word (leading OR between
+                                             # entries): skip until >= 2
             in_span = addr <= v < end and v % 2 == 0
-            known = in_span or v in lifted or v in catalog
+            known = in_span or v in lifted or v in catalog or _cat_contains(v)
             if not known:
-                break
+                a += 4
+                continue                     # non-code word: not an entry
             if v in lifted or v in catalog:
                 # out-of-span known function: fine as a callable target, but the
                 # caller can only tail-call it; in-span entries become switch cases
                 pass
             entries.append(v)
             data.add(a)
-            if a + 2 < bound:
+            if a + 2 < len(rom):
                 data.add(a + 2)
             a += 4
-        if not entries:
+        if len(entries) < 2:
             return [], False
-        # require every entry to be code (in-span or lifted/catalog) — already
-        # guaranteed by the loop (we break otherwise).  The break on non-code
-        # marks the table end; a zero/FFFF terminator is acceptable only as the
-        # LAST word (not part of the cases).
         return entries, True
 
     def enum_rt_entries(base):
@@ -1212,7 +1253,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     c.append('    default: s->r[0] = 0xDEAD; return; /* table miss */')
                     c.append('}')
                     rec = {'pc': pc, 'op': op, 'kind': 'jt', 'mnem': 'jmp @r%d (table)' % rn,
-                           'c': c, 'slot': slot, 'target': None, 'entries': entries}
+                           'c': c, 'slot': slot, 'target': None, 'entries': entries,
+                           'reg': rn, 'base': base}
                     res.records.append(rec)
                     # jmp @Rn is delayed: slot consumed inline; skip past it
                     seen_pc.add(pc)
@@ -2058,7 +2100,9 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     # *_walk_end helpers already use.
     pool = gcl._pcrel_pool_words(rom, t, walk_end)
     cfg_end = min(walk_end + 2, end_c)
-    res = build_cfg(rom, t, cfg_end, allow_runtime_base=True, tail_bra_as_call=True)
+    res = build_cfg(rom, t, cfg_end, catalog=catalog,
+                    allow_runtime_base=True, tail_bra_as_call=True,
+                    allow_boundary_entry=True)
     if res.reject is not None:
         reason, pc = res.reject
         if reason == 'target_fuori':
@@ -2122,16 +2166,19 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
         if rec['kind'] == 'call' and rec.get('target') is not None:
             tgt = rec['target']
             if not (t <= tgt < walk_end):
-                if tgt in pool:
+                if tgt in pool or (tgt in catalog and catalog.get(tgt) is None):
                     # bug f: nested-call edge lands on a literal-pool / data
                     # word (e.g. 0x00648E's chain ends at 0x36BEC, a pool word
-                    # inside FUN_00036b84's span).  Recursing hard-fails with
-                    # ('unmapped', tgt).  Mirror the runtime_dispatch record
-                    # instead: jsr -> pr=ret_pc, dispatch on s->r[0] (the
-                    # literal target register); the pool word is never in CODE,
-                    # so jsr falls through to ret_pc and a tail jmp returns —
-                    # the nullsub-fallback behaviour.  Mutate the record in
-                    # place (the edge stays in the walk).
+                    # inside FUN_00036b84's span), or on a key-only catalog row
+                    # (end None) — e.g. 0x1090, the raw end of parent 0x1038,
+                    # whose 4 leftover bytes are data, not a function (0x001298's
+                    # `jsr @r3` literal 0x1090).  Recursing hard-fails with
+                    # ('unmapped', tgt) / ('no-span', tgt).  Mirror the
+                    # runtime_dispatch record instead: jsr -> pr=ret_pc,
+                    # dispatch on s->r[0] (the literal target register); the
+                    # word is never in CODE, so jsr falls through to ret_pc and
+                    # a tail jmp returns — the nullsub-fallback behaviour.
+                    # Mutate the record in place (the edge stays in the walk).
                     _sp = rec.get('set_pr', False)
                     _rp = rec.get('ret_pc')
                     rec.update({
@@ -2161,20 +2208,45 @@ def _render_st_body(fn, addr, res, callees):
     result, reusing the caller rendering.  Shared by emit_caller and
     _emit_callee_cfg.  Returns the body text (no banner/header)."""
     labels = res.labels
+    # Which f_<hex> libs exist right now (c/lib).  The caller path ensures its
+    # callee libs BEFORE rendering, so a missing lib here can only be an
+    # un-ensured inner callee (callee-cfg path); a dangling f_<hex>(s) call in
+    # the emitted object would then not resolve at link time.
+    lib_present = set()
+    _lib_dir = os.path.join(ROOT, 'c', 'lib')
+    if os.path.isdir(_lib_dir):
+        for _f in os.listdir(_lib_dir):
+            _m = re.match(r'f_([0-9A-F]+)\.c$', _f)
+            if _m:
+                lib_present.add(int(_m.group(1), 16))
     stmts = []
     for rec in res.records:
         pc = rec['pc']
         if pc in labels:
             stmts.append('L_%X: ;' % pc)
         stmts.append('/* 0x%06X: %s */' % (pc, rec['mnem']))
-        if rec['kind'] == 'call':
-            stmts.extend(rec['c'])           # already ST-form
-        elif rec['kind'] == 'call_runtime':
-            stmts.extend(rec['c'])           # already ST-form
-        elif rec['kind'] == 'runtime_dispatch':
-            stmts.extend(rec['c'])           # already ST-form
-        elif rec['kind'] == 'jt':
-            stmts.extend(rec['c'])
+        if rec['kind'] in ('call', 'call_runtime', 'runtime_dispatch', 'jt'):
+            # These kinds render rec['c'] verbatim (already ST-form), with the
+            # delay-slot statements embedded at the front.  The slot pc can be a
+            # branch target (goto L_%X), so the slot label must be emitted here
+            # too — otherwise the label is never defined and cc rejects it.
+            slot = rec.get('slot')
+            if slot is not None:
+                if slot['pc'] in labels:
+                    stmts.append('L_%X: ;' % slot['pc'])
+                stmts.append('/* 0x%06X: %s */' % (slot['pc'], slot['mnem']))
+            _c = rec['c']
+            if rec['kind'] == 'call':
+                # tail-call link guard: `{ f_<t>(s); return; }` for an
+                # out-of-span tail call must not reference a lib that does not
+                # exist (and is not ensured elsewhere).  When missing, keep the
+                # surrounding form but substitute a bare early return.
+                _c = [re.sub(r'\{ f_([0-9A-F]+)\(s\); return; \}',
+                             lambda mm: '{ /* f_%s: callee lib not generated — early return */ return; }'
+                             % mm.group(1) if int(mm.group(1), 16) not in lib_present
+                             else mm.group(0),
+                             _l) for _l in rec['c']]
+            stmts.extend(_c)
         else:
             slot = rec.get('slot')
             if slot is not None:
@@ -2183,6 +2255,23 @@ def _render_st_body(fn, addr, res, callees):
                 stmts.append('/* 0x%06X: %s */' % (slot['pc'], slot['mnem']))
                 stmts.extend(v7.to_st_c(s) for s in slot['c'])
             stmts.extend(v7.to_st_c(s) for s in rec['c'])
+    # Every label the CFG promised must be defined.  A branch target can land
+    # on a pc that produced NO record — the last block truncated against the
+    # (possibly odd) sanitized span end (e.g. 0xFFDA: bra 0x10100 with span end
+    # 0x10101 leaves 0x10100 as a one-byte tail block), or a pc consumed as a
+    # delay slot of a kind that skips it.  Emit the label as a bare statement
+    # (falls through to whatever follows / the trailing return) so `goto L_`
+    # compiles.
+    _emitted = set()
+    for s in stmts:
+        _ml = re.match(r'^(L_[0-9A-F]+): ;$', s.strip())
+        if _ml:
+            _emitted.add(_ml.group(1))
+    _need = {'L_%X' % l for l in labels} - _emitted
+    if _need:
+        stmts.append('/* undefined-label guard (bare branch targets) */')
+        for _l in sorted(_need):
+            stmts.append('%s: ;' % _l)
     offs = set()
     for m_ in re.finditer(r'local_([0-9a-f]+)\b', '\n'.join(stmts)):
         offs.add(int(m_.group(1), 16))
@@ -2502,6 +2591,11 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
     stack_offs = ', '.join('0x%X' % o for o in offs_list)
     if len(offs_list) == 1:
         stack_offs += ','
+    # Real catalog spans (end not None) — embedded in the test so the mirror
+    # can tell an out-of-CODE dispatch whose target is a genuine catalog
+    # function from a stray/unknown address.  Dict {start: end}; the template
+    # sorts it for bisect and indexes CATALOG_SPANS[start] for the end.
+    _spans = {k: v for k, v in (catalog or {}).items() if v is not None}
     ram_addrs = [v for v in res.info['ram_addrs'] if ops.classify_addr(v) == 'RAM']
     ram_min = min(ram_addrs) if ram_addrs else None
     ram_max = max(ram_addrs) if ram_addrs else None
@@ -2530,7 +2624,9 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n'
         'sys.path.insert(0, os.path.join(ROOT, "tools"))\n'
         'from sh2emu import SH2, StepLimitExceeded\n'
-        'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n\n'
+        'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n'
+        'import bisect\n'
+        'import math\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "%s.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -2544,7 +2640,16 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'RAM_MAX = %s\n'
         'PRET = 0xEEEE0000\n'
         'JTABLES = %r\n'
-        'SLOT_SEEDS = %r\n\n'
+        'SLOT_SEEDS = %r\n'
+        'OOB_DISPATCH = [False]\n'
+        'CATALOG_SPANS = %r\n'
+        'CATALOG_STARTS = sorted(CATALOG_SPANS)\n'
+        'def _in_catalog_span(v):\n'
+        '    _i = bisect.bisect_right(CATALOG_STARTS, v) - 1\n'
+        '    if _i < 0:\n'
+        '        return False\n'
+        '    _s = CATALOG_STARTS[_i]\n'
+        '    return _s <= v < CATALOG_SPANS[_s]\n\n'
         '_WRITES = []\n\n'
         'def _rd(ram, a):\n'
         '    a &= 0xFFFFFFFF\n'
@@ -2570,7 +2675,8 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    fr = [0.0] * 16\n'
         '    ns = {"r": r, "fr": fr, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": PRET,\n'
-        '          "sr": 0x000000F0, "gbr": 0, "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
+        '          "sr": 0x000000F0, "gbr": 0, "fpul": 0, "fpscr": 0,\n'
+        '          "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
         '          "bits2f": bits2f, "f2bits": f2bits, "ram": ram,\n'
         '          "sp": r[15], "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS}}\n'
@@ -2635,27 +2741,43 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
 '            if slot_py:\n'
          '                exec(slot_py, ns)\n'
          '            pc = inst["ret_pc"]\n'
-         '        elif kind == "runtime_dispatch":\n'
-         '            # runtime-indexed jmp/jsr: dispatches to r[reg] if that\n'
-         '            # target was lifted into CODE (in-span); else jsr falls\n'
-         '            # through to ret_pc and jmp returns (RET).  Mirrors\n'
-         '            # sh2emu, which runs the real target on the shared seeded\n'
-         '            # RAM (in-span targets match; out-of-span targets drift,\n'
-         '            # but sh2emu escaping is caught by StepLimitExceeded->skip).\n'
-         '            slot_py = inst["slot_py"]\n'
-         '            if slot_py:\n'
-         '                exec(slot_py, ns)\n'
-         '            reg = inst["reg"]\n'
-         '            _tg = r[reg] & 0xFFFFFFFF\n'
-         '            _tgt = CODE.get(_tg)\n'
-         '            if inst["is_call"]:\n'
-         '                ns["pr"] = inst["ret_pc"]\n'
-         '                pc = inst["ret_pc"] if _tgt is None else _tg\n'
-         '            else:\n'
-         '                if _tgt is None:\n'
-         '                    return ("RET", [x & 0xFFFFFFFF for x in r],\n'
-         '                            list(_WRITES), dict(ram), ns["pr"] & 0xFFFFFFFF)\n'
-         '                pc = _tg\n'
+'        elif kind == "runtime_dispatch":\n'
+        '            # runtime-indexed jmp/jsr: dispatches to r[reg] when that\n'
+        '            # target was lifted into CODE (in-span).  Out-of-CODE\n'
+        '            # targets: inside a real catalog span the mirror falls\n'
+        '            # through state-free like nullsub (jsr: pr=ret_pc,\n'
+        '            # pc=ret_pc; jmp: clean early-RET with untouched state);\n'
+        '            # any other unknown target keeps the clean early-return\n'
+        '            # but the case outcome counts in `skipped` (OOB_DISPATCH)\n'
+        '            # instead of failing, so a dispatch to an unmodeled\n'
+        '            # address cannot produce a systematic MISMATCH.\n'
+        '            slot_py = inst["slot_py"]\n'
+        '            if slot_py:\n'
+        '                exec(slot_py, ns)\n'
+        '            reg = inst["reg"]\n'
+        '            _tg = r[reg] & 0xFFFFFFFF\n'
+        '            _tgt = CODE.get(_tg)\n'
+        '            if _tgt is None:\n'
+        '                if _in_catalog_span(_tg):\n'
+        '                    if inst["is_call"]:\n'
+        '                        ns["pr"] = inst["ret_pc"]\n'
+        '                        pc = inst["ret_pc"]  # state-free like nullsub\n'
+        '                    else:\n'
+        '                        return ("RET", [x & 0xFFFFFFFF for x in r],\n'
+        '                                list(_WRITES), dict(ram), ns["pr"] & 0xFFFFFFFF)\n'
+        '                else:\n'
+        '                    OOB_DISPATCH[0] = True\n'
+        '                    if inst["is_call"]:\n'
+        '                        ns["pr"] = inst["ret_pc"]\n'
+        '                        pc = inst["ret_pc"]\n'
+        '                    else:\n'
+        '                        return ("RET", [x & 0xFFFFFFFF for x in r],\n'
+        '                                list(_WRITES), dict(ram), ns["pr"] & 0xFFFFFFFF)\n'
+        '            elif inst["is_call"]:\n'
+        '                ns["pr"] = inst["ret_pc"]\n'
+        '                pc = _tg\n'
+        '            else:\n'
+        '                pc = _tg\n'
          '        elif kind == "branch":\n'
         '            t = ns["T"]\n'
         '            taken = True\n'
@@ -2705,12 +2827,18 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '        a = rnd.randint(0, 0xFFFFFFFF); b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF); d = rnd.randint(0, 0xFFFFFFFF)\n'
         '        m = spec_mirror(a, b, c_, d, dict(ram))\n'
+        '        if OOB_DISPATCH[0]:\n'
+        '            # mirror escaped through an out-of-CODE runtime dispatch\n'
+        '            # (unknown target): the case cannot be compared — count it\n'
+        '            # in `skipped` instead of failing.\n'
+        '            OOB_DISPATCH[0] = False\n'
+        '            skipped += 1; continue\n'
         '        if m[0] != "RET":\n'
         '            if m[0] == "SKIP":\n'
         '                try:\n'
         '                    run(cpu, ram, a, b, c_, d)\n'
         '                except StepLimitExceeded:\n'
-        '                    continue\n'
+        '                    skipped += 1; continue\n'
         '                except (NotImplementedError, RuntimeError):\n'
         '                    skipped += 1; continue\n'
         '                print("MISMATCH case=%%d mirror=SKIP emu=RET" %% (caso,))\n'
@@ -2783,7 +2911,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
          addr, seed, cases, MAXSTEPS_OVERRIDE.get(addr, 100000), stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
-         jt_lits, slot_seeds,
+         jt_lits, slot_seeds, _spans,
          _v8_code_literal(all_records, res.labels, res.jump_tables))
     with open(out_t, 'w') as f:
         f.write(test)
@@ -2946,7 +3074,7 @@ def _v8_code_literal(records, labels, jtables):
             lines.append('    %#x: {"kind": "jt", "py": None, '
                          '"slot_py": %r, "target": None, "cond": None,'
                          ' "reg": %d, "base": %#x, "cases": %r},'
-                         % (pc, slot_py, rec['reg_base'], rec['base'],
+                         % (pc, slot_py, rec['reg'], rec['base'],
                             tuple(rec['entries'])))
             continue
         py = v3._norm_py(rec.get('py') or []) or None

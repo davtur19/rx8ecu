@@ -984,9 +984,22 @@ def _stack_record(pc, op, sh, off):
         if sh['auto'] == 'post':
             py.append('sp = (sp + %d) & 0xFFFFFFFF' % size)
     else:
-        c = ['local_%x = r%d;' % (off, sh['src'])]
-        py = ['local[0x%X] = r[%d]' % (off, sh['src']),
-              '_wrw(ram, STACK_BASE + 0x%X, %d, r[%d])' % (off, size, sh['src'])]
+        # Store.  The slot model is a 4-byte-aligned uint32_t local_<off>, but
+        # mov.b/mov.w @-r15 / @(disp,r15) stores write only size bytes into the
+        # stack slot — a full 32-bit write would leak the source register's
+        # upper bits into a later (wider or byte) load of the same slot.  Mask
+        # on store; loads already mask+sign/zero-extend per size.  A byte store
+        # landing at a non-4-aligned offset (odd sp_off after mov.b @-r15)
+        # still masks correctly (0xFF), keeping the slot model consistent.
+        if size < 4:
+            _mask = (1 << (8 * size)) - 1
+            c = ['local_%x = r%d & 0x%X;' % (off, sh['src'], _mask)]
+            py = ['local[0x%X] = r[%d] & 0x%X' % (off, sh['src'], _mask),
+                  '_wrw(ram, STACK_BASE + 0x%X, %d, r[%d])' % (off, size, sh['src'])]
+        else:
+            c = ['local_%x = r%d;' % (off, sh['src'])]
+            py = ['local[0x%X] = r[%d]' % (off, sh['src']),
+                  '_wrw(ram, STACK_BASE + 0x%X, %d, r[%d])' % (off, size, sh['src'])]
         if sh['auto'] == 'pre':
             py.append('sp = (sp - %d) & 0xFFFFFFFF' % size)
     return c, py
