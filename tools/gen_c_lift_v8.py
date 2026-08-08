@@ -1020,6 +1020,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             continue
         visited.add(bs)
         pc = bs
+        # Per-column flag: this LINEAR walk passed the function's first rts.
+        # After a return the fall-through continuation runs into the literal
+        # pool / unreferenced data words that the pcrel-pool set does not mark
+        # (e.g. FUN_00036b84: rts@0x36BE8 + slot 0x36BEA, then data word
+        # 0x36BEC) — emit_one returns None for them and a hard reject would
+        # kill a valid function.  Per-column (reset per block), NOT per-call:
+        # a branch target that lands on a data word later gets the same
+        # unmapped logic with seen_rts False (its own column) -> real
+        # corruption still rejects.
+        seen_rts = False
         while pc + 1 < bound:
             if pc in seen_pc:            # already walked via another path
                 break
@@ -1046,7 +1056,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     kind = 'rts'
                 target = None
                 if kind == 'rts':
-                    pass
+                    seen_rts = True
                 elif kind in ('bsrf', 'braf'):
                     reg = bi['reg']
                     v = st['lits'].get('r%d' % reg)
@@ -1294,6 +1304,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 break
             rec = emit_one(pc, op)
             if rec is None:
+                if seen_rts:
+                    # Post-return linear continuation ran into a non-decodable
+                    # word (unreferenced literal-pool / data word the pcrel set
+                    # misses, e.g. 0x36BEC).  Treat it as data: skip and keep
+                    # walking — the function already returned.
+                    pc += 2
+                    continue
                 res.reject = ('unmapped', pc)
                 return res
             if op & 0xFF00 == 0xC700:                  # mova
