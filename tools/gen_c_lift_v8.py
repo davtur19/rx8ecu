@@ -2766,6 +2766,16 @@ def _v8_code_literal(records, labels, jtables):
                              % (pc, slot_py, rec['target'],
                                 _BRANCH_COND.get(bkind, 'T')))
             continue
+        if kind == 'ret':
+            # inlined-callee return: emitted directly as 'ret' (e.g. the
+            # midfunc_nop rts synthesis in _walk_callee for a nop-delay-loop
+            # callee like f_4C14).  Without this branch the fallback below
+            # maps it to 'st' and the mirror walks past the inlined block
+            # (falls off the end -> returns pre-call state, MISMATCH).
+            lines.append('    %#x: {"kind": "ret", "py": None, '
+                         '"slot_py": %r, "target": None, "cond": None},'
+                         % (pc, slot_py))
+            continue
         if kind == 'call':
             lines.append('    %#x: {"kind": "call", "py": None, '
                          '"slot_py": %r, "target": %#x, "ret_pc": %#x,'
