@@ -223,7 +223,7 @@ addr,status,reason
 21138,lifted,cfg
 21168,lifted,walk
 21320,lifted,walk
-21342,stubbed,"callee-cfg 21342 ('midfunc_nested', 21342)"
+21342,lifted,cfg
 21408,lifted,walk
 21414,lifted,walk
 21418,lifted,walk
@@ -309,7 +309,7 @@ addr,status,reason
 23342,lifted,walk
 23356,lifted,walk
 23382,lifted,cfg
-23528,stubbed,"callee-cfg 23528 ('midfunc_nested', 23528)"
+23528,lifted,cfg
 23748,lifted,walk
 23762,lifted,walk
 23778,lifted,walk
@@ -608,7 +608,7 @@ addr,status,reason
 49808,skip,already-lib
 49976,skip,already-lib
 50126,skip,already-lib
-50310,stubbed,"callee-cfg 50310 ('midfunc_nested', 50310)"
+50310,lifted,cfg
 51130,lifted,walk
 51420,lifted,cfg
 51838,stubbed,"callee-cfg 51838 ('midfunc_nested', 51838)"
@@ -752,10 +752,10 @@ addr,status,reason
 67842,lifted,cfg
 68236,lifted,cfg
 68404,skip,already-lib
-68788,stubbed,"callee-cfg 68788 ('midfunc_nested', 68788)"
-68956,stubbed,"callee-cfg 68956 ('midfunc_nested', 68956)"
+68788,lifted,cfg
+68956,lifted,cfg
 68994,stubbed,"callee-cfg 68994 ('midfunc_nested', 68994)"
-69140,stubbed,"callee-cfg 69140 ('midfunc_nested', 69140)"
+69140,lifted,cfg
 69292,lifted,walk
 69330,lifted,cfg
 69350,lifted,cfg
@@ -937,7 +937,7 @@ addr,status,reason
 96974,skip,already-lib
 96998,skip,already-lib
 97018,lifted,cfg
-97136,stubbed,"callee-cfg 97136 ('midfunc_nested', 97136)"
+97136,lifted,cfg
 97584,skip,already-lib
 97598,skip,already-lib
 97628,skip,already-lib
@@ -1724,12 +1724,12 @@ addr,status,reason
 217492,lifted,walk
 217602,skip,already-lib
 217980,lifted,cfg
-218162,stubbed,"callee-cfg 218162 ('midfunc_nested', 218162)"
+218162,lifted,cfg
 218504,lifted,cfg
 218722,lifted,cfg
 219010,lifted,cfg
 219342,lifted,cfg
-219512,stubbed,"callee-cfg 219512 ('midfunc_nested', 219512)"
+219512,lifted,cfg
 219620,lifted,walk
 219736,lifted,walk
 219766,lifted,cfg
@@ -1764,16 +1764,16 @@ addr,status,reason
 225226,skip,already-lib
 225296,lifted,walk
 225320,lifted,cfg
-225424,stubbed,"callee-cfg 225424 ('midfunc_nested', 225424)"
-225588,stubbed,"callee-cfg 225588 ('midfunc_nested', 225588)"
+225424,lifted,cfg
+225588,lifted,cfg
 225772,lifted,cfg
-225976,stubbed,"callee-cfg 225976 ('midfunc_nested', 225976)"
+225976,lifted,cfg
 226140,lifted,cfg
 226302,stubbed,"callee-cfg 226302 ('midfunc_nested', 226302)"
 226510,lifted,cfg
 226620,lifted,cfg
 226804,lifted,walk
-226968,stubbed,"callee-cfg 226968 ('midfunc_nested', 226968)"
+226968,lifted,cfg
 227164,lifted,walk
 227326,lifted,walk
 227412,lifted,walk
@@ -2653,10 +2653,10 @@ addr,status,reason
 345924,skip,already-lib
 346056,skip,already-lib
 346096,lifted,walk
-346148,stubbed,"callee-cfg 346148 ('midfunc_nested', 346148)"
+346148,lifted,cfg
 346314,lifted,walk
 346368,lifted,cfg
-346372,stubbed,"callee-cfg 346372 ('midfunc_nested', 346372)"
+346372,lifted,cfg
 346636,skip,already-lib
 346726,lifted,walk
 346786,stubbed,"callee-cfg 346786 ('midfunc_nested', 346786)"
@@ -2771,9 +2771,9 @@ addr,status,reason
 351232,lifted,cfg
 351252,lifted,cfg
 351524,lifted,walk
-351568,stubbed,"callee-cfg 351568 ('midfunc_nested', 351568)"
+351568,lifted,cfg
 351668,stubbed,"callee-cfg 351668 ('midfunc_nested', 351668)"
-351694,stubbed,"callee-cfg 351694 ('midfunc_nested', 351694)"
+351694,lifted,cfg
 351772,lifted,cfg
 351804,lifted,cfg
 351836,lifted,cfg
@@ -2781,7 +2781,7 @@ addr,status,reason
 351848,lifted,walk
 351948,skip,already-lib
 351982,skip,already-lib
-352052,stubbed,"callee-cfg 352052 ('midfunc_nested', 352052)"
+352052,lifted,cfg
 352478,lifted,cfg
 352604,lifted,cfg
 352764,skip,already-lib
@@ -2913,7 +2913,7 @@ addr,status,reason
 357988,lifted,cfg
 358080,stubbed,"callee-cfg 358080 ('midfunc_nested', 358080)"
 358086,stubbed,"callee-cfg 358086 ('midfunc_nested', 358086)"
-358092,stubbed,"callee-cfg 358092 ('midfunc_nested', 358092)"
+358092,lifted,cfg
 358174,lifted,walk
 358182,lifted,walk
 358190,lifted,walk
@@ -3143,7 +3143,7 @@ addr,status,reason
 387148,skip,already-lib
 387352,stubbed,"callee-cfg 387352 ('midfunc_nested', 387352)"
 387388,lifted,walk
-387412,stubbed,"callee-cfg 387412 ('midfunc_nested', 387412)"
+387412,lifted,cfg
 387712,lifted,walk
 387746,lifted,walk
 387772,lifted,cfg
@@ -3204,7 +3204,7 @@ addr,status,reason
 394212,lifted,walk
 394226,skip,already-lib
 394264,lifted,walk
-394364,stubbed,"callee-cfg 394364 ('midfunc_nested', 394364)"
+394364,lifted,cfg
 394756,skip,already-lib
 394762,lifted,walk
 394776,lifted,cfg
@@ -3478,7 +3478,7 @@ addr,status,reason
 423128,skip,already-lib
 423240,skip,already-lib
 423304,lifted,walk
-423312,stubbed,"callee-cfg 423312 ('midfunc_nested', 423312)"
+423312,lifted,cfg
 423494,skip,already-lib
 423508,lifted,walk
 423514,lifted,walk
