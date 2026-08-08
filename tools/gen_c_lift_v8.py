@@ -1955,6 +1955,11 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
         return None, ('no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
     walk_end = _callee_walk_end(rom, t, end_c)
+    # literal-pool words inside the walk span: a nested-call edge that lands on
+    # a pool/data word (not code) must not be walked as a function — recursing
+    # hard-fails with ('unmapped', tgt).  Same pool source the *_first_rts /
+    # *_walk_end helpers already use.
+    pool = gcl._pcrel_pool_words(rom, t, walk_end)
     cfg_end = min(walk_end + 2, end_c)
     res = build_cfg(rom, t, cfg_end, allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
@@ -2020,6 +2025,32 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
         if rec['kind'] == 'call' and rec.get('target') is not None:
             tgt = rec['target']
             if not (t <= tgt < walk_end):
+                if tgt in pool:
+                    # bug f: nested-call edge lands on a literal-pool / data
+                    # word (e.g. 0x00648E's chain ends at 0x36BEC, a pool word
+                    # inside FUN_00036b84's span).  Recursing hard-fails with
+                    # ('unmapped', tgt).  Mirror the runtime_dispatch record
+                    # instead: jsr -> pr=ret_pc, dispatch on s->r[0] (the
+                    # literal target register); the pool word is never in CODE,
+                    # so jsr falls through to ret_pc and a tail jmp returns —
+                    # the nullsub-fallback behaviour.  Mutate the record in
+                    # place (the edge stays in the walk).
+                    _sp = rec.get('set_pr', False)
+                    _rp = rec.get('ret_pc')
+                    rec.update({
+                        'kind': 'runtime_dispatch',
+                        'mnem': '%s @r0 (pool target 0x%X)' % ('jsr' if _sp else 'jmp', tgt),
+                        'reg': 0,
+                        'is_call': _sp,
+                        'ret_pc': _rp,
+                        'target': None,
+                        'c': ([v7.to_st_c(s) for s in rec['slot']['c']]
+                              if rec.get('slot') is not None else [])
+                             + (['s->pr = 0x%08X;' % _rp] if _sp else [])
+                             + ['((void(*)(ST*))s->r[0])(s);']
+                             + (['return;'] if not _sp else []),
+                    })
+                    continue
                 sub, reason = _walk_callee(rom, tgt, catalog, bounds,
                                            depth=depth + 1, seen=seen)
                 if sub is None:
