@@ -66,7 +66,7 @@ SIZE_MIN, SIZE_MAX = 8, 400          # v8 size gate (v3 was 8..160+16)
 # Cap on the span (bytes) of a leaf callee we auto-emit as a DRAFT lib
 # (v7.emit_callee walks t..t+size).  Arbitrary: raised 512->704 in 6988747,
 # 704->1024 here (real fns 0x1038C=706B, 0x1806E=752B). No fixed-size arrays.
-CALLEE_SPAN_MAX = 1024
+CALLEE_SPAN_MAX = 4096
 
 # Per-function MAXSTEPS override for the emitted test template (default
 # 100000).  0x45E94's callee 0xD2F6 runs a 409,230-step deterministic loop
@@ -302,17 +302,16 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 continue
             _cs = _memo_sanitized_end(_ca, _ce, rom)
             if _ca < addr < _cs:
-                # A genuine nested function is itself a catalog candidate AND
-                # carries a real prologue (`mov.l Rn,@-r15` push 0x2Fxx, or
-                # `lds.l @r15+,pr` 0x4F26).  Those are standalone functions
-                # nested mid-span and lift cleanly — let the walk proceed.
-                # Spurious mid-block entries (no prologue) stay rejected.
-                _op = None
-                if addr + 1 < len(rom):
-                    _op = (rom[addr] << 8) | rom[addr + 1]
-                _genuine = (addr in catalog and _op is not None and
-                            ((_op & 0xFF00) == 0x2F00 or _op == 0x4F26))
-                if not _genuine:
+                # Boundary artifact: addr EQUALS the containing row's RAW end
+                # _ce (e.g. 0x1414 == raw end of the 0x1378 row; sanitize_span's
+                # EXTEND pushed the sanitized end past it).  Such entries are
+                # the parent's own trailing edge, not functions — no prologue,
+                # and the `lds.l @r15+,pr` epilogue pops random stack -> rts ->
+                # pr=0 -> emulator pc=0 (every test case FAIL 0/400).  Reject.
+                # A REAL nested function sits STRICTLY INSIDE the parent's raw
+                # span (_ca < addr < _ce), prologue or not — fall through and
+                # let the walk proceed.
+                if addr == _ce:
                     res.reject = ('midfunc_nested', addr)
                     return res
                 break
