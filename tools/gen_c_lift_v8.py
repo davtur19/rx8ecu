@@ -386,6 +386,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         st['lits']['r%d' % reg] = val
         st['litdefs'].setdefault('r%d' % reg, set()).add(pc)
         st['slotdefs'].pop('r%d' % reg, None)   # a literal def overrides a slot deref
+        tbl_base.pop(reg, None)     # a literal def overrides a jump-table base
+        rt_tbl.pop(reg, None)       # (belt-and-braces for direct pins)
         return val
 
     def _rom_deref_value(mr):
@@ -438,9 +440,11 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         if isinstance(reg, int):
             st['slotdefs'].pop('r%d' % reg, None)
             rt_tbl.pop(reg, None)
+            tbl_base.pop(reg, None)
         elif isinstance(reg, str) and reg[0] == 'r' and reg[1:].isdigit():
             st['slotdefs'].pop(reg, None)
             rt_tbl.pop(int(reg[1:]), None)
+            tbl_base.pop(int(reg[1:]), None)
 
     def _record_tbl_base(mr):
         """Dispatch-table base bookkeeping for an indexed load `mov.l @(r0,Rm),Rn`.
