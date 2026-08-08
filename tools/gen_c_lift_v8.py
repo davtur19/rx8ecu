@@ -1139,6 +1139,14 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 pc += 4 if slot is not None else 2
                 continue
             if gcl.is_call_op(op):
+                if seen_rts and op & 0xF000 == 0xB000:
+                    # (fix 4) post-rts linear continuation: a word that DECODES
+                    # as bsr (0xBxxx) is a literal-pool / data word (e.g. 0x310CC
+                    # in 0x006584, 0x1F81A in 0x01F540), not a real call — the
+                    # function already returned.  Skip it like the unmapped
+                    # words below instead of emitting a bogus call record.
+                    pc += 2
+                    continue
                 if op & 0xF000 == 0xB000:               # bsr (delayed)
                     tgt = (pc + 4 + _s12(op & 0xFFF) * 2) & MASK
                     slot = slot_record(pc + 2) if pc + 2 < end else None
@@ -1273,6 +1281,53 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                         seen_pc.add(pc + 2)
                     pc += 4 if slot is not None else 2
                     continue
+                # (fix 3) 16-bit RAM-pointer literals: the call target was loaded
+                # by a `mov.w @(disp,PC)` (0x9nnn), which sign-extends a WORD — a
+                # RAM/data pointer (e.g. 0x1096 -> 0x001298, 0x46 -> 0x0064BA),
+                # NOT a full 32-bit code span.  A static f_%X call on such a
+                # target emits a dangling symbol (unmapped), while the deref-path
+                # call_runtime no-op matches sh2emu (the RAM slot is not CODE).
+                # Only a catalogued span start keeps the static call (real code).
+                _w16 = False
+                _lds = st['litdefs'].get('r%d' % rn, ())
+                if _lds:
+                    _pp = max(_lds)
+                    if _pp + 1 < len(rom) and \
+                            ((rom[_pp] << 8) | rom[_pp + 1]) & 0xF000 == 0x9000:
+                        _w16 = True
+                if _w16 and (v & MASK) not in catalog:
+                    slot = slot_record(pc + 2) if pc + 2 < end else None
+                    if kind == 'jsr' and slot is not None and pc + 3 < bound and \
+                            (rom[pc + 2] << 8) | rom[pc + 3] == 0x4F26:
+                        res.reject = ('pr_loop', pc)
+                        return res
+                    if kind == 'jsr':
+                        res.edges.append((pc, 'jsr@w16', v & MASK))
+                        rec = {'pc': pc, 'op': op, 'kind': 'call_runtime',
+                               'mnem': 'jsr @r%d (mov.w literal 0x%X)' % (rn, v & MASK),
+                               'c': (['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
+                                     + ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                     + ['((void(*)(ST*))s->r[%d])(s);' % rn]),
+                               'slot': slot, 'target': None,
+                               'ret_pc': (pc + 4) & MASK, 'set_pr': True,
+                               'slot_addr': v & MASK, 'reg': rn}
+                    else:
+                        res.edges.append((pc, 'jmp@w16', None))
+                        rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
+                               'mnem': 'jmp @r%d (mov.w literal 0x%X)' % (rn, v & MASK),
+                               'reg': rn, 'is_call': False,
+                               'ret_pc': (pc + 4) & MASK,
+                               'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                    + ['((void(*)(ST*))s->r[%d])(s);' % rn, 'return;'],
+                               'slot': slot, 'target': None, 'rt_entries': None}
+                    res.records.append(rec)
+                    seen_pc.add(pc)
+                    if slot is not None:
+                        seen_pc.add(pc + 2)
+                    if kind == 'jsr':
+                        pc += 4 if slot is not None else 2
+                        continue
+                    break
                 tgt = v & MASK
                 res.edges.append((pc, kind, tgt))
                 if addr <= tgt < end:
