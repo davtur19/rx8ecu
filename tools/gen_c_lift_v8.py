@@ -63,6 +63,10 @@ import gen_c_lift_v7 as v7
 MASK = gcl.MASK
 DEFAULT_ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 SIZE_MIN, SIZE_MAX = 8, 400          # v8 size gate (v3 was 8..160+16)
+# Cap on the span (bytes) of a leaf callee we auto-emit as a DRAFT lib
+# (v7.emit_callee walks t..t+size).  Arbitrary: raised 512->704 in 6988747,
+# 704->1024 here (real fns 0x1038C=706B, 0x1806E=752B). No fixed-size arrays.
+CALLEE_SPAN_MAX = 1024
 
 # Per-function MAXSTEPS override for the emitted test template (default
 # 100000).  0x45E94's callee 0xD2F6 runs a 409,230-step deterministic loop
@@ -2183,7 +2187,7 @@ def _ensure_callee_lib(t, rom, catalog, bounds, rom_label=None):
         return None, ('callee-no-span', t)
     rts = _callee_first_rts(rom, t, end_c)
     size = (rts + 2 if rts is not None else end_c) - t
-    if size <= 0 or size > 704:
+    if size <= 0 or size > CALLEE_SPAN_MAX:
         return None, ('callee-span', t, size)
     ok, err = v7.emit_callee(t, size, rom, path, rom_label=rom_label)
     if not ok:
