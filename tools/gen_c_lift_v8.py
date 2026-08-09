@@ -328,8 +328,21 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
     # stack -> rts -> pr=0 -> emulator pc=0 (NotImplementedError @0x0), so
     # every test case is skipped (FAIL 0/400).  Reject before walking.
     if addr + 1 < len(rom) and rom[addr] == 0x00 and rom[addr + 1] == 0x09:
-        res.reject = ('midfunc_nop', addr)
-        return res
+        # A candidate that begins on a delay-slot nop (0x0009) is usually a
+        # spurious mid-function entry ... BUT a mis-resolved indirect-call
+        # target can land on the nop delay slot of an enclosing function with
+        # REAL code at pc+2 (0x3C6E0's callee 0x3C2C0: nop then 0x34AC...).
+        # The leading nop is semantically neutral, so start the walk at pc+2
+        # (one retry) when there is room AND pc+2 is real code — NOT another
+        # nop: a nop,nop,... run is a NOP-sled padding target (e.g. 0x4C14),
+        # whose walk must stay rejected so the callee-walk synthesizes the
+        # no-op body instead of decoding the sled as instructions.
+        if (addr + 3 < bound and addr + 2 < end
+                and not (rom[addr + 2] == 0x00 and rom[addr + 3] == 0x09)):
+            addr += 2
+        else:
+            res.reject = ('midfunc_nop', addr)
+            return res
     if catalog:
         for _ca, _ce in catalog.items():
             if _ca >= addr or _ce is None:
@@ -1172,6 +1185,22 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 if kind is None:
                     res.reject = ('rte', pc)
                     return res
+                if seen_rts and kind in ('bsrf', 'braf'):
+                    # (fix 3) post-rts linear continuation: after the
+                    # function's first rts the fall-through can run into the
+                    # literal pool, whose data words DECODE as bsrf/braf
+                    # (0x0003 bsrf r0 at 0x507B4 / 0x665F2, inside value
+                    # tables) — the pool is never executed.  Skip the word as
+                    # data instead of rejecting 'dynbranch_unresolved'
+                    # (0x50756/0x665B2).  Genuinely-reachable bsrf/braf
+                    # (seen_rts False) still hit the blanket reject below.
+                    # rts-shaped words are deliberately NOT skipped: a
+                    # post-rts rts in the same linear column can be real code
+                    # reached via an earlier branch target (0x6670's callee,
+                    # rts at 0x264e after bf target 0x264c) and the original
+                    # record emission matches sh2emu.
+                    pc += 2
+                    continue
                 if kind == 'rte':
                     # rte (return-from-exception): pops PC/SR from the stack and
                     # jumps to an arbitrary runtime address, so sh2emu escapes the
@@ -2038,9 +2067,10 @@ def _callee_extend_to_rts(rom, t, end_c, bounds):
     from `end_c` for the next real `rts` (opcode 0x000B at an even offset,
     skipping literal-pool words) and return rts+4 (the rts plus its delay
     slot) as the new end.  Bounded by the next catalog row start — never
-    extends past a catalogued function — or a +0x400 cap; only the FIRST rts
-    found is used.  Returns None when there is no room to extend or no rts."""
-    cap = min(end_c + 0x400, len(rom))
+    extends past a catalogued function — or a +0x1000 cap (0x26520's real rts
+    sits at +0x4A8, past the old +0x400 cap); only the FIRST rts found is
+    used.  Returns None when there is no room to extend or no rts."""
+    cap = min(end_c + 0x1000, len(rom))
     nxt = v3._next_addr(t, bounds) if bounds else None
     if nxt is None:
         ub = cap
@@ -2105,8 +2135,26 @@ def _caller_extend_fallthrough(rom, addr, end_s):
             continue
         op = (rom[pc] << 8) | rom[pc + 1]
         bi = ops.branch_info(op)
-        if bi is not None and bi.get('kind') in ('rts', 'rte', 'bra', 'braf', 'bsrf'):
-            return None
+        if bi is not None:
+            kind = bi.get('kind')
+            if kind in ('rts', 'rte'):
+                # real return: emulator leaves the span -> no fall-through
+                return None
+            if kind in ('braf', 'bsrf'):
+                # register-indirect branch: target not statically known; treat
+                # as a jump away (out-of-span) -> exit, as before
+                return None
+            if bi.get('target_disp') is None:
+                return None
+            tgt = (pc + 4 + bi['target_disp'] * 2) & MASK
+            if not (addr <= tgt < end_s):
+                # static branch whose target is OUTSIDE [addr, end_s): it
+                # exits the span (tail-call / jump away) -> no fall-through
+                # (0x33366: the 0x94F0-style straight-line span must not be
+                # blocked by an in-span bra to a sibling INSIDE the span).
+                return None
+            # in-span bra/bt/bf/bt.s/bf.s: control stays inside the span,
+            # NOT a terminator — keep scanning (fix: 0x33366, 0x26520).
         if op == 0x402B:                       # jmp @Rn: unconditional exit
             return None
         pc += 2
