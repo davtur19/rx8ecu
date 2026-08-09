@@ -31,7 +31,7 @@
 | 60E1D400 | 91.482 | 91.340 | 91.426 | 91.426 | 91.447 | 83.392 | 80.927 | -- | 88.730 |
 | 60E32000_N3M5E | 92.634 | 92.627 | 92.750 | 92.750 | 92.240 | 89.057 | 88.991 | 88.730 | -- |
 
-High values everywhere (except 60E0FB00 vs 60E0FC00, 0.008%) because every build relocates code and table blocks; raw same-offset comparison is mostly a layout-divergence measure.
+High values appear everywhere, except 60E0FB00 vs 60E0FC00 at 0.008%. Every build relocates code and table blocks. The raw same-offset comparison is mostly a layout-divergence measure.
 
 ### 1b. Content similarity (shift-tolerant 16B blocks), whole ROM / code region / cal region
 
@@ -134,7 +134,7 @@ Nearly every known table address differs vs baseline — the calibration set its
 
 ## 6. Conclusions
 
-- **60E0FB00 vs 60E0FC00 are near-duplicate images** (raw 0.008% = 43 bytes; content 99.95%, code 100.00%, cal 99.76%). The 43 bytes split as: cal-ID char (0x2005 `B`→`C`), two ASCII string bytes (0x6D316, 0x6D34B, 0x6D35D), a 2-byte boot field (0xFFC), a ~24-byte data block at 0x728D5 (ramp/serial-like values, not a plain string), a ~10-byte calibration-constant block at 0x77B47-0x77CC7 (e.g. 0x00000007 vs 0x01250125; 0x07 vs 0x62 triples), and checksum fields (0x7FB01-0x7FB04, descriptor diff @0x7FB88, tail CRC @0x7FFF4).
+- **60E0FB00 vs 60E0FC00 are near-duplicate images** (raw 0.008% = 43 bytes; content 99.95%, code 100.00%, cal 99.76%). The 43 bytes split as: cal-ID char (0x2005 `B`→`C`), two ASCII string bytes (0x6D316, 0x6D34B, 0x6D35D), a 2-byte boot field (0xFFC), a ~24-byte data block at 0x728D5 (ramp/serial-like values, not a plain string), a ~10-byte calibration-constant block at 0x77B47-0x77CC7 (for example 0x00000007 vs 0x01250125; 0x07 vs 0x62 triples), and checksum fields (0x7FB01-0x7FB04, descriptor diff @0x7FB88, tail CRC @0x7FFF4).
 - **No other pair is a near-duplicate.** The 8 remaining builds are distinct firmwares sharing 50-92% of their 16-byte content.
 - **5 variant families (content-distance based):**
   1. **Z-line US 6-port MT** = 60E0FB00 + 60E0FC00 + 60E1B900 (pairwise content >=91%; calibration blocks ~99.7% identical).

@@ -82,7 +82,7 @@ All:
 
 - **BOOT mode**: if TC-1 times out, ECU may be in BOOT mode (or mispowered) — 0x27 handler only valid in normal run mode. Verify power first; **do not flash** for this capture.
 - **Tester safety**: never drive pin **4E**; only feed documented power pins. Unpowered-before-wiring discipline (DUMP_ALL.md).
-- **Bench DTCs**: harmless for UDS; don't clear mid-capture (0x14 out of scope, **[TBD]**).
+- **Bench DTCs**: harmless for UDS; do not clear mid-capture (0x14 out of scope, **[TBD]**).
 - **Timing / silence**: "silent" against the tester's UDS timeout (≥ 1 s; exact **[TBD]**); log timestamps. The else path runs the framework epilogue (`0x58622` → `0x55362`) — internal only, no CAN frame.
 - **Seed nondeterminism**: RequestSeed seeds from 24-bit Galois LFSR (`seed_key_related`, `0x56ADA`) — assert *structure* (3 bytes; zero-fill allowed per discr b), never exact values.
 - **9-image family**: baseline `60E1D400` target; other 8 aux images share the dead-code structure (UDS_SECURITY_MAPPING §7.3) but differ in entry layout and else-path response-SID (`#62`/0x3E vs `#39`/0x27). One clean baseline capture confirms the verdict class for all 9.
@@ -97,6 +97,7 @@ Reviewed 2026-08-04 (curl + GitHub REST API + indexed web search). **No public r
 - https://github.com/rnd-ash/rx8-reverse-engineering/wiki (pages: "Instrument cluster", "RX8 CANBUS", "powertrain control module") — ISO-TP trace of live KWP2000-over-CAN bench sessions, 2006 S1 RX-8 (231 PS).
 - ICM (0x720→0x728): `27 01` → `67 01 46 4E 7F` — **3-byte seed**; SecurityAccess **only in session 0x87**; Mazda NRC quirk: `0x22` used instead of `0x80`. PCM diag IDs confirmed: 0x7E0/0x7E8.
 - **TODO (futuro)**: catturare il seed di una **PCM stock** (0x7E0→0x7E8) come cross-validation live. La cattura ICM esistente (rnd-ash wiki §7.1) proviene da un tool di tuning (**VersaTuner**), quindi **non è evidence della chiave stock PCM** e non è presentata come già cross-validata.
+- **TODO (future)**: capture the seed of a stock **PCM** (0x7E0→0x7E8) for live cross-validation. The existing ICM capture (rnd-ash wiki §7.1) comes from a tuning tool (**VersaTuner**), so it is **not evidence of the stock PCM key** and is not presented as already cross-validated.
 
 ### 7.2 Working seed-key ROM-dump implementation — ConnorRigby/rx8-ecu-dump
 - https://github.com/ConnorRigby/rx8-ecu-dump (`src/UDS.*`, `src/librx8.cpp/.h`, `src/main.cpp`) — C++ J2534 (Tactrix) tool, 500 kbit CAN, full RX-8 PCM diag flow.
@@ -109,16 +110,16 @@ Reviewed 2026-08-04 (curl + GitHub REST API + indexed web search). **No public r
 - Reuse: `ram_capture.bin` / EEPROM dumps diffable against future live capture. No license stated.
 
 ### 7.4 Community reflash tool (binary) — Rx8Man
-- https://github.com/Rx8Man/Rx8Man/releases (v1.21 2026-05-28; v1.20, 1.05, 1.04) — closed-source Windows read/reflash via Tactrix J2534.
+- https://github.com/Rx8Man/Rx8Man/releases (v1.21 2026-05-28; v1.20, 1.05, 1.04) — closed-source Windows read/reflash with Tactrix J2534.
 - Carries the default "MazdA" security key + mazdaEdit key; reads/writes engine ROM over CAN. No source, no published logs.
 
 ### 7.5 rx8club — Open Source S1 RX-8 ECU RE, Data Logging & Tuning (guide thread)
-- https://www.rx8club.com/series-i-engine-tuning-forum-63/open-source-s1-rx-8-ecu-reverse-engineering-data-logging-tuning-users-guide-276137/ (2025-01-12) — Cloudflare-gated; verified via indexed snippets.
-- ROM read/write via Tactrix + RX8Man; supported ROMs incl. **60E1D400 — N3J1EM 6 Port MT**; BOOT mode via Renesas FDT; security-key discussion (default "MazdA"); ELM327/OBDLink not true J2534.
+- https://www.rx8club.com/series-i-engine-tuning-forum-63/open-source-s1-rx-8-ecu-reverse-engineering-data-logging-tuning-users-guide-276137/ (2025-01-12) — Cloudflare-gated; verified through indexed snippets.
+- ROM read/write with Tactrix + RX8Man; supported ROMs include **60E1D400 — N3J1EM 6 Port MT**; BOOT mode through Renesas FDT; security-key discussion (default "MazdA"); ELM327/OBDLink not true J2534.
 
 ### 7.6 rx8club — ECU Technical exploration (thread)
-- https://www.rx8club.com/new-member-forum-197/ecu-technical-exploration-272570/ (2021-03) — Cloudflare-gated; verified via indexed snippets.
-- OBD-II/CAN/UDS primer with raw CAN frames on 0x7E0/0x7E8 (VIN request `7E0#02 09 02 …`); bench-ECU ROM dump via Renesas AUD interface; FDT SCI header (CN400); OBD-II pins 6/14. No 0x27 frames (dump route is AUD/FDT, not UDS).
+- https://www.rx8club.com/new-member-forum-197/ecu-technical-exploration-272570/ (2021-03) — Cloudflare-gated; verified through indexed snippets.
+- OBD-II/CAN/UDS primer with raw CAN frames on 0x7E0/0x7E8 (VIN request `7E0#02 09 02 …`); bench-ECU ROM dump through Renesas AUD interface; FDT SCI header (CN400); OBD-II pins 6/14. No 0x27 frames (dump route is AUD/FDT, not UDS).
 
 ### 7.7 Supplementary tooling / defs / negative results
 - `stratomancer/rx8-s1-canbus` (2026-04) — Python KWP2000/ISO-TP monitor on 0x7E0/0x7E8; PID tables; no 0x27 handling.

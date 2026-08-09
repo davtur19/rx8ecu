@@ -51,4 +51,4 @@ getFaultStatus
   - RAM fault flags buffer at **0xFFFFD740** (word) — vs 0xFFFFD96C here
   - Helper **sub_65348 @ 0x65348** (takes r4 index, returns candidate in r0; per CATALOG_MASTER.csv this region overlaps `getFaultEvalState` 0x65336–0x65348) — vs getFaultEvalState @ 0x67494 here
 - Same two-path structure: AND table entry with flags; if zero, call helper and re-check with **0xFFFF0000** mask; non-zero → fault active.
-- Draft C of the 0x652F0 version (dtcIndex word → `faultTable[dtcIndex] & flags`, alt-path via sub_65348) was in the deleted doc; status was "med" (helper purpose and two-path rationale unconfirmed).
+- Draft C of the 0x652F0 version (dtcIndex word → `faultTable[dtcIndex] & flags`, alt-path with sub_65348) was in the deleted doc; status was "med" (helper purpose and two-path rationale unconfirmed).

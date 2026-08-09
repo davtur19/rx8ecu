@@ -5,18 +5,18 @@
 
 ## Overview
 
-**Main ignition timing calculation** for all rotors. Runs once per scheduler tick
-from `engineControlCalculateTiming` (0x14584). Reads engine speed, knock status and
-temperature flags; interpolates a base ignition correction from a 1-D table; applies
-knock/temperature corrections; dispatches the result to per-rotor hardware output via
+This is the **main ignition timing calculation** for all rotors. It runs once per scheduler tick
+from `engineControlCalculateTiming` (0x14584). It reads engine speed, knock status and
+temperature flags. It interpolates a base ignition correction from a 1-D table. It applies
+knock/temperature corrections. It dispatches the result to the per-rotor hardware output with
 three helpers.
 
 Equinox guide strategy:
 
 > `ignition_angle = base_advance + knock_correction + temperature_correction + load_correction`
 
-This function computes the **correction terms**, combines them with the base advance,
-and writes the final timing (degrees BTDC) to two RAM locations for the trailing- and
+This function computes the **correction terms** and combines them with the base advance.
+It writes the final timing (degrees BTDC) to two RAM locations for the trailing- and
 leading-edge coil drivers.
 
 ## Subcalls
@@ -68,7 +68,7 @@ leading-edge coil drivers.
 | 4500 | 108 | -10.0 | Moderate load retard |
 | 5000 | 128 | 0.0 | No correction at high RPM |
 
-**Negative correction (retard)** at low-to-mid RPM, neutral at high RPM — consistent
+**Negative correction (retard)** at low-to-mid RPM, neutral at high RPM — this is consistent
 with a temperature-protection / knock-avoidance strategy.
 
 ### Scalar Constants in ROM

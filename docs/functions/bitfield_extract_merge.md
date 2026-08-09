@@ -7,19 +7,19 @@
 
 ## Overview
 
-Frexp-style float decomposition: splits a single-precision float into a normalized
+This is frexp-style float decomposition. It splits a single-precision float into a normalized
 significand and signed exponent such that
 
 ```
 x = sig * 2^e ,   sig in [1.0, 2.0),   e in [-149 .. +127]
 ```
 
-(significand kept in [1,2) instead of frexp's [0.5,1) — bit 31 of the fraction word
-is the implicit leading 1). The two 32-bit words are written via a caller-supplied
+(The significand stays in [1,2) instead of frexp's [0.5,1). Bit 31 of the fraction word
+is the implicit leading 1). The two 32-bit words are written through a caller-supplied
 result pointer.
 
-**Only caller:** `checkFloatValidity` @0x46CC (call site 0x46D8), which feeds both
-words into `mul16_signed_saturated` @0x4740 as stack args — this word pair is the
+**Only caller:** `checkFloatValidity` @0x46CC (call site 0x46D8) feeds both
+words into `mul16_signed_saturated` @0x4740 as stack args. This word pair is the
 fixed-point representation used by the calibration math layer.
 
 ## Calling convention (confirmed from the call site)
@@ -31,9 +31,9 @@ fixed-point representation used by the calibration math layer.
     mov.l  r15,@-r15          ; [delay] push result pointer at [r15]
 ```
 
-- float argument in **FR4** (fp register; the callee does the classic
+- The float argument is in **FR4** (fp register; the callee does the classic
   `fmov.s fr4,@-r15; mov.l @r15+,r4` bits->GPR transfer),
-- result pointer at **[r15]** on entry, pointing at an 8-byte buffer:
+- The result pointer is at **[r15]** on entry and points at an 8-byte buffer:
   `*ptr = out[0]` (exponent word), `*(ptr+4) = out[1]` (significand word).
 
 ## Output encoding
@@ -52,11 +52,11 @@ Notes:
 
 - **Sign lives in bit 31 of the exponent word**, not the significand (always a
   positive [1,2) magnitude).
-- **NaN drops its sign**: ROM zeroes r2 on the NaN path (`mov #0,r2` @0x4924) →
+- **NaN drops its sign**: the ROM zeroes r2 on the NaN path (`mov #0,r2` @0x4924). Thus
   negative NaN also yields `0x00007FFF`. Infinities keep the sign (r2 preserved).
 - `0x8001` (-32767) = zero sentinel; `0x7FFF` (+32767) = Inf/NaN saturation.
-- Subnormals fully normalized: mantissa shifted left until top set bit reaches
-  bit 31, exponent decremented per shift (exp_out = -127 - n, n = 22 - ⌊log2(mant)⌋).
+- Subnormals are fully normalized: the mantissa shifts left until the top set bit reaches
+  bit 31; the exponent decrements per shift (exp_out = -127 - n, n = 22 - ⌊log2(mant)⌋).
   Smallest subnormal (2^-149) → `(0xFF6B, 0x80000000)`.
 
 ## Worked examples (from the emulator)
@@ -145,6 +145,6 @@ void bitfield_extract_merge(float value, uint32_t *out);
 
 IDA (`src/60E1D400_annotated.s`) and Ghidra (`src/60E0FC00.s`) both mis-decode the
 tail: they show `mov #0,r2` at 0x4922, but the raw bytes there are `D1 03` =
-`mov.l @(.lit2,pc),r1` (load 0x00007FFF) — the listing shifted by one instruction
+`mov.l @(.lit2,pc),r1` (load 0x00007FFF). The listing shifted by one instruction
 and merged the 0x4926 `bra .exit` + 0x4928 delay-slot `mov #-1,r4` into the NaN
 entry. The byte-level decode here (verified on both ROMs with xxd) is authoritative.

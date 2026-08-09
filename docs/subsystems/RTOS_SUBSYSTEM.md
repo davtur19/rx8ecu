@@ -12,7 +12,7 @@ Cooperative (non-preemptive) multitasking RTOS: circular task queue, priority-dr
 | Scheduler | Cooperative, non-preemptive, priority-driven with queue |
 | Task queue | Circular buffer, 100 entries, fixed RAM |
 | Task table | ROM pointer table @0xDB14, up to 27 tasks + system |
-| Dispatch | Direct call (`marker==0xFFFF`) or routed via dispatcher (marker = dispatch key) |
+| Dispatch | Direct call (`marker==0xFFFF`) or routed through a dispatcher (marker = dispatch key) |
 | Context switch | Full register save/restore with SR management |
 | Timing | ATU timer interrupts drive periodic scheduling |
 
@@ -162,8 +162,8 @@ Like 0x5F34 with init steps; for one-shot startup tasks.
 ### Initialization Functions
 - `task_queue_init` (0x3964): read CPU stepping; clear queue; set up dispatch ptrs; init slots to −1.
 - `task_table_scan_init` (0x3EC0): iterate tasks; set inactive + default counters; per-task init.
-- `task_dependency_handler` (0x3F10): read dependency list; decrement counters; enable dependents when satisfied (via descriptor table).
-- **RTOS init @0x3E10** (reached via boot → `task_context_switch` → jmp 0x3E10; mode r4=0 cold): set up control block @0xFFFF72B0, store mode, read RAM start + descriptor ptr, then `task_queue_init` (0x3964) → `task_table_scan_init` (0x3EC0) → `task_dependency_handler` (0x3F10) → `task_set_current_ptr` (0x3AC0) → nullsubs (0x3F8C, 0x3F88) → `clear_task_flag_dc/dd` (0x3F90, 0x3F9C) → if RAM flag set: `task_flag_run_A` (0x3588) → nullsub_3 (0x3FA8) → jump `task_full_context_save` (0x3C2A).
+- `task_dependency_handler` (0x3F10): read dependency list; decrement counters; enable dependents when satisfied (through a descriptor table).
+- **RTOS init @0x3E10** (reached through boot → `task_context_switch` → jmp 0x3E10; mode r4=0 cold): set up control block @0xFFFF72B0, store mode, read RAM start + descriptor ptr, then `task_queue_init` (0x3964) → `task_table_scan_init` (0x3EC0) → `task_dependency_handler` (0x3F10) → `task_set_current_ptr` (0x3AC0) → nullsubs (0x3F8C, 0x3F88) → `clear_task_flag_dc/dd` (0x3F90, 0x3F9C) → if RAM flag set: `task_flag_run_A` (0x3588) → nullsub_3 (0x3FA8) → jump `task_full_context_save` (0x3C2A).
 
 ### Schedule Wrapper `calledLots` (0xA486)
 Save SR → save task_id → `setSR_PARAM` (0x2054) → read counter `*(uint8_t*)(0xFFFFA18B + task_id)` → if <0xFF increment → `setSR` (0x2064) → return.
@@ -269,5 +269,5 @@ Separate code region — possibly a conventional (OSEK/VDX-inspired) RTOS wrappe
 ## 11. Open Questions
 
 1. Relationship between native scheduler (0x364–0x9668) and API layer (0x4BF3C+): two layers of same RTOS, or compatibility wrapper?
-2. How are task stubs (0xA12E+) invoked — via `task_scheduler_dispatch` (0x364) queue or directly by init?
+2. How are task stubs (0xA12E+) invoked — through `task_scheduler_dispatch` (0x364) queue or directly by init?
 3. Task descriptor table @0xD9E4 format beyond 8-byte entry size (dispatch-key config data).

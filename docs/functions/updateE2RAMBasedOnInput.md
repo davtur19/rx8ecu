@@ -1,9 +1,9 @@
 # updateE2RAMBasedOnInput @ 0x361AC
-**Purpose:** Dispatcher that routes adaptive/calibration data from external input (UDS, CAN, serial) to appropriate E2 EEPROM regions. Large switch statement mapping input command codes to E2 index + length pairs.
+**Purpose:** Dispatcher that routes adaptive/calibration data from external input (UDS, CAN, serial) to the appropriate E2 EEPROM regions. It is a large switch statement that maps input command codes to E2 index and length pairs.
 **Inputs:** r4: command code (u8: 0-15, 0xFF reserved) ; 0=?, 1=?, 2=?, ..., 13=?, 14=?, 15=? ; 0xFF=special command ; r5: unused (zeros out in some paths) ; r6: length parameter or fixed per command ; r7,r8: scratch/work registers
-**Out:** Calls writeToE2RAMArea_INDEX_ADDR_LEN for each command (with specific index/address/length) ; Modifies E2 EEPROM regions corresponding to command ; Does NOT return data; all outputs are via E2 writes
+**Out:** Calls writeToE2RAMArea_INDEX_ADDR_LEN for each command (with the specific index/address/length) ; Modifies the E2 EEPROM regions corresponding to the command ; Does NOT return data; all outputs are E2 writes
 **Calls:** writeToE2RAMArea_INDEX_ADDR_LEN @ 0x385C4: main E2 writer ; Args: r4=index, r5=RAM address, r6=byte count ; Called 30+ times with different index/addr combinations
-Load writeToE2RAMArea function address into r14 ; Load E2 index base addresses: r12=0xFFFFC291, r13=0xC1EF (word) ; Dispatch on r4: ; cmd=1**: write 8 bytes from addr 0xFFFFC288 to index 2 ; cmd=2**:
+Load the writeToE2RAMArea function address into r14 ; Load the E2 index base addresses: r12=0xFFFFC291, r13=0xC1EF (word) ; Dispatch on r4: ; cmd=1**: write 8 bytes from addr 0xFFFFC288 to index 2 ; cmd=2**:
 write 2 bytes from addr 0xFFFFC288 to index 2 ; cmd=13**: write 1 byte from addr 0xFFFFC29E to index 30 ; cmd=3**: write 1 byte from addr 0xFFFFC284 to index 0 ; cmd=4**: write 1 byte from addr
 0xFFFFC291 to index 12; also write 1 byte from 0xC1EE to index 14; also write 1 byte from 0xC1F0 to index 16; also write 1 byte from 0xFFFFC294 to index 19 ; cmd=5**: write 1 byte from 0xC1F0 (index
 18) ; cmd=6**: write 1 byte from 0xFFFFC294 (index 19) ; cmd=7**: write 2 bytes from 0xFFFFC296 (index 22) ; cmd=8**: write 2 bytes from 0xFFFFC298 (index 24) ; cmd=12**: write multiple (index 12, 13,
@@ -51,5 +51,5 @@ void updateE2RAMBasedOnInput(u8 cmd) {
   }
 }
 ```
-**Status:** high ; Function dispatch structure (command-based switch) very clear from assembly ; E2 index/address/length tuples directly readable from jsr calls ; All function calls and addresses are definite (no speculation on control flow)
-**Uncertainties:** What do the E2 index values (0, 2, 10, 12-15, 18-19, 22, 24, 26-30) represent in ECU calibration/adaptive data layout? ; Why are some indices accessed multiple times in a single command (e.g., cmd=4)? ; What is the semantic meaning of cmd codes 0-15 in the UDS/CAN protocol? ; Are the RAM addresses (0xFFFFCxxx, 0xC1Ex) temporary buffers or persistent adaptive data structures?
+**Status:** high ; The function dispatch structure (command-based switch) is clear from the assembly. The E2 index/address/length tuples are directly readable from the jsr calls. All function calls and addresses are definite (no speculation on control flow).
+**Uncertainties:** What do the E2 index values (0, 2, 10, 12-15, 18-19, 22, 24, 26-30) represent in the ECU calibration/adaptive data layout? ; Why are some indices accessed multiple times in a single command (for example, cmd=4)? ; What is the semantic meaning of the cmd codes 0-15 in the UDS/CAN protocol? ; Are the RAM addresses (0xFFFFCxxx, 0xC1Ex) temporary buffers or persistent adaptive data structures?

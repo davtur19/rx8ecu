@@ -5,8 +5,8 @@
 
 ## Overview
 
-Computes the **adaptive fuel trim** — closed-loop correction to base fuel injection
-time from O2 (lambda) feedback. Long-term fuel adaptation for component wear,
+This function computes the **adaptive fuel trim**, the closed-loop correction to base fuel injection
+time from O2 (lambda) feedback. Long-term fuel adaptation compensates for component wear,
 tolerances, and fuel quality changes.
 
 Equinox guide:

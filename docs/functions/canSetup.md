@@ -1,12 +1,12 @@
 # canSetup @ 0xD9F4
-**Purpose:** Initialize CAN controller mailboxes for both TX and RX channels.
+**Purpose:** Initialize the CAN controller mailboxes for both TX and RX channels.
 **Inputs:** None
 **Out:** Flags at 0xFFFFA410, 0xFFFFA411: set on success/failure ; RAM counter at 0xFFFFA40E: tracks mailbox initialization attempts
 **Calls:** CANControllerSetup @ 0x9744 (setup controller with parameters) ; canMessageSetup @ 0x2AC4C (setup individual mailbox)
-Clear setup attempt counter at 0xFFFFA40E ; Loop (max 2 iterations based on r8=2): ; Check enable flag at 0xB580 ; If enabled, configure TX mailboxes (0x4BB14) with CANControllerSetup(r4=0,
-r5=mailbox, r6=16) ; Otherwise configure RX mailboxes (0x4BC14) with CANControllerSetup(r4=0, r5=mailbox, r6=16) ; For each mailbox pair, call canMessageSetup(r4=0) ; Load second mailbox address,
-repeat CANControllerSetup(r4=1) and canMessageSetup(r4=1) ; Accumulate errors in r11 ; Increment attempt counter if any error occurred ; If attempt counter >= 2, set success flag 0xFFFFA410=1 and
-error flag 0xFFFFA411=0 ; Otherwise set flags to 0
+Clear the setup attempt counter at 0xFFFFA40E. Loop (max 2 iterations based on r8=2): check the enable flag at 0xB580. If enabled, configure TX mailboxes (0x4BB14) with CANControllerSetup(r4=0,
+r5=mailbox, r6=16). Otherwise configure RX mailboxes (0x4BC14) with CANControllerSetup(r4=0, r5=mailbox, r6=16). For each mailbox pair, call canMessageSetup(r4=0). Load the second mailbox address and
+repeat CANControllerSetup(r4=1) and canMessageSetup(r4=1). Accumulate errors in r11. Increment the attempt counter if any error occurred. If the attempt counter >= 2, set the success flag 0xFFFFA410=1 and the
+error flag 0xFFFFA411=0. Otherwise set the flags to 0.
 **Draft C:**
 ```c
 void canSetup(void) {
@@ -36,4 +36,4 @@ void canSetup(void) {
   *(uint8_t*)0xFFFFA411 = 0;
 }
 ```
-**Status:** med — dual-channel (TX/RX) setup and mailbox iteration clear; error logic and magic addrs (0x4BB14, 0x4BC14) need verification.
+**Status:** med — the dual-channel (TX/RX) setup and mailbox iteration are clear; the error logic and magic addrs (0x4BB14, 0x4BC14) need verification.

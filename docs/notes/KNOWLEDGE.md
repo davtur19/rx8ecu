@@ -13,7 +13,7 @@ Active RE notes: `ECU.md`. Findings history: `FINDINGS.md`.
 | Live ROM | owner's personal dump (**private — not shipped** in this repo) |
 | RE baseline | `60E1D400` — same N3J1 family, full docs in `docs/` |
 | CPU | SH7055 (HD64F7055), SH-2E, 32-bit BE; flash 512 KB @ 0x000000; RAM 32 KB @ 0xFFFF6000 |
-| EEPROM | ABLIC S-93C56C, 256 B, SPI bit-bang via GPIO |
+| EEPROM | ABLIC S-93C56C, 256 B, SPI bit-bang with GPIO |
 
 All N3J1-18-881x variants (F/G/H/L/R) are pin-compatible and ROM-compatible.  
 Series II (2009+) uses SH7058 — different CPU, not compatible.

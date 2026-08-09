@@ -1,7 +1,7 @@
 # Cooling Fans — verified calibration tables
 
 Verified cooling-fan control tables in ROM **60E1D400** (`roms/stock/60E1D400.bin`),
-f32 big-endian, confirmed by reading the binary. Same block in stock and fanmod-tuned variants.
+f32 big-endian, confirmed by the binary contents. The same block exists in stock and fanmod-tuned variants.
 
 ## Fan temperature thresholds (60E1D400)
 
@@ -35,5 +35,5 @@ Byte-level spot check of the tuned bins confirms the f32 at `0x07793C`/`0x077944
 ## Mapping
 
 - Cooling subsystem reference: `12_vehicle_subsystems/05_cooling.md` (ROM fan tables, `0xFFFFA73C` coolant temp RAM input, `0xFFFFA95C` fan control output, DTCs P0480/P0481, CAN status frames 0x620/0x630).
-- Fan behavior: No. 1 on with ECT above ~96–97 °C and/or A/C request; No. 2 + high-speed staged above that; high-speed cut at high vehicle speed.
+- Fan behavior: No. 1 on with ECT above ~96–97 °C or A/C request; No. 2 + high-speed staged above that; high-speed cut at high vehicle speed.
 - OBD control PIDs (secured session): `0x17C3` Fan Enable 1, `0x17C4` Fan Enable 2.

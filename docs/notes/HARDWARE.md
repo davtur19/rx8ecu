@@ -21,7 +21,7 @@ numbering, unconfirmed).
 | **IC830** | `151821-1280`, lot `992K7 603 VB 99 MYS` (identical to IC780/IC820) | Denso custom ASIC, same family | Guess: ignition coil driver | Paired with IC820. Earlier "comms/CAN-transceiver" guess was wrong — corrected. |
 | **IC020** | `1H28` / `SE585` + Denso logo | Denso ASIC, SOP24 | Unknown | Power-supply area, near D013/C023/L190/IC190. |
 | **IC400** | `1H28` / `SE555` + Denso logo | Denso ASIC, SOP24 (one digit off IC020's `SE585` — easy to conflate, confirmed separate chip) | Sits inside a ~15-pair R/C filter cluster → analog front-end/mux guess | — |
-| **IC640** | `F5041` / `61115` | **Fuji Electric F5041** — Intelligent Power MOSFET, SOP-8 | Solenoid/lamp/relay-fuse low-side driver — candidate: OMP metering oil pump or purge/VICS solenoid | Part confirmed via Fuji datasheet. 2 identical instances also at IC660 and IC850. |
+| **IC640** | `F5041` / `61115` | **Fuji Electric F5041** — Intelligent Power MOSFET, SOP-8 | Solenoid/lamp/relay-fuse low-side driver — candidate: OMP metering oil pump or purge/VICS solenoid | Part confirmed with Fuji datasheet. 2 identical instances also at IC660 and IC850. |
 | **IC660** | `F5041` / `61115` (identical to IC640) | **Fuji Electric F5041** — Intelligent Power MOSFET, SOP-8 | Solenoid/lamp/relay-fuse low-side driver | Same part as IC640/IC850. |
 | **IC850** | `F5041` / `61115` (identical to IC640) | **Fuji Electric F5041** — Intelligent Power MOSFET, SOP-8 | Solenoid/lamp/relay-fuse low-side driver | Same part as IC640/IC660 — 3 identical solenoid/lamp drivers on the board. |
 | **IC705** | `SPF0001` / `K5D03` | Sanken SPF0001 — power transistor array | Per-injector or per-coil low-side driver | — |
@@ -30,7 +30,7 @@ numbering, unconfirmed).
 | **IC520** | `MC33186DH`, lot `KAV0550` | **NXP/Freescale MC33186** — automotive H-Bridge driver, 150 mΩ | Candidate: ETB (drive-by-wire throttle) motor driver, matches known `FUN_0x8F62` ETB loop in `ECU.md` | — |
 | **IC420** | `S93C56` + `BD` logo, lot `V5Y 3369` | **ABLIC S-93C56C** — 256B EEPROM, 3-wire SPI | EEPROM (paired data, VIN pairing byte, LC checksum window per `KNOWLEDGE.md`) | Matches pre-existing `hardware/HARDWARE_NOTES.md` EEPROM location. |
 | **IC905** (only IC on the backside) | `TD549A4`, lot `M4600` | Toshiba (TD-prefix), no exact public datasheet match | Unknown — likely Darlington/relay driver | Near C498/C303/R300/D335. |
-| **IC675** | Toshiba logo (`T`) + `0551H` / `AX00-H` (final reading, confirmed twice by user) | Toshiba, exact P/N unresolved | Unknown | Near R820/C675, next to CN490 and the IC820/IC830 pair. Checked against markingcodes.com — no hits for this or other candidate readings (`NC00-H`, `AC00-H`). Likely too worn/glare-affected to be in any public database, or it's a fab/lot code rather than the searchable part number. |
+| **IC675** | Toshiba logo (`T`) + `0551H` / `AX00-H` (final reading, confirmed twice by user) | Toshiba, exact P/N unresolved | Unknown | Near R820/C675, next to CN490 and the IC820/IC830 pair. Checked against markingcodes.com — no hits for this or other candidate readings (`NC00-H`, `AC00-H`). Likely too worn/glare-affected to be in any public database, or it is a fab/lot code rather than the searchable part number. |
 | **IC190** | `3029012` / `452KPM5` | ST Microelectronics, SOP-8 — customer-specific part number (family `3029xxx` also seen assigned to Bosch), no functional datasheet found | Unknown | Near IC020/L190. |
 
 `L190` (TDK, `1272`/`R2X`) is a filter/choke inductor, not an IC — originally mistaken for one.
@@ -41,7 +41,7 @@ numbering, unconfirmed).
 
 | Silk label | Pins | Notes |
 |---|---|---|
-| **CN400 "PBL"** | 13, single row | Matches equinox92's RX8club forum BOOT-mode pinout, confirmed against this exact connector via his reference photos (kept in private storage, not shipped): **WDT, FWE, MD1, TX, RX** labeled directly above their holes, anchored to R407/R408/T701–T704/C482/C420. (The apparent left/right pin numbering mismatch between his two reference photos is just component-side vs. solder-side view of the same through-hole row — not a real conflict.) Still confirm with a multimeter before applying any voltage for BOOT mode recovery. |
+| **CN400 "PBL"** | 13, single row | Matches equinox92's RX8club forum BOOT-mode pinout, confirmed against this exact connector with his reference photos (kept in private storage, not shipped): **WDT, FWE, MD1, TX, RX** labeled directly above their holes, anchored to R407/R408/T701–T704/C482/C420. (The apparent left/right pin numbering mismatch between his two reference photos is just component-side vs. solder-side view of the same through-hole row — not a real conflict.) Still confirm with a multimeter before applying any voltage for BOOT mode recovery. |
 | **CN430 "NBD"** | ~13–14, single row | Adjacent to CN400, purpose unconfirmed. |
 | **CN490 "MEP5"** | small header | Near IC675 and crystal X430, purpose unconfirmed. |
 
@@ -51,8 +51,8 @@ numbering, unconfirmed).
 
 ## Backside (solder side)
 
-Board is populated on both sides. Back side is mostly discrete R/C networks (output-stage
-filtering/pull-ups for the front-side driver ICs) plus:
+Board is populated on both sides. Back side contains mostly discrete R/C networks (output-stage
+filter and pull-up networks for the front-side driver ICs) plus:
 
 - **IC905** — see inventory table above; the only IC on the backside.
 - `R33`-marked SIP resistor packs (x2, near R030/R040/C020) — networks, not logic.
@@ -63,7 +63,7 @@ filtering/pull-ups for the front-side driver ICs) plus:
 - Discrete transistors **T561, T570, T680, T705, T706, T730, T731, T671**, each paired with a nearby
   flyback diode — likely low-side switches for solenoids/relays/lamps.
 - Dense R2xx/R4xx/C2xx/C4xx clusters sit directly behind IC400's front-side position — consistent
-  with IC400 being an analog front-end.
+  with IC400 as an analog front-end.
 - **T040/T150/T870**: discrete power transistors on the small heatsink bracket, top-left of the front side (not driver ICs, corrected from an early guess).
 
 ---
@@ -71,7 +71,7 @@ filtering/pull-ups for the front-side driver ICs) plus:
 ## Open items
 
 1. Glare-free (angled/polarized light) re-shoot of IC675 for a full part number.
-2. Multimeter continuity check on CN400 before applying voltage for BOOT mode.
-3. IC400 (`SE555`) and IC020 (`SE585`) functions undocumented publicly — may need tracing copper to known signals.
-4. Denso ASIC functions all unconfirmed guesses (IC404: timing ASIC; IC840, IC780/IC820/IC830 — 3 identical `151821-1280`: ignition coil driver) — need continuity tracing to the coil/injector connector pins. 3 identical instances is odd for "leading+trailing × 2 rotors" (4 coils).
+2. Multimeter continuity check on CN400 before you apply voltage for BOOT mode.
+3. IC400 (`SE555`) and IC020 (`SE585`) functions are undocumented publicly. Trace copper to known signals to identify them.
+4. Denso ASIC functions are all unconfirmed guesses (IC404: timing ASIC; IC840, IC780/IC820/IC830 — 3 identical `151821-1280`: ignition coil driver). Trace continuity to the coil/injector connector pins. 3 identical instances are odd for "leading+trailing × 2 rotors" (4 coils).
 5. `IC190` (`3029012`) and `IC675` — no functional identification, just manufacturer/package.

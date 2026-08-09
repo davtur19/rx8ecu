@@ -29,16 +29,16 @@ A **raw run from the reset vector stalls**: boot descends into a hardware poll l
 `_rb` gives optional `mmio` dict priority over RAM/ROM (sh2emu.py:45-46); `SH2.call(..., mmio={addr:byte})` wires it additively (off by default). Precedent: `test_sensorADCRead_68A8.py` builds `{ADCSR…: val}`.
 
 Identified for boot:
-- **Reset/boot hardware poll loop `0x8E8..0x8F0`** — after ~200 instructions the reset path busy-waits (`and/bt` self-loop); no model → spins to the 500k runaway at `pc=0x8EA`. Polled register must be resolved in phase B (candidates: port input via `@(disp,PC)` loads at 0x9B4/0x9AC, WDT/CMT/power-on registers).
+- **Reset/boot hardware poll loop `0x8E8..0x8F0`** — after ~200 instructions the reset path busy-waits (`and/bt` self-loop); no model → spins to the 500k runaway at `pc=0x8EA`. Polled register must be resolved in phase B (candidates: port input with `@(disp,PC)` loads at 0x9B4/0x9AC, WDT/CMT/power-on registers).
 - **WDT / reset-watchdog** — `resetWatchdog@0x572` writes `0xEC10/0xEC12`; watch-dog-reload model needed for long runs.
-- **Main-loop timing/RTOS** — `0xFFFFF8xx`-range ports, CMT/TMU timers keeping the scheduler alive. Each read that gates forward progress needs a deterministic, non-stalling value.
+- **Main-loop timing/RTOS** — `0xFFFFF8xx`-range ports, CMT/TMU timers that keep the scheduler alive. Each read that gates forward progress needs a deterministic, non-stalling value.
 
 ## 3. Emulator risks / blockers
 
 - **No batch "run N instructions, read state" API.** `SH2.call` runs until `rts` to sentinel `pr=SENT` (returns `r0`) or the 500k `RuntimeError "runaway"`. → harness must subclass and count steps.
 - **From-reset run stalls immediately** (probe: `call(0x8b8)` → 500k steps in ~0.2 s, `RuntimeError: runaway at 0x8EA`, final PC `0x8ea`, `r0=0`, 12 RAM writes). Stall is the hardware poll loop, **not a decoder gap** (`NotImplementedError` opcodes explicit, sh2emu.py:389/468; only `trapa` :309 is exceptional — declared trap-vector per FORMAL_CERT).
 - **Boot is state-/hardware-dependent**, not pure: stack/SSR/SR recovery, `[0xFFFFDFFC]==0x5AA5A55A` recovery cell, warm/cold paths (`test_reset_handler_4E0.py`).
-- **No interrupt/supervisor-exception model** beyond `rte` popping SR/PC (`_delayed` :309-area) and `sleep` as no-op (:317). Long main-loop scenarios need a clock/IRQ stub — or terminate on budget. (**Non-blocking** for budgeted runs.)
+- **No interrupt/supervisor-exception model** beyond the `rte` pop of SR/PC (`_delayed` :309-area) and `sleep` as no-op (:317). Long main-loop scenarios need a clock/IRQ stub — or terminate on budget. (**Non-blocking** for budgeted runs.)
 
 ## 4. Deliverables (phase B)
 

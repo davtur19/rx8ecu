@@ -97,7 +97,7 @@ This architecture — resistive-divider switch decode → driver request → spe
 4. **Vehicle-side inhibitors:** gates on brake switch, clutch switch, VSS fault, ASC/DSC intervention (see §5) — typical cruise safety logic.
 5. **Persistent EEPROM-backed config:** 0x868C read/written with value+complement pattern (`readValue_8bit_ADDRESS_VAL` 0x3E0DC / `updateMemoryAtAddress_8bit_ADDR_VAL` 0x3E1F8) and **used exclusively by the cruise cluster** (7 genuine refs: 0x2C696, 0x2C7A2, 0x2C892, 0x2D6DC, 0x2D978, 0x2E5D6, 0x2E74E) — the "cruise configured/installed" flag.
 6. **Two ROMs, same structure:** 60E0FC00 and 60E1D400 implement the same cluster with different offsets (known RAM-layout-differs pattern in this firmware).
-7. **Mazda documentation:** RX-8 sold with optional cruise control (e.g. "SWITCH,ACCEL-CRUISE" 2004; 2005 manual: works above ~30 km/h).
+7. **Mazda documentation:** RX-8 sold with optional cruise control (for example "SWITCH,ACCEL-CRUISE" 2004; 2005 manual: works above ~30 km/h).
 
 ---
 
@@ -113,7 +113,7 @@ Output @0xBD1C = 1 (cruise allowed) if:
 - master_enable: ROM @0x762A5 = **0x80** → NOT == 1 → factory override inactive (60E1D400: @0x76B6D = 0x00, same effect)
 - Variant 60E1D400 @0x2E3AC (C lift verified in `c/`): brake inhibitor 0xBD54, clutch 0xBD55, VSS 0xBD56, ASC/DSC 0xBD6A; output @0xBD58; min threshold @0xC008.
 
-Gate conclusion: in both ROMs master_enable is a test/diagnostic override calibration **not enabled in stock**; enabling depends only on minimum speed (~27 km/h) and absence of inhibitors. The 27 km/h threshold matches the official manual (~30 km/h).
+Gate conclusion: in both ROMs master_enable is a test/diagnostic override calibration **not enabled in stock**. Cruise enables only when speed is at least ~27 km/h and no inhibitor is active. The 27 km/h threshold matches the official manual (~30 km/h).
 
 ### `calculateCruiseControlDisableCondition` @0x2D924
 Writes 0xBD19 = 1 (disabled) if **at least one**:
@@ -127,8 +127,8 @@ Writes 0xBD19 = 1 (disabled) if **at least one**:
 ## 6. Reachability and consumption (active, not dead code)
 
 From `symbols/callgraph.csv`:
-- `throttleTask` (0x11584, from main task via FUN_000064ba) → `cruiseControlFunctions` (0x2EB22)
-- `FUN_000115aa` (throttle/torque task, via FUN_000064e8) → `cruiseControlMain??` (0x2EB40) — with `calculateTorqueRelatedParams` (0x2D208), `throttlePlateTorqueStuff`, etc.
+- `throttleTask` (0x11584, from main task through FUN_000064ba) → `cruiseControlFunctions` (0x2EB22)
+- `FUN_000115aa` (throttle/torque task, through FUN_000064e8) → `cruiseControlMain??` (0x2EB40) — with `calculateTorqueRelatedParams` (0x2D208), `throttlePlateTorqueStuff`, and others
 - `getIOUpdates?` (0x1A35C) → `calculateCruiseControlSwitchVolt` (0x2C5D0) and `cruiseControlInit` (0x3390C)
 - `vehicleConditionRelatedFuntions` (0x1A7FA) → `calculateCruiseControlDriverRequest` (0x2C5F8)
 
@@ -165,7 +165,7 @@ The code runs **every cycle** in the throttle/IO management tasks. The torque ou
 
 1. Exact semantics of intermediate flags 0xBD7C / 0xBD69 / 0xBD2E and who writes them (likely: button state, gear/conditions, diagnostics state).
 2. Who feeds the brake/clutch/VSS/ASC inhibitors (0xBD54/0xBD55/0xBD56/0xBD6A in 60E1D400) — presumably brake switch, clutch switch, VSS plausibility, DSC module; confirm with xref.
-3. Is 0x868C ever written at runtime (e.g. by UDS diagnostics) or factory-preconfigured? Physical pinout of the cruise switch connector (not in `CONNECTOR_PINOUT.md`)?
+3. Is 0x868C ever written at runtime (for example by UDS diagnostics) or factory-preconfigured? Physical pinout of the cruise switch connector (not in `CONNECTOR_PINOUT.md`)?
 
 ---
 

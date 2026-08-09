@@ -4,9 +4,9 @@
 
 ## Overview
 
-Task consistency / health-check counter table. Scheduler calls this on every task
+This is a task consistency / health-check counter table. The scheduler calls this on every task
 switch to verify each task's "I'm alive" counter against its expected value. On
-mismatch the counter is incremented (or restored from a saved shadow); if it drifts
+mismatch the counter is incremented (or restored from a saved shadow). If it drifts
 too far, an exception handler fires.
 
 Each entry in the table (indexed by task_id × 8) has:

@@ -1,6 +1,6 @@
 # GitHub Actions CI — rx8ecu
 
-CI definition for the rx8ecu repo. Self-contained: **no repo-root files required**; CI keeps its own pin in `.github/requirements.txt`.
+CI definition for the rx8ecu repo. It is self-contained: CI requires **no repo-root files**; it keeps its own pin in `.github/requirements.txt`.
 
 ## What CI runs
 
@@ -11,11 +11,11 @@ CI definition for the rx8ecu repo. Self-contained: **no repo-root files required
 | `catalog` | `python3 tools/classify_functions.py` + `python3 tools/gen_catalog.py` on clean checkout, then `git diff --exit-code` on four catalog artifacts — **fails on drift** (skipped unless catalog paths changed, via `dorny/paths-filter`) | `make classify catalog` |
 | `formal-cert` | `make cert` — formal certification (`tools/verify_formal.py`) of **all 9 stock ROMs**; **fails unless CERTIFIED** (skipped unless `src/**`, verifier, or configs changed) | `make cert` |
 
-All four jobs run in **parallel** (subject to path triggers), each **fails the workflow** on any failing step.
+All four jobs run in **parallel** (subject to path triggers). Each job **fails the workflow** on any failed step.
 
 ### Triggers
 
-- `push` to `main` / `master`; `pull_request` targeting them
+- `push` to `main` / `master`; `pull_request` that targets those branches
 - Same-branch runs **cancelled in favour of the newest** (`concurrency.cancel-in-progress`)
 
 ## Caching
@@ -34,7 +34,7 @@ sudo apt-get update        # ensure apt lists are present
 
 Works because runners are Ubuntu. Makefile/`verify_all.sh` resolve `tools/toolchain/usr/bin` themselves; only `test_decode_families.py` needs it on `PATH` (set in the `tests` job).
 
-**Version caveat:** local measurement used **sh-elf binutils 2.46**; `get_toolchain.sh` installs whatever apt provides (may be older, e.g. 2.42 on 24.04). Byte-exactness holds against any version (`rom_rebuild.py` self-corrects back to raw `.word`). Coverage % can drift slightly with `as` version; `BYTE-EXACT` should not.
+**Version caveat:** local measurement used **sh-elf binutils 2.46**; `get_toolchain.sh` installs whatever apt provides (can be older, for example 2.42 on 24.04). Byte-exactness holds against any version (`rom_rebuild.py` self-corrects back to raw `.word`). Coverage % can drift slightly with the `as` version; `BYTE-EXACT` does not.
 
 ## Environment (local vs CI)
 
@@ -63,4 +63,4 @@ python3 tools/run_tests_parallel.py -j 2     # auto-discovers all c/tests + tool
 
 > **`-j 4` in CI?** `run_tests_parallel.py` defaults to `cpu_count-1` = 3 on the 4-vCPU `ubuntu-latest` runner; `-j 4` uses all four vCPUs. The parallel runner is the single canonical way to run the Python battery (locally `make test-fast`).
 
-On Debian/Ubuntu the toolchain can alternatively be installed system-wide with `sudo apt-get install binutils-sh-elf` (Makefile picks it up from PATH).
+On Debian/Ubuntu you can also install the toolchain system-wide with `sudo apt-get install binutils-sh-elf` (Makefile picks it up from PATH).

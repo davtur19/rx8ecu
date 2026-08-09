@@ -3,9 +3,9 @@
 **Inputs:** `r4` (byte): spark plug index (0–7, one per output-compare channel) ; `fr4` (float): spark dwell time / ignition delay (in hardware timer units) ; Calls `getSR()` to read current system status register (likely to lock/unlock interrupt or test state)
 **Out:** Writes float dwell value to hardware register at `0xFFFFA0D8 + (spark_index * 8)` (output-compare channel control register, offset +0) ; Writes control byte 2 to offset +4 of the same structure (likely output-compare mode/pin control) ; Writes control byte 0 to offset +5 of the same structure (likely disable flag or secondary mode) ; Calls `setSR()` to restore system status register (re-enable interrupts or previous state) ; Calls unknown subroutine at `0x91C6` with spark index and dwell time (likely confirms coil firing or updates ECU state machine)
 **Calls:** `getSR()` @ 0x3920 (with r4=16): read current SR; stores result in stack for later restoration ; Unknown @ 0x91C6 (with r4=spark_index): confirms coil actuation or logs spark event ; `setSR()` @ 0x3934: restore SR from saved value
-Save current interrupt state (SR register) via `getSR()` ; Index into per-channel spark configuration array at 0xFFFFA0D8 using spark index (multiply by 8) ; Write the dwell time (ignition delay) to
-the output-compare channel's timer register ; Write control flags (enable output, set pin drive mode) ; Notify ECU state machine via unknown handler (may arm the coil driver) ; Restore interrupt state
-via `setSR()` ; Return
+Save current interrupt state (SR register) with `getSR()` ; Index into per-channel spark configuration array at 0xFFFFA0D8 with spark index (multiply by 8) ; Write the dwell time (ignition delay) to
+the output-compare channel's timer register ; Write control flags (enable output, set pin drive mode) ; Notify ECU state machine with unknown handler (may arm the coil driver) ; Restore interrupt state
+with `setSR()` ; Return
 **Draft C:**
 ```c
 void outputSpark1(uint8_t spark_index, float dwell_time) {

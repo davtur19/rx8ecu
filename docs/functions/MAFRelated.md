@@ -1,9 +1,9 @@
 # MAFRelated @ 0x1ACAE
-**Purpose:** Process Mass Air Flow (MAF) sensor data, compare against thresholds, and update RAW MAF and filtered MAF values with saturation logic.
+**Purpose:** Process Mass Air Flow (MAF) sensor data. Compare it against thresholds. Update RAW MAF and filtered MAF values with saturation logic.
 **Inputs:** RAM 0xFFFF9EEA: MAF ADC value (16-bit) ; RAM 0x0006F64C: MAF threshold 1 ; RAM 0x0006F64E: MAF threshold 2 ; RAM 0xFFFFAAB4: computed float MAF value (input) ; RAM 0xFFFF9F78: smoothed/filtered MAF (input)
 **Out:** RAM 0xFFFFAAB4: updated raw MAF float ; RAM 0xFFFFAAB9: MAF counter/accumulator byte 1 (saturated 0–255) ; RAM 0xFFFFAABA: MAF counter/accumulator byte 2 (saturated 0–255) ; RAM 0xAA6C: raw MAF output float ; RAM 0xAA70: smoothed MAF output float
-**Calls:** fixedPointToFloat_16bit_MULT_OFF_SIG @ 0x24C0 (convert ADC to float) ; addSaturate8Bit @ 0x2478 (saturating increment)
-Load scale factor 7.62939e-05 (fixed-point multiplier) ; Read MAF ADC (16-bit) from 0xFFFF9EEA ; Convert to float using fixedPointToFloat_16bit_MULT_OFF_SIG ; Compare converted value against
+**Calls:** fixedPointToFloat_16bit_MULT_OFF_SIG @ 0x24C0 (convert ADC to float) ; addSaturate8Bit @ 0x2478 (increment with saturation)
+Load scale factor 7.62939e-05 (fixed-point multiplier) ; Read MAF ADC (16-bit) from 0xFFFF9EEA ; Convert to float with fixedPointToFloat_16bit_MULT_OFF_SIG ; Compare converted value against
 threshold1 (0x0006F64C): ; If >= threshold: saturate-increment counter at 0xFFFFAAB9 ; Else: reset counter to 0 ; Repeat for threshold2 (0x0006F64E) against counter at 0xFFFFAABA ; If both counters
 remain < 3: write MAF floats to output locations; else hold previous values
 **Draft C:**

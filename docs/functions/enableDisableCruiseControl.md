@@ -3,8 +3,8 @@
 **Inputs:** r4: desired interrupt mask value (typically 0x10=enable all, 0x00=disable)
 **Out:** Cruise control state flags at 0xFFFFA324, 0xFFFFA384, 0xFFFFA385 modified ; CPU SR (status register) interrupt mask updated
 **Calls:** getSR @ 0x3920 (read current interrupt mask) ; setSR @ 0x3934 (write new interrupt mask)
-Read current SR (interrupt mask) via getSR() ; Store desired mask in r4 ; Load current mask from 0xFFFFA38C ; Save desired mask (from stack) ; If current mask != desired mask: ; Write 0xFF to
-0xFFFFA384 (enable?) ; Write 0x00 to 0xFFFFA385 (disable?) ; Write 0x00 to 0xFFFFA324 (control flag) ; Store desired mask to 0xFFFFA38C ; Apply new SR via setSR() with current SR in r4
+Read current SR (interrupt mask) with getSR() ; Store desired mask in r4 ; Load current mask from 0xFFFFA38C ; Save desired mask (from stack) ; If current mask != desired mask: ; Write 0xFF to
+0xFFFFA384 (enable?) ; Write 0x00 to 0xFFFFA385 (disable?) ; Write 0x00 to 0xFFFFA324 (control flag) ; Store desired mask to 0xFFFFA38C ; Apply new SR with setSR() and the current SR in r4
 **Draft C:**
 ```c
 void enableDisableCruiseControl(uint8_t interrupt_mask) {

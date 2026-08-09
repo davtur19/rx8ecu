@@ -4,8 +4,8 @@
 
 ## Overview
 
-Fills two consecutive 16-bit diagnostic words at 0xFFFFD6C8 and 0xFFFFD6CC
-with the sentinel value 0xFFFF.  Called by the DTC-read pipeline to
+This function fills two consecutive 16-bit diagnostic words at 0xFFFFD6C8 and 0xFFFFD6CC
+with the sentinel value 0xFFFF.  The DTC-read pipeline calls this to
 initialise a "no fault" state before evaluating a diagnostic condition.
 
 ## Logic
@@ -17,7 +17,7 @@ void dtc_data_read_60F58(void) {
 }
 ```
 
-The loop at 0x60F60 writes every other 16-bit word (step 4 bytes), covering
+The loop at 0x60F60 writes every other 16-bit word (step 4 bytes). It covers
 exactly two addresses.
 
 ## Verification

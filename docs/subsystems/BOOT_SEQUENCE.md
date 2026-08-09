@@ -24,7 +24,7 @@ vector_trampoline_set_sp (0x40): SP=0xFFFFDFA0, jmp @r4
    r4 = [0x7FFF8]=0xD49C main entry  -> secondary_boot_main (0xA038)
 ```
 
-App's real entry point is **0xD49C**, reached via `[0x7FFF8]`. The `0x12B4` → `0x1038` path is the ROM-ID-checked alternate: validates string `"60E1D400"` (via `[0x7FFFC]=0x2000`) then routes through the same trampoline to 0xD49C. The `0x6C8` default is the bootloader serial dispatch loop (SCI → command bytes → handler), i.e. the flash/service path.
+App's real entry point is **0xD49C**, reached through `[0x7FFF8]`. The `0x12B4` → `0x1038` path is the ROM-ID-checked alternate: validates string `"60E1D400"` (through `[0x7FFFC]=0x2000`) then routes through the same trampoline to 0xD49C. The `0x6C8` default is the bootloader serial dispatch loop (SCI → command bytes → handler), that is the flash/service path.
 
 ## 2. Verified Vector Table (@0x0000)
 
@@ -90,7 +90,7 @@ Verified C lift: `c/reset_handler.c`.
 0x584  [0xEC10] = 0xA53C     ; refresh value written in rts delay slot
 ```
 
-> **Correction (this session):** earlier draft of `reset_handler.c` read the call target from `*(uint16_t*)0x596` (=0x5A1F, a *WDT write magic*), which is NOT code. The actual call is the fixed `bsr 0x572`; the literal @0x596 is a WDT data word. Fixed in `c/reset_handler.c`.
+> **Correction (this session):** earlier draft of `reset_handler.c` read the call target from `*(uint16_t*)0x596` (=0x5A1F, a *WDT write magic*). This value is NOT code. The actual call is the fixed `bsr 0x572`; the literal @0x596 is a WDT data word. Fixed in `c/reset_handler.c`.
 
 ### checkWatchdogTimer_OVRCOUNT (0x5B0)
 
@@ -104,8 +104,8 @@ Default reset vector when no app entry is found. Sets WDT `[0xDFB8]=0`, then loo
 |-------------|---------|
 | 0xA8 / 0x98 | bsr 0x806 / bsr 0x7C0 |
 | 0x88 / 0x90 | jsr 0x4C (`r10`) / jsr 0x64 (`r9`) |
-| 0xA0 / 0xB0 / 0xC0 | jsr 0x7C (`r8`) / jsr 0x8A (via [0x7B8]) / jsr 0xC0 (via [0x7BA]) |
-| (fallback) | if `[r4]==0xFF && [r5]&0xF8==0xC8` → jsr 0xD8 (via [0x7BC]) |
+| 0xA0 / 0xB0 / 0xC0 | jsr 0x7C (`r8`) / jsr 0x8A (through [0x7B8]) / jsr 0xC0 (through [0x7BA]) |
+| (fallback) | if `[r4]==0xFF && [r5]&0xF8==0xC8` → jsr 0xD8 (through [0x7BC]) |
 | else | loop tail: jsr 0x31C, bra 0x6DE |
 
 This is the **flash/service bootloader** protocol loop, separate from the app's RTOS. Not further traced.
@@ -203,7 +203,7 @@ task_context_switch(r4 = task_id):
 | +0x14 (field) | `[[0x4990]+4]` | copied |
 | +0x08 | — | 0x100 (from 0x3AD8) |
 
-then chains: task_queue_init (0x3964) → task_table_scan_init (0x3EC0) → task_dependency_handler (0x3F10) → task_set_current_ptr (0x3AC0) → nullsub_2/1 → clear_task_flag_dc/dd (0x3F90/0x3F9C) → (if `[0x4B14]≠0`) task_flag_run_A (0x3588) → nullsub_3 → **task_full_context_save (0x3C2A)**, which enters the scheduler (see `docs/subsystems/RTOS_SUBSYSTEM.md`).
+then chains: task_queue_init (0x3964) → task_table_scan_init (0x3EC0) → task_dependency_handler (0x3F10) → task_set_current_ptr (0x3AC0) → nullsub_2/1 → clear_task_flag_dc/dd (0x3F90/0x3F9C) → (if `[0x4B14]≠0`) task_flag_run_A (0x3588) → nullsub_3 → **task_full_context_save (0x3C2A)**; it enters the scheduler (see `docs/subsystems/RTOS_SUBSYSTEM.md`).
 
 ## 9. Warm restart path (0xD4B6)
 
@@ -227,7 +227,7 @@ The ECU re-enters `resetHandler` in **warm mode** (cold_start=1) after validatio
 |---------|-------|---------|
 | `0xFFFFDFFC` | 0x5AA5A55A | resetHandler boot-OK magic |
 | `0xFFFFDFA0` | — | trampoline SP (0x40, 0x1094) |
-| `0xFFFF7304` | — | main_entry system SP (via [0xD9C8]) |
+| `0xFFFF7304` | — | main_entry system SP (through [0xD9C8]) |
 | `0xFFFF719C` | — | RTOS kernel SP ([0x4938]) |
 | `0xFFFF72B0` | — | RTOS control block base |
 | `0xFFFF72D8` | — | task_context_switch SP save slot |

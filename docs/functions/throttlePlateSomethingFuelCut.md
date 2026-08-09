@@ -1,12 +1,12 @@
 # throttlePlateSomethingFuelCut @ 0xE914
-**Purpose:** Compute deceleration/overrun fuel cut logic based on throttle position and engine operating conditions; writes fuel cut command per rotor.
+**Purpose:** Compute the deceleration/overrun fuel cut logic based on the throttle position and engine operating conditions. Write the fuel cut command per rotor.
 **Inputs:** Stack arguments (after prologue adjusts r15): ; Multiple float calibration values from global addresses ; Throttle position / sensor readings
 **Out:** 0xFFFFA470, 0xFFFFA474, 0xFFFFA47C: intermediate float results ; 0xFFFFA484, 0xFFFFA488: 3D lookup results ; Multiple global memory writes for control state
 **Calls:** 0x2068 (2DLookup): throttle-related map lookups × 2 ; 0x20DC (3DLookup): multi-axis map lookups × 2 ; 0x2500 (fixedPointToFloat_8bit_MULT_OFF_SIG): fixed-point to float conversion ; Multiple float arithmetic operations
-Save registers (r14, r13, r12, r11, r10, r9) and float registers (fr15, fr14, fr13, fr12) ; Load calibration floats from multiple addresses: ; 0xB594 → fr15 (engine speed) ; 0xB5A8 → fr14 (load or
+Save the registers (r14, r13, r12, r11, r10, r9) and the float registers (fr15, fr14, fr13, fr12) ; Load the calibration floats from multiple addresses: ; 0xB594 → fr15 (engine speed) ; 0xB5A8 → fr14 (load or
 pressure) ; 0xC0D8 → fr3 (throttle baseline) ; 0xA9FC → fr3 (throttle position sensor) ; 0xA448 → fr13 (fuel cut threshold) ; 0xB468 → fr3 (condition flag) ; 0xB586 → r11 (mode byte) ; 0xAAC6 → r13
-(another mode/condition) ; Call 2DLookup with throttle data (0x68A88) → store 0xFFFFA470 ; Call 2DLookup with 0x68A9C → store 0xFFFFA474 ; Multiply results: 0xFFFFA470 * 0xFFFFA474 → 0xFFFFA478 ; Call
-2DLookup with 0x67824 (RPM-based) ; Load 3D maps from 0x678D0 and 0x678EC ; Complex branching on throttle thresholds and fuel cut conditions ; Store fuel cut flags at 0xA450 (rotor control byte)
+(another mode/condition) ; Call 2DLookup with throttle data (0x68A88) → store 0xFFFFA470 ; Call 2DLookup with 0x68A9C → store 0xFFFFA474 ; Multiply the results: 0xFFFFA470 * 0xFFFFA474 → 0xFFFFA478 ; Call
+2DLookup with 0x67824 (RPM-based) ; Load the 3D maps from 0x678D0 and 0x678EC ; Complex branches on throttle thresholds and fuel cut conditions ; Store the fuel cut flags at 0xA450 (rotor control byte)
 **Draft C:**
 ```c
 // Deceleration fuel cut determination
@@ -38,4 +38,4 @@ void throttlePlateSomethingFuelCut(void) {
   }
 }
 ```
-**Status:** low ; Very large function (1204 bytes); disassembly complex with many branches ; Core structure: load calibrations → throttle lookups → 3D fuel cut maps → store results ; Exact conditional logic for fuel cut determination not fully traced ; Multiple nested conditionals make precise C decompilation uncertain ; Flag storage and per-rotor application unclear without full trace
+**Status:** low ; Very large function (1204 bytes); the disassembly is complex with many branches. Core structure: load calibrations → throttle lookups → 3D fuel cut maps → store results. The exact conditional logic for fuel cut determination is not fully traced. Multiple nested conditionals make precise C decompilation uncertain. Flag storage and per-rotor application are unclear without a full trace.

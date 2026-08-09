@@ -1,5 +1,5 @@
 # throttlePedalADCRead @ 0xAD2A
-**Purpose:** Appears to be a stub or jump table entry; actual code jumps to 0xAEE8 immediately. Likely reads throttle pedal ADC value.
+**Purpose:** Appears to be a stub or jump table entry. The actual code jumps to 0xAEE8 immediately. It likely reads the throttle pedal ADC value.
 **Inputs:** None apparent (stub entry point).
 **Out:** Unknown; control transfers to 0xAEE8.
 **Calls:** Indirect jump to 0xAEE8.
@@ -11,5 +11,5 @@ void throttlePedalADCRead(void) {
     goto aee8;
 }
 ```
-**Status:** low — this address contains a jump redirect, not the actual function. Symbol may refer to entry point, real implementation likely at 0xAEE8.
+**Status:** low — this address contains a jump redirect, not the actual function. The symbol may refer to an entry point. The real implementation is likely at 0xAEE8.
 **Uncertainties:** Is this a tail call, PLT entry, or wrapper? ; What is the actual function at 0xAEE8?

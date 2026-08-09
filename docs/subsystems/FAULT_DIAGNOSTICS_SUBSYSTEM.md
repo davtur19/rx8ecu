@@ -84,18 +84,18 @@ Major callers: `omp_fault_detect_44DF0` (0x44DF0), `dtc_processor_0x50F1C` (0x50
 | 1 | 0x67534 | 31 | null | Always returns 0 (stub) |
 | 2 | 0x67538 | 30 | DTC walk | Iterates DTC reference table; checks code's entry valid |
 | 3 | 0x67534 | 29 | null | Redundant stub |
-| 4 | 0x675AC | 28 | indirect | Double-indirect via two word-index tables |
+| 4 | 0x675AC | 28 | indirect | Double-indirect through two word-index tables |
 | 5 | 0x675CA | 27 | DTC valid | Calls `dtc_data_read_60DEE` for integrity |
 | 6 | 0x67534 | 26 | null | Redundant stub |
 | 7 | 0x67534 | 25 | null | Redundant stub |
 | 8 | 0x67534 | 24 | null | Redundant stub |
-| 9 | 0x675E6 | 23 | byte lookup | Two-element loop via byte table @0x7E734 |
+| 9 | 0x675E6 | 23 | byte lookup | Two-element loop through byte table @0x7E734 |
 
 Redundant `check_cond_A` calls (always 0) suggest 8 distinct checks once existed; some later stubbed/merged.
 
 ### 3. `check_cond_B` (0x067538) — DTC Table Walker
 
-`uint8_t check_cond_B(uint16_t faultCode)` — deref DTC reference table `0x7ECD0` → entry list; iterate (0xFFFE-terminated, bound 50) validating each via `dtc_data_read_60EB4` (0x60EB4); return 1 if any valid.
+`uint8_t check_cond_B(uint16_t faultCode)` — deref DTC reference table `0x7ECD0` → entry list; iterate (0xFFFE-terminated, bound 50) validating each through `dtc_data_read_60EB4` (0x60EB4); return 1 if any valid.
 
 ```c
 uint8_t check_cond_B(uint16_t faultCode) {
@@ -271,7 +271,7 @@ Multi-stage counter debounce to prevent transient-triggered faults.
 | `0x7D978` | 2 | MaxCount1 | Counter1 max |
 | `0x7D97A` | 2 | MaxCount2 | Counter2 max |
 
-If debounce disabled or sensor `0xB3C8` inactive → clear all counters/flags. Else count up via saturation fn `0x2460`; DCNT1≥Threshold1 → Flag1, DCNT2≥Threshold2 → Flag2; fail counter updates while sensor active.
+If debounce disabled or sensor `0xB3C8` inactive → clear all counters/flags. Else count up through saturation fn `0x2460`; DCNT1≥Threshold1 → Flag1, DCNT2≥Threshold2 → Flag2; fail counter updates while sensor active.
 
 ### 15. Sensor-Specific Fault Detection
 

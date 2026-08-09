@@ -3,7 +3,7 @@
 **ROM:** 60E1D400.bin, 0x35BBC, size 312 bytes.
 **Inputs:** RAM[0xFFFFB5B8] (f32) boost pressure ; RAM[0xFFFFC234] (u8) previous command (state, used in the hold band) ; ROM[0x7A5AC] (f32) on-threshold (5250.0) ; ROM[0x7A5B0] (f32) hysteresis width (188.0 → off below 5062.0)
 **Out:** RAM[0xFFFFC234] (u8) VFAD command: 1 if boost ≥ 5250, 0 if boost < 5062, held in [5062, 5250) ; RAM[0xFFFFF754] (u16) bit 0x0400 = (state-machine result == 1) ; plus the 0x5D800 state-machine side effects (see `docs/functions/alternating_sensor_sm_5D800.md`)
-**Calls:** `alternating_sensor_sm_5D800` (0x5D800) — verified alternating-sensor debounce ; `setRegister_REG_BIT_VAL` (0x4BBC) — sets/clears F754 bit 0x0400
+**Calls:** `alternating_sensor_sm_5D800` (0x5D800) — verified alternating-sensor debounce ; `setRegister_REG_BIT_VAL` (0x4BBC) — sets or clears F754 bit 0x0400
 **Behavior:**
 
 ```

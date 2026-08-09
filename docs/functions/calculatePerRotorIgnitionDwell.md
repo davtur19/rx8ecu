@@ -1,11 +1,11 @@
 # calculatePerRotorIgnitionDwell @ 0x10FEA
-**Purpose:** Compute ignition dwell time (coil charge duration) for each of the 3 rotors in a rotary engine.
+**Purpose:** Compute the ignition dwell time (coil charge duration) for each of the 3 rotors in a rotary engine.
 **Inputs:** r4: pointer to ignition dwell array struct (base address 0xFFFFA578) ; Global: 0xFFFFA0C4 = lookup table for dwell values indexed by rotor index
 **Out:** Writes 3x 4-byte dwell values (in microseconds or TDC counts) at offsets 0, 16, 32 within the dwell array ; Memory writes at offsets relative to 0xFFFFA578 (r13 base)
 **Calls:** 0x10F84 (called per rotor, receives rotor index in r4, returns computed dwell in r0)
-Load base address of dwell array (0xFFFFA578) into r13 and r10 (+ offset 88) ; Outer loop: iterate r13 through 3 rotors (each struct is 44 bytes apart) ; Inner loop: read 1 byte from rotor struct (+12
-offset) as rotor index ; Scale rotor index (shll2 → shll to get offset into lookup table 0xFFFFA0C4) ; Call helper 0x10F84 with rotor index (r4 = r12) → returns dwell value in r0 ; Store result at
-current rotor's base + 0 bytes ; Continue until all 3 rotors processed, then advance to next rotor struct (+44 bytes)
+Load the base address of the dwell array (0xFFFFA578) into r13 and r10 (+ offset 88). Outer loop: iterate r13 through 3 rotors (each struct is 44 bytes apart). Inner loop: read 1 byte from the rotor struct (+12
+offset) as the rotor index. Scale the rotor index (shll2 → shll to get the offset into lookup table 0xFFFFA0C4). Call helper 0x10F84 with the rotor index (r4 = r12) → it returns the dwell value in r0. Store the result at
+the current rotor's base + 0 bytes. Continue until all 3 rotors are processed, then advance to the next rotor struct (+44 bytes).
 **Draft C:**
 ```c
 struct rotor_ignition {
@@ -23,4 +23,4 @@ void calculatePerRotorIgnitionDwell(rotor_ignition *arr) {
   }
 }
 ```
-**Status:** med ; Loop structure and offset calculations are clear ; Exact dwell computation (0x10F84) not analyzed; rotor struct layout inferred ; 3 rotors and offset spacing (44 bytes) confirmed by loop bounds
+**Status:** med ; The loop structure and offset calculations are clear ; The exact dwell computation (0x10F84) is not analyzed; the rotor struct layout is inferred ; 3 rotors and offset spacing (44 bytes) are confirmed by the loop bounds

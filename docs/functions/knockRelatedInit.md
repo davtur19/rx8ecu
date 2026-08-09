@@ -7,7 +7,7 @@ Save r13, r12, r11, r10 to stack (callee-saved) ; Load u16 from ROM 0x00078E84 �
 f32 from ROM 0x00078EB0 → store to RAM 0xFFFFA328 ; Load f32 0x00078EDC → store to RAM 0xFFFFA364 ; Load constant f32 10.0 → store to RAM 0xFFFFA360 (gain) ; Store 0xFF to RAM 0xFFFFA384 (max
 threshold) ; Zero r0 = 0 ; Store 0 to RAM 0xFFFFA385 (counter) ; Store 0.0 to RAM 0xFFFFA32C (filter state) ; Set r1 = 2 (loop counter for the 2 rotors — per-chamber entries) ; Store 0.0 to RAM
 0xFFFFA348 (another filter) ; Loop r6=0..1 (2 iterations): ; Store f32 10.0 to RAM 0xFFFFA334 + r0 (per-chamber r0 index) ; Load f32 from ROM 0x00078EDC → store to RAM 0xFFFFA368 + r0 ; Load u8 from
-ROM 0x00078E70 (chamber-specific, i.e. per-rotor), post-increment → store to RAM 0xFFFFA389 ; Store 0.0 to RAM 0xFFFFA350 + r0 (per-chamber storage) ; Increment r0 by 4 (next f32 offset) ; Restore
+ROM 0x00078E70 (chamber-specific, per-rotor), post-increment → store to RAM 0xFFFFA389 ; Store 0.0 to RAM 0xFFFFA350 + r0 (per-chamber storage) ; Increment r0 by 4 (next f32 offset) ; Restore
 r10, r11, r12, r13 and return
 **Draft C:**
 ```c

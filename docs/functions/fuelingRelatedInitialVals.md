@@ -41,4 +41,4 @@ void fuelingRelatedInitialVals(void) {
   writeFloatMemory(0xAAD4, filt2);
 }
 ```
-**Status:** med ; Lookup table addresses inferred; exact parameter meanings unclear ; Filter time constant 1e-05 observed but purpose unclear (very aggressive filtering?) ; Enable logic and condition checks inferred from conditional branches
+**Status:** med ; Lookup table addresses inferred; exact parameter meanings unclear ; Filter time constant 1e-05 observed but purpose unclear (excessively aggressive filtering?) ; Enable logic and condition checks inferred from conditional branches

@@ -48,8 +48,8 @@ Each entry 32 bytes; first two words (4 bytes) determine the type:
 | +4..31 | - | pad | Reserved |
 
 **Entry types**
-1. **Handler** (type == `0xFFFF`): call handler at `data` (e.g. PID 0x0C RPM, 0x0D Speed).
-2. **Direct data** (type != `0xFFFF`): response data looked up indirectly; `type` = byte count, `data` = lookup key/index (e.g. PIDs 0x00-0x0B group inquiry, 0x10-0x18 group data).
+1. **Handler** (type == `0xFFFF`): call handler at `data` (for example PID 0x0C RPM, 0x0D Speed).
+2. **Direct data** (type != `0xFFFF`): response data looked up indirectly; `type` = byte count, `data` = lookup key/index (for example PIDs 0x00-0x0B group inquiry, 0x10-0x18 group data).
 
 ### Handler Functions (called from PID table)
 
@@ -59,7 +59,7 @@ Each entry 32 bytes; first two words (4 bytes) determine the type:
 | 0x0D | getSpeedOBDHandler | 0x55EA2 | Vehicle speed (0-255 km/h) |
 | 0x0E | getTimingAdvOBDHandler | 0x55E66 | Timing advance (-64 to 63.5 deg) |
 | 0x0F | getIATOBDHandler | 0x55E18 | Intake air temperature |
-| 0x10-0x18 | group handlers | various | MAF airflow, throttle position, etc. |
+| 0x10-0x18 | group handlers | various | MAF airflow, throttle position |
 
 ## OBD Sensor Value Pipeline
 

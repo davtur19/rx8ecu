@@ -18,4 +18,4 @@ void putTaskInSchedule_FuelArrayStuff(int task_id) {
 }
 ```
 **Status:** med — function structure is clear, but exact osTaskScheduler calling convention is unclear. SH-2 ABI uses r4-r7 for int args and r2 for jsr target. The name strongly suggests fuel calculation scheduling.
-**Uncertainties:** What is exact osTaskScheduler signature? (parameter order/meaning) ; What task_id is being passed? (should come from r4) ; Why priority 4? (is there a priority scale 0-7 or similar?) ; What does initial_value=1 mean? (first iteration flag? counter seed?) ; Is this a periodic task or one-shot?
+**Uncertainties:** What is exact osTaskScheduler signature? (parameter order/meaning) ; What task_id does the caller pass? (should come from r4) ; Why priority 4? (is there a priority scale 0-7 or similar?) ; What does initial_value=1 mean? (first iteration flag? counter seed?) ; Is this a periodic task or one-shot?

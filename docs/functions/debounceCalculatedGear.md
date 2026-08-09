@@ -1,11 +1,11 @@
 # debounceCalculatedGear @ 0x2CB6A
-**Purpose:** Debounce calculated transmission gear (1–6) with hysteresis; output single stable gear value.
+**Purpose:** Debounce the calculated transmission gear (1–6) with hysteresis; output a single stable gear value.
 **Inputs:** Gear state from RAM 0xBC74 (uint8_t, raw gear reading) ; Gear mode indicator from RAM 0xB586 (uint8_t) ; 6 debounce threshold pairs (one per gear) at 0xBC82-0xBC8C (thresholds loaded from ROM at 0x754D2, 0x754D4, 0x754D6, 0x754D8, 0x754DA, 0x754DC)
-**Out:** Updates debounced gear output at RAM 0xBC75 (uint8_t) ; Updates 6 internal accumulator/threshold states at 0xBC82–0xBC8C
+**Out:** Updates the debounced gear output at RAM 0xBC75 (uint8_t) ; Updates 6 internal accumulator/threshold states at 0xBC82–0xBC8C
 **Calls:** add16bitSaturate_ADD1_ADD2 @ 0x2460 (hysteresis counter increment with saturation)
-Load current gear value from 0xBC74 ; Check if gear mode == 1 (clutch in), else skip to step 9 ; For each of 6 gears (1–6): ; Compare raw gear value against upper threshold (loaded from ROM at 0x754D2
-+ offset) ; If above threshold AND counter meets criteria, update debounced gear output ; Otherwise keep counter ; For each gear again: ; Update accumulator at 0xBC82-0xBC8C by calling
-add16bitSaturate ; Increment with saturation (prevents rollover) ; Return updated gear state
+Load the current gear value from 0xBC74. Check if the gear mode == 1 (clutch in), else skip to step 9. For each of 6 gears (1–6): compare the raw gear value against the upper threshold (loaded from ROM at 0x754D2
++ offset). If it is above the threshold AND the counter meets the criteria, update the debounced gear output. Otherwise keep the counter. For each gear again: call add16bitSaturate to update the accumulator at
+0xBC82-0xBC8C. Increment with saturation (prevents rollover). Return the updated gear state.
 **Draft C:**
 ```c
 void debounceCalculatedGear(void) {
@@ -27,5 +27,5 @@ void debounceCalculatedGear(void) {
     }
 }
 ```
-**Status:** med — debouncing logic is clear (hysteresis counters visible); exact threshold values and debounce timing not verified; ROM offsets inferred.
-**Uncertainties:** Exact threshold values (likely stored in ROM table) ; Debounce count threshold (value that triggers gear accept) ; Whether accumulator increment is per-frame or conditional ; Behavior when gear_mode != 1 (likely outputs 0)
+**Status:** med — the debouncing logic is clear (hysteresis counters visible); the exact threshold values and debounce timing are not verified; the ROM offsets are inferred.
+**Uncertainties:** Exact threshold values (likely stored in the ROM table) ; Debounce count threshold (value that triggers gear accept) ; Whether the accumulator increment is per-frame or conditional ; Behavior when gear_mode != 1 (likely outputs 0)

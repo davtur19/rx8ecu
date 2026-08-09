@@ -3,7 +3,7 @@
 **Inputs:** None (reads global MAF raw value)
 **Out:** Reads raw MAF ADC from RAM at 0xFFFF9EEA ; Calls 2DLookup with MAF value and scaling factor ; Writes scaled MAF sensor value to 0xFFFF9F78 ; Writes status flag (0=normal, 1=high, 2=low) to 0xFFFF9F7C ; Return: None
 **Calls:** `0x00002068` (2DLookup) - 2D calibration map lookup: (inputs in r3=MAF_raw, fr4=scale_factor) -> (output in fr0=scaled_value)
-Load raw MAF sensor value from 0xFFFF9EEA (16-bit) ; Convert to float via FPU (lds fpul, fmov to fr3) ; Load scale factor from 0x7490 = 7.62939e-05 (fixed-point to float conversion) ; Multiply MAF by
+Load raw MAF sensor value from 0xFFFF9EEA (16-bit) ; Convert to float with the FPU (lds fpul, fmov to fr3) ; Load scale factor from 0x7490 = 7.62939e-05 (fixed-point to float conversion) ; Multiply MAF by
 scale factor into fr4 ; Call 2DLookup (r3=0x67F28, r4 has MAF scaled) ; Store result to 0xFFFF9F78 ; Compare MAF value against upper/lower limits: ; Upper limit from 0x6D402 ; Lower limit from 0x6D404
 ; Set flag: 0=normal, 1=exceeds upper, 2=exceeds lower ; Store flag to 0xFFFF9F7C
 **Draft C:**

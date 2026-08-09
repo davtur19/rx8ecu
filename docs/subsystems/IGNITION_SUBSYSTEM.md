@@ -224,7 +224,7 @@ void ignitonSomethingCalc(uint8_t rotor_idx) {
 Constants: `L_009244`=0xFFFFA0D8 (rotor timing base) · `L_009248`=0xFFFFA0FC (ref angle) · `L_00924c`=-90.0 · `L_009250`=720.0 · `L_009254`=630.0 · `L_009258`=-720.0 · `L_009274`=0xFFFFA0F8 (normalized output). **Confidence: high.**
 
 ### 4.9 `setupCoilOutputs` (0xC98A) — MTU2 Channel Configuration
-208 B (0xC98A–0xCA5A), Phase 2. Configure I/O pin 0xFFFF9F34 (set bit 6, clear bit 5, output-compare mode); RPM→timer conversion factor with 1152.0 constant (timer clock prescaler); load min/max window from 0xFFFFA37C/0xFFFFA37E; write dwell boundaries; PWM control via 0xFFFF9F34 bits 0-1.
+208 B (0xC98A–0xCA5A), Phase 2. Configure I/O pin 0xFFFF9F34 (set bit 6, clear bit 5, output-compare mode); RPM→timer conversion factor with 1152.0 constant (timer clock prescaler); load min/max window from 0xFFFFA37C/0xFFFFA37E; write dwell boundaries; PWM control through 0xFFFF9F34 bits 0-1.
 
 ```c
 *io_reg = (*io_reg & 0xBF) | 0x40;
@@ -442,4 +442,4 @@ Lookup fns @0x2068 (1D) and 0x20DC (3D): binary-search axis intervals, linear in
 
 1. Table addresses in `cal_tables.csv` are J-line variant; verify vs 60E1D400.
 2. Coil fire helper 0xAA74 (PWM duty write vs compare-register update) needs analysis; `coil_correction_write_0x50A54` may relate (separate region).
-3. DSC interaction: EBCM torque reduction via `dscRelatedTiming` (0x19220) — CAN message format unanalyzed; `ignition_fault_monitor_458F4` DTC trigger conditions unanalyzed.
+3. DSC interaction: EBCM torque reduction through `dscRelatedTiming` (0x19220) — CAN message format unanalyzed; `ignition_fault_monitor_458F4` DTC trigger conditions unanalyzed.

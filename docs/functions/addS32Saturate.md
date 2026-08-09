@@ -6,8 +6,8 @@
 
 Saturating signed 32-bit add: `min(max(a + b, INT32_MIN), INT32_MAX)`.
 
-IDA label `fpu_compare_float` is wrong — integer helper on the SH-2 `addv`
-(signed-overflow detect); no FPU instruction in the body.
+The IDA label `fpu_compare_float` is wrong. It is an integer helper on the SH-2 `addv`
+(signed-overflow detect); no FPU instruction is in the body.
 
 ## Logic
 
@@ -35,11 +35,11 @@ int32_t addS32Saturate(int32_t a, int32_t b) {
 | 0x2314  | `nop`         | [delay, not reached] |
 | 0x2318  | `.long 0x7FFFFFFF` | literal pool |
 
-On positive overflow the wrapped sum is negative (`cmp/pz` → T=0) so the
-literal 0x7FFFFFFF is kept; on negative overflow the wrapped sum is
-non-negative (T=1) and `addc` flips the literal to 0x80000000.
+On positive overflow the wrapped sum is negative (`cmp/pz` → T=0). Thus the
+literal 0x7FFFFFFF is kept. On negative overflow the wrapped sum is
+non-negative (T=1), and `addc` flips the literal to 0x80000000.
 
 ## Note
 
-`addv` is 0x3nmF — this was a missing opcode in `tools/sh2emu.py` /
+`addv` is 0x3nmF. This was a missing opcode in `tools/sh2emu.py` /
 `tools/disasm_sh2e.py` and was added on 2026-07-31.

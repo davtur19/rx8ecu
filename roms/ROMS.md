@@ -1,10 +1,10 @@
 # RX-8 PCM ROM catalog
 
-Reference for every ROM image shipped in this repo: which calibration ID is
-which build, its Denso software module, security key, and checksum status. All
-identifiers below are **extracted directly from the binaries** (offsets given
-under "How IDs are derived"); market/spec attributions are marked where they
-still need confirmation.
+This file is the reference for every ROM image shipped in this repo. It states
+the calibration ID and the build for each image. It states the Denso software
+module, the security key, and the checksum status. All identifiers below are
+**extracted directly from the binaries** (offsets given under "How IDs are
+derived"); market/spec attributions are marked where they still need confirmation.
 
 All images are 512 KB (0x80000), Renesas/Hitachi **SH-2 big-endian**, Denso PCM,
 RX-8 Series 1 family. Every stock image has a **valid Denso additive checksum**
@@ -42,18 +42,18 @@ Full sha256 for every shipped image: see
 **Defs coverage gaps** (per `symbols/cal_tables.csv`):
 `60E0E500` and `60E32000` lack **public address-level defs** (RomRaider/EcuFlash
 table maps). `60E0E500` is likely address-compatible with its sibling `60E0E600`
-(same family — verify by diffing); `60E32000` has Ghidra labels (cjv0513) but no
+(same family — verify with a diff); `60E32000` has Ghidra labels (cjv0513) but no
 table defs. All other shipped ROMs have published defs.
 
 Observations:
 
 - **All stock keys are `MazdA`** (the factory SecurityAccess constant); only the
-  key *offset* moves between builds (0x5D90C → 0x65134), tracking code-layout size.
-  The LFSR init table (`C5 41 A9`) is unchanged across builds.
-- Denso SW-module prefixes cluster into families: `N3J1`/`N3J6` (the "J" line,
-  incl. the documented baseline), `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z"
-  line), and the outlier `N3M5`. `N3` is the RENESIS 13B engine-code prefix in
-  Mazda's `N3xx-18-881` PCM part numbers.
+  key *offset* moves between builds (0x5D90C → 0x65134). It follows the
+  code-layout size. The LFSR init table (`C5 41 A9`) is unchanged across builds.
+- Denso SW-module prefixes cluster into families: `N3J1`/`N3J6` (the "J" line),
+  `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z" line), and the outlier `N3M5`.
+  The "J" line includes the documented baseline. `N3` is the RENESIS 13B
+  engine-code prefix in Mazda's `N3xx-18-881` PCM part numbers.
 - Market / spec per cal ID, **confirmed** from equinox92's guide: `60E0FC00` =
   US 6-Port MT (equinox's RE target); `60E0FB00` = US 6-Port MT; `60E1B900` =
   US 6-Port MT; `60E1D400` = N3J1EM 6-Port MT;
@@ -62,7 +62,7 @@ Observations:
   S1 RX-8. `N3` prefix = RENESIS 13B. Editor/logger defs:
   [equinox311/RX8Defs](https://github.com/equinox311/RX8Defs).
 - **CPU = Renesas HD64F7055(S)** (SH7055, SH-2 core + single-precision FPU =
-  SH-2E). Flash recovery via BOOT mode on header CN400 — see
+  SH-2E). Flash recovery through BOOT mode on header CN400 — see
   `docs/notes/FULL_ANALYSIS.md` / `docs/notes/BOOT_RECOVERY.md`.
 
 No tuned- or modified-ROM images are tracked in this repo. IDA project files
@@ -71,9 +71,9 @@ No tuned- or modified-ROM images are tracked in this repo. IDA project files
 
 ## Naming note: filename suffix vs internal module
 
-Some community filenames carry a `_N3xxxx` suffix (e.g. `60E1C500_N3J6EB`,
+Some community filenames carry a `_N3xxxx` suffix (for example `60E1C500_N3J6EB`,
 `60E32000_N3M5E`). This tag is generally the **Denso/Mazda part number of the
-physical PCM** the dump was pulled from, which usually — but **not always** —
+physical PCM** the dump was pulled from. It usually — but **not always** —
 matches the internal `SW-*.HEX` calibration flashed on it:
 
 - Consistent: `60E0E700_N3YLEE` → internal `SW-N3YLEE000.HEX`; `60E1C500_N3J6EB`

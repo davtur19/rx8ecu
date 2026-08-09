@@ -1,5 +1,5 @@
 # getEngineLoadforOBD @ 0x53530
-**Purpose:** OBD-II Mode 22 (readDataByIdentifier) handler. Reads live engine load, validates via divide-by-zero check, scales to 0–100%, and encodes as u8 (0–255).
+**Purpose:** OBD-II Mode 22 (readDataByIdentifier) handler. Reads live engine load, validates with a divide-by-zero check, scales to 0–100%, and encodes as u8 (0–255).
 **Inputs:** None (reads global engine load value)
 **Out:** Returns u8 in r0 (0–255, representing 0–100% engine load) ; Calls floatToInt_SIGNAL_MULT_OFFSET to perform scaling/offset conversion
 **Calls:** isNotZero_wDivideByZero_Protect (0x00002440): Check divisor for zero; return 0 if div-by-zero detected ; floatToInt_SIGNAL_MULT_OFFSET (0x000024D0): Scale float → u8 with multiplier and offset

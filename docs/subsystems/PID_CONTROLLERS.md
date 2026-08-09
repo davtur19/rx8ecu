@@ -1,7 +1,7 @@
 # RX-8 ECU: PID / Feedback Controllers — Verified Analysis
 
 > ROM: `60E1D400` (md5 `5e4236d29b7c05820240fa076dffdd40`)
-> Status: **verified against the ROM via the SH-2E emulator** (`tools/sh2emu.py`)
+> Status: **verified against the ROM with the SH-2E emulator** (`tools/sh2emu.py`)
 > Verifier: `c/tests/test_{calc_intake_pressure_pid_output_1252C,calc_rotor_sync_idle_gate_B,idle_speed_control_18054,calc_lambda_feedback_pid}.py`
 > Lifts: `c/calc_intake_pressure_pid_output_1252C.c`, `c/calc_rotor_sync_idle_gate_B.c`,
 > `c/idle_speed_control_18054.c`, `c/calc_lambda_feedback_pid.c`
@@ -16,7 +16,7 @@
    dispatcher**.
 2. `pid_control_loop_2D600` (408 B) is not a PID — it is a **fault-severity encoder**
    (window compares → severity code 0/5/10/15 in `RAM[0xFFFFBCEE]`).
-3. The real closed-loop *math* lives in dispatcher sub-functions (e.g. lambda core `0x1ACDE`
+3. The real closed-loop *math* lives in dispatcher sub-functions (for example lambda core `0x1ACDE`
    with 247 FPU ops), plus shared verified FPU leaves (`0x23B0` first-order filter, `0x2404`
    clamp, `0x2440` deadband check, `0x2460`/`0x2478` saturating adds). **Coefficient
    extraction is still an open task — do not cite specific Kp/Ki values anywhere; none
@@ -167,11 +167,11 @@ RAM[0xFFFFA96E] = duty; RAM[A970] = load_comp
 if old_status == 0 && status == 1: osTaskScheduler(0, 2)
 ```
 
-Helpers verified in-chain: `0x3ED3C` `check_3ED3C(addr, fallback)` = `if RAM[a] == ~RAM[a+1] return RAM[a] else fallback` (fallback path also sets `RAM[0xC6AC] = 1` via `0x3F050`); `0x2460` `add16bitSaturate`; `0x9668` `osTaskScheduler` (no-ops with an empty task table).
+Helpers verified in-chain: `0x3ED3C` `check_3ED3C(addr, fallback)` = `if RAM[a] == ~RAM[a+1] return RAM[a] else fallback` (fallback path also sets `RAM[0xC6AC] = 1` through `0x3F050`); `0x2460` `add16bitSaturate`; `0x9668` `osTaskScheduler` (no-ops with an empty task table).
 
 ## 4. `calc_lambda_feedback_pid` — 0x11A34 (104 B)
 
-**Closed-loop lambda task dispatcher.** Fixed-order sequence of 16 `jsr` calls + a **single tail `jmp`** into the 17th task (0x16E6A), which returns directly to the dispatcher's caller (PR restored in the delay slot). Verified by instruction trace: exactly 17 dispatch entries, `r0 = 0x28` on the all-zero-RAM run.
+**Closed-loop lambda task dispatcher.** Fixed-order sequence of 16 `jsr` calls + a **single tail `jmp`** into the 17th task (0x16E6A); it returns directly to the dispatcher's caller (PR restored in the delay slot). Verified by instruction trace: exactly 17 dispatch entries, `r0 = 0x28` on the all-zero-RAM run.
 
 | # | Callee | Size (i) | FPU ops | Role (working model) |
 |---|--------|---------:|--------:|----------------------|

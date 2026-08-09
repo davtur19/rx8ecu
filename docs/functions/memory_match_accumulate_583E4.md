@@ -1,5 +1,5 @@
 # memory_match_accumulate_583E4 @ 0x583E4
-**Purpose:** Scan memory/data structure array (36 entries of 6 bytes each) and sum fields matching filter criteria. Returns masked result.
+**Purpose:** Scan a memory/data structure array of 36 entries (6 bytes each). Sum the fields that match the filter criteria. Return the masked result.
 **Inputs:** r4: mask value (u8, for AND-ing result) ; r5: filter value (u8, compared against structure offset +3) ; r6: accumulator start (u8, usually 0)
 **Out:** r0: accumulated sum (masked by r4) ; Reads 36 entries from structured memory region @ 0x0005DEBE ; Returns AND(sum, r4)
 **Calls:** None (all reads are direct memory access)

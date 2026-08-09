@@ -5,8 +5,8 @@
 
 ## Overview
 
-IEEE 754 floating-point validation. Checks if a float value is NaN or
-Infinity by examining the exponent bits.  Writes a status code to a RAM
+This is IEEE 754 floating-point validation. It checks if a float value is NaN or
+Infinity by examining the exponent bits.  It writes a status code to a RAM
 diagnostic address and returns the original float value unchanged.
 
 ## Logic
@@ -37,7 +37,7 @@ float checkFloatValidity(float value) {
 
 ## Callers
 
-Used throughout sensor processing pipeline to validate float sensor
+The sensor processing pipeline uses this function throughout to validate float sensor
 values before use in calculations.
 
 ## Verification

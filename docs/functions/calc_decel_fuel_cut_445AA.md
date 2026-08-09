@@ -5,9 +5,9 @@
 
 ## Overview
 
-Implements **fuel cut on throttle lift / over-run**: when the driver lifts off the
-throttle at speed, injection is temporarily suspended for economy and emissions.
-Evaluates throttle position, speed/RPM and enable flags, then sets a fuel-cut flag.
+This function implements **fuel cut on throttle lift / over-run**. When the driver lifts off the
+throttle at speed, injection stops temporarily for economy and emissions.
+It evaluates throttle position, speed/RPM and enable flags. Then it sets a fuel-cut flag.
 
 Equinox guide:
 
@@ -123,6 +123,6 @@ The two float constants control the RPM thresholds:
 - **0.01** at 0x7B418: effectively zero — any non-zero RPM reading enables fuel cut
 - **50.0** at 0x7B41C: secondary RPM threshold for the accumulator/hysteresis path
 
-The two byte constants enable/disable features:
+The two byte constants enable or disable features:
 - **0x01** at 0x7B3DC: enables the override path
 - **0x00** at 0x7B3DD: calibration disable for the accumulator path

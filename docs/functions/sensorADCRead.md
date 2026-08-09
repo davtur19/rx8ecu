@@ -2,7 +2,7 @@
 
 **Verified analysis (capstone disassembly + literal pool resolution)**
 
-**Purpose:** Read all hardware ADC channels from the SH-2E ADC peripheral into a RAM buffer. Configures ADC control registers (0xF819, 0xF818, 0xF838, 0xF858) for multi-channel conversion, polls for completion, then reads 32 channels of 16-bit results into a buffer at 0xFFFF9EE4.
+**Purpose:** Read all hardware ADC channels from the SH-2E ADC peripheral into a RAM buffer. Configure the ADC control registers (0xF819, 0xF818, 0xF838, 0xF858) for multi-channel conversion. Poll for completion. Then read 32 channels of 16-bit results into a buffer at 0xFFFF9EE4.
 
 **Inputs:** None (direct hardware register access)
 
@@ -32,7 +32,7 @@
 5. Init RAM state: 0xFFFF9F27=0; 0xFFFF9F28=0x00FF; 0xFFFF9F29[1/4/7]=0
 6. Poll ADCSR0/1/2 bit 7 (0x0080 mask) until conversion done
 7. Read 32 ADC data regs (0xF800..0xF84E) into 0xFFFF9EE4[0..31] (64 bytes)
-**Confidence:** High — function structure clearly shows ADC init → poll → read pattern typical of SH-2E ADC peripheral usage.
+**Confidence:** High — the function structure clearly shows the ADC init → poll → read pattern typical of SH-2E ADC peripheral usage.
 
 **RAM buffer layout at 0xFFFF9EE4:**
 ```

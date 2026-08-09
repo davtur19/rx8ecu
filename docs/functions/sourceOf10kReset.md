@@ -1,12 +1,12 @@
 # sourceOf10kReset @ 0x48B5E
-**Purpose:** Check conditions for performing a 10k-mile maintenance reset and flag accordingly.
+**Purpose:** Check the conditions for a 10k-mile maintenance reset. Set the flag accordingly.
 **Inputs:** None
-**Out:** Flag at 0xFFFFCC1B: set to 1 if reset conditions met, 0 otherwise ; Floating-point scratch: fr14, fr15
+**Out:** Flag at 0xFFFFCC1B: set to 1 if the reset conditions are met, 0 otherwise ; Floating-point scratch: fr14, fr15
 **Calls:** getFaultStatus ?? @ 0x652F0 (check fault/DTC status with parameter 29 in r4)
-Load threshold values from 0xB594 (fr15), 0xA9FC (fr14) ; Call getFaultStatus(29) to check status ; If fault status returned non-zero, exit without setting flag ; Compare various sensor values (likely
-fuel trims, temp, etc.) against thresholds: ; Load float from 0x7B128, compare fr15 > value → exit if true ; Load float from 0x7B12C, compare fr15 > value → exit if true ; Load float from 0x7B130,
-compare fr14 > value → exit if true ; Load float from 0x7B134, compare fr14 > value → exit if true ; Check enable flags at 0xB129 and 0xAD88 (both must == 1) ; Check inhibit flag at 0xCFD9 (must == 0)
-; If all conditions pass, set flag at 0xFFFFCC1B to 1; otherwise set to 0
+Load the threshold values from 0xB594 (fr15), 0xA9FC (fr14) ; Call getFaultStatus(29) to check the status ; If the fault status returned non-zero, exit and do not set the flag ; Compare various sensor values (likely
+fuel trims, temp, and similar) against thresholds: ; Load the float from 0x7B128, compare fr15 > value → exit if true ; Load the float from 0x7B12C, compare fr15 > value → exit if true ; Load the float from 0x7B130,
+compare fr14 > value → exit if true ; Load the float from 0x7B134, compare fr14 > value → exit if true ; Check the enable flags at 0xB129 and 0xAD88 (both must == 1) ; Check the inhibit flag at 0xCFD9 (must == 0)
+; If all conditions pass, set the flag at 0xFFFFCC1B to 1; otherwise set it to 0
 **Draft C:**
 ```c
 void sourceOf10kReset(void) {
@@ -36,4 +36,4 @@ void sourceOf10kReset(void) {
   }
 }
 ```
-**Status:** med – logic clear (fault check + threshold comparisons + enable/inhibit flags); exact sensor identities and numerical thresholds unknown
+**Status:** med – logic is clear (fault check + threshold comparisons + enable/inhibit flags). The exact sensor identities and numerical thresholds are unknown.

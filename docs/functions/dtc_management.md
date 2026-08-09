@@ -1,8 +1,8 @@
 # DTC Management Subsystem @ 60E1D400.bin
 
 Consolidated docs of the RX-8 PCM diagnostic-trouble-code (DTC) management
-functions. All six are Track-A verified: ROM bytes run in the SH-2E emulator
-(`tools/sh2emu.py`) on random RAM states, checked against the C lifts in `c/`.
+functions. All six are Track-A verified: the ROM bytes run in the SH-2E emulator
+(`tools/sh2emu.py`) on random RAM states and are checked against the C lifts in `c/`.
 
 | Function | Address | Role |
 |---|---|---|
@@ -29,9 +29,9 @@ Tests (all pass, in `c/tests/`): `test_dtcRelated.py` (500), `test_dtc_handler_6
 | 0xFFFF8D74 | word | 64258 service-entry selector (0 ⇒ entry 0xFFFF8930) |
 | 0xFFFF8930 | 0x34 × N | OBD service-entry array (pending marker @+7, +8, counter @+0x32) |
 | 0xFFFF8D7C | byte table | Per-DTC mode dispatch table (indexed by dtc × 2) |
-| 0xFFFF8E98/0xFFFF8E9A | word ×2 | Running sums updated by 62ABC path 0 (via 0x648B4) |
+| 0xFFFF8E98/0xFFFF8E9A | word ×2 | Running sums updated by 62ABC path 0 (with 0x648B4) |
 | 0xFFFFD6F8..0xFFFFD6FF | 8 B | Diag result/status scratch (0xFFFFD6FC = encoded result, 0xFFFFD6FF = status) |
-| 0xFFFFD700 | word | DTC currently addressed by the OBD request |
+| 0xFFFFD700 | word | DTC now addressed by the OBD request |
 
 Checksum convention: every byte is stored with its bitwise complement in the
 adjacent byte (16-bit pair); `readValue_8bit_ADDRESS_VAL` @0x3ED3C validates
@@ -40,61 +40,61 @@ writes `val<<8 | ~val`.
 
 ## dtcRelated @ 0x062002
 
-Scans the 21-entry context table and appends the 16-bit DTC code of every
+This function scans the 21-entry context table. It appends the 16-bit DTC code of every
 entry whose type byte (entry+6) matches the selector to the caller's word
-array (r6).  Matches are written **consecutively** (packed: out[0], out[1],
+array (r6).  It writes matches **consecutively** (packed: out[0], out[1],
 ... in scan order — the running count doubles as the output index,
-`r12 = out + 2·count`).  The entry whose index equals the current-DTC-index
-word @0xFFFF8928 is skipped.  Optional enable gate (r5):
+`r12 = out + 2·count`).  It skips the entry whose index equals the current-DTC-index
+word @0xFFFF8928.  Optional enable gate (r5):
 0 = none, 1 = `tableA[code]@0x7E220 == 1`, 2 = `tableB[code]@0x7E2AC == 1`,
 any other value disqualifies the entry.
 
 Type dispatch: `0x00 → ==0`, `0x60 → 1..0x3F`, `0x80 → bit7`,
 `0xC0/0xC1/0x50 → exact`, `0xF0 → (1..0x3F) or bit7`, `0x70 → 0x81..0xBF`,
-else no match.  Returns count in r0.
+else no match.  It returns the count in r0.
 
 Note: the earlier draft (docs/functions/dtcRelated.md) referenced 0x5FEB6 and
-tables 0x0007C9FC/0x0007CA88 — superseded by this verified version.
+tables 0x0007C9FC/0x0007CA88. This verified version supersedes that draft.
 
 ## dtc_handler_610FA @ 0x0610FA
 
-Reads current DTC index @0xFFFF8928, indexes the opcode table @0xFFFF87DE,
-and acts on the opcode:
+This function reads the current DTC index @0xFFFF8928 and indexes the opcode table @0xFFFF87DE.
+Then it acts on the opcode:
 
-- `0x50` (pending/completed) or `0x00` (empty) → run
-  `can_encode_handler_62FAC(8)`, `obd_service_handler_64258()` (marks the
-  pending service entry: byte +7 = 1, +8 = 7, bumps counter @+0x32), then
-  tail-call `obd_service_handler_63312()`.
-- any other opcode → return immediately (entry not in a serviceable state).
+- `0x50` (pending/completed) or `0x00` (empty) → it runs
+  `can_encode_handler_62FAC(8)`, `obd_service_handler_64258()` (this marks the
+  pending service entry: byte +7 = 1, +8 = 7, bumps counter @+0x32), then it
+  tail-calls `obd_service_handler_63312()`.
+- any other opcode → it returns immediately (the entry is not in a serviceable state).
 
 ## dtc_handler_61550 @ 0x061550
 
-Per-DTC detailed processing.  r4 = DTC code, r5 = mode:
+This is per-DTC detailed processing.  r4 = DTC code, r5 = mode:
 1 = status, 2 = data, 3 = DTC list.
 
-- mode 3: `dtc_handler_61712(dtc)` derives a status; encode via
-  `can_encode_handler_62334` / `62E5C`; if accepted, DTC-state helpers run
+- mode 3: `dtc_handler_61712(dtc)` derives a status; encode it with
+  `can_encode_handler_62334` / `62E5C`; if accepted, the DTC-state helpers run
   (`dtc_handler_61818`, `61994`, `can_encode_handler_62B74`,
   `dtc_handler_6193E(dtc,0x20)`, `obd_service_handler_63B46/63A62/63AD4`).
-- mode 1: `obd_service_handler_63834` reads status; only entries with bit 7
-  set continue (plus `63814` when bit7); same encode + service chain.
+- mode 1: `obd_service_handler_63834` reads the status; only entries with bit 7
+  set continue (plus `63814` when bit7); the same encode + service chain runs.
 - mode 2: status read + encode + service chain (no bit-7 gate).
 
-Common tail for every path: store encoded result to 0xFFFFD6FC, store
-`can_encode_handler_62DEC(status)` to 0xFFFFD6FF; if the DTC currently
+Common tail for every path: store the encoded result to 0xFFFFD6FC, store
+`can_encode_handler_62DEC(status)` to 0xFFFFD6FF; if the DTC now
 addressed (word @0xFFFFD700) equals r4, call `can_encode_handler_62ABC(dtc,0x20)`;
-then `can_encode_handler_62B24(dtc,0x20,status)` and tail-call
+then `can_encode_handler_62B24(dtc,0x20,status)` runs and it tail-calls
 `obd_service_handler_632D6()`.
 
 ## dtc_code_set / dtc_code_clear @ 0x046780 / 0x0467AA
 
 - `dtc_code_set` (0x046780): if `readValue_8bit_ADDRESS_VAL(0xFFFF8788, 1) == 1`,
-  writes checksum-encoded 0 to state words 0xFFFF875C and 0xFFFF875E.
-- `dtc_code_clear` (0x0467AA): unconditionally writes 0 to the same two words.
+  it writes the checksum-encoded 0 to the state words 0xFFFF875C and 0xFFFF875E.
+- `dtc_code_clear` (0x0467AA): it unconditionally writes 0 to the same two words.
 
 ## dtc_debounce_monitor_43760 @ 0x043760
 
-Confirmation counter ladder, called once per task cycle from
+This is a confirmation counter ladder, called once per task cycle from
 `extended_control_dispatcher_3a764`.
 
 RAM: cond @0xFFFFB3C8, enable @0xFFFFC9E8, reset @0xFFFFD201, flag1 @0xFFFFC9EF,

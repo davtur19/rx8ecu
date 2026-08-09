@@ -5,7 +5,7 @@
 ## Overview
 
 Logical (zero-fill) left shift.  Value in **r0**, shift count in **r1**,
-result in r0.  Explicitly clamps the count instead of masking:
+result in r0.  It clamps the count explicitly instead of masking it:
 
 - `cnt < 0` → return value unchanged
 - `cnt >= 32` → return 0
@@ -45,6 +45,6 @@ for those counts.
 
 ## Note
 
-`rotr` is 0x40n5 — was a missing opcode in both `tools/sh2emu.py` and
+`rotr` is 0x40n5 — it was a missing opcode in both `tools/sh2emu.py` and
 `tools/disasm_sh2e.py`, added
 2026-07-31.

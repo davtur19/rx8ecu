@@ -1,9 +1,9 @@
 # vfadControl @ 0x3505C
-**Purpose:** Control Variable Fresh Air Duct (VFAD) actuator. Similar to VDI but for rotary intake fresh-air duct. Compares sensor to thresholds and actuates based on conditions.
+**Purpose:** Control the Variable Fresh Air Duct (VFAD) actuator. It is similar to VDI but for the rotary intake fresh-air duct. Compare the sensor to the thresholds. Actuate based on the conditions.
 **Inputs:** Current sensor value from 0xB594 (float) ; Cal min/max thresholds from 0x0792B8, 0x0792BC (float) ; VFAD control byte from 0xC1E0
-**Out:** Updates VFAD control register at 0xC1E0 ; Calls setRegister_REG_BIT_VAL (0x4BBC) with register 0xF754, bit value 0x0400 ; Calls setSR_PARAM and loadStatusRegister_ADDR for SR manipulation
-**Calls:** diagControlVFADMAYBE (0x5B5B4) - returns control command (0 or 1) ; setRegister_REG_BIT_VAL (0x4BBC) - sets hardware register bit ; setSR_PARAM (0x2054) - saves processor status register ; loadStatusRegister_ADDR (0x2064) - restores SR
-Load sensor value and thresholds from calibration ; Compare sensor against bounds ; Call diagControlVFADMAYBE to get control command ; Store result at 0xC1E0 ; If control == 1: save SR, call
+**Out:** Updates the VFAD control register at 0xC1E0 ; Calls setRegister_REG_BIT_VAL (0x4BBC) with register 0xF754, bit value 0x0400 ; Calls setSR_PARAM and loadStatusRegister_ADDR for SR manipulation
+**Calls:** diagControlVFADMAYBE (0x5B5B4) - returns the control command (0 or 1) ; setRegister_REG_BIT_VAL (0x4BBC) - sets the hardware register bit ; setSR_PARAM (0x2054) - saves the processor status register ; loadStatusRegister_ADDR (0x2064) - restores SR
+Load the sensor value and the thresholds from calibration ; Compare the sensor against the bounds ; Call diagControlVFADMAYBE to get the control command ; Store the result at 0xC1E0 ; If control == 1: save SR, call
 setRegister with bit 0x0400, restore SR ; If control == 0: similar operation with bit value 0
 **Draft C:**
 ```c
@@ -29,5 +29,5 @@ void vfadControl() {
     loadStatusRegister_ADDR();
 }
 ```
-**Status:** med — mirrors VDIControl; threshold semantics and SR need unconfirmed.
-**Uncertainties:** Boundary conditions and comparison operators? Purpose of SR save/restore? diagControlVFADMAYBE vs diagControlVDI? bit 0x0400 mask or position?
+**Status:** med — mirrors VDIControl. The threshold semantics and SR need confirmation.
+**Uncertainties:** The boundary conditions and comparison operators? The purpose of the SR save/restore? diagControlVFADMAYBE vs diagControlVDI? Is 0x0400 a bit mask or a position?

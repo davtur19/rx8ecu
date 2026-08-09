@@ -6,18 +6,18 @@
 ## Overview
 
 This function applies **minimum and maximum limits** to the ignition advance
-angle. It ensures the computed timing stays within safe bounds regardless of
-what corrections (knock retard, temperature compensation, etc.) have been
-applied. It reads the current advance value, compares against calibration table
-limits, and clamps if necessary.
+angle. It keeps the computed timing within safe bounds, regardless of the
+corrections applied, for example knock retard or temperature compensation.
+It reads the current advance value. It compares the value with the calibration
+table limits. It clamps the value if necessary.
 
 ## Calibration Tables
 
 ### Table at 0x??? — Ignition advance limits (RPM-based)
 
-A 1D table (or possibly 2D) mapping RPM to maximum advance. The function
-also applies a minimum advance limit (usually 0° BTDC or slightly retarded
-for safety during cranking).
+A 1D table (or possibly 2D) maps RPM to the maximum advance. The function
+also applies a minimum advance limit. This is usually 0° BTDC or slightly
+retarded for safety during cranking.
 
 ## Control Flow
 
@@ -31,5 +31,5 @@ for safety during cranking).
 
 ## Output
 
-The limited ignition advance value is written to the main ignition timing
-RAM location, ready for consumption by the per-rotor output drivers.
+The function writes the limited ignition advance value to the main ignition
+timing RAM location. The per-rotor output drivers then use the value.

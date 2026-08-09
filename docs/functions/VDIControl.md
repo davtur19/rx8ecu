@@ -1,10 +1,10 @@
 # VDIControl @ 0x34F64
-**Purpose:** Control Variable Dynamic Intake (VDI) actuator. Compares sensor thresholds and calls diagnostic/register control helper based on conditions.
+**Purpose:** Control the Variable Dynamic Intake (VDI) actuator. Compare the sensor thresholds. Call the diagnostic/register control helper based on the conditions.
 **Inputs:** Current sensor value from 0xB594 (float) ; Cal min/max thresholds from 0x0792B0, 0x0792B4 (float) ; VDI control byte from 0xC1DC
-**Out:** Updates VDI control register at 0xC1DC ; May trigger setRegister_REG_BIT_VAL (0x4BBC) with register 0xF746 and bit value ; Calls setSR_PARAM and loadStatusRegister_ADDR for SR manipulation
-**Calls:** diagControlVDI (0x5ABB0) - returns control command (0 or 1) ; setRegister_REG_BIT_VAL (0x4BBC) - sets hardware register bit ; setSR_PARAM (0x2054) - saves processor status register ; loadStatusRegister_ADDR (0x2064) - restores SR
-Load current sensor value and thresholds ; Compare sensor value against min/max bounds ; Determine preliminary control state based on comparison result ; Call diagControlVDI(r4) to get final control
-command ; Store result in VDI control byte at 0xC1DC ; If control == 1: call setRegister with bit value 1, else 0 ; Perform SR save/restore around register operation
+**Out:** Updates the VDI control register at 0xC1DC ; May trigger setRegister_REG_BIT_VAL (0x4BBC) with register 0xF746 and the bit value ; Calls setSR_PARAM and loadStatusRegister_ADDR for SR manipulation
+**Calls:** diagControlVDI (0x5ABB0) - returns the control command (0 or 1) ; setRegister_REG_BIT_VAL (0x4BBC) - sets the hardware register bit ; setSR_PARAM (0x2054) - saves the processor status register ; loadStatusRegister_ADDR (0x2064) - restores SR
+Load the current sensor value and the thresholds ; Compare the sensor value against the min/max bounds ; Determine the preliminary control state from the comparison result ; Call diagControlVDI(r4) to get the final control
+command ; Store the result in the VDI control byte at 0xC1DC ; If control == 1: call setRegister with bit value 1, else 0 ; Perform the SR save/restore around the register operation
 **Draft C:**
 ```c
 void VDIControl() {
@@ -27,5 +27,5 @@ void VDIControl() {
     }
 }
 ```
-**Status:** med - Core logic clear; SR manipulation purpose and exact threshold logic uncertain.
-**Uncertainties:** Exact boundary condition (>= vs >) ; Semantic of diagControlVDI intermediate state ; Why SR save/restore needed for register operation ; Bit position (32) semantics for 0xF746
+**Status:** med - Core logic is clear. The SR manipulation purpose and the exact threshold logic are uncertain.
+**Uncertainties:** The exact boundary condition (>= vs >) ; The semantics of the diagControlVDI intermediate state ; Why the register operation needs the SR save/restore ; The bit position (32) semantics for 0xF746

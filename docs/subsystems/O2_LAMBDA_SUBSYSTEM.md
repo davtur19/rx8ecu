@@ -39,7 +39,7 @@ Front O2 (ADC) → read_o2_sensor_voltage_trim → calc_closed_loop_fuel_status
 ## 2. Front O2 Sensor (Pre-Catalyst)
 
 ### `read_o2_sensor_voltage_trim` (0x01412A)
-O2 readiness counter @RAM `0xA768`; if value < 21, increment (capped) via `FUN_00002478`. Tracks O2 warm-up/readiness.
+O2 readiness counter @RAM `0xA768`; if value < 21, increment (capped) through `FUN_00002478`. Tracks O2 warm-up/readiness.
 
 RAM: `0xA768` (1B) readiness counter · `0xAA10` (4B float) O2 voltage.
 

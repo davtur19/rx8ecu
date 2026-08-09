@@ -10,11 +10,11 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
   What this project takes from it:
 
   - **Community stock-ROM collection** — the 9 public ROM images in `roms/stock/`
-    were sourced from that repository's `Stock_ROMs/` and verified **byte-for-byte
+    came from that repository's `Stock_ROMs/`. They are verified **byte-for-byte
     identical** to it (see `roms/ROMS.md` for the provenance statement).
   - **931 hand-annotated function names** — equinox's hand-done Ghidra work on the
-    US 6-port `60E0FC00` ROM (revised 1000+ times): 3,459 functions, of which 931
-    carry real hand-written names. They are exported to
+    US 6-port `60E0FC00` ROM (revised 1000+ times): 3,459 functions. Of these,
+    931 carry real hand-written names. They are exported to
     `symbols/symbols_60E0FC00_ghidra.csv` (source column `ghidra-hand`) and
     cross-mapped into the per-ROM `symbols/symbols_*.csv` tables and
     `src/*_annotated.s` sources shipped here.
@@ -29,14 +29,14 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
 
 - **The equinox reference guide** — "Open Source S1 RX-8 ECU RE, Data Logging &
   Tuning" by **equinox92** (the person behind the RE this repo builds on),
-  published on rx8club.com on 2025-01-12. The thread is Cloudflare-gated, so it
-  was captured offline for reference:
+  published on rx8club.com on 2025-01-12. The thread is Cloudflare-gated.
+  Therefore we captured it offline for reference:
   <https://www.rx8club.com/series-i-engine-tuning-forum-63/open-source-s1-rx-8-ecu-reverse-engineering-data-logging-tuning-users-guide-276137/>
 
-- License: **verified 2026-08-01 via the GitHub API** — all three upstream
+- License: **verified 2026-08-01 with the GitHub API** — all three upstream
   repositories (`equinox311/Mazda_RX8_PCM_ReverseEngineering`,
   `equinox311/RX8Defs` — a fork of `Rx8Man/RX8Defs` — and `Rx8Man/Rx8Man`)
-  return `license: null`, i.e. **no license = all rights reserved**. Treat the
+  return `license: null`, that is **no license = all rights reserved**. Treat the
   upstream content per its own terms; this project's derivative work carries
   its own AGPL license but the upstream material itself is not licensed for
   reuse.
@@ -78,8 +78,8 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
 - **Ghidra** (NSA) — the analysis tool used to produce the hand-annotated
   reference names; Apache-2.0. **IDA** — used here only for low-confidence
   AI-generated name scaffolding (tagged `ida-ai` in `symbols_60E1D400_ida.csv`); proprietary.
-- **RomRaider / ECUFlash** — the defs-driven tuning tools whose XML formats the
-  rx8defs files target.
+- **RomRaider / ECUFlash** — the defs-driven tuning tools. The rx8defs files
+  target their XML formats.
 - The **rx8club.com** community forum thread (equinox's guide) as reference
   material.
 

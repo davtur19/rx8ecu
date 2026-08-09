@@ -1,6 +1,6 @@
 # RX-8 ECU Sensor Processing Pipeline
 
-The RX-8 ECU (Renesas SH-2E, HD64F7055) reads analog sensors via on-chip ADC, processes each channel through scaling/linearization, validates against fault thresholds, stores results in global RAM for fuel/ignition use.
+The RX-8 ECU (Renesas SH-2E, HD64F7055) reads analog sensors through the on-chip ADC, processes each channel through scaling/linearization, validates against fault thresholds, stores results in global RAM for fuel/ignition use.
 
 ```
 1. HW ADC READ     sensorADCRead (0x68A8) → readADCResult (0x6FD4) → RAM 0xFFFF9EE4 (32×u16)
@@ -100,7 +100,7 @@ RAM: `0xFFFFC5EC` threshold flag · `0xFFFFC5F4` over-temp · `0xFFFFC5F5` range
 #### `calc_intake_air_temp_compensation` @ 0x13FCC — IAT compensation multiplier (~1% per 10°C from ref); uses 8000/200/0.1.
 
 ### 4.3 Coolant — `calculateEngineTemperatures`
-Stages: raw ADC `readADCs_coolantTempInHere` (0x6D00) → 0xFFFF9F00; voltage w/ rate-limit `readECMVoltage` @0x735C; temp via CLT Scaling @0x6F96C; fault `coolant_temp_out_of_range_check` @0xE50C; bounds `coolant_temp_boundary_check` @0x1F99A.
+Stages: raw ADC `readADCs_coolantTempInHere` (0x6D00) → 0xFFFF9F00; voltage w/ rate-limit `readECMVoltage` @0x735C; temp through CLT Scaling @0x6F96C; fault `coolant_temp_out_of_range_check` @0xE50C; bounds `coolant_temp_boundary_check` @0x1F99A.
 
 #### `readECMVoltage` @ 0x735C — delta-limited filter.
 RAM: `0xFFFF9F00` raw ADC · `0xFFFF9F68` voltage out · `0xFFFF9F6C` prev ADC. Cal: `0x6CF50`=256 max delta · `0x6CF4C`=20.0 divider scale. V = clamped × (5.0/65536) × 20.0. C: `c/coolant_temperature_sensor.c`.
@@ -348,7 +348,7 @@ ADC HW (0xF8xx) → sensorADCRead (0x68A8) → BUFFER 0xFFFF9EE4[0..31]
 ## 10. Key Findings
 
 1. **ADC 16-bit**, scale 7.62939e-5 (= 5.0V/65536), 0–5V range.
-2. **All sensor calib are 2D lookup tables** in ROM 0x6F000–0x70000 via `TwoDLookup` (0x2068).
+2. **All sensor calib are 2D lookup tables** in ROM 0x6F000–0x70000 through `TwoDLookup` (0x2068).
 3. **Knock dual-threshold fault:** ADC < 16121 (~1.23V) = short; ADC > 51249 (~3.91V) = open; between = valid.
 4. **1st-order IIR filters** on knock and other noisy channels; gain from cal ROM.
 5. **2-rotor rotary design:** two knock channels (A/B), per-rotor threshold/filter state, per-rotor sensor IDs.
