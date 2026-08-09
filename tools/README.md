@@ -1,8 +1,8 @@
 # `tools/` — reverse-engineering & byte-exact rebuild tooling
 
-Home for **rebuilding and documenting** the RX-8 ECU firmware. Everything needed
-to regenerate a ROM from source lives here (plus shared data at the repo root:
-`roms/`, `src/`, `symbols/`, `analysis/`, `c/`, `docs/`).
+This folder holds all tools to rebuild and to document the RX-8 ECU firmware.
+It contains everything needed to regenerate a ROM from source. Shared data is
+at the repo root: `roms/`, `src/`, `symbols/`, `analysis/`, `c/`, `docs/`.
 
 ## Contents
 
@@ -31,8 +31,8 @@ to regenerate a ROM from source lives here (plus shared data at the repo root:
 
 ## Quickstart — fresh clone, no hidden environment magic
 
-The toolchain is installed locally and the Makefile/`verify_all.sh` resolve it
-themselves, so **no `~/.bashrc` exports are needed**:
+The toolchain is installed locally. The Makefile and `verify_all.sh` resolve it
+themselves. You do not need **any `~/.bashrc` exports**:
 
 ```bash
 python3 -m pip install capstone --break-system-packages
@@ -49,10 +49,10 @@ make src        # 60E1D400 baseline
 
 ## What this gives you
 
-A byte-exact, rebuildable copy of the stock ROM **without** the original
-Renesas/Hitachi SHC compiler — the Track-B reference **oracle** from
-[../PLANS.md](../PLANS.md). Edit the `.s`, rebuild, and every change is
-regression-diffed against known-good firmware. Details in
+This gives you a byte-exact, rebuildable copy of the stock ROM. It does not use
+the original Renesas/Hitachi SHC compiler. It is the Track-B reference **oracle**
+from [../PLANS.md](../PLANS.md). Edit the `.s` and rebuild. Every change is
+regression-diffed against known-good firmware. Details are in
 [`ASM_BASELINE.md`](ASM_BASELINE.md).
 
 ## Related (repo root)
