@@ -497,7 +497,25 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool: /tmp/openc
      `r[15] = ns["sp"] & 0xFFFFFFFF` at the top of every mirror loop iteration.
   2) Callee second return path: 0x4BBC has bf@0x4BC2→0x4BCC AFTER the first rts@0x4BC8; the walk
      stopped at the first rts, the mirror hit <no code> at 0x4BCC and returned early (0x7094 case0:
-> RECOVERY LOST: ~46 lines of this entry (rest of (A) and all of (B)) unrecoverable from DB.
+     mirror r2=0 vs emu=00004BBC). FIX: new v8 `_callee_walk_end()` extends the walk past the first
+     rts to the next rts after every in-span conditional-branch target (fixpoint, bounded by the
+     span end). Both regenerated lifts PASS 500/500 (skipped=0).
+- (B) 0x025C40 (FC00 60E0FC00, callee 0x3934) blocked with `callee-walk 0x3934 walk-fail
+  0x3934..0x394A`. Root cause: 0x393A `mov.l @(0x18,r5),r6` (r5=0xFFFF7638 literal, eff 0xFFFF7650
+  RAM) folds to None because bf@0x3936 set branches_seen → ram_known disabled (v3 line ~2141) → r6
+  written+unknown → dependent 0x393C `mov.b @(1,r6),r0` `_trk_fold`=None → walk_v3 returns None.
+  FIX (B, scoped to the callee walk only): walk_v3 gains `relax_chain=False`; in the mem else-branch,
+  when the base-register fold is unknown but it's a plain LOAD, emit register-relative
+  (`r[0] = s8(_rdw(ram, (r[6] + 1), 1))`) instead of failing. v8 `_walk_callee` passes
+  relax_chain=True. Loads only, never stores; default False keeps v3 selectors byte-identical.
+- VERIFIED (B): walk_v3(0x3934, relax_chain=True) now passes through the load chain; 0x25C40 is still
+  NOT liftable for a precise residual reason: callee 0x3934 tail-calls `jmp @r6`→0x3DB0 at 0x3944, a
+  call op walk_v3 rejects by design (0x3DB0 is itself a catalog function). No dryrun pool change:
+  v8-emittable count is 142 (FC00) / 87 (D400) and pool_v5 0 (D400), identical before vs after the
+  fix (git stash comparison) — 0x25C40 was excluded from both runs.
+- REGRESSION: 10/10 tests PASS after the fixes (4 caller: 7094, A9F4, 1020C, 130B8; 3 v3-root:
+  2DLookup_FP_16bit/8bit, 3dlookup_type8; 3 no_span/fpu: ac_compressor_2f504 2000/2000,
+  adc_channel_select_4A690, add_float_to_ram_a898). py_compile+ast both modules OK.
 
 ## 2026-08-08 — five `--emit` callee-walk failures: two root-cause groups (no code changed)
 
