@@ -731,9 +731,7 @@ addr,status,reason
 65300,lifted,cfg
 65334,lifted,cfg
 65436,lifted,cfg
-65498,stubbed,"callee-cfg-compile 65498 /home/davide/ailocal/rx8ecu/c/lib/f_FFDA.c: In function ‘f_FFDA’:
-/home/davide/ailocal/rx8ecu/c/lib/f_FFDA.c:40:6: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-   40"
+65498,lifted,cfg
 65793,stubbed,"callee-cfg 65793 ('unmapped', 65793)"
 65908,lifted,cfg
 65968,lifted,cfg
@@ -742,8 +740,8 @@ addr,status,reason
 66124,skip,already-lib
 66332,skip,already-lib
 66438,lifted,walk
-66444,stubbed,"callee-cfg 66444 ('jump_table_unresolved', 66684)"
-67152,stubbed,"callee-cfg 67152 ('jump_table_unresolved', 67312)"
+66444,lifted,cfg
+67152,lifted,cfg
 67430,skip,already-lib
 67438,skip,already-lib
 67528,lifted,cfg
