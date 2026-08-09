@@ -1245,7 +1245,14 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     res.edges.append((pc, 'jt:%d' % len(entries), None))
                     c = ([v7.to_st_c(s) for s in slot['c']] if slot else []) + \
                         ['switch (s->r[%d]) {' % rn]
+                    # ROM tables may hold duplicate slot values (two slots ->
+                    # same target); dedup by value so the C switch has no
+                    # duplicate case labels (cc: 'duplicate case value').
+                    seen_case = set()
                     for e in entries:
+                        if e in seen_case:
+                            continue
+                        seen_case.add(e)
                         if addr <= e < end:
                             c.append('    case 0x%06X: goto L_%X;' % (e, e))
                         else:

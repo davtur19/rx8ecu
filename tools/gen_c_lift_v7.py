@@ -58,7 +58,7 @@ MASK = 0xFFFFFFFF
 ST_STRUCT = (
     'typedef struct {\n'
     '    uint32_t r[16];\n'
-    '    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;\n'
+    '    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;\n'
     '    uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */\n'
     '    uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */\n'
     '} ST;\n'
@@ -68,7 +68,7 @@ ST_STRUCT = (
 # locals; the ST body rewrites them to s->r[N]/s->T/...  The rewriter is applied
 # to the record C fragments (per-record, so temps/local_%x stay per-function).
 _RE_R = re.compile(r'\br(?:[0-9]|1[0-5])\b')
-_RE_SYS = re.compile(r'\b(pr|T|Q|M|macl|mach|sr|gbr|fpul|fpscr)\b')
+_RE_SYS = re.compile(r'\b(pr|T|Q|M|macl|mach|sr|vbr|gbr|fpul|fpscr)\b')
 _FR = re.compile(r'\bfr(?:[0-9]|1[0-5])\b')
 
 
