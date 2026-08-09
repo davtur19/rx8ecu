@@ -5,7 +5,7 @@
 ## Overview
 
 Logical (zero-fill) right shift.  Value in **r0**, shift count in **r1**,
-result in r0.  Count clamping identical to `shift_left_logical_r0`:
+result in r0.  Count clamping is identical to `shift_left_logical_r0`:
 
 - `cnt < 0` → return value unchanged
 - `cnt >= 32` → return 0
@@ -34,6 +34,6 @@ count > 8 path (arithmetic == logical for non-negative operands).
 
 ## Note
 
-`rotl` is 0x40n4 — was a missing opcode in both `tools/sh2emu.py` and
+`rotl` is 0x40n4 — it was a missing opcode in both `tools/sh2emu.py` and
 `tools/disasm_sh2e.py`, added
 2026-07-31.

@@ -9,7 +9,7 @@ branches). Runs once per scheduler tick from `engineControlTASK` (0x11E94).
 
 | Address | Name | Context |
 |---------|------|---------|
-| 0x11E94 | `engineControlTASK` | Calls via `mov.l 0x12020,r2; jsr @r2` where literal 0x12020 = 0x14584 |
+| 0x11E94 | `engineControlTASK` | Calls with `mov.l 0x12020,r2; jsr @r2` where literal 0x12020 = 0x14584 |
 
 Stage 3 of 5 in `engineControlTASK`: `updateMemoryAtAddress`-like fn → `FUN_00021c40`
 → **this** → `FUN_00016f70` → conditional getSR chain.

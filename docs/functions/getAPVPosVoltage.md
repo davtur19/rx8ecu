@@ -1,6 +1,6 @@
 # getAPVPosVoltage @ 0x432BA
 **Purpose:** Read accelerator pedal position (APV) ADC sample and convert to voltage. Measures pedal/throttle demand for engine control.
-**Inputs:** ADC raw sample from 0xFFFF9EF0 (u16) ; Scaling factor from ROM 0x43318 (float, value ~7.63e-05) ; Calibration offset via fixedPointToFloat helper
+**Inputs:** ADC raw sample from 0xFFFF9EF0 (u16) ; Scaling factor from ROM 0x43318 (float, value ~7.63e-05) ; Calibration offset with fixedPointToFloat helper
 **Out:** Writes converted voltage to 0xC9B0 (APV voltage output register) ; Returns voltage in fr0
 **Calls:** fixedPointToFloat_16bit_MULT_OFF_SIG (0x24C0) - ADC to float conversion with multiplier and offset
 Initialize fr5 = 0.0 (zero) ; Load scaling multiplier 7.63e-05 from ROM 0x43318 into fr4 ; Read APV ADC sample from 0xFFFF9EF0 into r4 ; Call fixedPointToFloat_16bit_MULT_OFF_SIG(sample, multiplier,

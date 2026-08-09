@@ -4,7 +4,7 @@ Reverse-engineered control strategies for idle regulation and auxiliary subsyste
 
 ## 1. Idle Speed Control (ISC)
 
-Closed-loop air bypass idle control via **linear solenoid** (ISC valve) varying air past the throttle (no stepper motor).
+Closed-loop air bypass idle control uses a **linear solenoid** (ISC valve) to vary air past the throttle (no stepper motor).
 
 1. `calc_idle_speed_target()` (0x12F5E) — target
 2. `idle_speed_control_18054()` (0x18054) — state machine & mode dispatch
@@ -114,7 +114,7 @@ ISC solenoid driven by SH-2E MTU (Multi-Function Timer Pulse Unit) PWM; duty con
 
 ## 2. SSV — Secondary Shutter Valve
 
-Two-position intake valve; opens secondary port at RPM threshold via vacuum actuator + solenoid. Closed <~2000 RPM (low-end torque), open >~2000 RPM (high-end power), hysteresis prevents oscillation.
+Two-position intake valve; opens secondary port at RPM threshold through a vacuum actuator + solenoid. Closed <~2000 RPM (low-end torque), open >~2000 RPM (high-end power), hysteresis prevents oscillation.
 ### 2.2 SSV Control (`ssvControl__`, 0x225C8, 94 B; called from `torque_dispatcher_225A2`/`direct_branch_to_torque_calc_2259C`)
 
 ```asm
@@ -147,7 +147,7 @@ Port `0xFFFFF754` bit 7 (0x80) · output `0xFFFFB320` (validated command) · ram
 
 ## 3. VIS — Variable Intake System
 
-Adjusts intake runner length/cross-section via multi-position actuator driven by a duty-cycled solenoid.
+Adjusts intake runner length/cross-section through a multi-position actuator driven by a duty-cycled solenoid.
 
 ### 3.2 VIS Intake Control (`vis_intake_control_23718`, 0x23718, 236 B; called from `engine_control_master_task_23DC8`)
 

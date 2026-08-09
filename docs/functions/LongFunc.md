@@ -3,7 +3,7 @@
 **Inputs:** r4: dividend / numerator (32-bit fixed-point) ; r5: divisor / denominator (32-bit fixed-point, may be signed) ; r7: dividend (alternative input path)
 **Out:** r0: quotient / result (32-bit fixed-point)
 **Calls:** none
-Check r4 and r5 for special cases (zero divisor, zero dividend) ; Perform SH-2 64-bit division via `div0s` / `div1` loop (32 iterations) ; Accumulate result in r4 via `rotcl` (rotate carry left) ;
+Check r4 and r5 for special cases (zero divisor, zero dividend) ; Perform SH-2 64-bit division with a `div0s` / `div1` loop (32 iterations) ; Accumulate result in r4 with `rotcl` (rotate carry left) ;
 Check result bounds: if result > 0x7FFF or < ~0x7FFF, saturate to MAX_INT / MIN_INT ; Perform second 32-bit division on normalized value ; Aggregate final result
 **Draft C:**
 ```c

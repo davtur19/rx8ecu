@@ -7,13 +7,14 @@
 
 ## Overview
 
-ISO 14229 UDS Service 0x27 (SecurityAccess) for the Mazda RX-8 PCM. Controls access
-to privileged diagnostics (flashing, calibration, immobilizer programming) via a
-seed/key challenge-response protocol.
+ISO 14229 UDS Service 0x27 (SecurityAccess) for the Mazda RX-8 PCM. It controls
+access to privileged diagnostics, for example firmware flash, calibration, and
+immobilizer programming. The access uses a seed/key challenge-response protocol.
 
-Subfunction `0x01` (RequestSeed): ECU returns a pseudo-random 3-byte **seed**. The
-tool computes a 3-byte **key** with a 24-bit Galois LFSR + shared secret and sends
-it via subfunction `0x04` (SendKey). On match the ECU unlocks security.
+Subfunction `0x01` (RequestSeed): the ECU returns a pseudo-random 3-byte **seed**.
+The tool computes a 3-byte **key** with a 24-bit Galois LFSR and a shared secret.
+It sends the key through subfunction `0x04` (SendKey). On match the ECU unlocks
+security.
 
 ## Call Tree
 
@@ -57,7 +58,7 @@ Offset  Bytes     Field          Value         Description
 ```
 
 The access mask `0x1000000E` allows sessions 2 (programming), 3 (extended), and
-4 (safety).  Bit 28 (`0x10000000`) is a `seed_already_generated` flag — when set
+4 (safety).  Bit 28 (`0x10000000`) is a `seed_already_generated` flag. When set,
 the handler skips the session check on the SendKey path.
 
 ## Secret & LFSR Parameters
@@ -168,22 +169,22 @@ The ROM's `SeedKeyRelated` is a byte-oriented implementation of the **same** ECO
 > row-by-row ROM evidence. Corrections to the previous DRAFT:
 
 1. Read `SECURITY_STATE_1` (0xFFFFD20B, state_check1 @0x56866) and
-   `SECURITY_STATE_2` (0xFFFFD20C, state_check2 @0x568E6) — reads only, **no** NRC
-   gate (no NRC 0x11 anywhere in the handler; the previous "already unlocked →
-   0x11" claim was wrong)
-2. Validate message length: `msg_len == 0` → NRC 0x12; `msg_len != 1` → NRC 0x12
-   (length is the payload length excluding the SID byte; passed in r4, not a pointer)
+   `SECURITY_STATE_2` (0xFFFFD20C, state_check2 @0x568E6). These are reads only.
+   There is **no** NRC gate. The previous "already unlocked → 0x11" claim was
+   wrong; no NRC 0x11 appears anywhere in the handler.
+2. Validate message length: `msg_len == 0` → NRC 0x12; `msg_len != 1` → NRC 0x12.
+   Length is the payload length without the SID byte. It passes in r4, not a pointer.
 3. Validate subfunction ≠ 0 → NRC 0x31 (not 0x12)
-4. Dispatch: only `subfunc == 0x01` enters this flow (entry `0x584B6`-`0x584BE`);
-   the abs-trick at 0x584FE-0x58516 is present but vestigial for subfunc 0x01
-5. Generate 3-byte seed via `seed_gen(3)` (ROM 0x58522) — side-effect finalization
-6. Validate seed level via `position_check(subfunction)` (0x56892);
+4. Dispatch: only `subfunc == 0x01` enters this flow (entry `0x584B6`-`0x584BE`).
+   The abs-trick at 0x584FE-0x58516 is present but vestigial for subfunc 0x01.
+5. Generate 3-byte seed with `seed_gen(3)` (ROM 0x58522) — side-effect finalization
+6. Validate seed level with `position_check(subfunction)` (0x56892);
    sentinel `chk == 3` → NRC 0x31
-7. Cross-check via `key_validate(state1, state2, chk)` (0x56928);
+7. Cross-check with `key_validate(state1, state2, chk)` (0x56928);
    non-zero result → NRC 0x31
 8. Seed bytes written conditionally: `state2 == chk` → `{0,0,0}`; else
    `seed_gen(chk)` + `data_copy` (0x56AC0) into the response seed slot
-9. Send positive response via resp builder 0x5864A: `[0x67, 0x01, seed0, seed1, seed2]`
+9. Send positive response with resp builder 0x5864A: `[0x67, 0x01, seed0, seed1, seed2]`
 
 ### Subfunction 0x04 — SendKey
 
@@ -192,15 +193,15 @@ The ROM's `SeedKeyRelated` is a byte-oriented implementation of the **same** ECO
 > identical structure in every stock image (60E1D400 `0x58592`-`0x58610`;
 > 60E0E500 `0x56F3E`, 60E0E700 `0x57196`, 60E0FB00/60E0FC00 `0x56026`,
 > 60E15120 `0x57B56`, 60E1B900 `0x562BE`, 60E1C500 `0x57202`, 60E32000
-> `0x5D4D2`) but unreachable everywhere: entry dispatch admits only `subfunc==1`;
+> `0x5D4D2`) but unreachable in every image: entry dispatch admits only `subfunc==1`;
 > the sole incoming branch is the never-taken abs-trick even-branch `bf/s`
 > (`subfunc==1` is odd); no indirect refs. `subfunc!=1` → else path:
 > `subfunc==0` → response, `subfunc!=0` → silent. Flow below kept as ROM-accurate
 > reconstruction of a shared-codebase remnant (no removal).
 
-1. Retrieve cached seed via `data_copy`
-2. Re-generate seed via `seed_gen(3)`
-3. Compare user-provided key against computed key via `seed_key_related(4, seed, key)`
+1. Retrieve cached seed with `data_copy`
+2. Re-generate seed with `seed_gen(3)`
+3. Compare user-provided key against computed key with `seed_key_related(4, seed, key)`
 4. On match: call `unlock(level)`, send positive response `[0x67, 0x04]`
 5. On mismatch: send NRC 0x35 (InvalidKey)
 
@@ -259,7 +260,7 @@ The SecurityAccess handler uses these RAM locations for state:
    the RequestSeed payload byte (`docs/notes/UDS_SECURITY_MAPPING.md` §1).
 2. ~~**`seed_gen` (@0x5699A) internals for level≠3**~~ **RESOLVED** — entropy path
    (XOR-mix `b0^bN`, state==4 → `55AA55`, retry<=16 fallback `FFFFFF`) VERIFIED
-   2026-08-03 via `c/tests/test_seed_gen_5699A.py` (0 mismatches). `c/security_access.c` §5.
+   2026-08-03 with `c/tests/test_seed_gen_5699A.py` (0 mismatches). `c/security_access.c` §5.
 3. ~~**`key_validate` middle-byte source**~~ **RESOLVED** — middle arg is
    **`SECURITY_STATE_2`** (state_check2 @0x568E6), held in r10; handler calls
    `key_validate(state1, state, chk)` (`c/security_access.c` ~232-240; commits
@@ -267,7 +268,7 @@ The SecurityAccess handler uses these RAM locations for state:
 
 **RESOLVED 2026-08-04 — SendKey reachability:** **SendKey body is dead code in all
 9 public stock ROMs** (60E1D400 + 8 aux). Cross-ROM scan (entry dispatch, incoming
-branches, indirect refs): body present but unreachable everywhere — dispatch admits
+branches, indirect refs): body present but unreachable in every image — dispatch admits
 only `subfunc==1`; only incoming branch is the never-taken abs-trick `bf/s`. The
 earlier VERIFIED SendKey work (commits `fd56201`, `31bb0ac`) covered the algorithm
 vs the ROM body, not dispatch reachability. Verdict (b): dead code, shared-codebase

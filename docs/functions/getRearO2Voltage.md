@@ -1,5 +1,5 @@
 # getRearO2Voltage @ 0xD1E0
-**Purpose:** Read rear O2 (oxygen sensor) ADC value from RAM and convert to voltage via fixed-point scaling.
+**Purpose:** Read rear O2 (oxygen sensor) ADC value from RAM and convert to voltage with fixed-point scaling.
 **Inputs:** Global @ 0xFFFF9EF2: ADC count (16-bit, rear O2 sensor raw reading)
 **Out:** Global @ 0xFFFFA3E4: Float voltage value (result of ADC * 7.62939e-05) ; Return: None (void function)
 **Calls:** None (no subroutine calls)

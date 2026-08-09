@@ -26,4 +26,4 @@ float floatDivideDiv0errCheck_SIG_DIVISOR(float sig, float divisor)
 }
 ```
 **Status:** high (guard logic is clear and standard; FLT_MAX constants are confirmed by pool references; division by zero handling is explicit)
-**Uncertainties:** Purpose of the NaN test at the end (fmov fr6, fr6) is unclear—may be (a) defensive NaN propagation, (b) status register manipulation, or (c) debug/trap setup ; Whether the result could be NaN from a valid division (e.g., 0/0 handled by hardware) and if so, what the caller expects
+**Uncertainties:** Purpose of the NaN test at the end (fmov fr6, fr6) is unclear—may be (a) defensive NaN propagation, (b) status register manipulation, or (c) debug/trap setup ; Whether the result could be NaN from a valid division (for example, 0/0 handled by hardware) and if so, what the caller expects

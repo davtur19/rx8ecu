@@ -2,7 +2,7 @@
 
 Work from confirmed evidence. Confirmed facts → `docs/notes/FINDINGS.md`.
 Before editing any binary: verify checksum, assert expected bytes, write to `tmp/` first.
-Before using Ghidra MCP: confirm it's running and the correct program is loaded.
+Before using Ghidra MCP: confirm it is running and the correct program is loaded.
 
 ## Project orientation
 
@@ -54,11 +54,12 @@ equivalent** here. Dump procedure: `docs/notes/DUMP_ALL.md`; LC-patch injection:
 
 New artifacts go to `tmp/<topic>/` first. See `tmp/README.md` for the promotion table.
 
-## Verifica rapida
+## Quick verification
 
-Rituale su ogni file modificato (`c/*.c`, `c/tests/*`, `tools/*.py`, `symbols/*.csv`):
-`fn → changed → all → make test`. `fastverify.py` è read-only (artefatti in `/tmp`),
-auto-rileva la repo root, exit 0/1/2 (ok / failure / env-error):
+Run the verification ritual on every modified file (`c/*.c`, `c/tests/*`,
+`tools/*.py`, `symbols/*.csv`): `fn → changed → all → make test`.
+`fastverify.py` is read-only (artifacts in `/tmp`). It auto-detects the repo
+root. Exit codes: 0 (ok), 1 (failure), 2 (env-error):
 
 ```bash
 python3 ../.opencode/fastverify.py fn <nome|0xADDR|rom.bin>   # ~0.4 s — verifica la funzione modificata

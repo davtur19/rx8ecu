@@ -1,6 +1,6 @@
 # MAFStuffMaybeVE @ 0x20EEC
-**Purpose:** Calculate volumetric efficiency (VE) or apply MAF-related calibration adjustments based on operating conditions and lookup tables.
-**Inputs:** RAM 0xBE1C: MAF value (float, fr15) ; RAM 0xAA74: corrected/reference value (float, fr14) ; RAM 0xB348: intermediate calculation (float) ; RAM 0xB594: lookup table input (float) ; RAM 0x00068678: 2D lookup table address ; RAM 0xB280: constraint/threshold (float) ; RAM 0xFFFFB238: calculated result register (float) ; Multiple limit calibration addresses (0x72594, 0x7256A, 0x7256C, etc.)
+**Purpose:** Calculate volumetric efficiency (VE) or apply MAF-related calibration adjustments. The calculation uses the operating conditions and lookup tables.
+**Inputs:** RAM 0xBE1C: MAF value (float, fr15) ; RAM 0xAA74: corrected/reference value (float, fr14) ; RAM 0xB348: intermediate calculation (float) ; RAM 0xB594: lookup table input (float) ; RAM 0x00068678: 2D lookup table address ; RAM 0xB280: constraint/threshold (float) ; RAM 0xFFFFB238: calculated result register (float) ; Multiple limit calibration addresses (0x72594, 0x7256A, 0x7256C)
 **Out:** RAM 0xFFFFB238: calculated VE or MAF adjustment value (float) ; RAM 0xFFFFB296: lookup result (16-bit word) ; RAM 0xFFFFB290: output/state float
 **Calls:** 2DLookup_FP_16bit @ 0x20C4 (fixed-point 16-bit lookup, fr4=input, r4=table addr)
 Load MAF value (fr15) and reference (fr14 from 0xAA74) ; Load calibration constant 100.0 ; Divide: (intermediate value * fr14) / 100.0 → fr3 (normalized comparison) ; Perform 2DLookup_FP_16bit with

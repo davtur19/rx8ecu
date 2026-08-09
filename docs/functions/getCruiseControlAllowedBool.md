@@ -26,4 +26,4 @@ uint8_t getCruiseControlAllowed(void) {
 }
 ```
 **Status:** med — inhibit logic chain is clear; speed comparison logic inferred from fcmp instruction; exact semantic of each flag unclear.
-**Uncertainties:** Exact meaning of each inhibit flag (clutch, throttle, engine condition, etc.) ; Why diagnostic flag bypasses speed check ; Whether ROM 0x762A5 is a flag or condition
+**Uncertainties:** Exact meaning of each inhibit flag (clutch, throttle, engine condition, and similar) ; Why diagnostic flag bypasses speed check ; Whether ROM 0x762A5 is a flag or condition

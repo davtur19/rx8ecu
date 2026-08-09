@@ -1,10 +1,10 @@
 # getIgnitionRelatedCalsForSomething @ 0x2C388
-**Purpose:** Fetch two ignition-related calibration values via 2D lookup table queries; likely ignition timing and dwell or advance maps.
+**Purpose:** Fetch two ignition-related calibration values with 2D lookup table queries; likely ignition timing and dwell or advance maps.
 **Inputs:** fr15: input lookup parameter (float, likely engine speed or load)
 **Out:** 0xFFFFBC50: first calibration value (float) ; 0xFFFFBC54: second calibration value (float)
 **Calls:** 0x2068 (2DLookup): called twice with different calibration table addresses ; First call: table at 0x68C10, result stored at 0xFFFFBC50 ; Second call: table at 0x68C24, result stored at 0xFFFFBC54
-Save fr15 (input parameter) and return address on stack ; Load float from 0xB594 (likely engine RPM) → fr15 ; Load table pointer 0x68C10 → r4 ; Call 2DLookup(fr15, 0x68C10) with fr15 as input ; Store
-result (fr0) at 0xFFFFBC50 (global RAM) ; Load table pointer 0x68C24 → r4 ; Call 2DLookup(fr15, 0x68C24) with fr15 as input ; Store result (fr0) at 0xFFFFBC54 (global RAM) ; Restore stack and return
+Save fr15 (input parameter) and return address on stack ; Load float from 0xB594 (likely engine RPM) → fr15 ; Load table pointer 0x68C10 → r4 ; Call 2DLookup(fr15, 0x68C10) with the input fr15 ; Store
+result (fr0) at 0xFFFFBC50 (global RAM) ; Load table pointer 0x68C24 → r4 ; Call 2DLookup(fr15, 0x68C24) with the input fr15 ; Store result (fr0) at 0xFFFFBC54 (global RAM) ; Restore stack and return
 **Draft C:**
 ```c
 void getIgnitionRelatedCalsForSomething(void) {

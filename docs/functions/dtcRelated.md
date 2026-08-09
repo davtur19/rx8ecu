@@ -4,9 +4,9 @@
 
 ## Overview
 
-Scans the 21-entry DTC handler context table @0xFFFF87D8 (16 B/entry), appending
+This function scans the 21-entry DTC handler context table @0xFFFF87D8 (16 B/entry). It appends
 the 16-bit DTC code of every entry whose type byte (entry+6) matches the requested
-type selector to a caller-supplied word array. Returns the count in r0.
+type selector to a caller-supplied word array. It returns the count in r0.
 
 **Matches are written consecutively (packed):** out[0], out[1], ... in scan order;
 the running count doubles as the output index (`r12 = out + 2·count` @0x6207A–0x62088).
@@ -64,12 +64,12 @@ uint8_t dtcRelated(uint8_t type, uint8_t enable, uint16_t *out)
 
 - Prologue (0x62002–0x6201A): r11 = 0 (loop index), r10 = 1, r9 = 0x0080
   (bit-7 mask), r2 = 0xFFFF8928 (current index pointer), r12 = r6 (out).
-- Loop head (0x6201C–0x6202C): `mov.w @r2,r3`; sign-extend/zero-extend via
+- Loop head (0x6201C–0x6202C): `mov.w @r2,r3`; sign-extend/zero-extend with a
   stack round-trip + `extu.w`; `cmp/eq r3,r11`; `bf/s` → process, else
   `bra 0x62168` (skip).
 - Store (0x62134–0x62168): `r12 = out + 2·count` (`extu.w r7,r12; shll r12;
   add r6,r12`), `mov.w r13,@r12`, `count++`.
-- ROM tables are byte arrays indexed by the 16-bit DTC code:
+- The ROM tables are byte arrays indexed by the 16-bit DTC code:
   tableA @0x0007E220 (property/class byte), tableB @0x0007E2AC (enable byte).
 
 ## Verification
@@ -77,7 +77,7 @@ uint8_t dtcRelated(uint8_t type, uint8_t enable, uint16_t *out)
 - [x] Disassembly confirmed against capstone (see `disasm_sh2e.py`)
 - [x] C code written (`c/dtcRelated.c`)
 - [x] Emulator test: 500 random states; type + enable dispatch vs the ROM
-  executable bytes; catches the packed-output indexing (out[i] → out[count])
+  executable bytes; it catches the packed-output indexing (out[i] → out[count])
 
 ## Supersedes
 

@@ -17,8 +17,8 @@
 2. UDS SERVICES — CONFIRMED IN FIRMWARE
 ================================================================
 
-  The following SIDs are confirmed by cmp/eq instructions in
-  the default dispatch table at ROM 0x1479:
+  The cmp/eq instructions in the default dispatch table at
+  ROM 0x1479 confirm the following SIDs:
 
   SID   Service                     Response
   ----  --------------------------  --------
@@ -32,27 +32,29 @@
   0x3B  (unknown Mazda custom)      0x7B
   0x3E  TesterPresent               0x7E
 
-  Additionally found via cmp/eq at 0x5647E (separate handler):
+  Additionally, a separate handler at 0x5647E confirms
+  SID 0x14 with cmp/eq:
   0x14  ClearDiagnosticInformation  0x54
 
 ================================================================
 3. SID 0x23 — ReadMemoryByAddress
 ================================================================
 
-  NOT found in the default dispatch table (no cmp/eq #0x23
-  anywhere in the 512KB ROM).
+  The default dispatch table does not contain SID 0x23.
+  No cmp/eq #0x23 exists anywhere in the 512KB ROM.
 
-  However, ConnorRigby's rx8-ecu-dump uses SID 0x23 successfully
-  after entering session 0x85 + security access. This means:
+  However, rx8-ecu-dump by ConnorRigby uses SID 0x23 successfully.
+  The tool enters session 0x85 + security access first. This means:
 
-    a) The handler is in the SH7055 mask ROM / boot ROM area
-       (not part of the 512KB application firmware), OR
-    b) It is dynamically enabled by session state in a way
-       that doesn't use a simple cmp/eq comparison
+    a) The handler is in the SH7055 mask ROM / boot ROM area.
+       It is NOT part of the 512KB application firmware.
+    OR
+    b) Session state enables the handler dynamically.
+       It does not use a simple cmp/eq comparison.
 
-  In practice: SID 0x23 WORKS after security unlock.
-  The mechanism is confirmed by working tools, even though
-  the handler is not visible in the application firmware.
+  In practice, SID 0x23 WORKS after security unlock.
+  Working tools confirm the mechanism.
+  The handler is not visible in the application firmware.
 
 ================================================================
 4. SECURITY ACCESS (SID 0x27)
@@ -63,7 +65,7 @@
 
   Key derivation:
     Secret: {0x4D, 0x61, 0x7A, 0x64, 0x41} ("MazdA")
-    64-iteration bit-manipulation on 24-bit seed → 3-byte key
+    64-iteration bit-manipulation on a 24-bit seed produces a 3-byte key
 
   TX: [0x27, 0x02, key_b0, key_b1, key_b2]
   RX: [0x67, 0x02]
@@ -90,12 +92,14 @@
   RX: [0x63, data...]
 
   >>> OPEN — RMBA wire format (see ConnorRigby/rx8-ecu-dump AUDIT §5):
-  >>> this repo documents  "23 [4B addr BE][2B len BE]"  (no format byte;
-  >>> matches RX8Man BuildReadMemoryRequest()).
-  >>> ConnorRigby's dumper sends "23 00 [3B addr][2B len]" (1-byte format
-  >>> byte 0x00, 3-byte address). Both are equivalent for addresses below
-  >>> 0x01000000 (MSB always 0x00), but the wire frames differ; whether the
-  >>> SH7055 ECU accepts both is UNVERIFIED — needs bench verification.
+  >>> This repo documents  "23 [4B addr BE][2B len BE]".
+  >>> It has no format byte. It matches RX8Man BuildReadMemoryRequest().
+  >>> The dumper by ConnorRigby sends "23 00 [3B addr][2B len]".
+  >>> It has a 1-byte format byte 0x00 and a 3-byte address.
+  >>> Both forms are equivalent for addresses below 0x01000000.
+  >>> The MSB is always 0x00. The wire frames differ.
+  >>> Whether the SH7055 ECU accepts both is UNVERIFIED.
+  >>> It needs bench verification.
   >>> Source: community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md.
 
   Example — full RAM snapshot (~5 seconds):
@@ -114,34 +118,34 @@
   5.  [0x36, seq, ...]           TransferData (chunked loop)
   6.  [0x37]                     RequestTransferExit
 
-  Offset 0x0000-0x1FFF is not readable via this method.
-  Likely protected boot ROM or first flash block.
+  Offset 0x0000-0x1FFF is not readable with this method.
+  It is likely a protected boot ROM or the first flash block.
   Full dump (~504KB from 0x2000): ~2 minutes.
 
 ================================================================
 8. DATALOGGING
 ================================================================
 
-  Repeated SID 0x23 requests for specific RAM addresses.
-  Each request reads a small block (2-4 bytes per variable).
+  The datalogger repeats SID 0x23 requests for specific RAM
+  addresses. Each request reads a small block (2-4 bytes per variable).
 
-  Equinox311's RomRaider fork supports this as "MazdaCAN"
-  protocol with logger_rx8_defs.xml defining which RAM
-  addresses to poll and how to scale the raw values.
+  The RomRaider fork by Equinox311 supports this as "MazdaCAN"
+  protocol. The file logger_rx8_defs.xml defines the RAM addresses
+  to poll. It also defines how to scale the raw values.
 
   Known DIDs (SID 0x22):
     0xF190   VIN
     0xF18C   Calibration ID
     0xE611   Calibration Hex File (ASCII)   [source: can_protocol/obd_dtc/obd_pid_table.md]
 
-  Cross-reference: the broadcast CAN frame notes in
-  docs/notes/CAN_PROTOCOL.md (DID list duplicated there).
+  Cross-reference: the broadcast CAN frame notes are in
+  docs/notes/CAN_PROTOCOL.md. The DID list is duplicated there.
 
 ================================================================
 9. FIRMWARE DISPATCH TABLE (ROM 0x1479)
 ================================================================
 
-  Confirmed by manual disassembly of cmp/eq chain:
+  Manual disassembly of the cmp/eq chain confirms it:
 
     0x1486: cmp/eq #0x10, R0   → DiagnosticSessionControl
     0x148A: cmp/eq #0x27, R0   → SecurityAccess

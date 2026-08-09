@@ -2,7 +2,7 @@
 **Purpose:** Manage immobilizer ready-to-drive state during engine-off period. Polls ADC keygen and manages state transitions and timeout counters.
 **Inputs:** State flag from 0xFFFFC23A (1 = active check, 5 = timeout/wait) ; State/counter storage at 0xFFFFC224, 0xFFFFC228, 0xFFFFC22E
 **Out:** Updates immobilizer state value at 0xFFFFC224 (polled value from ADC) ; Updates state byte at 0xFFFFC23A ; Writes timeout value 0x01F4 to 0xFFFFC228 ; Decrements counter at 0xFFFFC22E (with underflow to 0xFFFF)
-**Calls:** Immo_Keygen_related_ADC (0x35F9C) - reads ADC immobilizer keygen value ; (indirect via branching) Additional diagnostic/timeout handlers
+**Calls:** Immo_Keygen_related_ADC (0x35F9C) - reads ADC immobilizer keygen value ; (indirect with branching) Additional diagnostic/timeout handlers
 Check state flag at 0xFFFFC23A ; If state == 1: ; Loop polling Immo_Keygen_related_ADC until value stabilizes ; Write 0x01F4 timeout to 0xFFFFC228 ; If state == 5: ; Decrement counter at 0xFFFFC22E
 (saturate at 0xFFFF) ; If counter reaches 0, trigger diagnostic/transition routine ; Update state byte accordingly
 **Draft C:**

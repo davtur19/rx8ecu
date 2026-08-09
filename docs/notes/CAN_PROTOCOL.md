@@ -14,7 +14,7 @@ In ROM 60E1D400, three CAN mailbox configuration tables:
 - **CAN0 TX Config**: `0x4EA60` (primary), `0x4EB60` (alternate, used when 0xB5A4==0)
 - **CAN1 RX Config**: `0x4EC60`
 
-Configure HCAN mailboxes (CAN ID, DLC, RX/TX direction). **Not** runtime dispatch tables — dispatch is direct function calls.
+They configure HCAN mailboxes (CAN ID, DLC, RX/TX direction). **Not** runtime dispatch tables — dispatch is direct function calls.
 
 ### Entry Format (16 bytes)
 
@@ -139,18 +139,18 @@ secondary_system_controller:
 
 ## Rotarytronics CAN Patch
 
-Third-party patch modifying CAN frame content to expose normally-hidden parameters to dataloggers:
+Third-party patch that modifies CAN frame content to expose normally-hidden parameters to dataloggers:
 
 - **0x630 handler** (`0x1C044` in the J-line variant): adds fan status byte
 - **0x250 handler** (`0x1CEB8` in the J-line variant): adds injection pulse width byte
 
-Not accessible via standard OBD2 — needs a raw-CAN logger (OBDX Pro or Tactrix in raw CAN mode).
+Not accessible through standard OBD2 — it needs a raw-CAN logger (OBDX Pro or Tactrix in raw CAN mode).
 
 ## OBD2 / UDS (Standard Diagnostic)
 
 - ECU responds to 0x7DF (broadcast) and 0x7E0 (unicast); response 0x7E8
 - Mailbox config at 0x4EA60 entries 13-15
-- All UDS through `udsHandler` (0x697E8) dispatched via table @0x5F57C
+- All UDS through `udsHandler` (0x697E8) dispatched through table @0x5F57C
 - UDS entry from CAN: `udsEntryPoint` (0x69702) → `udsHandler`
 - Known DIDs (SID 0x22): `0xF190` VIN, `0xF18C` Calibration ID, `0xE611` Calibration Hex File (ASCII) — full detail in `docs/hardware/RX8_OBD_UDS_Protocol.txt`.
 
@@ -158,7 +158,7 @@ Not accessible via standard OBD2 — needs a raw-CAN logger (OBDX Pro or Tactrix
 
 Firmware mailbox config (ID sets above, ROM 60E1D400) vs **field-observed** RX-8 HS-CAN decodes from public captures/blogs (topolittle, Antipixel, rusEFI, majbthrd.kcd, Blackhurst, cham, jimkoeh, CC3301…).
 
-**Bottom line:** ID sets agree exactly; disagreements are in *byte-level semantics* / frame purpose, not which IDs exist.
+**Bottom line:** ID sets agree exactly; disagreements are in *byte-level semantics* / frame purpose, not in what IDs exist.
 
 | Verdict | IDs |
 |---------|-----|

@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Validates the integrity of a 32-bit redundant-storage cell containing a
-(value, ~value) pair.  Returns the checksum residual:
+This function validates the integrity of a 32-bit redundant-storage cell. The cell contains a
+(value, ~value) pair.  It returns the checksum residual:
 ```
 result = (~value - (value >> 16)) & 0xFFFF
 ```

@@ -4,7 +4,7 @@ Multi-layered CAN (Controller Area Network) + UDS (ISO-14229-1) subsystem, ~149 
 
 - **Two CAN buses**: HS-CAN (diagnostics, UDS) and MS-CAN (accessories)
 - **Proprietary broadcast**: CAN IDs 0x201–0x650 carry engine data
-- **UDS/ISO-14229-1**: via KWP2000 serial and CAN (0x7DF/0x7E0/0x7E8)
+- **UDS/ISO-14229-1**: over KWP2000 serial and CAN (0x7DF/0x7E0/0x7E8)
 - **OBD-II (ISO-15031)**: emissions diagnostics (SIDs under 0x10)
 - **DTC handling**: storage, retrieval, clearing (EEPROM)
 
@@ -59,7 +59,7 @@ The 16-byte "handler" field is a **mailbox data buffer pointer** (into HCAN reg 
 
 ## HCAN Hardware (Layer 0)
 
-SH7055 built-in HCAN: 16 mailboxes (0–7 usually RX, 8–15 usually TX), standard (11-bit) + extended (29-bit) IDs. Key regs (via `getHCANRegisterAddress` 0xD198): `MCR`, `MBCR`, `M_BOCR`, `M_BIDR`, `M_BDSR`.
+SH7055 built-in HCAN: 16 mailboxes (0–7 usually RX, 8–15 usually TX), standard (11-bit) + extended (29-bit) IDs. Key regs (through `getHCANRegisterAddress` 0xD198): `MCR`, `MBCR`, `M_BOCR`, `M_BIDR`, `M_BDSR`.
 
 ## CAN Hardware Interface (Layer 1)
 
@@ -136,7 +136,7 @@ main_init → canSetup (0xDC8C) → CANControllerSetup (0x9878)
 | 0x650 | can650TX_getAndPack | 0x2C806 | Catalyst / O2 trim |
 
 ### `CAN_EmitLaunchStatus` (0x57BE8)
-Reads bit 0x0400 from 0xFFFFF754 (VFAD solenoid bit, repurposed by a launch-control mod as "launch active") → 0/1 byte, emits via CAN.
+Reads bit 0x0400 from 0xFFFFF754 (VFAD solenoid bit, repurposed by a launch-control mod as "launch active") → 0/1 byte, emits on CAN.
 
 ## RX Path (Layer 2)
 
@@ -165,7 +165,7 @@ Gate: 0xAAE0==1, 0xB5E8!=1, 0xA410==0
 | event_check_4C78C | 0x4C78C | 0x4B1 | CAN0 MB12 | DSC request secondary |
 | utility_bitfield_check_2C780 | 0x2C780 | 0x4C0 | CAN1 MB6 | Unknown (short msg) |
 
-CAN IDs 0x216, 0x430, 0x231 RX dispatched via `lookup_table_indexed_29BE8`/`table_lookup_dispatch_29E9C`, not directly called.
+CAN IDs 0x216, 0x430, 0x231 RX dispatched through `lookup_table_indexed_29BE8`/`table_lookup_dispatch_29E9C`, not directly called.
 
 ### RX Unpack Functions
 
@@ -266,7 +266,7 @@ Mode 1 (SID 0x01) handler @0x66258; Mode 9 (SID 0x09) @0x66CFC. PID conversion h
 
 ## DTC (Layer 3c)
 
-DTCs stored in EEPROM via `getFromE2_E2ADDR_RAMADDR_LEN` (0x39170): Code (2 bytes, e.g. P0100=0x0100), Status (1 byte bitfield: testFailed/pending/confirmed/sinceCleared), Snapshot (freeze-frame: RPM, load, coolant).
+DTCs stored in EEPROM through `getFromE2_E2ADDR_RAMADDR_LEN` (0x39170): Code (2 bytes, for example P0100=0x0100), Status (1 byte bitfield: testFailed/pending/confirmed/sinceCleared), Snapshot (freeze-frame: RPM, load, coolant).
 
 | Function | Address | Description |
 |----------|---------|-------------|
@@ -399,7 +399,7 @@ PCI: SF 0x00-0x07 (len), FF 0x10+len-high, CF 0x20+seq, FC 0x30+flow (0 CTS/1 Wa
 ### Corrected
 1. **CAN RX dispatch**: `secondary_system_controller` @0xDE8E (was `CANRX_Main` @0xDBF6); several RX handler addresses were from another ROM variant.
 2. **OBD handlers**: 0x66258 (Mode 1), 0x66CFC (Mode 9) — not 0x6410C/0x64BB0.
-3. **CAN TX names**: TLA names were misleading; actual names describe counter dispatch (`mutex_trylock_4C85A`, `message_queue_send_4C956`, etc.).
+3. **CAN TX names**: TLA names were misleading; actual names describe counter dispatch (`mutex_trylock_4C85A`, `message_queue_send_4C956`).
 4. **CAN config tables**: 16-byte entries are mailbox config (buffer pointers), not function pointers.
 
 ### Remaining to Verify

@@ -3,9 +3,9 @@
 **Inputs:** None (reads global flags only)
 **Out:** r0: Fuel cut arbitration result written to 0xA430 ; Bit 0: Fuel cut enabled (from first condition set) ; Bit 1: Secondary protection (from second condition set)
 **Calls:** None (purely conditional flag checks)
-Initialize r4 = 0 (result accumulator) ; First condition set** (13 checks, each reads a byte flag): ; Check flags at: 0xA444, 0xA4A4, 0xA9D4, 0xC89C, 0xCB41, 0xBCB6, 0xCB42, 0xC945, 0xCC8A, 0xCC8B,
-0xCC8C, 0xCC8D, 0xC1EC ; If ANY of these flags == 1 (or for 0xC1EC, just non-zero), set r4 = 1 (fuel cut enabled) ; Second condition set** (13 checks, similar): ; Check flags at: 0xA445, 0xA4A5,
-0xA9D4, 0xC89C, 0xCB41, 0xBCB7, 0xCB43, 0xC945, 0xCC8A, 0xCC8B, 0xCC8C, 0xCC8D, 0xC1EC ; If ANY of these flags == 1 (or 0xC1EC non-zero), set bit 1: r4 |= 2 ; Write result r4 to 0xA430
+Initialize r4 = 0 (result accumulator). First condition set** (13 checks, each reads a byte flag): Check flags at: 0xA444, 0xA4A4, 0xA9D4, 0xC89C, 0xCB41, 0xBCB6, 0xCB42, 0xC945, 0xCC8A, 0xCC8B,
+0xCC8C, 0xCC8D, 0xC1EC. If ANY of these flags == 1 (or for 0xC1EC, just non-zero), set r4 = 1 (fuel cut enabled). Second condition set** (13 checks, similar): Check flags at: 0xA445, 0xA4A5,
+0xA9D4, 0xC89C, 0xCB41, 0xBCB7, 0xCB43, 0xC945, 0xCC8A, 0xCC8B, 0xCC8C, 0xCC8D, 0xC1EC. If ANY of these flags == 1 (or 0xC1EC non-zero), set bit 1: r4 |= 2. Write the result r4 to 0xA430.
 **Draft C:**
 ```c
 void arbitrateFuelCut(void) {
@@ -45,4 +45,4 @@ void arbitrateFuelCut(void) {
     *(volatile uint16_t *)0xA430 = result;
 }
 ```
-**Status:** med ; Clear overall structure (two condition sets, bitwise accumulation) ; Uncertainties: ; Exact semantics of each individual flag (fault type, enable status, etc.) ; Whether all 13 checks are OR'd or if there's additional logic ; Meaning of 0xA430 result bits in fuel control pipeline ; Some addresses appear in both sets (0xA9D4, 0xC89C, 0xCB41, 0xC945, 0xCC8A–D, 0xC1EC); may indicate shared conditions
+**Status:** med ; Clear overall structure (two condition sets, bitwise accumulation) ; Uncertainties: ; Exact semantics of each individual flag (fault type, enable status) ; Whether all 13 checks are OR'd or if there is additional logic ; Meaning of 0xA430 result bits in fuel control pipeline ; Some addresses appear in both sets (0xA9D4, 0xC89C, 0xCB41, 0xC945, 0xCC8A–D, 0xC1EC); may indicate shared conditions

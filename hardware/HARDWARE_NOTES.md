@@ -26,18 +26,18 @@ All variants below are pin-compatible and ROM-compatible (60E0xxxx / 60E1xxxx):
 | N3J1-18-881R | EU 6-port 231 hp AT variant | Same connector |
 
 Series II (2009+) uses SH7058 — different CPU, different ROM architecture, NOT compatible.
-MX-5 NC with Denso ECU may use SH7055 but different connectors and ROM layout.
+MX-5 NC with Denso ECU can use SH7055, but the connectors and ROM layout differ.
 
 ## EEPROM Read Procedure
 
 1. ECU out of car (or carefully clip in-situ)
 2. Locate IC420 (SOIC8, near top-right of PCB — see community photos)
 3. CH341A programmer + SOIC8 clip
-4. Read as 93C56 (256 bytes, 3-wire SPI) — NOT 93C86 (that's 1 KB)
-5. Verify: first byte should be `0x55` (magic / valid marker)
-6. Backup original before writing anything
+4. Read as 93C56 (256 bytes, 3-wire SPI) — NOT 93C86 (that is 1 KB)
+5. Verify: first byte must be `0x55` (magic / valid marker)
+6. Backup original before you write anything
 
-Existing EEPROM dumps are kept in private storage (not shipped):
+Available EEPROM dumps are kept in private storage (not shipped):
 - `se3p_ecm_eeprom.bin` — community reference
 - `RX8_93c56_ECU_IC420_Read.bin` — confirmed IC420 read
 

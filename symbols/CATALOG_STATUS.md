@@ -1,6 +1,6 @@
 # CATALOG_STATUS -- stato catalogo master (post lift-merge, DEDUP)
 
-Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift (`c/*.c`, `c/tests/test_*.py`). `CATALOG_MASTER.csv` e' DEDUP per `(bank, addr)`: per chiave si tiene UNA sola riga (source piu' autorevole); le altre sorgenti perse sono elencate in `also_sources`. `lift_name` porta il nome autorevole se disponibile, altrimenti coincide con `src_name`. Colonna `category` in coda: join con `FUNCTION_CATEGORIES.csv` su `(bank normalizzato, int(addr,16))` — ~6.082 righe matchate, cella vuota per le non classificate.
+All `symbols_*.csv` files (variants included) are merged with the lift names (`c/*.c`, `c/tests/test_*.py`) into `CATALOG_MASTER.csv`. The catalog is DEDUP per `(bank, addr)`. Each key keeps ONE row (the most authoritative source). The other lost sources are listed in `also_sources`. `lift_name` carries the authoritative name if available, otherwise it matches `src_name`. The `category` column is at the end. Join it with `FUNCTION_CATEGORIES.csv` on `(bank normalizzato, int(addr,16))` — it matched ~6.082 rows, with an empty cell for the unclassified rows.
 
 | bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note |
 |-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|
@@ -14,13 +14,13 @@ Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift (`c/*.c`, `c
 | 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5609 | 2795 | 2794 | 1 | 936 | 189 | canonico affidabile (IDA-ai) |
 | 60E32000 | symbols_60E32000.csv<br/>symbols_60E32000_connor.csv | 6911 | 6899 | 382 | 6517 | 176 | 54 | derivata over-segmentata |
 
-* `rows (incl. variants)` = righe CUMULATIVE da TUTTI i CSV della bank (varianti ridondanti incluse); `total (unique)` = righe uniche per (bank, addr) dopo il dedup — questa e' la cifra reale per bank.
+* `rows (incl. variants)` = cumulative rows from ALL CSVs of the bank (redundant variants included); `total (unique)` = unique rows per (bank, addr) after the dedup — this is the real figure per bank.
 
-**LIFT_ONLY addrs (boundary non in IDA): 5** — lift addrs senza START di riga in alcun CSV, adottati come entry del catalogo (`source=lift`, `flag=LIFT_ONLY`; di cui 4 VERIFIED). Attribuzione bank via range CSV, fallback 60E1D400.
+**LIFT_ONLY addrs (boundary not in IDA): 5** — lift addrs without a row START in any CSV, adopted as catalog entries (`source=lift`, `flag=LIFT_ONLY`; 4 of them VERIFIED). Bank attribution through the CSV range, fallback 60E1D400.
 
 ## NOISE (span<=4, derived only)
 
-Righe `source=derived` (banche derivate over-segmentate), non LIFT_ONLY, non nominate, con span `(end - addr) <= 4` byte — quasi certamente rumore di segmentazione (puntatori pooled / boundary falsi). La riga NON e' cancellata: `flag` riceve `NOISE` (aggiunto con `|` se gia' presente).
+Rows `source=derived` (over-segmented derived banks), not LIFT_ONLY, not named, with span `(end - addr) <= 4` bytes — almost certainly segmentation noise (pooled pointers / false boundaries). The row is NOT deleted: `flag` receives `NOISE` (added with `|` if already present).
 
 | bank | unique | noise | real-estimate (unique - noise) |
 |-----:|-------:|------:|-------------------------------:|

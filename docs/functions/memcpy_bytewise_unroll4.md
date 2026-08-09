@@ -4,10 +4,10 @@
 
 ## Overview
 
-Byte-by-byte memory copy with a manual 4× unrolled loop.  Copies `n`
-bytes from source pointer to destination pointer.  The unrolling is an
-optimisation typical of the SHC compiler — the loop body copies 4 bytes
-per iteration, then handles the remaining 0–3 bytes with a tail loop.
+This function copies memory byte by byte with a manual 4× unrolled loop.
+It copies `n` bytes from the source pointer to the destination pointer.
+The manual 4× unroll is typical of the SHC compiler.  The loop body copies
+4 bytes per iteration.  A tail loop handles the remaining 0–3 bytes.
 
 ## Logic
 

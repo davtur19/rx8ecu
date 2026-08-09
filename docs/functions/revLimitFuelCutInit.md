@@ -1,5 +1,5 @@
 # revLimitFuelCutInit @ 0xEE68
-**Purpose:** Conditionally initialize rev-limit fuel-cut state: if not yet initialized (flag check), zero out RPM counter, status, and hysteresis variables.
+**Purpose:** Conditionally initialize rev-limit fuel-cut state. If not yet initialized (flag check), zero out RPM counter, status, and hysteresis variables.
 **Inputs:** r4–r7: unused ; Global @ `0xFFFF9F8C`: initialization flag (1 = already initialized, 0 = initialize now)
 **Out:** Writes 0 to RAM `0xA4A4` (likely RPM counter or status byte 1) ; Writes 0 to RAM `0xA4A5` (likely RPM counter or status byte 2) ; Writes 0 (word, sign-extended) to RAM `0xFFFFA4A8` (likely hysteresis state or debounce timer) ; No return value (r0 undefined on exit)
 **Calls:** None

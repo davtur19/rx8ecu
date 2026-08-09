@@ -1,5 +1,5 @@
 # pack_for_OBD_response @ 0x6670C
-**Purpose:** Helper utility. Packs bytes from a source buffer into a response buffer with length and bounds checking (used by OBD-II Mode 22 response formatters).
+**Purpose:** Helper utility. It packs bytes from a source buffer into a response buffer. It performs length and bounds checking. OBD-II Mode 22 response formatters use this helper.
 **Inputs:** r4: count (number of bytes to pack) ; r5: source buffer pointer ; r6: (implicit, used in bounds checks)
 **Out:** Populates output buffer at offset from base pointer r14 ; Updates response length counter at r14+0 (word) ; Returns nothing (void)
 **Calls:** None

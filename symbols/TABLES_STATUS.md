@@ -1,9 +1,9 @@
-# Stato tabelle ROM — RX-8
+# ROM table status — RX-8
 
-Riepilogo dei conteggi delle tabelle definite in
-`symbols/romraider_rx8_tables.csv` per ciascun ROM code, con range di indirizzi.
+This file summarizes the counts of the tables defined in
+`symbols/romraider_rx8_tables.csv` for each ROM code, with address ranges.
 
-## Conteggi per ROM
+## Counts per ROM
 
 | ROM | Tables | Addr range |
 |-----|--------|------------|
@@ -21,14 +21,13 @@ Riepilogo dei conteggi delle tabelle definite in
 | 60E1D400 | 2926 | 0x000000 .. 0x07d92c |
 | G-ROM_FLEX | 2672 | 0x035230 .. 0x07cb8f |
 
-Totale righe: 37121.
+Total rows: 37121.
 
-## Note
+## Notes
 
-### 5 ROM non in nostro possesso
+### 5 ROMs we do not possess
 
-I seguenti ROM code compaiono nelle definizioni tabelle ma **non** sono presenti come
-binario in `roms/stock/`:
+These ROM codes appear in the table definitions but are **not** present as a binary in `roms/stock/`:
 
 - **60E1D300**
 - **60E0E600**
@@ -36,13 +35,13 @@ binario in `roms/stock/`:
 - **60E1A300**
 - **G-ROM_FLEX**
 
-Le altre ROM, di cui disponiamo del binario, sono: `60E0E500`, `60E0E700`, `60E0FB00`,
-`60E0FC00`, `60E15120`, `60E1B900`, `60E1C500`, `60E1D400` (più `60E32000`, presente come
-file ma senza tabelle registrate nel csv).
+The other ROMs, whose binary we have, are: `60E0E500`, `60E0E700`, `60E0FB00`,
+`60E0FC00`, `60E15120`, `60E1B900`, `60E1C500`, `60E1D400`. `60E32000` is present
+as a file but has no tables registered in the csv.
 
-## Sorgente dei dati
+## Data source
 
-Le definizioni provengono dalle release di **RomRaider / GROM** (`romraider_rx8_tables.csv`).
-Gli indirizzi sono espressi nel campo `addr` come offset `bare-hex`; il campo `rom_code`
-identifica la ROM destino. Il campo `xmlid` dei def XML e referenziabile a partire
-dall'immagine binaria all'offset `0x2000` per l'identificazione del firmware.
+The definitions come from the **RomRaider / GROM** releases (`romraider_rx8_tables.csv`).
+The `addr` field expresses the addresses as `bare-hex` offsets; the field `rom_code`
+identifies the destination ROM. The field `xmlid` of the XML defs is referencable
+from the binary image at the offset `0x2000` to identify the firmware.

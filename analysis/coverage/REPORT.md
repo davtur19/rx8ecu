@@ -8,7 +8,7 @@
 
 ## 1. How coverage is measured
 
-Declared coverage (e.g. `60E1D400` = **93.63%**) is a *round-trip coverage* produced by
+Declared coverage (for example `60E1D400` = **93.63%**) is a *round-trip coverage* produced by
 `tools/rom_rebuild.py` / `tools/organize_src.py`, frozen into `src/*_annotated.s`:
 
 1. Linear sweep at every even offset of `0x800..0x60000` (195,584 words/ROM).
@@ -74,7 +74,7 @@ Per-word classification (pcrel/branch refs, labels, values, neighborhood) + manu
 | `0x5AAC – 0x5ACC` | 17 | literal_pool |
 
 **31.88%** of the gap (3,974 words) is **inside named-function ranges**: pools/tables *inline* at
-function edges (e.g. `0x27F68`, `0x51C44`, `0x50CAA`).
+function edges (for example `0x27F68`, `0x51C44`, `0x50CAA`).
 
 **Reset/exception vectors:** 20 entries in window, **0 point to uncovered words** → no handler lost as data.
 
@@ -87,17 +87,17 @@ differently/rejects). Breakdown in D400:
 
 - **241 (95.6%)** are `mov.l` **`0x82nn` / `0x86nn`** (16-bit disp): not assemblable by GNU-as
   (toolchain lacks SH-2E extensions).
-- **11** are rare opcodes (`ldc`/`stc`/`synco`/`movua`/`mulr`/`divs`/`divu`), e.g. `0x403E` (`ldc r0,SSR`),
+- **11** are rare opcodes (`ldc`/`stc`/`synco`/`movua`/`mulr`/`divs`/`divu`), for example `0x403E` (`ldc r0,SSR`),
   `0x0132` (`stc SSR,r0`), `0x014B` (`synco`).
 
 Manual verification of all D400 occurrences → data, not code:
-- `0x86xx` pairs with `0x0007`/`0x0009` markers (e.g. `0x31064–0x3107C`, `0x31196`, `0x31406`) — div-library
+- `0x86xx` pairs with `0x0007`/`0x0009` markers (for example `0x31064–0x3107C`, `0x31196`, `0x31406`) — div-library
   *register-save table* (16-bit rows).
 - The two `0x403E` words (`0x4300`, `0x44D8`) sit in structured tables (values decreasing by 4 at `0x42F0`).
 
 **Real instructions stranded as `.word` = 0** (`instr_forced` residue 0–2 words, always table members).
-The project's `.word` writing is **correct**: not a decode gap but the GNU-as toolchain not knowing SH-2E;
-recovering them yields **zero** extra code.
+The project writes `.word` **correctly**. The cause is not a decode gap. The GNU-as toolchain does not know SH-2E.
+Recovery yields **zero** extra code.
 
 ---
 
@@ -106,7 +106,7 @@ recovering them yields **zero** extra code.
 **What:** 6.37% = 12,464 words = **pure data** (pools, padding, tables, config). No real uncovered instruction.
 
 **Recoverability:**
-- **~52%** (`pool_single`) + **~19%** (`literal_pool`): pools/constants already referenced by `mov.w @(disp,PC)` — legitimately excluded data; re-enter only by changing the coverage definition (`@pool`).
+- **~52%** (`pool_single`) + **~19%** (`literal_pool`): pools/constants already referenced by `mov.w @(disp,PC)` — legitimately excluded data; they re-enter only if the coverage definition changes (`@pool`).
 - **~31%** (padding + padding_single + single_unref + unknown_data + strings): never-referenced filler (`0xFFFF`/`0x0000` ≈79% of gap). Unrecoverable as instructions — and should not be.
 - **~1%** (`jump_table` + `table_member` + `label_on_data`): tables.
 - **`instr_forced` 2 words (0.02%)**: verified table members → nothing to recover.
@@ -128,7 +128,7 @@ code) get decoded and counted covered:
 | `0x0004` (`mov.b r0,@(r0,r0)`) | 491 |
 | **total** | **7,184 = 3.92% of covered** |
 
-Adding the `0x0008`/`0x0009` separators and mis-decode regions (e.g. `0x30F30–0x31550`, 734 covered
+If we add the `0x0008`/`0x0009` separators and the mis-decode regions (for example `0x30F30–0x31550`, 734 covered
 words are tables), the honest estimate of "real" code is **~88–91%** of the window. A more honest
 number, if wanted, would be **lower**, not higher.
 
@@ -137,10 +137,10 @@ number, if wanted, would be **lower**, not higher.
 ## 6. Recommendations
 
 1. **No action on decoding**: the gap contains no instructions; no decompilation work to do. Close the task.
-2. **Do not "recover" the gap**: marking pools/padding as data (e.g. `@pool`) is cosmetic (at `0x60000`
+2. **Do not "recover" the gap**: if you mark pools/padding as data (for example `@pool`), the change is cosmetic (at `0x60000`
    there is no code to run) and would **lower** the honest 93%.
 3. **Toolchain note**: if the 241 `0x82nn/0x86nn` words were ever assembled as SH-2E, a custom emitter
-   or newer binutils is needed; currently correctly `.word`.
+   or newer binutils is needed. At present the words are correctly `.word`.
 4. **Reproducibility**: `coverage_gap.py` regenerates the 9-ROM table in ~40 s + per-ROM CSV/TXT
    (`uncovered_<ROM>.{csv,txt}`).
 

@@ -1,9 +1,9 @@
 # osTaskScheduler @ 0x9668
 
 ## Summary
-RTOS task-scheduler entry. Given `task_id`, `entry_idx` into the task's table, and
-an optional argument array, calls the target function directly or routes through a
-dispatcher. Returns 0 (normal) or 1 (reschedule requested).
+RTOS task-scheduler entry. It takes `task_id` and `entry_idx` into the task's table.
+It also takes an optional argument array. It calls the target function directly or
+routes the call through a dispatcher. It returns 0 (normal) or 1 (reschedule requested).
 
 ## Signature
 ```c
@@ -49,8 +49,8 @@ struct TaskEntry {
 See `c/osTaskScheduler.c` (full C lift with SH-2E asm header).
 
 ## Structural Tests
-`c/tests/test_osTaskScheduler.c` — 19 tests covering:
-- TaskEntry layout (sizeof, field offsets via memcpy)
+`c/tests/test_osTaskScheduler.c` — 19 tests cover:
+- TaskEntry layout (sizeof, field offsets with memcpy)
 - Direct-call path (marker == 0xFFFF)
 - Dispatcher path (marker != 0xFFFF, return value passthrough)
 - Argument copy loop (correct values, bounds, arg_count=0 edge case)

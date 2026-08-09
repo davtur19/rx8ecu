@@ -1,12 +1,12 @@
 # throttleDownDeFloodCheck @ 0x3083C
-**Purpose:** Prevent fuel flooding on throttle-down during engine crank by cutting injector pulse (deflood).
+**Purpose:** Prevent fuel flooding on throttle-down during engine crank by cutting the injector pulse (deflood).
 **Inputs:** Cranking flag from RAM 0xA428 (uint8_t) ; Throttle position from RAM 0xBE88 (f32) ; Throttle threshold from ROM 0x77044 (f32) ; Intake air temperature from RAM 0xAA2C (f32) ; Startup configuration from ROM 0x77028 (f32) ; Additional check register from RAM 0xC5EA (uint8_t) ; Deflood flag from RAM 0xB46F (uint8_t) ; Speed/RPM value from RAM 0xADA8 (f32) ; Lookup table address @ 0x68F98 (ROM 2D table)
-**Out:** Writes deflood injector pulse time to RAM 0xBE88 (f32) ; Clears output if conditions not met
+**Out:** Writes the deflood injector pulse time to RAM 0xBE88 (f32) ; Clears the output if the conditions are not met
 **Calls:** 2DLookup @ 0x2068 (2D table lookup on speed/RPM and other parameters)
-Check if not cranking (0xA428 == 0): ; If not cranking, set deflood result = 0.0 and return ; Load throttle position from RAM 0xBE88 ; Load throttle threshold from ROM 0x77044 ; Compare: if throttle ≤
-threshold, set result = 0.0 and skip to step 11 ; Load intake temp from ROM 0x77028 ; Load startup reference value from RAM 0xA9FC ; Compare: if startup_ref ≤ intake_temp, check deflood conditions ;
-Check register at 0xC5EA and deflood flag at 0xB46F: ; If either non-zero, set result = 1.0 (activate deflood, cut fuel) ; Else: ; Load speed/RPM from RAM 0xADA8 ; Call 2DLookup(speed/RPM, table @
-0x68F98) → result in fr0 ; Store result to RAM 0xBE88
+Check if not cranking (0xA428 == 0): ; If not cranking, set the deflood result = 0.0 and return ; Load the throttle position from RAM 0xBE88 ; Load the throttle threshold from ROM 0x77044 ; Compare: if throttle ≤
+threshold, set the result = 0.0 and skip to step 11 ; Load the intake temp from ROM 0x77028 ; Load the startup reference value from RAM 0xA9FC ; Compare: if startup_ref ≤ intake_temp, check the deflood conditions ;
+Check the register at 0xC5EA and the deflood flag at 0xB46F: ; If either is non-zero, set the result = 1.0 (activate deflood, cut fuel) ; Else: ; Load speed/RPM from RAM 0xADA8 ; Call 2DLookup(speed/RPM, table @
+0x68F98) → result in fr0 ; Store the result to RAM 0xBE88
 **Draft C:**
 ```c
 void throttleDownDeFloodCheck(void) {
@@ -38,5 +38,5 @@ void throttleDownDeFloodCheck(void) {
     }
 }
 ```
-**Status:** med — flow and conditions clear; deflood thresholds and table purpose inferred.
-**Uncertainties:** "deflood" value semantics (1.0 = cut all fuel vs multiplier)? Check register 0xC5EA purpose? OR vs AND trigger logic? Table structure?
+**Status:** med — flow and conditions are clear. The deflood thresholds and table purpose are inferred.
+**Uncertainties:** "deflood" value semantics (1.0 = cut all fuel vs multiplier)? What is the purpose of check register 0xC5EA? OR vs AND trigger logic? Table structure?

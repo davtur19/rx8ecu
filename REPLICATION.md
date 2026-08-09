@@ -117,9 +117,9 @@ Modified (tuned) images NOT shipped (kept private); those legitimately bypass th
 
 ## What the rebuilt ROM is (and the ~6.4% `.word` regions)
 
-Byte-identical 1:1 copy, sha256-verified by `make verify-all`. Annotated sources lift **93.46–93.8%** of the code window (`0x800..0x60000`, 195,584 words) to real SH-2 instructions; the rest is raw `.word` data (~6.4%: literal pools, jump tables, calibration, padding). Byte-exact by construction: every even offset is a decoded instruction or raw `.word`, and a self-correcting loop forces anything GNU-as rejects/re-encodes differently back to `.word` until `cmp == 0`; outside the window everything is `.word` verbatim.
+Byte-identical 1:1 copy, sha256-verified by `make verify-all`. Annotated sources lift **93.46–93.8%** of the code window (`0x800..0x60000`, 195,584 words) to real SH-2 instructions. The rest is raw `.word` data (~6.4%: literal pools, jump tables, calibration, padding). Byte-exact by construction: every even offset is a decoded instruction or raw `.word`. A self-correcting loop forces anything GNU-as rejects/re-encodes differently back to `.word` until `cmp == 0`. Outside the window, everything is `.word` verbatim.
 
-**Coverage honesty caveat.** Figures are *round-trip* coverage. ~6% of counted words are data tables that decode as valid instructions (`0x0007` `mul.l r0,r0` ×2427 — more than `rts`); true code ≈88–91%, data ≈9–12%.
+**Coverage honesty caveat.** Figures are *round-trip* coverage. ~6% of counted words are data tables that decode as valid instructions (`0x0007` `mul.l r0,r0` ×2427 — more than `rts`). True code ≈88–91%, data ≈9–12%.
 
 ## Verifying the deliverables end-to-end
 

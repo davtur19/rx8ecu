@@ -4,10 +4,10 @@
 
 ## Overview
 
-Full 32-bit signed integer division via the SH-2E div0s/div1 step-by-step algorithm
+This is full 32-bit signed integer division with the SH-2E div0s/div1 step-by-step algorithm
 (no hardware divide; 32 iterations, one quotient bit each).
 
-Returns dividend ÷ divisor, truncated toward zero (C99 semantics).
+It returns dividend ÷ divisor, truncated toward zero (C99 semantics).
 
 Divide-by-zero: writes error code 0x44E to 0xFFFF7304, returns 0.
 

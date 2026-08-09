@@ -4,7 +4,7 @@
 **Out:** 0xA4A6: rev-limit conditional flag (set to 1 or 0 based on speed ranges) ; 0xA4AE: secondary conditional flag ; 0xA4AD: throttle or mode adjustment byte ; 0xFFFFA4AA: rev-limit status flag
 **Calls:** None (pure logic)
 Initialize r7 = 1 (default rev-limit active) ; Load engine speed (0xA9FC) → fr4 ; Load mode byte (0xBB24) → r4 ; Load rpm threshold (0x6DA3C) → fr5 ; Load rpm threshold2 (0x6DA40) → fr3 ; Compute: fr6
-= fr5 - fr3 (threshold delta) ; Check if fr4 > fr6: ; If yes (speed high): set r6 = 0, write to 0xA4A6 ; If no: check fr4 > fr5 (within threshold) ; If yes: skip write (leave as is) ; If no: write r6
+= fr5 - fr3 (threshold delta) ; Check if fr4 > fr6: ; If yes (speed high): set r6 = 0, write to 0xA4A6 ; If no: check fr4 > fr5 (within threshold) ; If yes: skip write (leave unchanged) ; If no: write r6
 to 0xA4A6 ; Load condition byte (0xB580) → r2, check if non-zero: ; If zero: check mode r4, check throttle 0xA4AD ; If all conditions met: load value from 0x6DA34 → write to 0xA4AE ; Final: read
 0xA4AE, if positive, write (value + 0xFF) else write 0 ; Write mode byte to 0xA4AD
 **Draft C:**

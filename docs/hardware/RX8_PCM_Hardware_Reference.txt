@@ -3,11 +3,12 @@
 ===============================================================
 
   NOTE: This file is ALIGNED to the authoritative board analysis in
-  `docs/notes/HARDWARE.md` (user-inspected PCB, front+back, closed IC
-  inventory). Component names and CPU identity below follow that file;
-  earlier references to crystal "X402" and a single "IC400 second large
-  QFP" were superseded (the board's crystal is X430 and the IC inventory
-  uses IC404/IC840/IC780/IC820/IC830 etc.).
+  `docs/notes/HARDWARE.md`. That analysis covers a user-inspected PCB.
+  It covers the front and the back. The IC inventory is closed.
+  Component names and CPU identity below follow that file.
+  Earlier references to crystal "X402" and a single "IC400 second large
+  QFP" are superseded. The board's crystal is X430. The IC inventory
+  uses IC404/IC840/IC780/IC820/IC830.
 
   PCB P/N:      279721-3210 (board silk; Denso unit-level P/N 279700-3313
                  per `docs/notes/KNOWLEDGE.md`)
@@ -60,7 +61,7 @@ IC INVENTORY (closed per `docs/notes/HARDWARE.md`)
 
   IC020 / IC400  Denso ASICs (SOP24; `SE585` / `SE555`) — analog
                  front-end/mux area. IC400 sits in a ~15-pair R/C filter
-                 cluster; function not publicly documented.
+                 cluster. Its function is not publicly documented.
 
   IC905          Toshiba `TD549A4` (only IC on the backside) — likely
                  Darlington/relay driver. Exact P/N unresolved.
@@ -70,15 +71,15 @@ IC INVENTORY (closed per `docs/notes/HARDWARE.md`)
 
   NOTE: `L190` (TDK, `1272`/`R2X`) is a filter/choke inductor, NOT an IC.
 
-  All Denso ASIC functions are unconfirmed guesses — they would need
-  continuity tracing to connector pins to verify (see `docs/notes/HARDWARE.md`
-  "Open items").
+  All Denso ASIC functions are unconfirmed guesses. They need
+  continuity tracing to connector pins for verification. See
+  `docs/notes/HARDWARE.md` "Open items".
 
 ===============================================================
 EEPROM — IC420
 ===============================================================
 
-  ABLIC S-93C56C (256 bytes, SPI 3-wire), bit-banged via SH7055 GPIO
+  ABLIC S-93C56C (256 bytes, SPI 3-wire), bit-banged with SH7055 GPIO
   (confirmed in firmware). Contents: immobilizer keys, adaptive learned
   values. First byte `0x55` = valid marker (per `docs/notes/KNOWLEDGE.md`).
   Confirmed on PCB (marking `S93C56` + BD logo).
@@ -87,9 +88,10 @@ EEPROM — IC420
 POWER DRIVERS
 ===============================================================
 
-  The following assignments are INFERRED from PCB position and proximity to
-  output stage components; not confirmed by trace-following or schematic
-  (see `docs/notes/HARDWARE.md` for the closed IC inventory):
+  The following assignments are INFERRED from PCB position. They come
+  from proximity to output stage components. They are not confirmed
+  by trace-following or by a schematic. See `docs/notes/HARDWARE.md`
+  for the closed IC inventory:
 
   IC705/IC703/IC701  Sanken SPF0001    Probable injector/coil low-side drivers
   IC640/IC660/IC850  Fuji F5041        Probable solenoid/lamp/relay drivers

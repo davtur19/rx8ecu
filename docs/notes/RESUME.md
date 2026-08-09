@@ -1,9 +1,9 @@
 # RX-8 ECU Reverse Engineering — Session Resume
 
-> Sezioni 1–9: stato pre-release (giugno 2026), superate dalla release 486c7d6 — vedi VERIFICATION.md.
+> Sections 1 to 9 describe the pre-release state (June 2026). Release 486c7d6 supersedes them. See VERIFICATION.md.
 
 ## 10. Final status (post-release)
 
-- **Release completata** (commit 486c7d6, AGPL-3.0, repo pubblico): pipeline rebuild byte-exact, sorgenti annotati, C lifts verificati, test, tools, docs, 9 ROM stock pubbliche.
-- **9/9 ROM byte-identiche**: `make verify-all` → `sha256(rebuilt) == sha256(source)`; immagini modificate e dump privati fuori dal repo (README, "Legal notice").
-- Numeri correnti (coverage, test, indirizzi verificati, C lifts) ed evidenze: **README.md** + **VERIFICATION.md** — non duplicati qui.
+- **Release complete** (commit 486c7d6, AGPL-3.0, public repo). It contains: the byte-exact rebuild pipeline, the annotated sources, the verified C lifts, the tests, the tools, the docs, and 9 public stock ROMs.
+- **9/9 ROMs byte-identical**: `make verify-all` → `sha256(rebuilt) == sha256(source)`; modified images and private dumps stay out of the repo (README, "Legal notice").
+- Current numbers (coverage, tests, verified addresses, C lifts) and evidence: **README.md** + **VERIFICATION.md** — not duplicated here.

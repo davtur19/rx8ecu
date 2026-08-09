@@ -86,7 +86,7 @@ Key functions: `fuel_injector_pulse_calc` (0x10620, 708 B) · `injector_pulse_wi
 
 Applied in order, multiplying/adding to base fuel mass:
 
-1. **Warm-up enrichment** `calc_engine_temp_fuel_trim` @0x1437C — coolant-based; tapers off warm. Tables e.g. 0x71D00, 0x71D84.
+1. **Warm-up enrichment** `calc_engine_temp_fuel_trim` @0x1437C — coolant-based; tapers off warm. Tables for example 0x71D00, 0x71D84.
 2. **Cold start enrichment** `calc_cold_start_fuel_enrichment` @0x142E8 — decays with time/temp. `after_start_fuel_enrichment_task` (0x1A95C), `setStartupInjectorPwMult` (0x3126E), `calcInjectorCrankingTime` (0x31088), `getCrankingInjectorPulseTime` (0x310D4).
 3. **Acceleration enrichment** `calc_accel_fuel_enrichment` @0x138CC — tip-in on TPS rate-of-change + MAP/RPM.
 4. **Closed-loop / O2** `calc_closed_loop_fuel_status` @0x141B8 — when O2 warm, targets λ=1.0. Reads `read_o2_sensor_voltage_trim` (0x1412A).
@@ -172,7 +172,7 @@ Condition flags — primary set: `0xA444, 0xA4A4, 0xA9D4, 0xC89C, 0xCB41, 0xBCB6
 ### 5.3 Rev Limit Strategy
 
 Fuel-cut strategy (not ignition cut):
-1. **Soft limit:** begins cutting ~9000 RPM (calibratable via `Rev Limit` table @0x6D54C)
+1. **Soft limit:** begins to cut at ~9000 RPM (calibratable through `Rev Limit` table @0x6D54C)
 2. **Hard limit:** complete cut ~9500 RPM
 3. **Cold limit:** ~4000 RPM when coolant below threshold (`Cold Rev Limit Threshold` @0x6D53C, `Cold Rev Limit` @0x6D544)
 
@@ -180,7 +180,7 @@ Fuel-cut strategy (not ignition cut):
 
 ### 5.4 Deceleration Fuel Cut
 
-`calc_decel_fuel_cut_445AA` (0x445AA): TPS < closed threshold (~0.01 V/angle), RPM > min threshold, not in override (DSC etc.), feature enabled (cal `0x7B3DC` = 0x01). Hysteresis via saturating accumulator (addSaturate8Bit); cut stays until RPM drops below re-enable threshold.
+`calc_decel_fuel_cut_445AA` (0x445AA): TPS < closed threshold (~0.01 V/angle), RPM > min threshold, not in override (DSC and others), feature enabled (cal `0x7B3DC` = 0x01). Hysteresis through a saturating accumulator (addSaturate8Bit); cut stays until RPM drops below re-enable threshold.
 
 ## 6. Per-Rotor Fueling
 
@@ -239,7 +239,7 @@ fuel_calc_entry (0x9528, 12 B trampoline)
 
 ## 7. Fuel Pump Control
 
-Pump speed modulated via PWM (noise reduction, pressure regulation).
+Pump speed modulated through PWM (noise reduction, pressure regulation).
 
 | Function | Address | Purpose |
 |---|---|---|
@@ -498,7 +498,7 @@ Modes: 0 → load base duty, store; 1 → `trim = base + load_comp + rpm_comp` p
 
 ### `calc_fuel_injection_all_rotors` (0x13D3C, 236 B)
 
-Reads main injection value `0xFFFFA744` and engine speed `0xFFFFB5B8`; checks fuel-cut/injection-mode flags; applies load correction (+accel enrichment if flagged); dispatches per rotor via `compare_select_two_float_values` (0x13ED2), `calc_fuel_pump_control_output` (0x13E6C), `calc_fuel_pressure_load_compensation` (0x13EE6). Writes identical value to `0xFFFFA734`/`0xFFFFA738` (no lead/trail split here).
+Reads main injection value `0xFFFFA744` and engine speed `0xFFFFB5B8`; checks fuel-cut/injection-mode flags; applies load correction (+accel enrichment if flagged); dispatches per rotor through `compare_select_two_float_values` (0x13ED2), `calc_fuel_pump_control_output` (0x13E6C), `calc_fuel_pressure_load_compensation` (0x13EE6). Writes identical value to `0xFFFFA734`/`0xFFFFA738` (no lead/trail split here).
 
 ### `calc_adaptive_fuel_trim` (0x1379C, 228 B)
 

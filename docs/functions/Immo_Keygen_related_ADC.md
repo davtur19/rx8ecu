@@ -3,7 +3,7 @@
 **Inputs:** ADC raw samples from offsets +56, +58 at base 0xFFFF9EE4 ; Byte at offset +28 (bitfield or count) ; Keygen state registers at 0xFFFFC23F, 0xFFFFC236, 0xFFFFC234
 **Out:** Updates keygen byte counter at 0xFFFFC23F (increments on error) ; Updates keygen hash/accumulator at 0xFFFFC236 (XOR/add operations) ; Increments error counter at 0xFFFFC234 on out-of-range ADC
 **Calls:** readValue_32bit_ADDRESS_VAL (0x3E15C) - reads 32-bit value from calibration
-Read ADC offsets +56, +58, +28 as u16 values (r13, r14, r12) ; Call readValue_32bit to get reference/mask (r0 = result) ; Extract upper/lower halves via AND 0xFFFF0000, shlr16 ; Combine ADC values and
+Read ADC offsets +56, +58, +28 as u16 values (r13, r14, r12) ; Call readValue_32bit to get reference/mask (r0 = result) ; Extract upper/lower halves with AND 0xFFFF0000 and shlr16 ; Combine ADC values and
 offset: accum = adc1 + adc2 + byte_count ; Range check against 0xFFFF and reference value ; If out of range: increment error counter ; XOR and ADD operations to hash into keygen state ; Update counter
 byte
 **Draft C:**

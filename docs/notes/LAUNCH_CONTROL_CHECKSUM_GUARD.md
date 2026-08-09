@@ -10,9 +10,9 @@ CPU: SH-2E (SH7055), big-endian. Code cave `0x6C800..0x6CC00` is all `0xFF` in s
 
 ## 1. Executive summary
 
-The launch-control system in a tuned variant ends with a self-check on 17 EEPROM bytes (`E2[0x80..0x90]`, shadowed to RAM at `0xFFFFC37E..0xFFFFC38E`). Their signed byte sum, truncated to 8 bits, must equal **−23 (0xE9)**. If not, the LC output word is written 0 and LC silently disabled. These 17 bytes are **not** computed or written by any code in the ROM; they live in the physical EEPROM / flash-backup region (`0x06000000`), outside the 512 KB image, and are populated by the flasher tool. The ROM only *copies* EEPROM → RAM shadow via stock routines that are byte-identical between stock and tuned.
+The launch-control system in a tuned variant ends with a self-check on 17 EEPROM bytes (`E2[0x80..0x90]`, shadowed to RAM at `0xFFFFC37E..0xFFFFC38E`). Their signed byte sum, truncated to 8 bits, must equal **−23 (0xE9)**. If not, the LC output word is written 0 and LC silently disabled. No code in the ROM computes or writes these 17 bytes. They live in the physical EEPROM / flash-backup region (`0x06000000`), outside the 512 KB image. The flasher tool populates them. The ROM only *copies* EEPROM → RAM shadow with stock routines. These routines are byte-identical between stock and tuned.
 
-**Conclusion: the "writer" of the key bytes is the flasher tool, not ECU code. A wrong key simply disables LC; no fallback/self-healing path.**
+**Conclusion: the flasher tool writes the key bytes; ECU code does not. A wrong key simply disables LC. No fallback/self-healing path exists.**
 
 ## 2. The guard function — `LC_ValidateChecksum17` @ `0x6CB44`
 
@@ -55,7 +55,7 @@ if ((int8_t)sum_of_17_signed_bytes(0xFFFFC37E..0xFFFFC38E) != -23)
 
 Window = 17 bytes, big-endian byte reads at `0xFFFFC37E..0xFFFFC38E` (byte 0..16). Verified by emulation: 16×`0x00` + `0xE9` passes; 17×`0xFF` (sum −17) fails.
 
-## 3. Call graph / where it's referenced
+## 3. Call graph / where it is referenced
 
 ```
 0x94C8 LC_HookClampEntry (tuned; diverges from stock)
@@ -89,8 +89,8 @@ Boot load (`loadDatafromE2intoRAM` @ `0x36BD6`) copies only the first 32 bytes; 
 1. **No literal covers the window.** Exhaustive search for 32-bit literals `0xFFFFC37D..0xFFFFC38F` → zero hits. `0xFFFFC37D` appears only as the 16-bit word at the guard's own literal `0x6CB94`.
 2. **No `mov.w` PC-relative read** of any 16-bit literal in `[0xC37D..0xC3FF]` except the guard itself.
 3. **No direct/indexed byte/word/long store** to `0xFFFFC37E`.
-4. The only store the window can receive is the generic **blank-fill** routine `0x3925A..0x392E8` (writes `0xFF` to the whole `0xFFFFC2FE..0xFFFFC3FD` shadow), which runs only when E2 is unprogrammed (`byte@0x0007A5B4 == 0xFF` AND `byte@0xFFFFC50D == 0xFF`). Fills the window with `0xFF` → sum −17 → LC disabled. The *opposite* of a key writer; the "EEPROM blank" initializer.
-5. The real values come from the physical EEPROM / flash-backup image at `0x06000000 + ((half & 0xFF) << 16)` (one 16-bit word per E2 byte-pair), read via `e2_flash_read` (`0xBFCA`). Outside the 512 KB ROM image, programmed by the flasher. The stock E2 copy routines (`0x36BD6`, `0x38F58`, `0x39170`, `0x3925A`) are **byte-identical** between stock and tuned.
+4. The only store the window can receive is the generic **blank-fill** routine `0x3925A..0x392E8` (writes `0xFF` to the whole `0xFFFFC2FE..0xFFFFC3FD` shadow). It runs only when E2 is unprogrammed (`byte@0x0007A5B4 == 0xFF` AND `byte@0xFFFFC50D == 0xFF`). It fills the window with `0xFF` → sum −17 → LC disabled. The *opposite* of a key writer; the "EEPROM blank" initializer.
+5. The real values come from the physical EEPROM / flash-backup image at `0x06000000 + ((half & 0xFF) << 16)` (one 16-bit word per E2 byte-pair), read with `e2_flash_read` (`0xBFCA`). Outside the 512 KB ROM image, programmed by the flasher. The stock E2 copy routines (`0x36BD6`, `0x38F58`, `0x39170`, `0x3925A`) are **byte-identical** between stock and tuned.
 6. `getFromE2`'s fallback path can *repair* a corrupted shadow byte from the flash backup, but reproduces whatever the backup holds; never synthesizes −23.
 
 Consequently, for the tuned ROM to have working LC, the physical ECU must hold 17 bytes at E2 index `0x80..0x90` whose signed sum is −23. Setting/removing LC is a **flashing operation on the EEPROM backup region**, not a code patch.
@@ -110,7 +110,7 @@ Consequently, for the tuned ROM to have working LC, the physical ECU must hold 1
 
 - Pass: window = 16×`0x00`, `0xE9` → sum −23.
 - Fail: window = 17×`0xFF` → sum −17.
-- Truncation matters: `exts.b` at `0x6CB5A` means the comparison is against −23 **mod 256**; e.g. a true sum of +233 also passes.
+- Truncation matters: `exts.b` at `0x6CB5A` means the comparison is against −23 **mod 256**; for example, a true sum of +233 also passes.
 
 ## 8. References
 

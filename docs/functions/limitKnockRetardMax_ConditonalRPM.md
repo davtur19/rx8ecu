@@ -1,6 +1,6 @@
 # limitKnockRetardMax_ConditonalRPM @ 0x13AE4
-**Purpose:** Apply RPM-conditional knock retard limiting; constrains max knock retard angle based on engine speed and operational conditions.
-**Inputs:** fr4: knock retard angle (float, in degrees) ; Globals: ; 0xB594 = current engine speed (float, RPM) ; 0xB580 = some condition flag/mode byte ; 0xBB25 = another condition byte ; 0xBC75 = knock counter or condition byte ; 0x78544 = threshold byte (likely RPM threshold or condition mask)
+**Purpose:** Apply the RPM-conditional knock retard limit. It constrains the max knock retard angle based on engine speed and operational conditions.
+**Inputs:** fr4: knock retard angle (float, in degrees) ; Globals: ; 0xB594 = current engine speed (float, RPM) ; 0xB580 = a condition flag/mode byte ; 0xBB25 = another condition byte ; 0xBC75 = knock counter or condition byte ; 0x78544 = threshold byte (likely RPM threshold or condition mask)
 **Out:** fr0: saturated knock retard limit (float), constrained between lower and upper bounds ; Calls saturate_SIGNAL_LOWER_UPPER helper (0x2404) to clamp value
 **Calls:** 0x2068 (2DLookup): queries knock retard limit map with engine speed; uses calibration table at 0x78544 or 0x693CC/0x693B8 ; 0x2404 (saturate_SIGNAL_LOWER_UPPER): clamps result between min/max from 0xFFFFBC50 and memory location 0x78584
 Save fr4 (input knock retard) on stack ; Load engine speed (0xB594) → fr4 ; Read condition bytes: r5 from 0xB580, r4 from 0xBB25 ; Check if r5 == 1: ; If yes: read r0 from 0xBC75, read r2 from

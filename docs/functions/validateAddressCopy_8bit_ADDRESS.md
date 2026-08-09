@@ -1,12 +1,12 @@
 # validateAddressCopy_8bit_ADDRESS @ 0x3E29E
-**Purpose:** Validate an 8-bit value at a given address by checking checksum; return 0 if valid, 1 if invalid.
+**Purpose:** Validate an 8-bit value at a given address with a checksum check. Return 0 if valid, 1 if invalid.
 **Inputs:** `r4`: address in RAM (raw pointer, typically 0xFFFF...)
-**Out:** `r0`: validation result: 0 = valid, 1 = invalid ; Modifies status register (getSR/setSR pair disables/restores interrupts)
-**Calls:** `getSR` (0x3920): save and disable interrupts ; `SetMemoryNotValid2` (0x3E5A8): mark as invalid if check fails ; `setSR` (0x3934): restore interrupts
-Save r14 and PR to stack ; Add -8 to SP (allocate 8 bytes local stack) ; Copy input address r4 → stack at [r15] ; Disable interrupts via `getSR(16)` ; Load input address from stack → r3 ; Read byte at
-[r3] → r2 (zero-extended) ; Read byte at [r3+1] (checksum) ; Calculate complement: ~checksum ; Zero-extend complement to 8-bit ; Validation check**: if complement == read byte, data is valid ; If
-valid, set r14 = 0 and skip to restore (step 12) ; If invalid, call `SetMemoryNotValid2` (flag/log invalid), set r14 = 1 ; Restore interrupts via `setSR(16)` ; Load restored SR into r4 (argument for
-next call or restoration) ; Move r14 → r0 (return value) ; Clean up stack, restore PR and r14 ; Return
+**Out:** `r0`: validation result: 0 = valid, 1 = invalid ; Modifies the status register (the getSR/setSR pair disables and restores interrupts)
+**Calls:** `getSR` (0x3920): save and disable interrupts ; `SetMemoryNotValid2` (0x3E5A8): mark as invalid if the check fails ; `setSR` (0x3934): restore interrupts
+Save r14 and PR to the stack ; Add -8 to SP (allocate 8 bytes of local stack) ; Copy the input address r4 → stack at [r15] ; Disable interrupts with `getSR(16)` ; Load the input address from the stack → r3 ; Read the byte at
+[r3] → r2 (zero-extended) ; Read the byte at [r3+1] (checksum) ; Calculate the complement: ~checksum ; Zero-extend the complement to 8-bit ; Validation check**: if the complement == read byte, the data is valid ; If
+valid, set r14 = 0 and skip to restore (step 12) ; If invalid, call `SetMemoryNotValid2` (flag/log invalid), set r14 = 1 ; Restore interrupts with `setSR(16)` ; Load the restored SR into r4 (argument for
+the next call or restoration) ; Move r14 → r0 (return value) ; Clean up the stack, restore PR and r14 ; Return
 **Draft C:**
 ```c
 int validateAddressCopy_8bit_ADDRESS(uint8_t *addr)
@@ -24,5 +24,5 @@ int validateAddressCopy_8bit_ADDRESS(uint8_t *addr)
     return result;
 }
 ```
-**Status:** med-high (checksum validation is identical to readValue_8bit; return pattern is clear; but SetMemoryNotValid2 semantics unknown)
-**Uncertainties:** Purpose of `SetMemoryNotValid2` call is inferred (likely logs/flags invalid access); exact side effect and arguments unknown ; How result of validation is used by caller—only return code (0 vs 1), or side effect logging is also important? ; Whether this is called from error-recovery paths or periodic validation checks
+**Status:** med-high (the checksum validation is identical to readValue_8bit; the return pattern is clear; but the SetMemoryNotValid2 semantics are unknown)
+**Uncertainties:** The purpose of the `SetMemoryNotValid2` call is inferred (likely logs or flags an invalid access); the exact side effect and arguments are unknown ; How the caller uses the validation result — only the return code (0 vs 1), or is the side effect logging also important? ; Whether the call comes from an error path or from periodic validation checks

@@ -1,5 +1,5 @@
 # getSpeedLimitCal @ 0x483C0
-**Purpose:** Read vehicle speed limiter calibration value and set ECU diagnostic flags based on speed/mode. Determines which speed limit tier is active.
+**Purpose:** Read vehicle speed limiter calibration value and set ECU diagnostic flags based on speed/mode. It determines the active speed limit tier.
 **Inputs:** Vehicle/engine mode value from subroutine call 0x48488 (returns in r0) ; Diagnostic register at 0xCBD4, 0xCBD5 (read/write)
 **Out:** Writes calibration constant to 0xCBD4 (primary output) ; Writes limit tier (0-10, 0x01, 0x02, ..., 0xF0, 0xF1) to 0xCBD5 ; Clears diagnostic flags if mode not recognized
 **Calls:** Subroutine 0x48488 - returns vehicle mode/speed class ; Subroutine 0x484E4 - returns throttle/speed condition (0, 1, 2, ...) ; Subroutine 0x48542 - returns limiter status (0, 1, 2, ...)

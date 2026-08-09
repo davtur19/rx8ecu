@@ -78,11 +78,11 @@ Location: `0x4E728` (copy at `0x4E828`). Entry = 16 bytes. Handler ptr: `(b[12] 
 | 0x0630 | 0x1C044 | Fan status (Rotarytronics patch target) |
 | 0x7DF/0x7E0 | 0x0DE04 | OBD2 UDS handler |
 
-All RX-8 broadcast IDs (0x201, 0x203, 0x215, 0x231, 0x240, 0x250, 0x420, 0x630, 0x650) are proprietary — not visible via standard OBD2. See `docs/notes/CAN_PROTOCOL.md`.
+All RX-8 broadcast IDs (0x201, 0x203, 0x215, 0x231, 0x240, 0x250, 0x420, 0x630, 0x650) are proprietary — not visible through standard OBD2. See `docs/notes/CAN_PROTOCOL.md`.
 
 ## Open Investigation Items
 
-1. **Boot initializer for `0xFFFFC37E`**: which function copies EEPROM → RAM at that offset? Not found.
+1. **Boot initializer for `0xFFFFC37E`**: what function copies EEPROM → RAM at that offset? Not found.
 2. **`0x8F62` = `ignitionDwellOutputInit`** (verified: ignition-dwell chain; tail-calls `getIgnitionDwellTime`@0x94C8). Dwell PWM init.
 3. **0x7FFF4 second checksum**: algorithm unknown; NOT verified at ECU runtime — low priority.
 4. **Live-ECU full function map**: CAN table located, most functions unnamed.

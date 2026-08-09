@@ -12,7 +12,7 @@ mismatches against `L_xxxxxx` embedded addresses).
   the window. Note: the task brief quoted 21,778 runs — that count is not
   reproducible with any run definition here (whole-file counts: 2193 merged
   runs >=2 / 2797 line-consecutive runs >=2 / 11052 merged runs of any
-  size, i.e. incl. single `.word` lines).
+  size, that is, including single `.word` lines).
 - Priority: string > calibration > jump_table > literal_pool > padding
   > capstone-check > unknown_data. Deviations (documented): uniform
   all-zero/all-0xFFFF runs are padding even if a stray pcrel ref lands in
@@ -40,7 +40,7 @@ Total runs: 1491, total words: 4736
 
 ## undecoded_code_capstone (address + capstone mnemonics)
 
-**None.** No `.word` run in the window decodes (via capstone SH-2) into a
+**None.** No `.word` run in the window decodes (with capstone SH-2) into a
 plausible code sequence. Cross-check: capstone was run over all 1491
 runs; zero code-like sequences found. The `.s` decode is authoritative
 (IDA-derived; 0 label mismatches) and the window is 100% covered
@@ -68,8 +68,8 @@ decoder (it fails common opcodes the .s already lifted).
 - unknown_data: 0x0033b8-0x0033bc (2 words) 
 - string: 0x003b32-0x003b36 (2 words) ascii "1999" (span 202B)
 - unknown_data: 0x003bee-0x003bf4 (3 words) 
-- jump_table: 0x00426c-0x00428e (17 words) 32-bit absolute x8 (pairing+0, targets in-window code) indirect access (base loaded via pool/mova)
-- jump_table: 0x004290-0x0042aa (13 words) 32-bit absolute x6 (pairing+0, targets in-window code) indirect access (base loaded via pool/mova)
+- jump_table: 0x00426c-0x00428e (17 words) 32-bit absolute x8 (pairing+0, targets in-window code) indirect access (base loaded through pool/mova)
+- jump_table: 0x004290-0x0042aa (13 words) 32-bit absolute x6 (pairing+0, targets in-window code) indirect access (base loaded through pool/mova)
 - jump_table: 0x004324-0x00432c (4 words) 32-bit absolute x2 (pairing+0, targets in-window code) pcrel@0x4324:mov.l,0x4328:mov.l
 - jump_table: 0x0043f8-0x004404 (6 words) 32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x43f8:mov.l,0x43fc:mov.l,0x4400:mov.l
 - jump_table: 0x004728-0x004734 (6 words) 32-bit absolute x3 (pairing+0, targets in-window code) pcrel@0x4728:mov.l,0x472c:mov.l,0x4730:mov.l

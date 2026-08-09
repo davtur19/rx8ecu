@@ -2,58 +2,60 @@
 
 Data: 2026-08-01
 Toolchain: /home/davide/gcc-sh2e-build/gcc/xgcc (GCC 14.2.0, target sh-elf,
-default big-endian -mb, subtarget di default -m2e)
-Assemblatore: /usr/bin/sh-elf-as  (isa: sh2e per -m2e, sh3 per -m3, sh4a-nofpu per -m4-nofpu)
+default big-endian -mb, default subtarget -m2e)
+Assembler: /usr/bin/sh-elf-as  (isa: sh2e for -m2e, sh3 for -m3, sh4a-nofpu for -m4-nofpu)
 Disassembler: /usr/bin/sh-elf-objdump
-stdint: stub in /tmp/stubinc/stdint.h (nessuna newlib/sysroot installata;
-usato -nostdinc -I/tmp/stubinc)
+stdint: stub in /tmp/stubinc/stdint.h (no newlib/sysroot installed;
+used -nostdinc -I/tmp/stubinc)
 
-## RISULTATO GLOBALE: NESSUN MATCH BYTE-PERFECT
+## GLOBAL RESULT: NO BYTE-PERFECT MATCH
 
-Con GCC 14.2.0 NESSUNA combinazione
-  funzione x subtarget(-m2e/-m3/-m4-nofpu) x -O(-O0/-O1/-O2/-Os) x
-  opzioni(default/-fno-delayed-branch/-fomit-frame-pointer/-fno-omit-frame-pointer)
-produce i byte della ROM per alcuna delle 4 funzioni testate.
-Gli unici match byte-perfect noti restano i .s scritti a mano in
-expected_gcc_sh2e/ (predizione di codegen GCC 2002-era, NON emessi da
-GCC 14.2.0).
+With GCC 14.2.0, no combination produces the ROM bytes for any of the
+4 functions tested. A combination is:
+  function x subtarget(-m2e/-m3/-m4-nofpu) x -O(-O0/-O1/-O2/-Os) x
+  options(default/-fno-delayed-branch/-fomit-frame-pointer/-fno-omit-frame-pointer)
+The only known byte-perfect matches remain the hand-written .s files in
+expected_gcc_sh2e/. They predict GCC 2002-era codegen. GCC 14.2.0 does
+not emit them.
 
-## MIGLIORI RISULTATI (best per funzione, % = byte uguali su finestra)
+## BEST RESULTS (per function, % = equal bytes on the window)
 
-| Funzione | Finestra | Migliore config | Bytes | % | Insn | Primo diff |
+| Function | Window | Best config | Bytes | % | Insn | First diff |
 |---|---|---|---|---|---|---|
 | add16bitSaturate@0x2460 | 24 B | -m2e -O1 -fno-delayed-branch | 6/24 | 25.0% | 3/12 | +0x04 |
 | addSaturate8Bit@0x2478 | 24 B | -m2e -O1 (default o -fomit-frame-pointer) | 7/24 | 29.2% | 2/12 | +0x04 |
 | addS32Saturate@0x2304 | 22 B | -m2e -O1 -fno-omit-frame-pointer | 1/22 | 4.5% | 0/11 | +0x00 |
 | seed_mixer@0x366B8 | 164 B | -m4-nofpu -O2 | 6/164 | 3.7% | 0/58 | +0x00 |
 
-## PERCHE' NON MATCHA (divergenze strutturali)
+## WHY IT DOES NOT MATCH (structural divergences)
 
 1) add16bitSaturate / addSaturate8Bit:
-   - ROM: `mov.l @(pc),r5` con UN SOLO literal 0xFFFF/0x00FF, `cmp/hs`/`cmp/ge`,
-     `bf/s` con rts delay-slot `mov r4,r0`; clamp via `mov r5,r4` e riuso del
-     registro r4.
-   - GCC 14: trasforma `sum >= 0xFFFF` in `sum > 0xFFFE`: carica 0xFFFE,
-     usa `cmp/hi`, `bt`, ha DUE literal pool (0xFFFE e 0xFFFF), due rts separati
-     e mette `extu.w r2,r0` nel delay slot. Registro risultato diverso (r2).
+   - ROM: `mov.l @(pc),r5` with ONE literal 0xFFFF/0x00FF, `cmp/hs`/`cmp/ge`,
+     `bf/s` with rts delay-slot `mov r4,r0`; clamp with `mov r5,r4` and reuse
+     register r4.
+   - GCC 14: turns `sum >= 0xFFFF` into `sum > 0xFFFE`: it loads 0xFFFE,
+     uses `cmp/hi`, `bt`, has TWO literal pools (0xFFFE and 0xFFFF), two
+     separate rts and puts `extu.w r2,r0` in the delay slot. The result
+     register differs (r2).
 2) addS32Saturate:
-   - ROM: idioma `addv r4,r5` + `cmp/pz` + `addc` (signed-overflow detect).
-   - GCC 14 NON emette MAI `addv` per C puro: il C a 64-bit genera la sequenza
-     `subc`+`addc` (64-bit), `__builtin_add_overflow` genera `add`+`xor`+`not`
-     (overflow detect "moderno"). Serve inline-asm/intrinseco.
-3) seed_mixer: la ROM è codegen a bassa ottimizzazione (store/reload di byte su
-   stack, pool PC-relative); GCC 14 -O0/-O1/-O2/-Os produce strutture diverse.
-   Niente match nemmeno a -O0 (layout/reg alloc diversi).
+   - ROM: idiom `addv r4,r5` + `cmp/pz` + `addc` (signed-overflow detect).
+   - GCC 14 NEVER emits `addv` for pure C: the 64-bit C produces the
+     `subc`+`addc` (64-bit) sequence, `__builtin_add_overflow` produces
+     `add`+`xor`+`not` ("modern" overflow detect). You need
+     inline-asm/intrinsic.
+3) seed_mixer: the ROM is low-optimization codegen (store/reload of bytes
+   on the stack, PC-relative pool); GCC 14 -O0/-O1/-O2/-Os produces
+   different structures. No match even at -O0 (different layout/reg alloc).
 
-## COME RIPRODURRE LO SWEEP
+## HOW TO REPRODUCE THE SWEEP
 
   python3 scripts/sweep_gcc14.py --out /tmp/sweep_gcc14/report.txt
-  # report completo: /tmp/sweep_gcc14/report.txt
-  # sorgenti .s generati: /tmp/sweep_gcc14/<func>.<isa>.<opt>.<extra>.s
+  # full report: /tmp/sweep_gcc14/report.txt
+  # generated .s sources: /tmp/sweep_gcc14/<func>.<isa>.<opt>.<extra>.s
 
-NB: nessuna ricetta di compilazione produce byte-identici => non esiste un
-comando "vincente" da registrare. I file .s dei best-match sono salvati in
-expected_gcc_sh2e/ come riferimento del codegen reale:
+NB: no compilation recipe produces identical bytes. Therefore no
+"winning" command exists to record. The best-match .s files are saved
+in expected_gcc_sh2e/ as a reference for the real codegen:
   add16bitSaturate.m2e.-O1.nodel.s
   addSaturate8Bit.m2e.-O1.default.s
   addS32Saturate.m2e.-O1.no-omitfp.s
@@ -64,32 +66,33 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
 # =============================================================================
 # Toolchain: /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/
 #   (GCC 3.4.6, target sh-elf, big-endian).  Harness: scripts/sweep_gcc346.py
-#   (report completo: /tmp/sweep_gcc346/report_full.txt, 7 funzioni x 48 config).
+#   (full report: /tmp/sweep_gcc346/report_full.txt, 7 functions x 48 configs).
 
-## RISULTATO GLOBALE: 1 MATCH BYTE-PERFECT su 7 funzioni testate
-##   add16bitSaturate@0x2460  — 24/24 byte, 12/12 istruzioni, pool incluso.
+## GLOBAL RESULT: 1 BYTE-PERFECT MATCH on 7 tested functions
+##   add16bitSaturate@0x2460  — 24/24 bytes, 12/12 instructions, pool included.
 
-## RECIPE VINCENTE (comando esatto)
+## WINNING RECIPE (exact command)
 
   SRC=c_src/add16bitSaturate_reg.c
   /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/ \
     -nostdinc -I /tmp/stubinc -c $SRC -m2e -O1 -fomit-frame-pointer
-  # poi: /usr/bin/sh-elf-as -isa=sh2e -o f.o f.s
-  #      /usr/bin/sh-elf-objcopy -O binary --only-section=.text f.o f.bin
-  # byte attesi: 644d655d345cd50334528f0100096453000b60430000ffff
+  # then: /usr/bin/sh-elf-as -isa=sh2e -o f.o f.s
+  #       /usr/bin/sh-elf-objcopy -O binary --only-section=.text f.o f.bin
+  # expected bytes: 644d655d345cd50334528f0100096453000b60430000ffff
 
-## Perche' il sorgente add16bitSaturate_reg.c vince (e cosa rende gli altri no)
+## WHY THE SOURCE add16bitSaturate_reg.c WINS (AND WHAT MAKES THE OTHERS LOSE)
 
-  - `max` come VARIABILE (register unsigned max __asm__("r5") = 0xFFFF):
-    GCC 14 e GCC 3.4.6 foldano `sum >= 0xFFFF` in `sum > 0xFFFE`
-    (cmp/hi + 2 literal), mentre la ROM carica UN solo 0xFFFF e fa cmp/hs.
-  - pin registri `__asm__("r4")/"r5"`: la ROM tiene la somma in r4 e la
-    costante in r5 (clamp `mov r5,r4`); senza pin gcc sceglie r0/r1 (62.5%).
-  - return type `unsigned`: epilogo `rts; mov r4,r0`; con uint16_t gcc mette
-    `extu.w r4,r0` nel delay slot (ultima istruzione diversa, 79.2%).
-  - -O1 (non -O2/-Os: 79.2%) e -fomit-frame-pointer (senza: prologo+frame).
+  - `max` as a VARIABLE (register unsigned max __asm__("r5") = 0xFFFF):
+    GCC 14 and GCC 3.4.6 fold `sum >= 0xFFFF` into `sum > 0xFFFE`
+    (cmp/hi + 2 literals), while the ROM loads ONE 0xFFFF and does cmp/hs.
+  - register pins `__asm__("r4")/"r5"`: the ROM keeps the sum in r4 and
+    the constant in r5 (clamp `mov r5,r4`); without the pins gcc chooses
+    r0/r1 (62.5%).
+  - return type `unsigned`: epilogue `rts; mov r4,r0`; with uint16_t gcc
+    puts `extu.w r4,r0` in the delay slot (last different instruction, 79.2%).
+  - -O1 (not -O2/-Os: 79.2%) and -fomit-frame-pointer (without: prologue+frame).
 
-## Tabella best-per-funzione (gcc 3.4.6)
+## Best-per-function table (gcc 3.4.6)
 
   add16bitSaturate      m2e -O1 -fomit-frame-pointer   15/24  62.5%  +0x06
   addSaturate8Bit       m2e -O1 -fomit-frame-pointer    9/24  37.5%  +0x06
@@ -97,25 +100,25 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
   seed_mixer            m2e -O0 default                 5/164  3.0%  +0x00
   add16bitSaturate_reg  m2e -O1 -fomit-frame-pointer   24/24 100.0%  ---  MATCH
   addSaturate8Bit_reg   m2e -O1 -fomit-frame-pointer   16/24  66.7%  +0x01
-  addS32Saturate_addv   nessuna                         0/22   0.0%  +0x00
+  addS32Saturate_addv   none                            0/22   0.0%  +0x00
 
 ## Verdict
 
-  La ROM e' codegen GCC-3.x reale: add16bitSaturate e' riproducibile
-  byte-exact con GCC 3.4.6 (recipe sopra). Per addSaturate8Bit serve la stessa
-  ricetta ma con `uint16_t`/`int` e una copia extu.w nel registro giusto (r3);
-  per addS32Saturate serve asm mano (addv) — nessun C puro; seed_mixer resta
-  ricostruzione .s. Dettagli completi in REPORT.md §10.
+  The ROM is real GCC-3.x codegen: add16bitSaturate is reproducible
+  byte-exact with GCC 3.4.6 (recipe above). addSaturate8Bit needs the
+  same recipe but with `uint16_t`/`int` and an extu.w copy in the right
+  register (r3). addS32Saturate needs hand asm (addv). No pure C exists.
+  seed_mixer stays a .s reconstruction. Full details are in REPORT.md §10.
 
 # =============================================================================
 # match_recipe.txt — SWEEP ESTESO pure-math (GCC 3.4.6) — 2026-08-01
 # Harness: scripts/sweep_puremath_gcc346.py  (report: /tmp/sweep_puremath/report_final.txt)
-# 11 candidati leaf pure-math (6..38 B) da src/60E1D400_annotated.s (marker IDA),
-# finestra body (pool non contigui esclusi) x 16 config (-O0/1/2/s x default/
+# 11 leaf pure-math candidates (6..38 B) from src/60E1D400_annotated.s (IDA marker),
+# body window (non-contiguous pools excluded) x 16 configs (-O0/1/2/s x default/
 # nodel/omitfp/no-omitfp).
 # =============================================================================
 
-## RISULTATO GLOBALE: 0 MATCH su 11 candidati (best 55.3%)
+## GLOBAL RESULT: 0 MATCH on 11 candidates (best 55.3%)
 
   alignment_boundary_validator_D90C  O1.omitfp    21/38  55.3%  +0x00
   atu_get_rx_byte_count_1FA2         O1.omitfp    11/20  55.0%  +0x06
@@ -129,61 +132,62 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
   encode_2420                        O1.omitfp     2/16  12.5%  +0x00
   shift_right_8_r0_467A              O0.omitfp     1/18   5.6%  +0x00
 
-## PERCHE' NON MATCHA (pattern di divergenza, 4 famiglie)
+## WHY IT DOES NOT MATCH (divergence patterns, 4 families)
 
-  1) Selettori ?:  (atu/mbox/getHCAN): ROM `bt(s)`+`bra` (costante 0x0200
-     caricata DIRETTAMENTE in r4: `mov.w @(pc),r4; add r5,r4`, e `mov r5,r4`
-     nel delay del `bra`); gcc 3.4.6 inverte a `bf.s` con `mov r5,r4` nel delay
-     e carica la costante in r1 (`mov.w @(pc),r1; mov r5,r4; add r1,r4`).
-     Prima divergenza +0x06 (opcode ramo).
-  2) Registro di ritorno (complement_shift_u16/encode): ROM accumula in r4 e
-     fa `rts; mov r4,r0`; gcc 3.4.6 materializza in r0 (`mov r3,r0; rts; add r2,r0`).
-     Il pin `__asm__("r4")` non basta (gcc folda l'add sul reg. di ritorno).
-  3) Booleani (charging_status/obd_67154): ROM costruisce 0/1 via rami
-     (`mov #0,r4`/`mov #1,r4`); gcc 3.4.6 usa `movt` (`tst`+`movt`,
-     `and #31,r0`+`movt`). Divergenza strutturale, nessun flag la cambia.
-  4) Shift/loop (shift_right_8_r0): ROM e' 8x `shar r0` srotolato; gcc emette
-     loop o `shar` con count. 5.6%, lontano.
+  1) Selectors ?:  (atu/mbox/getHCAN): ROM `bt(s)`+`bra` (constant 0x0200
+     loaded DIRECTLY into r4: `mov.w @(pc),r4; add r5,r4`, and `mov r5,r4`
+     in the `bra` delay slot); gcc 3.4.6 inverts to `bf.s` with `mov r5,r4`
+     in the delay and loads the constant into r1 (`mov.w @(pc),r1; mov r5,r4;
+     add r1,r4`). First divergence +0x06 (branch opcode).
+  2) Return register (complement_shift_u16/encode): ROM accumulates in r4
+     and does `rts; mov r4,r0`; gcc 3.4.6 materializes in r0 (`mov r3,r0;
+     rts; add r2,r0`). The pin `__asm__("r4")` is not enough (gcc folds
+     the add onto the return reg.).
+  3) Booleans (charging_status/obd_67154): ROM builds 0/1 with branches
+     (`mov #0,r4`/`mov #1,r4`); gcc 3.4.6 uses `movt` (`tst`+`movt`,
+     `and #31,r0`+`movt`). Structural divergence, no flag changes it.
+  4) Shift/loop (shift_right_8_r0): ROM is 8x `shar r0` unrolled; gcc emits
+     a loop or `shar` with count. 5.6%, far.
 
-## ACCORGIMENTI CHE MIGLIORANO (dall'iterazione)
+## TIPS THAT IMPROVE (from the iteration)
 
-  - Costante di confronto come VARIABILE `register unsigned c __asm__("r3") = 32`
-    (evita la fold `>= 32 -> > 31`): atu 20% -> 55%, mbox 36% -> 50%.
-  - E' la stessa idea del `max`-variabile della recipe vincente §10: necessaria
-    ma NON sufficiente (restano polarita' di ramo e movt).
+  - The comparison constant as a VARIABLE `register unsigned c __asm__("r3") = 32`
+    (avoids the fold `>= 32 -> > 31`): atu 20% -> 55%, mbox 36% -> 50%.
+  - It is the same idea as the `max` variable in the winning recipe §10.
+    It is necessary but NOT sufficient (branch polarity and movt remain).
 
 ## Verdict
 
-  La recipe di §10 si generalizza bene agli helper saturating-add (variabile
-  per costante + pin r4/r5 + return unsigned + -O1 -fomit-frame-pointer) ma NON
-  ai selettori/booleani: qui gcc 3.4.6 diverge per polarita' del ramo e
-  materializzazione `movt`. Il solo match byte-perfect resta add16bitSaturate@0x2460.
-  Dettagli in REPORT.md §11.
+  The §10 recipe generalizes well to the saturating-add helpers (a variable
+  for the constant + pin r4/r5 + return unsigned + -O1 -fomit-frame-pointer)
+  but NOT to the selectors/booleans: here gcc 3.4.6 diverges in the branch
+  polarity and the `movt` materialization. The only byte-perfect match
+  remains add16bitSaturate@0x2460. Details are in REPORT.md §11.
 
 # =============================================================================
 # match_recipe.txt — SWEEP GCC 3.3.6 (sh-elf, era ROM) — 2026-08-02
 # Harness: scripts/sweep_gcc336.py (report: /tmp/sweep_gcc336/report_full.txt)
-# 29 sorgenti c_src/*.c x 17 flagset. Toolchain:
+# 29 sources c_src/*.c x 17 flagsets. Toolchain:
 #   /home/davide/gcc336-build/gcc/xgcc -B /home/davide/gcc336-build/gcc/
-#   base ISA **-m2** (NON esiste -m2e in 3.3.6; -m2 = core SH-2 senza FPU).
-#   -mrenesas/-mhitachi/-mrelax/-mspace/-misize/-mnomacsave NON esistono in 3.3.6.
+#   base ISA **-m2** (-m2e does NOT exist in 3.3.6; -m2 = SH-2 core without FPU).
+#   -mrenesas/-mhitachi/-mrelax/-mspace/-misize/-mnomacsave do NOT exist in 3.3.6.
 # =============================================================================
 
-## RISULTATO GLOBALE: 0 MATCH BYTE-PERFECT. 3.3.6 NON SUPERA 3.4.6.
+## GLOBAL RESULT: 0 BYTE-PERFECT MATCH. 3.3.6 DOES NOT EXCEED 3.4.6.
 
-## I 3 MATCH 3.4.6 REGREDISCONO su 3.3.6 (tutti su finestre identiche):
+## THE 3 MATCHES 3.4.6 REGRESS ON 3.3.6 (all on identical windows):
 
   add16bitSaturate_reg        @0x2460  24/24 (100%) -> 19/24 (79.2%)  O2/O s.omitfp
-    causa: sum allocata in r1 (extu.w r4,r1) non r4; bf.s+mov r1,r4 nel
-    delay; clamp mov r5,r4; a O1 resta la fold >=0xFFFF -> >0xFFFE.
+    cause: sum allocated in r1 (extu.w r4,r1) not r4; bf.s+mov r1,r4 in
+    the delay; clamp mov r5,r4; at O1 the fold >=0xFFFF -> >0xFFFE remains.
   complement_shift_u16_2430_match @0x2430 16/16 (100%) -> 6/16 (37.5%)
-    causa: 3.3.6 emette DA SOLO la widen del parametro HImode (extu.w r4,r4)
-    -> con l'inline-asm extu.w r4,r3 dei sorgenti _match diventa DOPPIA
-    estensione; sum in r3 + rts;mov r3,r0 (ROM: mov r3,r4;add r2,r4;rts;mov r4,r0).
+    cause: 3.3.6 emits the HImode parameter widen BY ITSELF (extu.w r4,r4)
+    -> with the inline-asm extu.w r4,r3 of the _match sources it becomes
+    a DOUBLE extension; sum in r3 + rts;mov r3,r0 (ROM: mov r3,r4;add r2,r4;rts;mov r4,r0).
   encode_2420_match           @0x2420  16/16 (100%) -> 4/16 (25.0%)
-    causa: idem (extu.b doppia), mov r4,r3 non esteso in r3.
+    cause: same (double extu.b), mov r4,r3 not extended in r3.
 
-## BEST PER FUNZIONE (3.3.6, base -m2; % = byte uguali su finestra body)
+## BEST PER FUNCTION (3.3.6, base -m2; % = equal bytes on the body window)
 
   add16bitSaturate            @0x2460  O1.omitfp        15/24  62.5%  +0x06
   add16bitSaturate_reg        @0x2460  O2.omitfp        19/24  79.2%  +0x00
@@ -212,146 +216,151 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
   alignment_boundary_validator_D90C  @0xD90C  O1.nodel  11/38  28.9%  +0x00
   alignment_boundary_validator_D90C_r6 @0xD90C O2.omitfp 8/38 21.1%  +0x00
 
-## CONFRONTO STRUTTURALE 3.3.6 vs 3.4.6 (le 5 divergenze del task)
+## STRUCTURAL COMPARISON 3.3.6 vs 3.4.6 (the 5 divergences of the task)
 
-  1) POLARITA' RAMO (bt vs bf.s): 3.3.6 NON la elimina. add16bit O1 -> bf
-     NON-delayed (ROM bf.s + nop); i selettori (atu/can/getHCAN) restano
-     bf.s+bra. ECCEZIONE: atu_spec con -m1 -O1 -fno-if-conversion{,2} ->
-     bt + bra + mov r5,r4 in delay IDENTICI alla ROM (95%), MA lo stesso
-     flagset su 3.4.6 produce byte IDENTICI: non e' un vantaggio 3.3.6.
-  2) MOVT vs ramo a 1/0: -fno-if-conversion{,2} uccide movt in entrambe.
-     3.3.6 a O1 usa MOVT r1/MOVT r0 (peggio); con m1+noifconv ramifica come
-     ROM. Nessuna novita' da 3.3.6.
-  3) TST #imm (0xC8): ASSENTE anche in 3.3.6. Nonostante il pattern
-     `tst %1,%0` con constraint "L" (imm 0..255) ESISTA in sh.md 3.3.6
-     (riga ~623), il combiner non folda and #31 in tst #31: emette sempre
-     `and #31,r0; tst r0,r0` (c91f 2008). Divergenza strutturale PERSISTE.
-  4) REGISTRO RETURN (r4 vs r0): 3.3.6 PEGGIORE. Emette da solo la widen del
-     parametro sub-word -> le ricette _match (inline-asm extu) producono
-     estensione doppia e sum in r3 (rts;mov r3,r0) invece di r4. La recipe
-     3.4.6 non si trasferisce a 3.3.6.
-  5) LOOP SHIFT: -funroll-all-loops/-funroll-loops srotola le 8x shar r0 in
-     ENTRAMBE (66.7%, residuo mov r4,r0 ABI). 3.3.6 = 3.4.6.
+  1) BRANCH POLARITY (bt vs bf.s): 3.3.6 does NOT remove it. add16bit O1 ->
+     bf NON-delayed (ROM bf.s + nop); the selectors (atu/can/getHCAN) stay
+     bf.s+bra. EXCEPTION: atu_spec with -m1 -O1 -fno-if-conversion{,2} ->
+     bt + bra + mov r5,r4 in delay IDENTICAL to ROM (95%), BUT the same
+     flagset on 3.4.6 produces IDENTICAL bytes. It is not a 3.3.6 advantage.
+  2) MOVT vs branch to 1/0: -fno-if-conversion{,2} kills movt in both.
+     3.3.6 at O1 uses MOVT r1/MOVT r0 (worse); with m1+noifconv it
+     branches like ROM. No news from 3.3.6.
+  3) TST #imm (0xC8): ABSENT also in 3.3.6. The pattern
+     `tst %1,%0` with constraint "L" (imm 0..255) EXISTS in sh.md 3.3.6
+     (line ~623), but the combiner does not fold `and #31` into `tst #31`:
+     it always emits `and #31,r0; tst r0,r0` (c91f 2008). The structural
+     divergence PERSISTS.
+  4) RETURN REGISTER (r4 vs r0): 3.3.6 WORSE. It emits the sub-word
+     parameter widen by itself -> the _match recipes (inline-asm extu)
+     produce a double extension and a sum in r3 (rts;mov r3,r0) instead
+     of r4. The 3.4.6 recipe does not transfer to 3.3.6.
+  5) LOOP SHIFT: -funroll-all-loops/-funroll-loops unrolls the 8x shar r0
+     in BOTH (66.7%, residue mov r4,r0 ABI). 3.3.6 = 3.4.6.
 
-## NUOVO MIGLIORAMENTO CONDIVISO: atu_spec 95% (valido per 3.3.6 E 3.4.6)
+## NEW SHARED IMPROVEMENT: atu_spec 95% (valid for 3.3.6 AND 3.4.6)
 
   SRC=c_src/atu_get_rx_byte_count_1FA2_spec.c
   /home/davide/gcc336-build/gcc/xgcc -B /home/davide/gcc336-build/gcc/ \
     -nostdinc -I /tmp/stubinc -S $SRC -m1 -O1 -fomit-frame-pointer \
     -fno-if-conversion -fno-if-conversion2
-  (lo STESSO comando con gcc346 produce byte IDENTICI)
+  (the SAME command with gcc346 produces IDENTICAL bytes)
   bytes: 644ce32034338901a00264539402345c000b60430200
   ROM  : 644ce32034338901a00264539403345c000b6043
-  19/20 = 95.0%; unico diff a +0x0D: mov.w @(pc),r4 displacement
-  (gcc pool@0x1FB6 vs ROM pool@0x1FB8, pool interleaved dopo il prologo
-  della funzione successiva `mov #32,r4` a 0x1FB6). Body altrimenti
-  byte-identico: polarita' bt+bra, costante 0x200 diretta in r4, niente
-  movt, rts;mov r4,r0. .s salvato in
+  19/20 = 95.0%; the only diff at +0x0D: mov.w @(pc),r4 displacement
+  (gcc pool@0x1FB6 vs ROM pool@0x1FB8, pool interleaved after the
+  prologue of the next function `mov #32,r4` at 0x1FB6). The body is
+  otherwise byte-identical: bt+bra polarity, constant 0x200 direct in
+  r4, no movt, rts;mov r4,r0. .s saved in
   expected_gcc_sh2e/atu_get_rx_byte_count_1FA2_spec.m2.m1.O1.omitfp.noifconv.s
-  NB: 3.4.6 dava atu 60% (O1.omitfp, sorgente base); atu_spec+m1.noifconv
-  non era mai stato testato su 3.4.6 (report flagepoch) -> scoperta nuova
-  ma NON esclusiva di 3.3.6.
+  NB: 3.4.6 gave atu 60% (O1.omitfp, base source); atu_spec+m1.noifconv
+  had never been tested on 3.4.6 (report flagepoch) -> new discovery
+  but NOT exclusive to 3.3.6.
 
 ## VERDICT
 
-  3.3.6 NON supera 3.4.6: nessun match 100% nuovo, i 3 match 3.4.6
-  regrediscono (widen-param automatica + allocazione sum in r3/r1),
-  e le 4 divergenze residue del task (tst #imm, movt, polarita' bf.s,
-  return-register) restano strutturali in 3.3.6. L'unico miglioramento
-  numerico (atu_spec 95%) e' condiviso con 3.4.6. Dettagli in REPORT.md §13.
+  3.3.6 does NOT exceed 3.4.6: no new 100% match. The 3 matches of 3.4.6
+  regress (automatic param widen + sum allocation in r3/r1). The 4
+  residual divergences of the task (tst #imm, movt, bf.s polarity,
+  return-register) stay structural in 3.3.6. The only numerical
+  improvement (atu_spec 95%) is shared with 3.4.6. Details are in
+  REPORT.md §13.
 
 # =============================================================================
 # match_recipe.txt — SWEEP FLAG D'EPOCA 3.4.6 (sessione flag) — 2026-08-01
 # Harness: scripts/sweep_flags_epoch346.py (report: /tmp/flagepoch/report.txt + report2.txt)
-# Inventario flag SH 3.4.6: SOLO quelli in sh.h TARGET_SWITCHES (m1/m2/m2e/m3/
-# m4-*, mb/ml, mrenesas, mnomacsave, misize, mspace, mrelax, ...). NON esistono
-# -mbranch-cost/-mnomovt/-madjust-unroll/-maccumulate-outgoing-args/
-# -mpretend-cmove (GCC 4.x). --help=target non supportato.
+# SH 3.4.6 flag inventory: ONLY those in sh.h TARGET_SWITCHES (m1/m2/m2e/m3/
+# m4-*, mb/ml, mrenesas, mnomacsave, misize, mspace, mrelax, ...). These do
+# NOT exist: -mbranch-cost/-mnomovt/-madjust-unroll/-maccumulate-outgoing-args/
+# -mpretend-cmove (GCC 4.x). --help=target not supported.
 # =============================================================================
 
-## RISULTATO GLOBALE: 3 MATCH BYTE-PERFECT (tutti con -m2e -O1 -fomit-frame-pointer)
+## GLOBAL RESULT: 3 BYTE-PERFECT MATCHES (all with -m2e -O1 -fomit-frame-pointer)
 
-  add16bitSaturate        @0x2460  24/24  c_src/add16bitSaturate_reg.c          (gia' §10)
+  add16bitSaturate        @0x2460  24/24  c_src/add16bitSaturate_reg.c          (already §10)
   complement_shift_u16    @0x2430  16/16  c_src/complement_shift_u16_2430_match.c
   encode                  @0x2420  16/16  c_src/encode_2420_match.c
 
-## RECIPE (uguale per i 3)
+## RECIPE (same for the 3)
 
   /home/davide/gcc346-build/gcc/xgcc -B /home/davide/gcc346-build/gcc/ \
     -nostdinc -I /tmp/stubinc -c $SRC -m2e -O1 -fomit-frame-pointer
-  # as sh-elf-as -isa=sh2e + objcopy --only-section=.text; confronto su body-window
-  # .s salvati in expected_gcc_sh2e/<nome>.m2e.-O1.omitfp.s
+  # as sh-elf-as -isa=sh2e + objcopy --only-section=.text; compare on body-window
+  # .s saved in expected_gcc_sh2e/<nome>.m2e.-O1.omitfp.s
 
-## Perche' i due nuovi match (same idea di §10 + estensione)
+## WHY THE TWO NEW MATCHES (same idea as §10 + extension)
 
-  complement_shift_u16_2430_match.c: `extu.w r4,r3` via inline-asm (gcc 3.4.6
-  assume i param HImode gia' zero-estesi e non emette extu.w), pin r3/r2/r4,
-  barrier asm per il sum. encode_2420_match.c: stesso schema; per QImode la
-  widen `extu.b` e' naturale. Entrambi robusti su ~tutte le 20 config (75% solo
-  con -fno-delayed-branch; complement_shift anche -m4-nofpu).
+  complement_shift_u16_2430_match.c: `extu.w r4,r3` with inline-asm (gcc
+  3.4.6 assumes HImode params already zero-extended and does not emit
+  extu.w), pin r3/r2/r4, barrier asm for the sum. encode_2420_match.c:
+  same scheme; for QImode the `extu.b` widen is natural. Both are robust
+  on ~all 20 configs (75% only with -fno-delayed-branch; complement_shift
+  also -m4-nofpu).
 
-## BEST NON-MATCH (flag o C che migliorano)
+## BEST NON-MATCH (flags or C that improve)
 
   pulse_window_compute_FCD2  @0xFCD2  18/20  90.0%  c_src/pulse_window_compute_FCD2_r4.c
-    recipe: -m2e -O1 -fomit-frame-pointer   (condizione INVERTITA if(d<=0)+pin r3/r4+barrier
-    => polarita' bt.s ROM; residuo: mov.l@pc vs mov.w@pc per 0x168 = hi_const non flaggabile)
+    recipe: -m2e -O1 -fomit-frame-pointer   (INVERTED condition if(d<=0)+pin r3/r4+barrier
+    => ROM bt.s polarity; residue: mov.l@pc vs mov.w@pc for 0x168 = hi_const, no flag controls it)
   shift_right_8_r0           @0x467A  12/18  66.7%  c_src/shift_right_8_r0_467A_loop.c
-    recipe: -m2e -O2 -funroll-all-loops (o -funroll-loops): 8x shar r0 esatti;
-    residuo: mov r4,r0 ABI (ROM: arg gia' in r0, frammento leaf)
+    recipe: -m2e -O2 -funroll-all-loops (or -funroll-loops): 8x shar r0 exact;
+    residue: mov r4,r0 ABI (ROM: arg already in r0, leaf fragment)
   obd_service_handler_67154  @0x67154 12/18  66.7%  c_src/obd_service_handler_67154_m1.c
-    recipe: -m1 -O1 -fno-if-conversion -fno-if-conversion2  (uccide movt);
-    residui: tst #31 (pattern assente in sh.md 3.4.6), mov r4,r0 vs extu.b
+    recipe: -m1 -O1 -fno-if-conversion -fno-if-conversion2  (kills movt);
+    residues: tst #31 (pattern absent in sh.md 3.4.6), mov r4,r0 vs extu.b
   atu_get_rx_byte_count_1FA2 @0x1FA2 12/20  60.0%  -m1 -O1 -fomit-frame-pointer
-    (accumulatore k=0x200;k+=b fissa la costante in r4; residuo polarita' ramo)
+    (accumulator k=0x200;k+=b fixes the constant in r4; residue branch polarity)
 
-## VERDICT PER DIVERGENZA
+## VERDICT BY DIVERGENCE
 
-  1) Polarita' ramo (bf/bt + bra): nessun flag 3.4.6. C puo' aiutare dove la
-     ROM ramifica su bt (pulse: condizione invertita). Nei selettori gcc 3.4.6
-     normalizza sempre bf.s+fallthrough: STRUTTURALE.
-  2) Registro di ritorno r4 vs r0: C (pin __asm__ + barrier asm) => risolvibile.
-  3) Booleani movt: -fno-if-conversion{,2} la risolve (obd 66.7%); residuo
-     tst #imm assente in 3.4.6.
-  4) Loop shift: -funroll-all-loops + loop esplicito => 8x shar esatti (66.7%);
-     residuo mov r4,r0 ABI.
-  Dettagli in REPORT.md §12.
+  1) Branch polarity (bf/bt + bra): no 3.4.6 flag. C can help where the
+     ROM branches on bt (pulse: inverted condition). In the selectors
+     gcc 3.4.6 always normalizes bf.s+fallthrough: STRUCTURAL.
+  2) Return register r4 vs r0: C (pin __asm__ + barrier asm) => solvable.
+  3) movt booleans: -fno-if-conversion{,2} solves it (obd 66.7%); residue
+     tst #imm absent in 3.4.6.
+  4) Loop shift: -funroll-all-loops + explicit loop => 8x shar exact (66.7%);
+     residue mov r4,r0 ABI.
+  Details are in REPORT.md §12.
 
 # =============================================================================
 # match_recipe.txt — SWEEP GCC 3.2.3 (sh-elf, era ROM) — 2026-08-02
 # Harness: scripts/sweep_gcc323.py (report: /tmp/sweep_gcc323/report_full.txt)
-# 29 sorgenti c_src/*.c x 21 flagset. Toolchain:
+# 29 sources c_src/*.c x 21 flagsets. Toolchain:
 #   /home/davide/gcc323-build/gcc/xgcc -B /home/davide/gcc323-build/gcc/
-#   base ISA **-m2** (NON esiste -m2e in 3.2.3). -mhitachi/-mrelax/-mspace/
-#   -misize/-mnomacsave ESISTONO (sh.h TARGET_SWITCHES), non testati in matrice.
-#   **NON esistono -fno-if-conversion/-fno-if-conversion2** in 3.2.3.
+#   base ISA **-m2** (-m2e does NOT exist in 3.2.3). -mhitachi/-mrelax/-mspace/
+#   -misize/-mnomacsave EXIST (sh.h TARGET_SWITCHES), not tested in the matrix.
+#   **-fno-if-conversion/-fno-if-conversion2 do NOT exist** in 3.2.3.
 # =============================================================================
 
-## RISULTATO GLOBALE: 0 MATCH BYTE-PERFECT. 3.2.3 NON SUPERA 3.4.6 (e peggiora 3.3.6).
+## GLOBAL RESULT: 0 BYTE-PERFECT MATCH. 3.2.3 DOES NOT EXCEED 3.4.6 (and is worse than 3.3.6).
 
-## I 3 MATCH 3.4.6 REGREDISCONO su 3.2.3 (stessa root cause di 3.3.6: widen
-## automatica del parametro sub-word, che 3.4.6 NON emette):
+## THE 3 MATCHES 3.4.6 REGRESS ON 3.2.3 (same root cause as 3.3.6: the
+## automatic widen of the sub-word parameter. 3.4.6 does not emit it):
 
   add16bitSaturate_reg        @0x2460  24/24 (100%) -> 16/24 (66.7%)  -O1 -fno-delayed-branch
-    causa: widen auto in testa (extu.w r5,r5; extu.w r4,r4); somma in r4 ma
-    `bf` NON-delayed + nop (ROM bf.s + delay mov r4,r0); peggiore di 3.3.6
-    (79.2%) perche' a O1 resta la fold >=0xFFFF -> >0xFFFE con bf non-delayed.
+    cause: widen auto at the top (extu.w r5,r5; extu.w r4,r4); sum in r4
+    but `bf` NON-delayed + nop (ROM bf.s + delay mov r4,r0); worse than
+    3.3.6 (79.2%) because at O1 the fold >=0xFFFF -> >0xFFFE remains with
+    bf non-delayed.
   complement_shift_u16_2430_match @0x2430 16/16 (100%) -> 7/16 (43.8%) -O2 -fno-delayed-branch
-    causa: extu.w r4,r4 auto + extu.w r4,r3 inline = estensione doppia; sum in
-    r3 + mov r3,r4; rts; mov r3,r0. MIGLIORE di 3.3.6 (37.5%) per l'epilogo
-    (2 soli byte diversi), ma lontano dal 100%.
+    cause: extu.w r4,r4 auto + extu.w r4,r3 inline = double extension; sum
+    in r3 + mov r3,r4; rts; mov r3,r0. BETTER than 3.3.6 (37.5%) for the
+    epilogue (only 2 different bytes), but far from 100%.
   encode_2420_match           @0x2420  16/16 (100%) -> 4/16 (25.0%)  -O1 -fno-delayed-branch
-    causa: idem (extu.b doppia), mov r4,r3 non esteso in r3. = 3.3.6.
+    cause: same (double extu.b), mov r4,r3 not extended in r3. = 3.3.6.
 
-## atu_spec 95% e obd_m1 66.7% NON REGGONO su 3.2.3:
+## atu_spec 95% AND obd_m1 66.7% DO NOT HOLD ON 3.2.3:
 
   atu_get_rx_byte_count_1FA2_spec @0x1FA2  95.0% (3.3.6/3.4.6) -> 40.0%  -O1/-O2 -fno-delayed-branch
-    causa: la recipe 95% usa -fno-if-conversion{,2} che in 3.2.3 NON ESISTE;
-    senza il flag il movt resta e il body non raggiunge bt+bra+mov r5,r4.
+    cause: the 95% recipe uses -fno-if-conversion{,2}. It does NOT exist
+    in 3.2.3. Without the flag the movt remains and the body does not
+    reach bt+bra+mov r5,r4.
   obd_service_handler_67154_m1 @0x67154  66.7% (3.3.6/3.4.6) -> 16.7%  -O1 -fomit-frame-pointer
-    causa: 3.2.3 emette DOPPIO movt (movt r1; tst r1,r1; movt r0) + and #31,r0;
-    tst r0,r0; nessun flag per ucciderlo (manca -fno-if-conversion).
+    cause: 3.2.3 emits DOUBLE movt (movt r1; tst r1,r1; movt r0) + and #31,r0;
+    tst r0,r0; no flag kills it (-fno-if-conversion missing).
 
-## BEST PER FUNZIONE (3.2.3, base -m2; % = byte uguali su finestra body)
+## BEST PER FUNCTION (3.2.3, base -m2; % = equal bytes on the body window)
 
   add16bitSaturate            @0x2460  O1.omitfp         15/24  62.5%  +0x06
   add16bitSaturate_reg        @0x2460  O1.nodel          16/24  66.7%  +0x0A
@@ -380,94 +389,101 @@ expected_gcc_sh2e/ come riferimento del codegen reale:
   alignment_boundary_validator_D90C  @0xD90C  O1.nodel  11/38  28.9%  +0x00
   alignment_boundary_validator_D90C_r6 @0xD90C O1.default 9/38 23.7% +0x00
 
-## CONFRONTO STRUTTURALE 3.2.3 vs 3.3.6 vs 3.4.6
+## STRUCTURAL COMPARISON 3.2.3 vs 3.3.6 vs 3.4.6
 
-  1) POLARITA' RAMO: NON eliminata. add16bit O1 -> bf NON-delayed + nop (ROM
-     bf.s + delay). Selettori restano bf.s+bra. Persiste.
-  2) MOVT: 3.2.3 PEGGIORE: emette DOPPIO movt (movt r1; tst r1,r1; movt r0) e
-     **NON esiste -fno-if-conversion per ucciderlo** (a differenza di 3.3.6/3.4.6).
-  3) TST #imm (0xC8): pattern presente in sh.md ma combiner non folda: sempre
-     and #31,r0; tst r0,r0. Strutturale, persiste in tutte e tre le release.
-  4) REGISTRO RETURN: widen automatica presente (extu.w r4,r4 in testa), come
-     3.3.6; add16bit_reg peggiore (66.7% vs 79.2%), complement_shift_match
-     migliore (43.8% vs 37.5%). La recipe 3.4.6 non si trasferisce.
+  1) BRANCH POLARITY: NOT removed. add16bit O1 -> bf NON-delayed + nop
+     (ROM bf.s + delay). Selectors stay bf.s+bra. It persists.
+  2) MOVT: 3.2.3 WORSE: it emits DOUBLE movt (movt r1; tst r1,r1; movt r0).
+     **-fno-if-conversion does NOT exist to kill it** (unlike 3.3.6/3.4.6).
+  3) TST #imm (0xC8): pattern present in sh.md but the combiner does not
+     fold: always and #31,r0; tst r0,r0. Structural, it persists in all
+     three releases.
+  4) RETURN REGISTER: automatic widen present (extu.w r4,r4 at the top),
+     like 3.3.6; add16bit_reg worse (66.7% vs 79.2%), complement_shift_match
+     better (43.8% vs 37.5%). The 3.4.6 recipe does not transfer.
   5) LOOP SHIFT: **-O1 -fno-delayed-branch -funroll-loops -> 8x shar r0 + rts;nop
-     = 77.8% (14/18), residuo solo mov r4,r0 ABI + nop. NUOVO MIGLIORAMENTO**
-     (3.3.6 e 3.4.6 ferme a 66.7%).
+     = 77.8% (14/18), residue only mov r4,r0 ABI + nop. NEW IMPROVEMENT**
+     (3.3.6 and 3.4.6 stuck at 66.7%).
 
 ## VERDICT
 
-  3.2.3 NON supera 3.4.6: 0 match; i 3 match 3.4.6 regrediscono (66.7/43.8/25.0)
-  per la widen automatica del parametro; il 95% atu e il 66.7% obd NON reggono
-  perche' **-fno-if-conversion non esiste in 3.2.3** (movt non aggirabile, 40% e
-  16.7%). Unico guadagno: shift_right_loop 77.8%. Classifica serie 3.x per il
-  match-and-compile: **3.4.6 > 3.3.6 > 3.2.3**. Dettagli in REPORT.md §14.
+  3.2.3 does NOT exceed 3.4.6: 0 matches. The 3 matches of 3.4.6 regress
+  (66.7/43.8/25.0) because of the automatic parameter widen. The 95% atu
+  and the 66.7% obd do NOT hold because **-fno-if-conversion does not
+  exist in 3.2.3** (movt cannot be bypassed, 40% and 16.7%). The only
+  gain: shift_right_loop 77.8%. The 3.x series ranking for
+  match-and-compile: **3.4.6 > 3.3.6 > 3.2.3**. Details are in
+  REPORT.md §14.
 
 # =============================================================================
 # match_recipe.txt — VERDETTO FINALE SERIE GCC 3.x (chiusura filone) — 2026-08-02
 # =============================================================================
-# Sezione conclusiva dell'esperimento. Riepiloga le 3 recipe vincenti e i limiti
-# definitivi. Dettagli completi in REPORT.md §15.
+# This section closes the experiment line. It summarizes the 3 winning
+# recipes and the definitive limits. Full details are in REPORT.md §15.
 
-## LE 3 RECIPE VINCENTI (GCC 3.4.6 = golden release)
+## THE 3 WINNING RECIPES (GCC 3.4.6 = golden release)
 
-  Tutte con la stessa base: /home/davide/gcc346-build/gcc/xgcc -B .../gcc/ \
+  All use the same base: /home/davide/gcc346-build/gcc/xgcc -B .../gcc/ \
     -nostdinc -I /tmp/stubinc -c $SRC -m2e -O1 -fomit-frame-pointer
-  poi: /usr/bin/sh-elf-as -isa=sh2e + /usr/bin/sh-elf-objcopy -O binary \
-    --only-section=.text; confronto byte-exact vs ROM (scripts/compare.py).
+  then: /usr/bin/sh-elf-as -isa=sh2e + /usr/bin/sh-elf-objcopy -O binary \
+    --only-section=.text; byte-exact compare vs ROM (scripts/compare.py).
 
   1) add16bitSaturate      @0x2460  24/24   c_src/add16bitSaturate_reg.c
-     accorgimenti: max come VARIABILE (register unsigned ... __asm__("r5")),
+     tips: max as a VARIABLE (register unsigned ... __asm__("r5")),
      pin r4/r5, return unsigned.  (REPORT §10)
   2) complement_shift_u16  @0x2430  16/16   c_src/complement_shift_u16_2430_match.c
-     extu.w r4,r3 via inline-asm + pin r3/r2/r4 + barrier asm.  (REPORT §12)
+     extu.w r4,r3 with inline-asm + pin r3/r2/r4 + barrier asm.  (REPORT §12)
   3) encode                @0x2420  16/16   c_src/encode_2420_match.c
-     stesso schema; extu.b naturale.  (REPORT §12)
+     same scheme; extu.b natural.  (REPORT §12)
 
-  .s salvati in expected_gcc_sh2e/*.m2e.-O1.omitfp.s
+  .s saved in expected_gcc_sh2e/*.m2e.-O1.omitfp.s
 
-## RECIPE ALTE NON-MATCH (utili come bozze, valide su piu' release)
+## HIGH NON-MATCH RECIPES (useful as drafts, valid on several releases)
 
-  atu_get_rx_byte_count_spec  @0x1FA2  95.0%  (3.4.6 E 3.3.6; su 3.2.3 40%)
+  atu_get_rx_byte_count_spec  @0x1FA2  95.0%  (3.4.6 AND 3.3.6; on 3.2.3 40%)
     recipe: -m1 -O1 -fomit-frame-pointer -fno-if-conversion -fno-if-conversion2
-    sorgente: c_src/atu_get_rx_byte_count_1FA2_spec.c
-    unico diff +0x0D = displacement mov.w @(pc),r4 (pool di SEZIONE: gcc@0x1FB6
-    vs ROM@0x1FB8, interleaved dopo il prologo della funzione adiacente).
-    NON chiuso da -mrelax/-mhitachi/-mspace (test sweep_relax_gcc346).
+    source: c_src/atu_get_rx_byte_count_1FA2_spec.c
+    the only diff +0x0D = displacement mov.w @(pc),r4 (SECTION-level pool:
+    gcc@0x1FB6 vs ROM@0x1FB8, interleaved after the prologue of the
+    adjacent function). NOT closed by -mrelax/-mhitachi/-mspace (test
+    sweep_relax_gcc346).
   pulse_window_compute_FCD2_r4 @0xFCD2  90.0%  (3.4.6; 3.3.6/3.2.3 50%)
-    recipe: -m2e -O1 -fomit-frame-pointer (condizione INVERTITA if(d<=0) + pin
-    r3/r4 + barrier). Unico diff +0x0C: mov.l@(pc) ROM vs mov.w gcc (hi_const
-    incondizionato in sh.c 3.4.6, non flaggabile). -mrelax irrilevante.
-  shift_right_8_r0_467A_loop   @0x467A  77.8%  (3.4.6 E 3.2.3; 3.3.6 66.7% in
-    matrice, combo non testata)
-    recipe: -O1 -fno-delayed-branch -funroll-loops  (srotola 8x shar r0;
-    residuo mov r4,r0 ABI + nop). E' una flag-combo, NON -mrelax (verificato).
-  obd_service_handler_67154_m1  @0x67154  66.7%  (3.4.6/3.3.6; su 3.2.3 16.7%)
-    recipe: -m1 -O1 -fno-if-conversion -fno-if-conversion2 (uccide movt).
-    Residui: tst #31 (pattern assente), mov r4,r0 vs extu.b.
+    recipe: -m2e -O1 -fomit-frame-pointer (INVERTED condition if(d<=0) + pin
+    r3/r4 + barrier). The only diff +0x0C: mov.l@(pc) ROM vs mov.w gcc
+    (hi_const unconditional in sh.c 3.4.6, no flag controls it). -mrelax
+    irrelevant.
+  shift_right_8_r0_467A_loop   @0x467A  77.8%  (3.4.6 AND 3.2.3; in the
+    matrix 3.3.6 66.7%, combo not tested)
+    recipe: -O1 -fno-delayed-branch -funroll-loops  (unrolls 8x shar r0;
+    residue mov r4,r0 ABI + nop). It is a flag-combo, NOT -mrelax (verified).
+  obd_service_handler_67154_m1  @0x67154  66.7%  (3.4.6/3.3.6; on 3.2.3 16.7%)
+    recipe: -m1 -O1 -fno-if-conversion -fno-if-conversion2 (kills movt).
+    Residues: tst #31 (pattern absent), mov r4,r0 vs extu.b.
 
-## LIMITI DEFINITIVI (divergenze strutturali NON aggirabili)
+## DEFINITIVE LIMITS (structural divergences, cannot be bypassed)
 
-  1) addv / idiomi speciali (addS32Saturate@0x2304): nessun C puro/flag di
-     nessuna release (3.4.6/3.3.6/3.2.3) emette addv -> assembly-first.
-  2) Polarita' del ramo nei selettori (bt+bra vs bf.s): gcc normalizza sempre
-     bf.s; solo via riscrittura C in casi singoli (pulse) o via m1.noifconv
-     (atu_spec). Strutturale.
-  3) tst #imm (0xC8): pattern in sh.md 3.2.3/3.3.6 ma combiner non folda;
-     assente in 3.4.6. Mai emesso da nessuna release.
-  4) movt booleani: aggirabile SOLO con -fno-if-conversion (3.3.6+/3.4.6),
-     inesistente su 3.2.3.
-  5) Layout literal pool a livello di SEZIONE (pool interleaved dopo il prologo
-     della funzione adiacente, es. atu@0x1FB8): causa del 95% non-100%.
-     -mrelax/-mhitachi/-mspace NON lo cambiano: irraggiungibile da flag del
-     singolo file (test sweep_relax_gcc346.py, REPORT §15.2).
-  6) Widen automatica del parametro sub-word (3.3.6/3.2.3): uccide le recipe
-     _match (estensione doppia) -> perche' la recipe MATCH e' VINCOLATA a 3.4.6.
+  1) addv / special idioms (addS32Saturate@0x2304): no pure C or flag of
+     any release (3.4.6/3.3.6/3.2.3) emits addv -> assembly-first.
+  2) Branch polarity in the selectors (bt+bra vs bf.s): gcc always
+     normalizes bf.s. Only a C rewrite in single cases (pulse) or
+     m1.noifconv (atu_spec) can change it. Structural.
+  3) tst #imm (0xC8): pattern in sh.md 3.2.3/3.3.6 but the combiner does
+     not fold; absent in 3.4.6. No release ever emits it.
+  4) movt booleans: ONLY -fno-if-conversion can bypass it (3.3.6+/3.4.6).
+     It does not exist on 3.2.3.
+  5) SECTION-level literal pool layout (pool interleaved after the
+     prologue of the adjacent function, for example atu@0x1FB8):
+     cause of the 95% instead of 100%. -mrelax/-mhitachi/-mspace do NOT
+     change it. No single-file flag can reach it (test
+     sweep_relax_gcc346.py, REPORT §15.2).
+  6) Automatic widen of the sub-word parameter (3.3.6/3.2.3): it kills
+     the _match recipes (double extension) -> because the MATCH recipe
+     is BOUND to 3.4.6.
 
-## VERDETTO DEFINITIVO
+## FINAL VERDICT
 
-  ROM = codegen GCC 3.4.x (fingerprint prologo mov.l r14,@-r15 + serie 3.x
-  ordinata 3.4.6 > 3.3.6 > 3.2.3). Il match-and-compile da C e' possibile SOLO
-  per helper pure-math piccoli con la recipe sopra (3 match byte-perfect);
-  per idiomi speciali (addv/immo/selectors/boolean) resta assembly-first.
-  Filone chiuso: REPORT.md §15.
+  ROM = GCC 3.4.x codegen (prologue fingerprint mov.l r14,@-r15 + the 3.x
+  series ordered 3.4.6 > 3.3.6 > 3.2.3). Match-and-compile from C is
+  possible ONLY for small pure-math helpers with the recipe above (3
+  byte-perfect matches). For special idioms (addv/immo/selectors/boolean)
+  assembly-first remains. This line is closed: REPORT.md §15.

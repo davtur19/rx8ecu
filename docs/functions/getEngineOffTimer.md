@@ -1,5 +1,5 @@
 # getEngineOffTimer @ 0x31DCA
-**Purpose:** Increment and return engine-off timer counter. Tracks elapsed time since engine shut down for emissions or diagnostic purposes.
+**Purpose:** Increment and return engine-off timer counter. Tracks the elapsed time after the engine shut down, for emissions or diagnostic purposes.
 **Inputs:** Condition flag from 0xA41C (engine state?) ; Current counter value from 0xFFFFBF8A (RAM storage)
 **Out:** Updates counter at 0xFFFFBF8A (increment or reset) ; Returns updated value in r0
 **Calls:** add16bitSaturate_ADD1_ADD2 (0x2460) - adds two 16-bit values with saturation

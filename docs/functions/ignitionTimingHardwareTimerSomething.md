@@ -1,13 +1,13 @@
 # ignitionTimingHardwareTimerSomething @ 0x8E28
 **Purpose:** Configure timer output-compare register for ignition timing; validate timing ready and fire coil if armed.
-**Inputs:** r4: spark_id (0–1, selects which spark plug) ; Globals: 0xFFFFA0D8 (spark state), 0x0000D81C (ignition calibration/config table)
+**Inputs:** r4: spark_id (0–1, selects the spark plug) ; Globals: 0xFFFFA0D8 (spark state), 0x0000D81C (ignition calibration/config table)
 **Out:** Writes timing value to hardware output-compare register ; Clears control flags at offset +4 and +5 ; Calls FUN_0000A8A4 (likely coil fire or interrupt handler setup) ; Restores processor status register (interrupt mask)
 **Calls:** getSR @ 0x3920: read current status register ; FUN_0000A8A4 @ 0xA8A4: unknown utility, likely hardware register write or coil fire ; setSR @ 0x3934: restore status register
 Read status register (disable further context switches) ; Compute spark state offset: 0xFFFFA0D8 + (spark_id * 16) ; Check if control flag at offset +5 is nonzero: ; If not set (==0): skip to end,
 clear flags, return ; If set (!=0): proceed with ignition timing setup ; Load ignition config from 0xD81C + (spark_id * 24): ; Read calibration values at offset +12 (hardware reg ptr) and +4 (timing
 value) ; Compute timing window: ; current_timer = read calibration[+12] (hardware register) ; expected_time = read calibration[+4] ; delta = expected_time - current_timer ; Check delta >= 0 (timing
 not passed): ; If delta < 0: skip fire, clear flags, return ; Read enable bits from calibration[+16] and calibration[+20] (hardware regs): ; Test if enable bits are valid (AND the values) ; If invalid
-(zero): skip fire, clear flags, return ; Call FUN_0000A8A4 with calibration[0] as parameter (fire coil or setup timer) ; Clear control flags at offset +4 and +5 ; Restore status register (re-enable
+(zero): skip fire, clear flags, return ; Call FUN_0000A8A4 with the parameter calibration[0] (fire coil or setup timer) ; Clear control flags at offset +4 and +5 ; Restore status register (re-enable
 interrupts)
 **Draft C:**
 ```c
