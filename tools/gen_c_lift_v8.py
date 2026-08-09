@@ -279,6 +279,28 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
     return False
 
 
+def _static_branch_in_span(rom, pc, addr, bound):
+    """True when the (pcrel-pool-flagged) word at pc decodes as a STATIC
+    branch (bt/bf/bt.s/bf.s/bra — target_disp present, so rts/rte/bsrf/braf
+    are excluded) whose computed target lies inside [addr, bound).  Such a
+    word is EXECUTED CODE, not literal-pool data — e.g. the bra at 0x5449E
+    (target 0x544A4) reached by fall-through after bf.s 0x5449A, whose words
+    were also flagged pool by a dead `mov.l` inside a pool entry (0xD911 at
+    0x54456, itself data).  Reclaiming it lets the walker emit the branch
+    record (the mirror keeps walking past the bra) instead of skipping it
+    and returning early at a CODE miss with stale registers (0x543BA: r1).
+    In-span gate only: an out-of-span static branch would tail-call a bogus
+    callee (tail_bra_as_call=True)."""
+    if pc + 1 >= len(rom):
+        return False
+    op = (rom[pc] << 8) | rom[pc + 1]
+    bi = ops.branch_info(op)
+    if bi is None or bi.get('target_disp') is None:
+        return False
+    tgt = (pc + 4 + bi['target_disp'] * 2) & MASK
+    return addr <= tgt < bound
+
+
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
               allow_runtime_base=False, tail_bra_as_call=False,
               allow_boundary_entry=False):
@@ -1132,6 +1154,12 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 if pc in labels:
                     data.discard(pc)          # branch target: code wins over pool-data
                 elif _v6_reclaim(rom, pc, data, addr, ops, gcl):
+                    data.discard(pc)
+                elif _static_branch_in_span(rom, pc, addr, bound):
+                    # pool-flagged word that is ALSO executed code: a static
+                    # branch reached by fall-through (bra after a bf.s delay
+                    # slot).  Reclaim it so the mirror emits the branch record
+                    # instead of a CODE-miss early RET (0x543BA stale r1).
                     data.discard(pc)
                 else:
                     pc += 2
