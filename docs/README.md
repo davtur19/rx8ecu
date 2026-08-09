@@ -1,6 +1,6 @@
 # docs/ — documentation index
 
-Index of shipped docs (alphabetical per section); files moved to private storage not listed.
+This index lists the shipped docs. Each section lists its docs in alphabetical order. The docs that moved to private storage are not listed.
 
 - [docs/notes/](#docsnotes--project-knowledge-base) — project knowledge base
 - [docs/subsystems/](#docssubsystems--subsystem-analysis) — subsystem analysis
@@ -44,7 +44,7 @@ Index of shipped docs (alphabetical per section); files moved to private storage
 
 ## docs/functions/ — per-function reference
 
-193 per-function docs (plus this README).
+This section contains 193 per-function docs. It also contains this README.
 
 - [`E2IntoRAM`](docs/functions/E2IntoRAM.md)
 - [`INT_ATU101_IMI10AG`](docs/functions/INT_ATU101_IMI10AG.md)

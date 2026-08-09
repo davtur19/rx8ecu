@@ -2,13 +2,14 @@
 
 > ⚠️ AI-generated content. Unverified = hypothesis, not ground truth. Only explicit machine-checked claims below are verified.
 
-Byte-exact RE of the **Mazda RX-8 PCM firmware** — Denso **279700-3313**, Renesas **SH-2E
-(SH7055/HD64F7055)** 32-bit, big-endian, **512 KB** program flash. Ships tools, annotated
-assembly, verified C lifts, analysis, docs, stock ROMs — each ROM rebuilds **byte-identical**.
+This project reverse-engineers the **Mazda RX-8 PCM firmware** byte for byte.
+The firmware is Denso **279700-3313**. The CPU is a Renesas **SH-2E (SH7055/HD64F7055)**, 32-bit, big-endian. The program flash holds **512 KB**.
+The project ships tools, annotated assembly, verified C lifts, analysis, docs, and stock ROMs.
+Each ROM rebuilds **byte-identical**.
 
 ## Verification methodology
 
-Cascade L1→L6; each claim is machine-checked or tagged `AI draft` / `unverified` / `DRAFT` / `TBD`.
+The verification cascades from L1 to L6. Each claim is machine-checked or tagged `AI draft` / `unverified` / `DRAFT` / `TBD`.
 
 - **L1 — Byte-exact.** Disassemble → one reassemblable GNU-as source → reassemble (`sh-elf`)
   → `sha256sum` must equal ROM. **9/9 byte-exact** (`make verify-all`; single: `make verify ROM=roms/stock/<id>.bin`). [VERIFICATION.md](VERIFICATION.md) §1.
@@ -16,8 +17,7 @@ Cascade L1→L6; each claim is machine-checked or tagged `AI draft` / `unverifie
   18 jump tables, LIVE=0), XREF closure, gap audit. **9/9 CERTIFIED**, deterministic, CI-gated
   (`make cert`). [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
 - **L3 — Determinism.** Master catalog/CSVs derived from scripts; drift breaks CI.
-- **L4 — Differential/emulator.** 1915 py + 26 C suites; each lift vs ROM bytes on
-  `tools/sh2emu.py` — **295 emulator-verified** add, 100k+ random inputs/lift. [VERIFICATION.md](VERIFICATION.md) §3–4.
+- **L4 — Differential/emulator.** Run 1915 py suites and 26 C suites. Test each lift against the ROM bytes with `tools/sh2emu.py`. The result is **295 emulator-verified** lifts, 100k+ random inputs per lift. [VERIFICATION.md](VERIFICATION.md) §3–4.
 - **L5 — Cross-validation.** Seed/key bit-identical to ConnorRigby (100k clock random +
   400 random seeds + 3 ROM-verified vectors, 0 divergences). Tables vs RomRaider/GROM.
   [test_cross_seedkey.py](tools/tests/test_cross_seedkey.py), [UDS_SECURITY_MAPPING.md](docs/notes/UDS_SECURITY_MAPPING.md) §7.2, [CREDITS.md](CREDITS.md).
@@ -83,14 +83,14 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 ## `make` targets
 
 - `build` — rebuild `60E1D400.bin` → `build/out.bin` (default)
-- `verify` — `cmp build/out.bin <ROM>`; any image via `make verify ROM=roms/stock/<id>.bin`
+- `verify` — `cmp build/out.bin <ROM>`; any image with `make verify ROM=roms/stock/<id>.bin`
 - `verify-all` — byte-exact check of all 9 ROMs (`./tools/verify_all.sh`)
 - `cert` — formal certification of all 9 ROMs (hard gate, ~31 s)
 - `all` — `catalog classify test`
 - `catalog` — regen `CATALOG_MASTER.csv` + status
 - `classify` — regen `FUNCTION_CATEGORIES.csv`
 - `test` — Python regression suites (serial gate, ~21 s)
-- `test-fast` — same suites via parallel runner
+- `test-fast` — same suites with the parallel runner
 - `c-test` — host-compiled C behavior-equivalence suites
 - `c-emu` — C lifts vs `tools/sh2emu.py` on real ROM bytes
 - `src` — regenerate `60E1D400` annotated source into `src/`
@@ -102,15 +102,15 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 |---|---|---|
 | **Done** | 9/9 byte-exact; 9/9 formal cert (P1–P5 zero LIVE); seed/key bit-identical | VERIFICATION.md; FORMAL_CERT_60E1D400.md; UDS_SECURITY_MAPPING.md |
 | **Done** | catalog + named/categorized functions, cal tables, explorer | `CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`, `cal_tables.csv` |
-| **In progress** | naming of ~50,789 est. fns (8,006 named); more lifts + certs | NAMES_STATUS.md, `c/verified_addrs.txt` |
+| **In progress** | assign names to the ~50,789 estimated functions (8,006 named); more lifts + certs | NAMES_STATUS.md, `c/verified_addrs.txt` |
 | **Open** | semantic meaning; runtime on real hardware | RUNTIME_CERT_PLAN.md, ECU_CAPTURE_PLAN.md |
 
 ## Legal
 
-Firmware © **Mazda/Denso**; stock images + byte-exact `src/*_annotated.s` not AGPL-covered
-(unmodified, research only; all rights reserved; already-public stock dumps). Tuned images /
-personal dumps **not** included. Unofficial, not affiliated. **AGPL-3.0** ([LICENSE](LICENSE));
-repo must remain **public under AGPL-3.0** indefinitely.
+The firmware is © **Mazda/Denso**. Stock images and byte-exact `src/*_annotated.s` sources are not AGPL-covered.
+They are unmodified and for research only. All rights are reserved. The dumps are already public.
+Tuned images and personal dumps are **not** included. The project is unofficial and not affiliated.
+The license is **AGPL-3.0** ([LICENSE](LICENSE)). The repo must remain **public under AGPL-3.0** indefinitely.
 
 ## Credits & origins
 
