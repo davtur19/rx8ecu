@@ -554,7 +554,7 @@ addr,status,reason
 42174,skip,already-lib
 42224,lifted,walk
 42254,lifted,walk
-42274,stubbed,"callee-cfg 42274 ('jump_table_unresolved', 42346)"
+42274,lifted,cfg
 43044,skip,already-lib
 43088,skip,already-lib
 43172,skip,already-lib
@@ -638,7 +638,7 @@ addr,status,reason
 53564,lifted,walk
 53572,skip,already-lib
 53728,skip,already-lib
-53764,stubbed,"callee-cfg 53764 ('midfunc_nested', 53764)"
+53764,lifted,cfg
 53772,lifted,walk
 53790,skip,already-lib
 53858,skip,already-lib
