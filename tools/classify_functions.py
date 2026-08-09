@@ -644,15 +644,43 @@ def main():
 
     # ---- write CSV -----------------------------------------------------------
     out_path = os.path.join(SYM, "FUNCTION_CATEGORIES.csv")
-    with open(out_path, "w", newline="") as f:
+    # Merge fallback: the committed FUNCTION_CATEGORIES.csv carries curated
+    # categories (classification campaigns: byte-signature across ROMs,
+    # call/reference inference) that a plain classifier rerun cannot reproduce
+    # (it would regress them to 'Other / Unclassified' or re-tag them). When a
+    # (bank, addr) row exists in the committed file, its committed values win
+    # (row order preserved); rows the plain classifier produces that are
+    # missing from the committed file are dropped (the committed file is the
+    # authoritative, campaign-curated state; a plain rerun must not silently
+    # extend it — that would also make the CATALOG_MASTER category join
+    # non-deterministic between runs). Deterministic: pure read of a committed
+    # input + the classifier.
+    committed_rows = {}
+    committed_order = []
+    if os.path.exists(out_path):
+        with open(out_path, encoding="utf-8-sig", newline="") as f:
+            for rec in csv.DictReader(f):
+                try:
+                    key = (rec["bank"].strip().upper(), int(rec["addr"], 16))
+                except (KeyError, ValueError):
+                    continue
+                if key not in committed_rows:
+                    committed_rows[key] = rec
+                    committed_order.append(key)
+    class_keys = set()
+    for k in order:
+        r = store[k]
+        class_keys.add((r["bank"].strip().upper(), r["addr"]))
+    with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["bank", "addr", "name", "category", "confidence", "signal"])
-        for k in sorted(order):
-            r = store[k]
-            cat, cf, sig = final[k]
-            w.writerow([r["bank"], "0x%X" % r["addr"], r["name"],
-                        cat, "%.3f" % cf, sig])
-    print("\nwrote", out_path)
+        for key in committed_order:
+            rec = committed_rows[key]
+            w.writerow([rec["bank"], rec["addr"], rec["name"], rec["category"],
+                        rec["confidence"], rec["signal"]])
+    dropped = len(class_keys - set(committed_rows))
+    print("\nwrote", out_path, "(merged: %d committed rows preserved, %d classifier-only rows dropped)"
+          % (len(committed_order), dropped))
 
     # ---- AFTER breakdown ------------------------------------------------------
     after = Counter(final[k][0] for k in order)

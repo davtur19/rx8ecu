@@ -110,12 +110,31 @@ MAX_ADDR = 0x70000   # addrs > 0x70000 (RAM 0xFFFFxxxx / padding) are not lift a
 GENERIC_RE = re.compile(r"^(FUN_|sub_|loc_|nullsub_|unk_|byte_|def_|seg_)([0-9a-fA-F]|$)",
                         re.IGNORECASE)
 
+# Nome generato dai file di harness `test_caller_<ADDR>.py` (gen_c_lift v8):
+# stem `test_caller_<ADDR>` -> pick_name = "caller". NON e' un nome di funzione
+# reale; escluderlo dal lift index evita che l'harness generico faccia ombra ai
+# nomi dedicati (es. `test_os_context_switch_3DB0.py`) o produca righe
+# lift_name="caller" senza significato.
+HARNESS_CALLER_NAME = "caller"
+
 
 def is_generic(name):
     name = (name or "").strip()
     if not name:
         return True
     return bool(GENERIC_RE.match(name))
+
+
+# Placeholder prefixes broader than GENERIC_RE: GENERIC_RE only treats
+# FUN_/sub_/... followed by an ADDRESS (hex or end) as generic, but CSV rows
+# also carry hand placeholders like FUN_lotsOfLogic. For the curated src_name
+# fallback any name with a placeholder prefix counts as "pipeline has nothing".
+_PLACEHOLDER_RE = re.compile(r"^(FUN_|sub_|loc_|nullsub_|unk_|byte_|def_|seg_|jpt_)",
+                             re.IGNORECASE)
+
+
+def is_placeholder_name(name):
+    return bool(_PLACEHOLDER_RE.match((name or "").strip()))
 
 
 # --- nomi DEBOLI (per la regola speciale equinox311 vs ghidra-hand) ----------
@@ -330,7 +349,7 @@ def build_lift_index():
     idx = {}
     for path in sorted(glob.glob(os.path.join(TESTS_DIR, "test_*.py"))):
         for a, n in parse_test_file(path):
-            if a not in idx:
+            if a not in idx and n != HARNESS_CALLER_NAME:
                 idx[a] = n
     for path in sorted(glob.glob(os.path.join(C_DIR, "*.c"))):
         res = parse_c_file(path)
@@ -734,10 +753,111 @@ def load_category_map():
     return cat
 
 
+def load_curated_fallback():
+    """Read the CURRENT committed symbols/CATALOG_MASTER.csv into a fallback
+    map {(bank.upper(), int(addr,16)): {col: value}} for the curated-only
+    columns (category, src_name) that the regeneration cannot reproduce from
+    the per-bank CSVs + FUNCTION_CATEGORIES join. Returns an empty dict if the
+    master file is missing (first generation). Deterministic: pure read of a
+    committed input, so a stable input yields a stable output.
+    """
+    fallback = {}
+    if not os.path.exists(MASTER_CSV):
+        return fallback
+    with open(MASTER_CSV, newline="", encoding="utf-8") as fh:
+        for rec in csv.DictReader(fh):
+            bank = (rec.get("bank") or "").strip().upper()
+            addr = rec.get("addr") or ""
+            if not bank or not addr:
+                continue
+            try:
+                key = (bank, int(addr, 16))
+            except ValueError:
+                continue
+            fallback[key] = {
+                "category": rec.get("category") or "",
+                "src_name": rec.get("src_name") or "",
+            }
+    return fallback
+
+
+def load_committed_master_rows():
+    """Read the CURRENT committed symbols/CATALOG_MASTER.csv into
+    {(bank.upper(), int(addr,16)): dict} (whole row, committed values).
+    Used by adopt_master_splits to re-adopt curated span-split rows the
+    pipeline cannot reproduce. Empty dict if the file is missing."""
+    rows = {}
+    if not os.path.exists(MASTER_CSV):
+        return rows
+    with open(MASTER_CSV, newline="", encoding="utf-8") as fh:
+        for rec in csv.DictReader(fh):
+            bank = (rec.get("bank") or "").strip().upper()
+            addr = rec.get("addr") or ""
+            if not bank or not addr:
+                continue
+            try:
+                key = (bank, int(addr, 16))
+            except ValueError:
+                continue
+            rows[key] = rec
+    return rows
+
+
+def adopt_master_splits(out):
+    """Re-adopt curated span-split rows of the canonical bank (60E0FC00).
+
+    Commits 0313cff/153a0fb split a real function span at a mid-body entry
+    (e.g. can_clear_txcr_and_init_mailbox 0xCF74..0xD13C split at 0xCF96,
+    FUN_00cf96, "real entry per sibling banks"). The per-bank CSVs only carry
+    the unsplit span, so the plain pipeline drops the split row. Sibling
+    derived banks (60E0E500/60E0E700/60E0FB00) encode the split in their own
+    CSVs and survive; the canonical bank's row is curated-only. Rule: a
+    committed-master row of the canonical bank that the pipeline does NOT
+    produce, whose addr lies strictly inside [addr, end) of a pipeline row of
+    the same bank, is re-adopted with its committed values. Deterministic:
+    pure read of a committed input.
+    """
+    committed = load_committed_master_rows()
+    if not committed:
+        return 0
+    have = {(r["bank"].strip().upper(), int(r["addr"], 16)) for r in out}
+    spans = []
+    for r in out:
+        b = (r.get("bank") or "").strip().upper()
+        if b != EQUINOX_BANK:
+            continue
+        try:
+            spans.append((int(r["addr"], 16), int(r.get("end") or r["addr"], 16)))
+        except ValueError:
+            continue
+    n = 0
+    for key in sorted(committed):
+        bank, addr = key
+        if bank != EQUINOX_BANK or key in have:
+            continue
+        if any(lo < addr < hi for lo, hi in spans):
+            rec = committed[key]
+            out.append({
+                "bank": rec["bank"], "addr": rec["addr"],
+                "end": rec.get("end") or "", "src_name": rec.get("src_name") or "",
+                "source": rec.get("source") or "", "flag": rec.get("flag") or "",
+                "lift_name": rec.get("lift_name") or "",
+                "verified": rec.get("verified") or "",
+                "also_sources": rec.get("also_sources") or "",
+                "_file": "committed-split",
+            })
+            n += 1
+    if n:
+        print(f"  master split rows re-adopted (canonical bank): {n}")
+    return n
+
+
 def write_master(out, categories=None):
     if categories is None:
         categories = load_category_map()
+    curated = load_curated_fallback()
     matched = 0
+    preserved_cat = preserved_src = 0
     with open(MASTER_CSV, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=[
             "bank", "addr", "end", "src_name", "source", "flag", "lift_name",
@@ -747,16 +867,34 @@ def write_master(out, categories=None):
             row = {k: r.get(k, "") for k in w.fieldnames}
             bank = (r.get("bank") or "").strip().upper()
             addr = r.get("addr") or ""
-            category = ""
             try:
-                category = categories.get((bank, int(addr, 16)), "")
+                key = (bank, int(addr, 16))
             except ValueError:
-                category = ""
+                key = None
+            category = ""
+            if key is not None:
+                category = categories.get(key, "")
             if category:
                 matched += 1
             row["category"] = category
+            # Merge fallback: per (bank, addr) rows present in the CURRENT
+            # committed master, keep the curated-only values (category, src_name)
+            # that the pipeline cannot reproduce. Pipeline values win when
+            # non-empty; for src_name a generic placeholder (FUN_/sub_/...) from
+            # a lesser dedup source is treated as "empty" so a curated name is
+            # preserved. New rows (not in the committed master) are untouched.
+            if key is not None and key in curated:
+                cur = curated[(bank, int(addr, 16))]
+                if cur["category"] and not category:
+                    row["category"] = cur["category"]
+                    preserved_cat += 1
+                if cur["src_name"] and (not row["src_name"] or is_placeholder_name(row["src_name"])):
+                    if row["src_name"] != cur["src_name"]:
+                        preserved_src += 1
+                    row["src_name"] = cur["src_name"]
             w.writerow(row)
     print(f"CATALOG_MASTER category join: {matched} righe matchate")
+    print(f"  curated fallback preserved: category={preserved_cat} src_name={preserved_src}")
 
 
 def aggregate(records):
@@ -990,6 +1128,9 @@ def main():
 
     # ---- safe end-refinement (FC00: first-return beyond end, cap 64) ------
     n_refined = refine_fc00_ends(out)
+
+    # ---- re-adopt curated span-split rows (canonical bank) ----------------
+    n_split = adopt_master_splits(out)
 
     write_master(out, load_category_map())
 
