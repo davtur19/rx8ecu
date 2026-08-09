@@ -1822,6 +1822,16 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
     _tail = _misaligned_tail_end(rom_label, end, end_s)
     if _tail is not None:
         end_s = _tail
+    # (dispatch-tail fix) tiny (<=8B) dispatch-like rows: the catalog end is
+    # an estimate cut at the NEXT catalog row, and the real dispatch body
+    # (with its table) sits past it — the rts-scan helpers refuse exactly
+    # that boundary, so extend to the first real rts directly (0x5A1D0,
+    # 0x9C86, 0x59806 class).
+    _dend = _dispatch_tail_end(
+        rom, addr, end_s,
+        _names_of_addr(rom_label, addr))
+    if _dend is not None:
+        end_s = _dend
     if _callee_first_rts(rom, addr, end_s) is None:
         if end_s + 1 < len(rom) and \
                 (rom[end_s] << 8) | rom[end_s + 1] == 0x000B:
@@ -2182,11 +2192,76 @@ def _callee_eff_end(rom, t, catalog, bounds):
     g_end = _ghidra_span_end(t)
     if g_end is not None and g_end > end_c:
         end_c = g_end
+    # (dispatch-tail fix, callee side) tiny dispatch-like rows: the catalog
+    # end is an estimate cut at the NEXT catalog row — extend to the first
+    # real rts past the dispatch table (0x5A1D0/0x9C86/0x59806 class).
+    _dend = _dispatch_tail_end(
+        rom, t, end_c, _fragment_names_for_catalog(catalog).get(t))
+    if _dend is not None:
+        end_c = _dend
     if _callee_first_rts(rom, t, end_c) is None:
         ext = _callee_extend_to_rts(rom, t, end_c, bounds)
         if ext is not None:
             end_c = ext
     return end_c
+
+
+def _names_of_addr(rom_label, addr):
+    """(src_name, lift_name) tuple for a CATALOG_MASTER row, or None."""
+    d = _load_fragment_names().get(rom_label, {}).get(addr)
+    if d is None:
+        return None
+    return (d.get('src'), d.get('lift'))
+
+
+def _dispatch_tail_end(rom, addr, end_s, names=None):
+    """Tiny DISPATCH-span extension: when a catalog row's span is <= 8 bytes
+    AND its tail is dispatch-like (a jsr @Rn (0x4n0B) / jmp @Rn (0x4n2B) cell
+    in the last two words of the span, or a catalog name for `addr` that
+    contains 'dispatch'), the row is a real dispatch function whose end was
+    cut by _next_addr estimation (the NEXT catalog row starts at the span
+    edge, so _callee_extend_to_rts refuses to scan and
+    _caller_extend_fallthrough bails on the outgoing branch): e.g.
+    uds_sid_tail_dispatch_r4_0 0x5A1D0, fnptr_dispatch_d8d8 0x9C86,
+    uds_state_jump_dispatch 0x59806 (rts-scan helpers both refuse those;
+    the real rts sits past the estimate).  Scan forward from `end_s` over
+    the dispatch table to the first REAL rts (opcode 0x000B at an even
+    offset, skipping literal-pool words) — the same target-inclusion idea as
+    enum_rt_entries — bounded by a +0x500 cap.  Returns rts+4 (the rts plus
+    its delay slot), or None (not tiny / not dispatch-like / no rts within
+    the cap) — keep the old span unchanged."""
+    if end_s is None or end_s + 1 >= len(rom):
+        return None
+    if end_s - addr > 8:
+        return None
+    # never override a COMPLETE tiny function: an in-span rts means the span
+    # already reaches a real return (e.g. a 4-byte `rts; nop` stub) — only
+    # truncated rows (no in-span rts) get extended.
+    if _callee_first_rts(rom, addr, end_s) is not None:
+        return None
+    # dispatch-like: a jsr/jmp @Rn word in the last two words of the tiny
+    # span (a dispatch tail is `jsr/jmp @Rn` + its delay slot), or 'dispatch'
+    # in any catalog name for this address.
+    def _word(pc):
+        return (rom[pc] << 8) | rom[pc + 1]
+    dispatch_like = False
+    for pc in (end_s - 4, end_s - 2):
+        if addr <= pc < len(rom) - 1 and (_word(pc) & 0xF00F) in (0x400B, 0x402B):
+            dispatch_like = True
+            break
+    if not dispatch_like and names:
+        dispatch_like = any('dispatch' in (n or '').lower()
+                            for n in names if n)
+    if not dispatch_like:
+        return None
+    cap = min(end_s + 0x500, len(rom))
+    pool = gcl._pcrel_pool_words(rom, addr, cap)
+    pc = end_s
+    while pc + 1 < cap:
+        if pc not in pool and _word(pc) == 0x000B:
+            return pc + 4
+        pc += 2
+    return None
 
 
 def _callee_first_rts(rom, t, end_c):
