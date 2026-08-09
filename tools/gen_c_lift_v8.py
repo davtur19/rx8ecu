@@ -893,13 +893,46 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         if sh is not None and sh['base'] in (14, 15):
             breg = sh['base']
             if breg == 15:
-                if not st['stack_ok'] or sh['dest'] == 15:
+                if not st['stack_ok']:
                     return None
             else:
-                if not st['frame_live'] or sh['dest'] == 14:
+                if not st['frame_live']:
                     return None
             if sh['idx'] is not None:
                 return None
+            if sh['dest'] == breg:
+                # SELF-load: the destination register IS the stack pointer
+                # (r15) or frame pointer (r14) itself — e.g. 0x4C76 `rts`
+                # delay slot `mov.l @r15,r15` (0x6FF2).  The static
+                # local_<off> stack-slot model CANNOT express this: the
+                # address is the RUNTIME pointee of the register, not an
+                # sp_off-relative frame slot, so the local_* form would read
+                # the wrong slot and leave r15 stale (MISMATCH reg=r15
+                # mirror=FFFFD400 emu=00000000).  Emit it register-relative
+                # (rt-base).  In the mirror the r[15] -> sp rewrite
+                # (_sprel_py) keeps stack accounting identical to the
+                # fpu_mem/sys_stack fixes: the value lands in the `sp` alias
+                # and the next-step `r[15] = sp` sync exposes it.
+                size = sh['size']
+                if size < 4:
+                    # mov.b/mov.w loads sign-extend (SH-2 semantics)
+                    c = ['r%d = %s*(volatile %s*)r%d;'
+                         % (breg, ops._SEXT_C[size], ops._CTYPE[size], breg)]
+                    py = ['r[%d] = %s(_rdw(ram, r[%d], %d))'
+                          % (breg, ops._SEXT_PY[size], breg, size)]
+                else:
+                    c = ['r%d = *(volatile uint32_t*)r%d;' % (breg, breg)]
+                    py = ['r[%d] = _rdw(ram, r[%d], %d)' % (breg, breg, size)]
+                if sh['auto'] == 'post':
+                    c.append('r%d = r%d + %d;' % (breg, breg, size))
+                    py.append('r[%d] = (r[%d] + %d) & 0xFFFFFFFF'
+                              % (breg, breg, size))
+                st['written'].add('r%d' % breg)
+                st['lits'].pop('r%d' % breg, None)
+                _clr_slot(breg)
+                return {'pc': pc, 'op': op, 'kind': 'mem', 'c': c, 'py': py,
+                        'target': None, 'slot': None,
+                        'mnem': '%s (self rt-base)' % gcl._stack_mnem(sh)}
             if breg == 15:
                 if sh['auto'] == 'pre':
                     st['sp_off'] -= sh['size']
@@ -2141,6 +2174,30 @@ def _emit_one(pc, op, rom):
     a nop / plain stmt.  Returns the record, or an opaque stub if unmapped."""
     d = ops.translate(op, pc, rom)
     if d is None:
+        sh = gcl._mem_shape(op)
+        if sh is not None and sh['dir'] == 'load' and sh.get('idx') is None:
+            # Plain memory-load mov (@Rm / @Rm+ / @(disp,Rm)) rendered as a
+            # real op (was 'opaque'): the mirror fragment is rewritten to the
+            # runtime sp alias by _sprel_py; b/w loads sign-extend per SH-2.
+            size = sh['size']
+            if size < 4:
+                c = ['r%d = %s*(volatile %s*)r%d;'
+                     % (sh['dest'], ops._SEXT_C[size], ops._CTYPE[size],
+                        sh['base'])]
+                py = ['r[%d] = %s(_rdw(ram, r[%d], %d))'
+                      % (sh['dest'], ops._SEXT_PY[size], sh['base'], size)]
+            else:
+                c = ['r%d = *(volatile uint32_t*)r%d;'
+                     % (sh['dest'], sh['base'])]
+                py = ['r[%d] = _rdw(ram, r[%d], %d)'
+                      % (sh['dest'], sh['base'], size)]
+            if sh.get('auto') == 'post':
+                c.append('r%d = r%d + %d;' % (sh['base'], sh['base'], size))
+                py.append('r[%d] = (r[%d] + %d) & 0xFFFFFFFF'
+                          % (sh['base'], sh['base'], size))
+            return {'pc': pc, 'op': op, 'kind': 'st',
+                    'c': c, 'py': py, 'target': None, 'slot': None,
+                    'mnem': gcl._stack_mnem(sh)}
         return {'pc': pc, 'kind': 'st', 'op': None,
                 'c': ['/* delay slot 0x%04X — opaque */' % op],
                 'py': [], 'target': None, 'slot': None,
