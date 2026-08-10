@@ -244,7 +244,23 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
             # register-based load/store prev (e.g. reclaimed 0xB1C0 mov.w r14,@r1)
             _pms = gcl._mem_shape(_op)
             if _pms is None or _pms.get('dir') not in ('load', 'store'):
-                return False
+                # (round 7) prev is an FPU or system-register stack op the v8
+                # walker decodes (fpu/fpu_mem/sys_stack records) but
+                # _mem_shape cannot (fmov.s @r14,fr3 / lds.l @r15+,pr): a pool
+                # word right after such an op is executed code, not data.
+                # Cascade pool flag: a literal-pool entry word that itself
+                # decodes as a pcrel load marks real instructions as data
+                # (e.g. 0x34F16 fmul + 0x34F22 fmov.s @r15+,fr12 after
+                # 0x34F14 fmov.s @r14,fr3 / 0x34F20 lds.l @r15+,pr), and the
+                # is_fpu_op check below never runs because this gate returns
+                # False first -> mirror CODE gap -> early RET, stale r15.
+                # Let the candidate checks below decide instead.
+                _fpu_prev = ops.is_fpu_op(_op)
+                _sys_prev = (_op & 0xF0FF) in (
+                    0x4002, 0x4012, 0x4022, 0x4006, 0x4016, 0x4026,
+                    0x4003, 0x4013, 0x4007, 0x4017)
+                if not (_fpu_prev or _sys_prev):
+                    return False
         elif _dd.get('kind') in ('branch', 'ret') or gcl.is_call_op(_op):
             return False
     opc = (rom[pc] << 8) | rom[pc + 1]
@@ -3147,6 +3163,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            _tgt = CODE.get(_tg)\n'
         '            if _tgt is None:\n'
         '                if _in_catalog_span(_tg):\n'
+        '                    OOB_DISPATCH[0] = True  # in catalog span but not lifted\n'
         '                    if inst["is_call"]:\n'
         '                        ns["pr"] = inst["ret_pc"]\n'
         '                        pc = inst["ret_pc"]  # state-free like nullsub\n'
