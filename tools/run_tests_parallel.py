@@ -24,12 +24,52 @@ Exit status is non-zero if any suite fails.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Generated v8 lift tests inline the whole callee span once per call site, so a
+# single test file can hold hundreds of thousands of lines while the final
+# CODE dict has only a few thousand UNIQUE keys (Python's dict-literal overwrite
+# keeps the last occurrence).  Parsing the duplicates transiently needs
+# multi-GiB of RAM (measured: 4.8 GB peak on c/tests/test_caller_648E.py, which
+# has 432k lines but only 14274 unique entries), which OOM-kills the suite on
+# memory-constrained machines.  Deduping the CODE block before the interpreter
+# parses it keeps the exact same dict (last occurrence wins, matching Python)
+# at ~30x less memory.
+_CODE_ENTRY = re.compile(r'^\s*(0x[0-9a-fA-F]+):')
+
+
+def _dedup_code_block(source):
+    """Collapse repeated single-line CODE-dict entries (last occurrence wins).
+
+    Returns the original source unchanged when there is no CODE block or the
+    duplication is not worth the rewrite, so normal-sized suites are untouched.
+    """
+    lines = source.split('\n')
+    try:
+        start = next(i for i, l in enumerate(lines) if l.startswith('CODE = {'))
+    except StopIteration:
+        return source
+    end = start + 1
+    while end < len(lines) and lines[end].rstrip() != '}':
+        end += 1
+    if end - start < 4:
+        return source
+    last = {}
+    for i in range(start + 1, end):
+        m = _CODE_ENTRY.match(lines[i])
+        if m:
+            last[m.group(1).lower()] = i
+    if len(last) * 2 >= (end - start):
+        return source                      # few duplicates: nothing to gain
+    kept = sorted(last.values())
+    return '\n'.join(lines[:start + 1] + [lines[i] for i in kept] + lines[end:])
 
 
 def discover_tests():
@@ -47,8 +87,28 @@ def discover_tests():
 
 
 def run_one(test_path, verbose=False):
-    """Run a single test file in a subprocess; return (test_path, rc, wall, out)."""
+    """Run a single test file in a subprocess; return (test_path, rc, wall, out).
+
+    Huge generated tests are deduped (see _dedup_code_block) into a temporary
+    .py next to the original — the test derives ROOT from __file__, so the copy
+    must stay in the same directory — and the temp file is removed afterwards.
+    """
     t0 = time.time()
+    tmp_path = None
+    src = None
+    try:
+        with open(test_path, 'r', encoding='utf-8', errors='replace') as fh:
+            src = fh.read()
+    except OSError:
+        src = None
+    if src is not None:
+        dedup = _dedup_code_block(src)
+        if dedup != src:
+            fd, tmp_path = tempfile.mkstemp(
+                dir=os.path.dirname(test_path), prefix='.dedup_', suffix='.py')
+            with os.fdopen(fd, 'w', encoding='utf-8') as fh:
+                fh.write(dedup)
+            test_path = tmp_path
     try:
         p = subprocess.run(
             [sys.executable, test_path],
@@ -62,6 +122,12 @@ def run_one(test_path, verbose=False):
     except Exception as e:  # subprocess-level failure (should not happen)
         rc = 2
         out = '%s\n' % e
+    finally:
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
     wall = time.time() - t0
     return (test_path, rc, wall, out)
 
