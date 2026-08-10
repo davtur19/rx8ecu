@@ -3029,7 +3029,19 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'from sh2emu import SH2, StepLimitExceeded\n'
         'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n'
         'import bisect\n'
-        'import math\n\n'
+        'import math\n'
+        'def fdiv(a, b):\n'
+        '    # IEEE FDIV: x/+-0 -> +-inf (0/0 -> nan); Python float div raises\n'
+        '    return a / b if b else (math.inf if a > 0 else (-math.inf if a < 0 else math.nan))\n'
+        'class _SH2(SH2):\n'
+        '    def _exec(self, op, pc):\n'
+        '        try:\n'
+        '            return super()._exec(op, pc)\n'
+        '        except ZeroDivisionError:\n'
+        '            # FDIV with a zero divisor: real HW/C yield IEEE +/-inf\n'
+        '            # (0/0 -> nan); sh2emu raises.  Retry as IEEE so mirror\n'
+        '            # and emu agree (n=dest (op>>8)&0xF, m=src (op>>4)&0xF).\n'
+        '            self.fr[(op >> 8) & 0xF] = fdiv(self.fr[(op >> 8) & 0xF], self.fr[(op >> 4) & 0xF])\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "%s.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -3080,7 +3092,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    fr = [0.0] * 16\n'
         '    ns = {"r": r, "fr": fr, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": PRET,\n'
         '          "sr": 0x000000F0, "gbr": 0, "fpul": 0, "fpscr": 0,\n'
-        '          "s8": s8, "s16": s16, "s32": s32, "ts": ts,\n'
+        '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "fdiv": fdiv,\n'
         '          "bits2f": bits2f, "f2bits": f2bits, "ram": ram,\n'
         '          "sp": r[15], "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS}}\n'
@@ -3222,7 +3234,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    return cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], dict(cpu.ram), cpu.pr & 0xFFFFFFFF\n\n'
         'def main():\n'
         '    rnd = random.Random(SEED)\n'
-        '    cpu = SH2(ROM_BYTES)\n'
+        '    cpu = _SH2(ROM_BYTES)\n'
         '    skipped = 0\n'
         '    for caso in range(N):\n'
         '        ram = {}\n'
@@ -3250,14 +3262,14 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                    run(cpu, ram, a, b, c_, d)\n'
         '                except StepLimitExceeded:\n'
         '                    skipped += 1; continue\n'
-        '                except (NotImplementedError, RuntimeError):\n'
+        '                except (NotImplementedError, RuntimeError, ZeroDivisionError):\n'
         '                    skipped += 1; continue\n'
         '                print("MISMATCH case=%%d mirror=SKIP emu=RET" %% (caso,))\n'
         '                sys.exit(1)\n'
         '            skipped += 1; continue\n'
         '        try:\n'
         '            g = run(cpu, ram, a, b, c_, d)\n'
-        '        except (StepLimitExceeded, NotImplementedError, RuntimeError):\n'
+        '        except (StepLimitExceeded, NotImplementedError, RuntimeError, ZeroDivisionError):\n'
         '            skipped += 1; continue\n'
         '        _, exp_regs, _, exp_ram, exp_pr = m\n'
         '        _, got_regs, got_ram, got_pr = g\n'
@@ -3429,6 +3441,19 @@ def _sprel_py(rec):
     return out
 
 
+_FDIV_IEEE_RE = re.compile(r'ts\(fr\[(\d+)\] / fr\[(\d+)\]\)')
+
+
+def _fdiv_ieee(py):
+    """FDIV trace: Python `fr[n] / fr[m]` raises ZeroDivisionError when
+    fr[m]==0 while the real HW/C yield IEEE +/-inf (0/0 -> nan).  Rewrite the
+    mirror's fdiv statement to the test template's fdiv() helper, which
+    returns the IEEE result instead of raising."""
+    if py and '/ fr[' in py:
+        return _FDIV_IEEE_RE.sub(r'ts(fdiv(fr[\1], fr[\2]))', py)
+    return py
+
+
 def _v8_code_literal(records, labels, jtables):
     """CODE dict for the v8 mirror: branch/jt/call records + callee leaves."""
     lines = []
@@ -3494,7 +3519,7 @@ def _v8_code_literal(records, labels, jtables):
                          % (pc, slot_py, rec['reg'], rec['base'],
                             tuple(rec['entries'])))
             continue
-        py = v3._norm_py(rec.get('py') or []) or None
+        py = _fdiv_ieee(v3._norm_py(rec.get('py') or []) or None)
         lines.append('    %#x: {"kind": %r, "py": %r, "slot_py": None, '
                      '"target": None, "cond": None},'
                      % (pc, _MIRROR_KIND.get(kind, 'st'), py))
