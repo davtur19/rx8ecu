@@ -303,7 +303,7 @@ def _static_branch_in_span(rom, pc, addr, bound):
 
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
               allow_runtime_base=False, tail_bra_as_call=False,
-              allow_boundary_entry=False):
+              allow_boundary_entry=False, data_tail_ok=False):
     """Decode [addr, end) as basic blocks + edges; resolve all indirects.
     allow_runtime_base=True: a LOAD/STORE whose base register cannot be folded
     to a literal (or param-of-r4..r7) is emitted register-relative
@@ -1150,6 +1150,30 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             continue
         visited.add(bs)
         pc = bs
+        if data_tail_ok:
+            # (round 6) a block target that lands past the function's first
+            # rts on a non-decodable word is unreferenced data reached only
+            # through a dead/post-return edge (e.g. 0x4B89C's dynbranch
+            # literal target 0x4BB12, a zero-filled table word: the jump is
+            # past the real rts@0x4B9D4, never executed in the differential,
+            # but its block start failed emit_one and hard-rejected the whole
+            # lib).  Skip the block as data — the mirror keeps its
+            # runtime-dispatch / early-RET fallback, matching the sh2emu
+            # cases that never reach it.  Scoped to the lib-emission path
+            # (data_tail_ok); the selection scanners keep the strict reject.
+            _ft = _callee_first_rts(rom, addr, bound)
+            if _ft is not None and bs > _ft and bs + 1 < len(rom):
+                _bw = (rom[bs] << 8) | rom[bs + 1]
+                _code = (ops.translate(_bw, bs, rom) is not None or
+                         ops.branch_info(_bw) is not None or
+                         gcl.is_call_op(_bw) or gcl._mem_shape(_bw) is not None or
+                         (_bw >> 12 in (0xD, 0x9) or (_bw & 0xFF00) == 0xC700) or
+                         ops.is_fpu_op(_bw) or (_bw & 0xF0FF) == 0x401B or
+                         (_bw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
+                                            0x4016, 0x4026, 0x4003, 0x4013,
+                                            0x4007, 0x4017))
+                if not _code:
+                    continue
         # Per-column flag: this LINEAR walk passed the function's first rts.
         # After a return the fall-through continuation runs into the literal
         # pool / unreferenced data words that the pcrel-pool set does not mark
@@ -1530,6 +1554,17 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     # walking — the function already returned.
                     pc += 2
                     continue
+                if data_tail_ok:
+                    # (round 6) linear-walk counterpart of the data-tail block
+                    # skip: a column that branches INTO the post-first-rts
+                    # data region (e.g. 0x4B89C's dynbranch target 0x4BB0E,
+                    # whose second word 0x4BB10 is a zero-filled table word)
+                    # must not hard-reject the whole lib — the function's
+                    # first rts is past, so the word is data, not corruption.
+                    _ft = _callee_first_rts(rom, addr, bound)
+                    if _ft is not None and pc > _ft:
+                        pc += 2
+                        continue
                 res.reject = ('unmapped', pc)
                 return res
             if op & 0xFF00 == 0xC700:                  # mova
@@ -2458,20 +2493,37 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
         out.append(rec)
         if rec['kind'] == 'call' and rec.get('target') is not None:
             tgt = rec['target']
+            # (round 6) a nested-call target whose first word is non-decodable
+            # is DATA, not a function (e.g. 0x4B89C's post-rts dead edge to
+            # 0x4BAF2, a zero-filled table word) — same handling as a pool
+            # target: runtime_dispatch fallback (jsr -> pr=ret_pc, dispatch
+            # on s->r[0]; the word is never in CODE, so jsr falls through to
+            # ret_pc — the nullsub-fallback behaviour).
+            _tcode = None
+            if tgt + 1 < len(rom):
+                _tw = (rom[tgt] << 8) | rom[tgt + 1]
+                _tcode = (ops.translate(_tw, tgt, rom) is not None or
+                          ops.branch_info(_tw) is not None or
+                          gcl.is_call_op(_tw) or gcl._mem_shape(_tw) is not None or
+                          (_tw >> 12 in (0xD, 0x9) or (_tw & 0xFF00) == 0xC700) or
+                          ops.is_fpu_op(_tw) or (_tw & 0xF0FF) == 0x401B)
             if not (t <= tgt < walk_end):
-                if tgt in pool or (tgt in catalog and catalog.get(tgt) is None):
+                if tgt in pool or (tgt in catalog and catalog.get(tgt) is None) \
+                        or _tcode is False:
                     # bug f: nested-call edge lands on a literal-pool / data
                     # word (e.g. 0x00648E's chain ends at 0x36BEC, a pool word
-                    # inside FUN_00036b84's span), or on a key-only catalog row
+                    # inside FUN_00036b84's span), on a key-only catalog row
                     # (end None) — e.g. 0x1090, the raw end of parent 0x1038,
                     # whose 4 leftover bytes are data, not a function (0x001298's
-                    # `jsr @r3` literal 0x1090).  Recursing hard-fails with
-                    # ('unmapped', tgt) / ('no-span', tgt).  Mirror the
-                    # runtime_dispatch record instead: jsr -> pr=ret_pc,
-                    # dispatch on s->r[0] (the literal target register); the
-                    # word is never in CODE, so jsr falls through to ret_pc and
-                    # a tail jmp returns — the nullsub-fallback behaviour.
-                    # Mutate the record in place (the edge stays in the walk).
+                    # `jsr @r3` literal 0x1090), or on a non-decodable word
+                    # (0x4B89C's post-rts edge to the zero-filled table word
+                    # 0x4BAF2).  Recursing hard-fails with ('unmapped', tgt) /
+                    # ('no-span', tgt).  Mirror the runtime_dispatch record
+                    # instead: jsr -> pr=ret_pc, dispatch on s->r[0] (the
+                    # literal target register); the word is never in CODE, so
+                    # jsr falls through to ret_pc and a tail jmp returns — the
+                    # nullsub-fallback behaviour.  Mutate the record in place
+                    # (the edge stays in the walk).
                     _sp = rec.get('set_pr', False)
                     _rp = rec.get('ret_pc')
                     rec.update({
@@ -2598,7 +2650,33 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     # 'unmapped' on a data word, even though the walk of the same span succeeds.
     cfg_end = min(_callee_walk_end(rom, t, end_c) + 2, end_c)
     lifted = _load_lifted()
-    res = build_cfg(rom, t, cfg_end, lifted, catalog, allow_runtime_base=True, tail_bra_as_call=True)
+    res = build_cfg(rom, t, cfg_end, lifted, catalog,
+                    allow_runtime_base=True, tail_bra_as_call=True,
+                    data_tail_ok=True)
+    if res.reject is not None:
+        _rej = res.reject
+        if isinstance(_rej, tuple) and _rej[0] == 'midfunc_nested':
+            # (round 6) MERGE: the entry starts exactly at its parent row's
+            # raw end (or is otherwise nested in the parent's sanitized span)
+            # and was rejected by the standalone mid-function guard.  It is
+            # the parent's continuation / a real sibling function — the
+            # callee-WALK path (_walk_callee) already lifts these with
+            # allow_boundary_entry=True, so retry the lib walk with the same
+            # flag over the entry's own span: the emitted lib covers the
+            # nested body instead of a STUB.
+            res = build_cfg(rom, t, cfg_end, lifted, catalog,
+                            allow_runtime_base=True, tail_bra_as_call=True,
+                            allow_boundary_entry=True, data_tail_ok=True)
+        elif isinstance(_rej, tuple) and _rej[0] == 'delay_slot_ctrl':
+            # (round 6) a delayed branch (usually the final rts) whose delay
+            # slot sits exactly at the span end (e.g. 0x61398: rts@0x61456,
+            # delay slot 0x61458 == catalog end).  sh2emu executes the slot
+            # before returning, so extend 2 bytes past the catalog end to
+            # consume it and rebuild.
+            cfg_end = min(_callee_walk_end(rom, t, end_c) + 4, end_c + 2)
+            res = build_cfg(rom, t, cfg_end, lifted, catalog,
+                            allow_runtime_base=True, tail_bra_as_call=True,
+                            allow_boundary_entry=True, data_tail_ok=True)
     if res.reject is not None:
         return None, ('callee-cfg', t, res.reject)
     if not res.records:
@@ -2814,6 +2892,22 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
     for t in callees:
         w, reason = _walk_callee(rom, t, catalog, bounds)
         if w is None:
+            # (round 6) a callee whose first word is non-decodable is DATA, not
+            # a function (e.g. 0x4B89C's post-rts dead edge to the zero-filled
+            # table word 0x4BAF2): the mirror never reaches it (post-rts), so
+            # drop it — the call record stays and the mirror RETs early there,
+            # matching sh2emu's unreachable-edge behaviour.  Only tolerate a
+            # walk FAILURE this way; a decodable callee still hard-fails
+            # (previous rounds' behaviour).
+            if t + 1 < len(rom):
+                tw = (rom[t] << 8) | rom[t + 1]
+                tcode = (ops.translate(tw, t, rom) is not None or
+                         ops.branch_info(tw) is not None or
+                         gcl.is_call_op(tw) or gcl._mem_shape(tw) is not None or
+                         (tw >> 12 in (0xD, 0x9) or (tw & 0xFF00) == 0xC700) or
+                         ops.is_fpu_op(tw) or (tw & 0xF0FF) == 0x401B)
+                if not tcode:
+                    continue
             return False, ('callee-walk', t, reason)
         callee_records.extend(w)
     # target INCLUSION: runtime_dispatch table entries are additional inlined
