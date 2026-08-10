@@ -760,3 +760,63 @@ recipe di §10/§12.6 come unico "percorso C validato".
    e i riferimenti (pulse_r4, shift_loop, obd_m1, atu_spec).
 
 Tutto in `reconstructed/experiments/match/`; nessun file fuori modificato. **Filone chiuso.**
+
+---
+
+## 16. COMPILER IDENTIFICATION & BYTE-PERFECT LIMITS
+
+Data: 2026-08-10 · follow-up del filone §10–§15: identificazione definitiva del compilatore originale e
+misurazione del tetto del byte-perfect C. Dettagli in `byteperfect/` (SUMMARY.md + fonti C + recipe).
+
+### 16.1 Compilatore originale CONFERMATO: GCC 3.4.6 sh-elf
+
+Evidenza: **7 funzioni BYTE-IDENTICAL** (100% dei byte della finestra ROM) riprodotte con
+
+```
+/home/davide/gcc346/bin/sh-elf-gcc -nostdinc -I /tmp/stubinc -S <src>.c -m2e -O1 -fomit-frame-pointer
+tools/toolchain/usr/bin/sh-elf-as -isa=sh2e
+sh-elf-objcopy -O binary --only-section=.text
+```
+
+| addr    | funzione                |
+|---------|-------------------------|
+| 0x2420  | encode (math_complement_2420) |
+| 0x2430  | complement_shift_u16    |
+| 0x2460  | add16bitSaturate        |
+| 0x2034  | checksum_complement_add |
+| 0x2044  | diag_invertandreturn    |
+| 0x3EE58 | updateMemoryAtAddress_8bit  |
+| 0x3EE68 | updateMemoryAtAddress_16bit |
+
+Sorgenti + SUMMARY in `byteperfect/` (`c_src/f_*.c`, `expected_gcc_sh2e/`, `SUMMARY.md`). I 3 match
+già noti (0x2420/0x2430/0x2460, §10) sono confermati; 0x2034/0x2044 e 0x3EE58/0x3EE68 sono nuovi e
+coprono memcmp-style/load-complement e store-variant dei sibling noti.
+
+### 16.2 Renesas SHC RIFIUTATO
+
+- **V.9.04.03** (scaricato da renesas.com con sessione autenticata, eseguito sotto wine): byte match
+  **0% / 0% / 33.3%** sui 3 candidati noti, su ~15 combinazioni di flag → nessuna combinazione regge.
+- La precedente attribuzione fingerprint (`addv`/`tst`/`movt` → SHC) era **SBAGLIATA**: GCC 3.4.x
+  emette anch'esso quelle istruzioni.
+- **V.9.03.02 irreperibile**: wayback con solo snapshot 302-only, mirror morti.
+
+### 16.3 Misura scaling (tier strict-pure, 24 righe)
+
+- **7 BYTE-IDENTICAL** totali.
+- **0 NEAR ≥50%**.
+- **14 FAR** (funzioni con pointer-table / costanti in pool: le rilocazioni di pool non sono
+  riproducibili in compilazione single-file).
+- Ceiling estrapolato: **~5–20 funzioni su 3491**.
+- Divergenze strutturali irraggiungibili dal C: polarità di `bf`/`bt`, handling di `movt`,
+  `tst #imm`, allocazione del registro di ritorno.
+
+### 16.4 Il C comportamentale (state-machine ST) non può eguagliare i byte
+
+Divergenze strutturali (recoding degli stati SSM + store/reload): misurato **1.9–12.5%** sui campioni.
+
+### 16.5 Conclusione
+
+- Il byte-perfect C è **limitato a piccole funzioni leaf di pura matematica**; il percorso RE
+  principale resta **C comportamentale + ricostruzione assembly** (come concluso in §15).
+- Le **7 sorgenti byte-perfect sono il set verificato** (`byteperfect/`); non estendibile oltre senza
+  riprodurre pool/rilocazioni multi-file.
