@@ -40,7 +40,7 @@ addr,status,reason
 4770,lifted,walk
 4964,lifted,walk
 4984,lifted,cfg
-5140,stubbed,"callee-cfg 5140 ('midfunc_nested', 5140)"
+5140,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 5452,lifted,cfg
 5542,lifted,cfg
 5668,lifted,cfg
@@ -385,7 +385,7 @@ addr,status,reason
 27106,lifted,walk
 27176,skip,already-lib
 27212,skip,already-lib
-27280,stubbed,"callee-cfg 27280 ('midfunc_nested', 27280)"
+27280,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 27488,lifted,walk
 27540,lifted,cfg
 27724,lifted,cfg
@@ -803,9 +803,9 @@ addr,status,reason
 74112,skip,already-lib
 74130,lifted,walk
 74148,lifted,cfg
-74294,stubbed,"callee-cfg 74294 ('midfunc_nested', 74294)"
+74294,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 74388,lifted,cfg
-74534,stubbed,"callee-cfg 74534 ('midfunc_nested', 74534)"
+74534,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 74562,lifted,walk
 74578,lifted,walk
 74594,lifted,cfg
@@ -1150,7 +1150,7 @@ addr,status,reason
 140534,skip,already-lib
 140594,lifted,cfg
 140672,lifted,cfg
-140856,stubbed,"callee-cfg 140856 ('midfunc_nested', 140856)"
+140856,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 140874,lifted,cfg
 141046,lifted,cfg
 141416,lifted,cfg
@@ -1663,7 +1663,7 @@ addr,status,reason
 209508,skip,already-lib
 209756,skip,already-lib
 209766,lifted,cfg
-209862,stubbed,"callee-cfg 209862 ('midfunc_nested', 209862)"
+209862,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 210016,lifted,cfg
 210596,lifted,cfg
 211062,lifted,cfg
@@ -2006,7 +2006,7 @@ addr,status,reason
 269192,lifted,cfg
 269276,lifted,cfg
 269554,lifted,cfg
-269662,stubbed,"callee-cfg 269662 ('midfunc_nested', 269662)"
+269662,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 269692,lifted,cfg
 269740,lifted,cfg
 270022,lifted,cfg
@@ -2096,8 +2096,8 @@ addr,status,reason
 280990,skip,already-lib
 280998,skip,already-lib
 281062,lifted,cfg
-281180,stubbed,"callee-cfg 281180 ('midfunc_nested', 281180)"
-281264,stubbed,"callee-cfg 281264 ('midfunc_nested', 281264)"
+281180,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
+281264,merged,round 6: midfunc entry merged into parent (parent continuation); lib emitted; emu raises NotImplementedError at entry (garbage pr) -> test skipped=1
 281464,lifted,walk
 281506,lifted,walk
 281526,skip,already-lib
@@ -2307,7 +2307,7 @@ addr,status,reason
 308744,lifted,cfg
 309118,lifted,cfg
 309396,skip,already-lib
-309404,stubbed,"callee-cfg 309404 ('dynbranch_unresolved', 309798)"
+309404,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 310920,lifted,cfg
 311228,lifted,cfg
 311344,lifted,walk
@@ -2331,7 +2331,7 @@ addr,status,reason
 312360,lifted,cfg
 312460,lifted,cfg
 312528,lifted,cfg
-312602,stubbed,"callee-cfg 312602 ('midfunc_nested', 312602)"
+312602,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 312700,lifted,cfg
 312770,lifted,walk
 312800,lifted,cfg
@@ -2626,7 +2626,7 @@ addr,status,reason
 343972,skip,already-lib
 344010,lifted,walk
 344012,skip,already-lib
-344064,stubbed,"callee-cfg 344064 ('midfunc_nested', 344064)"
+344064,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 344072,skip,already-lib
 344158,lifted,walk
 344264,lifted,cfg
@@ -2834,7 +2834,7 @@ addr,status,reason
 355004,lifted,walk
 355020,lifted,walk
 355038,lifted,cfg
-355102,stubbed,"callee-cfg 355102 ('midfunc_nested', 355102)"
+355102,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 355108,lifted,cfg
 355172,lifted,cfg
 355258,lifted,walk
@@ -2843,7 +2843,7 @@ addr,status,reason
 355282,lifted,walk
 355298,lifted,walk
 355316,lifted,cfg
-355408,stubbed,"callee-cfg 355408 ('midfunc_nested', 355408)"
+355408,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 355414,lifted,cfg
 355472,lifted,cfg
 355576,lifted,walk
@@ -2852,18 +2852,18 @@ addr,status,reason
 355600,lifted,walk
 355616,lifted,walk
 355634,lifted,cfg
-355726,stubbed,"callee-cfg 355726 ('midfunc_nested', 355726)"
+355726,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 355732,lifted,cfg
 355800,lifted,cfg
 355944,lifted,walk
 355962,lifted,cfg
-356054,stubbed,"callee-cfg 356054 ('midfunc_nested', 356054)"
+356054,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 356060,lifted,cfg
 356128,lifted,cfg
 356244,lifted,walk
 356260,lifted,walk
 356278,lifted,cfg
-356370,stubbed,"callee-cfg 356370 ('midfunc_nested', 356370)"
+356370,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 356376,lifted,cfg
 356440,lifted,cfg
 356532,lifted,walk
@@ -2872,7 +2872,7 @@ addr,status,reason
 356556,lifted,walk
 356572,lifted,walk
 356590,lifted,cfg
-356654,stubbed,"callee-cfg 356654 ('midfunc_nested', 356654)"
+356654,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 356660,lifted,cfg
 356720,lifted,cfg
 356826,lifted,walk
@@ -2909,7 +2909,7 @@ addr,status,reason
 357870,lifted,walk
 357886,lifted,walk
 357988,lifted,cfg
-358080,stubbed,"callee-cfg 358080 ('midfunc_nested', 358080)"
+358080,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 358086,lifted,cfg
 358092,lifted,cfg
 358174,lifted,walk
@@ -3230,7 +3230,7 @@ addr,status,reason
 397796,skip,already-lib
 397832,skip,already-lib
 397868,lifted,cfg
-398232,stubbed,"callee-cfg 398232 ('delay_slot_ctrl', 398422)"
+398232,lifted,"round 6: midfunc entry merged into parent; PASS 1/1 (diff-test, cases=1)"
 398424,lifted,cfg
 398592,skip,already-lib
 398736,lifted,walk
