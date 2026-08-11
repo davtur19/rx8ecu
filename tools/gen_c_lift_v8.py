@@ -2715,7 +2715,10 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                           ops.branch_info(_tw) is not None or
                           gcl.is_call_op(_tw) or gcl._mem_shape(_tw) is not None or
                           (_tw >> 12 in (0xD, 0x9) or (_tw & 0xFF00) == 0xC700) or
-                          ops.is_fpu_op(_tw) or (_tw & 0xF0FF) == 0x401B)
+                          ops.is_fpu_op(_tw) or (_tw & 0xF0FF) == 0x401B or
+                          (_tw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
+                                             0x4016, 0x4026, 0x4003, 0x4013,
+                                             0x4007, 0x4017))
             if not (t <= tgt < walk_end):
                 if tgt in pool or (tgt in catalog and catalog.get(tgt) is None) \
                         or _tcode is False:
@@ -3125,7 +3128,10 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
                          ops.branch_info(tw) is not None or
                          gcl.is_call_op(tw) or gcl._mem_shape(tw) is not None or
                          (tw >> 12 in (0xD, 0x9) or (tw & 0xFF00) == 0xC700) or
-                         ops.is_fpu_op(tw) or (tw & 0xF0FF) == 0x401B)
+                         ops.is_fpu_op(tw) or (tw & 0xF0FF) == 0x401B or
+                         (tw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
+                                           0x4016, 0x4026, 0x4003, 0x4013,
+                                           0x4007, 0x4017))
                 if not tcode:
                     continue
             return False, ('callee-walk', t, reason)
