@@ -24481,7 +24481,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x054cd0,0x054CE6,obd_pid_emit_535cc,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x054ce6,,Mode22GetRPM,equinox311,GHIDRA-EQX,,,ghidra-hand,Rev Limit
 60E0FC00,0x054cfc,0x054D12,obd_pid_emit_53600,ghidra-auto,,,,ghidra-auto,OBD / UDS
-60E0FC00,0x054d12,0x054D14,uds_mode22_get_ign_lead_advance,ghidra-auto,,,,ghidra-auto,OBD / UDS
+60E0FC00,0x054d12,0x054D28,uds_mode22_get_ign_lead_advance,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x054d14,0x054D28,obd_pid_emit_53614,ghidra-auto,,FUN_00054d14,,ghidra-auto,OBD / UDS
 60E0FC00,0x054d28,0x054D3E,obd_pid_emit_53678,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x054d3e,0x054D54,obd_pid_emit_5368e,ghidra-auto,,,,ghidra-auto,OBD / UDS
