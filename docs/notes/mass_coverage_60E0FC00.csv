@@ -1,5 +1,5 @@
 addr,status,reason
-64,stubbed,"callee-cfg 64 ('unmapped', 70)"
+64,lifted,"callee-cfg 64 ('unmapped', 70)"
 76,lifted,walk (proto-run)
 100,lifted,walk (proto-run)
 124,lifted,walk (proto-run)
@@ -26,7 +26,7 @@ addr,status,reason
 2766,skip,already-lib
 4104,lifted,cfg
 4152,skip,already-lib
-4240,stubbed,"callee-cfg 4240 ('unmapped', 4246)"
+4240,lifted,"callee-cfg 4240 ('unmapped', 4246)"
 4252,lifted,walk
 4350,skip,already-lib
 4432,lifted,walk
@@ -130,7 +130,7 @@ addr,status,reason
 12832,lifted,walk
 12856,lifted,cfg
 12928,lifted,cfg
-13238,stubbed,"callee-cfg 13238 ('unmapped', 13240)"
+13238,lifted,"callee-cfg 13238 ('unmapped', 13240)"
 13456,lifted,cfg
 13704,lifted,walk
 13772,skip,already-lib
@@ -175,7 +175,7 @@ addr,status,reason
 18042,lifted,walk
 18124,skip,already-lib
 18240,lifted,cfg
-18450,stubbed,"callee-cfg 18450 ('midfunc_nop', 18450)"
+18450,lifted,"callee-cfg 18450 ('midfunc_nop', 18450)"
 18460,lifted,cfg
 18632,lifted,cfg
 19300,lifted,cfg
@@ -725,14 +725,14 @@ addr,status,reason
 64400,lifted,cfg
 65106,lifted,cfg
 65208,lifted,cfg
-65279,stubbed,"callee-cfg 65279 ('unmapped', 65285)"
+65279,bogus,"odd addr, mid-word"
 65288,lifted,walk
 65294,lifted,walk
 65300,lifted,cfg
 65334,lifted,cfg
 65436,lifted,cfg
 65498,lifted,cfg
-65793,stubbed,"callee-cfg 65793 ('unmapped', 65793)"
+65793,bogus,"odd addr, mid-word"
 65908,lifted,cfg
 65968,lifted,cfg
 66060,lifted,walk
@@ -3486,5 +3486,5 @@ addr,status,reason
 423538,lifted,cfg
 423580,lifted,cfg
 423726,lifted,cfg
-487623,stubbed,"callee-cfg 487623 ('unmapped', 487623)"
-487629,stubbed,callee-no-span
+487623,data,"f32 const table, matches FUNCTION_RENAMES not_code:data"
+487629,data,"f32 const table, matches FUNCTION_RENAMES not_code:data"
