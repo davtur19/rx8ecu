@@ -23248,7 +23248,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x02ba58,0x02BA68,can_signal_counters_init_1f,ghidra-auto,,FUN_0002ba58,,ghidra-auto,CAN Bus
 60E0FC00,0x02ba68,0x02BB0C,can212RXSignalValidity??,ghidra-hand,,,,equinox311:can212RXSignalValidity??|ghidra-hand,CAN Bus
 60E0FC00,0x02bb0c,0x02BBD4,calculateEngineMaxTorqueAllowed_??,ghidra-hand,,,,equinox311:calculateEngineMaxTorqueAllowed_??|ghidra-hand,Throttle & Torque
-60E0FC00,0x02bbd4,0x02BBEA,torque_limit_cal_byte_scaled_bc2c,ghidra-auto,,,,ghidra-auto,Throttle & Torque
+60E0FC00,0x02bbd4,0x02BDF8,torque_limit_cal_byte_scaled_bc2c,ghidra-auto,,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x02bbea,0x02BDF8,dsc_vehicle_state_calc,ghidra-auto,,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x02bdf8,0x02BE16,FUN_0002bdf8,ghidra-auto,,flag_bc03_bit3_bc12,,ghidra-auto,CAN Bus
 60E0FC00,0x02be16,0x02BE5A,DSC_checkIfMode_x80,equinox311,GHIDRA-EQX,,,ghidra-hand,Throttle & Torque
@@ -24947,7 +24947,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x05e72c,,updateFaultStatus,equinox311,GHIDRA-EQX,updateFaultStatus,,ghidra-hand,Faults & DTC
 60E0FC00,0x05e7fa,0x05E84C,init_clear_bufs_d1d6_d26a,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x05e84c,0x05E918,checkAndSetFault?,ghidra-hand,,,,equinox311:checkAndSetFault?|ghidra-hand,Faults & DTC
-60E0FC00,0x05e918,,returnCurrentFaultStatus,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC
+60E0FC00,0x05e918,0x05E926,returnCurrentFaultStatus,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC
 60E0FC00,0x05e93c,0x05EA80,goesThroughFaultArrays?,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Faults & DTC
 60E0FC00,0x05e954,,getFaultRelatedInfo??,equinox311,GHIDRA-EQX-UNCERTAIN,,,ghidra-auto,Faults & DTC
 60E0FC00,0x05ea80,0x05EAA2,callsFaultRelatedFunction,equinox311,GHIDRA-EQX,,,ghidra-auto,RTOS
@@ -56955,7 +56955,6 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00cf96,0x00D13C,FUN_00cf96,derived,,,,,
 60E0FC00,0xd2e6,0xd2ec,gap_fill_d2e6,gap-fill,,,,,
 60E0FC00,0x22ea2,0x22ea6,gap_fill_22ea2,gap-fill,,,,,
-60E0FC00,0x2bbe8,0x2bbec,gap_fill_2bbe8,gap-fill,LOWCONF,,,,
 60E0FC00,0x308ea,0x308ee,gap_fill_308ea,gap-fill,LOWCONF,,,,
 60E0FC00,0x368de,0x3697c,gap_fill_368de,gap-fill,,,,,
 60E0FC00,0x5187a,0x518a4,gap_fill_5187a,gap-fill,,,,,
