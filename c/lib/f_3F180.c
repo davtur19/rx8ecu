@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -23,6 +23,7 @@ void f_3F180(ST *s)
     /* 0x03F186: sts.l pr,@-r15 */
     local_3f8 = s->pr;
     /* 0x03F188: jsr @r3 */
+    /* 0x03F18A: op 0xE400 */
     s->pr = 0x0003F18C;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_70AC(s);
@@ -38,9 +39,6 @@ void f_3F180(ST *s)
     /* 0x03F196: op 0x60E3 */
     s->r[0] = s->r[14];
     goto L_3F19A;
-    L_3F198: ;
-    /* 0x03F198: op 0xE000 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
     L_3F19A: ;
     /* 0x03F19A: op 0x8801 */
     s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x01) ? 1u : 0u;
@@ -54,17 +52,11 @@ void f_3F180(ST *s)
     /* 0x03F1A4: mov.b r14,@r3 */
     *(volatile uint8_t*)s->r[3] = s->r[14]; /* RAM 0xFFFFC6AC */
     goto L_3F1AC;
-    L_3F1A6: ;
-    /* 0x03F1A6: op 0xE100 */
-    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x03F1A8: op 0x9212 */
-    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000C6ACu;
-    /* 0x03F1AA: mov.b r1,@r2 */
-    *(volatile uint8_t*)0xFFFFC6AC = s->r[1]; /* RAM 0xFFFFC6AC */
     L_3F1AC: ;
     /* 0x03F1AC: op 0xD309 */
     s->r[3] = 0x000070ACu;
     /* 0x03F1AE: jsr @r3 */
+    /* 0x03F1B0: op 0x0009 */
     s->pr = 0x0003F1B2;
     
     f_70AC(s);
@@ -86,13 +78,6 @@ void f_3F180(ST *s)
     /* 0x03F1C2: mov.b r14,@r3 */
     *(volatile uint8_t*)s->r[3] = s->r[14]; /* RAM 0xFFFFC6AD */
     goto L_3F1CA;
-    L_3F1C4: ;
-    /* 0x03F1C4: op 0x9205 */
-    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000C6ADu;
-    /* 0x03F1C6: op 0xE100 */
-    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x03F1C8: mov.b r1,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[1]; /* RAM 0xFFFFC6AD */
     L_3F1CA: ;
     /* 0x03F1CA: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -100,5 +85,22 @@ void f_3F180(ST *s)
     /* 0x03F1CE: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_3F1C4: ;
+    /* 0x03F1C4: op 0x9205 */
+    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000C6ADu;
+    /* 0x03F1C6: op 0xE100 */
+    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x03F1C8: mov.b r1,@r2 */
+    *(volatile uint8_t*)0xFFFFC6AD = s->r[1]; /* RAM 0xFFFFC6AD */
+    L_3F1A6: ;
+    /* 0x03F1A6: op 0xE100 */
+    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x03F1A8: op 0x9212 */
+    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000C6ACu;
+    /* 0x03F1AA: mov.b r1,@r2 */
+    *(volatile uint8_t*)s->r[2] = s->r[1]; /* RAM 0xFFFFC6AC */
+    L_3F198: ;
+    /* 0x03F198: op 0xE000 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
     return; /* fallthrough */
 }

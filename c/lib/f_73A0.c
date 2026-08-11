@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -36,7 +36,7 @@ void f_73A0(ST *s)
     /* 0x0073AC: op 0xD119 */
     s->r[1] = 0x00002510u;
     /* 0x0073AE: mov.w r2,@r15 */
-    local_3f4 = s->r[2];
+    local_3f4 = s->r[2] & 0xFFFF;
     /* 0x0073B0: op 0xD217 */
     s->r[2] = 0x0006D456u;
     /* 0x0073B2: mov.w @r2,r6 */
@@ -50,6 +50,7 @@ void f_73A0(ST *s)
     /* 0x0073B8: mov.w @r15,r4 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)(local_3f4 & 0xFFFFu);
     /* 0x0073BA: jsr @r1 */
+    /* 0x0073BC: op 0x644D */
     s->pr = 0x000073BE;
     s->r[4] = s->r[4] & 0xFFFFu;
     f_2510(s);
@@ -64,6 +65,7 @@ void f_73A0(ST *s)
     /* 0x0073C6: fmov.s @r0,fr4 */
     fr4 = *(volatile uint32_t*)0x00007418; /* ROM */
     /* 0x0073C8: jsr @r3 */
+    /* 0x0073CA: mov.w @r14,r4 */
     s->pr = 0x000073CC;
     uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFF9F76; /* RAM 0xFFFF9F76 */
     s->r[4] = t8;
@@ -73,6 +75,7 @@ void f_73A0(ST *s)
     /* 0x0073CE: op 0xD215 */
     s->r[2] = 0x00002068u;
     /* 0x0073D0: jsr @r2 */
+    /* 0x0073D2: fmov fr0,fr4 */
     s->pr = 0x000073D4;
     fr4 = fr0;
     f_2068(s);
@@ -100,6 +103,20 @@ void f_73A0(ST *s)
     /* 0x0073E8: op 0xE101 */
     s->r[1] = (uint32_t)(int32_t)(int8_t)0x01;
     goto L_73F8;
+    L_73F8: ;
+    /* 0x0073F8: bra 0x007400 */
+    /* 0x0073FA: mov.b r1,@r4 */
+    *(volatile uint8_t*)s->r[4] = s->r[1]; /* RAM 0xFFFF9F74 */
+    goto L_7400;
+    L_7400: ;
+    /* 0x007400: op 0x7F04 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
+    /* 0x007402: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x007404: rts */
+    /* 0x007406: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_73EA: ;
     /* 0x0073EA: mov.w @r14,r2 */
     uint32_t t14 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[14]; /* RAM 0xFFFF9F76 */
@@ -117,24 +134,10 @@ void f_73A0(ST *s)
     if (s->T) goto L_73FC;
     /* 0x0073F6: op 0xE102 */
     s->r[1] = (uint32_t)(int32_t)(int8_t)0x02;
-    L_73F8: ;
-    /* 0x0073F8: bra 0x007400 */
-    /* 0x0073FA: mov.b r1,@r4 */
-    *(volatile uint8_t*)s->r[4] = s->r[1]; /* RAM 0xFFFF9F74 */
-    goto L_7400;
     L_73FC: ;
     /* 0x0073FC: op 0xE200 */
     s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
     /* 0x0073FE: mov.b r2,@r4 */
     *(volatile uint8_t*)s->r[4] = s->r[2]; /* RAM 0xFFFF9F74 */
-    L_7400: ;
-    /* 0x007400: op 0x7F04 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
-    /* 0x007402: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x007404: rts */
-    /* 0x007406: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

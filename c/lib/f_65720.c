@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -16,6 +16,7 @@ void f_65720(ST *s)
     uint32_t local_3f4 = 0;
     uint32_t local_3f8 = 0;
     uint32_t local_3fc = 0;
+    uint32_t local_400 = 0;
     /* 0x065720: sts.l pr,@-r15 */
     local_3fc = s->pr;
     /* 0x065722: op 0x6063 */
@@ -30,13 +31,14 @@ void f_65720(ST *s)
     s->T = ((s->r[4] & s->r[4]) == 0u) ? 1u : 0u;
     /* 0x06572C: bf.s 0x06573C */
     /* 0x06572E: mov.w r0,@(0x4,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFFFF;
     if (!s->T) goto L_6573C;
     /* 0x065730: mov.w @(0x4,r15),r0 */
     s->r[0] = (uint32_t)(int32_t)(int16_t)(local_3f8 & 0xFFFFu);
     /* 0x065732: op 0x6503 */
     s->r[5] = s->r[0];
     /* 0x065734: bsr 0x6574A */
+    /* 0x065736: mov.l @r15,r4 */
     s->pr = 0x00065738;
     s->r[4] = local_3f4;
     f_6574A(s);
@@ -44,13 +46,6 @@ void f_65720(ST *s)
     /* 0x06573A: op 0x0009 */
     
     goto L_65742;
-    L_6573C: ;
-    /* 0x06573C: mov.l @r15,r4 */
-    s->r[4] = local_3f4;
-    /* 0x06573E: bsr 0x657F6 */
-    s->pr = 0x00065742;
-    /* delay slot 0x6440 — opaque */
-    f_657F6(s);
     L_65742: ;
     /* 0x065742: op 0x7F08 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x08;
@@ -60,5 +55,14 @@ void f_65720(ST *s)
     /* 0x065748: op 0x0009 */
     
     return;
+    L_6573C: ;
+    /* 0x06573C: mov.l @r15,r4 */
+    s->r[4] = local_400;
+    /* 0x06573E: bsr 0x657F6 */
+    /* 0x065740: mov.b @r4,r4 */
+    s->pr = 0x00065742;
+    uint32_t t2 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[4];
+    s->r[4] = t2;
+    f_657F6(s);
     return; /* fallthrough */
 }

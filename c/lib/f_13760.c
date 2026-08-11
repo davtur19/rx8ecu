@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -175,6 +175,7 @@ void f_13760(ST *s)
     /* 0x0137F2: op 0xE501 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     /* 0x0137F4: jsr @r3 */
+    /* 0x0137F6: mov.w @r14,r4 */
     s->pr = 0x000137F8;
     uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFA748; /* RAM 0xFFFFA748 */
     s->r[4] = t8;
@@ -183,13 +184,6 @@ void f_13760(ST *s)
     /* 0x0137FA: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFA748 = s->r[0]; /* RAM 0xFFFFA748 */
     goto L_13802;
-    L_137FC: ;
-    /* 0x0137FC: op 0xE400 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x0137FE: mov.b r4,@r5 */
-    *(volatile uint8_t*)s->r[5] = s->r[4]; /* ROM */
-    /* 0x013800: mov.w r4,@r14 */
-    *(volatile uint16_t*)0xFFFFA748 = s->r[4]; /* RAM 0xFFFFA748 */
     L_13802: ;
     /* 0x013802: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -197,5 +191,12 @@ void f_13760(ST *s)
     /* 0x013806: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_137FC: ;
+    /* 0x0137FC: op 0xE400 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x0137FE: mov.b r4,@r5 */
+    *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFA73A */
+    /* 0x013800: mov.w r4,@r14 */
+    *(volatile uint16_t*)0xFFFFA748 = s->r[4]; /* RAM 0xFFFFA748 */
     return; /* fallthrough */
 }

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -40,6 +40,7 @@ void f_1654C(ST *s)
     /* 0x01655E: op 0xD110 */
     s->r[1] = 0x00002068u;
     /* 0x016560: jsr @r1 */
+    /* 0x016562: op 0x0009 */
     s->pr = 0x00016564;
     
     f_2068(s);
@@ -47,17 +48,6 @@ void f_1654C(ST *s)
     /* 0x016566: op 0x0009 */
     
     goto L_16572;
-    L_16568: ;
-    /* 0x016568: op 0x9114 */
-    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000AA08u;
-    /* 0x01656A: op 0xD40E */
-    s->r[4] = 0x00067D04u;
-    /* 0x01656C: op 0xD20E */
-    s->r[2] = 0x000020DCu;
-    /* 0x01656E: jsr @r2 */
-    s->pr = 0x00016572;
-    fr5 = *(volatile uint32_t*)0xFFFFAA08; /* RAM 0xFFFFAA08 */
-    f_20DC(s);
     L_16572: ;
     /* 0x016572: fmov fr0,fr5 */
     fr5 = fr0;
@@ -90,5 +80,17 @@ void f_1654C(ST *s)
     /* 0x01658E: fmov.s fr3,@r5 */
     *(volatile uint32_t*)(s->r[5] + 0) = fr3;
     return;
+    L_16568: ;
+    /* 0x016568: op 0x9114 */
+    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000AA08u;
+    /* 0x01656A: op 0xD40E */
+    s->r[4] = 0x00067D04u;
+    /* 0x01656C: op 0xD20E */
+    s->r[2] = 0x000020DCu;
+    /* 0x01656E: jsr @r2 */
+    /* 0x016570: fmov.s @r1,fr5 */
+    s->pr = 0x00016572;
+    fr5 = *(volatile uint32_t*)0xFFFFAA08; /* RAM 0xFFFFAA08 */
+    f_20DC(s);
     return; /* fallthrough */
 }

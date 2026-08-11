@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -72,6 +72,7 @@ void f_3E5B0(ST *s)
     /* 0x03E5C0: op 0x9C7A */
     s->r[12] = (uint32_t)(int32_t)(int16_t)0x0000C639u;
     /* 0x03E5C2: jsr @r3 */
+    /* 0x03E5C4: mov.b r13,@r12 */
     s->pr = 0x0003E5C6;
     *(volatile uint8_t*)0xFFFFC639 = s->r[13]; /* RAM 0xFFFFC639 */
     f_3E2DA(s);
@@ -80,6 +81,7 @@ void f_3E5B0(ST *s)
     /* 0x03E5C8: op 0xD23E */
     s->r[2] = 0x0003E11Cu;
     /* 0x03E5CA: jsr @r2 */
+    /* 0x03E5CC: op 0x65D3 */
     s->pr = 0x0003E5CE;
     s->r[5] = s->r[13];
     f_3E11C(s);
@@ -134,6 +136,7 @@ void f_3E5B0(ST *s)
     /* 0x03E772: op 0xD30D */
     s->r[3] = 0x0003E208u;
     /* 0x03E774: jsr @r3 */
+    /* 0x03E776: op 0xE500 */
     s->pr = 0x0003E778;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E208(s);
@@ -154,204 +157,238 @@ void f_3E5B0(ST *s)
     /* 0x03E5DC: op 0xD13B */
     s->r[1] = 0x0005EBD0u;
     /* 0x03E5DE: jsr @r1 */
+    /* 0x03E5E0: op 0x0009 */
     s->pr = 0x0003E5E2;
     
     f_5EBD0(s);
     /* 0x03E5E2: op 0xD23B */
     s->r[2] = 0x00025C90u;
     /* 0x03E5E4: jsr @r2 */
+    /* 0x03E5E6: op 0x0009 */
     s->pr = 0x0003E5E8;
     
     f_25C90(s);
     /* 0x03E5E8: op 0xD13A */
     s->r[1] = 0x0002AB2Eu;
     /* 0x03E5EA: jsr @r1 */
+    /* 0x03E5EC: op 0x0009 */
     s->pr = 0x0003E5EE;
     
     f_2AB2E(s);
     /* 0x03E5EE: op 0xD23A */
     s->r[2] = 0x0001AB0Au;
     /* 0x03E5F0: jsr @r2 */
+    /* 0x03E5F2: op 0x0009 */
     s->pr = 0x0003E5F4;
     
     f_1AB0A(s);
     /* 0x03E5F4: op 0xD139 */
     s->r[1] = 0x0002EC1Au;
     /* 0x03E5F6: jsr @r1 */
+    /* 0x03E5F8: op 0x0009 */
     s->pr = 0x0003E5FA;
     
     f_2EC1A(s);
     /* 0x03E5FA: op 0xD239 */
     s->r[2] = 0x0003A384u;
     /* 0x03E5FC: jsr @r2 */
+    /* 0x03E5FE: op 0x0009 */
     s->pr = 0x0003E600;
     
     f_3A384(s);
     /* 0x03E600: op 0xD138 */
     s->r[1] = 0x00021E08u;
     /* 0x03E602: jsr @r1 */
+    /* 0x03E604: op 0x0009 */
     s->pr = 0x0003E606;
     
     f_21E08(s);
     /* 0x03E606: op 0xD238 */
     s->r[2] = 0x0001461Au;
     /* 0x03E608: jsr @r2 */
+    /* 0x03E60A: op 0x0009 */
     s->pr = 0x0003E60C;
     
     f_1461A(s);
     /* 0x03E60C: op 0xD137 */
     s->r[1] = 0x00016678u;
     /* 0x03E60E: jsr @r1 */
+    /* 0x03E610: op 0x0009 */
     s->pr = 0x0003E612;
     
     f_16678(s);
     /* 0x03E612: op 0xD237 */
     s->r[2] = 0x00017AFAu;
     /* 0x03E614: jsr @r2 */
+    /* 0x03E616: op 0x0009 */
     s->pr = 0x0003E618;
     
     f_17AFA(s);
     /* 0x03E618: op 0xD136 */
     s->r[1] = 0x0003F108u;
     /* 0x03E61A: jsr @r1 */
+    /* 0x03E61C: op 0x0009 */
     s->pr = 0x0003E61E;
     
     f_3F108(s);
     /* 0x03E61E: op 0xD236 */
     s->r[2] = 0x0002391Cu;
     /* 0x03E620: jsr @r2 */
+    /* 0x03E622: op 0x0009 */
     s->pr = 0x0003E624;
     
     f_2391C(s);
     /* 0x03E624: op 0xD135 */
     s->r[1] = 0x0002931Cu;
     /* 0x03E626: jsr @r1 */
+    /* 0x03E628: op 0x0009 */
     s->pr = 0x0003E62A;
     
     f_2931C(s);
     /* 0x03E62A: op 0xD235 */
     s->r[2] = 0x0003514Eu;
     /* 0x03E62C: jsr @r2 */
+    /* 0x03E62E: op 0x0009 */
     s->pr = 0x0003E630;
     
     f_3514E(s);
     /* 0x03E630: op 0xD134 */
     s->r[1] = 0x00058A6Eu;
     /* 0x03E632: jsr @r1 */
+    /* 0x03E634: op 0x0009 */
     s->pr = 0x0003E636;
     
     f_58A6E(s);
     /* 0x03E636: op 0xD234 */
     s->r[2] = 0x00058B7Eu;
     /* 0x03E638: jsr @r2 */
+    /* 0x03E63A: op 0x0009 */
     s->pr = 0x0003E63C;
     
     f_58B7E(s);
     /* 0x03E63C: op 0xD133 */
     s->r[1] = 0x00058DF2u;
     /* 0x03E63E: jsr @r1 */
+    /* 0x03E640: op 0x0009 */
     s->pr = 0x0003E642;
     
     f_58DF2(s);
     /* 0x03E642: op 0xD233 */
     s->r[2] = 0x0005CB04u;
     /* 0x03E644: jsr @r2 */
+    /* 0x03E646: op 0x0009 */
     s->pr = 0x0003E648;
     
     f_5CB04(s);
     /* 0x03E648: op 0xD132 */
     s->r[1] = 0x00056726u;
     /* 0x03E64A: jsr @r1 */
+    /* 0x03E64C: op 0x0009 */
     s->pr = 0x0003E64E;
     
     f_56726(s);
     /* 0x03E64E: op 0xD232 */
     s->r[2] = 0x000567B0u;
     /* 0x03E650: jsr @r2 */
+    /* 0x03E652: op 0x0009 */
     s->pr = 0x0003E654;
     
     f_567B0(s);
     /* 0x03E654: op 0xD131 */
     s->r[1] = 0x000568DCu;
     /* 0x03E656: jsr @r1 */
+    /* 0x03E658: op 0x0009 */
     s->pr = 0x0003E65A;
     
     f_568DC(s);
     /* 0x03E65A: op 0xD231 */
     s->r[2] = 0x00056982u;
     /* 0x03E65C: jsr @r2 */
+    /* 0x03E65E: op 0x0009 */
     s->pr = 0x0003E660;
     
     f_56982(s);
     /* 0x03E660: op 0xD130 */
     s->r[1] = 0x000569F0u;
     /* 0x03E662: jsr @r1 */
+    /* 0x03E664: op 0x0009 */
     s->pr = 0x0003E666;
     
     f_569F0(s);
     /* 0x03E666: op 0xD230 */
     s->r[2] = 0x00056B1Eu;
     /* 0x03E668: jsr @r2 */
+    /* 0x03E66A: op 0x0009 */
     s->pr = 0x0003E66C;
     
     f_56B1E(s);
     /* 0x03E66C: op 0xD12F */
     s->r[1] = 0x00056C50u;
     /* 0x03E66E: jsr @r1 */
+    /* 0x03E670: op 0x0009 */
     s->pr = 0x0003E672;
     
     f_56C50(s);
     /* 0x03E672: op 0xD22F */
     s->r[2] = 0x00056D8Eu;
     /* 0x03E674: jsr @r2 */
+    /* 0x03E676: op 0x0009 */
     s->pr = 0x0003E678;
     
     f_56D8E(s);
     /* 0x03E678: op 0xD12E */
     s->r[1] = 0x00056ED6u;
     /* 0x03E67A: jsr @r1 */
+    /* 0x03E67C: op 0x0009 */
     s->pr = 0x0003E67E;
     
     f_56ED6(s);
     /* 0x03E67E: op 0xD22E */
     s->r[2] = 0x00057012u;
     /* 0x03E680: jsr @r2 */
+    /* 0x03E682: op 0x0009 */
     s->pr = 0x0003E684;
     
     f_57012(s);
     /* 0x03E684: op 0xD12D */
     s->r[1] = 0x0005712Eu;
     /* 0x03E686: jsr @r1 */
+    /* 0x03E688: op 0x0009 */
     s->pr = 0x0003E68A;
     
     f_5712E(s);
     /* 0x03E68A: op 0xD22D */
     s->r[2] = 0x000577ACu;
     /* 0x03E68C: jsr @r2 */
+    /* 0x03E68E: op 0x0009 */
     s->pr = 0x0003E690;
     
     f_577AC(s);
     /* 0x03E690: op 0xD12C */
     s->r[1] = 0x000572DEu;
     /* 0x03E692: jsr @r1 */
+    /* 0x03E694: op 0x0009 */
     s->pr = 0x0003E696;
     
     f_572DE(s);
     /* 0x03E696: op 0xD22C */
     s->r[2] = 0x00057508u;
     /* 0x03E698: jsr @r2 */
+    /* 0x03E69A: op 0x0009 */
     s->pr = 0x0003E69C;
     
     f_57508(s);
     /* 0x03E69C: op 0xD12B */
     s->r[1] = 0x000576C0u;
     /* 0x03E69E: jsr @r1 */
+    /* 0x03E6A0: op 0x0009 */
     s->pr = 0x0003E6A2;
     
     f_576C0(s);
     /* 0x03E6A2: op 0xD22B */
     s->r[2] = 0x0000AB6Cu;
     /* 0x03E6A4: jsr @r2 */
+    /* 0x03E6A6: op 0x0009 */
     s->pr = 0x0003E6A8;
     
     f_AB6C(s);
@@ -364,6 +401,7 @@ void f_3E5B0(ST *s)
     
     if (!s->T) goto L_3E6B4;
     /* 0x03E6B0: bsr 0x3E5A8 */
+    /* 0x03E6B2: op 0x0009 */
     s->pr = 0x0003E6B4;
     
     f_3E5A8(s);

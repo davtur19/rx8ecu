@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -24,6 +24,7 @@ void f_2C0AC(ST *s)
     /* 0x02C0B0: op 0xD31A */
     s->r[3] = 0x00009890u;
     /* 0x02C0B2: jsr @r3 */
+    /* 0x02C0B4: op 0x0009 */
     s->pr = 0x0002C0B6;
     
     f_9890(s);
@@ -38,17 +39,19 @@ void f_2C0AC(ST *s)
     /* 0x02C0BE: op 0xD318 */
     s->r[3] = 0x0000E03Cu;
     /* 0x02C0C0: jsr @r3 */
+    /* 0x02C0C2: op 0x0009 */
     s->pr = 0x0002C0C4;
     
     f_E03C(s);
     /* 0x02C0C4: bsr 0x2C0D2 */
+    /* 0x02C0C6: op 0x0009 */
     s->pr = 0x0002C0C8;
     
     f_2C0D2(s);
-    /* 0x02C0C8: bra 0x2c0dc (tail) */
+    /* 0x02C0C8: bra 0x02C0DC (tail) */
+    /* 0x02C0CA: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_2C0DC(s);
-    return;
+     { f_2C0DC(s); return; }
     L_2C0CC: ;
     /* 0x02C0CC: lds.l @r15+,pr */
     s->pr = local_400;

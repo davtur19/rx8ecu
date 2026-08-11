@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -104,6 +104,7 @@ void f_C338(ST *s)
     
     if (!s->T) goto L_C3B6;
     /* 0x00C39A: bsr 0xC7BA */
+    /* 0x00C39C: op 0x0009 */
     s->pr = 0x0000C39E;
     
     f_C7BA(s);
@@ -128,10 +129,10 @@ void f_C338(ST *s)
     s->r[10] = local_3f4;
     /* 0x00C3B0: mov.l @r15+,r11 */
     s->r[11] = local_3f8;
-    /* 0x00C3B2: bra 0xc486 (tail) */
+    /* 0x00C3B2: bra 0x00C486 (tail) */
+    /* 0x00C3B4: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
-    f_C486(s);
-    return;
+     { f_C486(s); return; }
     L_C3C4: ;
     /* 0x00C3C4: lds.l @r15+,pr */
     s->pr = local_400;
@@ -151,6 +152,7 @@ void f_C338(ST *s)
     
     if (!s->T) goto L_C3C4;
     /* 0x00C3BC: bsr 0xC8DC */
+    /* 0x00C3BE: op 0x0009 */
     s->pr = 0x0000C3C0;
     
     f_C8DC(s);

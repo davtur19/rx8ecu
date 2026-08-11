@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -56,6 +56,13 @@ void f_3083C(ST *s)
     /* 0x03085E: fmov.s fr1,@r14 */
     *(volatile uint32_t*)0xFFFFBE88 = fr1; /* RAM 0xFFFFBE88 */
     goto L_30894;
+    L_30894: ;
+    /* 0x030894: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x030896: rts */
+    /* 0x030898: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_30860: ;
     /* 0x030860: op 0xD224 */
     s->r[2] = 0x00077028u;
@@ -107,17 +114,11 @@ void f_3083C(ST *s)
     /* 0x03088C: op 0xD31B */
     s->r[3] = 0x00002068u;
     /* 0x03088E: jsr @r3 */
+    /* 0x030890: fmov.s @r2,fr4 */
     s->pr = 0x00030892;
     fr4 = *(volatile uint32_t*)0xFFFFADA8; /* RAM 0xFFFFADA8 */
     f_2068(s);
     /* 0x030892: fmov.s fr0,@r14 */
     *(volatile uint32_t*)0xFFFFBE88 = fr0; /* RAM 0xFFFFBE88 */
-    L_30894: ;
-    /* 0x030894: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x030896: rts */
-    /* 0x030898: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

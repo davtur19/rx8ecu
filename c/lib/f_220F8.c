@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -174,6 +174,7 @@ void f_220F8(ST *s)
     /* 0x02219A: op 0xD221 */
     s->r[2] = 0x0005B19Cu;
     /* 0x02219C: jsr @r2 */
+    /* 0x02219E: op 0x0009 */
     s->pr = 0x000221A0;
     
     f_5B19C(s);
@@ -202,6 +203,7 @@ void f_220F8(ST *s)
     /* 0x0221B6: op 0x9522 */
     s->r[5] = (uint32_t)(int32_t)(int16_t)0xE0u;
     /* 0x0221B8: jsr @r1 */
+    /* 0x0221BA: op 0x7404 */
     s->pr = 0x000221BC;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x04;
     f_2054(s);
@@ -210,6 +212,7 @@ void f_220F8(ST *s)
     /* 0x0221BE: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x0221C0: jsr @r12 */
+    /* 0x0221C2: op 0x64D3 */
     s->pr = 0x000221C4;
     s->r[4] = s->r[13];
     f_4BBC(s);
@@ -221,6 +224,7 @@ void f_220F8(ST *s)
     /* 0x0221DA: op 0xD314 */
     s->r[3] = 0x00002064u;
     /* 0x0221DC: jsr @r3 */
+    /* 0x0221DE: op 0x0009 */
     s->pr = 0x000221E0;
     
     f_2064(s);
@@ -248,6 +252,7 @@ void f_220F8(ST *s)
     /* 0x0221CA: op 0xD117 */
     s->r[1] = 0x00002054u;
     /* 0x0221CC: jsr @r1 */
+    /* 0x0221CE: op 0x64F3 */
     s->pr = 0x000221D0;
     s->r[4] = s->r[15];
     f_2054(s);
@@ -256,6 +261,7 @@ void f_220F8(ST *s)
     /* 0x0221D2: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x0221D4: jsr @r12 */
+    /* 0x0221D6: op 0x64D3 */
     s->pr = 0x000221D8;
     s->r[4] = s->r[13];
     f_4BBC(s);

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -52,6 +52,7 @@ void f_21580(ST *s)
     /* 0x021598: op 0xD429 */
     s->r[4] = 0x00067F9Cu;
     /* 0x02159A: jsr @r14 */
+    /* 0x02159C: fmov.s @r1,fr4 */
     s->pr = 0x0002159E;
     fr4 = *(volatile uint32_t*)0xFFFFADB4; /* RAM 0xFFFFADB4 */
     f_2068(s);
@@ -64,6 +65,7 @@ void f_21580(ST *s)
     /* 0x0215A4: op 0xD427 */
     s->r[4] = 0x00067FB0u;
     /* 0x0215A6: jsr @r14 */
+    /* 0x0215A8: fmov.s @r2,fr4 */
     s->pr = 0x000215AA;
     fr4 = *(volatile uint32_t*)0xFFFFC0D8; /* RAM 0xFFFFC0D8 */
     f_2068(s);
@@ -76,6 +78,7 @@ void f_21580(ST *s)
     /* 0x0215B0: op 0xD425 */
     s->r[4] = 0x00067FC4u;
     /* 0x0215B2: jsr @r14 */
+    /* 0x0215B4: fmov.s @r2,fr4 */
     s->pr = 0x000215B6;
     fr4 = *(volatile uint32_t*)0xFFFFB594; /* RAM 0xFFFFB594 */
     f_2068(s);
@@ -88,6 +91,7 @@ void f_21580(ST *s)
     /* 0x0215BC: op 0xD423 */
     s->r[4] = 0x00067FD8u;
     /* 0x0215BE: jsr @r14 */
+    /* 0x0215C0: fmov.s @r2,fr4 */
     s->pr = 0x000215C2;
     fr4 = *(volatile uint32_t*)0xFFFFA9FC; /* RAM 0xFFFFA9FC */
     f_2068(s);
@@ -154,6 +158,7 @@ void f_21580(ST *s)
     /* 0x0215FE: mov.l @r15+,r13 */
     s->r[13] = local_3f8;
     /* 0x021600: jmp @r2 (tail) */
+    /* 0x021602: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     f_9630(s);
     return;

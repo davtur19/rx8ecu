@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -17,6 +17,7 @@ void f_10FE(ST *s)
     uint32_t local_3f4 = 0;
     uint32_t local_3f8 = 0;
     uint32_t local_3fc = 0;
+    uint32_t local_400 = 0;
     /* 0x0010FE: mov.l r14,@-r15 */
     local_3fc = s->r[14];
     /* 0x001100: mov.l r13,@-r15 */
@@ -57,10 +58,22 @@ void f_10FE(ST *s)
     /* 0x001122: op 0xE0FF */
     s->r[0] = (uint32_t)(int32_t)(int8_t)0xFF;
     goto L_1146;
+    L_1146: ;
+    /* 0x001146: op 0x7F04 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
+    /* 0x001148: lds.l @r15+,pr */
+    s->pr = local_3f4;
+    /* 0x00114A: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x00114C: rts */
+    /* 0x00114E: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_1124: ;
     /* 0x001124: op 0xD324 */
     s->r[3] = 0x00001FE2u;
     /* 0x001126: jsr @r3 */
+    /* 0x001128: op 0xE400 */
     s->pr = 0x0000112A;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_1FE2(s);
@@ -79,8 +92,9 @@ void f_10FE(ST *s)
     /* 0x001136: op 0x972C */
     s->r[7] = (uint32_t)(int32_t)(int16_t)0x0000E520u;
     /* 0x001138: mov.l @r15,r6 */
-    s->r[6] = local_3f0;
+    s->r[6] = local_400;
     /* 0x00113A: jsr @r3 */
+    /* 0x00113C: op 0xE408 */
     s->pr = 0x0000113E;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x08;
     f_1FA2(s);
@@ -94,16 +108,5 @@ void f_10FE(ST *s)
     L_1144: ;
     /* 0x001144: op 0xE000 */
     s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
-    L_1146: ;
-    /* 0x001146: op 0x7F04 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
-    /* 0x001148: lds.l @r15+,pr */
-    s->pr = local_3f4;
-    /* 0x00114A: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x00114C: rts */
-    /* 0x00114E: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

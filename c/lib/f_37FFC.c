@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -32,16 +32,17 @@ void f_37FFC(ST *s)
     /* 0x038004: op 0x7FF0 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xF0;
     /* 0x038006: mov.w r0,@(0xC,r15) */
-    local_3f4 = s->r[0];
+    local_3f4 = s->r[0] & 0xFFFF;
     /* 0x038008: op 0x6053 */
     s->r[0] = s->r[5];
     /* 0x03800A: mov.b r0,@(0x8,r15) */
-    local_3f0 = s->r[0];
+    local_3f0 = s->r[0] & 0xFF;
     /* 0x03800C: op 0x6063 */
     s->r[0] = s->r[6];
     /* 0x03800E: mov.b r0,@(0x4,r15) */
-    local_3ec = s->r[0];
+    local_3ec = s->r[0] & 0xFF;
     /* 0x038010: jsr @r3 */
+    /* 0x038012: op 0xE410 */
     s->pr = 0x00038014;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x10;
     f_3920(s);
@@ -74,6 +75,7 @@ void f_37FFC(ST *s)
     /* 0x0380B6: op 0xD312 */
     s->r[3] = 0x00003934u;
     /* 0x0380B8: jsr @r3 */
+    /* 0x0380BA: mov.l @r15,r4 */
     s->pr = 0x000380BC;
     s->r[4] = local_3e8;
     f_3934(s);

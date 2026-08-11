@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -39,18 +39,6 @@ void f_323B2(ST *s)
     /* 0x0323C8: mov.b r1,@r14 */
     *(volatile uint8_t*)0xFFFFBFA6 = s->r[1]; /* RAM 0xFFFFBFA6 */
     goto L_323D4;
-    L_323CA: ;
-    /* 0x0323CA: op 0xE501 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x0323CC: op 0xD114 */
-    s->r[1] = 0x00002478u;
-    /* 0x0323CE: jsr @r1 */
-    s->pr = 0x000323D2;
-    uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFBFA6; /* RAM 0xFFFFBFA6 */
-    s->r[4] = t4;
-    f_2478(s);
-    /* 0x0323D2: mov.b r0,@r14 */
-    *(volatile uint8_t*)0xFFFFBFA6 = s->r[0]; /* RAM 0xFFFFBFA6 */
     L_323D4: ;
     /* 0x0323D4: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -58,5 +46,18 @@ void f_323B2(ST *s)
     /* 0x0323D8: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_323CA: ;
+    /* 0x0323CA: op 0xE501 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x0323CC: op 0xD114 */
+    s->r[1] = 0x00002478u;
+    /* 0x0323CE: jsr @r1 */
+    /* 0x0323D0: mov.b @r14,r4 */
+    s->pr = 0x000323D2;
+    uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFBFA6; /* RAM 0xFFFFBFA6 */
+    s->r[4] = t4;
+    f_2478(s);
+    /* 0x0323D2: mov.b r0,@r14 */
+    *(volatile uint8_t*)0xFFFFBFA6 = s->r[0]; /* RAM 0xFFFFBFA6 */
     return; /* fallthrough */
 }

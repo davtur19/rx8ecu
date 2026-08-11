@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -227,6 +227,7 @@ void f_4A308(ST *s)
     /* 0x04A3A4: op 0xD217 */
     s->r[2] = 0x000023F4u;
     /* 0x04A3A6: jsr @r2 */
+    /* 0x04A3A8: fmov.s @r3,fr5 */
     s->pr = 0x0004A3AA;
     fr5 = *(volatile uint32_t*)0x0007B484; /* ROM */
     f_23F4(s);
@@ -282,6 +283,7 @@ void f_4A308(ST *s)
     /* 0x04A3D2: fadd fr3,fr4 */
     { union { uint32_t u; float f; } _a, _b, _r; _a.u = fr4; _b.u = fr3; _r.f = _a.f + _b.f; fr4 = _r.u; }
     /* 0x04A3D4: jsr @r1 */
+    /* 0x04A3D6: fmov.s @r2,fr5 */
     s->pr = 0x0004A3D8;
     fr5 = *(volatile uint32_t*)0xFFFFCD80; /* RAM 0xFFFFCD80 */
     f_23F4(s);
@@ -314,6 +316,7 @@ void f_4A308(ST *s)
     /* 0x04A424: op 0xD318 */
     s->r[3] = 0x000020DCu;
     /* 0x04A426: jsr @r3 */
+    /* 0x04A428: fmov.s @r2,fr4 */
     s->pr = 0x0004A42A;
     fr4 = *(volatile uint32_t*)0xFFFFCCD8; /* RAM 0xFFFFCCD8 */
     f_20DC(s);
@@ -326,6 +329,7 @@ void f_4A308(ST *s)
     /* 0x04A430: op 0xD317 */
     s->r[3] = 0x00002068u;
     /* 0x04A432: jsr @r3 */
+    /* 0x04A434: fmov.s @r2,fr4 */
     s->pr = 0x0004A436;
     fr4 = *(volatile uint32_t*)0xFFFFAE40; /* RAM 0xFFFFAE40 */
     f_2068(s);
@@ -338,6 +342,7 @@ void f_4A308(ST *s)
     /* 0x04A43C: op 0xD314 */
     s->r[3] = 0x00002068u;
     /* 0x04A43E: jsr @r3 */
+    /* 0x04A440: fmov.s @r2,fr4 */
     s->pr = 0x0004A442;
     fr4 = *(volatile uint32_t*)0xFFFFB5DC; /* RAM 0xFFFFB5DC */
     f_2068(s);
@@ -352,6 +357,7 @@ void f_4A308(ST *s)
     /* 0x04A44A: fmac fr0,fr14,fr4 */
     { union { uint32_t u; float f; } _a, _b, _c, _r; _a.u = fr0; _b.u = fr14; _c.u = fr4; _r.f = (float)((double)_a.f * (double)_b.f + (double)_c.f); fr4 = _r.u; }
     /* 0x04A44C: jsr @r2 */
+    /* 0x04A44E: fmov fr15,fr5 */
     s->pr = 0x0004A450;
     fr5 = fr15;
     f_2404(s);

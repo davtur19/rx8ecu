@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -23,6 +23,7 @@ void f_1890C(ST *s)
     /* 0x018912: op 0x9424 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x00008080u;
     /* 0x018914: jsr @r14 */
+    /* 0x018916: op 0xE500 */
     s->pr = 0x00018918;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -37,6 +38,7 @@ void f_1890C(ST *s)
     /* 0x018920: op 0x941E */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x00008082u;
     /* 0x018922: jsr @r14 */
+    /* 0x018924: op 0xE500 */
     s->pr = 0x00018926;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -51,6 +53,7 @@ void f_1890C(ST *s)
     /* 0x01892E: op 0x9418 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x00008084u;
     /* 0x018930: jsr @r14 */
+    /* 0x018932: op 0xE500 */
     s->pr = 0x00018934;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -65,6 +68,7 @@ void f_1890C(ST *s)
     /* 0x01893C: op 0x9412 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x00008086u;
     /* 0x01893E: jsr @r14 */
+    /* 0x018940: op 0xE500 */
     s->pr = 0x00018942;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -85,13 +89,6 @@ void f_1890C(ST *s)
     /* 0x018950: mov.b r3,@r2 */
     *(volatile uint8_t*)0xFFFFA984 = s->r[3]; /* RAM 0xFFFFA984 */
     goto L_18958;
-    L_18952: ;
-    /* 0x018952: op 0xE000 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x018954: op 0x9107 */
-    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000A984u;
-    /* 0x018956: mov.b r0,@r1 */
-    *(volatile uint8_t*)0xFFFFA984 = s->r[0]; /* RAM 0xFFFFA984 */
     L_18958: ;
     /* 0x018958: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -99,5 +96,12 @@ void f_1890C(ST *s)
     /* 0x01895C: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_18952: ;
+    /* 0x018952: op 0xE000 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x018954: op 0x9107 */
+    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000A984u;
+    /* 0x018956: mov.b r0,@r1 */
+    *(volatile uint8_t*)0xFFFFA984 = s->r[0]; /* RAM 0xFFFFA984 */
     return; /* fallthrough */
 }

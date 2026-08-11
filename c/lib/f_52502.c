@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -84,6 +84,7 @@ void f_52502(ST *s)
     /* 0x052540: op 0xD215 */
     s->r[2] = 0x000652F0u;
     /* 0x052542: jsr @r2 */
+    /* 0x052544: op 0xE442 */
     s->pr = 0x00052546;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x42;
     f_652F0(s);
@@ -103,13 +104,6 @@ void f_52502(ST *s)
     /* 0x052554: mov.b r2,@r3 */
     *(volatile uint8_t*)s->r[3] = s->r[2]; /* RAM 0xFFFFCFC0 */
     goto L_5255C;
-    L_52556: ;
-    /* 0x052556: op 0xE000 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x052558: op 0x9118 */
-    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000CFC0u;
-    /* 0x05255A: mov.b r0,@r1 */
-    *(volatile uint8_t*)s->r[1] = s->r[0]; /* RAM 0xFFFFCFC0 */
     L_5255C: ;
     /* 0x05255C: lds.l @r15+,pr */
     s->pr = local_3fc;
@@ -117,5 +111,12 @@ void f_52502(ST *s)
     /* 0x052560: op 0x0009 */
     
     return;
+    L_52556: ;
+    /* 0x052556: op 0xE000 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x052558: op 0x9118 */
+    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000CFC0u;
+    /* 0x05255A: mov.b r0,@r1 */
+    *(volatile uint8_t*)s->r[1] = s->r[0]; /* RAM 0xFFFFCFC0 */
     return; /* fallthrough */
 }

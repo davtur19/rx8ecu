@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -38,6 +38,7 @@ void f_1A2E8(ST *s)
     /* 0x01A2FC: op 0xD10F */
     s->r[1] = 0x00002460u;
     /* 0x01A2FE: jsr @r1 */
+    /* 0x01A300: mov.w @r14,r4 */
     s->pr = 0x0001A302;
     uint32_t t4 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFAA68; /* RAM 0xFFFFAA68 */
     s->r[4] = t4;
@@ -46,11 +47,6 @@ void f_1A2E8(ST *s)
     /* 0x01A304: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFAA68 = s->r[0]; /* RAM 0xFFFFAA68 */
     goto L_1A30A;
-    L_1A306: ;
-    /* 0x01A306: op 0xE200 */
-    s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x01A308: mov.w r2,@r14 */
-    *(volatile uint16_t*)0xFFFFAA68 = s->r[2]; /* RAM 0xFFFFAA68 */
     L_1A30A: ;
     /* 0x01A30A: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -58,5 +54,10 @@ void f_1A2E8(ST *s)
     /* 0x01A30E: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_1A306: ;
+    /* 0x01A306: op 0xE200 */
+    s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x01A308: mov.w r2,@r14 */
+    *(volatile uint16_t*)0xFFFFAA68 = s->r[2]; /* RAM 0xFFFFAA68 */
     return; /* fallthrough */
 }

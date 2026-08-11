@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -55,14 +55,14 @@ void f_5E72C(ST *s)
     /* 0x05E73E: op 0x7FF8 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xF8;
     /* 0x05E740: mov.w r6,@r15 */
-    local_3e4 = s->r[6];
+    local_3e4 = s->r[6] & 0xFFFF;
     /* 0x05E742: op 0x4B00 */
     s->T = (s->r[11] >> 31) & 1u; s->r[11] = (s->r[11] << 1);
     /* 0x05E744: mov.w @r3,r0 */
     uint32_t t2 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFD1C8; /* RAM 0xFFFFD1C8 */
     s->r[0] = t2;
     /* 0x05E746: mov.w r0,@(0x4,r15) */
-    local_3e8 = s->r[0];
+    local_3e8 = s->r[0] & 0xFFFF;
     /* 0x05E748: op 0xD039 */
     s->r[0] = 0x0007C2CAu;
     /* 0x05E74A: mov.w @(r11+r0),r11 (rt-base) */
@@ -107,6 +107,7 @@ void f_5E72C(ST *s)
     
     if (!s->T) goto L_5E778;
     /* 0x05E770: bsr 0x5E84C */
+    /* 0x05E772: op 0x64E3 */
     s->pr = 0x0005E774;
     s->r[4] = s->r[14];
     f_5E84C(s);
@@ -135,6 +136,7 @@ void f_5E72C(ST *s)
     /* 0x05E78A: op 0x6503 */
     s->r[5] = s->r[0];
     /* 0x05E78C: jsr @r2 */
+    /* 0x05E78E: op 0x64B3 */
     s->pr = 0x0005E790;
     s->r[4] = s->r[11];
     f_5E2CE(s);
@@ -162,6 +164,7 @@ void f_5E72C(ST *s)
     /* 0x05E7A4: op 0xD226 */
     s->r[2] = 0x0005E2BCu;
     /* 0x05E7A6: jsr @r2 */
+    /* 0x05E7A8: op 0x64B3 */
     s->pr = 0x0005E7AA;
     s->r[4] = s->r[11];
     f_5E2BC(s);
@@ -197,10 +200,10 @@ void f_5E72C(ST *s)
     s->r[12] = local_3f4;
     /* 0x05E7C8: mov.l @r15+,r13 */
     s->r[13] = local_3f8;
-    /* 0x05E7CA: bra 0x5e954 (tail) */
+    /* 0x05E7CA: bra 0x05E954 (tail) */
+    /* 0x05E7CC: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
-    f_5E954(s);
-    return;
+     { f_5E954(s); return; }
     L_5E7EC: ;
     /* 0x05E7EC: op 0x7F08 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x08;
@@ -244,10 +247,10 @@ void f_5E72C(ST *s)
     s->r[12] = local_42c;
     /* 0x05E7E6: mov.l @r15+,r13 */
     s->r[13] = local_430;
-    /* 0x05E7E8: bra 0x5eabc (tail) */
+    /* 0x05E7E8: bra 0x05EABC (tail) */
+    /* 0x05E7EA: mov.l @r15+,r14 */
     s->r[14] = local_434;
-    f_5EABC(s);
-    return;
+     { f_5EABC(s); return; }
     L_5E778: ;
     /* 0x05E778: op 0x6C43 */
     s->r[12] = s->r[4];

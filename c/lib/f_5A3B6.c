@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -33,14 +33,10 @@ void f_5A3B6(ST *s)
     /* 0x05A3C8: op 0x0009 */
     
     goto L_5A3DA;
-    L_5A3CA: ;
-    /* 0x05A3CA: op 0xE300 */
-    s->r[3] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x05A3CC: op 0xD210 */
-    s->r[2] = 0x0000DAF0u;
-    /* 0x05A3CE: jmp @r2 (tail) */
-    *(volatile uint8_t*)0xFFFFD120 = s->r[3]; /* RAM 0xFFFFD120 */
-    f_DAF0(s);
+    L_5A3DA: ;
+    /* 0x05A3DA: rts */
+    /* 0x05A3DC: op 0x0009 */
+    
     return;
     L_5A3D2: ;
     /* 0x05A3D2: op 0xE201 */
@@ -48,13 +44,19 @@ void f_5A3B6(ST *s)
     /* 0x05A3D4: op 0xD30F */
     s->r[3] = 0x0000DAE8u;
     /* 0x05A3D6: jmp @r3 (tail) */
+    /* 0x05A3D8: mov.b r2,@r5 */
     *(volatile uint8_t*)0xFFFFD120 = s->r[2]; /* RAM 0xFFFFD120 */
     f_DAE8(s);
     return;
-    L_5A3DA: ;
-    /* 0x05A3DA: rts */
-    /* 0x05A3DC: op 0x0009 */
-    
+    L_5A3CA: ;
+    /* 0x05A3CA: op 0xE300 */
+    s->r[3] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x05A3CC: op 0xD210 */
+    s->r[2] = 0x0000DAF0u;
+    /* 0x05A3CE: jmp @r2 (tail) */
+    /* 0x05A3D0: mov.b r3,@r5 */
+    *(volatile uint8_t*)0xFFFFD120 = s->r[3]; /* RAM 0xFFFFD120 */
+    f_DAF0(s);
     return;
     return; /* fallthrough */
 }

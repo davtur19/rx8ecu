@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -50,11 +50,18 @@ void f_546FA(ST *s)
     /* 0x05471C: op 0x0009 */
     
     goto L_5473A;
-    L_5471E: ;
-    /* 0x05471E: bra 0x05473E */
-    /* 0x054720: mov.b r4,@r14 */
-    *(volatile uint8_t*)0xFFFFCFF0 = s->r[4]; /* RAM 0xFFFFCFF0 */
-    goto L_5473E;
+    L_5473A: ;
+    /* 0x05473A: op 0xE200 */
+    s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x05473C: mov.b r2,@r14 */
+    *(volatile uint8_t*)0xFFFFCFF0 = s->r[2]; /* RAM 0xFFFFCFF0 */
+    L_5473E: ;
+    /* 0x05473E: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x054740: rts */
+    /* 0x054742: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_54722: ;
     /* 0x054722: mov.b @r14,r0 */
     uint32_t t2 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[14]; /* RAM 0xFFFFCFF0 */
@@ -68,6 +75,7 @@ void f_546FA(ST *s)
     
     if (!s->T) goto L_54734;
     /* 0x05472C: bsr 0x547F0 */
+    /* 0x05472E: op 0x0009 */
     s->pr = 0x00054730;
     
     f_547F0(s);
@@ -83,17 +91,10 @@ void f_546FA(ST *s)
     /* 0x054738: mov.b r3,@r14 */
     *(volatile uint8_t*)0xFFFFCFF0 = s->r[3]; /* RAM 0xFFFFCFF0 */
     goto L_5473E;
-    L_5473A: ;
-    /* 0x05473A: op 0xE200 */
-    s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x05473C: mov.b r2,@r14 */
-    *(volatile uint8_t*)0xFFFFCFF0 = s->r[2]; /* RAM 0xFFFFCFF0 */
-    L_5473E: ;
-    /* 0x05473E: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x054740: rts */
-    /* 0x054742: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
+    L_5471E: ;
+    /* 0x05471E: bra 0x05473E */
+    /* 0x054720: mov.b r4,@r14 */
+    *(volatile uint8_t*)0xFFFFCFF0 = s->r[4]; /* RAM 0xFFFFCFF0 */
+    goto L_5473E;
     return; /* fallthrough */
 }

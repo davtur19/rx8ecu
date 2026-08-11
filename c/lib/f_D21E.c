@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -21,6 +21,7 @@ void f_D21E(ST *s)
     /* 0x00D220: sts.l pr,@-r15 */
     local_3f8 = s->pr;
     /* 0x00D222: bsr 0xD262 */
+    /* 0x00D224: op 0x0009 */
     s->pr = 0x0000D226;
     
     f_D262(s);
@@ -31,6 +32,7 @@ void f_D21E(ST *s)
     s->r[14] = s->r[0];
     if (!s->T) goto L_D232;
     /* 0x00D22C: bsr 0xD28E */
+    /* 0x00D22E: op 0x0009 */
     s->pr = 0x0000D230;
     
     f_D28E(s);
@@ -73,6 +75,7 @@ void f_D21E(ST *s)
     /* 0x00D252: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x00D254: jsr @r2 */
+    /* 0x00D256: op 0xE401 */
     s->pr = 0x0000D258;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_4E0(s);

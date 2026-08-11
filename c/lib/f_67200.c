@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -18,6 +18,7 @@ void f_67200(ST *s)
     /* 0x067202: op 0xD33F */
     s->r[3] = 0xFFFFDBF2u;
     /* 0x067204: bsr 0x67488 */
+    /* 0x067206: mov.b @r3,r4 */
     s->pr = 0x00067208;
     uint32_t t2 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFDBF2; /* RAM 0xFFFFDBF2 */
     s->r[4] = t2;

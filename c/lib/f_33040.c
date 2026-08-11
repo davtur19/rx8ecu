@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,6 +25,7 @@ void f_33040(ST *s)
     /* 0x033044: op 0xD32C */
     s->r[3] = 0x00009890u;
     /* 0x033046: jsr @r3 */
+    /* 0x033048: op 0x0009 */
     s->pr = 0x0003304A;
     
     f_9890(s);
@@ -39,21 +40,24 @@ void f_33040(ST *s)
     /* 0x033052: op 0xD32A */
     s->r[3] = 0x0000E04Cu;
     /* 0x033054: jsr @r3 */
+    /* 0x033056: op 0x0009 */
     s->pr = 0x00033058;
     
     f_E04C(s);
     /* 0x033058: bsr 0x3306A */
+    /* 0x03305A: op 0x0009 */
     s->pr = 0x0003305C;
     
     f_3306A(s);
     /* 0x03305C: bsr 0x33098 */
+    /* 0x03305E: op 0x0009 */
     s->pr = 0x00033060;
     
     f_33098(s);
-    /* 0x033060: bra 0x330b2 (tail) */
+    /* 0x033060: bra 0x0330B2 (tail) */
+    /* 0x033062: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_330B2(s);
-    return;
+     { f_330B2(s); return; }
     L_33064: ;
     /* 0x033064: lds.l @r15+,pr */
     s->pr = local_400;

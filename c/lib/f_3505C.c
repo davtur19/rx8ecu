@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -71,6 +71,7 @@ void f_3505C(ST *s)
     /* 0x03508C: op 0xD219 */
     s->r[2] = 0x0005B5B4u;
     /* 0x03508E: jsr @r2 */
+    /* 0x035090: op 0x0009 */
     s->pr = 0x00035092;
     
     f_5B5B4(s);
@@ -100,6 +101,7 @@ void f_3505C(ST *s)
     /* 0x0350A8: op 0xD214 */
     s->r[2] = 0x00002054u;
     /* 0x0350AA: jsr @r2 */
+    /* 0x0350AC: op 0x7404 */
     s->pr = 0x000350AE;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x04;
     f_2054(s);
@@ -108,6 +110,7 @@ void f_3505C(ST *s)
     /* 0x0350B0: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x0350B2: jsr @r12 */
+    /* 0x0350B4: op 0x64D3 */
     s->pr = 0x000350B6;
     s->r[4] = s->r[13];
     f_4BBC(s);
@@ -119,6 +122,7 @@ void f_3505C(ST *s)
     /* 0x0350CC: op 0xD30C */
     s->r[3] = 0x00002064u;
     /* 0x0350CE: jsr @r3 */
+    /* 0x0350D0: op 0x0009 */
     s->pr = 0x000350D2;
     
     f_2064(s);
@@ -142,6 +146,7 @@ void f_3505C(ST *s)
     /* 0x0350BC: op 0xD30F */
     s->r[3] = 0x00002054u;
     /* 0x0350BE: jsr @r3 */
+    /* 0x0350C0: op 0x64F3 */
     s->pr = 0x000350C2;
     s->r[4] = s->r[15];
     f_2054(s);
@@ -150,6 +155,7 @@ void f_3505C(ST *s)
     /* 0x0350C4: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x0350C6: jsr @r12 */
+    /* 0x0350C8: op 0x64D3 */
     s->pr = 0x000350CA;
     s->r[4] = s->r[13];
     f_4BBC(s);

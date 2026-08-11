@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -35,16 +35,6 @@ void f_E220(ST *s)
     /* 0x00E232: op 0xE000 */
     s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_E23C;
-    L_E234: ;
-    /* 0x00E234: op 0xD10F */
-    s->r[1] = 0x00002460u;
-    /* 0x00E236: op 0xE501 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x00E238: jsr @r1 */
-    s->pr = 0x0000E23C;
-    uint32_t t4 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFA424; /* RAM 0xFFFFA424 */
-    s->r[4] = t4;
-    f_2460(s);
     L_E23C: ;
     /* 0x00E23C: mov.w r0,@r14 */
     *(volatile uint16_t*)s->r[14] = s->r[0]; /* RAM 0xFFFFA424 */
@@ -54,5 +44,16 @@ void f_E220(ST *s)
     /* 0x00E242: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_E234: ;
+    /* 0x00E234: op 0xD10F */
+    s->r[1] = 0x00002460u;
+    /* 0x00E236: op 0xE501 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x00E238: jsr @r1 */
+    /* 0x00E23A: mov.w @r14,r4 */
+    s->pr = 0x0000E23C;
+    uint32_t t4 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFA424; /* RAM 0xFFFFA424 */
+    s->r[4] = t4;
+    f_2460(s);
     return; /* fallthrough */
 }

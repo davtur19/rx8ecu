@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -39,6 +39,7 @@ void f_3D58(ST *s)
     /* 0x003D6A: op 0xD30D */
     s->r[3] = 0x000035EEu;
     /* 0x003D6C: jsr @r3 */
+    /* 0x003D6E: op 0xE400 */
     s->pr = 0x00003D70;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_35EE(s);
@@ -62,6 +63,7 @@ void f_3D58(ST *s)
     /* 0x003D7E: op 0x6503 */
     s->r[5] = s->r[0];
     /* 0x003D80: jsr @r3 */
+    /* 0x003D82: op 0x64E3 */
     s->pr = 0x00003D84;
     s->r[4] = s->r[14];
     f_3A28(s);
@@ -79,6 +81,7 @@ void f_3D58(ST *s)
     /* 0x003D8E: mov.l r3,@(0xC,r14) */
     *(volatile uint32_t*)0xFFFF7644 = s->r[3]; /* RAM 0xFFFF7644 */
     /* 0x003D90: jmp @r2 (tail) */
+    /* 0x003D92: lds.l @r15+,pr */
     s->pr = local_3fc;
     f_3C2A(s);
     return;

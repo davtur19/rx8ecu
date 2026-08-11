@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,8 +25,9 @@ void f_5A2F0(ST *s)
     /* 0x05A2F6: op 0x7FF8 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xF8;
     /* 0x05A2F8: mov.b r0,@(0x4,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFF;
     /* 0x05A2FA: jsr @r3 */
+    /* 0x05A2FC: op 0xE410 */
     s->pr = 0x0005A2FE;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x10;
     f_3920(s);
@@ -66,10 +67,10 @@ void f_5A2F0(ST *s)
     /* 0x05A320: op 0x0009 */
     
     if (s->T) goto L_5A334;
-    /* 0x05A322: bra 0x5a338 (tail) */
+    /* 0x05A322: bra 0x05A338 (tail) */
+    /* 0x05A324: op 0x0009 */
     
-    f_5A338(s);
-    return;
+     { f_5A338(s); return; }
     L_5A334: ;
     /* 0x05A334: mov.w r5,@r7 */
     *(volatile uint16_t*)s->r[7] = s->r[5]; /* RAM 0xFFFFD122 */
@@ -79,18 +80,18 @@ void f_5A2F0(ST *s)
     L_5A32E: ;
     /* 0x05A32E: op 0xE202 */
     s->r[2] = (uint32_t)(int32_t)(int8_t)0x02;
-    /* 0x05A330: bra 0x5a338 (tail) */
+    /* 0x05A330: bra 0x05A338 (tail) */
+    /* 0x05A332: mov.b r2,@r4 */
     *(volatile uint8_t*)s->r[4] = s->r[2]; /* RAM 0xFFFFD124 */
-    f_5A338(s);
-    return;
+     { f_5A338(s); return; }
     L_5A326: ;
     /* 0x05A326: op 0x9367 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x00000271u;
     /* 0x05A328: mov.w r3,@r7 */
     *(volatile uint16_t*)0xFFFFD122 = s->r[3]; /* RAM 0xFFFFD122 */
-    /* 0x05A32A: bra 0x5a338 (tail) */
+    /* 0x05A32A: bra 0x05A338 (tail) */
+    /* 0x05A32C: mov.b r5,@r4 */
     *(volatile uint8_t*)s->r[4] = s->r[5]; /* RAM 0xFFFFD124 */
-    f_5A338(s);
-    return;
+     { f_5A338(s); return; }
     return; /* fallthrough */
 }

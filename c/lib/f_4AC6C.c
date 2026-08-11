@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -60,6 +60,7 @@ void f_4AC6C(ST *s)
     /* 0x04AC88: op 0xD329 */
     s->r[3] = 0x000023E4u;
     /* 0x04AC8A: jsr @r3 */
+    /* 0x04AC8C: fmov fr14,fr4 */
     s->pr = 0x0004AC8E;
     fr4 = fr14;
     f_23E4(s);
@@ -68,6 +69,7 @@ void f_4AC6C(ST *s)
     /* 0x04AC90: op 0xD228 */
     s->r[2] = 0x0003E1AAu;
     /* 0x04AC92: jsr @r2 */
+    /* 0x04AC94: fmov fr0,fr4 */
     s->pr = 0x0004AC96;
     fr4 = fr0;
     f_3E1AA(s);
@@ -78,6 +80,7 @@ void f_4AC6C(ST *s)
     /* 0x04AC9A: fmov.s fr0,@r15 (rt-base) */
     *(volatile uint32_t*)s->r[15] = fr0;
     /* 0x04AC9C: jsr @r3 */
+    /* 0x04AC9E: fmov fr15,fr4 */
     s->pr = 0x0004ACA0;
     fr4 = fr15;
     f_23DC(s);
@@ -88,6 +91,7 @@ void f_4AC6C(ST *s)
     /* 0x04ACA4: fmov fr14,fr5 */
     fr5 = fr14;
     /* 0x04ACA6: jsr @r3 */
+    /* 0x04ACA8: fmov.s @r15,fr4 (rt-base) */
     s->pr = 0x0004ACAA;
     fr4 = *(volatile uint32_t*)s->r[15];
     f_23DC(s);
@@ -108,6 +112,7 @@ void f_4AC6C(ST *s)
     /* 0x04ACB8: op 0xD223 */
     s->r[2] = 0x0003E0DCu;
     /* 0x04ACBA: jsr @r2 */
+    /* 0x04ACBC: mov.b @r1,r5 */
     s->pr = 0x0004ACBE;
     uint32_t t2 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[1]; /* ROM */
     s->r[5] = t2;
@@ -394,6 +399,7 @@ void f_4AC6C(ST *s)
     /* 0x04ACC6: op 0xD120 */
     s->r[1] = 0x0003E0DCu;
     /* 0x04ACC8: jsr @r1 */
+    /* 0x04ACCA: mov.b @r2,r5 */
     s->pr = 0x0004ACCC;
     uint32_t t22 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[2]; /* ROM */
     s->r[5] = t22;

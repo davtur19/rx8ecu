@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -21,6 +21,7 @@ void f_45062(ST *s)
     /* 0x045066: op 0xD338 */
     s->r[3] = 0x000652F0u;
     /* 0x045068: jsr @r3 */
+    /* 0x04506A: op 0x0009 */
     s->pr = 0x0004506C;
     
     f_652F0(s);
@@ -37,6 +38,7 @@ void f_45062(ST *s)
     /* 0x045076: op 0xD331 */
     s->r[3] = 0x0003E0DCu;
     /* 0x045078: jsr @r3 */
+    /* 0x04507A: op 0xE500 */
     s->pr = 0x0004507C;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -53,6 +55,7 @@ void f_45062(ST *s)
     /* 0x045086: op 0xD32D */
     s->r[3] = 0x0003E0DCu;
     /* 0x045088: jsr @r3 */
+    /* 0x04508A: op 0xE500 */
     s->pr = 0x0004508C;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -85,13 +88,6 @@ void f_45062(ST *s)
     /* 0x0450A6: mov.b r3,@r2 */
     *(volatile uint8_t*)0xFFFFCADC = s->r[3]; /* RAM 0xFFFFCADC */
     goto L_450AE;
-    L_450A8: ;
-    /* 0x0450A8: op 0x9142 */
-    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000CADCu;
-    /* 0x0450AA: op 0xE000 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x0450AC: mov.b r0,@r1 */
-    *(volatile uint8_t*)0xFFFFCADC = s->r[0]; /* RAM 0xFFFFCADC */
     L_450AE: ;
     /* 0x0450AE: lds.l @r15+,pr */
     s->pr = local_3fc;
@@ -99,5 +95,12 @@ void f_45062(ST *s)
     /* 0x0450B2: op 0x0009 */
     
     return;
+    L_450A8: ;
+    /* 0x0450A8: op 0x9142 */
+    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000CADCu;
+    /* 0x0450AA: op 0xE000 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x0450AC: mov.b r0,@r1 */
+    *(volatile uint8_t*)0xFFFFCADC = s->r[0]; /* RAM 0xFFFFCADC */
     return; /* fallthrough */
 }

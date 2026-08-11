@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -32,6 +32,7 @@ void f_5CCBE(ST *s)
     /* 0x05CCCA: op 0xD33E */
     s->r[3] = 0x0003E0DCu;
     /* 0x05CCCC: jsr @r3 */
+    /* 0x05CCCE: op 0x0009 */
     s->pr = 0x0005CCD0;
     
     f_3E0DC(s);
@@ -42,8 +43,9 @@ void f_5CCBE(ST *s)
     /* 0x05CCD4: op 0xD33B */
     s->r[3] = 0x0003E0DCu;
     /* 0x05CCD6: jsr @r3 */
+    /* 0x05CCD8: mov.b r0,@r15 */
     s->pr = 0x0005CCDA;
-    local_3f0 = s->r[0];
+    local_3f0 = s->r[0] & 0xFF;
     f_3E0DC(s);
     /* 0x05CCDA: op 0x6603 */
     s->r[6] = s->r[0];
@@ -95,14 +97,16 @@ void f_5CCBE(ST *s)
     /* 0x05CD04: op 0x2169 */
     s->r[1] &= s->r[6];
     /* 0x05CD06: jsr @r3 */
+    /* 0x05CD08: mov.b r1,@r15 */
     s->pr = 0x0005CD0A;
-    local_3f0 = s->r[1];
+    local_3f0 = s->r[1] & 0xFF;
     f_3E1F8(s);
     /* 0x05CD0A: op 0x9446 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x000091CEu;
     /* 0x05CD0C: op 0xD331 */
     s->r[3] = 0x0003E1F8u;
     /* 0x05CD0E: jsr @r3 */
+    /* 0x05CD10: mov.b @r15,r5 */
     s->pr = 0x0005CD12;
     s->r[5] = (uint32_t)(int32_t)(int8_t)(local_3f0 & 0xFFu);
     f_3E1F8(s);
@@ -110,11 +114,6 @@ void f_5CCBE(ST *s)
     /* 0x05CD14: op 0x0009 */
     
     goto L_5CD1A;
-    L_5CD16: ;
-    /* 0x05CD16: op 0x71FF */
-    s->r[1] = s->r[1] + (uint32_t)(int32_t)(int8_t)0xFF;
-    /* 0x05CD18: mov.b r1,@r4 */
-    *(volatile uint8_t*)s->r[4] = s->r[1]; /* RAM 0xFFFF91CE */
     L_5CD1A: ;
     /* 0x05CD1A: op 0xD32C */
     s->r[3] = 0xFFFFD1A4u;
@@ -134,5 +133,10 @@ void f_5CCBE(ST *s)
     /* 0x05CD2A: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_5CD16: ;
+    /* 0x05CD16: op 0x71FF */
+    s->r[1] = s->r[1] + (uint32_t)(int32_t)(int8_t)0xFF;
+    /* 0x05CD18: mov.b r1,@r4 */
+    *(volatile uint8_t*)s->r[4] = s->r[1]; /* RAM 0xFFFFD1A6 */
     return; /* fallthrough */
 }

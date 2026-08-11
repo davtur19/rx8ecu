@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -48,6 +48,7 @@ void f_E4F8(ST *s)
     /* 0x00E510: op 0xD43A */
     s->r[4] = 0x0006784Cu;
     /* 0x00E512: jsr @r13 */
+    /* 0x00E514: op 0x0009 */
     s->pr = 0x0000E516;
     
     f_20AC(s);
@@ -55,6 +56,20 @@ void f_E4F8(ST *s)
     /* 0x00E518: op 0x0009 */
     
     goto L_E53E;
+    L_E53E: ;
+    /* 0x00E53E: bra 0x00E55C */
+    /* 0x00E540: mov.b r0,@r14 */
+    *(volatile uint8_t*)0xFFFFA460 = s->r[0]; /* RAM 0xFFFFA460 */
+    goto L_E55C;
+    L_E55C: ;
+    /* 0x00E55C: lds.l @r15+,pr */
+    s->pr = local_3f4;
+    /* 0x00E55E: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x00E560: rts */
+    /* 0x00E562: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_E51A: ;
     /* 0x00E51A: op 0x9164 */
     s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000B580u;
@@ -78,6 +93,7 @@ void f_E4F8(ST *s)
     /* 0x00E52C: op 0xD335 */
     s->r[3] = 0x00002500u;
     /* 0x00E52E: jsr @r3 */
+    /* 0x00E530: mov.b @r0,r4 */
     s->pr = 0x0000E532;
     uint32_t t6 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA461; /* RAM 0xFFFFA461 */
     s->r[4] = t6;
@@ -91,14 +107,10 @@ void f_E4F8(ST *s)
     /* 0x00E538: op 0xD334 */
     s->r[3] = 0x00002120u;
     /* 0x00E53A: jsr @r3 */
+    /* 0x00E53C: fmov.s @r2,fr4 */
     s->pr = 0x0000E53E;
     fr4 = *(volatile uint32_t*)0xFFFFB594; /* RAM 0xFFFFB594 */
     f_2120(s);
-    L_E53E: ;
-    /* 0x00E53E: bra 0x00E55C */
-    /* 0x00E540: mov.b r0,@r14 */
-    *(volatile uint8_t*)0xFFFFA460 = s->r[0]; /* RAM 0xFFFFA460 */
-    goto L_E55C;
     L_E542: ;
     /* 0x00E542: op 0x9351 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000C94Cu;
@@ -119,24 +131,16 @@ void f_E4F8(ST *s)
     /* 0x00E552: op 0x0009 */
     
     goto L_E556;
-    L_E554: ;
-    /* 0x00E554: op 0xD42F */
-    s->r[4] = 0x00067864u;
     L_E556: ;
     /* 0x00E556: jsr @r13 */
+    /* 0x00E558: op 0x0009 */
     s->pr = 0x0000E55A;
     
     f_20AC(s);
     /* 0x00E55A: mov.b r0,@r14 */
     *(volatile uint8_t*)0xFFFFA460 = s->r[0]; /* RAM 0xFFFFA460 */
-    L_E55C: ;
-    /* 0x00E55C: lds.l @r15+,pr */
-    s->pr = local_3f4;
-    /* 0x00E55E: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x00E560: rts */
-    /* 0x00E562: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
+    L_E554: ;
+    /* 0x00E554: op 0xD42F */
+    s->r[4] = 0x00067864u;
     return; /* fallthrough */
 }

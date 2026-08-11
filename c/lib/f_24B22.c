@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -35,6 +35,7 @@ void f_24B22(ST *s)
     /* 0x024B2E: op 0xEC00 */
     s->r[12] = (uint32_t)(int32_t)(int8_t)0x00;
     /* 0x024B30: jsr @r14 */
+    /* 0x024B32: op 0xE414 */
     s->pr = 0x00024B34;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x14;
     f_652F0(s);
@@ -47,6 +48,7 @@ void f_24B22(ST *s)
     
     if (!s->T) goto L_24B4E;
     /* 0x024B3C: jsr @r14 */
+    /* 0x024B3E: op 0xE413 */
     s->pr = 0x00024B40;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x13;
     f_652F0(s);
@@ -66,6 +68,7 @@ void f_24B22(ST *s)
     goto L_24B52;
     L_24B52: ;
     /* 0x024B52: jsr @r14 */
+    /* 0x024B54: op 0xE46C */
     s->pr = 0x00024B56;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x6C;
     f_652F0(s);
@@ -85,6 +88,7 @@ void f_24B22(ST *s)
     goto L_24B68;
     L_24B68: ;
     /* 0x024B68: jsr @r14 */
+    /* 0x024B6A: op 0x0009 */
     s->pr = 0x00024B6C;
     
     f_652F0(s);
@@ -97,6 +101,7 @@ void f_24B22(ST *s)
     
     if (!s->T) goto L_24BA0;
     /* 0x024B74: jsr @r14 */
+    /* 0x024B76: op 0xE420 */
     s->pr = 0x00024B78;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
     f_652F0(s);
@@ -116,6 +121,7 @@ void f_24B22(ST *s)
     goto L_24BA4;
     L_24BA4: ;
     /* 0x024BA4: jsr @r14 */
+    /* 0x024BA6: op 0xE446 */
     s->pr = 0x00024BA8;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x46;
     f_652F0(s);
@@ -135,6 +141,7 @@ void f_24B22(ST *s)
     goto L_24BBA;
     L_24BBA: ;
     /* 0x024BBA: jsr @r14 */
+    /* 0x024BBC: op 0x0009 */
     s->pr = 0x00024BBE;
     
     f_652F0(s);
@@ -154,6 +161,7 @@ void f_24B22(ST *s)
     goto L_24BD0;
     L_24BD0: ;
     /* 0x024BD0: jsr @r14 */
+    /* 0x024BD2: op 0x0009 */
     s->pr = 0x00024BD4;
     
     f_652F0(s);
@@ -173,6 +181,7 @@ void f_24B22(ST *s)
     goto L_24BE6;
     L_24BE6: ;
     /* 0x024BE6: jsr @r14 */
+    /* 0x024BE8: op 0x0009 */
     s->pr = 0x00024BEA;
     
     f_652F0(s);
@@ -185,6 +194,7 @@ void f_24B22(ST *s)
     
     if (!s->T) goto L_24C04;
     /* 0x024BF2: jsr @r14 */
+    /* 0x024BF4: op 0xE45B */
     s->pr = 0x00024BF6;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x5B;
     f_652F0(s);
@@ -206,6 +216,7 @@ void f_24B22(ST *s)
     /* 0x024C08: op 0x9444 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x84u;
     /* 0x024C0A: jsr @r14 */
+    /* 0x024C0C: op 0x0009 */
     s->pr = 0x00024C0E;
     
     f_652F0(s);
@@ -225,6 +236,7 @@ void f_24B22(ST *s)
     goto L_24C20;
     L_24C20: ;
     /* 0x024C20: jsr @r14 */
+    /* 0x024C22: op 0x0009 */
     s->pr = 0x00024C24;
     
     f_652F0(s);
@@ -244,6 +256,7 @@ void f_24B22(ST *s)
     goto L_24C36;
     L_24C36: ;
     /* 0x024C36: jsr @r14 */
+    /* 0x024C38: op 0x0009 */
     s->pr = 0x00024C3A;
     
     f_652F0(s);
@@ -263,6 +276,7 @@ void f_24B22(ST *s)
     goto L_24C4C;
     L_24C4C: ;
     /* 0x024C4C: jsr @r14 */
+    /* 0x024C4E: op 0x0009 */
     s->pr = 0x00024C50;
     
     f_652F0(s);
@@ -282,6 +296,7 @@ void f_24B22(ST *s)
     goto L_24C62;
     L_24C62: ;
     /* 0x024C62: jsr @r14 */
+    /* 0x024C64: op 0x0009 */
     s->pr = 0x00024C66;
     
     f_652F0(s);
@@ -301,6 +316,7 @@ void f_24B22(ST *s)
     goto L_24C78;
     L_24C78: ;
     /* 0x024C78: jsr @r14 */
+    /* 0x024C7A: op 0x0009 */
     s->pr = 0x00024C7C;
     
     f_652F0(s);
@@ -320,6 +336,7 @@ void f_24B22(ST *s)
     goto L_24CA6;
     L_24CA6: ;
     /* 0x024CA6: jsr @r14 */
+    /* 0x024CA8: op 0x0009 */
     s->pr = 0x00024CAA;
     
     f_652F0(s);
@@ -339,6 +356,7 @@ void f_24B22(ST *s)
     goto L_24CBC;
     L_24CBC: ;
     /* 0x024CBC: jsr @r14 */
+    /* 0x024CBE: op 0x0009 */
     s->pr = 0x00024CC0;
     
     f_652F0(s);

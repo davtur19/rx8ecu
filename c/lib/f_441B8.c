@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -41,6 +41,13 @@ void f_441B8(ST *s)
     /* 0x0441CE: mov.w r1,@r14 */
     *(volatile uint16_t*)0xFFFFCA80 = s->r[1]; /* RAM 0xFFFFCA80 */
     goto L_441FA;
+    L_441FA: ;
+    /* 0x0441FA: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x0441FC: rts */
+    /* 0x0441FE: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_441D0: ;
     /* 0x0441D0: op 0x924D */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000B6DCu;
@@ -66,6 +73,7 @@ void f_441B8(ST *s)
     /* 0x0441E4: op 0xD225 */
     s->r[2] = 0x0000213Cu;
     /* 0x0441E6: jsr @r2 */
+    /* 0x0441E8: fmov.s @r3,fr4 */
     s->pr = 0x000441EA;
     fr4 = *(volatile uint32_t*)0xFFFFC0D8; /* RAM 0xFFFFC0D8 */
     f_213C(s);
@@ -86,12 +94,5 @@ void f_441B8(ST *s)
     if (s->T) goto L_441FA;
     /* 0x0441F8: mov.w r4,@r14 */
     *(volatile uint16_t*)0xFFFFCA80 = s->r[4]; /* RAM 0xFFFFCA80 */
-    L_441FA: ;
-    /* 0x0441FA: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x0441FC: rts */
-    /* 0x0441FE: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

@@ -4,12 +4,13 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
 
 void f_A156(ST *s);
+void f_D8C8(ST *s);
 void f_CF96(ST *s)
 {
     uint32_t local_3d4 = 0;
@@ -330,6 +331,7 @@ void f_CF96(ST *s)
     uint32_t t27 = *(volatile uint32_t*)s->r[2]; /* ROM */
     s->r[2] = t27;
     /* 0x00D0E2: jsr @r2 */
+    /* 0x00D0E4: op 0x0009 */
     s->pr = 0x0000D0E6;
     
     f_A156(s);
@@ -358,6 +360,10 @@ void f_CF96(ST *s)
     /* 0x00D112: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    /* 0x00D116: bra 0x00D8C8 (tail) */
+    /* 0x00D118: op 0xFFFF */
+    /* delay slot 0xFFFF — opaque */
+     { f_D8C8(s); return; }
     L_D0EA: ;
     /* 0x00D0EA: op 0x7512 */
     s->r[5] = s->r[5] + (uint32_t)(int32_t)(int8_t)0x12;

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -42,7 +42,7 @@ void f_64FB8(ST *s)
     /* 0x064FCC: op 0x7FFC */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xFC;
     /* 0x064FCE: mov.b r4,@r15 */
-    local_3e4 = s->r[4];
+    local_3e4 = s->r[4] & 0xFF;
     /* 0x064FD0: op 0xE400 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     /* 0x064FD2: op 0x6A43 */
@@ -55,8 +55,10 @@ void f_64FB8(ST *s)
     if (!s->T) goto L_64FF6;
     L_64FDA: ;
     /* 0x064FDA: bsr 0x65008 */
+    /* 0x064FDC: mov.b @r14,r4 (rt-base) */
     s->pr = 0x00064FDE;
-    /* delay slot 0x64E0 — opaque */
+    uint32_t t1 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[14];
+    s->r[4] = t1;
     f_65008(s);
     /* 0x064FDE: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -74,15 +76,6 @@ void f_64FB8(ST *s)
     /* 0x064FEC: op 0x6AB3 */
     s->r[10] = s->r[11];
     goto L_64FF6;
-    L_64FEE: ;
-    /* 0x064FEE: op 0x7D01 */
-    s->r[13] = s->r[13] + (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x064FF0: op 0x3DC3 */
-    s->T = ((int32_t)s->r[13] >= (int32_t)s->r[12]) ? 1u : 0u;
-    /* 0x064FF2: bf.s 0x064FDA */
-    /* 0x064FF4: op 0x7E01 */
-    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
-    if (!s->T) goto L_64FDA;
     L_64FF6: ;
     /* 0x064FF6: op 0x60A3 */
     s->r[0] = s->r[10];
@@ -102,5 +95,14 @@ void f_64FB8(ST *s)
     /* 0x065006: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_64FEE: ;
+    /* 0x064FEE: op 0x7D01 */
+    s->r[13] = s->r[13] + (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x064FF0: op 0x3DC3 */
+    s->T = ((int32_t)s->r[13] >= (int32_t)s->r[12]) ? 1u : 0u;
+    /* 0x064FF2: bf.s 0x064FDA */
+    /* 0x064FF4: op 0x7E01 */
+    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
+    if (!s->T) goto L_64FDA;
     return; /* fallthrough */
 }

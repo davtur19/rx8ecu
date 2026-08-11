@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -47,7 +47,7 @@ void f_1850A(ST *s)
     /* 0x018520: op 0xD115 */
     s->r[1] = 0xFFFFA968u;
     /* 0x018522: mov.b r3,@r15 */
-    local_3dc = s->r[3];
+    local_3dc = s->r[3] & 0xFF;
     /* 0x018524: mov.b @r1,r0 */
     uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA968; /* RAM 0xFFFFA968 */
     s->r[0] = t4;
@@ -145,12 +145,14 @@ void f_1850A(ST *s)
     
     if (s->T) goto L_18646;
     /* 0x0185B0: bra 0x018662 (tail) */
+    /* 0x0185B2: op 0x0009 */
     
      { f_18662(s); return; }
     L_18646: ;
     /* 0x018646: op 0x2888 */
     s->T = ((s->r[8] & s->r[8]) == 0u) ? 1u : 0u;
     /* 0x018648: bf.s 0x018662 (tail) */
+    /* 0x01864A: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     /* 0x01864C: op 0x6163 */
@@ -169,6 +171,7 @@ void f_1850A(ST *s)
     /* 0x018658: op 0x3693 */
     s->T = ((int32_t)s->r[6] >= (int32_t)s->r[9]) ? 1u : 0u;
     /* 0x01865A: bt.s 0x018662 (tail) */
+    /* 0x01865C: op 0x0009 */
     
     if (s->T) { f_18662(s); return; }
     /* 0x01865E: op 0x6D73 */
@@ -184,6 +187,7 @@ void f_1850A(ST *s)
     if (!s->T) goto L_1862E;
     L_1862A: ;
     /* 0x01862A: bra 0x018662 (tail) */
+    /* 0x01862C: mov.b r10,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[10]; /* RAM 0xFFFFA977 */
      { f_18662(s); return; }
     L_1862E: ;
@@ -194,17 +198,20 @@ void f_1850A(ST *s)
     
     if (s->T) goto L_18638;
     /* 0x018634: bra 0x018662 (tail) */
+    /* 0x018636: mov.b r7,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[7]; /* RAM 0xFFFFA977 */
      { f_18662(s); return; }
     L_18638: ;
     /* 0x018638: op 0x36E0 */
     s->T = (s->r[6] == s->r[14]) ? 1u : 0u;
     /* 0x01863A: bf.s 0x018662 (tail) */
+    /* 0x01863C: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     /* 0x01863E: mov.b r11,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[11]; /* RAM 0xFFFFA977 */
     /* 0x018640: bra 0x018662 (tail) */
+    /* 0x018642: op 0x6D73 */
     s->r[13] = s->r[7];
      { f_18662(s); return; }
     L_18614: ;
@@ -217,9 +224,11 @@ void f_1850A(ST *s)
     /* 0x01861A: op 0x36E3 */
     s->T = ((int32_t)s->r[6] >= (int32_t)s->r[14]) ? 1u : 0u;
     /* 0x01861C: bt.s 0x018662 (tail) */
+    /* 0x01861E: op 0x0009 */
     
     if (s->T) { f_18662(s); return; }
     /* 0x018620: bra 0x018662 (tail) */
+    /* 0x018622: mov.b r7,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[7]; /* RAM 0xFFFFA977 */
      { f_18662(s); return; }
     L_185D6: ;
@@ -245,12 +254,14 @@ void f_1850A(ST *s)
     if (!s->T) goto L_185EE;
     L_185EA: ;
     /* 0x0185EA: bra 0x018662 (tail) */
+    /* 0x0185EC: mov.b r4,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[4]; /* RAM 0xFFFFA977 */
      { f_18662(s); return; }
     L_185EE: ;
     /* 0x0185EE: op 0x36E0 */
     s->T = (s->r[6] == s->r[14]) ? 1u : 0u;
     /* 0x0185F0: bf.s 0x018662 (tail) */
+    /* 0x0185F2: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     /* 0x0185F4: op 0x6CCC */
@@ -264,6 +275,7 @@ void f_1850A(ST *s)
     /* 0x0185FC: op 0x2EE8 */
     s->T = ((s->r[14] & s->r[14]) == 0u) ? 1u : 0u;
     /* 0x0185FE: bf.s 0x018662 (tail) */
+    /* 0x018600: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     L_18602: ;
@@ -276,12 +288,14 @@ void f_1850A(ST *s)
     /* 0x018608: mov.b r11,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[11]; /* RAM 0xFFFFA977 */
     /* 0x01860A: bra 0x018662 (tail) */
+    /* 0x01860C: op 0x6D73 */
     s->r[13] = s->r[7];
      { f_18662(s); return; }
     L_1860E: ;
     /* 0x01860E: op 0xE304 */
     s->r[3] = (uint32_t)(int32_t)(int8_t)0x04;
     /* 0x018610: bra 0x018662 (tail) */
+    /* 0x018612: mov.b r3,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[3]; /* RAM 0xFFFFA977 */
      { f_18662(s); return; }
     L_185B4: ;
@@ -303,6 +317,7 @@ void f_1850A(ST *s)
     /* 0x0185C2: op 0x36E0 */
     s->T = (s->r[6] == s->r[14]) ? 1u : 0u;
     /* 0x0185C4: bf.s 0x018662 (tail) */
+    /* 0x0185C6: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     /* 0x0185C8: op 0x6CCC */
@@ -310,11 +325,13 @@ void f_1850A(ST *s)
     /* 0x0185CA: op 0x2CC8 */
     s->T = ((s->r[12] & s->r[12]) == 0u) ? 1u : 0u;
     /* 0x0185CC: bf.s 0x018662 (tail) */
+    /* 0x0185CE: op 0x0009 */
     
     if (!s->T) { f_18662(s); return; }
     /* 0x0185D0: mov.b r11,@r5 */
     *(volatile uint8_t*)0xFFFFA977 = s->r[11]; /* RAM 0xFFFFA977 */
     /* 0x0185D2: bra 0x018662 (tail) */
+    /* 0x0185D4: op 0x6D73 */
     s->r[13] = s->r[7];
      { f_18662(s); return; }
     L_18554: ;

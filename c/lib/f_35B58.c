@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -23,15 +23,15 @@ void f_35B58(ST *s)
     /* 0x035B5E: op 0x6053 */
     s->r[0] = s->r[5];
     /* 0x035B60: mov.b r0,@(0x8,r15) */
-    local_3fc = s->r[0];
+    local_3fc = s->r[0] & 0xFF;
     /* 0x035B62: op 0x604D */
     s->r[0] = s->r[4] & 0xFFFFu;
     /* 0x035B64: op 0x4019 */
     s->r[0] = (s->r[0] >> 8);
     /* 0x035B66: mov.b r0,@(0x4,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFF;
     /* 0x035B68: mov.b r4,@r15 */
-    local_3f4 = s->r[4];
+    local_3f4 = s->r[4] & 0xFF;
     /* 0x035B6A: mov.b @(0x4,r15),r0 */
     s->r[0] = (uint32_t)(int32_t)(int8_t)(local_3f8 & 0xFFu);
     /* 0x035B6C: mov.b @r15,r3 */
@@ -139,17 +139,17 @@ void f_35B58(ST *s)
     /* 0x035BD2: op 0x6043 */
     s->r[0] = s->r[4];
     /* 0x035BD4: mov.b r3,@r15 */
-    local_3f4 = s->r[3];
+    local_3f4 = s->r[3] & 0xFF;
     /* 0x035BD6: op 0x4019 */
     s->r[0] = (s->r[0] >> 8);
     /* 0x035BD8: mov.b r0,@(0x4,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFF;
     /* 0x035BDA: op 0x6043 */
     s->r[0] = s->r[4];
     /* 0x035BDC: mov.b r0,@(0x8,r15) */
-    local_3fc = s->r[0];
+    local_3fc = s->r[0] & 0xFF;
     /* 0x035BDE: mov.b r3,@r15 */
-    local_3f4 = s->r[3];
+    local_3f4 = s->r[3] & 0xFF;
     /* 0x035BE0: mov.b @(0x8,r15),r0 */
     s->r[0] = (uint32_t)(int32_t)(int8_t)(local_3fc & 0xFFu);
     /* 0x035BE2: op 0x600C */

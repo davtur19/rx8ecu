@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -26,6 +26,7 @@ void f_65C16(ST *s)
     /* 0x065C20: op 0xD328 */
     s->r[3] = 0x00064FB8u;
     /* 0x065C22: jsr @r3 */
+    /* 0x065C24: op 0x0009 */
     s->pr = 0x00065C26;
     
     f_64FB8(s);
@@ -33,6 +34,13 @@ void f_65C16(ST *s)
     /* 0x065C28: op 0x6703 */
     s->r[7] = s->r[0];
     goto L_65C36;
+    L_65C36: ;
+    /* 0x065C36: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x065C38: rts */
+    /* 0x065C3A: op 0x6073 */
+    s->r[0] = s->r[7];
+    return;
     L_65C2A: ;
     /* 0x065C2A: op 0xE401 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
@@ -46,12 +54,5 @@ void f_65C16(ST *s)
     if (!s->T) goto L_65C36;
     /* 0x065C34: op 0x6743 */
     s->r[7] = s->r[4];
-    L_65C36: ;
-    /* 0x065C36: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x065C38: rts */
-    /* 0x065C3A: op 0x6073 */
-    s->r[0] = s->r[7];
-    return;
     return; /* fallthrough */
 }

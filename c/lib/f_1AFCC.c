@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -52,15 +52,6 @@ void f_1AFCC(ST *s)
     /* 0x01AFEC: mov.b r0,@r4 */
     *(volatile uint8_t*)0xFFFFAAC8 = s->r[0]; /* RAM 0xFFFFAAC8 */
     goto L_1AFF6;
-    L_1AFEE: ;
-    /* 0x01AFEE: fcmp/gt fr4,fr6 */
-    { union { uint32_t u; float f; } _a, _b; _a.u = fr6; _b.u = fr4; s->T = (_a.f > _b.f) ? 1u : 0u; }
-    /* 0x01AFF0: bf.s 0x01AFF6 */
-    /* 0x01AFF2: op 0x0009 */
-    
-    if (!s->T) goto L_1AFF6;
-    /* 0x01AFF4: mov.b r5,@r4 */
-    *(volatile uint8_t*)0xFFFFAAC8 = s->r[5]; /* RAM 0xFFFFAAC8 */
     L_1AFF6: ;
     /* 0x01AFF6: op 0x9E37 */
     s->r[14] = (uint32_t)(int32_t)(int16_t)0x0000AAC4u;
@@ -78,6 +69,7 @@ void f_1AFCC(ST *s)
     /* 0x01B002: op 0xE501 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     /* 0x01B004: jsr @r3 */
+    /* 0x01B006: mov.w @r14,r4 */
     s->pr = 0x0001B008;
     uint32_t t4 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFAAC4; /* RAM 0xFFFFAAC4 */
     s->r[4] = t4;
@@ -86,9 +78,6 @@ void f_1AFCC(ST *s)
     /* 0x01B00A: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFAAC4 = s->r[0]; /* RAM 0xFFFFAAC4 */
     goto L_1B00E;
-    L_1B00C: ;
-    /* 0x01B00C: mov.w r5,@r14 */
-    *(volatile uint16_t*)s->r[14] = s->r[5]; /* RAM 0xFFFFAAC4 */
     L_1B00E: ;
     /* 0x01B00E: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -96,5 +85,17 @@ void f_1AFCC(ST *s)
     /* 0x01B012: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_1B00C: ;
+    /* 0x01B00C: mov.w r5,@r14 */
+    *(volatile uint16_t*)s->r[14] = s->r[5]; /* RAM 0xFFFFAAC4 */
+    L_1AFEE: ;
+    /* 0x01AFEE: fcmp/gt fr4,fr6 */
+    { union { uint32_t u; float f; } _a, _b; _a.u = fr6; _b.u = fr4; s->T = (_a.f > _b.f) ? 1u : 0u; }
+    /* 0x01AFF0: bf.s 0x01AFF6 */
+    /* 0x01AFF2: op 0x0009 */
+    
+    if (!s->T) goto L_1AFF6;
+    /* 0x01AFF4: mov.b r5,@r4 */
+    *(volatile uint8_t*)0xFFFFAAC8 = s->r[5]; /* RAM 0xFFFFAAC8 */
     return; /* fallthrough */
 }

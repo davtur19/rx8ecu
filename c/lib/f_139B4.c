@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -116,6 +116,7 @@ void f_139B4(ST *s)
     /* 0x013A02: op 0xD230 */
     s->r[2] = 0x000023E4u;
     /* 0x013A04: jsr @r2 */
+    /* 0x013A06: fmov.s @r3,fr5 */
     s->pr = 0x00013A08;
     fr5 = *(volatile uint32_t*)0x000785A4; /* ROM */
     f_23E4(s);
@@ -180,6 +181,7 @@ void f_139B4(ST *s)
     /* 0x013A3E: op 0xD326 */
     s->r[3] = 0x00002478u;
     /* 0x013A40: jsr @r3 */
+    /* 0x013A42: mov.b @r14,r4 */
     s->pr = 0x00013A44;
     uint32_t t20 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA74A; /* RAM 0xFFFFA74A */
     s->r[4] = t20;
@@ -190,12 +192,14 @@ void f_139B4(ST *s)
     goto L_13A6E;
     L_13A6E: ;
     /* 0x013A6E: bsr 0x13B4A */
+    /* 0x013A70: fmov fr15,fr4 */
     s->pr = 0x00013A72;
     fr4 = fr15;
     f_13B4A(s);
     /* 0x013A72: fmov.s fr0,@r10 */
     *(volatile uint32_t*)0xFFFFA72C = fr0; /* RAM 0xFFFFA72C */
     /* 0x013A74: bsr 0x13AE4 */
+    /* 0x013A76: fmov fr14,fr4 */
     s->pr = 0x00013A78;
     fr4 = fr14;
     f_13AE4(s);
@@ -206,6 +210,7 @@ void f_139B4(ST *s)
     /* 0x013A7C: fmov.s @r10,fr4 */
     fr4 = *(volatile uint32_t*)0xFFFFA72C; /* RAM 0xFFFFA72C */
     /* 0x013A7E: bsr 0x13B5E */
+    /* 0x013A80: fadd fr3,fr4 */
     s->pr = 0x00013A82;
     { union { uint32_t u; float f; } _a, _b, _r; _a.u = fr4; _b.u = fr3; _r.f = _a.f + _b.f; fr4 = _r.u; }
     f_13B5E(s);
@@ -272,6 +277,7 @@ void f_139B4(ST *s)
     /* 0x013A60: op 0xD31D */
     s->r[3] = 0x00002478u;
     /* 0x013A62: jsr @r3 */
+    /* 0x013A64: mov.b @r13,r4 */
     s->pr = 0x00013A66;
     uint32_t t26 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFA74B; /* RAM 0xFFFFA74B */
     s->r[4] = t26;

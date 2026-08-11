@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -33,10 +33,10 @@ void f_669CE(ST *s)
     uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFDBFB; /* RAM 0xFFFFDBFB */
     s->r[6] = t4;
     if (!s->T) goto L_669E2;
-    /* 0x0669DE: bra 0x6725c (tail) */
+    /* 0x0669DE: bra 0x06725C (tail) */
+    /* 0x0669E0: op 0x0009 */
     
-    f_6725C(s);
-    return;
+     { f_6725C(s); return; }
     L_669E2: ;
     /* 0x0669E2: op 0x6043 */
     s->r[0] = s->r[4];
@@ -46,10 +46,10 @@ void f_669CE(ST *s)
     /* 0x0669E8: op 0x0009 */
     
     if (!s->T) goto L_669EE;
-    /* 0x0669EA: bra 0x67286 (tail) */
+    /* 0x0669EA: bra 0x067286 (tail) */
+    /* 0x0669EC: op 0x0009 */
     
-    f_67286(s);
-    return;
+     { f_67286(s); return; }
     L_669EE: ;
     /* 0x0669EE: op 0x2448 */
     s->T = ((s->r[4] & s->r[4]) == 0u) ? 1u : 0u;
@@ -65,10 +65,10 @@ void f_669CE(ST *s)
     /* 0x0669FA: op 0x0009 */
     
     if (!s->T) goto L_66A00;
-    /* 0x0669FC: bra 0x6721a (tail) */
+    /* 0x0669FC: bra 0x06721A (tail) */
+    /* 0x0669FE: op 0x0009 */
     
-    f_6721A(s);
-    return;
+     { f_6721A(s); return; }
     L_66A00: ;
     /* 0x066A00: op 0x6043 */
     s->r[0] = s->r[4];
@@ -78,10 +78,10 @@ void f_669CE(ST *s)
     /* 0x066A06: op 0x0009 */
     
     if (!s->T) goto L_66A0C;
-    /* 0x066A08: bra 0x67334 (tail) */
+    /* 0x066A08: bra 0x067334 (tail) */
+    /* 0x066A0A: op 0x0009 */
     
-    f_67334(s);
-    return;
+     { f_67334(s); return; }
     L_66A0C: ;
     /* 0x066A0C: rts */
     /* 0x066A0E: op 0x0009 */

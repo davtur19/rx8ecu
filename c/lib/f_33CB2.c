@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -32,6 +32,7 @@ void f_33CB2(ST *s)
     /* 0x033CBC: op 0xD232 */
     s->r[2] = 0x000024C0u;
     /* 0x033CBE: jsr @r2 */
+    /* 0x033CC0: mov.w @r3,r4 */
     s->pr = 0x00033CC2;
     uint32_t t2 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFC0A8; /* RAM 0xFFFFC0A8 */
     s->r[4] = t2;
@@ -126,6 +127,13 @@ void f_33CB2(ST *s)
     /* 0x033D14: mov.b r2,@r4 */
     *(volatile uint8_t*)0xFFFFC070 = s->r[2]; /* RAM 0xFFFFC070 */
     goto L_33D26;
+    L_33D26: ;
+    /* 0x033D26: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x033D28: rts */
+    /* 0x033D2A: op 0x0009 */
+    
+    return;
     L_33D16: ;
     /* 0x033D16: op 0xD319 */
     s->r[3] = 0xFFFFC090u;
@@ -144,12 +152,5 @@ void f_33CB2(ST *s)
     s->r[1] = (uint32_t)(int32_t)(int8_t)0x01;
     /* 0x033D24: mov.b r1,@r4 */
     *(volatile uint8_t*)0xFFFFC070 = s->r[1]; /* RAM 0xFFFFC070 */
-    L_33D26: ;
-    /* 0x033D26: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x033D28: rts */
-    /* 0x033D2A: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

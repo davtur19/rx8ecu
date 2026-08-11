@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -96,7 +96,7 @@ void f_94FC(ST *s)
     /* 0x00953E: mov.l r3,@r15 */
     local_3dc = s->r[3];
     /* 0x009540: mov.w @(r0,r2),r2 */
-    uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)(0x0006F544 + s->r[0]); /* ROM */
+    uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)(s->r[2] + s->r[0]); /* ROM */
     s->r[2] = t8;
     /* 0x009542: op 0x622D */
     s->r[2] = s->r[2] & 0xFFFFu;
@@ -307,7 +307,7 @@ void f_94FC(ST *s)
     /* 0x009586: mov.w @(r0,r4),r3 */
     uint32_t t29 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)(s->r[4] + s->r[0]);
     s->r[3] = t29;
-    /* 0x009588: mov.w r3,@(r13+r0) (rt-base) */
-    *(volatile uint16_t*)(s->r[13] + s->r[0]) = s->r[3];
+    /* 0x009588: mov.w r3,@(r0,r13) */
+    *(volatile uint16_t*)(0xFFFFA112 + s->r[0]) = s->r[3]; /* RAM 0xFFFFA112 */
     return; /* fallthrough */
 }

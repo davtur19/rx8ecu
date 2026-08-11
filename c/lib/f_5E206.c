@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -23,6 +23,7 @@ void f_5E206(ST *s)
     /* 0x05E20C: op 0xD336 */
     s->r[3] = 0x000600F0u;
     /* 0x05E20E: jsr @r3 */
+    /* 0x05E210: op 0x64E3 */
     s->pr = 0x0005E212;
     s->r[4] = s->r[14];
     f_600F0(s);
@@ -54,13 +55,11 @@ void f_5E206(ST *s)
     /* 0x05E22C: op 0x0009 */
     
     goto L_5E230;
-    L_5E22E: ;
-    /* 0x05E22E: op 0x7E01 */
-    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
     L_5E230: ;
     /* 0x05E230: op 0xD22D */
     s->r[2] = 0x000600F0u;
     /* 0x05E232: jsr @r2 */
+    /* 0x05E234: op 0xE401 */
     s->pr = 0x0005E236;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_600F0(s);
@@ -92,9 +91,6 @@ void f_5E206(ST *s)
     /* 0x05E250: op 0x0009 */
     
     goto L_5E254;
-    L_5E252: ;
-    /* 0x05E252: op 0x7E01 */
-    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
     L_5E254: ;
     /* 0x05E254: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -104,5 +100,11 @@ void f_5E206(ST *s)
     /* 0x05E25A: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_5E252: ;
+    /* 0x05E252: op 0x7E01 */
+    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
+    L_5E22E: ;
+    /* 0x05E22E: op 0x7E01 */
+    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
     return; /* fallthrough */
 }
