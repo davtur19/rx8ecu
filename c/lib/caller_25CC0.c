@@ -104,15 +104,6 @@ void caller_25CC0(ST *s)
     /* 0x025D0C: op 0x0009 */
     
     goto L_25D16;
-    L_25D0E: ;
-    /* 0x025D0E: op 0xE600 */
-    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x025D10: op 0xE510 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x10;
-    /* 0x025D12: jsr @r14 */
-    s->pr = 0x00025D16;
-    s->r[4] = s->r[13];
-    f_4BBC(s);
     L_25D16: ;
     /* 0x025D16: op 0xD31C */
     s->r[3] = 0x00002064u;
@@ -130,5 +121,14 @@ void caller_25CC0(ST *s)
     /* 0x025D24: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_25D0E: ;
+    /* 0x025D0E: op 0xE600 */
+    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x025D10: op 0xE510 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x10;
+    /* 0x025D12: jsr @r14 */
+    s->pr = 0x00025D16;
+    s->r[4] = s->r[13];
+    f_4BBC(s);
     return; /* fallthrough */
 }

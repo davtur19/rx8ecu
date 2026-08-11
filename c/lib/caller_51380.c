@@ -88,6 +88,13 @@ void caller_51380(ST *s)
     /* 0x0513C2: fmov.s fr4,@r1 */
     *(volatile uint32_t*)0xFFFFCF80 = fr4; /* RAM 0xFFFFCF80 */
     goto L_513E4;
+    L_513E4: ;
+    /* 0x0513E4: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x0513E6: rts */
+    /* 0x0513E8: op 0x0009 */
+    
+    return;
     L_513C4: ;
     /* 0x0513C4: op 0x9270 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CDC4u;
@@ -124,12 +131,5 @@ void caller_51380(ST *s)
     s->r[2] = t12;
     /* 0x0513E2: mov.b r2,@r5 */
     *(volatile uint8_t*)0xFFFFCF84 = s->r[2]; /* RAM 0xFFFFCF84 */
-    L_513E4: ;
-    /* 0x0513E4: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x0513E6: rts */
-    /* 0x0513E8: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

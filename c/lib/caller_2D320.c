@@ -99,6 +99,13 @@ void caller_2D320(ST *s)
     /* 0x02D368: fmov.s fr3,@r5 */
     *(volatile uint32_t*)(s->r[5] + 0) = fr3;
     goto L_2D386;
+    L_2D386: ;
+    /* 0x02D386: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x02D388: rts */
+    /* 0x02D38A: op 0x0009 */
+    
+    return;
     L_2D36A: ;
     /* 0x02D36A: op 0x9245 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000A630u;
@@ -128,12 +135,5 @@ void caller_2D320(ST *s)
     { union { uint32_t u; float f; } _a, _b, _r; _a.u = fr0; _b.u = fr2; _r.f = _a.f - _b.f; fr0 = _r.u; }
     /* 0x02D384: fmov.s fr0,@r5 */
     *(volatile uint32_t*)(s->r[5] + 0) = fr0;
-    L_2D386: ;
-    /* 0x02D386: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x02D388: rts */
-    /* 0x02D38A: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

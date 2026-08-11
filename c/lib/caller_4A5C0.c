@@ -74,6 +74,17 @@ void caller_4A5C0(ST *s)
     /* 0x04A5F2: op 0x0009 */
     
     goto L_4A644;
+    L_4A644: ;
+    /* 0x04A644: op 0xD20C */
+    s->r[2] = 0xFFFFCFC8u;
+    /* 0x04A646: mov.b r14,@r2 */
+    *(volatile uint8_t*)0xFFFFCFC8 = s->r[14]; /* RAM 0xFFFFCFC8 */
+    /* 0x04A648: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x04A64A: rts */
+    /* 0x04A64C: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_4A5F4: ;
     /* 0x04A5F4: op 0x9337 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CEF5u;
@@ -91,7 +102,7 @@ void caller_4A5C0(ST *s)
     /* 0x04A600: op 0x9232 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CE4Du;
     /* 0x04A602: mov.b @r2,r0 */
-    uint32_t t8 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFCE4D; /* RAM 0xFFFFCE4D */
+    uint32_t t8 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[2]; /* RAM 0xFFFFCE4D */
     s->r[0] = t8;
     /* 0x04A604: op 0x600C */
     s->r[0] = s->r[0] & 0xFFu;
@@ -162,16 +173,5 @@ void caller_4A5C0(ST *s)
     s->pr = 0x0004A644;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     f_3E1F8(s);
-    L_4A644: ;
-    /* 0x04A644: op 0xD20C */
-    s->r[2] = 0xFFFFCFC8u;
-    /* 0x04A646: mov.b r14,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCFC8 */
-    /* 0x04A648: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x04A64A: rts */
-    /* 0x04A64C: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

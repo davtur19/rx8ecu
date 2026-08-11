@@ -92,13 +92,6 @@ void caller_4997C(ST *s)
     /* 0x0499BE: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFCC94 = s->r[0]; /* RAM 0xFFFFCC94 */
     goto L_499C6;
-    L_499C0: ;
-    /* 0x0499C0: op 0xE400 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x0499C2: mov.b r4,@r5 */
-    *(volatile uint8_t*)s->r[5] = s->r[4]; /* ROM */
-    /* 0x0499C4: mov.w r4,@r14 */
-    *(volatile uint16_t*)0xFFFFCC94 = s->r[4]; /* RAM 0xFFFFCC94 */
     L_499C6: ;
     /* 0x0499C6: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -106,5 +99,12 @@ void caller_4997C(ST *s)
     /* 0x0499CA: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_499C0: ;
+    /* 0x0499C0: op 0xE400 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x0499C2: mov.b r4,@r5 */
+    *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFCC92 */
+    /* 0x0499C4: mov.w r4,@r14 */
+    *(volatile uint16_t*)0xFFFFCC94 = s->r[4]; /* RAM 0xFFFFCC94 */
     return; /* fallthrough */
 }

@@ -60,11 +60,6 @@ void caller_3A520(ST *s)
     /* 0x03A544: op 0x757F */
     s->r[5] = s->r[5] + (uint32_t)(int32_t)(int8_t)0x7F;
     goto L_3A54A;
-    L_3A546: ;
-    /* 0x03A546: op 0xE600 */
-    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x03A548: op 0x954A */
-    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
     L_3A54A: ;
     /* 0x03A54A: op 0x944A */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F746u;
@@ -103,11 +98,6 @@ void caller_3A520(ST *s)
     /* 0x03A56C: op 0x6563 */
     s->r[5] = s->r[6];
     goto L_3A572;
-    L_3A56E: ;
-    /* 0x03A56E: op 0xE600 */
-    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x03A570: op 0xE501 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     L_3A572: ;
     /* 0x03A572: op 0x9438 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F754u;
@@ -129,5 +119,15 @@ void caller_3A520(ST *s)
     /* 0x03A584: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_3A56E: ;
+    /* 0x03A56E: op 0xE600 */
+    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x03A570: op 0xE501 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
+    L_3A546: ;
+    /* 0x03A546: op 0xE600 */
+    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x03A548: op 0x954A */
+    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
     return; /* fallthrough */
 }

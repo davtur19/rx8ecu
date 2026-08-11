@@ -76,6 +76,17 @@ void caller_51664(ST *s)
     /* 0x051698: op 0x0009 */
     
     goto L_516BA;
+    L_516BA: ;
+    /* 0x0516BA: op 0xD20C */
+    s->r[2] = 0xFFFFCF96u;
+    /* 0x0516BC: mov.b r14,@r2 */
+    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCF96 */
+    /* 0x0516BE: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x0516C0: rts */
+    /* 0x0516C2: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_5169A: ;
     /* 0x05169A: op 0x9320 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000C542u;
@@ -112,16 +123,5 @@ void caller_51664(ST *s)
     s->pr = 0x000516BA;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     f_3E1F8(s);
-    L_516BA: ;
-    /* 0x0516BA: op 0xD20C */
-    s->r[2] = 0xFFFFCF96u;
-    /* 0x0516BC: mov.b r14,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCF96 */
-    /* 0x0516BE: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x0516C0: rts */
-    /* 0x0516C2: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

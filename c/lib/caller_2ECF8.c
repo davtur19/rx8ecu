@@ -62,11 +62,6 @@ void caller_2ECF8(ST *s)
     /* 0x02ED1E: op 0x757F */
     s->r[5] = s->r[5] + (uint32_t)(int32_t)(int8_t)0x7F;
     goto L_2ED24;
-    L_2ED20: ;
-    /* 0x02ED20: op 0x950E */
-    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
-    /* 0x02ED22: op 0xE600 */
-    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
     L_2ED24: ;
     /* 0x02ED24: op 0x940B */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F76Cu;
@@ -90,5 +85,10 @@ void caller_2ECF8(ST *s)
     /* 0x02ED38: op 0x0009 */
     
     return;
+    L_2ED20: ;
+    /* 0x02ED20: op 0x950E */
+    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
+    /* 0x02ED22: op 0xE600 */
+    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
     return; /* fallthrough */
 }

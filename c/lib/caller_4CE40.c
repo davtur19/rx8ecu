@@ -42,6 +42,13 @@ void caller_4CE40(ST *s)
     /* 0x04CE56: mov.w r1,@r14 */
     *(volatile uint16_t*)0xFFFFCDA6 = s->r[1]; /* RAM 0xFFFFCDA6 */
     goto L_4CE6E;
+    L_4CE6E: ;
+    /* 0x04CE6E: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x04CE70: rts */
+    /* 0x04CE72: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_4CE58: ;
     /* 0x04CE58: op 0x9222 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CDBCu;
@@ -67,12 +74,5 @@ void caller_4CE40(ST *s)
     f_2460(s);
     /* 0x04CE6C: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFCDA6 = s->r[0]; /* RAM 0xFFFFCDA6 */
-    L_4CE6E: ;
-    /* 0x04CE6E: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x04CE70: rts */
-    /* 0x04CE72: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

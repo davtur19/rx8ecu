@@ -115,6 +115,13 @@ void caller_34964(ST *s)
     /* 0x0349BC: fmov.s fr3,@r1 */
     *(volatile uint32_t*)0xFFFFC124 = fr3; /* RAM 0xFFFFC124 */
     goto L_349D2;
+    L_349D2: ;
+    /* 0x0349D2: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x0349D4: rts */
+    /* 0x0349D6: op 0x0009 */
+    
+    return;
     L_349BE: ;
     /* 0x0349BE: fmov.s @r4,fr3 */
     fr3 = *(volatile uint32_t*)(s->r[4] + 0);
@@ -136,12 +143,5 @@ void caller_34964(ST *s)
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000C124u;
     /* 0x0349D0: fmov.s fr0,@r3 */
     *(volatile uint32_t*)0xFFFFC124 = fr0; /* RAM 0xFFFFC124 */
-    L_349D2: ;
-    /* 0x0349D2: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x0349D4: rts */
-    /* 0x0349D6: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

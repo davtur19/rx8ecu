@@ -92,13 +92,6 @@ void caller_49A1C(ST *s)
     /* 0x049A5E: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFCC96 = s->r[0]; /* RAM 0xFFFFCC96 */
     goto L_49A66;
-    L_49A60: ;
-    /* 0x049A60: op 0xE400 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x049A62: mov.b r4,@r5 */
-    *(volatile uint8_t*)s->r[5] = s->r[4]; /* ROM */
-    /* 0x049A64: mov.w r4,@r14 */
-    *(volatile uint16_t*)0xFFFFCC96 = s->r[4]; /* RAM 0xFFFFCC96 */
     L_49A66: ;
     /* 0x049A66: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -106,5 +99,12 @@ void caller_49A1C(ST *s)
     /* 0x049A6A: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_49A60: ;
+    /* 0x049A60: op 0xE400 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x049A62: mov.b r4,@r5 */
+    *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFCC93 */
+    /* 0x049A64: mov.w r4,@r14 */
+    *(volatile uint16_t*)0xFFFFCC96 = s->r[4]; /* RAM 0xFFFFCC96 */
     return; /* fallthrough */
 }

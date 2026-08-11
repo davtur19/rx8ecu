@@ -137,9 +137,6 @@ void caller_43360(ST *s)
     /* 0x0433CA: mov.w r0,@r13 */
     *(volatile uint16_t*)0xFFFFCA54 = s->r[0]; /* RAM 0xFFFFCA54 */
     goto L_433CE;
-    L_433CC: ;
-    /* 0x0433CC: mov.w r4,@r13 */
-    *(volatile uint16_t*)s->r[13] = s->r[4]; /* RAM 0xFFFFCA54 */
     L_433CE: ;
     /* 0x0433CE: op 0xD216 */
     s->r[2] = 0xFFFFCA5Eu;
@@ -153,5 +150,8 @@ void caller_43360(ST *s)
     /* 0x0433D8: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_433CC: ;
+    /* 0x0433CC: mov.w r4,@r13 */
+    *(volatile uint16_t*)s->r[13] = s->r[4]; /* RAM 0xFFFFCA54 */
     return; /* fallthrough */
 }

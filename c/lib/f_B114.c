@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -70,6 +70,7 @@ void f_B114(ST *s)
     /* 0x00B18C: op 0xD322 */
     s->r[3] = 0x00002054u;
     /* 0x00B18E: jsr @r3 */
+    /* 0x00B190: op 0x64F3 */
     s->pr = 0x0000B192;
     s->r[4] = s->r[15];
     f_2054(s);
@@ -85,6 +86,7 @@ void f_B114(ST *s)
     /* 0x00B19A: op 0x7E04 */
     s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x04;
     /* 0x00B19C: jsr @r13 */
+    /* 0x00B19E: op 0x65C3 */
     s->pr = 0x0000B1A0;
     s->r[5] = s->r[12];
     f_A8A4(s);
@@ -97,6 +99,7 @@ void f_B114(ST *s)
     /* 0x00B1A6: op 0x9430 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F64Eu;
     /* 0x00B1A8: jsr @r13 */
+    /* 0x00B1AA: op 0x65A3 */
     s->pr = 0x0000B1AC;
     s->r[5] = s->r[10];
     f_A8A4(s);
@@ -109,6 +112,7 @@ void f_B114(ST *s)
     /* 0x00B1B2: op 0x942C */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F65Eu;
     /* 0x00B1B4: jsr @r13 */
+    /* 0x00B1B6: op 0xE501 */
     s->pr = 0x0000B1B8;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     f_A8A4(s);
@@ -126,6 +130,7 @@ void f_B114(ST *s)
     /* 0x00B1C2: op 0xD318 */
     s->r[3] = 0x00002064u;
     /* 0x00B1C4: jsr @r3 */
+    /* 0x00B1C6: mov.l @r15,r4 */
     s->pr = 0x0000B1C8;
     s->r[4] = local_3e0;
     f_2064(s);

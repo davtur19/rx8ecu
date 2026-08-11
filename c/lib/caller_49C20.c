@@ -90,29 +90,6 @@ void caller_49C20(ST *s)
     /* 0x049C5E: mov.b r2,@r14 */
     *(volatile uint8_t*)0xFFFFCC91 = s->r[2]; /* RAM 0xFFFFCC91 */
     goto L_49C74;
-    L_49C60: ;
-    /* 0x049C60: op 0xD32D */
-    s->r[3] = 0xFFFFCC9Du;
-    /* 0x049C62: mov.b @r3,r1 */
-    uint32_t t10 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFCC9D */
-    s->r[1] = t10;
-    /* 0x049C64: op 0x2118 */
-    s->T = ((s->r[1] & s->r[1]) == 0u) ? 1u : 0u;
-    /* 0x049C66: bf.s 0x049C74 */
-    /* 0x049C68: op 0x0009 */
-    
-    if (!s->T) goto L_49C74;
-    /* 0x049C6A: op 0xE501 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x049C6C: op 0xD12B */
-    s->r[1] = 0x00002478u;
-    /* 0x049C6E: jsr @r1 */
-    s->pr = 0x00049C72;
-    uint32_t t12 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFCC91; /* RAM 0xFFFFCC91 */
-    s->r[4] = t12;
-    f_2478(s);
-    /* 0x049C72: mov.b r0,@r14 */
-    *(volatile uint8_t*)0xFFFFCC91 = s->r[0]; /* RAM 0xFFFFCC91 */
     L_49C74: ;
     /* 0x049C74: op 0x9444 */
     s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000CC8Du;
@@ -139,36 +116,6 @@ void caller_49C20(ST *s)
     /* 0x049C8A: mov.b r2,@r4 */
     *(volatile uint8_t*)0xFFFFCC8D = s->r[2]; /* RAM 0xFFFFCC8D */
     goto L_49CA6;
-    L_49C8C: ;
-    /* 0x049C8C: mov.b @r14,r1 */
-    uint32_t t14 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[14]; /* RAM 0xFFFFCC91 */
-    s->r[1] = t14;
-    /* 0x049C8E: op 0xD224 */
-    s->r[2] = 0x0007C2B8u;
-    /* 0x049C90: mov.b @r2,r3 */
-    uint32_t t16 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[2]; /* ROM */
-    s->r[3] = t16;
-    /* 0x049C92: op 0x3136 */
-    s->T = (s->r[1] > s->r[3]) ? 1u : 0u;
-    /* 0x049C94: bf.s 0x049CA6 */
-    /* 0x049C96: op 0x0009 */
-    
-    if (!s->T) goto L_49CA6;
-    /* 0x049C98: op 0xD322 */
-    s->r[3] = 0x0007C2B9u;
-    /* 0x049C9A: mov.b @r3,r1 */
-    uint32_t t18 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* ROM */
-    s->r[1] = t18;
-    /* 0x049C9C: op 0x2118 */
-    s->T = ((s->r[1] & s->r[1]) == 0u) ? 1u : 0u;
-    /* 0x049C9E: bf.s 0x049CA6 */
-    /* 0x049CA0: op 0x0009 */
-    
-    if (!s->T) goto L_49CA6;
-    /* 0x049CA2: op 0xE201 */
-    s->r[2] = (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x049CA4: mov.b r2,@r4 */
-    *(volatile uint8_t*)0xFFFFCC8D = s->r[2]; /* RAM 0xFFFFCC8D */
     L_49CA6: ;
     /* 0x049CA6: op 0xD31B */
     s->r[3] = 0xFFFFCC9Au;
@@ -186,5 +133,58 @@ void caller_49C20(ST *s)
     /* 0x049CB4: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_49C8C: ;
+    /* 0x049C8C: mov.b @r14,r1 */
+    uint32_t t10 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[14]; /* RAM 0xFFFFCC91 */
+    s->r[1] = t10;
+    /* 0x049C8E: op 0xD224 */
+    s->r[2] = 0x0007C2B8u;
+    /* 0x049C90: mov.b @r2,r3 */
+    uint32_t t12 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[2]; /* ROM */
+    s->r[3] = t12;
+    /* 0x049C92: op 0x3136 */
+    s->T = (s->r[1] > s->r[3]) ? 1u : 0u;
+    /* 0x049C94: bf.s 0x049CA6 */
+    /* 0x049C96: op 0x0009 */
+    
+    if (!s->T) goto L_49CA6;
+    /* 0x049C98: op 0xD322 */
+    s->r[3] = 0x0007C2B9u;
+    /* 0x049C9A: mov.b @r3,r1 */
+    uint32_t t14 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* ROM */
+    s->r[1] = t14;
+    /* 0x049C9C: op 0x2118 */
+    s->T = ((s->r[1] & s->r[1]) == 0u) ? 1u : 0u;
+    /* 0x049C9E: bf.s 0x049CA6 */
+    /* 0x049CA0: op 0x0009 */
+    
+    if (!s->T) goto L_49CA6;
+    /* 0x049CA2: op 0xE201 */
+    s->r[2] = (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x049CA4: mov.b r2,@r4 */
+    *(volatile uint8_t*)0xFFFFCC8D = s->r[2]; /* RAM 0xFFFFCC8D */
+    L_49C60: ;
+    /* 0x049C60: op 0xD32D */
+    s->r[3] = 0xFFFFCC9Du;
+    /* 0x049C62: mov.b @r3,r1 */
+    uint32_t t16 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFCC9D */
+    s->r[1] = t16;
+    /* 0x049C64: op 0x2118 */
+    s->T = ((s->r[1] & s->r[1]) == 0u) ? 1u : 0u;
+    /* 0x049C66: bf.s 0x049C74 */
+    /* 0x049C68: op 0x0009 */
+    
+    if (!s->T) goto L_49C74;
+    /* 0x049C6A: op 0xE501 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x049C6C: op 0xD12B */
+    s->r[1] = 0x00002478u;
+    /* 0x049C6E: jsr @r1 */
+    s->pr = 0x00049C72;
+    uint32_t t18 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFCC91; /* RAM 0xFFFFCC91 */
+    s->r[4] = t18;
+    f_2478(s);
+    /* 0x049C72: mov.b r0,@r14 */
+    *(volatile uint8_t*)0xFFFFCC91 = s->r[0]; /* RAM 0xFFFFCC91 */
     return; /* fallthrough */
 }
