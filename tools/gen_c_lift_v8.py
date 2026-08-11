@@ -317,6 +317,29 @@ def _static_branch_in_span(rom, pc, addr, bound):
     return addr <= tgt < bound
 
 
+# Whole-ROM pcrel literal-pool set (span-independent), cached per rom object.
+# The span-scoped `data` set in build_cfg only marks pool words referenced by a
+# pcrel load INSIDE [addr, end): a callee body that is (or contains) a literal
+# pool referenced from the CALLER / another function has its data words walked
+# as instructions and dies 'unmapped' at the emit_one-None reject site
+# (e.g. 0x214B6 — 32-bit address table 0x000725F3/0x00072610/0x000725F4 whose
+# pcrel load lives outside the callee span).  Those words ARE clearly non-code
+# (a pcrel load treats them as a value), so skip them anywhere in the walk.
+_POOL_ALL_CACHE = {}
+
+
+def _pcrel_pool_all(rom):
+    """Every literal-pool word address referenced by ANY pcrel load in the
+    whole rom (not span-scoped).  Same EA formulas as gcl._pcrel_pool_words;
+    O(rom size), computed once per rom object."""
+    key = id(rom)
+    s = _POOL_ALL_CACHE.get(key)
+    if s is None:
+        s = gcl._pcrel_pool_words(rom, 0, len(rom))
+        _POOL_ALL_CACHE[key] = s
+    return s
+
+
 def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
               allow_runtime_base=False, tail_bra_as_call=False,
               allow_boundary_entry=False, data_tail_ok=False):
@@ -416,6 +439,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
     data = set(gcl._pcrel_pool_words(rom, addr, end))
     if data_extra:
         data |= set(data_extra)
+    pool_all = _pcrel_pool_all(rom)
     mova_lits = {}
     tbl_base = {}       # reg index -> table base literal (set by indexed load)
     rt_tbl = {}         # reg index -> (table base literal, index reg) for
@@ -1200,6 +1224,17 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         # unmapped logic with seen_rts False (its own column) -> real
         # corruption still rejects.
         seen_rts = False
+        # (patch 2b) per-column data-run latch: once THIS linear column has
+        # skipped a word as unambiguous data (ZERO/0xFFFF or pcrel-pool), a
+        # later non-decodable word in the same column is data too (a literal
+        # pool / data table is a CONTIGUOUS region — its non-pool-marked
+        # words, e.g. misaligned table entries 0xD98E/0xD9A8 or bitmask
+        # tables 0x5D83C, fail to decode but are clearly the same data).
+        # Skipping instead of hard-rejecting recovers callee-lib rows whose
+        # body IS such a table.  Read ONLY at the emit_one-None reject site,
+        # so functions that complete never hit it (zero output change for
+        # previously-lifted rows).
+        data_run = False
         while pc + 1 < bound:
             if pc in seen_pc:            # already walked via another path
                 break
@@ -1215,6 +1250,19 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     # instead of a CODE-miss early RET (0x543BA stale r1).
                     data.discard(pc)
                 else:
+                    # (patch 2) skip the word as data.  Only the SPAN-SCOPED
+                    # `data` set is trusted here: a whole-ROM pool word (pool_all)
+                    # may still be EXECUTED code inside this span (a pcrel load
+                    # elsewhere references the word as a value, but the in-span
+                    # code also runs it, e.g. 0x56D8E mov.l @(disp,PC),r4 -> r0
+                    # divergence), so pool_all is NOT skipped at the top of the
+                    # loop — only at the emit_one-None reject site below, where
+                    # the word has already failed to decode.  A jump/vector
+                    # table word that decodes as bsrf/braf (0x0003 + value
+                    # pairs, 0x1A5F4 / 0x50890 / 0x537E4) is handled by the
+                    # data_run/dynbranch paths instead of being hard-rejected
+                    # at the top.
+                    data_run = True
                     pc += 2
                     continue
             op = (rom[pc] << 8) | rom[pc + 1]
@@ -1264,8 +1312,18 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 slot = None
                 if bi['delayed']:
                     if pc + 2 >= end:
-                        res.reject = ('delay_slot_ctrl', pc)
-                        return res
+                        # (fix_plan bucket 5) a delayed branch's slot falls at/
+                        # past the span end: the catalog span is truncated
+                        # (zero/garbage PC-class signature).  sh2emu executes
+                        # the slot before branching, so EXTEND the sanitized
+                        # span by 2 bytes (the slot) instead of rejecting
+                        # delay_slot_ctrl.
+                        if pc + 4 <= len(rom):
+                            end = pc + 4
+                            bound = min(end, len(rom))
+                        else:
+                            res.reject = ('delay_slot_ctrl', pc)
+                            return res
                     slot = slot_record(pc + 2)
                 if kind in ('bsrf', 'braf'):
                     res.reject = ('dynbranch_unresolved', pc)
@@ -1581,6 +1639,27 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     if _ft is not None and pc > _ft:
                         pc += 2
                         continue
+                # (patch 2) ZERO/0xFFFF words and literal-pool words anywhere
+                # in the walk: clearly non-code data, so skip the word and
+                # keep walking instead of hard-rejecting the whole lift.
+                # 0x0000 is an undefined SH-2 opcode (objdump: .word), 0xFFFF
+                # too; pool words are referenced as VALUES by a pcrel load
+                # (span-scoped `data` misses ones referenced from outside the
+                # span — see _pcrel_pool_all).  Conservative: only words that
+                # fail to decode AND are ZERO/0xFFFF or pool-referenced are
+                # skipped; a genuinely-executed instruction still rejects.
+                _w = (rom[pc] << 8) | rom[pc + 1]
+                if _w == 0x0000 or _w == 0xFFFF or pc in pool_all:
+                    data_run = True
+                    pc += 2
+                    continue
+                if data_run:
+                    # (patch 2b) inside a data run: the word is non-decodable
+                    # AND the column already skipped unambiguous data right
+                    # before — keep treating the run as data (2-byte advance,
+                    # still bounded by the function span).
+                    pc += 2
+                    continue
                 res.reject = ('unmapped', pc)
                 return res
             if op & 0xFF00 == 0xC700:                  # mova
@@ -1847,6 +1926,29 @@ def run_dryrun(rom_path, bank, seed=42):
 # ---------------------------------------------------------------------------
 # ST composition emission (multi-dispatch / tail-call / jump-table)
 # ---------------------------------------------------------------------------
+def _synth_nop_body(addr, end_s, rom):
+    """Synthesize a no-op body for a nop-sled ENTRY (midfunc_nop reject): NOP
+    records until the first rts, then a return record.  Mirrors _walk_callee's
+    nop-sled handling (L2475-2491) so `--emit` on such an address produces a
+    compilable caller instead of failing the lift."""
+    res = CfgResult()
+    e2 = addr
+    while e2 + 1 < min(end_s, len(rom)):
+        w = (rom[e2] << 8) | rom[e2 + 1]
+        if w == 0x000B:
+            res.records.append({'pc': e2, 'op': w, 'kind': 'ret',
+                                'mnem': 'rts', 'c': ['return r0;']})
+            return res
+        if w != 0x0009:
+            break
+        res.records.append({'pc': e2, 'op': w, 'kind': 'nop',
+                            'mnem': 'nop', 'c': []})
+        e2 += 2
+    if not res.records:
+        res.reject = ('midfunc_nop', addr)
+    return res
+
+
 def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
                 rom_label=None, force_end=None):
     """Emit c/lib/caller_<hex>.c (ST ABI) + c/lib/test_caller_<hex>.py for a
@@ -1901,9 +2003,29 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
                 if _ext is not None:
                     end_s = _ext
     lifted = _load_lifted()
-    res = build_cfg(rom, addr, end_s, lifted, catalog, allow_runtime_base=True, tail_bra_as_call=True)
+    res = build_cfg(rom, addr, end_s, lifted, catalog,
+                    allow_runtime_base=True, tail_bra_as_call=True)
     if res.reject is not None:
-        return None, None, False, res.reject
+        # (fix_plan bucket 4) mid-function ENTRY rejects: `addr` is a genuine
+        # nested function — its own catalog row starting at a parent's raw end
+        # (midfunc_nested) — or a nop-sled padding target (midfunc_nop), not a
+        # spurious boundary entry.  The standalone guard (L362-387) rejects
+        # boundary entries because they lack a prologue, but the caller-lib
+        # machinery already lifts nested functions with allow_boundary_entry=True
+        # (_walk_callee L2449, _emit_callee_cfg L2674-2685) and keeps nested
+        # call targets linkable via their extern `f_<hex>` declarations
+        # (_render_st_body fwd + _ensure_callee_lib).  Reuse that path so the
+        # lift is complete and linkable instead of failing the whole emit.
+        _rej = res.reject
+        if isinstance(_rej, tuple) and _rej[0] in ('midfunc_nested', 'midfunc_nop'):
+            if _rej[0] == 'midfunc_nested':
+                res = build_cfg(rom, addr, end_s, lifted, catalog,
+                                allow_runtime_base=True, tail_bra_as_call=True,
+                                allow_boundary_entry=True)
+            else:
+                res = _synth_nop_body(addr, end_s, rom)
+        if res.reject is not None:
+            return None, None, False, res.reject
     if not res.records:
         return None, None, False, 'no_records'
     fn = 'caller_%X' % addr
