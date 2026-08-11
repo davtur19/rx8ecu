@@ -60,6 +60,17 @@ void caller_410AA(ST *s)
     /* 0x0410CE: mov.w r14,@r12 */
     *(volatile uint16_t*)0xFFFFC824 = s->r[14]; /* RAM 0xFFFFC824 */
     goto L_41122;
+    L_41122: ;
+    /* 0x041122: lds.l @r15+,pr */
+    s->pr = local_3f0;
+    /* 0x041124: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x041126: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x041128: rts */
+    /* 0x04112A: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_410D0: ;
     /* 0x0410D0: op 0xD21E */
     s->r[2] = 0xFFFFC81Eu;
@@ -116,6 +127,9 @@ void caller_410AA(ST *s)
     /* 0x041100: mov.w r0,@r13 */
     *(volatile uint16_t*)0xFFFFC822 = s->r[0]; /* RAM 0xFFFFC822 */
     goto L_41120;
+    L_41120: ;
+    /* 0x041120: mov.w r14,@r12 */
+    *(volatile uint16_t*)s->r[12] = s->r[14]; /* RAM 0xFFFFC824 */
     L_41102: ;
     /* 0x041102: mov.w @r12,r2 */
     uint32_t t12 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[12]; /* RAM 0xFFFFC824 */
@@ -132,7 +146,7 @@ void caller_410AA(ST *s)
     
     if (!s->T) goto L_41110;
     /* 0x04110E: mov.b r4,@r5 */
-    *(volatile uint8_t*)s->r[5] = s->r[4]; /* ROM */
+    *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFC81C */
     L_41110: ;
     /* 0x041110: op 0xD212 */
     s->r[2] = 0x00002460u;
@@ -152,19 +166,5 @@ void caller_410AA(ST *s)
     L_4111E: ;
     /* 0x04111E: mov.w r14,@r13 */
     *(volatile uint16_t*)s->r[13] = s->r[14]; /* RAM 0xFFFFC822 */
-    L_41120: ;
-    /* 0x041120: mov.w r14,@r12 */
-    *(volatile uint16_t*)s->r[12] = s->r[14]; /* RAM 0xFFFFC824 */
-    L_41122: ;
-    /* 0x041122: lds.l @r15+,pr */
-    s->pr = local_3f0;
-    /* 0x041124: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x041126: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x041128: rts */
-    /* 0x04112A: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

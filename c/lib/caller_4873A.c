@@ -40,6 +40,13 @@ void caller_4873A(ST *s)
     /* 0x04874C: mov.w r4,@r14 */
     *(volatile uint16_t*)0xFFFFCBFA = s->r[4]; /* RAM 0xFFFFCBFA */
     goto L_48776;
+    L_48776: ;
+    /* 0x048776: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x048778: rts */
+    /* 0x04877A: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_4874E: ;
     /* 0x04874E: op 0x9326 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000AE84u;
@@ -84,12 +91,5 @@ void caller_4873A(ST *s)
     if (!s->T) goto L_48776;
     /* 0x048774: mov.w r4,@r14 */
     *(volatile uint16_t*)0xFFFFCBFA = s->r[4]; /* RAM 0xFFFFCBFA */
-    L_48776: ;
-    /* 0x048776: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x048778: rts */
-    /* 0x04877A: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

@@ -80,6 +80,15 @@ void caller_41A40(ST *s)
     /* 0x041A70: fmov.s fr4,@r14 */
     *(volatile uint32_t*)0xFFFFC828 = fr4; /* RAM 0xFFFFC828 */
     goto L_41A9C;
+    L_41A9C: ;
+    /* 0x041A9C: lds.l @r15+,pr */
+    s->pr = local_3f4;
+    /* 0x041A9E: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x041AA0: rts */
+    /* 0x041AA2: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_41A72: ;
     /* 0x041A72: op 0x936C */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000AE50u;
@@ -123,14 +132,5 @@ void caller_41A40(ST *s)
     f_23B0(s);
     /* 0x041A9A: fmov.s fr0,@r14 */
     *(volatile uint32_t*)0xFFFFC828 = fr0; /* RAM 0xFFFFC828 */
-    L_41A9C: ;
-    /* 0x041A9C: lds.l @r15+,pr */
-    s->pr = local_3f4;
-    /* 0x041A9E: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x041AA0: rts */
-    /* 0x041AA2: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

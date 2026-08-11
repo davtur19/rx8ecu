@@ -76,6 +76,17 @@ void caller_526B8(ST *s)
     /* 0x0526EC: op 0x0009 */
     
     goto L_5270E;
+    L_5270E: ;
+    /* 0x05270E: op 0xD22F */
+    s->r[2] = 0xFFFFCFD0u;
+    /* 0x052710: mov.b r14,@r2 */
+    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCFD0 */
+    /* 0x052712: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x052714: rts */
+    /* 0x052716: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_526EE: ;
     /* 0x0526EE: op 0x9362 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CFCCu;
@@ -112,16 +123,5 @@ void caller_526B8(ST *s)
     s->pr = 0x0005270E;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     f_3E1F8(s);
-    L_5270E: ;
-    /* 0x05270E: op 0xD22F */
-    s->r[2] = 0xFFFFCFD0u;
-    /* 0x052710: mov.b r14,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCFD0 */
-    /* 0x052712: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x052714: rts */
-    /* 0x052716: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

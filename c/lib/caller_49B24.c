@@ -61,6 +61,13 @@ void caller_49B24(ST *s)
     /* 0x049B4A: mov.w r3,@r14 */
     *(volatile uint16_t*)0xFFFFCC8E = s->r[3]; /* RAM 0xFFFFCC8E */
     goto L_49B54;
+    L_49B54: ;
+    /* 0x049B54: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x049B56: rts */
+    /* 0x049B58: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_49B4C: ;
     /* 0x049B4C: op 0xD32C */
     s->r[3] = 0x00002460u;
@@ -70,12 +77,5 @@ void caller_49B24(ST *s)
     f_2460(s);
     /* 0x049B52: mov.w r0,@r14 */
     *(volatile uint16_t*)0xFFFFCC8E = s->r[0]; /* RAM 0xFFFFCC8E */
-    L_49B54: ;
-    /* 0x049B54: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x049B56: rts */
-    /* 0x049B58: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

@@ -60,11 +60,6 @@ void caller_41D7C(ST *s)
     /* 0x041DA0: fmov.s fr0,@r14 */
     *(volatile uint32_t*)0xFFFFC874 = fr0; /* RAM 0xFFFFC874 */
     goto L_41DA6;
-    L_41DA2: ;
-    /* 0x041DA2: fldi0 fr3 */
-    fr3 = 0u;
-    /* 0x041DA4: fmov.s fr3,@r14 */
-    *(volatile uint32_t*)0xFFFFC874 = fr3; /* RAM 0xFFFFC874 */
     L_41DA6: ;
     /* 0x041DA6: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -72,5 +67,10 @@ void caller_41D7C(ST *s)
     /* 0x041DAA: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_41DA2: ;
+    /* 0x041DA2: fldi0 fr3 */
+    fr3 = 0u;
+    /* 0x041DA4: fmov.s fr3,@r14 */
+    *(volatile uint32_t*)0xFFFFC874 = fr3; /* RAM 0xFFFFC874 */
     return; /* fallthrough */
 }

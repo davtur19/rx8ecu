@@ -88,13 +88,6 @@ void caller_16820(ST *s)
     /* 0x01685C: op 0xEE00 */
     s->r[14] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_16864;
-    L_1685E: ;
-    /* 0x01685E: jsr @r10 */
-    s->pr = 0x00016862;
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
-    f_239C(s);
-    /* 0x016862: op 0x7E01 */
-    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
     L_16864: ;
     /* 0x016864: op 0x63EC */
     s->r[3] = s->r[14] & 0xFFu;
@@ -158,5 +151,12 @@ void caller_16820(ST *s)
     /* 0x01689E: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_1685E: ;
+    /* 0x01685E: jsr @r10 */
+    s->pr = 0x00016862;
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
+    f_239C(s);
+    /* 0x016862: op 0x7E01 */
+    s->r[14] = s->r[14] + (uint32_t)(int32_t)(int8_t)0x01;
     return; /* fallthrough */
 }

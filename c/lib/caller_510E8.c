@@ -77,6 +77,16 @@ void caller_510E8(ST *s)
     /* 0x05111E: mov.b r1,@r5 */
     *(volatile uint8_t*)0xFFFFCF4C = s->r[1]; /* RAM 0xFFFFCF4C */
     goto L_5112A;
+    L_5112A: ;
+    /* 0x05112A: mov.b r4,@r6 */
+    *(volatile uint8_t*)s->r[6] = s->r[4]; /* RAM 0xFFFFCF4D */
+    L_5112C: ;
+    /* 0x05112C: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x05112E: rts */
+    /* 0x051130: op 0x0009 */
+    
+    return;
     L_51120: ;
     /* 0x051120: mov.b r4,@r5 */
     *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFCF4C */
@@ -89,15 +99,5 @@ void caller_510E8(ST *s)
     L_51128: ;
     /* 0x051128: mov.b r4,@r5 */
     *(volatile uint8_t*)s->r[5] = s->r[4]; /* RAM 0xFFFFCF4C */
-    L_5112A: ;
-    /* 0x05112A: mov.b r4,@r6 */
-    *(volatile uint8_t*)s->r[6] = s->r[4]; /* RAM 0xFFFFCF4D */
-    L_5112C: ;
-    /* 0x05112C: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x05112E: rts */
-    /* 0x051130: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

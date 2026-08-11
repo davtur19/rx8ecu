@@ -60,17 +60,6 @@ void caller_2ECB8(ST *s)
     /* 0x02ECDE: op 0x0009 */
     
     goto L_2ECEA;
-    L_2ECE0: ;
-    /* 0x02ECE0: op 0x952E */
-    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
-    /* 0x02ECE2: op 0x942C */
-    s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F76Cu;
-    /* 0x02ECE4: op 0xD218 */
-    s->r[2] = 0x00004BBCu;
-    /* 0x02ECE6: jsr @r2 */
-    s->pr = 0x0002ECEA;
-    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
-    f_4BBC(s);
     L_2ECEA: ;
     /* 0x02ECEA: op 0xD318 */
     s->r[3] = 0x00002064u;
@@ -86,5 +75,16 @@ void caller_2ECB8(ST *s)
     /* 0x02ECF6: op 0x0009 */
     
     return;
+    L_2ECE0: ;
+    /* 0x02ECE0: op 0x952E */
+    s->r[5] = (uint32_t)(int32_t)(int16_t)0x80u;
+    /* 0x02ECE2: op 0x942C */
+    s->r[4] = (uint32_t)(int32_t)(int16_t)0x0000F76Cu;
+    /* 0x02ECE4: op 0xD218 */
+    s->r[2] = 0x00004BBCu;
+    /* 0x02ECE6: jsr @r2 */
+    s->pr = 0x0002ECEA;
+    s->r[6] = (uint32_t)(int32_t)(int8_t)0x00;
+    f_4BBC(s);
     return; /* fallthrough */
 }

@@ -38,6 +38,13 @@ void caller_5368E(ST *s)
     /* 0x05369E: op 0xE400 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_536B0;
+    L_536B0: ;
+    /* 0x0536B0: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x0536B2: rts */
+    /* 0x0536B4: op 0x6043 */
+    s->r[0] = s->r[4];
+    return;
     L_536A0: ;
     /* 0x0536A0: op 0x9276 */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000AA74u;
@@ -55,12 +62,5 @@ void caller_5368E(ST *s)
     f_2490(s);
     /* 0x0536AE: op 0x6403 */
     s->r[4] = s->r[0];
-    L_536B0: ;
-    /* 0x0536B0: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x0536B2: rts */
-    /* 0x0536B4: op 0x6043 */
-    s->r[0] = s->r[4];
-    return;
     return; /* fallthrough */
 }

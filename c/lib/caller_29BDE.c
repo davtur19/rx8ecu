@@ -45,6 +45,13 @@ void caller_29BDE(ST *s)
     /* 0x029BF4: mov.w r1,@r14 */
     *(volatile uint16_t*)0xFFFFBB34 = s->r[1]; /* RAM 0xFFFFBB34 */
     goto L_29C16;
+    L_29C16: ;
+    /* 0x029C16: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x029C18: rts */
+    /* 0x029C1A: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_29BF6: ;
     /* 0x029BF6: fldi0 fr6 */
     fr6 = 0u;
@@ -79,12 +86,5 @@ void caller_29BDE(ST *s)
     L_29C14: ;
     /* 0x029C14: mov.w r5,@r14 */
     *(volatile uint16_t*)s->r[14] = s->r[5]; /* RAM 0xFFFFBB34 */
-    L_29C16: ;
-    /* 0x029C16: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x029C18: rts */
-    /* 0x029C1A: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

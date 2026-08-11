@@ -76,6 +76,17 @@ void caller_527DC(ST *s)
     /* 0x052810: op 0x0009 */
     
     goto L_5284A;
+    L_5284A: ;
+    /* 0x05284A: op 0xD21A */
+    s->r[2] = 0xFFFFCFD6u;
+    /* 0x05284C: mov.b r14,@r2 */
+    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCFD6 */
+    /* 0x05284E: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x052850: rts */
+    /* 0x052852: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_52812: ;
     /* 0x052812: op 0x9347 */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CA6Eu;
@@ -138,16 +149,5 @@ void caller_527DC(ST *s)
     s->pr = 0x0005284A;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     f_3E1F8(s);
-    L_5284A: ;
-    /* 0x05284A: op 0xD21A */
-    s->r[2] = 0xFFFFCFD6u;
-    /* 0x05284C: mov.b r14,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCFD6 */
-    /* 0x05284E: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x052850: rts */
-    /* 0x052852: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

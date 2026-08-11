@@ -42,6 +42,13 @@ void caller_51DDE(ST *s)
     /* 0x051DF4: mov.b r1,@r14 */
     *(volatile uint8_t*)0xFFFFCFA8 = s->r[1]; /* RAM 0xFFFFCFA8 */
     goto L_51E00;
+    L_51E00: ;
+    /* 0x051E00: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x051E02: rts */
+    /* 0x051E04: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_51DF6: ;
     /* 0x051DF6: op 0xE501 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
@@ -54,12 +61,5 @@ void caller_51DDE(ST *s)
     f_2478(s);
     /* 0x051DFE: mov.b r0,@r14 */
     *(volatile uint8_t*)0xFFFFCFA8 = s->r[0]; /* RAM 0xFFFFCFA8 */
-    L_51E00: ;
-    /* 0x051E00: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x051E02: rts */
-    /* 0x051E04: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

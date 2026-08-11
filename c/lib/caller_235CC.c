@@ -71,11 +71,6 @@ void caller_235CC(ST *s)
     /* 0x0235FA: mov.b r0,@r4 */
     *(volatile uint8_t*)0xFFFFB3F0 = s->r[0]; /* RAM 0xFFFFB3F0 */
     goto L_23600;
-    L_235FC: ;
-    /* 0x0235FC: op 0xE100 */
-    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x0235FE: mov.b r1,@r4 */
-    *(volatile uint8_t*)0xFFFFB3F0 = s->r[1]; /* RAM 0xFFFFB3F0 */
     L_23600: ;
     /* 0x023600: lds.l @r15+,pr */
     s->pr = local_3fc;
@@ -83,5 +78,10 @@ void caller_235CC(ST *s)
     /* 0x023604: op 0x0009 */
     
     return;
+    L_235FC: ;
+    /* 0x0235FC: op 0xE100 */
+    s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x0235FE: mov.b r1,@r4 */
+    *(volatile uint8_t*)0xFFFFB3F0 = s->r[1]; /* RAM 0xFFFFB3F0 */
     return; /* fallthrough */
 }

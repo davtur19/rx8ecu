@@ -48,6 +48,13 @@ void caller_29CA0(ST *s)
     /* 0x029CB8: mov.b r1,@r14 */
     *(volatile uint8_t*)0xFFFFBB3A = s->r[1]; /* RAM 0xFFFFBB3A */
     goto L_29CDA;
+    L_29CDA: ;
+    /* 0x029CDA: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x029CDC: rts */
+    /* 0x029CDE: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_29CBA: ;
     /* 0x029CBA: fldi0 fr6 */
     fr6 = 0u;
@@ -82,12 +89,5 @@ void caller_29CA0(ST *s)
     L_29CD8: ;
     /* 0x029CD8: mov.b r5,@r14 */
     *(volatile uint8_t*)s->r[14] = s->r[5]; /* RAM 0xFFFFBB3A */
-    L_29CDA: ;
-    /* 0x029CDA: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x029CDC: rts */
-    /* 0x029CDE: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

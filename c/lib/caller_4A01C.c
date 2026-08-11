@@ -125,6 +125,21 @@ void caller_4A01C(ST *s)
     /* 0x04A07A: mov.b r2,@r12 */
     *(volatile uint8_t*)0xFFFFCCB1 = s->r[2]; /* RAM 0xFFFFCCB1 */
     goto L_4A0A8;
+    L_4A0A8: ;
+    /* 0x04A0A8: op 0xD207 */
+    s->r[2] = 0xFFFFCCBAu;
+    /* 0x04A0AA: mov.b r14,@r2 */
+    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCCBA */
+    /* 0x04A0AC: lds.l @r15+,pr */
+    s->pr = local_3f0;
+    /* 0x04A0AE: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x04A0B0: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x04A0B2: rts */
+    /* 0x04A0B4: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_4A07C: ;
     /* 0x04A07C: op 0x60D3 */
     s->r[0] = s->r[13];
@@ -174,20 +189,5 @@ void caller_4A01C(ST *s)
     f_2478(s);
     /* 0x04A0A6: mov.b r0,@r12 */
     *(volatile uint8_t*)0xFFFFCCB1 = s->r[0]; /* RAM 0xFFFFCCB1 */
-    L_4A0A8: ;
-    /* 0x04A0A8: op 0xD207 */
-    s->r[2] = 0xFFFFCCBAu;
-    /* 0x04A0AA: mov.b r14,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[14]; /* RAM 0xFFFFCCBA */
-    /* 0x04A0AC: lds.l @r15+,pr */
-    s->pr = local_3f0;
-    /* 0x04A0AE: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x04A0B0: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x04A0B2: rts */
-    /* 0x04A0B4: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

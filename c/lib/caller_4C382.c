@@ -33,6 +33,55 @@ void caller_4C382(ST *s)
     /* 0x04C390: op 0xE400 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_4C3B8;
+    L_4C3B8: ;
+    /* 0x04C3B8: op 0x604C */
+    s->r[0] = s->r[4] & 0xFFu;
+    /* 0x04C3BA: op 0x8800 */
+    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x00) ? 1u : 0u;
+    /* 0x04C3BC: bt.s 0x04C3D0 */
+    /* 0x04C3BE: op 0x0009 */
+    
+    if (s->T) goto L_4C3D0;
+    /* 0x04C3C0: op 0x8801 */
+    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x01) ? 1u : 0u;
+    /* 0x04C3C2: bt.s 0x04C3D6 */
+    /* 0x04C3C4: op 0x0009 */
+    
+    if (s->T) goto L_4C3D6;
+    /* 0x04C3C6: op 0x8802 */
+    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x02) ? 1u : 0u;
+    /* 0x04C3C8: bt.s 0x04C3DA */
+    /* 0x04C3CA: op 0x0009 */
+    
+    if (s->T) goto L_4C3DA;
+    /* 0x04C3CC: bra 0x04C3DC */
+    /* 0x04C3CE: op 0x0009 */
+    
+    goto L_4C3DC;
+    L_4C3DC: ;
+    /* 0x04C3DC: op 0x9232 */
+    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CDB2u;
+    /* 0x04C3DE: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x04C3E0: rts */
+    /* 0x04C3E2: mov.b r4,@r2 */
+    *(volatile uint8_t*)0xFFFFCDB2 = s->r[4]; /* RAM 0xFFFFCDB2 */
+    return;
+    L_4C3DA: ;
+    /* 0x04C3DA: op 0xE420 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
+    L_4C3D6: ;
+    /* 0x04C3D6: bra 0x04C3DC */
+    /* 0x04C3D8: op 0xE440 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x40;
+    goto L_4C3DC;
+    L_4C3D0: ;
+    /* 0x04C3D0: op 0x9437 */
+    s->r[4] = (uint32_t)(int32_t)(int16_t)0x80u;
+    /* 0x04C3D2: bra 0x04C3DC */
+    /* 0x04C3D4: op 0x0009 */
+    
+    goto L_4C3DC;
     L_4C392: ;
     /* 0x04C392: op 0xD230 */
     s->r[2] = 0x00011F54u;
@@ -75,54 +124,5 @@ void caller_4C382(ST *s)
     L_4C3B6: ;
     /* 0x04C3B6: op 0xE402 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x02;
-    L_4C3B8: ;
-    /* 0x04C3B8: op 0x604C */
-    s->r[0] = s->r[4] & 0xFFu;
-    /* 0x04C3BA: op 0x8800 */
-    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x00) ? 1u : 0u;
-    /* 0x04C3BC: bt.s 0x04C3D0 */
-    /* 0x04C3BE: op 0x0009 */
-    
-    if (s->T) goto L_4C3D0;
-    /* 0x04C3C0: op 0x8801 */
-    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x01) ? 1u : 0u;
-    /* 0x04C3C2: bt.s 0x04C3D6 */
-    /* 0x04C3C4: op 0x0009 */
-    
-    if (s->T) goto L_4C3D6;
-    /* 0x04C3C6: op 0x8802 */
-    s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x02) ? 1u : 0u;
-    /* 0x04C3C8: bt.s 0x04C3DA */
-    /* 0x04C3CA: op 0x0009 */
-    
-    if (s->T) goto L_4C3DA;
-    /* 0x04C3CC: bra 0x04C3DC */
-    /* 0x04C3CE: op 0x0009 */
-    
-    goto L_4C3DC;
-    L_4C3D0: ;
-    /* 0x04C3D0: op 0x9437 */
-    s->r[4] = (uint32_t)(int32_t)(int16_t)0x80u;
-    /* 0x04C3D2: bra 0x04C3DC */
-    /* 0x04C3D4: op 0x0009 */
-    
-    goto L_4C3DC;
-    L_4C3D6: ;
-    /* 0x04C3D6: bra 0x04C3DC */
-    /* 0x04C3D8: op 0xE440 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x40;
-    goto L_4C3DC;
-    L_4C3DA: ;
-    /* 0x04C3DA: op 0xE420 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
-    L_4C3DC: ;
-    /* 0x04C3DC: op 0x9232 */
-    s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CDB2u;
-    /* 0x04C3DE: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x04C3E0: rts */
-    /* 0x04C3E2: mov.b r4,@r2 */
-    *(volatile uint8_t*)s->r[2] = s->r[4]; /* RAM 0xFFFFCDB2 */
-    return;
     return; /* fallthrough */
 }

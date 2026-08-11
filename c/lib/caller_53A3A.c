@@ -38,6 +38,13 @@ void caller_53A3A(ST *s)
     /* 0x053A4A: op 0xE400 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_53A5C;
+    L_53A5C: ;
+    /* 0x053A5C: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x053A5E: rts */
+    /* 0x053A60: op 0x6043 */
+    s->r[0] = s->r[4];
+    return;
     L_53A4C: ;
     /* 0x053A4C: op 0x924F */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000C0D8u;
@@ -55,12 +62,5 @@ void caller_53A3A(ST *s)
     f_2490(s);
     /* 0x053A5A: op 0x6403 */
     s->r[4] = s->r[0];
-    L_53A5C: ;
-    /* 0x053A5C: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x053A5E: rts */
-    /* 0x053A60: op 0x6043 */
-    s->r[0] = s->r[4];
-    return;
     return; /* fallthrough */
 }

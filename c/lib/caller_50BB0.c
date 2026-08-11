@@ -103,6 +103,13 @@ void caller_50BB0(ST *s)
     /* 0x050BFC: mov.b r4,@r14 */
     *(volatile uint8_t*)0xFFFFCF34 = s->r[4]; /* RAM 0xFFFFCF34 */
     goto L_50C08;
+    L_50C08: ;
+    /* 0x050C08: lds.l @r15+,pr */
+    s->pr = local_3f8;
+    /* 0x050C0A: rts */
+    /* 0x050C0C: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_50BFE: ;
     /* 0x050BFE: op 0xE501 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
@@ -115,12 +122,5 @@ void caller_50BB0(ST *s)
     f_2478(s);
     /* 0x050C06: mov.b r0,@r14 */
     *(volatile uint8_t*)0xFFFFCF34 = s->r[0]; /* RAM 0xFFFFCF34 */
-    L_50C08: ;
-    /* 0x050C08: lds.l @r15+,pr */
-    s->pr = local_3f8;
-    /* 0x050C0A: rts */
-    /* 0x050C0C: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }
