@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,6 +25,7 @@ void f_29A1C(ST *s)
     /* 0x029A20: op 0xD341 */
     s->r[3] = 0x00009890u;
     /* 0x029A22: jsr @r3 */
+    /* 0x029A24: op 0x0009 */
     s->pr = 0x00029A26;
     
     f_9890(s);
@@ -39,21 +40,24 @@ void f_29A1C(ST *s)
     /* 0x029A2E: op 0xD33F */
     s->r[3] = 0x0000E044u;
     /* 0x029A30: jsr @r3 */
+    /* 0x029A32: op 0x0009 */
     s->pr = 0x00029A34;
     
     f_E044(s);
     /* 0x029A34: bsr 0x29A46 */
+    /* 0x029A36: op 0x0009 */
     s->pr = 0x00029A38;
     
     f_29A46(s);
     /* 0x029A38: bsr 0x29A6E */
+    /* 0x029A3A: op 0x0009 */
     s->pr = 0x00029A3C;
     
     f_29A6E(s);
-    /* 0x029A3C: bra 0x29adc (tail) */
+    /* 0x029A3C: bra 0x029ADC (tail) */
+    /* 0x029A3E: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_29ADC(s);
-    return;
+     { f_29ADC(s); return; }
     L_29A40: ;
     /* 0x029A40: lds.l @r15+,pr */
     s->pr = local_400;

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -32,14 +32,17 @@ void f_75F4(ST *s)
     
     if (!s->T) goto L_7620;
     /* 0x007600: bsr 0x7F22 */
+    /* 0x007602: op 0x0009 */
     s->pr = 0x00007604;
     
     f_7F22(s);
     /* 0x007604: bsr 0x7B90 */
+    /* 0x007606: op 0x0009 */
     s->pr = 0x00007608;
     
     f_7B90(s);
     /* 0x007608: bsr 0x77F0 */
+    /* 0x00760A: op 0x0009 */
     s->pr = 0x0000760C;
     
     f_77F0(s);
@@ -57,18 +60,20 @@ void f_75F4(ST *s)
     
     if (!s->T) goto L_761C;
     /* 0x007618: bsr 0x80F0 */
+    /* 0x00761A: op 0x0009 */
     s->pr = 0x0000761C;
     
     f_80F0(s);
     L_761C: ;
     /* 0x00761C: bsr 0x7BE4 */
+    /* 0x00761E: op 0x0009 */
     s->pr = 0x00007620;
     
     f_7BE4(s);
     L_7620: ;
-    /* 0x007620: bra 0x7b58 (tail) */
+    /* 0x007620: bra 0x007B58 (tail) */
+    /* 0x007622: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_7B58(s);
-    return;
+     { f_7B58(s); return; }
     return; /* fallthrough */
 }

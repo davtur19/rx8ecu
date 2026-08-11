@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -58,6 +58,7 @@ void f_1806E(ST *s)
     /* 0x01808A: op 0x7110 */
     s->r[1] = s->r[1] + (uint32_t)(int32_t)(int8_t)0x10;
     /* 0x01808C: jsr @r3 */
+    /* 0x01808E: op 0xE024 */
     s->pr = 0x00018090;
     s->r[0] = (uint32_t)(int32_t)(int8_t)0x24;
     f_42B0(s);
@@ -190,6 +191,7 @@ void f_1806E(ST *s)
     /* 0x0182BA: op 0x6583 */
     s->r[5] = s->r[8];
     /* 0x0182BC: jsr @r10 */
+    /* 0x0182BE: op 0x740C */
     s->pr = 0x000182C0;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x0C;
     f_2054(s);
@@ -223,12 +225,14 @@ void f_1806E(ST *s)
     goto L_182DE;
     L_182DE: ;
     /* 0x0182DE: jsr @r12 */
+    /* 0x0182E0: op 0x0009 */
     s->pr = 0x000182E2;
     
     f_4BBC(s);
     /* 0x0182E2: op 0xD925 */
     s->r[9] = 0x00002064u;
     /* 0x0182E4: jsr @r9 */
+    /* 0x0182E6: mov.l @(0xC,r15),r4 */
     s->pr = 0x000182E8;
     s->r[4] = local_3b8;
     f_2064(s);
@@ -237,6 +241,7 @@ void f_1806E(ST *s)
     /* 0x0182EA: op 0x64F3 */
     s->r[4] = s->r[15];
     /* 0x0182EC: jsr @r10 */
+    /* 0x0182EE: op 0x7408 */
     s->pr = 0x000182F0;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x08;
     f_2054(s);
@@ -261,10 +266,12 @@ void f_1806E(ST *s)
     /* 0x018300: op 0x0629 */
     s->r[6] = s->T;
     /* 0x018302: jsr @r12 */
+    /* 0x018304: op 0x64D3 */
     s->pr = 0x00018306;
     s->r[4] = s->r[13];
     f_4BBC(s);
     /* 0x018306: jsr @r9 */
+    /* 0x018308: mov.l @(0x8,r15),r4 */
     s->pr = 0x0001830A;
     s->r[4] = local_3b4;
     f_2064(s);
@@ -273,6 +280,7 @@ void f_1806E(ST *s)
     /* 0x01830C: op 0x64F3 */
     s->r[4] = s->r[15];
     /* 0x01830E: jsr @r10 */
+    /* 0x018310: op 0x7404 */
     s->pr = 0x00018312;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x04;
     f_2054(s);
@@ -297,16 +305,19 @@ void f_1806E(ST *s)
     /* 0x018322: op 0x0629 */
     s->r[6] = s->T;
     /* 0x018324: jsr @r12 */
+    /* 0x018326: op 0x64D3 */
     s->pr = 0x00018328;
     s->r[4] = s->r[13];
     f_4BBC(s);
     /* 0x018328: jsr @r9 */
+    /* 0x01832A: mov.l @(0x4,r15),r4 */
     s->pr = 0x0001832C;
     s->r[4] = local_3b0;
     f_2064(s);
     /* 0x01832C: op 0x6583 */
     s->r[5] = s->r[8];
     /* 0x01832E: jsr @r10 */
+    /* 0x018330: op 0x64F3 */
     s->pr = 0x00018332;
     s->r[4] = s->r[15];
     f_2054(s);
@@ -331,10 +342,12 @@ void f_1806E(ST *s)
     /* 0x018342: op 0x0629 */
     s->r[6] = s->T;
     /* 0x018344: jsr @r12 */
+    /* 0x018346: op 0x64D3 */
     s->pr = 0x00018348;
     s->r[4] = s->r[13];
     f_4BBC(s);
     /* 0x018348: jsr @r9 */
+    /* 0x01834A: mov.l @r15,r4 */
     s->pr = 0x0001834C;
     s->r[4] = local_3ac;
     f_2064(s);

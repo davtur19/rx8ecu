@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -52,6 +52,7 @@ void f_27CA4(ST *s)
     /* 0x027CC4: op 0xD319 */
     s->r[3] = 0x00002478u;
     /* 0x027CC6: jsr @r3 */
+    /* 0x027CC8: mov.b @r14,r4 */
     s->pr = 0x00027CCA;
     uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFBA54; /* RAM 0xFFFFBA54 */
     s->r[4] = t4;
@@ -60,11 +61,6 @@ void f_27CA4(ST *s)
     /* 0x027CCC: mov.b r0,@r14 */
     *(volatile uint8_t*)0xFFFFBA54 = s->r[0]; /* RAM 0xFFFFBA54 */
     goto L_27CD2;
-    L_27CCE: ;
-    /* 0x027CCE: op 0xE300 */
-    s->r[3] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x027CD0: mov.b r3,@r14 */
-    *(volatile uint8_t*)0xFFFFBA54 = s->r[3]; /* RAM 0xFFFFBA54 */
     L_27CD2: ;
     /* 0x027CD2: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -72,5 +68,10 @@ void f_27CA4(ST *s)
     /* 0x027CD6: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_27CCE: ;
+    /* 0x027CCE: op 0xE300 */
+    s->r[3] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x027CD0: mov.b r3,@r14 */
+    *(volatile uint8_t*)0xFFFFBA54 = s->r[3]; /* RAM 0xFFFFBA54 */
     return; /* fallthrough */
 }

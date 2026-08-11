@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -38,6 +38,7 @@ void f_30414(ST *s)
     /* 0x030422: op 0xD124 */
     s->r[1] = 0x000020DCu;
     /* 0x030424: jsr @r1 */
+    /* 0x030426: fmov.s @r2,fr4 */
     s->pr = 0x00030428;
     fr4 = *(volatile uint32_t*)0xFFFFBE24; /* RAM 0xFFFFBE24 */
     f_20DC(s);
@@ -56,6 +57,7 @@ void f_30414(ST *s)
     /* 0x030434: op 0xD31F */
     s->r[3] = 0x000020DCu;
     /* 0x030436: jsr @r3 */
+    /* 0x030438: fmov.s @r1,fr4 */
     s->pr = 0x0003043A;
     fr4 = *(volatile uint32_t*)0xFFFFBE28; /* RAM 0xFFFFBE28 */
     f_20DC(s);
@@ -106,18 +108,21 @@ void f_30414(ST *s)
     /* 0x03048C: op 0xDD0E */
     s->r[13] = 0x000086F8u;
     /* 0x03048E: jsr @r13 */
+    /* 0x030490: op 0xE400 */
     s->pr = 0x00030492;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_86F8(s);
     /* 0x030492: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x030494: jsr @r13 */
+    /* 0x030496: op 0xE401 */
     s->pr = 0x00030498;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_86F8(s);
     /* 0x030498: op 0x65E3 */
     s->r[5] = s->r[14];
     /* 0x03049A: jsr @r13 */
+    /* 0x03049C: op 0xE402 */
     s->pr = 0x0003049E;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x02;
     f_86F8(s);

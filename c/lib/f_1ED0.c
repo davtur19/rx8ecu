@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -76,7 +76,7 @@ void f_1ED0(ST *s)
     /* 0x001F02: op 0x655C */
     s->r[5] = s->r[5] & 0xFFu;
     /* 0x001F04: mov.w r2,@r15 */
-    local_3ec = s->r[2];
+    local_3ec = s->r[2] & 0xFFFF;
     /* 0x001F06: op 0xE01B */
     s->r[0] = (uint32_t)(int32_t)(int8_t)0x1B;
     /* 0x001F08: op 0x254E */
@@ -156,6 +156,32 @@ void f_1ED0(ST *s)
     /* 0x001F50: mov.b r0,@r13 (rt-base) */
     *(volatile uint8_t*)(s->r[13] + 5) = s->r[0];
     goto L_1F8A;
+    L_1F8A: ;
+    /* 0x001F8A: op 0xE500 */
+    s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x001F8C: op 0xE408 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x08;
+    L_1F8E: ;
+    /* 0x001F8E: op 0x4410 */
+    s->r[4] = s->r[4] - 1u; s->T = (s->r[4] == 0u) ? 1u : 0u;
+    /* 0x001F90: mov.b r5,@r11 (rt-base) */
+    *(volatile uint8_t*)s->r[11] = s->r[5];
+    /* 0x001F92: bf.s 0x001F8E */
+    /* 0x001F94: op 0x7B01 */
+    s->r[11] = s->r[11] + (uint32_t)(int32_t)(int8_t)0x01;
+    if (!s->T) goto L_1F8E;
+    /* 0x001F96: op 0x7F04 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
+    /* 0x001F98: mov.l @r15+,r11 */
+    s->r[11] = local_3f0;
+    /* 0x001F9A: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x001F9C: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x001F9E: rts */
+    /* 0x001FA0: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_1F52: ;
     /* 0x001F52: op 0x60E3 */
     s->r[0] = s->r[14];
@@ -213,31 +239,5 @@ void f_1ED0(ST *s)
     s->r[0] = s->r[14];
     /* 0x001F88: mov.b r0,@r13 (rt-base) */
     *(volatile uint8_t*)(s->r[13] + 7) = s->r[0];
-    L_1F8A: ;
-    /* 0x001F8A: op 0xE500 */
-    s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x001F8C: op 0xE408 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x08;
-    L_1F8E: ;
-    /* 0x001F8E: op 0x4410 */
-    s->r[4] = s->r[4] - 1u; s->T = (s->r[4] == 0u) ? 1u : 0u;
-    /* 0x001F90: mov.b r5,@r11 (rt-base) */
-    *(volatile uint8_t*)s->r[11] = s->r[5];
-    /* 0x001F92: bf.s 0x001F8E */
-    /* 0x001F94: op 0x7B01 */
-    s->r[11] = s->r[11] + (uint32_t)(int32_t)(int8_t)0x01;
-    if (!s->T) goto L_1F8E;
-    /* 0x001F96: op 0x7F04 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
-    /* 0x001F98: mov.l @r15+,r11 */
-    s->r[11] = local_3f0;
-    /* 0x001F9A: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x001F9C: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x001F9E: rts */
-    /* 0x001FA0: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

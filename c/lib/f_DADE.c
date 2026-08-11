@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -17,12 +17,13 @@ void f_DADE(ST *s)
     /* 0x00DADE: sts.l pr,@-r15 */
     local_3fc = s->pr;
     /* 0x00DAE0: bsr 0xD9F4 */
+    /* 0x00DAE2: op 0x0009 */
     s->pr = 0x0000DAE4;
     
     f_D9F4(s);
-    /* 0x00DAE4: bra 0xda94 (tail) */
+    /* 0x00DAE4: bra 0x00DA94 (tail) */
+    /* 0x00DAE6: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_DA94(s);
-    return;
+     { f_DA94(s); return; }
     return; /* fallthrough */
 }

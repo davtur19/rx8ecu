@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -27,6 +27,7 @@ void f_4C80(ST *s)
     /* 0x004C80: sts.l pr,@-r15 */
     local_3fc = s->pr;
     /* 0x004C82: bsr 0x5292 */
+    /* 0x004C84: op 0x0009 */
     s->pr = 0x00004C86;
     
     f_5292(s);
@@ -35,48 +36,58 @@ void f_4C80(ST *s)
     /* 0x004C88: op 0x934D */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000ED18u;
     /* 0x004C8A: bsr 0x4DEE */
+    /* 0x004C8C: mov.w r2,@r3 */
     s->pr = 0x00004C8E;
     *(volatile uint16_t*)0xFFFFED18 = s->r[2]; /* RAM 0xFFFFED18 */
     f_4DEE(s);
     /* 0x004C8E: bsr 0x4E0E */
+    /* 0x004C90: op 0x0009 */
     s->pr = 0x00004C92;
     
     f_4E0E(s);
     /* 0x004C92: bsr 0x4E6C */
+    /* 0x004C94: op 0x0009 */
     s->pr = 0x00004C96;
     
     f_4E6C(s);
     /* 0x004C96: bsr 0x4FD6 */
+    /* 0x004C98: op 0x0009 */
     s->pr = 0x00004C9A;
     
     f_4FD6(s);
     /* 0x004C9A: bsr 0x5024 */
+    /* 0x004C9C: op 0x0009 */
     s->pr = 0x00004C9E;
     
     f_5024(s);
     /* 0x004C9E: bsr 0x5036 */
+    /* 0x004CA0: op 0x0009 */
     s->pr = 0x00004CA2;
     
     f_5036(s);
     /* 0x004CA2: bsr 0x503E */
+    /* 0x004CA4: op 0x0009 */
     s->pr = 0x00004CA6;
     
     f_503E(s);
     /* 0x004CA6: bsr 0x505A */
+    /* 0x004CA8: op 0x0009 */
     s->pr = 0x00004CAA;
     
     f_505A(s);
     /* 0x004CAA: bsr 0x5062 */
+    /* 0x004CAC: op 0x0009 */
     s->pr = 0x00004CAE;
     
     f_5062(s);
     /* 0x004CAE: bsr 0x50AA */
+    /* 0x004CB0: op 0x0009 */
     s->pr = 0x00004CB2;
     
     f_50AA(s);
-    /* 0x004CB2: bra 0x527e (tail) */
+    /* 0x004CB2: bra 0x00527E (tail) */
+    /* 0x004CB4: lds.l @r15+,pr */
     s->pr = local_3fc;
-    f_527E(s);
-    return;
+     { f_527E(s); return; }
     return; /* fallthrough */
 }

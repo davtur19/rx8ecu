@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -182,6 +182,7 @@ void f_12904(ST *s)
     /* 0x012B36: fmov fr13,fr5 */
     fr5 = fr13;
     /* 0x012B38: jsr @r2 */
+    /* 0x012B3A: fmov fr15,fr4 */
     s->pr = 0x00012B3C;
     fr4 = fr15;
     f_23E4(s);
@@ -192,6 +193,7 @@ void f_12904(ST *s)
     /* 0x012B40: op 0xD33C */
     s->r[3] = 0x000023E4u;
     /* 0x012B42: jsr @r3 */
+    /* 0x012B44: fmov fr14,fr4 */
     s->pr = 0x00012B46;
     fr4 = fr14;
     f_23E4(s);
@@ -381,6 +383,7 @@ void f_12904(ST *s)
     /* 0x012A60: fmov fr12,fr4 */
     fr4 = fr12;
     /* 0x012A62: jsr @r2 */
+    /* 0x012A64: mov.b @r3,r4 */
     s->pr = 0x00012A66;
     uint32_t t28 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* ROM */
     s->r[4] = t28;
@@ -396,6 +399,7 @@ void f_12904(ST *s)
     /* 0x012A6E: fmov fr12,fr4 */
     fr4 = fr12;
     /* 0x012A70: jsr @r2 */
+    /* 0x012A72: mov.b @r3,r4 */
     s->pr = 0x00012A74;
     uint32_t t30 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* ROM */
     s->r[4] = t30;
@@ -473,6 +477,7 @@ void f_12904(ST *s)
     /* 0x012AB4: op 0xD21A */
     s->r[2] = 0x00002068u;
     /* 0x012AB6: jsr @r2 */
+    /* 0x012AB8: fmov fr15,fr4 */
     s->pr = 0x00012ABA;
     fr4 = fr15;
     f_2068(s);
@@ -485,6 +490,7 @@ void f_12904(ST *s)
     /* 0x012AC0: op 0xD217 */
     s->r[2] = 0x00002068u;
     /* 0x012AC2: jsr @r2 */
+    /* 0x012AC4: fmov fr15,fr4 */
     s->pr = 0x00012AC6;
     fr4 = fr15;
     f_2068(s);

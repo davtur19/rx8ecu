@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -48,6 +48,7 @@ void f_1DC2A(ST *s)
     /* 0x01DC40: op 0xD11A */
     s->r[1] = 0x000020ACu;
     /* 0x01DC42: jsr @r1 */
+    /* 0x01DC44: fmov fr15,fr4 */
     s->pr = 0x0001DC46;
     fr4 = fr15;
     f_20AC(s);
@@ -66,6 +67,7 @@ void f_1DC2A(ST *s)
     /* 0x01DC52: op 0xD319 */
     s->r[3] = 0x000020DCu;
     /* 0x01DC54: jsr @r3 */
+    /* 0x01DC56: fmov.s @r2,fr4 */
     s->pr = 0x0001DC58;
     fr4 = *(volatile uint32_t*)0xFFFFAA74; /* RAM 0xFFFFAA74 */
     f_20DC(s);
@@ -194,6 +196,7 @@ void f_1DC2A(ST *s)
     /* 0x01DCBE: op 0xD140 */
     s->r[1] = 0x000020ACu;
     /* 0x01DCC0: jsr @r1 */
+    /* 0x01DCC2: fmov fr15,fr4 */
     s->pr = 0x0001DCC4;
     fr4 = fr15;
     f_20AC(s);
@@ -212,6 +215,7 @@ void f_1DC2A(ST *s)
     /* 0x01DCD0: op 0xD33E */
     s->r[3] = 0x000020DCu;
     /* 0x01DCD2: jsr @r3 */
+    /* 0x01DCD4: fmov.s @r2,fr4 */
     s->pr = 0x0001DCD6;
     fr4 = *(volatile uint32_t*)0xFFFFAA74; /* RAM 0xFFFFAA74 */
     f_20DC(s);

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,8 +25,9 @@ void f_5C4E8(ST *s)
     /* 0x05C4EE: op 0x7FF8 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xF8;
     /* 0x05C4F0: mov.b r0,@(0x4,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFF;
     /* 0x05C4F2: jsr @r3 */
+    /* 0x05C4F4: op 0xE410 */
     s->pr = 0x0005C4F6;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x10;
     f_3920(s);
@@ -74,6 +75,7 @@ void f_5C4E8(ST *s)
     /* 0x05C55A: op 0xD33C */
     s->r[3] = 0x00003934u;
     /* 0x05C55C: jsr @r3 */
+    /* 0x05C55E: mov.l @r15,r4 */
     s->pr = 0x0005C560;
     s->r[4] = local_3f4;
     f_3934(s);
@@ -90,13 +92,13 @@ void f_5C4E8(ST *s)
     *(volatile uint16_t*)s->r[7] = s->r[5]; /* RAM 0xFFFFD18E */
     L_5C558: ;
     /* 0x05C558: mov.b r6,@r4 */
-    *(volatile uint8_t*)s->r[4] = s->r[6];
+    *(volatile uint8_t*)s->r[4] = s->r[6]; /* RAM 0xFFFFD190 */
     L_5C550: ;
     /* 0x05C550: op 0xE202 */
     s->r[2] = (uint32_t)(int32_t)(int8_t)0x02;
     /* 0x05C552: bra 0x05C55A */
     /* 0x05C554: mov.b r2,@r4 */
-    *(volatile uint8_t*)s->r[4] = s->r[2];
+    *(volatile uint8_t*)s->r[4] = s->r[2]; /* RAM 0xFFFFD190 */
     goto L_5C55A;
     L_5C51E: ;
     /* 0x05C51E: op 0x9304 */
@@ -105,7 +107,7 @@ void f_5C4E8(ST *s)
     *(volatile uint16_t*)0xFFFFD18E = s->r[3]; /* RAM 0xFFFFD18E */
     /* 0x05C522: bra 0x05C55A */
     /* 0x05C524: mov.b r5,@r4 */
-    *(volatile uint8_t*)s->r[4] = s->r[5];
+    *(volatile uint8_t*)s->r[4] = s->r[5]; /* RAM 0xFFFFD190 */
     goto L_5C55A;
     return; /* fallthrough */
 }

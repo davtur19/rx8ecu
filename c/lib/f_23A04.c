@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -20,6 +20,7 @@ void f_23A04(ST *s)
     /* 0x023A08: op 0xD314 */
     s->r[3] = 0x0003E0DCu;
     /* 0x023A0A: jsr @r3 */
+    /* 0x023A0C: op 0xE500 */
     s->pr = 0x00023A0E;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -47,6 +48,7 @@ void f_23A04(ST *s)
     /* 0x023A22: op 0xD30E */
     s->r[3] = 0x0003E0DCu;
     /* 0x023A24: jsr @r3 */
+    /* 0x023A26: op 0xE500 */
     s->pr = 0x00023A28;
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     f_3E0DC(s);
@@ -84,13 +86,6 @@ void f_23A04(ST *s)
     /* 0x023A44: mov.b r2,@r3 */
     *(volatile uint8_t*)s->r[3] = s->r[2]; /* RAM 0xFFFFB454 */
     goto L_23A4C;
-    L_23A46: ;
-    /* 0x023A46: op 0xE001 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x023A48: op 0x9103 */
-    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000B454u;
-    /* 0x023A4A: mov.b r0,@r1 */
-    *(volatile uint8_t*)0xFFFFB454 = s->r[0]; /* RAM 0xFFFFB454 */
     L_23A4C: ;
     /* 0x023A4C: lds.l @r15+,pr */
     s->pr = local_3fc;
@@ -98,5 +93,12 @@ void f_23A04(ST *s)
     /* 0x023A50: op 0x0009 */
     
     return;
+    L_23A46: ;
+    /* 0x023A46: op 0xE001 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)0x01;
+    /* 0x023A48: op 0x9103 */
+    s->r[1] = (uint32_t)(int32_t)(int16_t)0x0000B454u;
+    /* 0x023A4A: mov.b r0,@r1 */
+    *(volatile uint8_t*)0xFFFFB454 = s->r[0]; /* RAM 0xFFFFB454 */
     return; /* fallthrough */
 }

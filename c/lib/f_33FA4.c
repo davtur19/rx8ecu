@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -230,9 +230,6 @@ void f_33FA4(ST *s)
     /* 0x034068: mov.b r4,@r5 */
     *(volatile uint8_t*)0xFFFFC074 = s->r[4]; /* RAM 0xFFFFC074 */
     goto L_3406C;
-    L_3406A: ;
-    /* 0x03406A: mov.b r6,@r5 */
-    *(volatile uint8_t*)s->r[5] = s->r[6]; /* RAM 0xFFFFC074 */
     L_3406C: ;
     /* 0x03406C: op 0xD218 */
     s->r[2] = 0x00078F34u;
@@ -256,15 +253,6 @@ void f_33FA4(ST *s)
     /* 0x034080: mov.b r6,@r7 */
     *(volatile uint8_t*)0xFFFFC0D2 = s->r[6]; /* RAM 0xFFFFC0D2 */
     goto L_340E4;
-    L_340DC: ;
-    /* 0x0340DC: fcmp/gt fr7,fr5 */
-    { union { uint32_t u; float f; } _a, _b; _a.u = fr5; _b.u = fr7; s->T = (_a.f > _b.f) ? 1u : 0u; }
-    /* 0x0340DE: bf.s 0x0340E4 */
-    /* 0x0340E0: op 0x0009 */
-    
-    if (!s->T) goto L_340E4;
-    /* 0x0340E2: mov.b r4,@r7 */
-    *(volatile uint8_t*)0xFFFFC0D2 = s->r[4]; /* RAM 0xFFFFC0D2 */
     L_340E4: ;
     /* 0x0340E4: op 0x9E59 */
     s->r[14] = (uint32_t)(int32_t)(int16_t)0x0000C073u;
@@ -297,6 +285,7 @@ void f_33FA4(ST *s)
     /* 0x0340FE: op 0xE501 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x01;
     /* 0x034100: jsr @r3 */
+    /* 0x034102: mov.b @r14,r4 */
     s->pr = 0x00034104;
     uint32_t t24 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFC073; /* RAM 0xFFFFC073 */
     s->r[4] = t24;
@@ -305,9 +294,6 @@ void f_33FA4(ST *s)
     /* 0x034106: mov.b r0,@r14 */
     *(volatile uint8_t*)0xFFFFC073 = s->r[0]; /* RAM 0xFFFFC073 */
     goto L_3410A;
-    L_34108: ;
-    /* 0x034108: mov.b r4,@r14 */
-    *(volatile uint8_t*)s->r[14] = s->r[4]; /* RAM 0xFFFFC073 */
     L_3410A: ;
     /* 0x03410A: lds.l @r15+,pr */
     s->pr = local_3f8;
@@ -315,5 +301,20 @@ void f_33FA4(ST *s)
     /* 0x03410E: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_34108: ;
+    /* 0x034108: mov.b r4,@r14 */
+    *(volatile uint8_t*)s->r[14] = s->r[4]; /* RAM 0xFFFFC073 */
+    L_340DC: ;
+    /* 0x0340DC: fcmp/gt fr7,fr5 */
+    { union { uint32_t u; float f; } _a, _b; _a.u = fr5; _b.u = fr7; s->T = (_a.f > _b.f) ? 1u : 0u; }
+    /* 0x0340DE: bf.s 0x0340E4 */
+    /* 0x0340E0: op 0x0009 */
+    
+    if (!s->T) goto L_340E4;
+    /* 0x0340E2: mov.b r4,@r7 */
+    *(volatile uint8_t*)0xFFFFC0D2 = s->r[4]; /* RAM 0xFFFFC0D2 */
+    L_3406A: ;
+    /* 0x03406A: mov.b r6,@r5 */
+    *(volatile uint8_t*)s->r[5] = s->r[6]; /* RAM 0xFFFFC074 */
     return; /* fallthrough */
 }

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -125,7 +125,7 @@ void f_5AE38(ST *s)
     uint32_t t19 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3];
     s->r[1] = t19;
     /* 0x05AEAE: mov.b r1,@r15 */
-    local_3f4 = s->r[1];
+    local_3f4 = s->r[1] & 0xFF;
     /* 0x05AEB0: mov.b @r15,r13 */
     s->r[13] = (uint32_t)(int32_t)(int8_t)(local_3f4 & 0xFFu);
     /* 0x05AEB2: op 0x6DDC */
@@ -201,7 +201,7 @@ void f_5AE38(ST *s)
     /* 0x05AE8E: op 0xE502 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x02;
     /* 0x05AE90: mov.l @(0xC,r6),r2 */
-    uint32_t t23 = *(volatile uint32_t*)(s->r[6] + 12); /* RAM 0xFFFFD155 */
+    uint32_t t23 = *(volatile uint32_t*)(s->r[6] + 12); /* ROM */
     s->r[2] = t23;
     /* 0x05AE92: bra 0x05AEA2 */
     /* 0x05AE94: mov.b r7,@r2 (rt-base) */
@@ -217,7 +217,7 @@ void f_5AE38(ST *s)
     
     if (!s->T) goto L_5AEA2;
     /* 0x05AE9E: mov.l @(0xC,r6),r1 */
-    uint32_t t25 = *(volatile uint32_t*)(s->r[6] + 12); /* RAM 0xFFFFD155 */
+    uint32_t t25 = *(volatile uint32_t*)(s->r[6] + 12); /* ROM */
     s->r[1] = t25;
     /* 0x05AEA0: mov.b r7,@r1 (rt-base) */
     *(volatile uint8_t*)s->r[1] = s->r[7];

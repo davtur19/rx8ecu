@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -161,7 +161,7 @@ void f_5BDCA(ST *s)
     s->r[5] = s->r[4];
     L_5BE44: ;
     /* 0x05BE44: mov.l @(0xC,r6),r2 */
-    uint32_t t24 = *(volatile uint32_t*)(s->r[6] + 12);
+    uint32_t t24 = *(volatile uint32_t*)(s->r[6] + 12); /* ROM */
     s->r[2] = t24;
     /* 0x05BE46: op 0xE100 */
     s->r[1] = (uint32_t)(int32_t)(int8_t)0x00;
@@ -183,7 +183,7 @@ void f_5BDCA(ST *s)
     /* 0x05BE56: op 0xE200 */
     s->r[2] = (uint32_t)(int32_t)(int8_t)0x00;
     /* 0x05BE58: mov.l @(0xC,r6),r1 */
-    uint32_t t26 = *(volatile uint32_t*)(s->r[6] + 12);
+    uint32_t t26 = *(volatile uint32_t*)(s->r[6] + 12); /* ROM */
     s->r[1] = t26;
     /* 0x05BE5A: mov.b r2,@r1 (rt-base) */
     *(volatile uint8_t*)s->r[1] = s->r[2];

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,6 +25,7 @@ void f_62978(ST *s)
     /* 0x06297E: op 0xD334 */
     s->r[3] = 0x000616E8u;
     /* 0x062980: jsr @r3 */
+    /* 0x062982: op 0x6D43 */
     s->pr = 0x00062984;
     s->r[13] = s->r[4];
     f_616E8(s);
@@ -73,6 +74,7 @@ void f_62978(ST *s)
     if (s->T) goto L_629B6;
     L_629AE: ;
     /* 0x0629AE: bsr 0x629E4 */
+    /* 0x0629B0: op 0x64D3 */
     s->pr = 0x000629B2;
     s->r[4] = s->r[13];
     f_629E4(s);
@@ -80,6 +82,17 @@ void f_62978(ST *s)
     /* 0x0629B4: op 0x6403 */
     s->r[4] = s->r[0];
     goto L_629DA;
+    L_629DA: ;
+    /* 0x0629DA: op 0x6043 */
+    s->r[0] = s->r[4];
+    /* 0x0629DC: lds.l @r15+,pr */
+    s->pr = local_3f4;
+    /* 0x0629DE: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x0629E0: rts */
+    /* 0x0629E2: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_629B6: ;
     /* 0x0629B6: op 0x9548 */
     s->r[5] = (uint32_t)(int32_t)(int16_t)0xC0u;
@@ -113,21 +126,11 @@ void f_62978(ST *s)
     /* 0x0629D2: op 0xE500 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x00;
     /* 0x0629D4: bsr 0x629E4 */
+    /* 0x0629D6: op 0x64D3 */
     s->pr = 0x000629D8;
     s->r[4] = s->r[13];
     f_629E4(s);
     /* 0x0629D8: op 0x6403 */
     s->r[4] = s->r[0];
-    L_629DA: ;
-    /* 0x0629DA: op 0x6043 */
-    s->r[0] = s->r[4];
-    /* 0x0629DC: lds.l @r15+,pr */
-    s->pr = local_3f4;
-    /* 0x0629DE: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x0629E0: rts */
-    /* 0x0629E2: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

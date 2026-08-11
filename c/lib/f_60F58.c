@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -50,6 +50,7 @@ void f_60F58(ST *s)
     uint32_t t4 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFF87BC; /* RAM 0xFFFF87BC */
     s->r[14] = t4;
     /* 0x060F74: jsr @r3 */
+    /* 0x060F76: op 0xE401 */
     s->pr = 0x00060F78;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_2420(s);
@@ -58,6 +59,7 @@ void f_60F58(ST *s)
     /* 0x060F7A: op 0xD23D */
     s->r[2] = 0x00065E08u;
     /* 0x060F7C: jsr @r2 */
+    /* 0x060F7E: op 0x64E3 */
     s->pr = 0x00060F80;
     s->r[4] = s->r[14];
     f_65E08(s);
@@ -74,6 +76,7 @@ void f_60F58(ST *s)
     /* 0x060F8A: op 0xD23A */
     s->r[2] = 0x00065EB2u;
     /* 0x060F8C: jsr @r2 */
+    /* 0x060F8E: op 0x64E3 */
     s->pr = 0x00060F90;
     s->r[4] = s->r[14];
     f_65EB2(s);
@@ -81,6 +84,19 @@ void f_60F58(ST *s)
     /* 0x060F92: op 0x0009 */
     
     goto L_60FB8;
+    L_60FB8: ;
+    /* 0x060FB8: lds.l @r15+,pr */
+    s->pr = local_3f0;
+    /* 0x060FBA: op 0x60D3 */
+    s->r[0] = s->r[13];
+    /* 0x060FBC: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x060FBE: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x060FC0: rts */
+    /* 0x060FC2: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_60F94: ;
     /* 0x060F94: op 0x6043 */
     s->r[0] = s->r[4];
@@ -93,6 +109,7 @@ void f_60F58(ST *s)
     /* 0x060F9C: op 0xD336 */
     s->r[3] = 0x0006620Cu;
     /* 0x060F9E: jsr @r3 */
+    /* 0x060FA0: op 0x64E3 */
     s->pr = 0x00060FA2;
     s->r[4] = s->r[14];
     f_6620C(s);
@@ -115,23 +132,11 @@ void f_60F58(ST *s)
     /* 0x060FB0: op 0xD224 */
     s->r[2] = 0x00002420u;
     /* 0x060FB2: jsr @r2 */
+    /* 0x060FB4: op 0xE401 */
     s->pr = 0x00060FB6;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_2420(s);
     /* 0x060FB6: mov.w r0,@r12 */
     *(volatile uint16_t*)0xFFFF87CA = s->r[0]; /* RAM 0xFFFF87CA */
-    L_60FB8: ;
-    /* 0x060FB8: lds.l @r15+,pr */
-    s->pr = local_3f0;
-    /* 0x060FBA: op 0x60D3 */
-    s->r[0] = s->r[13];
-    /* 0x060FBC: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x060FBE: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x060FC0: rts */
-    /* 0x060FC2: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

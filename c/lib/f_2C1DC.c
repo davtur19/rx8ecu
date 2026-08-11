@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -34,6 +34,7 @@ void f_2C1DC(ST *s)
     /* 0x02C1EA: op 0xD316 */
     s->r[3] = 0x000070ACu;
     /* 0x02C1EC: jsr @r3 */
+    /* 0x02C1EE: op 0xE401 */
     s->pr = 0x0002C1F0;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_70AC(s);
@@ -69,6 +70,7 @@ void f_2C1DC(ST *s)
     /* 0x02C20A: op 0xD210 */
     s->r[2] = 0x00002460u;
     /* 0x02C20C: jsr @r2 */
+    /* 0x02C20E: mov.w @r13,r4 */
     s->pr = 0x0002C210;
     uint32_t t6 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFBC3A; /* RAM 0xFFFFBC3A */
     s->r[4] = t6;
@@ -79,6 +81,17 @@ void f_2C1DC(ST *s)
     /* 0x02C214: mov.w r12,@r14 */
     *(volatile uint16_t*)0xFFFFBC3C = s->r[12]; /* RAM 0xFFFFBC3C */
     goto L_2C230;
+    L_2C230: ;
+    /* 0x02C230: lds.l @r15+,pr */
+    s->pr = local_3f0;
+    /* 0x02C232: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x02C234: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x02C236: rts */
+    /* 0x02C238: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_2C216: ;
     /* 0x02C216: mov.w @r14,r2 */
     uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[14]; /* RAM 0xFFFFBC3C */
@@ -102,6 +115,7 @@ void f_2C1DC(ST *s)
     /* 0x02C226: op 0xD309 */
     s->r[3] = 0x00002460u;
     /* 0x02C228: jsr @r3 */
+    /* 0x02C22A: mov.w @r14,r4 */
     s->pr = 0x0002C22C;
     uint32_t t12 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFBC3C; /* RAM 0xFFFFBC3C */
     s->r[4] = t12;
@@ -110,16 +124,5 @@ void f_2C1DC(ST *s)
     *(volatile uint16_t*)0xFFFFBC3C = s->r[0]; /* RAM 0xFFFFBC3C */
     /* 0x02C22E: mov.w r12,@r13 */
     *(volatile uint16_t*)0xFFFFBC3A = s->r[12]; /* RAM 0xFFFFBC3A */
-    L_2C230: ;
-    /* 0x02C230: lds.l @r15+,pr */
-    s->pr = local_3f0;
-    /* 0x02C232: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x02C234: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x02C236: rts */
-    /* 0x02C238: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -68,6 +68,7 @@ void f_34F64(ST *s)
     /* 0x034F92: op 0xD218 */
     s->r[2] = 0x0005ABB0u;
     /* 0x034F94: jsr @r2 */
+    /* 0x034F96: op 0x0009 */
     s->pr = 0x00034F98;
     
     f_5ABB0(s);
@@ -95,6 +96,7 @@ void f_34F64(ST *s)
     /* 0x034FAC: op 0xD213 */
     s->r[2] = 0x00002054u;
     /* 0x034FAE: jsr @r2 */
+    /* 0x034FB0: op 0x7404 */
     s->pr = 0x00034FB2;
     s->r[4] = s->r[4] + (uint32_t)(int32_t)(int8_t)0x04;
     f_2054(s);
@@ -103,6 +105,7 @@ void f_34F64(ST *s)
     /* 0x034FB4: op 0xE520 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x20;
     /* 0x034FB6: jsr @r13 */
+    /* 0x034FB8: op 0x64E3 */
     s->pr = 0x00034FBA;
     s->r[4] = s->r[14];
     f_4BBC(s);
@@ -114,6 +117,7 @@ void f_34F64(ST *s)
     /* 0x034FD0: op 0xD30B */
     s->r[3] = 0x00002064u;
     /* 0x034FD2: jsr @r3 */
+    /* 0x034FD4: op 0x0009 */
     s->pr = 0x00034FD6;
     
     f_2064(s);
@@ -135,6 +139,7 @@ void f_34F64(ST *s)
     /* 0x034FC0: op 0xD30E */
     s->r[3] = 0x00002054u;
     /* 0x034FC2: jsr @r3 */
+    /* 0x034FC4: op 0x64F3 */
     s->pr = 0x00034FC6;
     s->r[4] = s->r[15];
     f_2054(s);
@@ -143,6 +148,7 @@ void f_34F64(ST *s)
     /* 0x034FC8: op 0xE520 */
     s->r[5] = (uint32_t)(int32_t)(int8_t)0x20;
     /* 0x034FCA: jsr @r13 */
+    /* 0x034FCC: op 0x64E3 */
     s->pr = 0x00034FCE;
     s->r[4] = s->r[14];
     f_4BBC(s);

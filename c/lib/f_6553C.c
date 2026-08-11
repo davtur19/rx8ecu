@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -17,6 +17,9 @@ void f_6553C(ST *s)
     uint32_t local_3f4 = 0;
     uint32_t local_3f8 = 0;
     uint32_t local_3fc = 0;
+    uint32_t local_400 = 0;
+    uint32_t local_404 = 0;
+    uint32_t local_408 = 0;
     /* 0x06553C: sts.l pr,@-r15 */
     local_3fc = s->pr;
     /* 0x06553E: op 0x6063 */
@@ -30,18 +33,19 @@ void f_6553C(ST *s)
     /* 0x065546: op 0x2448 */
     s->T = ((s->r[4] & s->r[4]) == 0u) ? 1u : 0u;
     /* 0x065548: mov.w r0,@(0x4,r15) */
-    local_3f4 = s->r[0];
+    local_3f4 = s->r[0] & 0xFFFF;
     /* 0x06554A: op 0x6073 */
     s->r[0] = s->r[7];
     /* 0x06554C: bf.s 0x06555C */
     /* 0x06554E: mov.b r0,@(0x8,r15) */
-    local_3f8 = s->r[0];
+    local_3f8 = s->r[0] & 0xFF;
     if (!s->T) goto L_6555C;
     /* 0x065550: mov.w @(0x4,r15),r0 */
     s->r[0] = (uint32_t)(int32_t)(int16_t)(local_3f4 & 0xFFFFu);
     /* 0x065552: op 0x6503 */
     s->r[5] = s->r[0];
     /* 0x065554: bsr 0x655A4 */
+    /* 0x065556: mov.l @r15,r4 */
     s->pr = 0x00065558;
     s->r[4] = local_3f0;
     f_655A4(s);
@@ -49,19 +53,6 @@ void f_6553C(ST *s)
     /* 0x06555A: op 0x0009 */
     
     goto L_65568;
-    L_6555C: ;
-    /* 0x06555C: mov.b @(0x8,r15),r0 */
-    s->r[0] = (uint32_t)(int32_t)(int8_t)(local_3f8 & 0xFFu);
-    /* 0x06555E: op 0x6603 */
-    s->r[6] = s->r[0];
-    /* 0x065560: mov.w @(0x4,r15),r0 */
-    s->r[0] = (uint32_t)(int32_t)(int16_t)(local_3f4 & 0xFFFFu);
-    /* 0x065562: op 0x6503 */
-    s->r[5] = s->r[0];
-    /* 0x065564: bsr 0x65680 */
-    s->pr = 0x00065568;
-    s->r[4] = local_3f0;
-    f_65680(s);
     L_65568: ;
     /* 0x065568: op 0x7F0C */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x0C;
@@ -71,5 +62,19 @@ void f_6553C(ST *s)
     /* 0x06556E: op 0x0009 */
     
     return;
+    L_6555C: ;
+    /* 0x06555C: mov.b @(0x8,r15),r0 */
+    s->r[0] = (uint32_t)(int32_t)(int8_t)(local_408 & 0xFFu);
+    /* 0x06555E: op 0x6603 */
+    s->r[6] = s->r[0];
+    /* 0x065560: mov.w @(0x4,r15),r0 */
+    s->r[0] = (uint32_t)(int32_t)(int16_t)(local_404 & 0xFFFFu);
+    /* 0x065562: op 0x6503 */
+    s->r[5] = s->r[0];
+    /* 0x065564: bsr 0x65680 */
+    /* 0x065566: mov.l @r15,r4 */
+    s->pr = 0x00065568;
+    s->r[4] = local_400;
+    f_65680(s);
     return; /* fallthrough */
 }

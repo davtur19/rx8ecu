@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -28,6 +28,7 @@ void f_483C0(ST *s)
     /* 0x0483C6: sts.l pr,@-r15 */
     local_3f0 = s->pr;
     /* 0x0483C8: bsr 0x48488 */
+    /* 0x0483CA: op 0x0009 */
     s->pr = 0x000483CC;
     
     f_48488(s);
@@ -91,43 +92,11 @@ void f_483C0(ST *s)
     /* 0x048406: op 0x0009 */
     
     goto L_48422;
-    L_48408: ;
-    /* 0x048408: bra 0x048422 */
-    /* 0x04840A: op 0x64C3 */
-    s->r[4] = s->r[12];
-    goto L_48422;
-    L_4840C: ;
-    /* 0x04840C: bra 0x048422 */
-    /* 0x04840E: op 0x64E3 */
-    s->r[4] = s->r[14];
-    goto L_48422;
-    L_48410: ;
-    /* 0x048410: bra 0x048422 */
-    /* 0x048412: op 0xE420 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
-    goto L_48422;
-    L_48414: ;
-    /* 0x048414: bra 0x048422 */
-    /* 0x048416: op 0xE410 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x10;
-    goto L_48422;
-    L_48418: ;
-    /* 0x048418: bra 0x048422 */
-    /* 0x04841A: op 0xE408 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x08;
-    goto L_48422;
-    L_4841C: ;
-    /* 0x04841C: bra 0x048422 */
-    /* 0x04841E: op 0xE404 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x04;
-    goto L_48422;
-    L_48420: ;
-    /* 0x048420: op 0xE402 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x02;
     L_48422: ;
     /* 0x048422: op 0x922E */
     s->r[2] = (uint32_t)(int32_t)(int16_t)0x0000CBD4u;
     /* 0x048424: bsr 0x484E4 */
+    /* 0x048426: mov.b r4,@r2 */
     s->pr = 0x00048428;
     *(volatile uint8_t*)0xFFFFCBD4 = s->r[4]; /* RAM 0xFFFFCBD4 */
     f_484E4(s);
@@ -151,18 +120,11 @@ void f_483C0(ST *s)
     /* 0x04843A: op 0x0009 */
     
     goto L_48442;
-    L_4843C: ;
-    /* 0x04843C: bra 0x048442 */
-    /* 0x04843E: op 0x64C3 */
-    s->r[4] = s->r[12];
-    goto L_48442;
-    L_48440: ;
-    /* 0x048440: op 0x64E3 */
-    s->r[4] = s->r[14];
     L_48442: ;
     /* 0x048442: op 0x931F */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CBD5u;
     /* 0x048444: bsr 0x48542 */
+    /* 0x048446: mov.b r4,@r3 */
     s->pr = 0x00048448;
     *(volatile uint8_t*)0xFFFFCBD5 = s->r[4]; /* RAM 0xFFFFCBD5 */
     f_48542(s);
@@ -192,23 +154,11 @@ void f_483C0(ST *s)
     /* 0x048460: op 0x0009 */
     
     goto L_4846C;
-    L_48462: ;
-    /* 0x048462: bra 0x04846C */
-    /* 0x048464: op 0x64C3 */
-    s->r[4] = s->r[12];
-    goto L_4846C;
-    L_48466: ;
-    /* 0x048466: bra 0x04846C */
-    /* 0x048468: op 0x64E3 */
-    s->r[4] = s->r[14];
-    goto L_4846C;
-    L_4846A: ;
-    /* 0x04846A: op 0xE420 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
     L_4846C: ;
     /* 0x04846C: op 0x930B */
     s->r[3] = (uint32_t)(int32_t)(int16_t)0x0000CBD6u;
     /* 0x04846E: bsr 0x485CA */
+    /* 0x048470: mov.b r4,@r3 */
     s->pr = 0x00048472;
     *(volatile uint8_t*)s->r[3] = s->r[4]; /* RAM 0xFFFFCBD6 */
     f_485CA(s);
@@ -222,5 +172,59 @@ void f_483C0(ST *s)
     /* 0x04847A: mov.l @r15+,r14 */
     s->r[14] = local_3fc;
     return;
+    L_4846A: ;
+    /* 0x04846A: op 0xE420 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
+    L_48466: ;
+    /* 0x048466: bra 0x04846C */
+    /* 0x048468: op 0x64E3 */
+    s->r[4] = s->r[14];
+    goto L_4846C;
+    L_48462: ;
+    /* 0x048462: bra 0x04846C */
+    /* 0x048464: op 0x64C3 */
+    s->r[4] = s->r[12];
+    goto L_4846C;
+    L_48440: ;
+    /* 0x048440: op 0x64E3 */
+    s->r[4] = s->r[14];
+    L_4843C: ;
+    /* 0x04843C: bra 0x048442 */
+    /* 0x04843E: op 0x64C3 */
+    s->r[4] = s->r[12];
+    goto L_48442;
+    L_48420: ;
+    /* 0x048420: op 0xE402 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x02;
+    L_4841C: ;
+    /* 0x04841C: bra 0x048422 */
+    /* 0x04841E: op 0xE404 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x04;
+    goto L_48422;
+    L_48418: ;
+    /* 0x048418: bra 0x048422 */
+    /* 0x04841A: op 0xE408 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x08;
+    goto L_48422;
+    L_48414: ;
+    /* 0x048414: bra 0x048422 */
+    /* 0x048416: op 0xE410 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x10;
+    goto L_48422;
+    L_48410: ;
+    /* 0x048410: bra 0x048422 */
+    /* 0x048412: op 0xE420 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x20;
+    goto L_48422;
+    L_4840C: ;
+    /* 0x04840C: bra 0x048422 */
+    /* 0x04840E: op 0x64E3 */
+    s->r[4] = s->r[14];
+    goto L_48422;
+    L_48408: ;
+    /* 0x048408: bra 0x048422 */
+    /* 0x04840A: op 0x64C3 */
+    s->r[4] = s->r[12];
+    goto L_48422;
     return; /* fallthrough */
 }

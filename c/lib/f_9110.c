@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -12,9 +12,9 @@ typedef struct {
 void f_9490(ST *s);
 void f_9110(ST *s)
 {
-    /* 0x009110: bra 0x9490 (tail) */
+    /* 0x009110: bra 0x009490 (tail) */
+    /* 0x009112: op 0x0009 */
     
-    f_9490(s);
-    return;
+     { f_9490(s); return; }
     return; /* fallthrough */
 }

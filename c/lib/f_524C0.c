@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -25,6 +25,7 @@ void f_524C0(ST *s)
     /* 0x0524C8: op 0xD331 */
     s->r[3] = 0x00038610u;
     /* 0x0524CA: jsr @r3 */
+    /* 0x0524CC: op 0x65F3 */
     s->pr = 0x000524CE;
     s->r[5] = s->r[15];
     f_38610(s);
@@ -54,6 +55,15 @@ void f_524C0(ST *s)
     /* 0x0524E6: mov.b r2,@r4 */
     *(volatile uint8_t*)s->r[4] = s->r[2]; /* RAM 0xFFFFCFC1 */
     goto L_524FA;
+    L_524FA: ;
+    /* 0x0524FA: op 0x7F04 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
+    /* 0x0524FC: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x0524FE: rts */
+    /* 0x052500: op 0x0009 */
+    
+    return;
     L_524E8: ;
     /* 0x0524E8: op 0xD32A */
     s->r[3] = 0x0007C23Cu;
@@ -74,14 +84,5 @@ void f_524C0(ST *s)
     s->r[0] = (uint32_t)(int32_t)(int8_t)0x01;
     /* 0x0524F8: mov.b r0,@r4 */
     *(volatile uint8_t*)s->r[4] = s->r[0]; /* RAM 0xFFFFCFC1 */
-    L_524FA: ;
-    /* 0x0524FA: op 0x7F04 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
-    /* 0x0524FC: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x0524FE: rts */
-    /* 0x052500: op 0x0009 */
-    
-    return;
     return; /* fallthrough */
 }

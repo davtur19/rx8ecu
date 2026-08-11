@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -59,7 +59,7 @@ void f_25414(ST *s)
     uint32_t t4 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFB589; /* RAM 0xFFFFB589 */
     s->r[0] = t4;
     /* 0x025432: mov.b r0,@(0x8,r15) */
-    local_3dc = s->r[0];
+    local_3dc = s->r[0] & 0xFF;
     /* 0x025434: op 0x9B50 */
     s->r[11] = (uint32_t)(int32_t)(int16_t)0x0000B58Bu;
     /* 0x025436: mov.b @r11,r4 */
@@ -556,6 +556,8 @@ void f_25414(ST *s)
     /* 0x025686: mov.b @r3,r0 */
     uint32_t t60 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[3]; /* RAM 0xFFFFA7B8 */
     s->r[0] = t60;
+    /* 0x025688: op 0x600C */
+    s->r[0] = s->r[0] & 0xFFu;
     /* 0x02568A: op 0x8801 */
     s->T = ((int32_t)s->r[0] == (int32_t)(int8_t)0x01) ? 1u : 0u;
     /* 0x02568C: bf.s 0x0256A2 */
@@ -689,6 +691,7 @@ void f_25414(ST *s)
     /* 0x025520: op 0xD22F */
     s->r[2] = 0x00002478u;
     /* 0x025522: jsr @r2 */
+    /* 0x025524: mov.b @r9,r4 */
     s->pr = 0x00025526;
     uint32_t t78 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)s->r[9]; /* RAM 0xFFFFB58D */
     s->r[4] = t78;
@@ -718,6 +721,7 @@ void f_25414(ST *s)
     /* 0x0254A8: op 0xD212 */
     s->r[2] = 0x00002478u;
     /* 0x0254AA: jsr @r2 */
+    /* 0x0254AC: mov.b @r8,r4 */
     s->pr = 0x000254AE;
     uint32_t t82 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFFB58E; /* RAM 0xFFFFB58E */
     s->r[4] = t82;

@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -29,6 +29,7 @@ void f_63CD0(ST *s)
     uint32_t local_3f4 = 0;
     uint32_t local_3f8 = 0;
     uint32_t local_3fc = 0;
+    uint32_t local_404 = 0;
     /* 0x063CD0: mov.l r14,@-r15 */
     local_3fc = s->r[14];
     /* 0x063CD2: op 0x6043 */
@@ -44,22 +45,25 @@ void f_63CD0(ST *s)
     /* 0x063CDC: op 0x7FF8 */
     s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0xF8;
     /* 0x063CDE: mov.w r0,@(0x4,r15) */
-    local_3f0 = s->r[0];
+    local_3f0 = s->r[0] & 0xFFFF;
     /* 0x063CE0: mov.b r6,@r15 */
-    local_3ec = s->r[6];
+    local_3ec = s->r[6] & 0xFF;
     /* 0x063CE2: jsr @r3 */
+    /* 0x063CE4: op 0xE400 */
     s->pr = 0x00063CE6;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_60FC4(s);
     /* 0x063CE6: bsr 0x63E8C */
+    /* 0x063CE8: mov.b @r15,r4 */
     s->pr = 0x00063CEA;
     s->r[4] = (uint32_t)(int32_t)(int8_t)(local_3ec & 0xFFu);
     f_63E8C(s);
     /* 0x063CEA: mov.b r0,@r15 */
-    local_3ec = s->r[0];
+    local_3ec = s->r[0] & 0xFF;
     /* 0x063CEC: op 0xD339 */
     s->r[3] = 0x00066568u;
     /* 0x063CEE: jsr @r3 */
+    /* 0x063CF0: op 0xE400 */
     s->pr = 0x00063CF2;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_66568(s);
@@ -70,6 +74,7 @@ void f_63CD0(ST *s)
     /* 0x063CF6: op 0x2DEB */
     s->r[13] |= s->r[14];
     /* 0x063CF8: jsr @r2 */
+    /* 0x063CFA: op 0x64D3 */
     s->pr = 0x00063CFC;
     s->r[4] = s->r[13];
     f_66554(s);
@@ -78,6 +83,7 @@ void f_63CD0(ST *s)
     /* 0x063CFE: op 0xD337 */
     s->r[3] = 0x00065FCEu;
     /* 0x063D00: jsr @r3 */
+    /* 0x063D02: op 0x6403 */
     s->pr = 0x00063D04;
     s->r[4] = s->r[0];
     f_65FCE(s);
@@ -86,12 +92,14 @@ void f_63CD0(ST *s)
     /* 0x063D06: op 0x6403 */
     s->r[4] = s->r[0];
     /* 0x063D08: jsr @r2 */
+    /* 0x063D0A: op 0x24EB */
     s->pr = 0x00063D0C;
     s->r[4] |= s->r[14];
     f_65FB8(s);
     /* 0x063D0C: op 0xD335 */
     s->r[3] = 0x0006650Au;
     /* 0x063D0E: jsr @r3 */
+    /* 0x063D10: op 0xE400 */
     s->pr = 0x00063D12;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_6650A(s);
@@ -106,6 +114,7 @@ void f_63CD0(ST *s)
     /* 0x063D1A: op 0xD333 */
     s->r[3] = 0x000664F6u;
     /* 0x063D1C: jsr @r3 */
+    /* 0x063D1E: op 0x64E3 */
     s->pr = 0x00063D20;
     s->r[4] = s->r[14];
     f_664F6(s);
@@ -140,12 +149,29 @@ void f_63CD0(ST *s)
     /* 0x063D3C: op 0x0009 */
     
     goto L_63D62;
+    L_63D62: ;
+    /* 0x063D62: op 0xE400 */
+    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
+    /* 0x063D64: op 0xD225 */
+    s->r[2] = 0x00061208u;
+    /* 0x063D66: op 0x7F08 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x08;
+    /* 0x063D68: lds.l @r15+,pr */
+    s->pr = local_3f4;
+    /* 0x063D6A: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x063D6C: jmp @r2 (tail) */
+    /* 0x063D6E: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    f_61208(s);
+    return;
     L_63D3E: ;
     /* 0x063D3E: mov.w @(0x4,r15),r0 */
-    s->r[0] = (uint32_t)(int32_t)(int16_t)(local_3f0 & 0xFFFFu);
+    s->r[0] = (uint32_t)(int32_t)(int16_t)(local_404 & 0xFFFFu);
     /* 0x063D40: op 0xD32A */
     s->r[3] = 0x00065F64u;
     /* 0x063D42: jsr @r3 */
+    /* 0x063D44: op 0x6403 */
     s->pr = 0x00063D46;
     s->r[4] = s->r[0];
     f_65F64(s);
@@ -154,12 +180,14 @@ void f_63CD0(ST *s)
     /* 0x063D48: op 0xD229 */
     s->r[2] = 0x00065F2Cu;
     /* 0x063D4A: jsr @r2 */
+    /* 0x063D4C: op 0x24EB */
     s->pr = 0x00063D4E;
     s->r[4] |= s->r[14];
     f_65F2C(s);
     /* 0x063D4E: op 0xD329 */
     s->r[3] = 0x000664ACu;
     /* 0x063D50: jsr @r3 */
+    /* 0x063D52: op 0xE400 */
     s->pr = 0x00063D54;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     f_664AC(s);
@@ -174,23 +202,9 @@ void f_63CD0(ST *s)
     /* 0x063D5C: op 0xD326 */
     s->r[3] = 0x00066478u;
     /* 0x063D5E: jsr @r3 */
+    /* 0x063D60: op 0x64D3 */
     s->pr = 0x00063D62;
     s->r[4] = s->r[13];
     f_66478(s);
-    L_63D62: ;
-    /* 0x063D62: op 0xE400 */
-    s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
-    /* 0x063D64: op 0xD225 */
-    s->r[2] = 0x00061208u;
-    /* 0x063D66: op 0x7F08 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x08;
-    /* 0x063D68: lds.l @r15+,pr */
-    s->pr = local_3f4;
-    /* 0x063D6A: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x063D6C: jmp @r2 (tail) */
-    s->r[14] = local_3fc;
-    f_61208(s);
-    return;
     return; /* fallthrough */
 }

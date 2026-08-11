@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -54,222 +54,259 @@ void f_3A1AA(ST *s)
     /* 0x03A1AC: op 0xD350 */
     s->r[3] = 0x00045242u;
     /* 0x03A1AE: jsr @r3 */
+    /* 0x03A1B0: op 0x0009 */
     s->pr = 0x0003A1B2;
     
     f_45242(s);
     /* 0x03A1B2: op 0xD250 */
     s->r[2] = 0x000445E8u;
     /* 0x03A1B4: jsr @r2 */
+    /* 0x03A1B6: op 0x0009 */
     s->pr = 0x0003A1B8;
     
     f_445E8(s);
     /* 0x03A1B8: op 0xD34F */
     s->r[3] = 0x00045052u;
     /* 0x03A1BA: jsr @r3 */
+    /* 0x03A1BC: op 0x0009 */
     s->pr = 0x0003A1BE;
     
     f_45052(s);
     /* 0x03A1BE: op 0xD24F */
     s->r[2] = 0x0004540Eu;
     /* 0x03A1C0: jsr @r2 */
+    /* 0x03A1C2: op 0x0009 */
     s->pr = 0x0003A1C4;
     
     f_4540E(s);
     /* 0x03A1C4: op 0xD34E */
     s->r[3] = 0x00045DF0u;
     /* 0x03A1C6: jsr @r3 */
+    /* 0x03A1C8: op 0x0009 */
     s->pr = 0x0003A1CA;
     
     f_45DF0(s);
     /* 0x03A1CA: op 0xD24E */
     s->r[2] = 0x00045F56u;
     /* 0x03A1CC: jsr @r2 */
+    /* 0x03A1CE: op 0x0009 */
     s->pr = 0x0003A1D0;
     
     f_45F56(s);
     /* 0x03A1D0: op 0xD34D */
     s->r[3] = 0x00045F5Eu;
     /* 0x03A1D2: jsr @r3 */
+    /* 0x03A1D4: op 0x0009 */
     s->pr = 0x0003A1D6;
     
     f_45F5E(s);
     /* 0x03A1D6: op 0xD24D */
     s->r[2] = 0x00044996u;
     /* 0x03A1D8: jsr @r2 */
+    /* 0x03A1DA: op 0x0009 */
     s->pr = 0x0003A1DC;
     
     f_44996(s);
     /* 0x03A1DC: op 0xD34C */
     s->r[3] = 0x0004602Au;
     /* 0x03A1DE: jsr @r3 */
+    /* 0x03A1E0: op 0x0009 */
     s->pr = 0x0003A1E2;
     
     f_4602A(s);
     /* 0x03A1E2: op 0xD24C */
     s->r[2] = 0x00044DF6u;
     /* 0x03A1E4: jsr @r2 */
+    /* 0x03A1E6: op 0x0009 */
     s->pr = 0x0003A1E8;
     
     f_44DF6(s);
     /* 0x03A1E8: op 0xD34B */
     s->r[3] = 0x00045B46u;
     /* 0x03A1EA: jsr @r3 */
+    /* 0x03A1EC: op 0x0009 */
     s->pr = 0x0003A1EE;
     
     f_45B46(s);
     /* 0x03A1EE: op 0xD24B */
     s->r[2] = 0x00044BA2u;
     /* 0x03A1F0: jsr @r2 */
+    /* 0x03A1F2: op 0x0009 */
     s->pr = 0x0003A1F4;
     
     f_44BA2(s);
     /* 0x03A1F4: op 0xD34A */
     s->r[3] = 0x0003F792u;
     /* 0x03A1F6: jsr @r3 */
+    /* 0x03A1F8: op 0x0009 */
     s->pr = 0x0003A1FA;
     
     f_3F792(s);
     /* 0x03A1FA: op 0xD24A */
     s->r[2] = 0x0004C0D6u;
     /* 0x03A1FC: jsr @r2 */
+    /* 0x03A1FE: op 0x0009 */
     s->pr = 0x0003A200;
     
     f_4C0D6(s);
     /* 0x03A200: op 0xD349 */
     s->r[3] = 0x0005124Cu;
     /* 0x03A202: jsr @r3 */
+    /* 0x03A204: op 0x0009 */
     s->pr = 0x0003A206;
     
     f_5124C(s);
     /* 0x03A206: op 0xD249 */
     s->r[2] = 0x0005083Eu;
     /* 0x03A208: jsr @r2 */
+    /* 0x03A20A: op 0x0009 */
     s->pr = 0x0003A20C;
     
     f_5083E(s);
     /* 0x03A20C: op 0xD348 */
     s->r[3] = 0x0004D6CAu;
     /* 0x03A20E: jsr @r3 */
+    /* 0x03A210: op 0x0009 */
     s->pr = 0x0003A212;
     
     f_4D6CA(s);
     /* 0x03A212: op 0xD248 */
     s->r[2] = 0x0004E61Eu;
     /* 0x03A214: jsr @r2 */
+    /* 0x03A216: op 0x0009 */
     s->pr = 0x0003A218;
     
     f_4E61E(s);
     /* 0x03A218: op 0xD347 */
     s->r[3] = 0x0004F028u;
     /* 0x03A21A: jsr @r3 */
+    /* 0x03A21C: op 0x0009 */
     s->pr = 0x0003A21E;
     
     f_4F028(s);
     /* 0x03A21E: op 0xD247 */
     s->r[2] = 0x0004FAC4u;
     /* 0x03A220: jsr @r2 */
+    /* 0x03A222: op 0x0009 */
     s->pr = 0x0003A224;
     
     f_4FAC4(s);
     /* 0x03A224: op 0xD346 */
     s->r[3] = 0x00050EC0u;
     /* 0x03A226: jsr @r3 */
+    /* 0x03A228: op 0x0009 */
     s->pr = 0x0003A22A;
     
     f_50EC0(s);
     /* 0x03A22A: op 0xD246 */
     s->r[2] = 0x0003BA90u;
     /* 0x03A22C: jsr @r2 */
+    /* 0x03A22E: op 0x0009 */
     s->pr = 0x0003A230;
     
     f_3BA90(s);
     /* 0x03A230: op 0xD345 */
     s->r[3] = 0x00051F44u;
     /* 0x03A232: jsr @r3 */
+    /* 0x03A234: op 0x0009 */
     s->pr = 0x0003A236;
     
     f_51F44(s);
     /* 0x03A236: op 0xD245 */
     s->r[2] = 0x00051828u;
     /* 0x03A238: jsr @r2 */
+    /* 0x03A23A: op 0x0009 */
     s->pr = 0x0003A23C;
     
     f_51828(s);
     /* 0x03A23C: op 0xD344 */
     s->r[3] = 0x000517B8u;
     /* 0x03A23E: jsr @r3 */
+    /* 0x03A240: op 0x0009 */
     s->pr = 0x0003A242;
     
     f_517B8(s);
     /* 0x03A242: op 0xD244 */
     s->r[2] = 0x00051CBEu;
     /* 0x03A244: jsr @r2 */
+    /* 0x03A246: op 0x0009 */
     s->pr = 0x0003A248;
     
     f_51CBE(s);
     /* 0x03A248: op 0xD343 */
     s->r[3] = 0x000516CCu;
     /* 0x03A24A: jsr @r3 */
+    /* 0x03A24C: op 0x0009 */
     s->pr = 0x0003A24E;
     
     f_516CC(s);
     /* 0x03A24E: op 0xD243 */
     s->r[2] = 0x0005165Cu;
     /* 0x03A250: jsr @r2 */
+    /* 0x03A252: op 0x0009 */
     s->pr = 0x0003A254;
     
     f_5165C(s);
     /* 0x03A254: op 0xD342 */
     s->r[3] = 0x00051ACCu;
     /* 0x03A256: jsr @r3 */
+    /* 0x03A258: op 0x0009 */
     s->pr = 0x0003A25A;
     
     f_51ACC(s);
     /* 0x03A25A: op 0xD242 */
     s->r[2] = 0x00051960u;
     /* 0x03A25C: jsr @r2 */
+    /* 0x03A25E: op 0x0009 */
     s->pr = 0x0003A260;
     
     f_51960(s);
     /* 0x03A260: op 0xD341 */
     s->r[3] = 0x00052024u;
     /* 0x03A262: jsr @r3 */
+    /* 0x03A264: op 0x0009 */
     s->pr = 0x0003A266;
     
     f_52024(s);
     /* 0x03A266: op 0xD241 */
     s->r[2] = 0x00051FB4u;
     /* 0x03A268: jsr @r2 */
+    /* 0x03A26A: op 0x0009 */
     s->pr = 0x0003A26C;
     
     f_51FB4(s);
     /* 0x03A26C: op 0xD340 */
     s->r[3] = 0x00052720u;
     /* 0x03A26E: jsr @r3 */
+    /* 0x03A270: op 0x0009 */
     s->pr = 0x0003A272;
     
     f_52720(s);
     /* 0x03A272: op 0xD240 */
     s->r[2] = 0x0005285Cu;
     /* 0x03A274: jsr @r2 */
+    /* 0x03A276: op 0x0009 */
     s->pr = 0x0003A278;
     
     f_5285C(s);
     /* 0x03A278: op 0xD33F */
     s->r[3] = 0x00051890u;
     /* 0x03A27A: jsr @r3 */
+    /* 0x03A27C: op 0x0009 */
     s->pr = 0x0003A27E;
     
     f_51890(s);
     /* 0x03A27E: op 0xD23F */
     s->r[2] = 0x0004A656u;
     /* 0x03A280: jsr @r2 */
+    /* 0x03A282: op 0x0009 */
     s->pr = 0x0003A284;
     
     f_4A656(s);
     /* 0x03A284: op 0xD33E */
     s->r[3] = 0x000515F0u;
     /* 0x03A286: jmp @r3 (tail) */
+    /* 0x03A288: lds.l @r15+,pr */
     s->pr = local_3fc;
     f_515F0(s);
     return;

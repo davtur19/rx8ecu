@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -16,6 +16,7 @@ void f_63B60(ST *s)
 {
     uint32_t local_3f8 = 0;
     uint32_t local_3fc = 0;
+    uint32_t local_400 = 0;
     /* 0x063B60: sts.l pr,@-r15 */
     local_3fc = s->pr;
     /* 0x063B62: op 0x7FFC */
@@ -23,8 +24,9 @@ void f_63B60(ST *s)
     /* 0x063B64: op 0xD321 */
     s->r[3] = 0x0005E5A4u;
     /* 0x063B66: jsr @r3 */
+    /* 0x063B68: mov.w r4,@r15 */
     s->pr = 0x00063B6A;
-    local_3f8 = s->r[4];
+    local_3f8 = s->r[4] & 0xFFFF;
     f_5E5A4(s);
     /* 0x063B6A: op 0x640C */
     s->r[4] = s->r[0] & 0xFFu;
@@ -38,12 +40,22 @@ void f_63B60(ST *s)
     /* 0x063B74: op 0xE400 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x00;
     goto L_63B9C;
+    L_63B9C: ;
+    /* 0x063B9C: op 0x7F04 */
+    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
+    /* 0x063B9E: lds.l @r15+,pr */
+    s->pr = local_3fc;
+    /* 0x063BA0: rts */
+    /* 0x063BA2: op 0x6043 */
+    s->r[0] = s->r[4];
+    return;
     L_63B76: ;
     /* 0x063B76: op 0xD31B */
     s->r[3] = 0x000661A4u;
     /* 0x063B78: jsr @r3 */
+    /* 0x063B7A: mov.w @r15,r4 */
     s->pr = 0x00063B7C;
-    s->r[4] = (uint32_t)(int32_t)(int16_t)(local_3f8 & 0xFFFFu);
+    s->r[4] = (uint32_t)(int32_t)(int16_t)(local_400 & 0xFFFFu);
     f_661A4(s);
     /* 0x063B7C: op 0x6403 */
     s->r[4] = s->r[0];
@@ -62,6 +74,7 @@ void f_63B60(ST *s)
     /* 0x063B8A: op 0xD117 */
     s->r[1] = 0x0006618Eu;
     /* 0x063B8C: jsr @r1 */
+    /* 0x063B8E: op 0x6433 */
     s->pr = 0x00063B90;
     s->r[4] = s->r[3];
     f_6618E(s);
@@ -73,19 +86,11 @@ void f_63B60(ST *s)
     /* 0x063B94: op 0xD214 */
     s->r[2] = 0x0006618Eu;
     /* 0x063B96: jsr @r2 */
+    /* 0x063B98: op 0x0009 */
     s->pr = 0x00063B9A;
     
     f_6618E(s);
     /* 0x063B9A: op 0xE402 */
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x02;
-    L_63B9C: ;
-    /* 0x063B9C: op 0x7F04 */
-    s->r[15] = s->r[15] + (uint32_t)(int32_t)(int8_t)0x04;
-    /* 0x063B9E: lds.l @r15+,pr */
-    s->pr = local_3fc;
-    /* 0x063BA0: rts */
-    /* 0x063BA2: op 0x6043 */
-    s->r[0] = s->r[4];
-    return;
     return; /* fallthrough */
 }

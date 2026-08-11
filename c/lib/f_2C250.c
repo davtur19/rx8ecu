@@ -4,7 +4,7 @@
 #include <stdint.h>
 typedef struct {
     uint32_t r[16];
-    uint32_t pr, T, Q, M, macl, mach, sr, gbr, fpul, fpscr;
+    uint32_t pr, T, Q, M, macl, mach, sr, vbr, gbr, fpul, fpscr;
     uint32_t fr[16];   /* FPU bit patterns (IEEE-754) */
     uint32_t ram_base; /* bank base (0 for 60E1D400-style flat test) */
 } ST;
@@ -34,6 +34,7 @@ void f_2C250(ST *s)
     /* 0x02C25E: op 0xD317 */
     s->r[3] = 0x000070ACu;
     /* 0x02C260: jsr @r3 */
+    /* 0x02C262: op 0xE401 */
     s->pr = 0x0002C264;
     s->r[4] = (uint32_t)(int32_t)(int8_t)0x01;
     f_70AC(s);
@@ -73,6 +74,7 @@ void f_2C250(ST *s)
     /* 0x02C282: op 0xD210 */
     s->r[2] = 0x00002460u;
     /* 0x02C284: jsr @r2 */
+    /* 0x02C286: mov.w @r13,r4 */
     s->pr = 0x0002C288;
     uint32_t t6 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFBC42; /* RAM 0xFFFFBC42 */
     s->r[4] = t6;
@@ -83,6 +85,17 @@ void f_2C250(ST *s)
     /* 0x02C28C: mov.w r12,@r14 */
     *(volatile uint16_t*)0xFFFFBC44 = s->r[12]; /* RAM 0xFFFFBC44 */
     goto L_2C2A8;
+    L_2C2A8: ;
+    /* 0x02C2A8: lds.l @r15+,pr */
+    s->pr = local_3f0;
+    /* 0x02C2AA: mov.l @r15+,r12 */
+    s->r[12] = local_3f4;
+    /* 0x02C2AC: mov.l @r15+,r13 */
+    s->r[13] = local_3f8;
+    /* 0x02C2AE: rts */
+    /* 0x02C2B0: mov.l @r15+,r14 */
+    s->r[14] = local_3fc;
+    return;
     L_2C28E: ;
     /* 0x02C28E: mov.w @r14,r2 */
     uint32_t t8 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)s->r[14]; /* RAM 0xFFFFBC44 */
@@ -106,6 +119,7 @@ void f_2C250(ST *s)
     /* 0x02C29E: op 0xD309 */
     s->r[3] = 0x00002460u;
     /* 0x02C2A0: jsr @r3 */
+    /* 0x02C2A2: mov.w @r14,r4 */
     s->pr = 0x0002C2A4;
     uint32_t t12 = (uint32_t)(int32_t)(int16_t)*(volatile uint16_t*)0xFFFFBC44; /* RAM 0xFFFFBC44 */
     s->r[4] = t12;
@@ -114,16 +128,5 @@ void f_2C250(ST *s)
     *(volatile uint16_t*)0xFFFFBC44 = s->r[0]; /* RAM 0xFFFFBC44 */
     /* 0x02C2A6: mov.w r12,@r13 */
     *(volatile uint16_t*)0xFFFFBC42 = s->r[12]; /* RAM 0xFFFFBC42 */
-    L_2C2A8: ;
-    /* 0x02C2A8: lds.l @r15+,pr */
-    s->pr = local_3f0;
-    /* 0x02C2AA: mov.l @r15+,r12 */
-    s->r[12] = local_3f4;
-    /* 0x02C2AC: mov.l @r15+,r13 */
-    s->r[13] = local_3f8;
-    /* 0x02C2AE: rts */
-    /* 0x02C2B0: mov.l @r15+,r14 */
-    s->r[14] = local_3fc;
-    return;
     return; /* fallthrough */
 }
