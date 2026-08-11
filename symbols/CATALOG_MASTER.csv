@@ -56953,3 +56953,17 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E32000,0x06cd5e,0x06CD70,getFaultEvalState,ghidra-hand-xmap,,,,,Faults & DTC
 60E32000,0x06cd70,0x06CDF0,FUN_06cd70,derived,,,,,Faults & DTC
 60E0FC00,0x00cf96,0x00D13C,FUN_00cf96,derived,,,,,
+60E0FC00,0xd2e6,0xd2ec,gap_fill_d2e6,gap-fill,,,,,
+60E0FC00,0x22ea2,0x22ea6,gap_fill_22ea2,gap-fill,,,,,
+60E0FC00,0x2bbe8,0x2bbec,gap_fill_2bbe8,gap-fill,LOWCONF,,,,
+60E0FC00,0x308ea,0x308ee,gap_fill_308ea,gap-fill,LOWCONF,,,,
+60E0FC00,0x368de,0x3697c,gap_fill_368de,gap-fill,,,,,
+60E0FC00,0x5187a,0x518a4,gap_fill_5187a,gap-fill,,,,,
+60E0FC00,0x56b26,0x56bb8,gap_fill_56b26,gap-fill,,,,,
+60E0FC00,0x56c58,0x56cf6,gap_fill_56c58,gap-fill,,,,,
+60E0FC00,0x56d96,0x56e3e,gap_fill_56d96,gap-fill,,,,,
+60E0FC00,0x56ede,0x56f7a,gap_fill_56ede,gap-fill,,,,,
+60E0FC00,0x5701a,0x570b2,gap_fill_5701a,gap-fill,,,,,
+60E0FC00,0x57136,0x571d8,gap_fill_57136,gap-fill,,,,,
+60E0FC00,0x61456,0x61458,gap_fill_61456,gap-fill,,,,,
+60E0FC00,0x64572,0x64576,gap_fill_64572,gap-fill,LOWCONF,,,,
