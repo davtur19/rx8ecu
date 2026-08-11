@@ -96,7 +96,7 @@ def _s8(x):
 # ---------------------------------------------------------------------------
 class CfgResult:
     __slots__ = ('records', 'labels', 'info', 'jump_tables', 'data_words',
-                 'edges', 'reject')
+                 'edges', 'reject', 'fallthrough')
 
     def __init__(self):
         self.records = []
@@ -107,6 +107,8 @@ class CfgResult:
         self.data_words = set()
         self.edges = []             # (src_pc, kind, target) debug/measures
         self.reject = None          # (reason, pc) or None when CFG complete
+        self.fallthrough = False    # a linear column ran off the span end
+                                    # (no in-span terminator): span truncated
 
 
 def _find_nullsub(rom, start=0x200):
@@ -1224,6 +1226,12 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         # unmapped logic with seen_rts False (its own column) -> real
         # corruption still rejects.
         seen_rts = False
+        # per-column fall-through latch: the column is assumed to run off the
+        # span end (loop-condition exit) unless a terminator breaks it; only a
+        # clean terminator break clears it (fix 6: 0x1038 noreturn-dispatcher
+        # guard — a span whose reachable columns ALL terminate in-span is NOT
+        # truncated and must not be extended into the next function).
+        fell_off = True
         # (patch 2b) per-column data-run latch: once THIS linear column has
         # skipped a word as unambiguous data (ZERO/0xFFFF or pcrel-pool), a
         # later non-decodable word in the same column is data too (a literal
@@ -1237,6 +1245,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         data_run = False
         while pc + 1 < bound:
             if pc in seen_pc:            # already walked via another path
+                fell_off = False
                 break
             if pc in data:
                 if pc in labels:
@@ -1265,6 +1274,35 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     data_run = True
                     pc += 2
                     continue
+            if seen_rts and pc in pool_all and pc not in labels:
+                # (fix 5 / last9 Class A) post-first-rts literal-pool skip: after
+                # the function's first rts the linear continuation can run into
+                # the literal table; a pool_all word there that DECODES as a
+                # static branch (bra/bt/bf/bt.s/bf.s/braf/bsrf) turns into a
+                # phantom tail-call whose target is a pool/data address ->
+                # callee-lib/callee-cfg reject (0xD144/0x1B014/0x51254/0x53AB4/
+                # 0x5E60A; bsr-shaped 0xBxxx is already skipped by fix 4).  The
+                # word is a VALUE, not code: skip it.  Skip ONLY when the
+                # branch target is NOT a real function (not lifted / not
+                # catalogued / not in-span): a post-rts pool word decoding as a
+                # branch to a REAL sibling keeps its old emitted record
+                # (dead-but-harmless, byte-identical regression 0xD28E/0x146B4)
+                # and rts/rte-shaped words are deliberately never skipped (real
+                # post-rts code reached via a branch target, fix 3 note).
+                _op = (rom[pc] << 8) | rom[pc + 1]
+                _bi = ops.branch_info(_op)
+                _bk = _bi.get('kind') if _bi is not None else None
+                if _bi is not None and _bk not in ('rts', 'rte'):
+                    _tgt = None
+                    if _bi.get('target_disp') is not None:
+                        _tgt = (pc + 4 + _bi['target_disp'] * 2) & MASK
+                    _known = (_tgt is not None and
+                              (_tgt in lifted or _tgt in catalog
+                               or (addr <= _tgt < end)))
+                    if not _known:
+                        data_run = True
+                        pc += 2
+                        continue
             op = (rom[pc] << 8) | rom[pc + 1]
             d = ops.translate(op, pc, rom)
             if (d is not None and d.get('kind') in ('branch', 'ret')) or op == 0x002B:
@@ -1352,6 +1390,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                         if slot is not None:
                             seen_pc.add(pc + 2)
                         if kind == 'bra':
+                            fell_off = False
                             break
                         pc += 4 if slot is not None else 2
                         continue
@@ -1375,6 +1414,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                 if kind == 'bra':
                     # unconditional branch: no fallthrough edge — stop walking
                     # this linear column (the target is reached via pending).
+                    fell_off = False
                     break
                 pc += 4 if slot is not None else 2
                 continue
@@ -1575,6 +1615,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     if kind == 'jsr':
                         pc += 4 if slot is not None else 2
                         continue
+                    fell_off = False
                     break
                 tgt = v & MASK
                 res.edges.append((pc, kind, tgt))
@@ -1618,6 +1659,7 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     continue
                 # tail jmp @Rn: no fallthrough -- stop the linear walk so it
                 # does not over-run into the literal pool (0x3D58 case).
+                fell_off = False
                 break
             rec = emit_one(pc, op)
             if rec is None:
@@ -1667,21 +1709,33 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             res.records.append(rec)
             seen_pc.add(pc)
             pc += 2
+        if fell_off:
+            # the linear column ran off the span end without a terminator:
+            # sh2emu falls through past the span -> the span is truncated
+            # (fix 6: 0x1038 guard — columns that ALL break in-span leave
+            # res.fallthrough False).
+            res.fallthrough = True
     # ---- span/fallthrough guard (bug d) -----------------------------------
     # A catalog span cut mid-epilogue leaves `lds.l @r15+,pr` (0x4F26) as its
     # final in-span instruction with no `rts` following: sh2emu (no span bound)
     # falls through into the next function and clobbers r0 while the mirror
-    # stops at the span end (MISMATCH, e.g. 0x02C2A8).  Reject when the last
-    # in-span word is 0x4F26 and the word right after the span is NOT an `rts`
-    # (an immediately-following rts is a clean epilogue cut, so those are kept
-    # and the mirror/emu agree on the return path).
+    # stops at the span end (MISMATCH, e.g. 0x02C2A8).  When the last in-span
+    # word is 0x4F26 and the word right after the span is NOT an `rts`, treat
+    # the epilogue-pop as the terminal return instead of rejecting the whole
+    # lift: the ROM genuinely has no rts there (0x2BBD4 — real dispatcher that
+    # falls off into the next function's prologue); the mirror RETs at span end
+    # (the renderer's trailing `return;`) and out-of-span sh2emu escapes become
+    # "case skipped", which the harness tolerates.  An immediately-following
+    # rts is a clean epilogue cut (kept as before).
     for _r_ in res.records:
         if _r_.get('pc') is not None and _r_.get('op') == 0x4F26 \
                 and _r_['pc'] + 2 == bound:
             _nxt = (rom[bound] << 8) | rom[bound + 1] \
                 if bound + 1 < len(rom) else None
-            if _nxt != 0x000B:
-                res.reject = ('span_no_return', _r_['pc'])
+            if _nxt == 0x000B:
+                pass  # clean epilogue cut: rts right after the span
+            # else: (fix 9 / last9 0x2BBD4) no rts in ROM — accepted as a
+            # terminal return; no reject.
             return res
     return res
 
@@ -1990,18 +2044,30 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
                 (rom[end_s] << 8) | rom[end_s + 1] == 0x000B:
             end_s = min(end_s + 4, len(rom))
         else:
-            _ext = _callee_extend_to_rts(rom, addr, end_s, bounds)
-            if _ext is not None:
-                end_s = _ext
-            else:
-                # (Fix A) fall-through: no rts in span AND no terminator —
-                # the code runs off the span end into the next function while
-                # `_callee_extend_to_rts` refused to scan (next catalog row
-                # starts at/inside end_s).  Extend to the first real rts so
-                # the mirror keeps running where sh2emu does (0x94F0).
-                _ext = _caller_extend_fallthrough(rom, addr, end_s)
+            # (fix 6 / last9 0x1038) noreturn-dispatcher guard: a span whose
+            # tail ALREADY terminates the walk is NOT truncated; extending it
+            # to the next rts would pull in OTHER functions (0x1090 -> 0x1150
+            # crosses 0x109C and 0x10FE) and the extended walk rejects
+            # ('unmapped', 0x109C=4252).  Probe the ORIGINAL span: if the walk
+            # completes and NO linear column ran off the span end
+            # (res.fallthrough False — every reachable path ends on an in-span
+            # terminator: rts/bra/jmp), skip the extend-to-rts fallback.
+            _probe = build_cfg(rom, addr, end_s, _load_lifted(), catalog,
+                               allow_runtime_base=True, tail_bra_as_call=True)
+            _self_term = (_probe.reject is None and not _probe.fallthrough)
+            if not _self_term:
+                _ext = _callee_extend_to_rts(rom, addr, end_s, bounds)
                 if _ext is not None:
                     end_s = _ext
+                else:
+                    # (Fix A) fall-through: no rts in span AND no terminator —
+                    # the code runs off the span end into the next function while
+                    # `_callee_extend_to_rts` refused to scan (next catalog row
+                    # starts at/inside end_s).  Extend to the first real rts so
+                    # the mirror keeps running where sh2emu does (0x94F0).
+                    _ext = _caller_extend_fallthrough(rom, addr, end_s)
+                    if _ext is not None:
+                        end_s = _ext
     lifted = _load_lifted()
     res = build_cfg(rom, addr, end_s, lifted, catalog,
                     allow_runtime_base=True, tail_bra_as_call=True)
@@ -2048,7 +2114,13 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
               ' * jmp (tail) -> <delay slot>; f_<callee>(s); return;\n'
               ' * jump table -> switch (s->rN) { case <addr>: goto L_<addr>; }\n'
               ' * Never replaces c/*.c. */\n') % (rom_label, addr, end_s - addr)
-    c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + \
+    # (fix 7 / last9 0x3C80) the compile-gate's real hard error is `implicit
+    # declaration of function 'sinf'/'cosf'` (FPU sin/cos table routines) —
+    # the -Wint-to-pointer-cast warning merely appears first in stderr.  Add
+    # <math.h> to the emitted C when the body uses float math (conditional so
+    # previously-lifted outputs stay byte-identical); -c only, no -lm needed.
+    _math_hdr = '#include <math.h>\n' if ('sinf' in body or 'cosf' in body) else ''
+    c_text = banner + '#include <stdint.h>\n' + _math_hdr + ST_STRUCT + '\n' + \
         (fwd + '\n' if fwd else '') + body
     os.makedirs(outdir, exist_ok=True)
     out_c = os.path.join(outdir, '%s.c' % fn)
@@ -2614,15 +2686,14 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
     records = res.records
     # bug d (walk): a callee whose catalog span is cut mid-epilogue ends its
     # walk on `lds.l @r15+,pr` (0x4F26) with no rts in-span — the inlined
-    # mirror stops there while sh2emu falls into the next function.  Reject
-    # the walk (same conservative rule as build_cfg) unless an rts follows.
+    # mirror stops there while sh2emu falls into the next function.  Accept it
+    # as a terminal return (same tolerance as build_cfg's fix 9): the ROM
+    # genuinely has no rts (0x2BBD4), the mirror RETs at span end and sh2emu's
+    # out-of-span escape becomes "case skipped".
     if records and rts is None:
         _lr = records[-1]
         if _lr.get('op') == 0x4F26 and _lr.get('pc', 0) + 2 >= walk_end:
-            _nxt = (rom[walk_end] << 8) | rom[walk_end + 1] \
-                if walk_end + 1 < len(rom) else None
-            if _nxt != 0x000B:
-                return None, ('span-no-return', t)
+            pass  # trailing epilogue-pop with no rts in ROM: terminal return
     # inline nested call targets so the mirror can execute them (a callee that
     # jsr/jmp's another function needs that function's records in the mirror,
     # or the mirror returns early at the call and diverges from sh2emu).
@@ -2681,6 +2752,16 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                 sub, reason = _walk_callee(rom, tgt, catalog, bounds,
                                            depth=depth + 1, seen=seen)
                 if sub is None:
+                    if reason == 'cycle':
+                        # (fix 8 / last9 0x28AE0) nested-call cycle
+                        # (0x28B6E <-> 0x28BDC): the target is already on this
+                        # recursion path (`seen` is a per-path in_progress
+                        # set).  Keep the call record already appended to `out`
+                        # (the f_%X lib is emitted once via _ensure_callee_lib
+                        # and the cycle target's own records are in the mirror
+                        # CODE from the ancestor walk) instead of failing the
+                        # whole emit with ('nested-call', ..., 'cycle').
+                        continue
                     return None, ('nested-call', t, tgt, reason)
                 out.extend(sub)
     return out, None
@@ -2825,7 +2906,9 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     banner = ('/* ROM: %s | Address: 0x%X | Size: %d bytes | STATUS: DRAFT\n'
               ' * Auto-generated by tools/gen_c_lift_v8.py — ST callee (CFG).\n'
               ' * Never replaces c/*.c. */\n') % (rom_label, t, end_c - t)
-    c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + \
+    # (fix 7) <math.h> for sinf/cosf in callee bodies (see emit_caller).
+    _math_hdr = '#include <math.h>\n' if ('sinf' in body or 'cosf' in body) else ''
+    c_text = banner + '#include <stdint.h>\n' + _math_hdr + ST_STRUCT + '\n' + \
         (fwd + '\n' if fwd else '') + body
     path = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
     with open(path, 'w') as f:
@@ -2839,7 +2922,6 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
         os.remove(path)
         return None, ('callee-cfg-compile', t, gate.stderr[:200])
     return path, None
-
 
 def _ensure_callee_lib(t, rom, catalog, bounds, rom_label=None):
     """Make sure c/lib/f_<hex>.c exists for callee `t`; generate a DRAFT
