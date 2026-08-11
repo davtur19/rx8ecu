@@ -22499,7 +22499,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x00e278,0x00E2AC,calculateEngineRunning,equinox311,GHIDRA-EQX,calculateEngineRunning,,ghidra-hand,Sensors
 60E0FC00,0x00e2ac,0x00E2D8,setEngineRunningInjectorsOffFlag,equinox311,GHIDRA-EQX,setEngineRunningInjectorsOffFlag,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x00e2d8,0x00E444,arbitrateFuelCut,equinox311,GHIDRA-EQX,mem_flag_e2d8,,ghidra-hand,Fuel & Lambda
-60E0FC00,0x00e444,0x00E448,UnknownFueling1,ghidra-hand,,UnknownFueling1,,equinox311:getCrankingInjectionAngle?|ghidra-hand,Fuel & Lambda
+60E0FC00,0x00e444,0x00E492,UnknownFueling1,ghidra-hand,,UnknownFueling1,,equinox311:getCrankingInjectionAngle?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x00e448,0x00E458,getSomeValueBasedOnEngineSpeed,equinox311,GHIDRA-EQX,flag_set_coil_event,,ghidra-auto|ida-ai-xmap,Sensors
 60E0FC00,0x00e458,0x00E492,UnknownFueling1,ghidra-hand,,UnknownFueling1,,equinox311:getCrankingInjectionAngle?|ghidra-hand,Fuel & Lambda
 60E0FC00,0x00e492,0x00E4F8,intake_temp_increase_step,ghidra-hand,,getEngineOnTimeForOilMetering,YES,equinox311:injectionTimingMaybe?|ghidra-hand,Sensors
@@ -22665,7 +22665,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x0140dc,0x01410E,knock_init_chain,ghidra-auto,,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x01410e,0x014140,FUN_0001410e,ghidra-auto,,ign_init_timing_batch,,ghidra-auto,Ignition & Knock
 60E0FC00,0x014140,0x0141FC,calc_rotor_sequence_map,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
-60E0FC00,0x0141fc,0x014254,engineControlCalculateTiming,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
+60E0FC00,0x0141fc,0x0146D0,engineControlCalculateTiming,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
 60E0FC00,0x01439a,0x0143BA,calc_fuel_trim_correction_rotor_A,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x0143ba,0x0143D2,ign_checksum_wrap_sr,ghidra-auto,,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x0143d2,0x01447E,fuelCutCondtionRelated,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
@@ -22768,7 +22768,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x018d3c,0x018F3C,dscRelatedTiming,c-lift,,dscRelatedTiming,,c-lift|equinox311:dscRelatedTiming?|ghidra-hand,Ignition & Knock
 60E0FC00,0x018f3c,0x018F6C,FUN_00018f3c,ghidra-auto,,clear_status_bytes_a9c,,ghidra-auto,Ignition & Knock
 60E0FC00,0x018f6c,0x018F9C,FUN_00018f6c,ghidra-auto,,ram_flags_a9c0_zero_init,,ghidra-auto,Boot & Init
-60E0FC00,0x018f9c,0x018FD6,status_counter_compare,ghidra-auto,,,,ghidra-auto,Ignition & Knock
+60E0FC00,0x018f9c,0x0192D4,status_counter_compare,ghidra-auto,,,,ghidra-auto,Ignition & Knock
 60E0FC00,0x018fd6,0x01929C,FUN_00018fd6,ghidra-auto,,,,ghidra-auto,Sensors
 60E0FC00,0x01929c,0x0192D4,status_copy_latch_flag,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x0192d4,0x193B2,setsEngineFaultTypeThing,equinox311,GHIDRA-EQX,,,ghidra-auto|ida-ai-xmap,Faults & DTC
@@ -22805,7 +22805,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x01a4bc,0x01A4E6,ignition_timing_priority_dispatcher,ida-ai-xmap,DUBIOUS,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x01a4e6,0x01A534,engineControlGetAir,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x01a534,0x01A63E,getMAFVoltage,equinox311,GHIDRA-EQX,,,ghidra-auto,Sensors
-60E0FC00,0x01a68c,0x01A6BE,initOrNewLoopMAYBE,equinox311,GHIDRA-EQX,,,ghidra-hand,Boot & Init
+60E0FC00,0x01a68c,0x01AC80,initOrNewLoopMAYBE,equinox311,GHIDRA-EQX,,,ghidra-hand,Boot & Init
 60E0FC00,0x01a710,0x01A728,main_loop_irq_guarded_call,ghidra-auto,,,,ghidra-auto,Peripherals & ISR
 60E0FC00,0x01a728,0x01A7FA,calculateDriverInputs,equinox311,GHIDRA-EQX,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x01a7fa,0x1A842,vehicleConditionRelatedFuntions,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
@@ -22980,7 +22980,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x023784,0x0237BC,gated_saturatelow_b450,ghidra-auto,,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x0237bc,0x0237EE,boot_init_chain_237bc,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x0237ee,0x0237F4,updateMemPtr??,ghidra-hand,,,,equinox311:updateMemPtr??|ghidra-hand,Boot & Init
-60E0FC00,0x0237f4,0x0237F8,getThrottleControl,equinox311,GHIDRA-EQX,,,ghidra-hand,Throttle & Torque
+60E0FC00,0x0237f4,0x023A04,getThrottleControl,equinox311,GHIDRA-EQX,,,ghidra-hand,Throttle & Torque
 60E0FC00,0x0238e4,0x023902,atomic_dtc_rtos_check,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x023902,0x02391C,boot_sub_chain_4773x,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x02391c,0x0239FC,boot_sub_chain_4774c,ghidra-auto,,,,ghidra-auto,Boot & Init
@@ -23126,7 +23126,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x028fac,0x0290D0,can_fn_float_bab4_flags,ghidra-auto,,,,ghidra-auto,Math / FPU
 60E0FC00,0x0290d0,0x029108,dispatch_chain_tbl_A,ghidra-auto,,,,ghidra-auto,Boot & Init
 60E0FC00,0x029108,0x02912E,dispatch_chain_tbl_B,ghidra-auto,,,,ghidra-auto,Boot & Init
-60E0FC00,0x02912e,0x02914E,largeFunction,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
+60E0FC00,0x02912e,0x029248,largeFunction,equinox311,GHIDRA-EQX,,,ghidra-hand,Math / FPU
 60E0FC00,0x029248,0x02927E,sr_task_table_c,ghidra-auto,,,,ghidra-auto,Memory & CRC
 60E0FC00,0x02927e,0x0292BA,sr_task_table_d,ghidra-auto,,,,ghidra-auto,RTOS
 60E0FC00,0x0292ba,0x292D8,getSomeEngineConditions,equinox311,GHIDRA-EQX,,,ghidra-hand,Sensors
@@ -23622,7 +23622,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x03905a,0x039210,dealsWithFuelCutSetting,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x039210,0x039258,setupFuelingVariables,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x039258,0x039270,filterECMVoltage_func,equinox311,GHIDRA-EQX,FUN_00039258,,ghidra-auto,Peripherals & ISR
-60E0FC00,0x039270,0x039296,evapRelated,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
+60E0FC00,0x039270,0x039342,evapRelated,equinox311,GHIDRA-EQX,,,ghidra-hand,Fuel & Lambda
 60E0FC00,0x039342,0x03939C,readFaultStatus,equinox311,GHIDRA-EQX,,,ghidra-auto,Throttle & Torque
 60E0FC00,0x03939c,0x0393DE,FUN_0003939c,ghidra-auto,,,,ghidra-auto,Faults & DTC
 60E0FC00,0x0393de,0x0394BE,calculateKnockSensorStatus,equinox311,GHIDRA-EQX,,,ghidra-hand,Ignition & Knock
@@ -24433,7 +24433,7 @@ bank,addr,end,src_name,source,flag,lift_name,verified,also_sources,category
 60E0FC00,0x053ef6,0x053FA4,obd_status_block_tx_916c,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x053fa4,0x053FCA,calculateDiagSessionConditional,equinox311,GHIDRA-EQX,calculateDiagSessionConditional,,ghidra-hand,Faults & DTC
 60E0FC00,0x053fca,0x053FCC,boot_obd_challenge_init,ghidra-auto,,,,ghidra-auto,Boot & Init
-60E0FC00,0x053fcc,0x054000,runSubfunction??,ghidra-hand,,,,equinox311:runSubfunction??|ghidra-hand,OBD / UDS
+60E0FC00,0x053fcc,0x05405E,runSubfunction??,ghidra-hand,,,,equinox311:runSubfunction??|ghidra-hand,OBD / UDS
 60E0FC00,0x054000,0x054008,obd_challenge_flag_write_cfe4,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x054008,0x05405E,obd_state_write_sr_protected,ghidra-auto,,,,ghidra-auto,OBD / UDS
 60E0FC00,0x05405e,0x0540C8,calculateDiagModeTimer,equinox311,GHIDRA-EQX,,,ghidra-hand,Faults & DTC

@@ -469,6 +469,27 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             if addr <= _rt < end:
                 reentry.add(_rt)
 
+    # bug b extension: order-independent literal def-sites.  The walk emits
+    # records column-by-column, so a mem/fpu op on a column walked FIRST only
+    # sees the def-sites already walked (st['litdefs']); a SECOND def-site on a
+    # later column (branch-dependent literal) is invisible at emission time and
+    # the folded constant leaks into the mirror (e.g. 0xCEC8: r4 defs at 0xced0
+    # and 0xced6 — the ret-slot store at 0xcee6 is emitted from the 0xced0-only
+    # column and folds 0xFFFFE40A while sh2emu uses the runtime r4).  Pre-scan
+    # the WHOLE span once for the same literal-pinning op classes as the walk
+    # (mov #imm / mova / mov.w & mov.l @(disp,PC)) so a literal base with >=2
+    # def-sites anywhere in the span is emitted register-relative in the mirror
+    # regardless of walk order.  The C emission stays unchanged (byte-identical
+    # regression for already-PASS callers); only the mirror py tracks the base.
+    span_litdefs = {}       # 'rN' -> set of pcs of literal def-sites in span
+    for _sp in range(addr, bound, 2):
+        if _sp in data:
+            continue
+        _so = (rom[_sp] << 8) | rom[_sp + 1]
+        if (_so & 0xF000) in (0xE000, 0x9000, 0xD000) or (_so & 0xFF00) == 0xC700:
+            _sr = 'r0' if (_so & 0xFF00) == 0xC700 else 'r%d' % ((_so >> 8) & 0xF)
+            span_litdefs.setdefault(_sr, set()).add(_sp)
+
     # bug c: a literal base whose register is REDEFINED by a non-literal
     # instruction (add #imm,Rn / mov Rm,Rn / ...) inside a loop that
     # re-executes the mem op is not path-constant: after the first iteration
@@ -491,7 +512,20 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             if addr <= _lt < _lp:               # backward edge -> loop body
                 loop_bodies.append((_lt, _lp + (4 if _lb['delayed'] else 2)))
         _ld = ops.translate(_lo, _lp, rom)
-        if _ld is None or _ld.get('kind') in ('branch', 'ret'):
+        if _ld is None:
+            # auto-forms (mov.l @Rm+,Rn / mov.b Rn,@-Rm / mov.l Rn,@-Rm)
+            # rewrite the base register at runtime but are NOT covered by
+            # translate (mem ops) — record the base write so bug-c dynbase
+            # (literal base re-defined inside a loop) fires for them too.
+            # Without this, a `mov.w @r7+,r3` loop over a ROM-literal base
+            # (e.g. 0xB978: r7=0xFFFFA2DE) bakes the constant and reads the
+            # same word every iteration instead of advancing (MISMATCH
+            # reg=r6 on caller 0x23E6C).
+            _sh = gcl._mem_shape(_lo)
+            if _sh is not None and _sh.get('auto') in ('post', 'pre'):
+                nonlit_writes.setdefault('r%d' % _sh['base'], set()).add(_lp)
+            continue
+        if _ld.get('kind') in ('branch', 'ret'):
             continue
         # skip literal-pinning statements (mov #imm / mov.w/l @(disp,PC) /
         # mova): they fold a constant into the reg and are NOT the runtime
@@ -863,8 +897,32 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                     for _pw in nonlit_writes[_bname]):
                             _dyn = True
                             break
-            c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
-                                    dynbase=_dyn)
+            # bug b walk-order blind spot: the st['litdefs'] check above only
+            # sees def-sites on columns already walked.  span_litdefs (span-wide
+            # pre-scan, order-independent) catches a second def-site on a later
+            # column.  py-only: the mirror becomes register-relative while the
+            # C keeps the static fold so already-PASS caller C files regress
+            # byte-identical.
+            _span = (bkind == 'literal'
+                     and len(span_litdefs.get('r%d' % base_reg, ())) > 1)
+            if _dyn:
+                c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                        dynbase=True)
+            elif _span:
+                c, _ = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                       dynbase=False)
+                # the C-producing call above already advanced st['tmp'] for a
+                # load; the dynbase=True py call would advance it a SECOND
+                # time and shift every later temp name in the C output (breaks
+                # byte-identical regression).  Save/restore so the py call
+                # cannot leak into the C temp numbering.
+                _t0 = st['tmp'][0]
+                py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                     dynbase=True)[1]
+                st['tmp'][0] = _t0
+            else:
+                c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
+                                        dynbase=False)
             _rompin = _rom_deref_value(m)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
             _record_slot_deref(m)
@@ -1063,6 +1121,21 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     v = st['lits'].get('r%d' % base_reg)
                     if v is not None and ops.classify_addr(v) == 'RAM':
                         info['ram_addrs'].add(v)
+                    # bug b (same guard as the mem path, incl. the span-wide
+                    # walk-order blind spot): a literal base with >=2 def-sites
+                    # or at a re-entry pc is folded from ONE path's literal
+                    # while the register holds a different runtime value on
+                    # another path (e.g. 0x16236: the call delay-slot
+                    # `fmov.s @r4,fr4` at 0x163ba folds r4=0xFFFFA8A8 though r4
+                    # has def-sites at 0x162a8/0x162cc/... whose literals are
+                    # unrelated).  Make the mirror py register-relative (the C
+                    # keeps the static fold — byte-identical regression).
+                    if f.get('idx') is None and (
+                            (pc in reentry)
+                            or len(st['litdefs'].get('r%d' % base_reg, ())) > 1
+                            or len(span_litdefs.get('r%d' % base_reg, ())) > 1):
+                        f = dict(f)
+                        f['py'] = list(_fpu_mem_rt(pc, op, f, temp)['py'])
                 if f.get('auto') in ('post', 'pre'):
                     reg = 'r%d' % base_reg
                     st['written'].add(reg)
