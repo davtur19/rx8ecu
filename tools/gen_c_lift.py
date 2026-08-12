@@ -897,6 +897,13 @@ def _mem_record(pc, op, m, bkind, abs_addr, temp, dynbase=False):
     disp = m.get('disp') or 0
     idx = m.get('idx')
     auto = m.get('auto')
+    # dynbase walker rough edge: a non-regular record (e.g. kind 'mac',
+    # mac.l @r15+,@r9+) can reach here with dir load/store but no dest/src
+    # register.  Fall back to a reject instead of KeyError (caller emits
+    # EMIT-FAIL rather than crashing).
+    if (gdir == 'load' and m.get('dest') is None) or \
+       (gdir == 'store' and m.get('src') is None):
+        return None, None
     if bkind == 'literal':
         a = (abs_addr + disp) & MASK
         note = ' /* RAM 0x%08X */' % a if ops.classify_addr(a) == 'RAM' else ' /* ROM */'
