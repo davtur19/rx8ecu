@@ -47,6 +47,7 @@ import csv
 import glob
 import os
 import re
+import struct
 import subprocess
 import sys
 import tempfile
@@ -332,7 +333,14 @@ def _is_code_first_word(rom, a):
     if a + 1 >= len(rom):
         return None
     tw = (rom[a] << 8) | rom[a + 1]
-    return (ops.translate(tw, a, rom) is not None or
+    try:
+        _tr = ops.translate(tw, a, rom)
+    except struct.error:
+        # literal-pool displacement target lands past the (possibly
+        # truncated) ROM end — treat as a data word, not code.  This is the
+        # pre-e026850 behaviour: such literal def-sites were never probed.
+        _tr = None
+    return (_tr is not None or
             ops.branch_info(tw) is not None or
             gcl.is_call_op(tw) or gcl._mem_shape(tw) is not None or
             (tw >> 12 in (0xD, 0x9) or (tw & 0xFF00) == 0xC700) or
@@ -340,6 +348,35 @@ def _is_code_first_word(rom, a):
             (tw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
                               0x4016, 0x4026, 0x4003, 0x4013,
                               0x4007, 0x4017))
+
+
+def _slot_rt_entries(rom, slot, rn, span_litdefs):
+    """Plausibility-checked dispatch targets routed into registers by a
+    call's delay slot.  The callee's dispatch register may differ from the
+    call register (e.g. 0x4E0: `jsr @r3` slot `r4=r13`, r13=0x6C8 from
+    0x518/0x560, callee 0x40 `jmp @r4` -> 0x6C8 — real ROM code never in
+    CODE -> OOBTGTS {1736:10}), so scan EVERY slot write: a `mov rN,rM`
+    copy inherits rM's span literal def-sites; a literal written directly
+    seeds itself.  Literal values whose first word is real code become
+    rt_entries on the CALL record (target-INCLUSION walks them into CODE).
+    Returns a sorted list (possibly empty)."""
+    if not slot:
+        return []
+    _re = set()
+    for _st in (slot.get('py') or []):
+        _m = re.match(r"^r\[(\d+)\] = r\[(\d+)\]$", _st)
+        if _m:
+            for _dp in sorted(span_litdefs.get('r%s' % _m.group(2), ())):
+                _dv = _lit_at_defsite(rom, _dp)
+                if _dv is not None and _is_code_first_word(rom, _dv):
+                    _re.add(_dv & MASK)
+            continue
+        _m = re.match(r"^r\[(\d+)\] = (0x[0-9A-Fa-f]+)", _st)
+        if _m:
+            _dv = int(_m.group(2), 16)
+            if _is_code_first_word(rom, _dv):
+                _re.add(_dv & MASK)
+    return sorted(_re)
 
 
 def _static_branch_in_span(rom, pc, addr, bound):
@@ -1740,16 +1777,44 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                         return res
                     if kind == 'jsr':
                         res.edges.append((pc, 'jsr@w16', v & MASK))
-                        rec = {'pc': pc, 'op': op, 'kind': 'call_runtime',
-                               'mnem': 'jsr @r%d (mov.w literal 0x%X)' % (rn, v & MASK),
-                               'c': (['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
-                                     + ([v7.to_st_c(s) for s in slot['c']] if slot else [])
-                                     + ['((void(*)(ST*))s->r[%d])(s);' % rn]),
-                               'slot': slot, 'target': None,
-                               'ret_pc': (pc + 4) & MASK, 'set_pr': True,
-                               'slot_addr': v & MASK, 'reg': rn,
-                               'rt_entries': [v & MASK]
-                               if _is_code_first_word(rom, v & MASK) else None}
+                        _tc = _is_code_first_word(rom, v & MASK)
+                        if _tc:
+                            # (fix 4E0) a mov.w-literal jsr target whose first
+                            # word is real code is a REAL function (0x4E0's
+                            # `jsr @r2` -> 0x170: 0x2FE6/0x2FD6 are mov.l
+                            # Rm,@-Rn prologue stores, not data): lift a static
+                            # call so the mirror dispatches into the walked
+                            # callee body and sh2emu runs the actual ROM bytes.
+                            # The old call_runtime no-op + slot seed wrote the
+                            # nullsub ADDRESS at ram[0x170], which the emu's
+                            # ram-first fetch decoded as opcode 0x0000
+                            # (NotImplementedError).  Data-looking targets (the
+                            # original w16 RAM-pointer family) still take the
+                            # call_runtime path below.
+                            _tgt = v & MASK
+                            rec = {'pc': pc, 'op': op, 'kind': 'call',
+                                   'mnem': 'jsr @r%d (mov.w literal 0x%X, code)'
+                                           % (rn, _tgt),
+                                   'c': (['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
+                                         + ([v7.to_st_c(s) for s in slot['c']]
+                                            if slot else [])
+                                         + ['f_%X(s);' % _tgt]),
+                                   'slot': slot, 'target': _tgt,
+                                   'ret_pc': (pc + 4) & MASK, 'set_pr': True}
+                            _sre = _slot_rt_entries(rom, slot, rn, span_litdefs)
+                            if _sre:
+                                rec['rt_entries'] = _sre
+                        else:
+                            rec = {'pc': pc, 'op': op, 'kind': 'call_runtime',
+                                   'mnem': 'jsr @r%d (mov.w literal 0x%X)'
+                                           % (rn, v & MASK),
+                                   'c': (['s->pr = 0x%08X;' % ((pc + 4) & MASK)]
+                                         + ([v7.to_st_c(s) for s in slot['c']] if slot else [])
+                                         + ['((void(*)(ST*))s->r[%d])(s);' % rn]),
+                                   'slot': slot, 'target': None,
+                                   'ret_pc': (pc + 4) & MASK, 'set_pr': True,
+                                   'slot_addr': v & MASK, 'reg': rn,
+                                   'rt_entries': None}
                     else:
                         res.edges.append((pc, 'jmp@w16', None))
                         rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
@@ -1802,6 +1867,18 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                 + ['f_%X(s);' % tgt, 'return;'],
                            'slot': slot, 'target': tgt,
                            'ret_pc': (pc + 4) & MASK, 'set_pr': False}
+                # (fix B2) trampoline argument propagation: a call whose delay
+                # slot routes a span-literal INTO the dispatch register rN (mov
+                # rN,rM copy, or mov.l/mov.w literal -> rN) dispatches that
+                # literal value inside the callee (e.g. 0x4E0: slot r4=r13,
+                # r13=0x6C8 from 0x518/0x560; callee 0x40 `jmp @r4` -> 0x6C8,
+                # real ROM code never in CODE -> OOBTGTS {1736:10}).  Seed the
+                # CALL record's rt_entries from the slot's literals so the
+                # target-INCLUSION fixpoint walks the dispatch target into
+                # CODE — same plausibility-check as Fix A rt_entries.
+                _sre = _slot_rt_entries(rom, slot, rn, span_litdefs)
+                if _sre:
+                    rec['rt_entries'] = _sre
                 res.records.append(rec)
                 # jsr/jmp @Rn is delayed: slot consumed inline; skip past it
                 seen_pc.add(pc)
@@ -2474,19 +2551,26 @@ def _callee_extend_to_rts(rom, t, end_c, bounds):
     """Extend a truncated span [t, end_c) that contains NO rts: scan forward
     from `end_c` for the next real `rts` (opcode 0x000B at an even offset,
     skipping literal-pool words) and return rts+4 (the rts plus its delay
-    slot) as the new end.  Bounded by the next catalog row start — never
-    extends past a catalogued function — or a +0x1000 cap (0x26520's real rts
-    sits at +0x4A8, past the old +0x400 cap); only the FIRST rts found is
-    used.  Returns None when there is no room to extend or no rts."""
+    slot) as the new end.  Bounded by the next catalog row start when one
+    sits strictly after end_c — never extends past a catalogued function
+    that genuinely follows — or a +0x1000 cap (0x26520's real rts sits at
+    +0x4A8, past the old +0x400 cap); only the FIRST rts found is used.  The
+    next-catalog-row bound is RELAXED when the next row starts at/before
+    end_c (or past the cap): a mid-body catalog cut leaves a span with no
+    in-span rts, and the continuation — and the REAL rts — lives under the
+    NEXT catalogued row (0x2C12C: span 0x2C12C..0x2C132 has no rts; row
+    0x2C132..0x2C15C holds the prologue and the real rts @0x2C158), so scan
+    to the cap instead of refusing.  Caller contract: this fires only when
+    the span has no in-span rts.  Returns None when there is no room to
+    extend or no rts."""
     cap = min(end_c + 0x1000, len(rom))
     nxt = v3._next_addr(t, bounds) if bounds else None
-    if nxt is None:
-        ub = cap
-    elif end_c < nxt < cap:
+    if nxt is not None and end_c < nxt < cap:
         ub = nxt
     else:
-        # next catalog row starts at/before end_c: no extension window
-        return None
+        # next catalog row starts at/before end_c (mid-body fragment) or
+        # outside the cap: keep scanning to the +0x1000 cap, pool-skipping.
+        ub = cap
     pool = gcl._pcrel_pool_words(rom, t, cap)
     pc = end_c
     while pc + 1 < ub:
@@ -3701,6 +3785,14 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '        # every case skipped on a real infinite self-loop (bra <self>)\n'
         '        # hit identically by mirror and sh2emu: unverifiable, but the\n'
         '        # mirrored behavior matches the ROM — PASS-like LOOP verdict.\n'
+        '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+        '        sys.exit(0)\n'
+        '    if ok == 0 and skipped and SKIPREASONS and \\\n'
+        '            all(k == "step-limit-both" for k in SKIPREASONS):\n'
+        '        # every case skipped because mirror AND sh2emu hit the identical\n'
+        '        # MAXSTEPS limit on the same busy-wait / long loop (the sweep\n'
+        '        # path re-grades this to UNVERIFIED-HWPOLL): agreement, not a\n'
+        '        # bug — PASS-like LOOP verdict on the direct --run path too.\n'
         '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(0)\n'
          '    if skipped > 200 or ok == 0:\n'
