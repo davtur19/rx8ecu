@@ -479,6 +479,32 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         else:
             res.reject = ('midfunc_nop', addr)
             return res
+    # (Fix A / pr-fragment guard) a candidate whose span reaches an epilogue
+    # pr-pop (0x4F26 lds.l @r15+,pr) or rte (0x002B) BEFORE any prologue
+    # pr-save (0x4F22 sts.l pr,@-r15) is a mis-split/mid-body fragment: the
+    # walk pops random stack -> rts -> pr=0 -> emulator pc=0 (every test case
+    # skipped via emu-exc).  rts (0x000B) alone NEVER rejects (legit leaf
+    # functions end with plain rts and no pr-save: 1049/3209 PASS rows).
+    # Linear first-return scan approximates the walked CFG (verified: fires
+    # 23/32 Group A, 0 FP on 3209 PASS rows).  Handled upstream by emit_caller
+    # (re-anchor to the canonical containing row / clean skip); reject here so
+    # scan_v8 / run_batch / gen_lib_test classify PR_FRAGMENT (clean skip).
+    if addr + 1 < len(rom):
+        save = pop = rte = None
+        for _pc in range(addr & ~1, bound - 1, 2):
+            _w = (rom[_pc] << 8) | rom[_pc + 1]
+            if _w == 0x4F22 and save is None:
+                save = _pc
+            elif _w == 0x4F26 and pop is None:
+                pop = _pc
+            elif _w == 0x002B and rte is None:
+                rte = _pc
+            if pop is not None or rte is not None:
+                break  # earliest return path
+        if (pop is not None or rte is not None) and \
+                (save is None or (pop if pop is not None else rte) < (save or 0)):
+            res.reject = ('pr_fragment', addr)
+            return res
     if catalog:
         for _ca, _ce in catalog.items():
             if _ca >= addr or _ce is None:
@@ -2326,6 +2352,54 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
         # (_render_st_body fwd + _ensure_callee_lib).  Reuse that path so the
         # lift is complete and linkable instead of failing the whole emit.
         _rej = res.reject
+        if isinstance(_rej, tuple) and _rej[0] == 'pr_fragment':
+            # (Fix A) mis-split/mid-body panel: its epilogue pr-pop/rte pops
+            # random stack -> pr=0 -> emulator pc=0 (every case skipped).
+            # Re-anchor to the canonical containing row (real prologue) when
+            # one exists (e.g. 0x10D82 -> 0x10D5C; chains 0x41D5E -> 0x41CF2
+            # -> 0x41BDC, 0x44AB0 -> 0x44A5C -> 0x449E6, 0x46518 -> 0x46492
+            # -> 0x46406) and emit the caller for THAT function; otherwise
+            # fall back to the pre-fix outcome (return the reject — the CLI
+            # prints a clean 'skipped' instead of crashing).
+            _can = _resolve_canon_chain(rom, addr, rom_label)
+            if _can is not None and _can != addr:
+                # (Fix A follow-up) the parent's own ghidra end is truncated
+                # at the next ROW start (0x10D5C -> 0x10d82) but the REAL
+                # function continues into the fragment continuation rows
+                # (0x10D82 -> 0x10E14; 0x449E6 -> 0x44a5c -> 0x44ab0 ->
+                # 0x44b78): the tail-bra target lives past the parent end, so
+                # a too-short force_end re-degrades the tail to a
+                # pr_fragment self-loop/ret while sh2emu RETs normally ->
+                # MISMATCH (0x10D82, 0x44A5C).  Two-pass re-anchor: first
+                # walk the parent's OWN end only (0x41BDC / 0x1850A walk
+                # clean there and stay PASS 10/10); ONLY when that walk
+                # actually degraded a nested pr_fragment (the exact residual
+                # MISMATCH condition) retry with force_end =
+                # max(fragment addr's own ghidra end, parent's end) — the
+                # extended walk then models the in-span tail loop and agrees
+                # with the emu (PASS 10/10 on 0x10D82, 0x44A5C).
+                _fe = _ghidra_span_end(addr) or 0
+                _fec = _ghidra_span_end(_can) or 0
+                _deg_saved = _EMIT_PRF_DEG['hit']
+                _EMIT_PRF_DEG['hit'] = False
+                _res1 = emit_caller(
+                    _can, rom, outdir, catalog, bounds, seed=seed,
+                    cases=cases, rom_label=rom_label,
+                    force_end=_fec or None)
+                _deg1 = _EMIT_PRF_DEG['hit']
+                if _deg1 and _res1[2] and _fe > _fec:
+                    _EMIT_PRF_DEG['hit'] = False
+                    _res2 = emit_caller(
+                        _can, rom, outdir, catalog, bounds, seed=seed,
+                        cases=cases, rom_label=rom_label,
+                        force_end=max(_fe, _fec) or None)
+                    _EMIT_PRF_DEG['hit'] = _deg_saved
+                    if _res2[2]:
+                        return _res2
+                    return _res1
+                _EMIT_PRF_DEG['hit'] = _deg_saved
+                return _res1
+            return None, None, False, _rej
         if isinstance(_rej, tuple) and _rej[0] in ('midfunc_nested', 'midfunc_nop'):
             if _rej[0] == 'midfunc_nested':
                 res = build_cfg(rom, addr, end_s, lifted, catalog,
@@ -2402,6 +2476,13 @@ def _callee_span_end(t, catalog, bounds):
 
 
 _GHIDRA_SPANS = None
+
+# (Fix A re-anchor 2-pass) set by _walk_callee whenever a nested-call target
+# gets degraded to a self-loop because it is a mid-body pr-pop fragment
+# (pr_fragment reject).  The caller-lib re-anchor branch uses this to decide
+# whether the parent's own span walked clean (no extend) or degraded at a
+# tail-bra target past the parent end (extend to the fragment's real end).
+_EMIT_PRF_DEG = {'hit': False}
 
 
 def _load_ghidra_spans():
@@ -2558,6 +2639,104 @@ def _fragment_parent(rom, catalog, bounds, addr):
         if o < addr < oe:
             return o
     return None
+
+
+def _pr_scan(rom, a, end):
+    """Linear word scan of [a, end): positions of the FIRST prologue pr-save
+    (0x4F22 sts.l pr,@-r15), epilogue pr-pop (0x4F26 lds.l @r15+,pr) and rte
+    (0x002B), or None for each.  Same scan as the build_cfg pr_fragment guard
+    (Fix A).  rts (0x000B) is deliberately NOT tracked (leaf-fn epilogue)."""
+    if end is None:
+        end = len(rom)
+    save = pop = rte = None
+    for pc in range(a & ~1, end - 1, 2):
+        w = (rom[pc] << 8) | rom[pc + 1]
+        if w == 0x4F22 and save is None:
+            save = pc
+        elif w == 0x4F26 and pop is None:
+            pop = pc
+        elif w == 0x002B and rte is None:
+            rte = pc
+        if pop is not None or rte is not None:
+            break
+    return save, pop, rte
+
+
+def _canon_row(addr):
+    """Tightest GHIDRA symbol row containing `addr` (start < addr <= end),
+    e.g. 0x10D82 -> (0x10D5C), 0x41D5E -> 0x41CF2 -> 0x41BDC chain.  These are
+    the reference disassembly's real function bounds (symbols_60E0FC00.csv);
+    the CATALOG end for a mid-body panel is truncated at the NEXT panel, so
+    the containing row is only visible in the ghidra spans.  Returns the row
+    start (or None) — the row END is _GHIDRA_SPANS[start]."""
+    if _GHIDRA_SPANS is None:
+        _load_ghidra_spans()
+    best = None
+    for s, e in _GHIDRA_SPANS.items():
+        if s < addr <= e and (best is None or s > best):
+            best = s
+    return best
+
+
+def _canon_eligible(rom, canon, rom_label=None):
+    """True when the canonical row `canon` is a REAL function start, not
+    another fragment or a mislabeled DATA table:
+      1. its ghidra span holds a prologue pr-save (0x4F22) within 16 words of
+         the row start, placed BEFORE any pop/rte (canon passes the guard);
+      2. its name does NOT match the known DATA-table false parent 0x26F4
+         (interpolate_charTable) — 'interpolate'/'charTable'/'table' names are
+         excluded (0x2770/0x2980 caveat); GHIDRA-EQX rows with an empty
+         catalog end are skipped the same way."""
+    cend = _ghidra_span_end(canon)
+    if cend is None or cend <= canon:
+        return False
+    sv, po, rt = _pr_scan(rom, canon, cend)
+    if sv is None or sv - canon > 0x20:
+        return False
+    if (po is not None and po < sv) or (rt is not None and rt < sv):
+        return False
+    nm = ''
+    if rom_label is not None:
+        d = _bank_names(rom_label).get(canon)
+        if d is not None:
+            nm = (d[0] + ' ' + d[1]).lower()
+    if not nm:
+        # fall back to the ghidra CSV name column for rows absent from the
+        # catalog (load on demand, cheap: only for canon validation).
+        p = os.path.join(ROOT, 'symbols', 'symbols_60E0FC00.csv')
+        if os.path.exists(p):
+            with open(p) as f:
+                for row in csv.DictReader(f):
+                    try:
+                        a = int(row['addr'].strip(), 16)
+                    except (ValueError, TypeError):
+                        continue
+                    if a == canon:
+                        nm = (row.get('name') or '').lower()
+                        break
+    if any(t in nm for t in ('interpolate', 'chartable', 'table')):
+        return False
+    return True
+
+
+def _resolve_canon_chain(rom, addr, rom_label=None, _depth=0):
+    """Canonical containing row for re-anchor: the tightest GHIDRA symbol row
+    strictly containing `addr` (0x10D82 -> 0x10D5C, 0x41CF2 -> 0x41BDC,
+    0x44A5C -> 0x449E6, 0x46492 -> 0x46406, 0x41D5E -> 0x41CF2 -> ...):
+    a mid-body panel is admitted ONLY when its containing row is itself a
+    real function (prologue pr-save near the row start, before any pop/rte,
+    name not a DATA-table false parent).  One level only — a parent without a
+    prologue (e.g. 0x18FD6, 0x41CF2) is rejected rather than re-anchored to
+    ITS parent, which would merge the panel into the wrong function
+    (0x1929C -> 0x18F9C would be wrong; it is REJECT-only).  Returns the
+    canon start, or None."""
+    can = _canon_row(addr)
+    if can is None or can == addr:
+        return None
+    if _canon_eligible(rom, can, rom_label):
+        return can
+    return None
+
 
 
 def _callee_extend_to_rts(rom, t, end_c, bounds):
@@ -2945,6 +3124,19 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                 body.append({'pc': e2, 'op': w, 'kind': 'nop',
                              'mnem': 'nop', 'c': []})
                 e2 += 2
+        if reason == 'pr_fragment':
+            # (Fix A) a callee target that is itself a mid-body pr-pop/rte
+            # fragment (pop before prologue save): it cannot be inlined as a
+            # function (the walk would pop garbage -> pr=0 -> pc=0).  Degrade
+            # to a self-loop `bra <self>` so the mirror spins identically to
+            # the emu's death at pc=0 (0x10D82's canon span jsr's 0x10DE2):
+            # branch target==pc -> SELF_LOOP -> MAXSTEPS -> SKIP ->
+            # mirror-step-emu-exc -> LOOP_AGREE -> LOOP (unverifiable) rc=0.
+            # (The former immediate `ret` made the mirror RET early while
+            # sh2emu died at pc=0 -> MISMATCH.)
+            _EMIT_PRF_DEG['hit'] = True
+            return [{'pc': pc, 'op': 0xA000, 'kind': 'branch',
+                     'target': pc, 'mnem': 'bra', 'cond': None}], None
         return None, (reason, pc)
     records = res.records
     # bug d (walk): a callee whose catalog span is cut mid-epilogue ends its
@@ -3018,6 +3210,15 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                         # and the cycle target's own records are in the mirror
                         # CODE from the ancestor walk) instead of failing the
                         # whole emit with ('nested-call', ..., 'cycle').
+                        continue
+                    if isinstance(reason, tuple) and reason[0] == 'pr_fragment':
+                        # (Fix A) nested target is a mid-body pr-pop fragment:
+                        # degrade to a self-loop `bra <self>` (mirror spins
+                        # where sh2emu dies at pc=0) instead of failing the
+                        # whole emit or MISMATCHing (0x44A5C).
+                        _EMIT_PRF_DEG['hit'] = True
+                        out.append({'pc': tgt, 'op': 0xA000, 'kind': 'branch',
+                                    'target': tgt, 'mnem': 'bra', 'cond': None})
                         continue
                     return None, ('nested-call', t, tgt, reason)
                 out.extend(sub)
@@ -3154,6 +3355,12 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
                             allow_runtime_base=True, tail_bra_as_call=True,
                             allow_boundary_entry=True, data_tail_ok=True)
     if res.reject is not None:
+        _rej = res.reject
+        if isinstance(_rej, tuple) and _rej[0] == 'pr_fragment':
+            # (Fix A) the callee is a mid-body pr-pop/rte fragment: write a
+            # compilable STUB lib (callers referencing f_<hex>(s) still
+            # compile) instead of failing the whole emit.
+            return _write_stub_lib(t, _rej, rom_label=rom_label), None
         return None, ('callee-cfg', t, res.reject)
     if not res.records:
         return None, ('callee-cfg', t, 'no_records')
@@ -4073,6 +4280,12 @@ def main():
             addr, rom, outdir, catalog, bounds, seed=args.seed,
             cases=args.cases, rom_label=rom_label, force_end=force_end)
         if not ok:
+            if isinstance(reason, tuple) and reason[0] == 'pr_fragment':
+                # (Fix A) mis-split/mid-body fragment with NO canonical
+                # parent: clean skip instead of FAIL/crash (the corpus driver
+                # re-classifies emu-exc rows as PR_FRAGMENT).
+                print('skipped: 0x%X pr-fragment (no canonical parent)' % addr)
+                return 0
             if args.stub_on_fail:
                 stub_p = _write_stub_lib(addr, reason, rom_label=rom_label)
                 print('STUB f_%X: %s -> %s' % (
