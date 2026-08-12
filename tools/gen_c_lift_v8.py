@@ -297,6 +297,51 @@ def _v6_reclaim(rom, pc, data, addr, ops, gcl):
     return False
 
 
+def _lit_at_defsite(rom, pc):
+    """Recompute the literal VALUE folded into a register at a def-site `pc`
+    (span_litdefs entry): mov.l @(disp,PC) -> 32-bit pool dword,
+    mov.w @(disp,PC) -> sign-extended 16-bit pool word, mova -> the
+    computed address.  Returns None when `pc` is not a literal def-site."""
+    if pc + 1 >= len(rom):
+        return None
+    w = (rom[pc] << 8) | rom[pc + 1]
+    if (w & 0xF000) == 0xD000:                      # mov.l @(disp,PC),Rn
+        a = ((pc + 4) & ~3) + (w & 0xFF) * 4
+        if a + 4 > len(rom):
+            return None
+        return int.from_bytes(rom[a:a + 4], 'big') & MASK
+    if (w & 0xF000) == 0x9000:                      # mov.w @(disp,PC),Rn
+        a = ((pc + 4) & ~1) + _s8(w & 0xFF) * 2
+        if a + 2 > len(rom) or a < 0:
+            return None
+        return ((rom[a] << 8) | rom[a + 1]) & 0xFFFF if (rom[a] & 0x80) == 0 \
+            else ((rom[a] << 8) | rom[a + 1]) - 0x10000
+    if (w & 0xFF00) == 0xC700:                      # mova @(disp,PC),r0
+        a = ((pc + 4) & ~3) + (w & 0xFF) * 4
+        return a & MASK
+    return None
+
+
+def _is_code_first_word(rom, a):
+    """True iff the 16-bit word at `a` is plausibly an instruction (not a
+    literal-pool / data word); None when `a` is outside the ROM.  The
+    per-shape check (translate/branch/call/mem-shape/pc-rel-load/brk/fpu)
+    is the single source for the nested-call pool-target fallback AND the
+    mov.w-literal dispatch rt-entry seed: a literal target whose first word
+    is real code gets walked into the mirror CODE; a data word does not."""
+    if a + 1 >= len(rom):
+        return None
+    tw = (rom[a] << 8) | rom[a + 1]
+    return (ops.translate(tw, a, rom) is not None or
+            ops.branch_info(tw) is not None or
+            gcl.is_call_op(tw) or gcl._mem_shape(tw) is not None or
+            (tw >> 12 in (0xD, 0x9) or (tw & 0xFF00) == 0xC700) or
+            ops.is_fpu_op(tw) or (tw & 0xF0FF) == 0x401B or
+            (tw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
+                              0x4016, 0x4026, 0x4003, 0x4013,
+                              0x4007, 0x4017))
+
+
 def _static_branch_in_span(rom, pc, addr, bound):
     """True when the (pcrel-pool-flagged) word at pc decodes as a STATIC
     branch (bt/bf/bt.s/bf.s/bra — target_disp present, so rts/rte/bsrf/braf
@@ -911,6 +956,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             elif _span:
                 c, _ = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
                                        dynbase=False)
+                if c is None:
+                    return None
                 # the C-producing call above already advanced st['tmp'] for a
                 # load; the dynbase=True py call would advance it a SECOND
                 # time and shift every later temp name in the C output (breaks
@@ -923,6 +970,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
             else:
                 c, py = gcl._mem_record(pc, op, m, bkind, abs_addr, temp,
                                         dynbase=False)
+            if c is None:
+                return None
             _rompin = _rom_deref_value(m)
             gcl._apply_mem_writes(m, st['written'], st['lits'])
             _record_slot_deref(m)
@@ -955,6 +1004,8 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                           'idx': sh.get('idx'), 'auto': sh.get('auto'),
                           'sext': sh['dir'] == 'load' and sh['size'] < 4}
                     c, py = gcl._mem_record(pc, op, m2, 'param', None, temp)
+                    if c is None:
+                        return None
                     _rompin = _rom_deref_value(m2)
                     gcl._apply_mem_writes(m2, st['written'], st['lits'])
                     _record_slot_deref(m2)
@@ -1626,6 +1677,31 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     # dispatches to the target address like sh2emu.
                     _rt = rt_tbl.get(rn)
                     _rt_entries = enum_rt_entries(_rt[0]) if _rt is not None else []
+                    if not _rt_entries:
+                        # (fix A2) span_litdefs fallback: rt_tbl bookkeeping only
+                        # fires when the INDEX register r0 holds the table
+                        # literal; the mirrored orientation (base Rm = literal
+                        # via mov.l @(disp,PC) at some def-site, runtime index)
+                        # sets tbl_base instead and the jt path can miss
+                        # out-of-span entries (0x28150's jmp @r3 at 0x4214,
+                        # def-site 0x420E -> table base 0x426C, entries
+                        # 0x424E..0x4268).  Seed rt_entries from every literal
+                        # def-site of the dispatch register (span-wide):
+                        # table-base literals enumerate via enum_rt_entries,
+                        # direct code literals seed themselves — both
+                        # plausibility-checked.
+                        for _dp in sorted(span_litdefs.get('r%d' % rn, ())):
+                            _dv = _lit_at_defsite(rom, _dp)
+                            if _dv is None:
+                                continue
+                            if _dv < 0x10000 and _dv + 4 <= len(rom):
+                                _des = enum_rt_entries(_dv)
+                                if _des:
+                                    _rt_entries = _des
+                                    break
+                            if _is_code_first_word(rom, _dv):
+                                _rt_entries = [_dv]
+                                break
                     rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
                            'mnem': '%s @r%d (runtime)' % ('jsr' if _is_jsr else 'jmp', rn),
                            'reg': rn, 'is_call': _is_jsr,
@@ -1671,7 +1747,9 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                      + ['((void(*)(ST*))s->r[%d])(s);' % rn]),
                                'slot': slot, 'target': None,
                                'ret_pc': (pc + 4) & MASK, 'set_pr': True,
-                               'slot_addr': v & MASK, 'reg': rn}
+                               'slot_addr': v & MASK, 'reg': rn,
+                               'rt_entries': [v & MASK]
+                               if _is_code_first_word(rom, v & MASK) else None}
                     else:
                         res.edges.append((pc, 'jmp@w16', None))
                         rec = {'pc': pc, 'op': op, 'kind': 'runtime_dispatch',
@@ -1680,7 +1758,9 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                                'ret_pc': (pc + 4) & MASK,
                                'c': ([v7.to_st_c(s) for s in slot['c']] if slot else [])
                                     + ['((void(*)(ST*))s->r[%d])(s);' % rn, 'return;'],
-                               'slot': slot, 'target': None, 'rt_entries': None}
+                               'slot': slot, 'target': None,
+                               'rt_entries': [v & MASK]
+                               if _is_code_first_word(rom, v & MASK) else None}
                     res.records.append(rec)
                     seen_pc.add(pc)
                     if slot is not None:
@@ -2781,19 +2861,10 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
             # target: runtime_dispatch fallback (jsr -> pr=ret_pc, dispatch
             # on s->r[0]; the word is never in CODE, so jsr falls through to
             # ret_pc — the nullsub-fallback behaviour).
-            _tcode = None
-            if tgt + 1 < len(rom):
-                _tw = (rom[tgt] << 8) | rom[tgt + 1]
-                _tcode = (ops.translate(_tw, tgt, rom) is not None or
-                          ops.branch_info(_tw) is not None or
-                          gcl.is_call_op(_tw) or gcl._mem_shape(_tw) is not None or
-                          (_tw >> 12 in (0xD, 0x9) or (_tw & 0xFF00) == 0xC700) or
-                          ops.is_fpu_op(_tw) or (_tw & 0xF0FF) == 0x401B or
-                          (_tw & 0xF0FF) in (0x4002, 0x4012, 0x4022, 0x4006,
-                                             0x4016, 0x4026, 0x4003, 0x4013,
-                                             0x4007, 0x4017))
+            _tcode = _is_code_first_word(rom, tgt)
             if not (t <= tgt < walk_end):
-                if tgt in pool or (tgt in catalog and catalog.get(tgt) is None) \
+                if tgt in pool or (tgt in catalog and catalog.get(tgt) is None
+                                   and _tcode is not True) \
                         or _tcode is False:
                     # bug f: nested-call edge lands on a literal-pool / data
                     # word (e.g. 0x00648E's chain ends at 0x36BEC, a pool word
@@ -3243,6 +3314,14 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
             for e in (r.get('rt_entries') or []):
                 if e not in _seen:
                     queue.append(e)
+    # (fix C) INLINE-BLOWUP fix: _walk_callee's nested-call inlining re-appends
+    # the ENTIRE subtree of a shared leaf at every call site, so a callee that
+    # jsr's the same function 96x (0x4B3A6's records in the 0x394FC caller)
+    # yields ~225k records for ~8.6k distinct pcs -> a 26MB test that the
+    # runtime kills (SIGTERM ~2.5s).  CODE is a dict keyed by pc (duplicate
+    # literal keys: LAST wins), so repeated records are pure waste: keep only
+    # the last record per pc, preserving the literal's resolution semantics.
+    all_records = list({r['pc']: r for r in all_records}.values())
     # (bug c) PR-LEAK fix: the composite mirror addresses the stack with the
     # RUNTIME sp (r15), not per-function fixed STACK_BASE+off slots.  Each
     # function's records were emitted with its own sp_off starting at 0x400, so
@@ -3340,6 +3419,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'JTABLES = %r\n'
         'SLOT_SEEDS = %r\n'
         'OOB_DISPATCH = [False]\n'
+        'OOB_TGTS = []\n'
         'SELF_LOOP = [False]\n'
         'CATALOG_SPANS = %r\n'
         'CATALOG_STARTS = sorted(CATALOG_SPANS)\n'
@@ -3457,6 +3537,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            _tg = r[reg] & 0xFFFFFFFF\n'
         '            _tgt = CODE.get(_tg)\n'
         '            if _tgt is None:\n'
+        '                OOB_TGTS.append(_tg)\n'
         '                if _in_catalog_span(_tg):\n'
         '                    OOB_DISPATCH[0] = True  # in catalog span but not lifted\n'
         '                    if inst["is_call"]:\n'
@@ -3519,6 +3600,9 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    rnd = random.Random(SEED)\n'
         '    cpu = _SH2(ROM_BYTES)\n'
         '    skipped = 0\n'
+        '    SKIPREASONS = {}\n'
+        '    def _sk(w):\n'
+        '        SKIPREASONS[w] = SKIPREASONS.get(w, 0) + 1\n'
         '    for caso in range(N):\n'
         '        ram = {}\n'
         '        if RAM_MIN is not None:\n'
@@ -3538,22 +3622,24 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            # (unknown target): the case cannot be compared — count it\n'
         '            # in `skipped` instead of failing.\n'
         '            OOB_DISPATCH[0] = False\n'
-        '            skipped += 1; continue\n'
+        '            _sk("oob-dispatch"); skipped += 1; continue\n'
         '        if m[0] != "RET":\n'
         '            if m[0] == "SKIP":\n'
         '                try:\n'
         '                    run(cpu, ram, a, b, c_, d)\n'
         '                except StepLimitExceeded:\n'
-        '                    skipped += 1; continue\n'
+        '                    _sk("step-limit-both"); skipped += 1; continue\n'
         '                except (NotImplementedError, RuntimeError, ZeroDivisionError):\n'
-        '                    skipped += 1; continue\n'
+        '                    _sk("mirror-step-emu-exc"); skipped += 1; continue\n'
         '                print("MISMATCH case=%%d mirror=SKIP emu=RET" %% (caso,))\n'
         '                sys.exit(1)\n'
-        '            skipped += 1; continue\n'
+        '            _sk("table-miss"); skipped += 1; continue\n'
         '        try:\n'
         '            g = run(cpu, ram, a, b, c_, d)\n'
-        '        except (StepLimitExceeded, NotImplementedError, RuntimeError, ZeroDivisionError):\n'
-        '            skipped += 1; continue\n'
+        '        except StepLimitExceeded:\n'
+        '            _sk("emu-step-limit"); skipped += 1; continue\n'
+        '        except (NotImplementedError, RuntimeError, ZeroDivisionError):\n'
+        '            _sk("emu-exc"); skipped += 1; continue\n'
         '        _, exp_regs, _, exp_ram, exp_pr = m\n'
         '        _, got_regs, got_ram, got_pr = g\n'
         '        for i in range(16):\n'
@@ -3568,6 +3654,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
         '                sys.exit(1)\n'
         '    ok = N - skipped\n'
+        '    print("SKIPREASONS", SKIPREASONS)\n'
         '    has_ret = False\n'
         '    seen = set(); stack = [ENTRY]\n'
         '    while stack:\n'
@@ -3607,6 +3694,9 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
          '    if ok == 0 and not has_ret:\n'
          '        print("HALT (correct) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
          '        sys.exit(0)\n'
+        '    if skipped and OOB_TGTS:\n'
+        '        from collections import Counter as _C\n'
+        '        print("OOBTGTS", dict(_C(OOB_TGTS)))\n'
         '    if ok == 0 and SELF_LOOP[0]:\n'
         '        # every case skipped on a real infinite self-loop (bra <self>)\n'
         '        # hit identically by mirror and sh2emu: unverifiable, but the\n'
