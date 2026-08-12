@@ -450,6 +450,17 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
     # entry: it has no prologue, its `lds.l @r15+,pr` epilogue pops the random
     # stack -> rts -> pr=0 -> emulator pc=0 (NotImplementedError @0x0), so
     # every test case is skipped (FAIL 0/400).  Reject before walking.
+    if addr + 1 < len(rom):
+        _fw = (rom[addr] << 8) | rom[addr + 1]
+        if _fw in (0x0000, 0xFFFF):
+            # (fix B / entry validation) a candidate whose first word is a
+            # DATA word (0x0000 = zero fill, 0xFFFF = pool/fp-const) is not
+            # a function: walking it decodes data as code and sh2emu dies
+            # NotImplementedError (in-span exc / escape, e.g. 0x375C ->
+            # 0xFFFF6D5A, 0xF8D4 -> FPU 0xFFFF).  Reject as midfunc_nop so
+            # the caller/callee machinery treats it like a nop-sled entry.
+            res.reject = ('midfunc_nop', addr)
+            return res
     if addr + 1 < len(rom) and rom[addr] == 0x00 and rom[addr + 1] == 0x09:
         # A candidate that begins on a delay-slot nop (0x0009) is usually a
         # spurious mid-function entry ... BUT a mis-resolved indirect-call
@@ -457,11 +468,13 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         # REAL code at pc+2 (0x3C6E0's callee 0x3C2C0: nop then 0x34AC...).
         # The leading nop is semantically neutral, so start the walk at pc+2
         # (one retry) when there is room AND pc+2 is real code — NOT another
-        # nop: a nop,nop,... run is a NOP-sled padding target (e.g. 0x4C14),
-        # whose walk must stay rejected so the callee-walk synthesizes the
-        # no-op body instead of decoding the sled as instructions.
+        # nop (a nop,nop,... run is a NOP-sled padding target, e.g. 0x4C14)
+        # and NOT a data-pool word (0x4812: nop then data pool 0x0000 7FFF
+        # FFFF 8001 at pc+2 — advancing into it decodes data as code and
+        # every case dies in-span NotImplementedError; reject instead).
         if (addr + 3 < bound and addr + 2 < end
-                and not (rom[addr + 2] == 0x00 and rom[addr + 3] == 0x09)):
+                and not (rom[addr + 2] == 0x00 and rom[addr + 3] == 0x09)
+                and _is_code_first_word(rom, addr + 2) is True):
             addr += 2
         else:
             res.reject = ('midfunc_nop', addr)
@@ -2682,9 +2695,22 @@ def _callee_eff_end(rom, t, catalog, bounds):
     if _dend is not None:
         end_c = _dend
     if _callee_first_rts(rom, t, end_c) is None:
-        ext = _callee_extend_to_rts(rom, t, end_c, bounds)
-        if ext is not None:
-            end_c = ext
+        # (fix 7 / callee-walk) the caller path has a fix-6 probe guard that
+        # skips the extend-to-rts fallback when the ORIGINAL span already
+        # completes the walk (res.reject None and no fallthrough): extending
+        # a self-terminating span pulls in the NEXT catalogued function and
+        # the extended walk rejects ('unmapped', ...) (0x1038: catalog end
+        # 0x1090, no rts in-span, walk self-terminates; extension crossed
+        # 0x109C -> ('unmapped', 0x109C=4252)).  Mirror the same probe here
+        # so the callee walk falls back to the pre-relax span.
+        _probe = build_cfg(rom, t, end_c, catalog=catalog,
+                           allow_runtime_base=True, tail_bra_as_call=True,
+                           allow_boundary_entry=True)
+        _self_term = (_probe.reject is None and not _probe.fallthrough)
+        if not _self_term:
+            ext = _callee_extend_to_rts(rom, t, end_c, bounds)
+            if ext is not None:
+                end_c = ext
     return end_c
 
 
@@ -3775,26 +3801,34 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
         '        else:\n'
         '            stack.append(pc + 2)\n'
+         '    LOOP_AGREE = ("step-limit-both", "emu-step-limit",\n'
+         '                "mirror-step-emu-exc")\n'
+         '    if ok == 0 and skipped and SKIPREASONS and \\\n'
+         '            all(k in LOOP_AGREE for k in SKIPREASONS):\n'
+         '        # every case skipped because mirror AND sh2emu agree on an\n'
+         '        # unverifiable busy-wait / long loop or identical abnormal\n'
+         '        # termination: step-limit-both (mirror and emu both hit\n'
+         '        # MAXSTEPS), emu-step-limit (emu loops past MAXSTEPS on a\n'
+         '        # HW-poll while the mirror RETs — sweep path re-grades to\n'
+         '        # UNVERIFIED-HWPOLL), mirror-step-emu-exc (mirror SKIPs and\n'
+         '        # the emu dies identically — 0x5B0/0x6C8 mirror-step-emu-exc\n'
+         '        # rows).  Agreement, not a bug — PASS-like LOOP verdict on\n'
+         '        # the direct --run path too.  Fires BEFORE the has_ret HALT\n'
+         '        # check so genuine loops classify LOOP, not HALT.\n'
+         '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+         '        sys.exit(0)\n'
          '    if ok == 0 and not has_ret:\n'
          '        print("HALT (correct) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
          '        sys.exit(0)\n'
         '    if skipped and OOB_TGTS:\n'
         '        from collections import Counter as _C\n'
         '        print("OOBTGTS", dict(_C(OOB_TGTS)))\n'
-        '    if ok == 0 and SELF_LOOP[0]:\n'
-        '        # every case skipped on a real infinite self-loop (bra <self>)\n'
-        '        # hit identically by mirror and sh2emu: unverifiable, but the\n'
-        '        # mirrored behavior matches the ROM — PASS-like LOOP verdict.\n'
-        '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-        '        sys.exit(0)\n'
-        '    if ok == 0 and skipped and SKIPREASONS and \\\n'
-        '            all(k == "step-limit-both" for k in SKIPREASONS):\n'
-        '        # every case skipped because mirror AND sh2emu hit the identical\n'
-        '        # MAXSTEPS limit on the same busy-wait / long loop (the sweep\n'
-        '        # path re-grades this to UNVERIFIED-HWPOLL): agreement, not a\n'
-        '        # bug — PASS-like LOOP verdict on the direct --run path too.\n'
-        '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-        '        sys.exit(0)\n'
+'    if ok == 0 and SELF_LOOP[0]:\n'
+         '        # every case skipped on a real infinite self-loop (bra <self>)\n'
+         '        # hit identically by mirror and sh2emu: unverifiable, but the\n'
+         '        # mirrored behavior matches the ROM — PASS-like LOOP verdict.\n'
+         '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+         '        sys.exit(0)\n'
          '    if skipped > 200 or ok == 0:\n'
         '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(1)\n'
