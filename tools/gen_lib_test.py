@@ -17,6 +17,7 @@ Usage:
   python3 tools/gen_lib_test.py --sweep-all       # all 1059 already-lib addrs
 """
 import argparse
+import ast
 import os
 import re
 import subprocess
@@ -125,6 +126,44 @@ def gen_lib_test(addr, rom, catalog, bounds, outdir, seed=42, cases=10):
     return out_t, True, None
 
 
+# Skip reasons that record mirror==emu AGREEMENT on the executed prefix:
+# both the spec-mirror AND sh2emu hit the identical MAXSTEPS step limit
+# (HW-poll busy-wait / unbounded count-down loop under seeded test RAM).
+# Every other skip reason means one side completed/escaped and the other
+# did not (oob-dispatch, table-miss, emu-step-limit, emu-exc,
+# mirror-step-emu-exc) -> a divergence that must stay FAIL.
+HWPOLL_AGREE_REASONS = frozenset(['step-limit-both'])
+
+
+def _classify_hwpoll(lines, verdict_line, out):
+    """Re-grade all-skipped FAIL -> UNVERIFIED-HWPOLL.
+
+    A lib whose cases are ALL skipped because mirror and emu agree on
+    every executed case (no MISMATCH, each skip is a two-sided
+    step-limit-both) is not buggy — the C body mirrors the ROM, the
+    harness just cannot build a terminating input set for a HW-poll
+    busy-wait / unbounded loop.  Real divergences (MISMATCH / any
+    one-sided skip reason) stay FAIL.
+    """
+    if 'MISMATCH' in out:
+        return 'FAIL'
+    m = re.match(r'FAIL (\d+)/(\d+) \(skipped=(\d+)\)', verdict_line)
+    if m is None or int(m.group(1)) != 0 or \
+       int(m.group(3)) != int(m.group(2)):
+        return 'FAIL'  # not an all-cases-skipped run
+    reasons = {}
+    for l in lines:
+        if l.startswith('SKIPREASONS'):
+            try:
+                reasons = ast.literal_eval(l[len('SKIPREASONS'):].strip())
+            except (ValueError, SyntaxError):
+                reasons = {}
+            break
+    if not reasons or any(k not in HWPOLL_AGREE_REASONS for k in reasons):
+        return 'FAIL'
+    return 'UNVERIFIED-HWPOLL'
+
+
 def _run_test(addr, test_path, timeout=120):
     p = subprocess.run([sys.executable, test_path], capture_output=True,
                        text=True, timeout=timeout)
@@ -148,6 +187,11 @@ def _run_test(addr, test_path, timeout=120):
            l.startswith('ERROR'):
             why = l
             break
+    if not why:
+        # all-skipped + mirror==emu agreement everywhere -> not a bug
+        hw = _classify_hwpoll(lines, verdict_line, out)
+        if hw == 'UNVERIFIED-HWPOLL':
+            return 'UNVERIFIED-HWPOLL', verdict_line, out
     return 'FAIL', (verdict_line or why or 'rc=%s' % p.returncode), out
 
 

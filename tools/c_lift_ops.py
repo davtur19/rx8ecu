@@ -108,14 +108,20 @@ def lo(op): return op & 0xFF
 
 
 def lit16(rom, pc, disp):
-    """mov.w @(disp,PC): sign-extended 16-bit value."""
+    """mov.w @(disp,PC): sign-extended 16-bit value.  None when the
+    displacement target lands outside the (possibly truncated) ROM."""
     addr = (pc + 4 + disp * 2) & MASK
+    if addr + 2 > len(rom) or addr < 0:
+        return None
     return s16(struct.unpack('>H', rom[addr:addr + 2])[0]) & MASK
 
 
 def lit32(rom, pc, disp):
-    """mov.l @(disp,PC): 32-bit value at ((pc+4)&~3)+disp*4."""
+    """mov.l @(disp,PC): 32-bit value at ((pc+4)&~3)+disp*4.  None when the
+    displacement target lands outside the (possibly truncated) ROM."""
     addr = ((pc + 4) & ~3) + disp * 4
+    if addr + 4 > len(rom) or addr < 0:
+        return None
     return struct.unpack('>I', rom[addr:addr + 4])[0] & MASK
 
 
@@ -301,9 +307,13 @@ def translate(op, pc, rom, ann=''):
     # ---- literal pool loads ----
     if n0 == 0xD:
         v = lit32(rom, pc, l)
+        if v is None:
+            return None
         return _mk('r%d = %s;' % (n, c_imm(v)), 'r[%d] = %s' % (n, py_imm(v)), ['r%d' % n])
     if n0 == 0x9:
         v = lit16(rom, pc, l)
+        if v is None:
+            return None
         return _mk('r%d = (uint32_t)(int32_t)(int16_t)%s;' % (n, c_imm(v & 0xFFFF, 16)),
                    'r[%d] = %s' % (n, py_imm(v)), ['r%d' % n])
     if op & 0xFF00 == 0xC700:   # mova
