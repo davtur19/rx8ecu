@@ -2467,6 +2467,32 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
                                seed=seed, cases=cases, rom_label=rom_label,
                                catalog=catalog, bounds=bounds,
                                rt_entries=rt_entries)
+    # (Fix A round 4 / span-extend on nested-fragment degrade) a
+    # NON-rejecting caller whose walk degraded a nested pr_fragment has a
+    # catalog-truncated span: the degraded targets (0x1B264's own tails
+    # 0x1B324..0x1B50A past the catalog end 0x1b272; 0x10D5C's tail 0x10dee
+    # past its ghidra end 0x10d82) are the caller's OWN continuation that
+    # sh2emu RETs on — the mirror's self-loop degrades them to a skipped LOOP
+    # while the ROM walks clean (v4 PASS 18/18).  When a longer ghidra /
+    # fragment-chain end exists (caller's own ghidra end, or the continuation
+    # row at the walk end_s), re-emit with force_end = that end so the tails
+    # are walked IN-SPAN and the mirror agrees with the emu (0x1B264 ->
+    # 0x1b548, 0x10D5C -> 0x10E14: explicit --span PASS).  Only fires on the
+    # OUTER call (force_end None) to avoid re-triggering the extended walk;
+    # genuinely unresolvable rows (no longer end: 0x18662/0x41CF2) keep the
+    # honest LOOP.
+    if force_end is None and _EMIT_PRF_DEG['hit']:
+        _ext = _caller_longer_end(addr, end_s)
+        if _ext is not None:
+            _deg_saved = _EMIT_PRF_DEG['hit']
+            _EMIT_PRF_DEG['hit'] = False
+            _res_ext = emit_caller(
+                addr, rom, outdir, catalog, bounds, seed=seed, cases=cases,
+                rom_label=rom_label, force_end=_ext)
+            _EMIT_PRF_DEG['hit'] = _deg_saved
+            if _res_ext[0] is not None:
+                return _res_ext
+            return out_c, out_t, ok, reason
     return out_c, out_t, ok, reason
 
 
@@ -2515,6 +2541,27 @@ def _ghidra_span_end(t):
     if _GHIDRA_SPANS is None:
         _load_ghidra_spans()
     return _GHIDRA_SPANS.get(t)
+
+
+def _caller_longer_end(addr, end_s):
+    """Longer fragment-chain end for a NON-rejecting caller whose walk
+    degraded a nested pr_fragment: the caller's own ghidra span end (0x1B264
+    -> 0x1B548: the tail fragments 0x1B324..0x1B50A are the caller's own
+    continuation, cut by the catalog end 0x1b272) or the ghidra end of the
+    continuation row at the walk's end_s (0x10D5C walk ends at 0x10d82 = the
+    0x10D5C ghidra end == next row start; that row 0x10D82 has ghidra end
+    0x10E14 -> the tail 0x10dee lives past 0x10d82; 0x449E6 walk ends at
+    0x44a60, inside row 0x44A5C (ghidra end 0x44ab0) -> the degraded tails
+    0x44AA8..0x44AFC live past the parent's end).  Returns the max candidate
+    strictly greater than `end_s`, else None.  Genuinely unresolvable rows
+    (no longer end) keep their honest LOOP."""
+    cands = [_ghidra_span_end(addr), _ghidra_span_end(end_s)]
+    for t in (addr, end_s):
+        can = _canon_row(t)
+        if can is not None:
+            cands.append(_ghidra_span_end(can))
+    longer = [c for c in cands if c is not None and c > end_s]
+    return max(longer) if longer else None
 
 
 def _fragment_spans(rom, catalog, bounds):
