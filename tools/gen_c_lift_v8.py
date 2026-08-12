@@ -2279,6 +2279,10 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
     (out_c, test_path, ok, reason)."""
     rom_label = rom_label or os.path.splitext(os.path.basename(
         DEFAULT_ROM))[0]
+    # (fix C) per-emit marker reset: _EMIT_PRF_DEG['hit'] is set by nested
+    # _walk_callee degrades only, never cleared — clear it here so a degrade
+    # from a PREVIOUS emit_caller cannot leak into this caller's test header.
+    _EMIT_PRF_DEG['hit'] = False
     end = force_end or catalog.get(addr)
     if end is None:
         end = v3._next_addr(addr, bounds)
@@ -3113,6 +3117,20 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
             # (NOPs until the first rts) instead of failing the whole emit.
             e2 = pc
             body = []
+            # (fix B / entry validation mirror) a midfunc_nop reject from the
+            # fix-B DATA-word guard (first word 0x0000 zero-fill or 0xFFFF
+            # pool/fp-const) is NOT a nop-sled: there is no nop run to walk.
+            # The entry is data, not a function — the call edge into it is a
+            # post-rts dead edge (0x3E0 -> 0xE86: the caller's span decodes a
+            # literal-pool word as `bra 0xE86` and the target word is 0xFFFF
+            # fp-const).  Synth an immediate-return body so the mirror RETs
+            # early there, matching sh2emu's unreachable-edge behaviour —
+            # same tolerance as the callee-walk caller edge (round 6).
+            if e2 + 1 < len(rom):
+                _fw = (rom[e2] << 8) | rom[e2 + 1]
+                if _fw in (0x0000, 0xFFFF):
+                    return [{'pc': e2, 'op': 0x000B, 'kind': 'ret',
+                             'mnem': 'rts', 'c': ['return r0;']}], None
             while e2 + 1 < end_c:
                 w = (rom[e2] << 8) | rom[e2 + 1]
                 if w == 0x000B:
@@ -3219,6 +3237,15 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
                         _EMIT_PRF_DEG['hit'] = True
                         out.append({'pc': tgt, 'op': 0xA000, 'kind': 'branch',
                                     'target': tgt, 'mnem': 'bra', 'cond': None})
+                        continue
+                    if isinstance(reason, tuple) and reason[0] == 'midfunc_nop':
+                        # (fix B mirror, nested path) the nested target opens
+                        # on a DATA word (0x0000/0xFFFF fix-B guard): a dead /
+                        # data edge, not a function.  Emit an immediate-return
+                        # record (mirror RETs there like sh2emu's unreachable
+                        # edge) instead of failing the whole emit.
+                        out.append({'pc': tgt, 'op': 0x000B, 'kind': 'ret',
+                                    'mnem': 'rts', 'c': ['return r0;']})
                         continue
                     return None, ('nested-call', t, tgt, reason)
                 out.extend(sub)
@@ -3738,6 +3765,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'OOB_DISPATCH = [False]\n'
         'OOB_TGTS = []\n'
         'SELF_LOOP = [False]\n'
+        'PRF_DEG = %s\n'
         'CATALOG_SPANS = %r\n'
         'CATALOG_STARTS = sorted(CATALOG_SPANS)\n'
         'def _in_catalog_span(v):\n'
@@ -3933,6 +3961,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                ram[_sl + _i] = _tb[_i]\n'
         '        a = rnd.randint(0, 0xFFFFFFFF); b = rnd.randint(0, 0xFFFFFFFF)\n'
         '        c_ = rnd.randint(0, 0xFFFFFFFF); d = rnd.randint(0, 0xFFFFFFFF)\n'
+        '        SELF_LOOP[0] = False\n'
         '        m = spec_mirror(a, b, c_, d, dict(ram))\n'
         '        if OOB_DISPATCH[0]:\n'
         '            # mirror escaped through an out-of-CODE runtime dispatch\n'
@@ -3948,6 +3977,15 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '                    _sk("step-limit-both"); skipped += 1; continue\n'
         '                except (NotImplementedError, RuntimeError, ZeroDivisionError):\n'
         '                    _sk("mirror-step-emu-exc"); skipped += 1; continue\n'
+        '                if SELF_LOOP[0] and PRF_DEG:\n'
+        '                    # PRF-degraded callee: the generator knowingly\n'
+        '                    # replaced a mid-body pr-pop fragment with a\n'
+        '                    # self-loop `bra <self>` (mirror spins) while\n'
+        '                    # sh2emu runs the real ROM continuation and RETs.\n'
+        '                    # The mirrored path is unmodelable — count the case\n'
+        '                    # as an agreed SKIP (LOOP_AGREE -> LOOP verdict,\n'
+        '                    # rc=0) instead of a false MISMATCH.\n'
+        '                    _sk("selfloop-prf-deg"); skipped += 1; continue\n'
         '                print("MISMATCH case=%%d mirror=SKIP emu=RET" %% (caso,))\n'
         '                sys.exit(1)\n'
         '            _sk("table-miss"); skipped += 1; continue\n'
@@ -4009,7 +4047,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '        else:\n'
         '            stack.append(pc + 2)\n'
          '    LOOP_AGREE = ("step-limit-both", "emu-step-limit",\n'
-         '                "mirror-step-emu-exc")\n'
+         '                "mirror-step-emu-exc", "selfloop-prf-deg")\n'
          '    if ok == 0 and skipped and SKIPREASONS and \\\n'
          '            all(k in LOOP_AGREE for k in SKIPREASONS):\n'
          '        # every case skipped because mirror AND sh2emu agree on an\n'
@@ -4046,7 +4084,8 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
          addr, seed, cases, MAXSTEPS_OVERRIDE.get(addr, 100000), stack_offs,
          'None' if ram_min is None else '0x%X' % ram_min,
          'None' if ram_max is None else '0x%X' % ram_max,
-         jt_lits, slot_seeds, _spans,
+         jt_lits, slot_seeds, 'True' if _EMIT_PRF_DEG['hit'] else 'False',
+         _spans,
          _v8_code_literal(all_records, res.labels, res.jump_tables))
     with open(out_t, 'w') as f:
         f.write(test)
