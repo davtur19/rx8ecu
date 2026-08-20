@@ -165,3 +165,77 @@ The IDB already contains 130+ well-named CAN functions from the CSV import (CANC
 - Dispatch mechanism for the 236 handlers NOT found: zero code xrefs (except 2), no data_refs, no literal refs, no byte-pattern hits. Hypothesis: runtime-built RAM table or base+offset arithmetic.
 - Whether 0x10/0x20/0x30 in 0x691B2 are UDS sub-functions or OBD monitor-status selectors.
 - uds_protocol_3e1f8 only partially decoded (IDA boundary issue in 0x3xxxx area).
+
+## Configurazione finale: ELF big-endian (canonica)
+
+### La configurazione canonica (verificata in sessione 2a784ade)
+
+- Il file IDA canonico è `/home/davide/ailocal/rx8ecu/tmp/ida/60E1D400_be.elf`: un ELF SuperH a 32 bit **big-endian** (EM_SH=42, EI_DATA=2, e_entry=0x8B8) che incapsula la ROM **originale non word-swappata** a vaddr 0x0, con 3 segmenti PT_LOAD:
+  - ROM @ 0x0 (R+X, 0x80000)
+  - RAM @ 0xFFFF6000 (R+W, 0x8000)
+  - periferiche @ 0xFFFFF000 (R+W, 0x1000)
+- Costruito da `tmp/ida/make_elf.py` (deterministico, con `assert` sulle dimensioni: ROM 0x80000, header ELF 52 byte, 3 phdr 96 byte, file 0x81000).
+- Aperto in IDA **senza argomenti loader** (nessun `-psh3` o altro flag).
+
+### Perché è migliore
+
+- **Decodifica big-endian corretta** senza workaround: `0x20DC` = `sts.l macl, @-r15` (byte `4f 12`), `0x2460` = `extu.w r4, r4`, `0x6C8` = `main_task_dispatcher`.
+- I literal mostrano i valori **reali**: `0x8D2` = `mov.l #(loc_FFFE+1), r0` con valore `0x0000FFFF` (dal literal a 0x9B0) — nessuna conversione mentale word-swap.
+- I segmenti RAM e periferiche sono mappati e leggibili in IDA.
+- **2670 funzioni auto-create** all'apertura (2689 totali oggi: +18 definite dal re-import simboli +1 split `serial_queue_message`).
+
+### Configurazioni superate (storico)
+
+| Config | Esito |
+|---|---|
+| (a) `tmp/ida/60E1D400_bswap.bin` + `swap16.py` + loader arg `-psh3` | Funzionava, ma: literal `mov.l` visualizzati **swappati** (valore reale = swap delle due metà 16-bit del valore visualizzato; i literal `mov.w` a 16-bit visualizzati correttamente) e **RAM non mappata**. |
+| (b) `-psh2` / `-psh2e` / `-psh` | Non aprono il file. |
+| (c) `-psh4` | Misdecodifica (istruzioni a 4 byte). |
+| (d) `-psh3 -B` / `-psh3 -b` | Crash del worker. |
+
+Il modulo SH di IDA è **solo little-endian** e **senza supporto FPU**: gli opcode `0xFxxx` restano indecodificabili (121 funzioni interessate, non risolvibile).
+
+### Tabella dei vettori (byte 0x0–0x3C, indirizzi BE a 32 bit)
+
+| Vettore | Valore | Ruolo |
+|---|---|---|
+| 0 | `0x8B8` | Reset → `Manual_Reset` |
+| 1 | `0xFFFFDFA0` | SP iniziale |
+| 2–3 | `0x8B8` / `0xFFFFDFA0` | Coppie PC/SP |
+| 4–13 | `0x8B4` | Trap di eccezione: `bra loc_8B4` loop infinito — eccezioni inattese bloccano la CPU |
+| 14–15 | `0xFFFFFFFF` | Non usati |
+
+### Import simboli (sessione 2a784ade, IDB `tmp/ida/60E1D400_be.elf.i64`)
+
+- Fonte: `symbols/symbols_60E1D400_merged.csv` (**2790 righe**, colonne `addr,end,name,source,flag`; gli indirizzi sono offset di file = vaddr ELF, ROM a 0x0; nessuna entry RAM nel CSV, max 0x6C166).
+- Pipeline: `define_code` → `define_func(addr,end)` → `rename`.
+- Risultati (vedi `tmp/ida/reimport_report.txt`):
+  - `define_code`: **2773 ok / 17 fail** (regioni dati `0x3EE68` e `0x69B9E..0x6C166`).
+  - `define_func`: **2620 già esistenti + 18 nuove definite + 152 fallite** (= 2790 items del manifest).
+  - `rename`: **2767 ok / 23 fail** (attesi: `calc_spark_advance` duplicato `0x01237C` vs `0x0121F0`; indirizzi in regioni dati).
+- Gap manuale: `main_task_dispatcher` (0x6C8) definita a mano 0x6C8–0x796 e rinominata.
+- Rinominazioni verificate: `diag_security_access_sid27` (0x17D8), `eeprom_read_validate` (0x450).
+
+### Verifica nomi manuali (vedi `tmp/ida/name_verify_report.txt`)
+
+Solo **4 nomi** della vecchia sessione NON sono nel CSV (il CSV è stato costruito da IDB + ghidra + c-lift):
+
+- `serial_queue_message` (0x47C) — era confluita in `serial_dispatch` 0x338 come chunk tail-jump; ridefinita con bounds esatti (0x338 size 0x2c + 0x47C size 0x56), poi rinominata.
+- `main_task_dispatcher` (0x6C8)
+- `f_2DLookup` (0x2068)
+- `f_3dLookup` (0x20DC)
+
+Tutti e 4 verificati **CORRETTI** contro il disassembly:
+
+- 0x47C: attende il byte sync `0xAA`, dispatch su tipo messaggio `0xE0`/`0xD8`, copia il payload, ritorna ACK `0x55`.
+- 0x6C8: dispatch su task-type mascherato `0xF8`.
+- 0x2068: `axis_search_float_array` + jump table + `fmac` = lookup mappa 2D.
+- 0x20DC: `table2d_axis_resolve` + jump table + `fmac` a due stadi = lookup mappa 3D.
+
+**Nessuna correzione** e nessuna terminologia pistoni (Renesis 13B-MSP rotativo).
+
+### RAM ora importabile
+
+Il segmento RAM dell'ELF (0xFFFF6000–0xFFFFDFFF) rende importabili i simboli di `symbols/RAM_VARIABLES.csv` (**1613 indirizzi** 0xFFFF00B1–0xFFFFFFFF) come simboli dati.
+
+**Nota**: gli indirizzi **sotto 0xFFFF6000 NON sono coperti** dal segmento RAM.
