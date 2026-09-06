@@ -698,16 +698,93 @@ NON è usato per storage persistente. Tutte le operazioni EEPROM passano per chi
 
 ---
 
-## DTC (Diagnostic Trouble Codes) — Placeholder
+## DTC (Diagnostic Trouble Codes) — Analisi Completa
 
-> Analisi DTC in corso. Il sottosistema DTC è già parzialmente documentato in
-> `docs/functions/dtc_management.md` e `docs/functions/dtcRelated.md`.
->
-> Funzioni verificate: dtcRelated@0x62002, dtc_handler_610FA@0x610FA,
-> dtc_handler_61550@0x61550, dtc_code_set/clear@0x46780/0x467AA,
-> dtc_debounce_monitor_43760@0x43760.
->
-> Vedi anche: `FINDINGS.md` sezione "DTC Management subsystem — Track-A verified".
+### Formato e storage
+
+**Tabella primaria**: 21 entry × 52 byte (stride 0x34) a `0xFFFF8928`
+- Contatore slot a `0xFFFF8D6C` (byte)
+- Layout record 52 byte (verificato da `obd_service_handler_6459C`):
+  - `+0x00`: codice interno DTC (word, 0x02–0x4C)
+  - `+0x06`: status byte (bit 7=confermato, bit 6=fallito)
+  - `+0x07`: severity (0x80=confermato, 0xC0=confermato+fallito)
+  - `+0x0A`: freeze-frame / snapshot (40 byte di dati sensore)
+
+**Tabella backup**: 8 entry × 40 byte (stride 0x28) a `0xFFFF8EA0`
+- Contatore a `0xFFFF8FB8` (word)
+- Record 40 byte: codice DTC +0x00, marker validità 0xA7 a +0x27
+- Slot vuoti: 0xFFFF a +0x00 e +0x20
+
+**Tabella handler context**: 21 entry × 16 byte (stride 0x10) a `0xFFFF87D8`
+- Checksum regione: guardie `0xFFFF8920/0x8924`, somma 15 byte per entry = 0xA5
+
+**Lookup severity**: tabella ROM a `0x7E2AC` (32 byte), indici 6–7 disabilitati, resto abilitati.
+
+### Codici DTC
+
+I codici interni (0x02–0x4C) sono mappati ai P-code OBD tramite tabella dispatch a `0x5F7F8`: coppie `(codice_DTC, severity)`, stride 2 byte, 28 tipi totali (severity 1=bassa, 2=alta). Terminatore 0xFF.
+
+### Percorso SET (rilevamento guasto)
+
+```
+rilevamento condizione guasto (0x271B8 / 0x2817C / 0x28E10)
+  → detection gate (0x25E36)
+  → debounce contatore (0x43760: soglie impostabili)
+  → dtc_set_flag (0x46780): verifica enable flag [0xFFFF8788]==1,
+    scrive set flag a [0xFFFF875C], azzera [0xFFFF875E]
+  → dtc_freezeframe_store (0x467BE): cattura snapshot in +0x0A del record
+  → dtc_state_machine (0x61550): transizioni stato (set/confirm/clear/aging)
+  → obd_service_handler_63814: persiste cambio stato in tabella RAM
+```
+
+### Percorso CLEAR (SID 0x14 → `obd_sid14_clearDTC` @ `0x562E8`)
+
+- Scanner invia `[SID=0x14][gruppo_hi][gruppo_lo]`
+- Gruppo `0xFF00` = cancella TUTTI i DTC
+- Altro → NRC 0x31 (requestOutofRange)
+- Sequenza: `obd_service_handler_68BC0` → confronto `0xFF00` → `histogram_0x563CE` (reset) → conferma → risposta positiva
+- Clear a basso livello: `dtc_clear_flag` (0x467AA) azzera 0xFFFF875C/0x875E
+
+### Percorso READ (SID 0x18 → `obd_sid18_readDTCInfo` @ `0x587EC`)
+
+- Sub-funzione `0x03`: reportNumberOfDTCByStatusMask → conteggio DTC per maschera status
+- Sub-funzione `0xFF` (maschera 0x00): clear-then-report
+- `dtc_find_worst_priority` (0x6115A): itera 20 slot, confronta severity (byte più basso = priorità più alta), restituisce codice + severity + status peggiore
+- SID 0x12 (`0x5BAD0`): readDTCByStatusMask — sub 2/4, encode lista DTC via `writeDTCCodeType` (0x5BD2E)
+
+### Freeze-frame / Snapshot
+
+- `dtc_snapshot_manager` (0x3B3BC): cattura RPM (0xFFFFB5B8 float), MAP, temperatura refrigerante, altri sensori
+- Store in 0xFFFFC5C4, 0xFFFFC5B6, 0xFFFFC12C
+- OBD Mode 0x02: handler 0x0666C4, legge freeze-frame da +0x0A del record 52 byte
+
+### EEPROM
+
+- Chip esterno: **ABLIC S-93C56C**, 256 byte via SPI bit-bang (GPIO)
+- Shadow RAM: `0xFFFFC000` (256 byte, copiata al boot)
+- Staging buffer: `0xFFFFC2FE–0xFFFFC3FE`
+- Boot: EEPROM 256B → RAM, region validator verificano checksum (somma == 0xA5), regioni invalide → reinizializzazione da default
+- Write path DTC: RAM staging → EEPROM staging → SPI write → verifica
+
+### RAM gestita
+
+| Indirizzo | Ruolo |
+|---|---|
+| 0xFFFF875C / 0xFFFF875E | Coppia set/clear flag |
+| 0xFFFF876C | Flag clear fault logger |
+| 0xFFFF8788 | Enable flag DTC (checksum ridondante) |
+| 0xFFFF87A0 | Contatore fault (coppia ridondante) |
+| 0xFFFF87B4 | Lock elaborazione DTC |
+| 0xFFFF8920 | Codice DTC attivo corrente |
+| 0xFFFF8D70 | Indice slot DTC corrente |
+| 0xFFFFD7CC | Buffer stato sub-handler |
+| 0xFFFFD6D0 | Buffer output codificato |
+| 0xFFFFD6C8 | Buffer lettura DTC (8 byte) |
+| 0xFFFFC9DC–0xFFFFC9E1 | Flag eventi DTC (trigger CAN SID 0x1B) |
+
+### Funzioni rinominate
+
+78 funzioni rinomate nel sottosistema DTC: 24 infrastruttura core, 5 set/clear, 11 monitor, 10 fault-specifici, 10 aggiuntive. Vedi `tmp/ida/dtc_analysis_report.txt` per la tabella completa.
 
 ---
 
