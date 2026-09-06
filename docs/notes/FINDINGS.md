@@ -554,3 +554,121 @@ table as opcodes until 0xFFFF at 0x310CC).
 **Evidence**: `_walk_callee(0x310AA)->('unmapped',0x310CC)`, `(0x40)->0x46`, `(0x1090)->0x1096`,
 `(0x1F80E)->0x1F81A`. `classify_addr` labels 0x00000000-0x000FFFFF as ROM, so low RAM/table
 addresses are treated as ROM callee candidates (c_lift_ops.py:480-487).
+
+## 2026-08-10 — SHC V5 base installer hunt (research, not committed)
+
+**Confirmed (OSSERVATO, from Wayback CDX captures of 1999-2003 Hitachi/Renesas pages)**:
+- V5.1A BASE was CD-distributed, never downloadable. 1999 `cdromsh.htm` (hitachi.co.jp/Sicd/Japanese/.../crosshp/release/) lists CD part numbers `P0700CAS4-MWR/SLR/H7R/WMN/MN` (Windows + UNIX: Solaris/HP9000). Renesas TNs confirm the pattern `P0700CAS7-MWR` = SHC V7, `R0C40700XSW08R` = V9.
+- The online `crosstool/sh/v5/` tree contained ONLY updaters (all already in local possession): sh51bup.exe (17,122,391 B), sh51b1up.exe (4,472,215 B), sh51cup.exe (966,322 B), shcv51f.exe (657,173 B), plus pages v51b.html/v51br1.html/v51c.html/shv51f.html/caution51c.html.
+- Across the ENTIRE hitachi.co.jp Wayback domain, only `sh51a0sb.bat` + `sh51a0sb.exe` (both already local) ever matched `sh51a0*`; `sh51a0s0-s3.exe` / `sh51a0up.exe` / `shcv5lib.exe` were NEVER captured (renesas.com + jp.renesas.com also negative). Split-segment base scheme is real (H8 parallel: h30a00s1.exe/s3.exe/b1.exe/sb.exe captured on same release/ dir).
+- V5 object format = SYSROF (Renesas compiler-table: "V.5 (Discontinued) | SYSROF"; V6+ = ELF/DWARF2) — explains the proprietary delta format (SYSROF info not embedded in plain ELF).
+- SHC V5.1A era matches ROM: "Hitachi Vehicle Operating System SH-2 V2.1A 1999" + "SW-N3Z2EU000.HEX" + SHC 5.1A delta. VOS OS manual (renesas.com/en/document/mat/vehicle-operating-system-sh-2-operating-system-manual, Rev.1.0) lists "SuperH RISC engine C/C++ Compiler Package Manual" as prerequisite WITHOUT pinning a version; OS V2.1 = OSEK/VDX 2.0r1. Renesas still hosts V5.1B/BR1/C/F "Upgrade" EXEs (16.40/4.34/1.02MB) — updaters only.
+- archive.org: NO HEW CD images; NO SHC V5. Only manuals (SHC user manual 1997 HS0700CL CU4S, bitsavers; "SuperH RISC engine C/C++ Compiler User Manual"). HEW 3.0 updater hewv3006u.exe requires existing V2.2+ install — HEW 3.0 never standalone-downloadable either.
+
+**Net**: V5.1A base = CD-only (P0700CAS5-MWR era); not recoverable from web archives. Only path = physical CD or someone's captured CD image; delta updaters cannot bootstrap without base.
+
+## 2026-08-11 — V5.1B update CD located locally; chain deltas completed (research, not committed)
+
+**OSSERVATO (local disk /tmp/shc)**:
+- "5.1B update CD" (Feb 2000, InstallShield) found at `/tmp/shc/research/sh51b/`: DATA1.CAB (9,168,925B, magic `ISc(`) + DATA1.HDR/_SYS1.CAB/_USER1.CAB + PATCH/{ENG,JPN}/{TOOLUP,HEWUP,HDIUP,MANUALUP}.EXE + HEW System DLLs + iodefine headers. Contents = updater payloads ONLY → **NOT a full install**; delta-only confirmed.
+- Local `sh51bup.exe` (17,200,194B, InstallShield) extracts (bsdtar) to the SAME 35 files; its `PATCH/ENG/TOOLUP.EXE` is **byte-identical** (1,847,498B) to the CD's — the download == CD version of the 5.1A→5.1B delta. Overlay at TOOLUP.EXE offset 0x5200 = 109 `Diff` records.
+- Decoder `/tmp/shc/toolup_decode.py`: 100/109 records validate (output==GUID new_size). 8 "failed" = whole-file-copy records (shcerr.off, shcpperr.off, sh3dspnb/nl/pb/pl.lib, shdsplib.lib, shdsppic.lib — files UNCHANGED 5.1A→5.1B); 1 = Olnkshbp.dll 1-byte trailing-terminator artifact. **0 pure-literal records → base required.**
+- Chain deltas now all local: `sh51bup.exe` (5.1A→5.1B), `sh51b1up.exe` (4,549,881B, 5.1B→5.1BR1), `sh51cup.exe` (1,043,996B, →5.1C), `shcv51f.exe` (1,782,421B, 381 `Diff` records, Ver.5.1C→Ver.5.1D strings; its shc.exe old_size=69632 = 5.1B output size). All same delta format (SYSROF-era).
+- Base wanted-list with exact 5.1A sizes: `/tmp/shc/51a_base_wanted.txt` (109 files; shc.exe=69632, shcasm.exe=233472, shcgen.exe=393216, shcpp.exe=69632, optlnksh.exe=40960).
+- Version timeline (Renesas component-list + JP release notes): 5.1 (99/07/06) → 5.1A (99/11/02) → 5.1AR1 (99/11/22) → 5.1B (00/03/06) → 5.1BR1 (00/05/22) → 5.1C (00/07/25) → ... → 5.1F (latest V5, Win95/98/NT4). **Only root 5.1/5.1A base missing; all intermediate deltas captured.**
+
+**OSSERVATO (web)**:
+- `download.renesas.com/eng/mpumcu/upgrades/compilers_and_assemblers/shcv5/` archived as HTML only (shv51b/br1/c/f.html, dr_shv51c.html, index.html); their `object/sh51bup.exe` links were **never captured** (CDX negative). Same 4 updaters as crosstool tree.
+- renesas.com live page still lists "C/C++ Compiler Package for SuperH Family Ver.5.1B/5.1BR1/5.1C/5.1F Upgrade" (Nov 2005, 16.40/4.34/1.02MB/LZH) — login-gated, no direct URLs.
+- `sh51aup.exe` (5.1→5.1A): ZERO captures anywhere (renesas.com, hitachi.co.jp, semicon.hitachi.com all negative). bitsavers.org: SHC software = none (only 1997 HS0700CLCU4S V3-era manual). archive.org: no SHC V5 CD/install images.
+- Sega Saturn Hitachi toolchain (frds.github.io) = SHC **V5.0 Release31** (asmsh/lnk/shc.exe) — older root, NOT a 5.1A base; only a last-resort bootstrapping candidate.
+
+## CAN Subsystem Full Reverse Engineering (2026-09-05, session ae00d360)
+
+IDA session ae00d360, ROM 60E1D400. 46 renames applied, 37 comments added.
+
+### Confirmed Architecture
+- **Two buses**: HS-CAN (CAN0, OBD-II pins 6/14, ECU diagnostics) and MS-CAN (CAN1, pins 3/11, accessories)
+- **Core TX function**: `can_tx_send_frame` (0x9AE4) — all TX pack functions tail-call it with a mailbox config table entry; disables interrupts, resolves mailbox via PFC 0xFFFFE406, writes CAN ID + data via `eeprom_write_verify_bytes`, sets ready bit
+- **Core RX function**: `placeCANRX` (0x99C4) — reads HW mailbox via PFC 0xFFFFE40E/0xFFFFE41A, retries up to 5x, copies via `can_pack_tx_msg_copy`
+- **TX path**: `CANTX_Main` (0xDDF0) → 11 rate-limited pack functions → `can_tx_send_frame`
+- **RX path**: `secondary_system_controller` (0xDE8E, was misnamed `fuel_controller_de8e`) → 7+ RX handlers via `placeCANRX`
+- **CAN→UDS bridge**: `can_msg_parse_4657C` (0x4657C) → `can_to_uds_bridge` (0x60774) → `udsHandler`
+- **CAN init**: `canSetup` (0xDC8C) → `CANControllerSetup` (0x9878) iterates CAN0/CAN1, configures mailbox interrupts, DLC, ID mode
+- **Immo integration**: `immo_state_machine_entry` (0x35D62) reads/writes CAN data at 0xFFFFC238..C23F; sets `[0xA40F]=100` on valid key to enable `CANTX_Main`
+- **Mailbox config tables**: 0x4EA60 (CAN0 TX primary), 0x4EB60 (alternate), 0x4EC60 (CAN1 RX)
+
+### Key Rename: `fuel_controller_de8e` → `secondary_system_controller`
+The function at 0xDE8E was misnamed `fuel_controller_de8e` (legacy label). It is the **CAN RX main dispatcher**, not fuel control. Gate checks: `[0xAAE0]==1`, `[0xB5E8]!=1`, `[0xA410]==0`. Dispatches handlers for CAN IDs 0x212, 0x216, 0x430, 0x4B0, 0x4B1, 0x4C0, 0x47. Falls through to immo state machine.
+
+### Rate Limiter Pattern
+Every TX pack function is gated by a saturated counter at a fixed RAM address. Counter increments each call; pack function fires when counter reaches threshold (2–25). This ensures correct TX periods without a timer interrupt. All counters use `add16bitSaturate_ADD1_ADD2` (0x29A78) which saturates at 0x7FFF.
+
+### CAN IDs Confirmed
+TX: 0x041, 0x201, 0x203, 0x231, 0x240, 0x250, 0x251, 0x420, 0x620, 0x630, 0x650
+RX (CAN1): 0x047, 0x212, 0x216, 0x430, 0x4B0, 0x4B1, 0x4C0
+RX (CAN0): 0x7E0 (UDS request), 0x7DF (OBD broadcast)
+TX (CAN0): 0x7E8 (UDS response)
+
+### Full Report
+`tmp/ida/can_analysis_report.txt` — complete function-by-function map with assembly details, RAM addresses, ROM config tables, register map, and flow traces.
+
+## Consolidamento Reverse-Engineering Completo (2026-09-06, sessione ae00d360)
+
+Onde 1-5 di analisi completate. Tutti i risultati consolidati in `docs/notes/IDA_ANALYSIS.md`.
+
+### Session Gate — catena singola
+- `diag_session_gate_idx` (0xFFFFDE5C) scritto da UNA SOLA catena: `SessionControl` → `fuel_matrix_566ec` → `getSubFunctionMapping` → delay-slot indirect store
+- SecurityAccess NON scrive il gate index; scrive `security_access_level` (0xFFFFD20C) separatamente
+- Reset writer: 0x696D4 (setta gate_idx = 0)
+- Gate mechanism in udsHandler: `gate_mask = 1 << byte@diag_session_gate_idx`
+
+### RAM — 1165 nuovi simboli importati
+- Da `symbols/RAM_VARIABLES.csv`: 1613 indirizzi totali, 1569 importabili, 1165 nuovi import
+- Totale globals in IDA ora: 2028 (range 0xFFFF6000–0xFFFFFFFF)
+- 404 collisioni pre-esistenti preservate, 44 saltati (gap non mappato 0xFFFF0000–0xFFFF5FFF)
+
+### CAN — Due bus, bridge CAN→UDS verificato
+- **Two buses**: HS-CAN (CAN0, OBD-II pins 6/14) e MS-CAN (CAN1, pins 3/11)
+- **Bridge path**: `can_msg_parse_4657C` → `can_to_uds_bridge` (0x60774) → `uds_task_entry` → `udsHandler`
+- TX: 11 ID rate-limited via `can_tx_send_frame` (0x9AE4)
+- RX: 7 handler via `placeCANRX` (0x99C4), retry 5x
+- Init: `canSetup` (0xDC8C) itera CAN0/CAN1 con config tables 0x4EA60/0x4EB60/0x4EC60
+- 46 renames applicati, 37 commenti aggiunti
+
+### RTOS — Cooperativo, 4 priorità
+- **Cooperative (non preemptive)**: task girano fino al completamento
+- **4 priority levels** (0=minimo, 3=massimo)
+- Task queue: 100 entry × 8 byte a 0xFFFFD4E0
+- Context switch: task_context_switch (0x3AD8), task_full_context_save (0x3BF4)
+- 28 funzioni RTOS verificate al 100%
+
+### Seriale — ATU-based, 3 canali
+- **Primary**: ATU-based timer serial (bit-banged, registri 0xFFFFE4xx)
+- **Secondary**: SCI4 (115200/57600, 8N1)
+- **3 logical channels**: ch0 (0x88, OBD), ch1 (0x90, cluster), ch2 (0xC0, body)
+- Frame: `[source][length][payload...]`, sync 0xAA, ACK 0x55
+- Dispatch: direct path (hw) o queue path (0xFFFFDFF0)
+
+### Engine rotario — 141+ funzioni
+- **Position sensing**: eccentric shaft 20-tooth trigger wheel, 43 rotary functions
+- **Ignition**: leading + trailing spark, 28 ignition functions, 4 coils
+- **Fuel injection**: primary + secondary, 50+ functions, 4 injectors
+- **OMP**: Oil Metering Port, stepper waveform driver
+- **10ms cycle**: `main_engine_cycle_10ms` (0x17F1C), OMP ogni 10ms, idle/fuel/exhaust ogni 80ms
+- **Fuel pipeline**: 28 chiamate in sequenza (`main_fuel_control_pipeline_22094`)
+
+### EEPROM — SPI esterno
+- **External SPI EEPROM** (NON on-chip SH-2E)
+- SPI bit-banged via GPIO through CAN controller register space (0xFFFFE4xx)
+- Staging: 256B data + 256B verification inverted copy
+- 16 data categories (security, DTC, config, fuel trim, immobilizer)
+- Wear leveling via counter 0xFFFFCCF8
+- Dimensione stimata: 2-4 KB
+
+### OBD/UDS — Tabella dispatch completata
+- **Dispatch table** a 0x5F57C: 29 record × 12 byte `{SID, handler, flags}`
+- 29 SID handlers tutti nominati e caratterizzati
+- 236 obd_service_handler_* sono leaf/PID sub-handlers, NON dispatch table entries
+- SecurityAccess: seed fixed level 3, key validation via tabella 0x5FAA2
+- SendKey (subfunc 4) è UNREACHABLE in 60E1D400
