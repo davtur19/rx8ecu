@@ -168,28 +168,30 @@ struct can_tx_frame {
 /*  RAM Staging Buffers (filled by TX packers, consumed by can_tx_send_frame) */
 /* ====================================================================== */
 
-/* RAM data buffers for CAN TX frames (from config table buf_ptr fields) */
-#define CAN_TX_BUF_0041    0x01C518
-#define CAN_TX_BUF_0201    0x01BB5C
-#define CAN_TX_BUF_0203    0x01BB78
-#define CAN_TX_BUF_0215    0x01BB9C
-#define CAN_TX_BUF_0231    0x01BB48   /* alternate: 0x01BCC4 */
-#define CAN_TX_BUF_0420    0x01BB0C
-#define CAN_TX_BUF_0620    0x01C054
-#define CAN_TX_BUF_0630    0x01C044
-#define CAN_TX_BUF_0650    0x01BC68
-#define CAN_TX_BUF_0240    0x01CEA4
-#define CAN_TX_BUF_0250    0x01CEB8
-#define CAN_TX_BUF_04B1    0x01CE90
-#define CAN_TX_BUF_07E8    0x0DE0C
+/* RAM data buffers for CAN TX frames (0xFFFFxxxx RAM addresses) */
+#define CAN_TX_BUF_0041    0xFFFFC518   /* ROM:0x39348 staging buffer */
+#define CAN_TX_BUF_0201    0xFFFFBB5C   /* ROM:0x2A004 staging buffer */
+#define CAN_TX_BUF_0203    0xFFFFBB78   /* ROM:0x2A274 staging buffer */
+#define CAN_TX_BUF_0215    0xFFFFBB9C   /* ROM:0x2A242 staging buffer */
+#define CAN_TX_BUF_0231    0xFFFFBCC4   /* ROM:0x2D434 staging buffer */
+#define CAN_TX_BUF_0251    0xFFFFBB9C   /* ROM:0x2AAE8 staging buffer */
+#define CAN_TX_BUF_0420    0xFFFFBB0C   /* ROM:0x29A0C staging buffer */
+#define CAN_TX_BUF_0620    0xFFFFC054   /* ROM:0x33A68 staging buffer */
+#define CAN_TX_BUF_0630    0xFFFFC044   /* ROM:0x33974 staging buffer */
+#define CAN_TX_BUF_0650    0xFFFFBC68   /* ROM:0x2C838 staging buffer */
+#define CAN_TX_BUF_0240    0xFFFFCEA4   /* ROM:0x4C888 staging buffer */
+#define CAN_TX_BUF_0250    0xFFFFCEB8   /* ROM:0x4C984 staging buffer */
+#define CAN_TX_BUF_04B1    0xFFFFCE90   /* ROM:0x4C78C staging buffer */
+#define CAN_TX_BUF_07E8    0x0DE0C      /* UDS response buffer */
 
-/* RAM data buffers for CAN RX frames */
-#define CAN_RX_BUF_0212    0x01BC28
-#define CAN_RX_BUF_0216    0x01BB20
-#define CAN_RX_BUF_0430    0x01C060
-#define CAN_RX_BUF_04B0    0x01BC08
-#define CAN_RX_BUF_04C0    0x01BC64
-#define CAN_RX_BUF_0047    0x01C520
+/* RAM data buffers for CAN RX frames (0xFFFFxxxx RAM addresses) */
+#define CAN_RX_BUF_0047    0xFFFFC520   /* ROM:0x3939C KCM/immobiliser RX */
+#define CAN_RX_BUF_0212    0xFFFFBC28   /* ROM:0x2C0C4 ABS/DSC/brake RX */
+#define CAN_RX_BUF_0216    0xFFFFBB20   /* ROM timeout counter */
+#define CAN_RX_BUF_0430    0xFFFFC060   /* ROM:0x33BA0 cluster RX */
+#define CAN_RX_BUF_04B0    0xFFFFBC08   /* ROM:0x2BE6E wheel speeds RX */
+#define CAN_RX_BUF_04C0    0xFFFFBC64   /* ROM:0x2C780 short msg RX */
+#define CAN_RX_BUF_04B1    0xFFFFCE90   /* ROM:0x4C78C DSC request RX */
 
 /* ====================================================================== */
 /*  Rate Limiter Counters (RAM)                                           */

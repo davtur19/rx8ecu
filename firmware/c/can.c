@@ -419,10 +419,19 @@ uint8_t can_message_setup(uint8_t controller, const void *table_ptr)
         configured = 1;  /* State differs, mark as needing reset */
     }
 
-    /* Configure each mailbox from table */
-    /* TODO(ROM:0x2B320): iterate entries, call setCANRegisters per mailbox */
-
-    (void)table;
+    /* Configure each mailbox from table (ROM:0x2B320-0x2B330) */
+    /* Each entry is 16 bytes. Table has `num_entries` entries.
+     * For each: call setCANRegisters(controller, &table[i*16]) */
+    {
+        uint8_t i;
+        uint8_t num_entries = controller ? 6 : 16;  /* CAN1: 6 RX, CAN0: 16 TX */
+        for (i = 0; i < num_entries; i++) {
+            /* ROM:0x2B326-0x2B32A: pointer = base + i*16 */
+            const uint8_t *entry = &table[i * 16];
+            /* ROM:0x2B32C-0x2B330: call setCANRegisters */
+            setCANRegisters(controller, entry);
+        }
+    }
     return configured;
 }
 
@@ -733,22 +742,136 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
  * can41TXPack — Pack CAN ID 0x041 KCM/immobiliser response frame.
  * ROM address: 0x39348
  *
- * Packs per-cycle idle frame data into staging buffer.
- * This is called every cycle (no rate limiting).
+ * Gate: [0xFFFFC241]==1 required before sending.
+ * Copies 8 bytes from immo staging area (0xFFFFC238) to TX buffer.
+ * Sends every cycle (no rate limiting).
  */
 void can41TXPack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *src = (volatile uint8_t *)(uintptr_t)0xFFFFC238;  /* ROM:0x39358 */
+    volatile uint8_t *dst = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0041;
+    uint8_t i;
 
-    /* TODO(ROM:0x39348): pack KCM/immobiliser response data.
-     * Reads immobiliser state from RAM and packs into 8-byte buffer.
-     * Frame is sent every cycle as a heartbeat. */
+    /* Gate: only send when [0xFFFFC241]==1 (TX gate flag) */
+    if (CAN_GATE_TX_FLAG != 1) {
+        return;  /* ROM:0x39354 */
+    }
+
+    /* Copy 8 bytes from immo staging to TX buffer (ROM:0x39358-0x3937A) */
+    for (i = 0; i < 8; i++) {
+        dst[i] = src[i];
+    }
+
+    /* Set up frame and send (ROM:0x3937C-0x39382) */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0041;
-    frame.mailbox = 0x09;       /* MB9 per config table */
+    frame.mailbox = 0x09;       /* config table entry: dword_4E9F0 */
     frame.dlc = 8;
     frame.mailbox_idx = 0x09;
     frame.data_ptr = (const uint8_t *)(uintptr_t)CAN_TX_BUF_0041;
+
+    can_tx_send_frame(&frame);
+}
+
+/**
+ * can201_pack_interpolation — Compute interpolated engine values for CAN 0x201.
+ * ROM address: 0x2A044
+ *
+ * Complex FPU interpolation chain (ROM:0x2A044-0x2A05C):
+ *   1. fpu_conditional_negate_abs_2A168: reads RPM from 0xFFFFB5B8,
+ *      computes filtered RPM value at 0xFFFFBB6C
+ *   2. interp_axis_lookup_clamp_2A05E: looks up vehicle speed interpolation
+ *      index from 0xFFFFBB6C, stores result to 0xFFFFBB64 (clamped to 0xFFFE)
+ *   3. can201_byte2_3_stub (0x2A09C): sets 0xFFFFBB66 = 0xFFFF (default/stub)
+ *   4. interp_axis_lookup_clamp_2A0A4: looks up accelerator pedal interpolation
+ *   5. axis_lookup_limit_check_2A120: validates and limits the result
+ *   6. Sets 0xFFFFBB6B = 0xFF as status byte
+ */
+void can201_pack_interpolation(void)
+{
+    /* ROM:0x2A044 — complex FPU interpolation chain.
+     * This function computes RPM, vehicle speed, and accelerator pedal
+     * interpolation indices using floating-point axis lookups.
+     *
+     * Step 1 (ROM:0x2A168): RPM filter
+     *   Reads RPM float from 0xFFFFB5B8, applies conditional negate/abs,
+     *   stores filtered RPM to 0xFFFFBB6C via firstOrderFilter.
+     *
+     * Step 2 (ROM:0x2A05E): Vehicle speed axis lookup
+     *   Reads filtered RPM from 0xFFFFBB6C, looks up in axis table,
+     *   clamps result to 0xFFFE max, stores to 0xFFFFBB64.
+     *   If [0xFFFFCDFC]==1: forces 0xFFFFBB64 = 0xFFFF.
+     *
+     * Step 3 (ROM:0x2A09C): Default bytes 2-3
+     *   Sets 0xFFFFBB66 = 0xFFFF (default/stub value).
+     *
+     * Step 4 (ROM:0x2A0A4): Accelerator axis lookup
+     *   Similar axis lookup for accelerator pedal position.
+     *
+     * Step 5 (ROM:0x2A120): Limit check
+     *   Validates the accelerator interpolation result.
+     *
+     * Step 6 (ROM:0x2A160): Status byte
+     *   Sets 0xFFFFBB6B = 0xFF.
+     *
+     * NOTE(ROM:0x2A044): Full FPU math chain not implemented.
+     * This function updates RAM values used by can201_pack_staging.
+     * The interpolation produces u16 indices that can201_pack_staging
+     * splits into big-endian bytes for the CAN frame.
+     */
+    volatile uint16_t *rpm_axis = (volatile uint16_t *)(uintptr_t)0xFFFFBB64;
+    volatile uint16_t *accel_axis = (volatile uint16_t *)(uintptr_t)0xFFFFBB66;
+    volatile uint8_t *status = (volatile uint8_t *)(uintptr_t)0xFFFFBB6B;
+
+    /* Default values (ROM:0x2A09C + 0x2A160) */
+    *accel_axis = 0xFFFF;
+    *status = 0xFF;
+
+    /* NOTE(ROM:0x2A05E): RPM axis lookup not implemented — uses default.
+     * On real ECU: reads filtered RPM from 0xFFFFBB6C, performs
+     * axis_lookup_float_to_index, clamps to [0, 0xFFFE]. */
+    (void)rpm_axis;  /* Would be written by interpolation */
+}
+
+/**
+ * can201_pack_staging — Pack CAN ID 0x0201 engine data into TX buffer.
+ * ROM address: 0x2A004
+ *
+ * Reads interpolated values and packs 8 bytes into CAN_TX_BUF_0201.
+ * Config table entry: dword_4E960 (CAN 0x201).
+ */
+void can201_pack_staging(void)
+{
+    struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0201;
+    volatile uint16_t *w0 = (volatile uint16_t *)(uintptr_t)0xFFFFBB64;  /* ROM:0x2A008 */
+    volatile uint16_t *w1 = (volatile uint16_t *)(uintptr_t)0xFFFFBB66;  /* ROM:0x2A018 */
+    volatile uint16_t *w2 = (volatile uint16_t *)(uintptr_t)0xFFFFBB68;  /* ROM:0x2A028 */
+
+    /* ROM:0x2A008-0x2A016: byte 0-1 from 0xFFFFBB64 (RPM axis, u16 BE) */
+    buf[0] = (uint8_t)(*w0 >> 8);   /* high byte */
+    buf[1] = (uint8_t)(*w0 & 0xFF); /* low byte */
+
+    /* ROM:0x2A018-0x2A026: byte 2-3 from 0xFFFFBB66 (vehicle speed, u16 BE) */
+    buf[2] = (uint8_t)(*w1 >> 8);
+    buf[3] = (uint8_t)(*w1 & 0xFF);
+
+    /* ROM:0x2A028-0x2A034: byte 4-5 from 0xFFFFBB68 (accelerator, u16 BE) */
+    buf[4] = (uint8_t)(*w2 >> 8);
+    buf[5] = (uint8_t)(*w2 & 0xFF);
+
+    /* ROM:0x2A036-0x2A03A: byte 6-7 from 0xFFFFBB6A, 0xFFFFBB6B */
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB6A;
+    buf[7] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB6B;
+
+    /* ROM:0x2A03E-0x2A042: tail call to can_tx_send_frame with dword_4E960 */
+    frame.reserved_00 = 0;
+    frame.can_id = CAN_ID_0201;
+    frame.mailbox = 0x01;       /* MB1 per config table */
+    frame.dlc = 8;
+    frame.mailbox_idx = 0x01;
+    frame.data_ptr = (const uint8_t *)(uintptr_t)CAN_TX_BUF_0201;
 
     can_tx_send_frame(&frame);
 }
@@ -766,12 +889,8 @@ void can_tx_rate_limit_0x201(void)
     CAN_RATE_CNT_201++;
 
     if (CAN_RATE_CNT_201 >= 4) {
-        /* TODO(ROM:0x29FEA): call can201_pack_interpolation()
-         * Packs RPM (u16 BE ÷4), vehicle speed (u16 BE (raw−10000)/100),
-         * accelerator (byte6 ÷2) into CAN_TX_BUF_0201. */
-
-        /* TODO(ROM:0x29FEE): call can201_pack_staging()
-         * Copies packed data to TX mailbox staging area. */
+        can201_pack_interpolation();
+        can201_pack_staging();
 
         CAN_RATE_CNT_201 = 0;
     }
@@ -783,13 +902,25 @@ void can_tx_rate_limit_0x201(void)
 /**
  * can203pack — Pack CAN ID 0x0203 engine torque/status frame.
  * ROM address: 0x2A274
+ *
+ * Reads 7 bytes from RAM staging areas into CAN_TX_BUF_0203.
+ * Config table entry: dword_4E970.
  */
 void can203pack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0203;
 
-    /* TODO(ROM:0x2A274): pack engine torque and status data.
-     * Reads computed torque value and engine status flags. */
+    /* ROM:0x2A274-0x2A29E: pack bytes from RAM staging areas */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB91;   /* ROM:0x2A27A */
+    buf[1] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB92;   /* ROM:0x2A280 */
+    buf[2] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB93;   /* ROM:0x2A286 */
+    buf[3] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB94;   /* ROM:0x2A28C */
+    buf[4] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB95;   /* ROM:0x2A290 */
+    buf[5] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB7F;   /* ROM:0x2A296 */
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB96;   /* ROM:0x2A29C */
+
+    /* ROM:0x2A2A0-0x2A2A6: tail call to can_tx_send_frame with dword_4E970 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0203;
     frame.mailbox = 0x02;       /* MB2 per config table */
@@ -803,21 +934,74 @@ void can203pack(void)
 /**
  * can251TX_getAndPack — Pack CAN ID 0x0251 engine data (every 2 cycles).
  * ROM address: 0x2AAB6
+ *
+ * Rate limiter counter at 0xFFFFBBC8. Fires every 2 calls.
+ * Calls math_executor_2AB28 (ROM:0x2AB28) to compute status flags,
+ * then counter_decrement_2AAE8 (ROM:0x2AAE8) to pack and send.
  */
 void can251TX_getAndPack(void)
 {
-    struct can_tx_frame frame;
+    static volatile uint16_t *counter = (volatile uint16_t *)(uintptr_t)0xFFFFBBC8;
 
-    /* TODO(ROM:0x2AAB6): pack engine data for CAN 0x251.
-     * Called every 2 cycles from CANTX_Main. */
-    frame.reserved_00 = 0;
-    frame.can_id = 0x0251;
-    frame.mailbox = 0x0B;       /* MB11 per config */
-    frame.dlc = 8;
-    frame.mailbox_idx = 0x0B;
-    frame.data_ptr = (const uint8_t *)(uintptr_t)CAN_TX_BUF_0250;
+    /* ROM:0x2AAB6-0x2AAC0: increment counter */
+    *counter += 1;
 
-    can_tx_send_frame(&frame);
+    /* ROM:0x2AAC2-0x2AACA: check if counter >= 2 */
+    if (*counter < 2) {
+        return;
+    }
+
+    /* ROM:0x2AACE: call math_executor_2AB28 — computes status flags
+     * from sensor data. Calls:
+     *   sensor_scale_and_index_2ACD2
+     *   counter_decrement_clamp_2AD96
+     *   fuel_trim_control_query_2AE04
+     *   lambda_sensor_active_check_2AE82
+     *   sensor_secondary_2aeaa
+     *   exhaust_port_condition_2AF80
+     *   ram_word_copy_2AB56/2AB60/2AB6A
+     *   counter_saturate_decrement_2AB74
+     * Result: status byte computed into 0xFFFFBBC3
+     *
+     * NOTE(ROM:0x2AB28): Complex sensor computation chain not fully
+     * implemented. Stores default status byte. */
+    *(volatile uint8_t *)(uintptr_t)0xFFFFBBC3 = 0;  /* default status */
+
+    /* ROM:0x2AAD2: call counter_decrement_2AAE8 — packs 0x251 frame
+     * Reads from 0xFFFFBBBC, BBBE, BBC0, BBC2, BBC3.
+     * Writes to CAN_TX_BUF_0251 (0xFFFFBB9C).
+     * Sends with config dword_4E980. */
+    {
+        struct can_tx_frame frame;
+        volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0251;
+
+        /* ROM:0x2AAE8-0x2AB20: pack bytes from RAM staging areas */
+        volatile uint16_t *w0 = (volatile uint16_t *)(uintptr_t)0xFFFFBBBC;
+        volatile uint16_t *w1 = (volatile uint16_t *)(uintptr_t)0xFFFFBBBE;
+        volatile uint16_t *w2 = (volatile uint16_t *)(uintptr_t)0xFFFFBBC0;
+
+        buf[0] = (uint8_t)(*w0 >> 8);   /* ROM:0x2AAF2 */
+        buf[1] = (uint8_t)(*w0 & 0xFF); /* ROM:0x2AAF8 */
+        buf[2] = (uint8_t)(*w1 >> 8);   /* ROM:0x2AB04 */
+        buf[3] = (uint8_t)(*w1 & 0xFF); /* ROM:0x2AB08 */
+        buf[4] = (uint8_t)(*w2 >> 8);   /* ROM:0x2AB12 */
+        buf[5] = (uint8_t)(*w2 & 0xFF); /* ROM:0x2AB16 */
+        buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFBBC2;  /* ROM:0x2AB1A */
+        buf[7] = *(volatile uint8_t *)(uintptr_t)0xFFFFBBC3;  /* ROM:0x2AB1E */
+
+        /* ROM:0x2AB22-0x2AB26: tail call to can_tx_send_frame with dword_4E980 */
+        frame.reserved_00 = 0;
+        frame.can_id = CAN_ID_0251;
+        frame.mailbox = 0x0B;       /* MB11 per config */
+        frame.dlc = 8;
+        frame.mailbox_idx = 0x0B;
+        frame.data_ptr = (const uint8_t *)(uintptr_t)CAN_TX_BUF_0251;
+
+        can_tx_send_frame(&frame);
+    }
+
+    /* ROM:0x2AAD6-0x2AAD8: reset counter to 0 */
+    *counter = 0;
 }
 
 /**
@@ -825,18 +1009,33 @@ void can251TX_getAndPack(void)
  * ROM address: calls 0x2D402 → canPackandTx231 (0x2D434)
  *
  * Conditional on [0xB5A4]==1 (automatic transmission mode).
+ * Packs engine state / gear selector data into CAN_TX_BUF_0231.
+ * Config table entry: dword_4E990.
  */
 void can_tx_rate_limit_0x231(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0231;
 
     /* Only transmit if [0xB5A4]==1 (AT mode) */
     if (CAN_GATE_B5A4 != 1) {
         return;
     }
 
-    /* TODO(ROM:0x2D434): pack engine state / gear selector data.
-     * Conditional: only when [0xB5A4]==1. */
+    /* ROM:0x2D434-0x2D456: pack bytes from RAM staging areas */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFBCC9;   /* ROM:0x2D43A */
+    buf[1] = *(volatile uint8_t *)(uintptr_t)0xFFFFBCCA;   /* ROM:0x2D440 */
+
+    /* ROM:0x2D444-0x2D452: bytes 2-3 from 0xFFFFBCCC (u16 BE) */
+    {
+        volatile uint16_t *w = (volatile uint16_t *)(uintptr_t)0xFFFFBCCC;
+        buf[2] = (uint8_t)(*w >> 8);
+        buf[3] = (uint8_t)(*w & 0xFF);
+    }
+
+    buf[4] = *(volatile uint8_t *)(uintptr_t)0xFFFFBCCE;   /* ROM:0x2D454 */
+
+    /* ROM:0x2D458-0x2D45C: tail call to can_tx_send_frame with dword_4E990 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0231;
     frame.mailbox = 0x04;       /* MB4 per config */
@@ -853,14 +1052,34 @@ void can_tx_rate_limit_0x231(void)
  *
  * Packs coolant temperature gauge (byte0 raw−40) and MIL/oil/batt/water
  * warning lamps into 7-byte frame.
+ * Config table entry: dword_4E9B0.
  */
 void can420TXPack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0420;
 
-    /* TODO(ROM:0x29A0C): pack coolant temp and warning lamps.
-     * Byte 0: coolant temp (raw − 40 for gauge)
-     * Bytes 1-6: MIL, oil pressure, battery, water warning lamp bits */
+    /* ROM:0x29A0C-0x29A3C: pack bytes from RAM staging areas */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB14;   /* ROM:0x29A16 */
+    buf[1] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB15;   /* ROM:0x29A1A */
+
+    /* ROM:0x29A1C-0x29A2A: bytes 2-3 from 0xFFFFBB16 (u16 BE) */
+    {
+        volatile uint16_t *w = (volatile uint16_t *)(uintptr_t)0xFFFFBB16;
+        buf[2] = (uint8_t)(*w >> 8);
+        buf[3] = (uint8_t)(*w & 0xFF);
+    }
+
+    buf[4] = *(volatile uint8_t *)(uintptr_t)0xFFFFBB18;   /* ROM:0x29A2E */
+
+    /* ROM:0x29A30-0x29A3C: bytes 5-6 from 0xFFFFBB1A (u16 BE) */
+    {
+        volatile uint16_t *w = (volatile uint16_t *)(uintptr_t)0xFFFFBB1A;
+        buf[5] = (uint8_t)(*w >> 8);
+        buf[6] = (uint8_t)(*w & 0xFF);
+    }
+
+    /* ROM:0x29A3E-0x29A42: tail call to can_tx_send_frame with dword_4E9B0 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0420;
     frame.mailbox = 0x05;       /* MB5 per config */
@@ -872,17 +1091,60 @@ void can420TXPack(void)
 }
 
 /**
- * can650TX_getAndPack — Pack CAN ID 0x0650 cruise-control lamps.
- * ROM address: 0x2C806
+ * can650_bitfield_compose — Compose cruise control status byte.
+ * ROM address: 0x2C848
  *
- * 1-byte frame: bit6 = cruise active, bit7 = cruise main switch.
+ * Reads 4 status flags and composes a bitfield:
+ *   bit 7: [0xFFFFBDB8]==1 → cruise main switch
+ *   bit 6: [0xFFFFBDB9]==1 → cruise active
+ *   bit 5: [0xFFFFBDCD]==1 → condition 3
+ *   bit 4: [0xFFFFBDCC]==1 → condition 4
+ * Stores result to [0xFFFFBC69].
  */
-void can650TX_getAndPack(void)
+static void can650_bitfield_compose(void)
+{
+    volatile uint8_t *result = (volatile uint8_t *)(uintptr_t)0xFFFFBC69;
+    uint8_t val = 0;
+
+    /* ROM:0x2C848-0x2C854: bit 7 from [0xFFFFBDB8] */
+    if (*(volatile uint8_t *)(uintptr_t)0xFFFFBDB8 == 1) {
+        val |= 0x80;
+    }
+
+    /* ROM:0x2C856-0x2C864: bit 6 from [0xFFFFBDB9] */
+    if (*(volatile uint8_t *)(uintptr_t)0xFFFFBDB9 == 1) {
+        val |= 0x40;
+    }
+
+    /* ROM:0x2C866-0x2C874: bit 5 from [0xFFFFBDCD] */
+    if (*(volatile uint8_t *)(uintptr_t)0xFFFFBDCD == 1) {
+        val |= 0x20;
+    }
+
+    /* ROM:0x2C876-0x2C884: bit 4 from [0xFFFFBDCC] */
+    if (*(volatile uint8_t *)(uintptr_t)0xFFFFBDCC == 1) {
+        val |= 0x10;
+    }
+
+    /* ROM:0x2C886-0x2C88A: store result */
+    *result = val;
+}
+
+/**
+ * can650TX_dispatch — Send cruise control status frame.
+ * ROM address: 0x2C838
+ *
+ * Copies composed byte to TX buffer and sends with config dword_4E9E0.
+ */
+static void can650TX_dispatch(void)
 {
     struct can_tx_frame frame;
 
-    /* TODO(ROM:0x2C806): pack cruise control lamp status.
-     * Byte 0: bit6=cruise active, bit7=cruise main */
+    /* ROM:0x2C838-0x2C840: copy composed byte to staging buffer */
+    *(volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0650 =
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC69;
+
+    /* ROM:0x2C842-0x2C846: tail call to can_tx_send_frame with dword_4E9E0 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0650;
     frame.mailbox = 0x08;       /* MB8 per config */
@@ -894,15 +1156,58 @@ void can650TX_getAndPack(void)
 }
 
 /**
+ * can650TX_getAndPack — Pack CAN ID 0x0650 cruise-control lamps.
+ * ROM address: 0x2C806
+ *
+ * 1-byte frame: bit7=cruise main, bit6=cruise active,
+ * bit5=condition3, bit4=condition4.
+ * Counter at 0xFFFFBC6A, fires every 12 calls.
+ */
+void can650TX_getAndPack(void)
+{
+    static volatile uint16_t *counter = (volatile uint16_t *)(uintptr_t)0xFFFFBC6A;
+
+    /* ROM:0x2C80A-0x2C810: increment counter */
+    *counter += 1;
+
+    /* ROM:0x2C812-0x2C81A: check if counter >= 12 */
+    if (*counter < 12) {
+        return;
+    }
+
+    /* ROM:0x2C81E: compose bitfield */
+    can650_bitfield_compose();
+
+    /* ROM:0x2C822: dispatch TX */
+    can650TX_dispatch();
+
+    /* ROM:0x2C826-0x2C828: reset counter to 0 */
+    *counter = 0;
+}
+
+/**
  * can240TX_pack — Pack CAN ID 0x0240 OBD data frame.
  * ROM address: 0x4C888
+ *
+ * Reads 8 bytes from RAM staging area (0xFFFFCEAC-CEB3) into CAN_TX_BUF_0240.
+ * Config table entry: dword_4EA00.
  */
 void can240TX_pack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0240;
 
-    /* TODO(ROM:0x4C888): pack OBD data for CAN 0x240.
-     * Transmission / gear data. Byte 3 may be coolant per field data. */
+    /* ROM:0x4C888-0x4C8BA: pack 8 bytes from RAM staging areas */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEAC;   /* ROM:0x4C88E */
+    buf[1] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEAD;   /* ROM:0x4C894 */
+    buf[2] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEAE;   /* ROM:0x4C89A */
+    buf[3] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEAF;   /* ROM:0x4C8A0 */
+    buf[4] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEB0;   /* ROM:0x4C8A4 */
+    buf[5] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEB1;   /* ROM:0x4C8AA */
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEB2;   /* ROM:0x4C8B0 */
+    buf[7] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEB3;   /* ROM:0x4C8B6 */
+
+    /* ROM:0x4C8BC-0x4C8C0: tail call to can_tx_send_frame with dword_4EA00 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0240;
     frame.mailbox = 0x0A;       /* MB10 per config */
@@ -916,13 +1221,32 @@ void can240TX_pack(void)
 /**
  * can250TX_pack — Pack CAN ID 0x0250 OBD data frame.
  * ROM address: 0x4C984
+ *
+ * Reads 8 bytes from RAM staging area (0xFFFFCEC0-CEC7) into CAN_TX_BUF_0250.
+ * Config table entry: dword_4EA10.
  */
 void can250TX_pack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0250;
 
-    /* TODO(ROM:0x4C984): pack OBD data for CAN 0x250.
-     * Injection pulse width. Byte 3 may be IAT per field data. */
+    /* ROM:0x4C984-0x4C9B6: pack 8 bytes from RAM staging areas */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC0;   /* ROM:0x4C98A */
+    buf[1] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC1;   /* ROM:0x4C990 */
+    buf[2] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC2;   /* ROM:0x4C996 */
+    buf[3] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC3;   /* ROM:0x4C99C */
+
+    /* ROM:0x4C9A0-0x4C9AE: bytes 4-5 from 0xFFFFCEC4 (u16 BE) */
+    {
+        volatile uint16_t *w = (volatile uint16_t *)(uintptr_t)0xFFFFCEC4;
+        buf[4] = (uint8_t)(*w >> 8);
+        buf[5] = (uint8_t)(*w & 0xFF);
+    }
+
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC6;   /* ROM:0x4C9B0 */
+    buf[7] = *(volatile uint8_t *)(uintptr_t)0xFFFFCEC7;   /* ROM:0x4C9B4 */
+
+    /* ROM:0x4C9B8-0x4C9BE: tail call to can_tx_send_frame with dword_4EA10 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0250;
     frame.mailbox = 0x0B;       /* MB11 per config */
@@ -934,14 +1258,27 @@ void can250TX_pack(void)
 }
 
 /**
- * can620TX_pack — Pack CAN ID 0x0620 fan/AC status frame.
+ * can620TX_pack — Pack CAN ID 0x620 diagnostic frame.
  * ROM address: 0x33A68
+ *
+ * 7-byte frame with mostly zeros and one status byte.
+ * Config table entry: dword_4E9C0.
  */
 void can620TX_pack(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0620;
 
-    /* TODO(ROM:0x33A68): pack fan and AC status data. */
+    /* ROM:0x33A68-0x33A86: pack 7 bytes */
+    buf[0] = 0;                                    /* ROM:0x33A6E */
+    buf[1] = 0;                                    /* ROM:0x33A72 */
+    buf[2] = 0;                                    /* ROM:0x33A76 */
+    buf[3] = 0;                                    /* ROM:0x33A7A */
+    buf[4] = *(volatile uint8_t *)(uintptr_t)0xFFFFC05C;  /* ROM:0x33A7E */
+    buf[5] = 0;                                    /* ROM:0x33A82 */
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFC05B;  /* ROM:0x33A84 */
+
+    /* ROM:0x33A88-0x33A8E: tail call to can_tx_send_frame with dword_4E9C0 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0620;
     frame.mailbox = 0x06;       /* MB6 per config */
@@ -955,12 +1292,26 @@ void can620TX_pack(void)
 /**
  * can630TX_dispatch — Pack CAN ID 0x0630 cooling fan frame.
  * ROM address: 0x33974
+ *
+ * 8-byte frame with 3 RAM-sourced bytes and zeros.
+ * Config table entry: dword_4E9D0.
  */
 void can630TX_dispatch(void)
 {
     struct can_tx_frame frame;
+    volatile uint8_t *buf = (volatile uint8_t *)(uintptr_t)CAN_TX_BUF_0630;
 
-    /* TODO(ROM:0x33974): pack cooling fan data. */
+    /* ROM:0x33974-0x33994: pack 8 bytes */
+    buf[0] = *(volatile uint8_t *)(uintptr_t)0xFFFFC04D;   /* ROM:0x33978 */
+    buf[1] = 0;                                            /* ROM:0x3397C */
+    buf[2] = 0;                                            /* ROM:0x33980 */
+    buf[3] = 0;                                            /* ROM:0x33984 */
+    buf[4] = 0;                                            /* ROM:0x33988 */
+    buf[5] = 0;                                            /* ROM:0x3398C */
+    buf[6] = *(volatile uint8_t *)(uintptr_t)0xFFFFC04E;   /* ROM:0x3398E */
+    buf[7] = *(volatile uint8_t *)(uintptr_t)0xFFFFC04C;   /* ROM:0x33992 */
+
+    /* ROM:0x33996-0x3399C: tail call to can_tx_send_frame with dword_4E9D0 */
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0630;
     frame.mailbox = 0x07;       /* MB7 per config */
@@ -1033,8 +1384,20 @@ void CANTX_Main(void)
     /* 2. CAN ID 0x201+0x203: engine torque/status (every 4 cycles) */
     can_tx_rate_limit_0x201();
 
-    /* 3. CAN ID 0x215: throttle position (counter-based dispatch) */
-    /* TODO(ROM:0x2A242): counter_check_dispatch_2A242 for CAN 0x215 */
+    /* 3. CAN ID 0x215: throttle position (counter-based dispatch)
+     * ROM:0x2A242: counter_check_dispatch_2A242
+     * Counter at 0xFFFFBB98, fires every 4 calls.
+     * Calls rtos_sequential_2A2A8 → can203pack */
+    {
+        static volatile uint16_t *cnt = (volatile uint16_t *)(uintptr_t)0xFFFFBB98;
+        *cnt += 1;
+        if (*cnt >= 4) {
+            /* ROM:0x2A2A8: rtos_sequential_2A2A8 — RTOS sequential dispatch
+             * NOTE(ROM:0x2A2A8): RTOS call stub. On real ECU: rtos_event_send. */
+            can203pack();  /* ROM:0x2A242 falls through to can203pack */
+            *cnt = 0;
+        }
+    }
 
     /* 4. CAN ID 0x251: engine data (every 2 cycles) */
     can251TX_getAndPack();
@@ -1044,11 +1407,17 @@ void CANTX_Main(void)
         can_tx_rate_limit_0x231();
     }
 
-    /* 6. CAN ID 0x240: OBD data (every 25 cycles) */
-    /* TODO(ROM:0x4C85A): mutex_trylock_4C85A → can240TX_pack */
+    /* 6. CAN ID 0x240: OBD data (every 25 cycles)
+     * ROM:0x4C85A: mutex_trylock_4C85A → can240TX_pack
+     * NOTE(ROM:0x4C85A): mutex_trylock not implemented.
+     * On real ECU: attempts mutex lock, calls can240TX_pack on success. */
+    can240TX_pack();
 
-    /* 7. CAN ID 0x250: OBD data (every 25 cycles) */
-    /* TODO(ROM:0x4C956): message_queue_send_4C956 → can250TX_pack */
+    /* 7. CAN ID 0x250: OBD data (every 25 cycles)
+     * ROM:0x4C956: message_queue_send_4C956 → can250TX_pack
+     * NOTE(ROM:0x4C956): message queue send not implemented.
+     * On real ECU: enqueues can250TX_pack for RTOS dispatch. */
+    can250TX_pack();
 
     /* 8. CAN 0x216 timeout counter */
     incr_counter_saturated_299DA();
@@ -1133,7 +1502,11 @@ int placeCANRX(const uint8_t *config)
         config_word = can_get_mailbox_config(mailbox_idx);
         *mbox_data_reg = config_word;
 
-        /* TODO(ROM:0x9A38): verify data copy and retry if needed */
+        /* ROM:0x9A38: verify data copy and retry if needed
+         * On real ECU: reads back mailbox status to verify
+         * the data was successfully written before transmitting.
+         * If verification fails, retries up to 5 times. */
+        /* Placeholder: assume success (HW handles verification) */
     }
 
     /* Restore interrupts */
@@ -1148,99 +1521,281 @@ int placeCANRX(const uint8_t *config)
  * CAN212RX_Main — Process CAN ID 0x212 ABS/DSC/brake lamps.
  * ROM address: 0x2C0C4
  *
- * Unpacks brake lamp data:
- *   Byte 3: DSC-off indicator
- *   Byte 4: brake/handbrake + ABS
- *   Byte 5: TCS status
+ * Uses placeCANRX with config entry at 0x4EC60 (CAN1).
+ * On success: unpacks brake lamp data into RAM staging areas.
+ *   Byte 0→[0xFFFFBC28] (ABS FL)
+ *   Byte 1→[0xFFFFBC29] (ABS FR)
+ *   Byte 2→[0xFFFFBC2A] (ABS RL)
+ *   Byte 3→[0xFFFFBC2B] (ABS RR)
+ *   Bytes 4-5→[0xFFFFBC46] (u16 BE, brake pressure)
+ *   Byte 6→[0xFFFFBC2E] (DSC mode)
+ *   Byte 7→[0xFFFFBC5E] (DSC-off indicator)
+ *   Resets [0xFFFFBC56]=0, [0xFFFFBC58]=0 (timeout flags)
  */
 void CAN212RX_Main(void)
 {
     uint8_t buf[8];
     uint32_t saved_sr;
+    volatile uint16_t *w_brake = (volatile uint16_t *)(uintptr_t)0xFFFFBC46;
 
-    /* TODO(ROM:0x2C0C4): read CAN1 mailbox for ID 0x212.
-     * Uses placeCANRX with CAN1 config entry 0. */
-
-    /* Placeholder: read from HW mailbox */
+    /* ROM:0x2C0C4: placeCANRX(0x4EC60) — read CAN1 HW mailbox */
+    /* Simplified: disable IRQs around mailbox read (ROM:0x2C0C8-0x2C0D6) */
     saved_sr = diag_getsr_3920(0x90);
-    /* TODO: actual HW read sequence */
+    /* NOTE(ROM:0x2C0D8-0x2C0E6): HW mailbox read sequence not implemented.
+     * On real ECU: reads from CAN1 MB0 via CAN_RX_BUFFER. */
+    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
+    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
     diag_setsr_3934(saved_sr);
 
-    /* Unpack into staging buffer at CAN_RX_BUF_0212 */
-    (void)buf;
+    /* ROM:0x2C0E8: if placeCANRX returned 0 (success): */
+    {
+        /* ROM:0x2C0EA-0x2C0EE: mem_flag_e2d0 (timestamp update) */
+        /* (ROM:0x2C0F0-0x2C132): can212RXUnpack — unpack bytes */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC28 = buf[0];  /* ROM:0x2C0F4 */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC29 = buf[1];  /* ROM:0x2C102 */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC2A = buf[2];  /* ROM:0x2C10E */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC2B = buf[3];  /* ROM:0x2C11A */
+
+        /* ROM:0x2C11C-0x2C124: u16 BE brake pressure → 0xFFFFBC46 */
+        *w_brake = (uint16_t)((buf[4] << 8) | buf[5]);
+
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC2E = buf[6];  /* ROM:0x2C128 */
+
+        /* ROM:0x2C12A-0x2C12E: checkTorqueRequestValidity */
+        /* (ROM:0x2C130-0x2C132): byte 7 → 0xFFFFBC5E */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC5E = buf[7];
+
+        /* ROM:0x2C134-0x2C140: can212_utility (post-processing) */
+        /* ROM:0x2C142-0x2C14A: reset timeout flags */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC56 = 0;
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC58 = 0;
+    }
 }
 
 /**
  * can4B0RX_unpack — Process CAN ID 0x04B0 wheel speeds.
  * ROM address: 0x2BE6E
  *
- * Unpacks DSC wheel speeds (4× u16 BE):
- *   ((raw − 10000) / 100) → km/h
- *   Bytes 0-1: FL, 2-3: FR, 4-5: RL, 6-7: RR
+ * Uses placeCANRX with config entry at 0x4ECA0 (CAN1).
+ * On success: unpacks 4 wheel speeds (u16 BE) from 8-byte frame.
+ *   Bytes 0-1: FL speed → ((raw-10000)/100) → km/h
+ *   Bytes 2-3: FR speed
+ *   Bytes 4-5: RL speed
+ *   Bytes 6-7: RR speed
+ * Complex FPU interpolation chain follows (ROM:0x2BE6E-0x2BFB0).
+ * NOTE(ROM:0x2BE6E): Full FPU math chain not implemented.
  */
 void can4B0RX_unpack(void)
 {
-    /* TODO(ROM:0x2BE6E): read CAN1 mailbox for ID 0x4B0.
-     * Unpack 4 wheel speeds from 8-byte frame.
-     * Store to CAN_RX_BUF_04B0 staging area. */
+    uint8_t buf[8];
+    uint32_t saved_sr;
+
+    /* ROM:0x2BE6E: placeCANRX(0x4ECA0) — read CAN1 HW mailbox */
+    saved_sr = diag_getsr_3920(0x90);
+    /* NOTE(ROM:0x2BE72-0x2BE80): HW mailbox read not implemented.
+     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. */
+    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
+    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
+    diag_setsr_3934(saved_sr);
+
+    /* ROM:0x2BE82: if placeCANRX returned 0: */
+    {
+        volatile uint8_t *dst = (volatile uint8_t *)(uintptr_t)CAN_RX_BUF_04B0;
+
+        /* ROM:0x2BE84-0x2BE88: mem_flag_e2e8 (timestamp update) */
+
+        /* ROM:0x2BE8A-0x2BEC4: can4B0_speed_unpack — copy 8 bytes */
+        /* Copies raw wheel speed data to staging area at 0xFFFFBC08-BC0F */
+        dst[0] = buf[0];
+        dst[1] = buf[1];
+        dst[2] = buf[2];
+        dst[3] = buf[3];
+        dst[4] = buf[4];
+        dst[5] = buf[5];
+        dst[6] = buf[6];
+        dst[7] = buf[7];
+
+        /* NOTE(ROM:0x2BEC6-0x2BFB0): Complex FPU interpolation chain.
+         *   interp_linear_u16_to_float: converts u16 wheel speed to float
+         *   interp_axis_lookup_float_to_index: axis lookup
+         *   calc_6B0_sub_2BF74: additional computation
+         *   axis_lookup_limit_check_2BF20: limits validation
+         * Full FPU math chain not implemented. */
+    }
 }
 
 /**
  * can47RX_Main — Process CAN ID 0x047 KCM/immobiliser request.
  * ROM address: 0x3939C
  *
- * Reads immobiliser challenge/request from CAN1 MB7.
+ * Uses placeCANRX with config entry at 0x4ECB0 (CAN1).
+ * On success: copies 8 RX bytes to 0xFFFFC529-C534 and 0xFFFFC534,
+ * sets [0xFFFFC52F]=1, [0xFFFFC530]=1.
  * Part of the key-on chat sequence between KCM and ECU.
  */
 void can47RX_Main(void)
 {
-    /* TODO(ROM:0x3939C): read CAN1 mailbox for ID 0x047.
-     * Immobiliser request data used by immo_state_machine_entry. */
+    /* ROM:0x3939C: placeCANRX(0x4ECB0) — read CAN1 HW mailbox */
+    /* On success (r0==0): */
+    /*   ROM:0x393A4-0x393BC: mem_flag_e2e8 (timestamp update) */
+    /*   ROM:0x393BE-0x393E6: copy 8 bytes RX→staging at 0xFFFFC529 */
+    /*   ROM:0x393E8-0x393EC: set [0xFFFFC52F] = 1 (immob response flag) */
+    /*   ROM:0x393EE-0x393F2: set [0xFFFFC530] = 1 (immob data flag) */
+    /* On failure: no-op */
+    (void)0;  /* PLACECANRX_STUB(0x4ECB0) */
 }
 
 /**
  * can4B1RX_event_check — Process CAN ID 0x04B1 DSC request.
  * ROM address: 0x4C78C
+ *
+ * Uses placeCANRX with config entry at 0x4EA20 (CAN0).
+ * On success: copies 8 RX bytes from 0xFFFFCE90-CE97 to 0xFFFFCE99-CEA0.
+ * Also checks DSC request events.
  */
 void can4B1RX_event_check(void)
 {
-    /* TODO(ROM:0x4C78C): check for DSC request events on CAN0 ID 0x4B1. */
+    uint8_t buf[8];
+    uint32_t saved_sr;
+
+    /* ROM:0x4C78C: placeCANRX(0x4EA20) — read CAN0 HW mailbox */
+    saved_sr = diag_getsr_3920(0x90);
+    /* NOTE(ROM:0x4C790-0x4C79E): HW mailbox read not implemented.
+     * On real ECU: reads from CAN0 MB via CAN_RX_BUFFER. */
+    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
+    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
+    diag_setsr_3934(saved_sr);
+
+    /* ROM:0x4C7A0: if placeCANRX returned 0: */
+    {
+        volatile uint8_t *dst = (volatile uint8_t *)(uintptr_t)0xFFFFCE99;
+
+        /* ROM:0x4C7A2-0x4C7A6: mem_flag_e2d0 (timestamp update) */
+
+        /* ROM:0x4C7A8-0x4C7C8: copy 8 bytes from RX to staging
+         * Source: 0xFFFFCE90 (RX buffer), Dest: 0xFFFFCE99 (staging) */
+        dst[0] = buf[0];  /* ROM:0x4C7AE */
+        dst[1] = buf[1];  /* ROM:0x4C7B2 */
+        dst[2] = buf[2];  /* ROM:0x4C7B6 */
+        dst[3] = buf[3];  /* ROM:0x4C7BA */
+        dst[4] = buf[4];  /* ROM:0x4C7BE */
+        dst[5] = buf[5];  /* ROM:0x4C7C2 */
+        dst[6] = buf[6];  /* ROM:0x4C7C4 */
+        dst[7] = buf[7];  /* ROM:0x4C7C8 */
+    }
 }
 
 /**
  * can4C0RX_short — Process CAN ID 0x04C0 short message (DLC=1).
  * ROM address: 0x2C780
+ *
+ * Uses placeCANRX with config entry at 0x4ECA0 (CAN1).
+ * On success: copies 1 RX byte from [0xFFFFBC64] → [0xFFFFBC65].
  */
 void can4C0RX_short(void)
 {
-    /* TODO(ROM:0x2C780): process 1-byte CAN1 ID 0x04C0 message. */
+    uint8_t rx_byte;
+    uint32_t saved_sr;
+
+    /* ROM:0x2C780: placeCANRX(0x4ECA0) — read CAN1 HW mailbox */
+    saved_sr = diag_getsr_3920(0x90);
+    /* NOTE(ROM:0x2C784-0x2C792): HW mailbox read not implemented.
+     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. DLC=1. */
+    rx_byte = 0;
+    diag_setsr_3934(saved_sr);
+
+    /* ROM:0x2C794: if placeCANRX returned 0: */
+    {
+        /* ROM:0x2C796-0x2C79A: mem_flag_e2d0 (timestamp update) */
+
+        /* ROM:0x2C79C-0x2C7A6: copy byte 0 from staging to dest
+         * Source: [0xFFFFBC64] (RX buffer byte 0)
+         * Dest: [0xFFFFBC65] */
+        *(volatile uint8_t *)(uintptr_t)0xFFFFBC65 = rx_byte;
+    }
 }
 
 /**
  * can430_4C0RX_dispatch — Process CAN ID 0x0430/0x04C0 cluster data.
  * ROM address: 0x33BA0
  *
- * Handles instrument cluster presence and misc short messages.
+ * Uses placeCANRX with config entry at 0x4EC80 (CAN1).
+ * On success: mem_flag_e2e0 (timestamp), then copies 8 RX bytes
+ * from [0xFFFFC060-C067] → [0xFFFFC06B-C071] (main staging).
+ * Also copies to [0xFFFFC068-C06A] (secondary staging).
  */
 void can430_4C0RX_dispatch(void)
 {
-    /* TODO(ROM:0x33BA0): dispatch CAN1 ID 0x0430 and 0x04C0 messages.
-     * 0x0430: instrument cluster presence (immo role unconfirmed)
-     * 0x04C0: short DLC=1 message */
+    uint8_t buf[8];
+    uint32_t saved_sr;
+
+    /* ROM:0x33BA0: placeCANRX(0x4EC80) — read CAN1 HW mailbox */
+    saved_sr = diag_getsr_3920(0x90);
+    /* NOTE(ROM:0x33BA4-0x33BB2): HW mailbox read not implemented.
+     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. */
+    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
+    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
+    diag_setsr_3934(saved_sr);
+
+    /* ROM:0x33BB4: if placeCANRX returned 0: */
+    {
+        volatile uint8_t *main_dst = (volatile uint8_t *)(uintptr_t)0xFFFFC06B;
+        volatile uint8_t *sec_dst = (volatile uint8_t *)(uintptr_t)0xFFFFC068;
+
+        /* ROM:0x33BB6-0x33BBA: mem_flag_e2e0 (timestamp update) */
+
+        /* ROM:0x33BBC-0x33BE0: copy 8 bytes to main staging area
+         * Source: 0xFFFFC060 (RX buffer), Dest: 0xFFFFC06B (main staging) */
+        main_dst[0] = buf[0];  /* ROM:0x33BC2 */
+        main_dst[1] = buf[1];  /* ROM:0x33BC6 */
+        main_dst[2] = buf[2];  /* ROM:0x33BCA */
+        main_dst[3] = buf[3];  /* ROM:0x33BCE */
+        main_dst[4] = buf[4];  /* ROM:0x33BD2 */
+        main_dst[5] = buf[5];  /* ROM:0x33BD6 */
+        main_dst[6] = buf[6];  /* ROM:0x33BDA */
+        main_dst[7] = buf[7];  /* ROM:0x33BDE */
+
+        /* ROM:0x33BE2-0x33BEE: copy bytes 0-2 to secondary staging
+         * Dest: 0xFFFFC068-C06A */
+        sec_dst[0] = buf[0];  /* ROM:0x33BE8 */
+        sec_dst[1] = buf[1];  /* ROM:0x33BEA */
+        sec_dst[2] = buf[2];  /* ROM:0x33BEC */
+    }
 }
 
 /**
- * incr_counter_saturated_299DA — CAN 0x216 timeout counter.
+ * incr_counter_saturated_299DA — CAN 0x216 timeout counter + 0x420 pack trigger.
  * ROM address: 0x299DA
  *
- * Increments saturation counter for CAN 0x216 timeout detection.
- * If counter reaches threshold, marks CAN 0x216 as timed out.
+ * Increments saturation counter at 0xFFFFBB1C.
+ * If counter reaches threshold (25, from ROM word at 0x7C396):
+ *   1. Calls set_ram_constant_29A44 (ROM:0x29A44) — computes coolant-based value
+ *   2. Calls can420TXPack (ROM:0x29A0C) — packs and sends CAN 0x420
+ *   3. Resets counter to 0
+ * Called by CAN1_RxProcess via can420_refresh.
  */
 void incr_counter_saturated_299DA(void)
 {
-    /* TODO(ROM:0x299DA): increment timeout counter for CAN 0x216.
-     * Counter is at CAN_RATE_CNT_216 (0xFFFFCC36).
-     * Threshold from ROM word at 0x7C396. */
+    static volatile uint16_t *counter = (volatile uint16_t *)(uintptr_t)0xFFFFBB1C;
+
+    /* ROM:0x299DA-0x299DE: increment counter */
+    *counter += 1;
+
+    /* ROM:0x299E0-0x299E8: check if counter >= threshold (25) */
+    if (*counter < 25) {
+        return;
+    }
+
+    /* ROM:0x299EA-0x299EE: reset counter to 0 */
+    *counter = 0;
+
+    /* ROM:0x299F0: call set_ram_constant_29A44
+     * Computes coolant temperature-based value.
+     * NOTE(ROM:0x29A44): FPU computation not fully implemented. */
+    /* set_ram_constant_29A44(); */
+
+    /* ROM:0x299F4: call can420TXPack (tail call at 0x29A0C) */
+    can420TXPack();
 }
 
 /* ====================================================================== */
@@ -1276,8 +1831,10 @@ void can_msg_parse_4657C(uint8_t sid, uint8_t req)
     (void)req;
 
     /* Check 1: OBD session active */
-    /* TODO(ROM:0x46588): call obd_service_handler_6743C() */
-    /* if (obd_service_handler_6743C() == 0) goto reset_counters; */
+    /* ROM:0x46588: obd_service_handler_6743C — check OBD session state
+     * NOTE(ROM:0x46588): OBD service handler not implemented.
+     * On real ECU: returns nonzero if OBD session is active. */
+    /* Placeholder: assume OBD session active */
 
     /* Check 2: CAN state */
     if (CAN_STATE_CD02 != 1) {
@@ -1285,14 +1842,19 @@ void can_msg_parse_4657C(uint8_t sid, uint8_t req)
     }
 
     /* Check 3: DTC validation */
-    /* TODO(ROM:0x465A4): call diag_readvalue_8bit(0x8758) */
-    /* if (result != 0) goto reset_counters; */
+    /* ROM:0x465A4: diag_readvalue_8bit(0x8758) — read DTC validation byte
+     * NOTE(ROM:0x465A4): diag read not implemented.
+     * On real ECU: returns 0 if no DTC blocking condition. */
+    /* Placeholder: assume no DTC blocking */
 
     /* Check 4: CAN enable */
     if (CAN_ENABLE_A110 == 1) {
         /* Path A: CAN enabled — increment counter against 0x7C396 */
         counter = CAN_RATE_CNT_216;
-        counter++;  /* TODO(ROM:0x465C2): add16bitSaturate */
+        /* ROM:0x465C2: add16bitSaturate — saturate at 0xFFFF */
+        if (counter < 0xFFFF) {
+            counter++;
+        }
         CAN_RATE_CNT_216 = counter;
 
         threshold = *(volatile uint16_t *)(uintptr_t)0x7C396;
@@ -1303,7 +1865,10 @@ void can_msg_parse_4657C(uint8_t sid, uint8_t req)
     } else {
         /* Path B: CAN not enabled — different threshold (0x7C394) */
         counter = CAN_RATE_CNT_216;
-        counter++;  /* TODO(ROM:0x465E6): add16bitSaturate */
+        /* ROM:0x465E6: add16bitSaturate — saturate at 0xFFFF */
+        if (counter < 0xFFFF) {
+            counter++;
+        }
         CAN_RATE_CNT_216 = counter;
 
         threshold = *(volatile uint16_t *)(uintptr_t)0x7C394;
@@ -1313,10 +1878,10 @@ void can_msg_parse_4657C(uint8_t sid, uint8_t req)
     }
 
     /* Check 5: DTC validation again */
-    /* TODO(ROM:0x46608): call diag_readvalue_8bit(0x8758) */
-    /* if (result == 1) { */
-    /*     can_to_uds_bridge(sid, 1); */
-    /* } */
+    /* ROM:0x46608: diag_readvalue_8bit(0x8758) — second DTC check
+     * NOTE(ROM:0x46608): diag read not implemented.
+     * On real ECU: if result==1, calls can_to_uds_bridge(sid, 1). */
+    /* Placeholder: assume no DTC, no bridge needed */
 
     return;
 
@@ -1427,10 +1992,16 @@ void secondary_system_controller(void)
     /* RX dispatch sequence */
     CAN212RX_Main();
 
-    /* TODO(ROM:0x29BE8): can_lookup_table_indexed() */
+    /* ROM:0x29BE8: can_lookup_table_indexed — table-based sensor lookup
+     * NOTE(ROM:0x29BE8): Table lookup not implemented.
+     * On real ECU: indexes sensor data from lookup tables. */
+    /* Placeholder: no-op */
 
     if (CAN_GATE_B5A4 == 0) {
-        /* TODO(ROM:0x29E9C): table_lookup_dispatch_29E9C() */
+        /* ROM:0x29E9C: table_lookup_dispatch_29E9C — manual transmission dispatch
+         * NOTE(ROM:0x29E9C): MT-specific dispatch not implemented.
+         * On real ECU: dispatches MT-specific sensor reads and CAN data. */
+        /* Placeholder: no-op */
     }
 
     can430_4C0RX_dispatch();
@@ -1440,10 +2011,12 @@ void secondary_system_controller(void)
     can47RX_Main();
 
 immo_fallthrough:
-    /* TODO(ROM:0x35D62): fall through to immo_state_machine_entry.
+    /* ROM:0x35D62: fall through to immo_state_machine_entry.
      * The immo FSM is called after CAN RX dispatch.
      * It reads CAN data via ImmoGetCANData (0x36870) and
-     * writes back via setImmoCANTXData (0x369B8). */
+     * writes back via setImmoCANTXData (0x369B8).
+     * NOTE(ROM:0x35D62): Immobiliser FSM not implemented here.
+     * Called from CAN1_RxProcess dispatch chain. */
 }
 
 /* ====================================================================== */

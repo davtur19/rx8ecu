@@ -70,6 +70,44 @@
 #define UDS_SECURITY_LEVEL_2    0x3F
 
 /* ====================================================================== */
+/*  Security Access RAM Addresses (ROM: 0x56AC0, 0x5699a)                 */
+/* ====================================================================== */
+
+#define UDS_SEED_BYTE1_ADDR     0xFFFFD211   /* Seed byte 1 (security_seed_byte1) */
+#define UDS_SEED_BYTE2_ADDR     0xFFFFD212   /* Seed byte 2 (security_seed_byte2) */
+#define UDS_SEED_BYTE3_ADDR     0xFFFFD213   /* Seed byte 3 (security_seed_byte3) */
+#define UDS_SEED_ID_ADDR        0xFFFFD214   /* Security access ID byte */
+#define UDS_SERIAL_NUM_ADDR     0xFFFFF430   /* ECU serial number (4 bytes) */
+
+/* ====================================================================== */
+/*  Download Transfer State (ROM: 0x5E1F8, 0x5E270, 0x5E2B0)             */
+/* ====================================================================== */
+
+#define UDS_DL_STATE_IDLE       0x00
+#define UDS_DL_STATE_ACTIVE     0x01
+
+#define UDS_DL_FORMAT_ADDR      0xFFFFD218   /* Download format byte */
+#define UDS_DL_MEM_HI_ADDR      0xFFFFD219   /* Memory address high byte */
+#define UDS_DL_MEM_MID_ADDR     0xFFFFD21A   /* Memory address mid byte */
+#define UDS_DL_MEM_LO_ADDR      0xFFFFD21B   /* Memory address low byte */
+#define UDS_DL_SIZE_B3_ADDR     0xFFFFD21C   /* Memory size byte 3 (MSB) */
+#define UDS_DL_SIZE_B2_ADDR     0xFFFFD21D   /* Memory size byte 2 */
+#define UDS_DL_SIZE_B1_ADDR     0xFFFFD21E   /* Memory size byte 1 */
+#define UDS_DL_SIZE_B0_ADDR     0xFFFFD21F   /* Memory size byte 0 (LSB) */
+#define UDS_DL_BLOCK_SEQ_ADDR   0xFFFFD220   /* Expected block sequence counter */
+#define UDS_DL_STATE_ADDR       0xFFFFD221   /* Download state (idle/active) */
+#define UDS_DL_CHECKSUM_ADDR    0xFFFFD222   /* Running checksum (4 bytes) */
+
+/* ====================================================================== */
+/*  Memory Range Limits for Download                                       */
+/* ====================================================================== */
+
+#define UDS_DL_FLASH_BASE       0x00000000   /* Flash ROM base address */
+#define UDS_DL_FLASH_END        0x0007FFFF   /* Flash ROM end (512KB) */
+#define UDS_DL_RAM_BASE         0xFFFF8000   /* RAM base address */
+#define UDS_DL_RAM_END          0xFFFFFFFF   /* RAM end address */
+
+/* ====================================================================== */
 /*  Negative Response Codes                                                */
 /* ====================================================================== */
 
@@ -82,6 +120,9 @@
 #define UDS_NRC_INVALID_KEY                0x35
 #define UDS_NRC_EXCEEDED_ATTEMPTS          0x36
 #define UDS_NRC_REQUEST_PENDING            0x78
+#define UDS_NRC_WRONG_BLOCK_SEQ            0x73   /* wrongBlockSequenceCounter */
+#define UDS_NRC_TRANSFER_SUSPENDED         0x71   /* transferDataSuspended */
+#define UDS_NRC_GENERAL_PROG_FAILURE       0x72   /* generalProgrammingFailure */
 
 /* ====================================================================== */
 /*  RAM Addresses                                                          */
