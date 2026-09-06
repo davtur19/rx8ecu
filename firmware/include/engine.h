@@ -223,6 +223,24 @@ void crank_position_state_machine(void);
  */
 void rotor_position_synchronization(void);
 
+/**
+ * crank_timing_update — Trigger timing update (ISR entry).
+ * ROM address: 0x7814 (size 0x8A)
+ *
+ * Called on each eccentric shaft tooth edge interrupt.
+ * Reads timer capture, runs state machine, calls gap detect.
+ */
+void crank_timing_update(void);
+
+/**
+ * crank_sync_acquire — Acquire trigger sync.
+ * ROM address: 0x7AAA (size 0x2C)
+ *
+ * Called from crank_timing_update when gap is detected.
+ * R4 = rotor offset (0 or 6).
+ */
+void crank_sync_acquire(uint8_t rotor_offset);
+
 /* --- Ignition System --- */
 
 /**
@@ -280,6 +298,51 @@ void fuel_injection_duty_cycle(void);
  * 2D lookup for manifold pressure.
  */
 void manifold_pressure_calc(void);
+
+/* --- Fuel Pipeline Call Targets --- */
+
+/* Call 1 */
+void calcCLorOLControl(void);
+/* Call 2 */
+void setClosedLoopBool(void);
+/* Call 3 */
+void calcOpenLoopFuelingTarget(void);
+/* Call 5 */
+void fpu_threshold_accumulate_divide(void);
+/* Call 7 */
+void adaptive_ignition_table(void);
+/* Call 9 */
+void complex_fpu_compare_calc(void);
+/* Call 10 */
+void transmission_load_control(void);
+/* Call 11 */
+void secondaryAirRequestStuff(void);
+/* Call 12 */
+void fuel_trim_update_control(void);
+/* Call 14 */
+void getRearO2FilteredValue(void);
+/* Call 15 */
+void wankel_rotary_control(void);
+/* Call 16 */
+void sensor_validation_monitor(void);
+/* Call 17 */
+void getMAFOpertionRange(void);
+/* Call 18 */
+void adaptive_control_logic(void);
+/* Call 19 */
+void fuel_trim_correction(void);
+/* Call 20 */
+void coolant_temp_boundary_check(void);
+/* Call 22 */
+void engine_load_control(void);
+/* Call 24 */
+void oil_temp_burn_control(void);
+/* Call 25 */
+void knock_sensor_voltage_limit_check(void);
+/* Call 26 */
+void idle_speed_range_validator(void);
+/* Call 27 */
+void cold_start_rpm_limiter(void);
 
 /* --- OMP Control --- */
 
@@ -342,27 +405,39 @@ void intake_air_control(void);
 
 /**
  * torque_calc_with_damping — Torque calculation with damping (80ms).
- * ROM address: (from main_engine_cycle_10ms call)
+ * ROM address: 0x17952
  */
 void torque_calc_with_damping(void);
+
+/**
+ * sub_17014 — 80ms subsystem task.
+ * ROM address: 0x17014
+ */
+void sub_17014(void);
+
+/**
+ * ctrl_continuation_17b24 — 80ms control continuation task.
+ * ROM address: 0x17B24
+ */
+void ctrl_continuation_17b24(void);
 
 /* --- Sensor Validation --- */
 
 /**
  * sensor_validation — Validate sensor inputs.
- * ROM address: (from fuel pipeline)
+ * ROM address: 0x1F078 (sensor_validation_monitor)
  */
 void sensor_validation(void);
 
 /**
  * combustion_control_loop — Combustion control feedback loop.
- * ROM address: (from fuel pipeline)
+ * ROM address: 0x1F8E0
  */
 void combustion_control_loop(void);
 
 /**
  * ignition_timing_safety_check — Ignition timing safety limits.
- * ROM address: (from fuel pipeline)
+ * ROM address: 0x1FAEA
  */
 void ignition_timing_safety_check(void);
 

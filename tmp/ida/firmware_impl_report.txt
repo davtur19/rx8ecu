@@ -1,0 +1,76 @@
+
+## 2026-09-06 — Firmware Implementation Progress
+
+### Completed This Session
+1. **Created timer module header**: `/home/davide/ailocal/rx8ecu/firmware/include/timer.h`
+   - ATU timer channel configuration, prescaler, interrupt definitions
+   - ROM address correspondence documented
+
+2. **Created main module header**: `/home/davide/ailocal/rx8ecu/firmware/include/main.h`
+   - Task queue format, dispatch table, priority levels, task states
+   - Full dispatch table matching ROM 0x6C8-0x78C
+
+3. **Created Makefile**: `/home/davide/ailocal/rx8ecu/firmware/Makefile`
+   - SH cross-compiler build support
+   - Host syntax check fallback (uses host GCC when cross-compiler unavailable)
+
+4. **Implemented boot.c**: `/home/davide/ailocal/rx8ecu/firmware/c/boot.c`
+   - Manual_Reset @ 0x8B8 (entry point)
+   - bsc_init @ 0x8CC (bus state controller)
+   - gpio_init @ 0x8F6 (GPIO port configuration — full register map)
+   - reset_handler @ 0x4E0 (cold/warm start detection, watchdog recovery)
+   - wdt_init @ 0x572 (watchdog init with magic values 0x5A1F, 0x5A00, 0xA53C)
+   - hw_init_1 @ 0x170 (clock/PLL/SPI init)
+   - hw_init_2 @ 0x41C (memory controller, EEPROM RAM buffer clear)
+   - hw_init_3 @ 0x3D4 (peripheral/task queue pointer init)
+   - checkWatchdogTimer_OVRCOUNT @ 0x5B0
+   - vector_trampoline_set_sp @ 0x40
+
+5. **Implemented eeprom.c**: `/home/davide/ailocal/rx8ecu/firmware/c/eeprom.c`
+   - SPI bit-bang: spi_clk_high_wait @ 0x9C0, spi_clk_low_wait @ 0x9DE
+   - spi_write_bit, spi_read_bit, spi_write_byte, spi_read_byte
+   - eeprom_read_byte, eeprom_write_byte (with WREN sequence)
+   - eeprom_read_sector, eeprom_write_sector, eeprom_erase_sector
+   - eeprom_read_validate @ 0x450, is_eeprom_valid @ 0x624
+   - eeprom_commit_to_ram (staging area management)
+
+6. **Implemented serial.c**: `/home/davide/ailocal/rx8ecu/firmware/c/serial.c`
+   - ATU timer init, capture/compare init
+   - Serial channel state machine (3 channels)
+   - serial_data_read, serial_data_write
+   - serial_rx_handler_ch0/ch1/ch2 (per-channel RX)
+   - serial_data_write_handler (queue processor)
+   - hardware_init_serial_timers @ 0xB6BC
+   - serial_atu_irq_handler (interrupt dispatch)
+
+7. **Implemented timer.c**: `/home/davide/ailocal/rx8ecu/firmware/c/timer.c`
+   - atu_timer_init (prescaler, channel modes)
+   - atu_capture_compare_init (input capture / output compare)
+   - atu_configure_io_channel
+   - hardware_init_serial_timers @ 0xB6BC
+
+8. **Implemented main.c**: `/home/davide/ailocal/rx8ecu/firmware/c/main.c`
+   - main_task_dispatcher @ 0x6C8 (full main loop)
+   - task_scheduler_dispatch @ 0x364
+   - task_queue_pending_count @ 0x3E0
+   - task_queue_get_next @ 0x3B0
+   - task_queue_init @ 0x3964
+   - watchdogTimerRead @ 0x31C
+   - fatal_error_infinite_loop @ 0xD8
+   - Dispatch table with all known handlers
+
+### Build Verification
+- All 5 `.c` files compile with `gcc -Os -ffreestanding -nostdlib -nostartfiles -Iinclude -Wall -Wextra -Werror -fsyntax-only`
+- `make -C firmware` passes (host GCC syntax check)
+- No warnings, no errors
+
+### Platform Header Updates
+- Added ATU timer register offsets (TSTR, TCR0-2, TIOR0-2, TIER0-2, TGR0-2, TISRA)
+- Added ATU prescaler constants
+- Added INTC register helper (intc_reg_write)
+- Added NULL definition for freestanding
+
+### Remaining Work
+- Verify existing stubs still compile (boot_entry.c, reset_handler.c, init_main.c, etc.)
+- Create the GCC multilib cross-compiler (toolchain)
+- ROM-level verification of generated code

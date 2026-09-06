@@ -25,10 +25,10 @@
 #define UDS_DISPATCH_ENTRY_SIZE 12
 #define UDS_DISPATCH_MAX_SLOTS  29
 
-/* Record layout: [+0]=SID [+1]=pad [+2]=handler_addr [+6]=session_mask [+A]=pad */
+/* Record layout: [+0]=SID [+1]=pad [+2..+3]=pad [+4..+7]=handler_addr [+8..+9]=pad [+A..+B]=flags */
 #define UDS_DISP_SID_OFFSET     0x00
-#define UDS_DISP_HANDLER_OFFSET 0x02
-#define UDS_DISP_MASK_OFFSET    0x06
+#define UDS_DISP_HANDLER_OFFSET 0x04
+#define UDS_DISP_FLAGS_OFFSET   0x0A
 
 /* ====================================================================== */
 /*  Service IDs                                                            */

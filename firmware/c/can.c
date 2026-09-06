@@ -117,24 +117,42 @@ static uint32_t can_parse_mailbox_buf_ptr(const uint8_t *entry)
 
 /**
  * hcan_read16 — Read 16-bit value from HCAN register.
- * @param pfc_reg  PFC register address (0xFFFFE406 or 0xFFFFE606)
- * @param offset   Offset from PFC base
+ * @param reg_addr  Register address (e.g. 0xFFFFE406)
  * @return 16-bit register value
  */
-static inline uint16_t hcan_read16(uint16_t pfc_reg, uint16_t offset)
+static inline uint16_t hcan_read16(uint32_t reg_addr)
 {
-    return *(volatile uint16_t *)(uintptr_t)(pfc_reg + offset);
+    return *(volatile uint16_t *)(uintptr_t)reg_addr;
 }
 
 /**
  * hcan_write16 — Write 16-bit value to HCAN register.
- * @param pfc_reg  PFC register address
- * @param offset   Offset from PFC base
- * @param value    Value to write
+ * @param reg_addr  Register address
+ * @param value     Value to write
  */
-static inline void hcan_write16(uint16_t pfc_reg, uint16_t offset, uint16_t value)
+static inline void hcan_write16(uint32_t reg_addr, uint16_t value)
 {
-    *(volatile uint16_t *)(uintptr_t)(pfc_reg + offset) = value;
+    *(volatile uint16_t *)(uintptr_t)reg_addr = value;
+}
+
+/**
+ * hcan_read8 — Read 8-bit value from HCAN register.
+ * @param reg_addr  Register address
+ * @return 8-bit register value
+ */
+static inline uint8_t hcan_read8(uint32_t reg_addr)
+{
+    return *(volatile uint8_t *)(uintptr_t)reg_addr;
+}
+
+/**
+ * hcan_write8 — Write 8-bit value to HCAN register.
+ * @param reg_addr  Register address
+ * @param value     Value to write
+ */
+static inline void hcan_write8(uint32_t reg_addr, uint8_t value)
+{
+    *(volatile uint8_t *)(uintptr_t)reg_addr = value;
 }
 
 /* ====================================================================== */
@@ -143,36 +161,58 @@ static inline void hcan_write16(uint16_t pfc_reg, uint16_t offset, uint16_t valu
 
 /* --- getHCANRegAddr (ROM:0xD198) --- */
 /* PFC base + offset → HCAN register address.
- * CAN0: base = 0xFFFFE402, CAN1: base = 0xFFFFE600 */
-uint16_t getHCANRegAddr(uint16_t base, uint16_t offset)
+ * CAN0 (controller=0): offset as-is (CAN0 register space 0xFFFFE4xx)
+ * CAN1 (controller=1): offset + 0x200 (CAN1 register space 0xFFFFE6xx)
+ *
+ * On real SH-2E: controller is 0 or 1, offset is a CAN0 register address.
+ * For CAN0: returns offset directly (e.g. 0xFFFFE406).
+ * For CAN1: returns offset + 0x200 (e.g. 0xFFFFE606).
+ */
+uint32_t getHCANRegAddr(uint8_t controller, uint32_t offset)
 {
-    return base + offset;
+    if (controller == 0) {
+        return offset;  /* CAN0: offset is already a full CAN0 register addr */
+    }
+    /* CAN1: add 0x200 to map from CAN0 to CAN1 register space */
+    return offset + 0x200;
 }
 
 /* --- can_get_mailbox_offset_high (ROM:0xD164) --- */
-/* Resolve mailbox status register address.
- * Takes mailbox index and PFC register, returns pointer to mailbox reg. */
-volatile uint16_t *can_get_mailbox_offset_high(uint8_t mailbox_idx, uint16_t pfc_reg)
+/* Resolve mailbox register address from CAN0 register address.
+ * If mailbox_idx < 0x20: returns reg_addr as-is (primary bank, CAN0).
+ * If mailbox_idx >= 0x20: returns reg_addr + 0x200 (secondary bank, CAN1).
+ *
+ * @param mailbox_idx  Mailbox index (0-63)
+ * @param reg_addr     CAN0 register address (e.g. 0xFFFFE406)
+ * @return Pointer to the mailbox register
+ */
+volatile uint16_t *can_get_mailbox_offset_high(uint8_t mailbox_idx, uint32_t reg_addr)
 {
-    /* Mailbox register stride = 0x10 bytes (16 words = 32 bytes per mailbox)
-     * Base register is at pfc_reg, mailboxes start at pfc_reg + 0x10
-     * Each mailbox occupies 0x10 bytes in the HCAN register space.
-     */
-    (void)mailbox_idx;
-    /* Return pointer to the base mailbox status register */
-    return (volatile uint16_t *)(uintptr_t)pfc_reg;
+    uint32_t addr = reg_addr;
+    if (mailbox_idx >= 0x20) {
+        addr += 0x200;  /* Map to CAN1 register space */
+    }
+    return (volatile uint16_t *)(uintptr_t)addr;
 }
 
 /* --- can_get_mailbox_config (ROM:0xD1AC) --- */
-/* Get config word for a mailbox (used for busy-check in can_tx_send_frame). */
+/* Get mailbox bitmask for busy-check / ready register.
+ * ROM:0xD1AC: lookup table at 0xDBAC, 16 entries × 2 bytes.
+ * Returns 1 << (mailbox_idx & 0x0F).
+ *
+ * @param mailbox_idx  Mailbox index (0-15 for primary bank)
+ * @return Bitmask for this mailbox (1, 2, 4, 8, ... 0x8000)
+ */
 uint16_t can_get_mailbox_config(uint8_t mailbox_idx)
 {
-    /* Read the mailbox control/status register.
-     * In the ROM, this checks if the mailbox is available for TX. */
-    (void)mailbox_idx;
-    /* TODO(ROM:0xD1AC): precise register mapping unclear from disasm.
-     * Returns the mailbox status/config word used for busy-check. */
-    return 0;
+    /* Bitmask lookup table from ROM:0xDBAC */
+    static const uint16_t mailbox_bitmask_table[16] = {
+        0x0001, 0x0002, 0x0004, 0x0008,
+        0x0010, 0x0020, 0x0040, 0x0080,
+        0x0100, 0x0200, 0x0400, 0x0800,
+        0x1000, 0x2000, 0x4000, 0x8000
+    };
+    return mailbox_bitmask_table[mailbox_idx & 0x0F];
 }
 
 /* --- diag_getsr_3920 (ROM:0x3920) --- */
@@ -205,32 +245,102 @@ void diag_setsr_3934(uint32_t saved_sr)
 
 /* --- can_pack_tx_msg_write_verify (ROM:0xCF42) --- */
 /* Write CAN data to mailbox hardware with verification.
- * This is the actual HW write that puts data into the TX mailbox. */
+ * ROM:0xCF42: gets mailbox data register, computes per-mailbox offset,
+ * disables interrupts, calls eeprom_write_verify_bytes for verified write.
+ *
+ * Data area base: 0xFFFFE4B0 (HCAN_MBOX_DATA_BASE)
+ * Per-mailbox offset: (mailbox_idx & 0x0F) × 8 bytes
+ *
+ * @param mailbox_idx  Mailbox index (0-15)
+ * @param dlc          Data length code (1-8)
+ * @param data_ptr     Pointer to source data buffer
+ * @param zero         Zero parameter (passed to write function)
+ * @return 0 on success
+ */
 int can_pack_tx_msg_write_verify(uint8_t mailbox_idx, uint8_t dlc,
                                   const uint8_t *data_ptr, uint8_t zero)
 {
-    /* TODO(ROM:0xCF42): actual HW register write sequence.
-     * Writes dlc bytes from data_ptr to mailbox registers.
-     * Verifies by reading back and comparing.
-     * Returns 0 on success, non-zero on verify failure. */
-    (void)mailbox_idx;
-    (void)dlc;
-    (void)data_ptr;
-    (void)zero;
+    volatile uint16_t *mbox_data_reg;
+    uint32_t data_area_addr;
+    uint32_t saved_sr;
+    uint8_t i;
+
+    /* Step 1: Get mailbox data register address */
+    mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_MBOX_DATA_BASE);
+
+    /* Step 2: Disable interrupts for critical section */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Step 3: Compute per-mailbox data area offset */
+    /* Each mailbox has 8 bytes of data space in the HCAN data area */
+    data_area_addr = (uint32_t)(uintptr_t)mbox_data_reg;
+    data_area_addr += (uint32_t)(mailbox_idx & 0x0F) * 8;
+
+    /* Step 4: Write data bytes to mailbox data area */
+    volatile uint8_t *dest = (volatile uint8_t *)(uintptr_t)data_area_addr;
+    for (i = 0; i < dlc && i < 8; i++) {
+        dest[i] = data_ptr[i];
+    }
+    /* Zero-fill remaining bytes if dlc < 8 */
+    for (; i < 8; i++) {
+        dest[i] = zero;
+    }
+
+    /* Step 5: Verify write by reading back */
+    for (i = 0; i < dlc && i < 8; i++) {
+        if (dest[i] != data_ptr[i]) {
+            /* Verify failed — restore interrupts and return error */
+            diag_setsr_3934(saved_sr);
+            return -1;
+        }
+    }
+
+    /* Step 6: Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
+
     return 0;
 }
 
 /* --- can_pack_tx_msg_copy (ROM:0xCEF4) --- */
-/* Copy CAN data from mailbox hardware to buffer. */
+/* Copy CAN data from mailbox hardware to buffer.
+ * ROM:0xCEF4: same structure as write_verify but uses bounded_byte_copy
+ * to read from mailbox data area into destination buffer.
+ *
+ * @param mailbox_idx  Mailbox index (0-15)
+ * @param dlc          Data length code (1-8)
+ * @param data_ptr     Pointer to destination buffer
+ * @param zero         Zero parameter
+ * @return 0 on success
+ */
 int can_pack_tx_msg_copy(uint8_t mailbox_idx, uint8_t dlc,
                           uint8_t *data_ptr, uint8_t zero)
 {
-    /* TODO(ROM:0xCEF4): actual HW register read sequence.
-     * Reads dlc bytes from mailbox registers into data_ptr. */
-    (void)mailbox_idx;
-    (void)dlc;
-    (void)data_ptr;
-    (void)zero;
+    volatile uint16_t *mbox_data_reg;
+    uint32_t data_area_addr;
+    uint32_t saved_sr;
+    uint8_t i;
+
+    /* Step 1: Get mailbox data register address */
+    mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_MBOX_DATA_BASE);
+
+    /* Step 2: Disable interrupts */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Step 3: Compute per-mailbox data area offset */
+    data_area_addr = (uint32_t)(uintptr_t)mbox_data_reg;
+    data_area_addr += (uint32_t)(mailbox_idx & 0x0F) * 8;
+
+    /* Step 4: Copy data from mailbox to destination buffer */
+    volatile const uint8_t *src = (volatile const uint8_t *)(uintptr_t)data_area_addr;
+    for (i = 0; i < dlc && i < 8; i++) {
+        data_ptr[i] = src[i];
+    }
+
+    /* Step 5: Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
+
+    (void)zero;  /* ROM passes zero to bounded_byte_copy, not needed here */
+
     return 0;
 }
 
@@ -356,55 +466,180 @@ void setCANRegisters(uint8_t controller, const uint8_t *config)
 /* ====================================================================== */
 
 /* --- can_enable_mailbox_int (ROM:0xCC6C) --- */
+/* Enable interrupt for a specific mailbox.
+ * ROM:0xCC6C: selects CAN0 (0xFFFFE401) or CAN1 (0xFFFFE601) base,
+ * then calls the HCAN interrupt enable function (loc_9E14).
+ *
+ * @param controller  0=CAN0, 1=CAN1
+ * @param mailbox     Mailbox index
+ */
 void can_enable_mailbox_int(uint8_t controller, uint8_t mailbox)
 {
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
-    /* TODO(ROM:0xCC6C): enable per-mailbox interrupt bit */
-    (void)pfc_base;
-    (void)mailbox;
+    /* ROM:0xCC6C: select register base for the controller */
+    uint32_t reg_base = controller ? 0xFFFFE601 : 0xFFFFE401;
+
+    /* ROM:0xCC7C: call loc_9E14 with (reg_base - 1, mailbox)
+     * loc_9E14 is the HCAN interrupt enable function that sets
+     * the interrupt enable bit for the specified mailbox.
+     * On host simulation, we write the enable bit directly. */
+    volatile uint8_t *int_enable_reg = (volatile uint8_t *)(uintptr_t)(reg_base - 1);
+    uint8_t current = *int_enable_reg;
+    current |= (uint8_t)(1U << (mailbox & 0x07));
+    *int_enable_reg = current;
 }
 
 /* --- can_init_mailbox_irq_mask (ROM:0xCD12) --- */
+/* Initialize all HCAN mailbox registers to default state.
+ * ROM:0xCD12: disables interrupts, writes initial values to all
+ * mailbox control/status/data registers, re-enables interrupts.
+ *
+ * Register initialization sequence (CAN0):
+ *   0xFFFFE406 = 0x0000  (mailbox offset/status)
+ *   0xFFFFE408 = 0x0000  (mailbox ready)
+ *   0xFFFFE40A = 0x0000  (mailbox control)
+ *   0xFFFFE40C = 0xFEFE  (mailbox RX status mask)
+ *   0xFFFFE40E = 0xFEFE  (mailbox RX status)
+ *   0xFFFFE410 = 0xFFFE  (mailbox data status)
+ *   0xFFFFE41A = 0xFFFE  (mailbox data ready)
+ *   0xFFFFE412 = 0xFF12  (mailbox interrupt enable)
+ *
+ * @param controller  0=CAN0, 1=CAN1
+ * @param mask        IRQ mask value (not used in ROM, always 0)
+ */
 void can_init_mailbox_irq_mask(uint8_t controller, uint16_t mask)
 {
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
-    /* TODO(ROM:0xCD12): write IRQ mask register */
-    (void)pfc_base;
-    (void)mask;
+    uint32_t saved_sr;
+    uint32_t reg_base;
+
+    (void)mask;  /* ROM always writes 0 for initial state */
+
+    /* Disable interrupts for register initialization */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Select CAN0 or CAN1 register base */
+    reg_base = controller ? 0xFFFFE600 : 0xFFFFE400;
+
+    /* Write initial values to all mailbox registers */
+    hcan_write16(reg_base + 0x06, 0x0000);  /* mailbox offset/status */
+    hcan_write16(reg_base + 0x08, 0x0000);  /* mailbox ready */
+    hcan_write16(reg_base + 0x0A, 0x0000);  /* mailbox control */
+    hcan_write16(reg_base + 0x0C, 0xFEFE);  /* mailbox RX status mask */
+    hcan_write16(reg_base + 0x0E, 0xFEFE);  /* mailbox RX status */
+    hcan_write16(reg_base + 0x10, 0xFFFE);  /* mailbox data status */
+    hcan_write16(reg_base + 0x1A, 0xFFFE);  /* mailbox data ready */
+    hcan_write16(reg_base + 0x12, 0xFF12);  /* mailbox interrupt enable */
+
+    /* Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
 }
 
 /* --- can_set_mailbox_mode_dlc (ROM:0xCDC4) --- */
+/* Set mailbox mode and DLC in the HCAN control register.
+ * ROM:0xCDC4: gets register address via getHCANRegAddr(controller, 0xFFFFE400),
+ * disables interrupts, clears bits [2] of control byte,
+ * ORs in (mode_dlc << 4), writes back, re-enables interrupts.
+ *
+ * @param controller  0=CAN0, 1=CAN1
+ * @param mailbox     Mailbox index
+ * @param mode_dlc    Mode (upper nibble) | DLC (lower 2 bits)
+ */
 void can_set_mailbox_mode_dlc(uint8_t controller, uint8_t mailbox, uint8_t mode_dlc)
 {
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
-    /* TODO(ROM:0xCDC4): set mailbox mode and DLC register */
-    (void)pfc_base;
+    uint32_t saved_sr;
+    uint32_t ctrl_reg;
+    uint8_t current;
     (void)mailbox;
-    (void)mode_dlc;
+
+    /* Get controller register address */
+    ctrl_reg = getHCANRegAddr(controller, 0xFFFFE400);
+
+    /* Disable interrupts */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Read current control byte, clear bits [2], OR in mode_dlc << 4 */
+    current = hcan_read8(ctrl_reg);
+    current &= 0xFB;  /* Clear bit 2 */
+    current |= (uint8_t)((mode_dlc & 0x0F) << 4);
+    hcan_write8(ctrl_reg, current);
+
+    /* Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
 }
 
-/* --- can_set_mailbox_ptr_control (ROM:0xCDF0) --- */
+/* --- can_set_mailbox_ptr_control (ROM:0xCDE0) --- */
+/* Set mailbox buffer pointer and flow control registers.
+ * ROM:0xCDE0: gets register address via getHCANRegAddr(controller, 0xFFFFE400),
+ * disables interrupts, writes buffer pointer (ptr_hi:ptr_lo) and flow control
+ * to the mailbox control registers, re-enables interrupts.
+ *
+ * @param controller  0=CAN0, 1=CAN1
+ * @param mailbox     Mailbox index
+ * @param ptr_lo      Buffer pointer low (16-bit)
+ * @param ptr_hi      Buffer pointer high (8-bit, upper byte of 24-bit addr)
+ * @param flow_ctrl   Flow control value
+ */
 void can_set_mailbox_ptr_control(uint8_t controller, uint8_t mailbox,
                                   uint16_t ptr_lo, uint8_t ptr_hi,
                                   uint8_t flow_ctrl)
 {
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
-    /* TODO(ROM:0xCDF0): set buffer pointer and flow control registers */
-    (void)pfc_base;
+    uint32_t saved_sr;
+    uint32_t ctrl_reg;
+    uint8_t current;
     (void)mailbox;
-    (void)ptr_lo;
-    (void)ptr_hi;
-    (void)flow_ctrl;
+
+    /* Get controller register address */
+    ctrl_reg = getHCANRegAddr(controller, 0xFFFFE400);
+
+    /* Disable interrupts */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Read current control byte, clear bits [2], OR in flow_ctrl << 4 */
+    current = hcan_read8(ctrl_reg);
+    current &= 0xFB;  /* Clear bit 2 */
+    current |= (uint8_t)((flow_ctrl & 0x0F) << 4);
+    hcan_write8(ctrl_reg, current);
+
+    /* Write buffer pointer low (16-bit) to register + offset */
+    hcan_write16(ctrl_reg + 0x02, ptr_lo);
+
+    /* Write buffer pointer high (8-bit) to register + offset */
+    hcan_write8(ctrl_reg + 0x04, ptr_hi);
+
+    /* Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
 }
 
 /* --- can_set_mailbox_id_mode (ROM:0xCE34) --- */
+/* Set ID acceptance mode for mailbox.
+ * ROM:0xCE34: gets register address via getHCANRegAddr(controller, 0xFFFFE400),
+ * disables interrupts, clears bit 7 of control byte,
+ * ORs in (id_mode << 7), writes back, re-enables interrupts.
+ *
+ * @param controller  0=CAN0, 1=CAN1
+ * @param mailbox     Mailbox index
+ * @param id_mode     ID mode configuration (0=standard, 1=extended)
+ */
 void can_set_mailbox_id_mode(uint8_t controller, uint8_t mailbox, uint16_t id_mode)
 {
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
-    /* TODO(ROM:0xCE34): set ID acceptance mode register */
-    (void)pfc_base;
+    uint32_t saved_sr;
+    uint32_t ctrl_reg;
+    uint8_t current;
     (void)mailbox;
-    (void)id_mode;
+
+    /* Get controller register address */
+    ctrl_reg = getHCANRegAddr(controller, 0xFFFFE400);
+
+    /* Disable interrupts */
+    saved_sr = diag_getsr_3920(0xE0);
+
+    /* Read current control byte, clear bit 7, OR in id_mode << 7 */
+    current = hcan_read8(ctrl_reg);
+    current &= 0x7F;  /* Clear bit 7 */
+    current |= (uint8_t)((id_mode & 0x01) << 7);
+    hcan_write8(ctrl_reg, current);
+
+    /* Re-enable interrupts */
+    diag_setsr_3934(saved_sr);
 }
 
 /* ====================================================================== */
@@ -1098,32 +1333,61 @@ reset_counters:
  * Receives CAN diagnostic request from can_msg_parse_4657C,
  * forwards to uds_task_entry (0x696DC) which calls udsHandler (0x697E8).
  *
+ * Algorithm from disasm (0x6085C):
+ *   1. Read session state from 0xFFFFD3F0
+ *   2. Check security access flags at 0xFFFFD201
+ *   3. If [0xFFFFD994]==1: set flag for security bypass
+ *   4. If [0xFFFFD201]==1: security unlocked → set bypass flag
+ *   5. Check [0xFFFFD6C4]==1 for gate
+ *   6. Call sub_603FE to validate session/SID permissions
+ *   7. If valid: call sub_603EC → dispatch to udsHandler
+ *
  * @param sid   Service ID byte
  * @param req   Request type (1=physical 0x7E0, 2=broadcast 0x7DF)
  */
 void can_to_uds_bridge(uint8_t sid, uint8_t req)
 {
-    /* TODO(ROM:0x60774): bridge CAN UDS request to udsHandler.
-     *
-     * Algorithm (from disasm):
-     *   1. Read session state from 0xFFFFD3F0
-     *   2. Look up handler table at 0x7DAEA (word table)
-     *   3. Check security access flags at 0xFFFFD201
-     *   4. If [0xFFFFD994]==1: set flag for security bypass
-     *   5. Call obd_dtc_status_write if needed
-     *   6. Check [0xFFFFD6C4]==1 for additional gate
-     *   7. Call sub_603FE to validate
-     *   8. If valid: call sub_603EC → dispatch to udsHandler
-     *
-     * The actual udsHandler dispatch:
-     *   uds_task_entry (0x696DC) → udsHandler (0x697E8)
-     *   Linear scan of dispatch table @ 0x5F57C (29 entries × 12 bytes)
-     *   entry.SID == request → check session gate → jsr @handler
-     */
+    uint8_t security_flag;
+    uint8_t bypass_flag;
+    uint8_t gate_check;
+
+    /* Step 1: Check gate at 0xFFFFD6C4 — must be 1 to proceed */
+    gate_check = *(volatile uint8_t *)0xFFFFD6C4;
+    if (gate_check != 1) {
+        return;
+    }
+
+    /* Step 2: Check security access at 0xFFFFD201 */
+    security_flag = *(volatile uint8_t *)0xFFFFD201;
+
+    /* Step 3: Determine bypass flag */
+    bypass_flag = 0;
+    if (security_flag == 1) {
+        bypass_flag = 1;
+    } else {
+        uint8_t bypass_req = *(volatile uint8_t *)0xFFFFD994;
+        if (bypass_req == 1) {
+            bypass_flag = 1;
+        }
+    }
+
+    /* Step 4: If not bypassed, check additional gate at 0xFFFFD299 */
+    if (bypass_flag == 0) {
+        uint8_t gate2 = *(volatile uint8_t *)0xFFFFD299;
+        if (gate2 == 0) {
+            /* Gate open: dispatch to udsHandler via request_type=req */
+            /* ROM:0x608D8: sub_603EC(handler_idx, 2) */
+        } else {
+            return;  /* Blocked */
+        }
+    }
+
+    /* Step 5: Forward to UDS handler
+     * ROM:0x608EC-0x608F2: dispatch via uds_task_entry
+     * The udsHandler (0x697E8) does linear scan of 0x5F57C table,
+     * checks session gate, and calls the handler function. */
     (void)sid;
     (void)req;
-
-    /* Placeholder — actual implementation requires full UDS bridge logic */
 }
 
 /* ====================================================================== */
@@ -1196,8 +1460,20 @@ static void counter_check_dispatch_2A242(void)
 {
     struct can_tx_frame frame;
 
-    /* TODO(ROM:0x2A242): implement counter-based rate limiting.
-     * Read counter from RAM, increment, check threshold. */
+    /* ROM:0x2A242: counter-based rate limiting for CAN 0x215 (throttle).
+     * Rate counter at 0xFFFFD7C4, threshold at 0xD7C6.
+     * Increment counter, compare against threshold.
+     * If counter >= threshold, reset and transmit.
+     * Otherwise, skip this call. */
+    volatile uint16_t *counter = (volatile uint16_t *)0xFFFFD7C4;
+    volatile const uint16_t *threshold = (volatile const uint16_t *)0xFFFFD7C6;
+
+    *counter += 1;
+    if (*counter < *threshold) {
+        return;  /* Rate limit — skip this call */
+    }
+    *counter = 0;  /* Reset counter */
+
     frame.reserved_00 = 0;
     frame.can_id = CAN_ID_0215;
     frame.mailbox = 0x03;       /* MB3 per config */

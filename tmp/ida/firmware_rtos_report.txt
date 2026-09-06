@@ -1,0 +1,119 @@
+Firmware RTOS Implementation Report
+====================================
+Generated: 2026-09-06
+ROM: 60E1D400 (Mazda RX-8 Renesis 13B-MSP, SH-2E)
+IDA Session: ae00d360
+
+Files Created
+-------------
+  firmware/include/rtos.h   — RTOS queue, context switch, dispatch prototypes
+  firmware/c/rtos.c         — 1:1 firmware reconstruction of RTOS subsystem
+
+ROM Address Mapping
+-------------------
+  Function                          ROM Addr   Size    Status
+  ─────────────────────────────────────────────────────────────
+  rtos_init                         (boot)      —      DONE
+  rtos_scheduler                    0x3C50      —      DONE (logic)
+  rtos_task_enqueue                 (inline)    —      DONE
+  rtos_task_dequeue                 (inline)    —      DONE
+  rtos_context_save                 0x3AD8      ~60B    PARTIAL (C framework)
+  rtos_context_restore              0x3238      ~60B    PARTIAL (C framework)
+  rtos_dispatch                     0x3BF4      ~40B    DONE
+  rtos_yield                        (helper)    —      DONE
+  rtos_queue_is_empty               (inline)    —      DONE
+  rtos_queue_is_full                (inline)    —      DONE
+  rtos_queue_count                  (inline)    —      DONE
+
+Architecture
+------------
+  Cooperative 4-priority scheduler:
+    S0 (priority 0): Engine control — highest, cannot be interrupted
+    S1 (priority 1): I/O processing
+    S2 (priority 2): Safety monitoring
+    S3 (priority 3): Idle / background — lowest
+
+  Fixed-size circular task queue:
+    100 entries × 8 bytes at 0xFFFFD4E0
+    Write index: 0xFFFFDFB4 (uint16)
+    Read index:  0xFFFFDFB6 (uint16)
+
+  Dispatch table at 0x6873C: 8-byte records
+    word = handler_addr | (type << 24) | (priority << 28)
+    Type encoding (bits 24-26):
+      0: Basic handler (r4=task_id)
+      1: Sub-function (r4=task_id, r5=sub_func)
+      2: Buffer pointer (r4=task_id, r5=buffer_ptr)
+      3: Reserved
+      4: Timer callback (r4=timer_id)
+
+Context Switch (SH-2)
+---------------------
+  Save (0x3AD8):
+    Stack frame: [SR][PR][r8-r14][r5][GBR][MACH][MACL]
+    Optional (type 4): [fr12-fr15]
+    Frame size: 52 bytes (basic), 68 bytes (with FP)
+
+  Restore (0x3238):
+    Reverse of save, using mov.l @(offset, sp), reg sequence
+    Optional (type 4): fr12-fr15
+
+  Note: C framework provided; full implementation requires
+  SH-2 inline assembly for register save/restore.
+
+Queue Operations
+----------------
+  Entry layout (8 bytes):
+    [+0]: uint32 dispatch record
+    [+4]: uint32 argument
+
+  Enqueue: writes to [write_index], advances with modulo
+  Dequeue: reads from [read_index], advances with modulo
+
+  Priority-based dispatch:
+    If task_priority <= current_priority: dispatch immediately
+    If task_priority > current_priority: re-enqueue for later
+
+Scheduler Flow
+--------------
+  1. Check if queue has entries
+  2. Dequeue next entry
+  3. Extract priority from dispatch record
+  4. If priority <= current_priority:
+     a. Save old priority
+     b. Set current_priority = task priority
+     c. Context switch (save current task)
+     d. Dispatch to handler
+     e. Context switch (restore)
+     f. Restore old priority
+  5. If priority > current_priority: re-enqueue
+  6. Repeat until queue empty
+
+TODOs (Unresolved)
+------------------
+  [1] Context switch assembly: rtos_context_save/restore are C frameworks.
+      Full implementation requires SH-2 inline assembly for:
+        stc.l sr, @-sp / sts.l pr, @-sp
+        mov.l r8-r14, @(offset, sp)
+        lds.l @sp+, pr / ldc.l @sp+, sr
+
+  [2] Dispatch table type 3: Reserved type not documented.
+
+  [3] Timer callback integration: rtos_dispatch for type 4 calls
+      handler with timer_id, but timer subsystem integration
+      not fully verified.
+
+  [4] Yield mechanism: Current implementation re-runs full scheduler.
+      May need optimization for real-time constraints.
+
+  [5] Priority inversion protection: Not implemented.
+      S0 tasks can block indefinitely without yielding.
+
+  [6] Stack overflow detection: Not implemented.
+      Each task needs its own stack; overflow check pending.
+
+Build Status
+------------
+  make -C firmware: PASS (all 8 sources compile with -Wall -Wextra -Werror)
+
+Compiler: gcc (host) -Os -ffreestanding -nostdlib -nostartfiles -Iinclude

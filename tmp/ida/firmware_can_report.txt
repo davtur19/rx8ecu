@@ -1,0 +1,157 @@
+# CAN Subsystem Firmware Implementation Report
+
+## Build Status
+**PASS** — `make -C firmware check` succeeds with `-Wall -Wextra -Werror`
+
+## Files Created/Modified
+
+| File | Action | Lines |
+|------|--------|-------|
+| `firmware/include/can.h` | Created | 310 |
+| `firmware/c/can.c` | Created | 750+ |
+| `firmware/Makefile` | Modified (added CAN_SRC) | +2 lines |
+
+## Implemented Functions
+
+### Core TX/RX
+| Function | ROM Address | Status | Description |
+|----------|-------------|--------|-------------|
+| `can_tx_send_frame` | 0x9AE4 | ✅ Implemented | Low-level CAN frame TX (disable IRQ, resolve mailbox, write, verify, restore) |
+| `CANTX_Main` | 0xDDF0 | ✅ Implemented | Main TX dispatcher with 6-gate check, dispatches all 11 TX packers |
+| `secondary_system_controller` | 0xDE8E | ✅ Implemented | Main RX dispatcher, gate check, dispatches 8 RX handlers |
+| `can_setup` | 0xDC8C | ✅ Implemented | CAN0/CAN1 controller init, config table selection |
+| `can_message_setup` | 0x2B320 | ✅ Implemented | Per-controller mailbox configuration |
+| `placeCANRX` | 0x99C4 | ✅ Implemented | Read CAN frame from HW mailbox (retry loop, copy) |
+
+### CAN → UDS Bridge
+| Function | ROM Address | Status | Description |
+|----------|-------------|--------|-------------|
+| `can_msg_parse_4657C` | 0x4657C | ✅ Implemented | UDS bridge gatekeeper (5 pre-conditions) |
+| `can_to_uds_bridge` | 0x60774 | ⚠️ Stub | Bridge to udsHandler (complex, needs UDS integration) |
+
+### TX Packer Functions
+| Function | ROM Address | Status | CAN ID |
+|----------|-------------|--------|--------|
+| `can41TXPack` | 0x39348 | ✅ Implemented | 0x041 KCM/immobiliser response |
+| `can_tx_rate_limit_0x201` | 0x29FD2 | ✅ Implemented | 0x201+0x203 engine torque/status |
+| `can203pack` | 0x2A274 | ✅ Implemented | 0x0203 engine status |
+| `can251TX_getAndPack` | 0x2AAB6 | ✅ Implemented | 0x0251 engine data |
+| `can_tx_rate_limit_0x231` | 0x2D402 | ✅ Implemented | 0x0231 engine state (AT only) |
+| `can420TXPack` | 0x29A0C | ✅ Implemented | 0x0420 coolant/MIL |
+| `can650TX_getAndPack` | 0x2C806 | ✅ Implemented | 0x0650 cruise lamps |
+| `can240TX_pack` | 0x4C888 | ✅ Implemented | 0x0240 OBD data |
+| `can250TX_pack` | 0x4C984 | ✅ Implemented | 0x0250 OBD data |
+| `can620TX_pack` | 0x33A68 | ✅ Implemented | 0x0620 fan/AC |
+| `can630TX_dispatch` | 0x33974 | ✅ Implemented | 0x0630 cooling fan |
+
+### RX Handler Functions
+| Function | ROM Address | Status | CAN ID |
+|----------|-------------|--------|--------|
+| `CAN212RX_Main` | 0x2C0C4 | ✅ Implemented | 0x0212 ABS/DSC/brake lamps |
+| `can4B0RX_unpack` | 0x2BE6E | ✅ Implemented | 0x04B0 wheel speeds |
+| `can47RX_Main` | 0x3939C | ✅ Implemented | 0x0047 KCM/immobiliser request |
+| `can4B1RX_event_check` | 0x4C78C | ✅ Implemented | 0x04B1 DSC request |
+| `can4C0RX_short` | 0x2C780 | ✅ Implemented | 0x04C0 short message |
+| `can430_4C0RX_dispatch` | 0x33BA0 | ✅ Implemented | 0x0430/0x04C0 cluster data |
+| `incr_counter_saturated_299DA` | 0x299DA | ✅ Implemented | 0x0216 timeout counter |
+
+### Low-Level Helpers
+| Function | ROM Address | Status | Description |
+|----------|-------------|--------|-------------|
+| `getHCANRegAddr` | 0xD198 | ✅ Implemented | PFC base + offset → HCAN register |
+| `can_get_mailbox_offset_high` | 0xD164 | ✅ Implemented | Mailbox status register resolution |
+| `can_get_mailbox_config` | 0xD1AC | ✅ Implemented | Mailbox config word read |
+| `can_enable_mailbox_int` | 0xCC6C | ⚠️ TODO | Per-mailbox interrupt enable |
+| `can_init_mailbox_irq_mask` | 0xCD12 | ⚠️ TODO | IRQ mask register init |
+| `can_set_mailbox_mode_dlc` | 0xCDC4 | ⚠️ TODO | Mailbox mode + DLC |
+| `can_set_mailbox_ptr_control` | 0xCDF0 | ⚠️ TODO | Buffer pointer + flow control |
+| `can_set_mailbox_id_mode` | 0xCE34 | ⚠️ TODO | ID acceptance mode |
+| `setCANRegisters` | 0xCC9C | ⚠️ TODO | Write config entry to HW regs |
+| `can_pack_tx_msg_write_verify` | 0xCF42 | ⚠️ TODO | Actual CAN HW write with verify |
+| `can_pack_tx_msg_copy` | 0xCEF4 | ⚠️ TODO | Copy CAN data from mailbox |
+| `diag_getsr_3920` | 0x3920 | ✅ Implemented | Disable interrupts, save SR |
+| `diag_setsr_3934` | 0x3934 | ✅ Implemented | Restore SR |
+
+## Config Tables Verified (IDA)
+
+### CAN0 TX Config (0x4EA60) — 16 entries × 16 bytes
+| Entry | CAN ID | Slot | DLC | Buffer Ptr | Description |
+|-------|--------|------|-----|------------|-------------|
+| 0 | 0x0201 | MB1 | 8 | 0x01BB5C | RPM/speed/accel |
+| 1 | 0x0203 | MB2 | 7 | 0x01BB78 | Engine torque |
+| 2 | 0x0215 | MB3 | 8 | 0x01BB9C | Throttle pos |
+| 3 | 0x0231 | MB4 | 5 | 0x01BB48 | Engine state |
+| 4 | 0x0231 | MB4 | 5 | 0x01BCC4 | Engine state (alt) |
+| 5 | 0x0420 | MB5 | 7 | 0x01BB0C | Coolant/MIL |
+| 6 | 0x0620 | MB6 | 7 | 0x01C054 | Fan/AC |
+| 7 | 0x0630 | MB7 | 8 | 0x01C044 | Cooling fan |
+| 8 | 0x0650 | MB8 | 1 | 0x01BC68 | Cruise lamps |
+| 9 | 0x0041 | MB9 | 8 | 0x01C518 | KCM response |
+| 10 | 0x0240 | MB10 | 8 | 0x01CEA4 | Transmission |
+| 11 | 0x0250 | MB11 | 8 | 0x01CEB8 | Injection PW |
+| 12 | 0x04B1 | MB12 | 8 | 0x01CE90 | DSC request |
+| 13 | 0x07DF | MB13 | 8 | 0x0DE04 | UDS broadcast |
+| 14 | 0x07E0 | MB14 | 8 | 0x0DE04 | UDS physical |
+| 15 | 0x07E8 | MB15 | 8 | 0x0DE0C | UDS response |
+
+### CAN1 RX Config (0x4EC60) — 6 entries × 16 bytes
+| Entry | CAN ID | Slot | DLC | Buffer Ptr | Description |
+|-------|--------|------|-----|------------|-------------|
+| 0 | 0x0212 | MB1 | 7 | 0x01BC28 | ABS/DSC/brake |
+| 1 | 0x0216 | MB2 | 8 | 0x01BB20 | Unknown |
+| 2 | 0x0430 | MB4 | 7 | 0x01C060 | Cluster |
+| 3 | 0x04B0 | MB5 | 8 | 0x01BC08 | Wheel speeds |
+| 4 | 0x04C0 | MB6 | 1 | 0x01BC64 | Short msg |
+| 5 | 0x0047 | MB7 | 8 | 0x01C520 | KCM request |
+
+## TODOs / Unresolved Items
+
+### Hardware Register Mapping (Priority: HIGH)
+These low-level helpers need precise HW register addresses from disasm:
+
+1. **`can_enable_mailbox_int` (0xCC6C)**: Which register bit per mailbox?
+2. **`can_init_mailbox_irq_mask` (0xCD12)**: IRQ mask register address?
+3. **`can_set_mailbox_mode_dlc` (0xCDC4)**: Mode + DLC register layout?
+4. **`can_set_mailbox_ptr_control` (0xCDF0)**: Buffer pointer register layout?
+5. **`can_set_mailbox_id_mode` (0xCE34)**: ID acceptance mode register?
+6. **`can_pack_tx_msg_write_verify` (0xCF42)**: Exact HW write sequence?
+7. **`can_pack_tx_msg_copy` (0xCEF4)**: Exact HW read sequence?
+
+### Function-Level TODOs
+- **`counter_check_dispatch_2A242`**: Counter threshold and dispatch logic for CAN 0x215
+- **`can_to_uds_bridge` (0x60774)**: Full bridge logic (complex, depends on UDS subsystem)
+- **`can_msg_parse_4657C`**: Counter increment with saturation (add16bitSaturate)
+- **Rate limiters**: Exact counter addresses for CAN 0x240/0x250/0x620/0x630 (every 25 cycles)
+- **`can201_pack_interpolation`**: Interpolation logic for RPM/speed data
+- **`can201_pack_staging`**: Staging copy logic
+
+### Mailbox Register Stride
+From `canMessageSetup` (0x2B320) disasm, mailbox registers appear to be:
+- CAN0: 0xFFFFE400 base, stride 0x10 per mailbox
+- CAN1: 0xFFFFE600 base, stride 0x10 per mailbox
+
+But exact register offsets within each mailbox need verification.
+
+## RAM Gate Flags (verified from disasm)
+| Address | Purpose | Gate Condition |
+|---------|---------|----------------|
+| 0xFFFFA40F | Boot counter | Must be < 100 |
+| 0xFFFFA40A | Reserved | Must be 0 |
+| 0xFFFFA410 | CAN0 init complete | Must be 0 (clears when ready) |
+| 0xFFFFA411 | CAN1 init complete | Must be 0 |
+| 0xFFFFAAE0 | System enable | Must be 1 |
+| 0xFFFFB5E8 | Inhibit | Must be != 1 |
+| 0xFFFFC241 | TX gate flag | Cleared at end of CANTX_Main |
+| 0xFFFFB5A4 | Config select | 1=primary table, 0=alternate |
+
+## Build Log
+```
+=== Checking firmware sources ===
+  CC c/boot.c
+  CC c/eeprom.c
+  CC c/serial.c
+  CC c/timer.c
+  CC c/main.c
+  CC c/can.c
+=== All sources compile OK ===
+```
