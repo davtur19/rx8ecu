@@ -1,0 +1,90 @@
+Firmware DTC Implementation Report
+===================================
+Generated: 2026-09-06
+ROM: 60E1D400 (Mazda RX-8 Renesis 13B-MSP, SH-2E)
+IDA Session: ae00d360
+
+Files Created
+-------------
+  firmware/include/dtc.h    — DTC data structures, ROM addresses, prototypes
+  firmware/c/dtc.c          — 1:1 firmware reconstruction of DTC subsystem
+
+ROM Address Mapping
+-------------------
+  DTC Set Path (verified chain):
+    0x271B8 → 0x25E36 → 0x43760 → 0x46780 → 0x467BE → 0x61550 → 0x63814
+
+  Function                          ROM Addr   Size    Status
+  ─────────────────────────────────────────────────────────────
+  dtc_init                          (boot)      —      DONE
+  dtc_set_flag                      0x46780    ~30B    DONE
+  dtc_clear_flag                    0x467AA    ~20B    DONE
+  dtc_freezeframe_store             0x467BE    ~40B    DONE
+  dtc_state_machine                 0x61550    ~300B   PARTIAL (3 modes)
+  dtc_debounce_counter              0x43760    ~200B   STUB (TODO)
+  dtc_find_worst_priority           0x6115A    ~120B   DONE
+  dtc_read_full_status              0x60FD2    ~40B    DONE
+  obd_sid14_clearDTC                0x562E8    ~80B    DONE
+  obd_sid18_readDTCInfo             0x587EC    ~120B   DONE
+  obd_sid12_readDTCByStatus         0x5BAD0    ~80B    DONE
+  dtc_snapshot_manager              0x3B3BC    ~80B    PARTIAL
+  dtc_pending_state_clear           0x46682    —       DONE
+  dtc_fault_log_clear               0x474D8    —       DONE
+  dtc_region_checksum_validate_8928  —         —       STUB
+  dtc_region_checksum_validate_8ea0  —         —       STUB
+
+  Monitor functions (all STUBs):
+    dtc_injector_fault_check        0x43476
+    dtc_o2_circuit_fault            0x45F54
+    dtc_o2_response_slow            0x45F9C
+    dtc_cat_efficiency              0x45FAC
+    dtc_misfire_cylinder_detect     0x468D6
+    dtc_set_p0100_maf_circuit       0x46DA0
+    dtc_set_p0110_iat_circuit       0x46DC2
+    dtc_set_p0120_tps_circuit       0x46DCA
+    dtc_set_p0130_o2_circuit        0x46DD2
+    dtc_set_p0300_random_misfire    0x46E44
+    dtc_set_p0400_egr_flow          0x47058
+    dtc_set_p0500_vss_circuit       0x47066
+    dtc_set_p0600_serial_comm       0x471A2
+    dtc_set_p0700_trans_control     0x4725E
+    dtc_set_p0800_reverse_lamp      0x4739A
+
+RAM Data Structures
+-------------------
+  Primary DTC table:    21 entries × 52B (0x34) at 0xFFFF8928
+  Backup DTC table:      8 entries × 40B (0x28) at 0xFFFF8EA0
+  Handler context:      21 entries × 16B (0x10) at 0xFFFF87D8
+  DTC enable flag:      0xFFFF8788 (1=enabled)
+  DTC set flag pair:    0xFFFF875C / 0xFFFF875E (checksummed)
+  DTC processing lock:  0xFFFF87B4
+  Active DTC code:      0xFFFF8920
+  Slot index:           0xFFFF8D70
+
+TODOs (Unresolved)
+------------------
+  [1] dtc_debounce_counter: Full implementation from 0x43760 pending.
+      Uses 3 counters (A/B/C) with thresholds 157, 16, 4 and
+      float gates 17000.0/500.0.
+
+  [2] dtc_state_machine: Only 3 modes implemented (set/confirm/clear).
+      Full ROM handler has additional severity checks and aging logic.
+
+  [3] Backup/Primary sync logic: Not fully analyzed.
+      Possible: backup = high-severity DTCs for EEPROM persistence,
+      or DTCs surviving key-off cycle.
+      Evidence needed: cross-ref obd_service_handler_63814.
+
+  [4] Checksum validation: dtc_region_checksum_validate_8928/8ea0 are stubs.
+      ROM computes sum of 15 bytes per entry = 0xA5.
+
+  [5] dtc_snapshot_manager: Partially implemented.
+      RPM/MAP addresses known; coolant temp and other sensors need mapping.
+
+  [6] Monitor functions (15 total): All stubs pending ROM analysis.
+
+Build Status
+------------
+  make -C firmware: PASS (all 8 sources compile with -Wall -Wextra -Werror)
+
+Compiler: gcc (host) -Os -ffreestanding -nostdlib -nostartfiles -Iinclude

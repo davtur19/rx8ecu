@@ -1,0 +1,119 @@
+Firmware UDS Implementation Report
+===================================
+Generated: 2026-09-06
+ROM: 60E1D400 (Mazda RX-8 Renesis 13B-MSP, SH-2E)
+IDA Session: ae00d360
+
+Files Created
+-------------
+  firmware/include/uds.h    — UDS dispatch table, session/security defines, prototypes
+  firmware/c/uds.c          — 1:1 firmware reconstruction of UDS subsystem
+
+ROM Address Mapping
+-------------------
+  Function                          ROM Addr   Size    Status
+  ─────────────────────────────────────────────────────────────
+  uds_init                          (boot)      —      DONE
+  uds_handler                       0x697E8    ~250B   DONE (dispatch logic)
+  uds_dispatch_lookup               (inline)    —      DONE
+  uds_session_gate                  0x5FA7D    —       DONE
+  uds_negative_response             0x6980E    —       DONE
+
+  SID Handlers:
+  ─────────────────────────────────────────────────────────────
+  obd_sid10_sessionControl          0x586C8    102B    DONE (3 sub-funcs)
+  obd_sid27_securityAccess          0x584A0    56B     PARTIAL (seed/key)
+  obd_sidB1_ecuReset                0x57024    50B     STUB
+  obd_sid22_readDataByIdentifier    0x588F2    210B    STUB (DID lookup)
+  obd_sid23_readMemoryByAddress     0x57028    —       STUB
+  obd_sid2E_writeDataByIdentifier   0x5798E    246B    STUB
+  obd_sid31_routineControl          0x5A9C0    —       STUB
+  obd_sid34_requestDownload         0x56862    —       STUB
+  obd_sid36_transferData            0x57A5C    —       STUB
+  obd_sid37_requestTransferExit     0x57506    —       STUB
+
+  OBD-II Service Handlers:
+  ─────────────────────────────────────────────────────────────
+  obd_service_1 (current data)      0x59D84    STUB
+  obd_service_2 (freeze frame)      0x59E16    STUB
+  obd_service_3 (stored DTCs)       0x59E42    STUB
+  obd_service_4 (clear DTCs)        0x59E98    STUB
+  obd_service_6 (test results)      0x59EDE    STUB
+  obd_service_7 (pending DTCs)      0x59EE2    STUB
+  obd_service_9 (vehicle info)      0x59C8C    STUB
+  obd_service_A (pending DTCs)      0x59F26    STUB
+
+Dispatch Table
+--------------
+  Table at 0x5F57C: 29 records × 12 bytes
+  Record layout: [SID:1][pad:1][handler:4][session_mask:4][pad:2]
+
+  Session Gate (0x5FA7D): 29 bytes, one per dispatch slot
+    bit7 = allowed in defaultSession (0x01)
+    bit6 = allowed in programmingSession (0x02)
+    bit5 = allowed in extendedDiagnosticSession (0x03)
+
+  Session mapping table at 0x5FA7D confirmed via:
+    session_index_writers_1_2_3_28 → single chain via 0x5FA7D ✓
+    (Previously marked unresolved_indirect_write; now RESOLVED)
+
+RAM Addresses
+-------------
+  Session level:     0xFFFFDE5C
+  Security level:    0xFFFFD20C
+  Session timer:     0xFFFFD210
+  Tester present:    0xFFFFD214
+  Flags word:        0xD206 (bits 0-3 session, bit28 in-progress)
+  Shadow copies:     0xD208, 0xD20A
+
+Session Control Logic (0x586C8)
+-------------------------------
+  Any→Default:      allowed, security locked
+  Default→Extended: allowed
+  Extended→Programming: allowed only if security unlocked
+  Programming→Default: allowed (triggers ECU reset)
+
+Security Access Logic (0x584A0)
+-------------------------------
+  Sub 0x01/0x03: requestSeed → generate and return 4-byte seed
+  Sub 0x02/0x04: sendKey → validate key, unlock level
+  Algorithm: XOR + rotate (from eeprom.h key table)
+  Level 1: 0x5F (extended session)
+  Level 2: 0x3F (programming session)
+
+Flags Word (0xD206)
+-------------------
+  bit  0:    Session bit 0
+  bit  1:    Session bit 1
+  bit  2:    Session bit 2
+  bit  3:    Session bit 3
+  bit 28:    In-progress marker (set during UDS processing)
+
+TODOs (Unresolved)
+------------------
+  [1] obd_sid27_securityAccess: Seed generation and key validation
+      from 0x584A0 not yet implemented. Uses XOR+rotate algorithm.
+
+  [2] obd_sid22_readDataByIdentifier: DID dispatch table (~15 entries)
+      from 0x588F2 not mapped. Known DIDs: 0xF806, 0xF808, 0xF80B,
+      0xF187, 0xF18A, 0xF190 (VIN).
+
+  [3] obd_sid2E_writeDataByIdentifier: DID write table (~8 entries)
+      from 0x5798E not mapped.
+
+  [4] obd_sid31_routineControl: Routine dispatch table (~10 entries)
+      from 0x5A9C0 not mapped. Known: 0xF000, 0xF001, 0xF002, 0xFF00.
+
+  [5] OBD-II service handlers (8 total): All stubs. Implement per
+      vehicle-specific requirements.
+
+  [6] Timing parameters in SID 0x10: P2/P2* server max not applied.
+
+  [7] obd_sid34/36/37 (download/transfer): Flash programming
+      state machine not implemented.
+
+Build Status
+------------
+  make -C firmware: PASS (all 8 sources compile with -Wall -Wextra -Werror)
+
+Compiler: gcc (host) -Os -ffreestanding -nostdlib -nostartfiles -Iinclude

@@ -1,0 +1,172 @@
+================================================================================
+RX-8 ECU ENGINE CONTROL MODULE — FIRMWARE RECONSTRUCTION REPORT
+================================================================================
+Date: 2026-09-06
+Source: IDA session ae00d360, ROM 60E1D400.bin (SH-2E BE)
+Status: PARTIAL IMPLEMENTATION — compile OK, stubs for unverified functions
+
+================================================================================
+1. IMPLEMENTED FUNCTIONS
+================================================================================
+
+Function Name                           | ROM Address | Size   | Status
+----------------------------------------|-------------|--------|--------
+main_engine_cycle_10ms                  | 0x17F1C     | 0x60   | IMPLEMENTED (flow verified)
+omp_control_task                        | 0x1825E     | 0x2F4  | STUBBED (state machine structure)
+outputPerRotorIgnitionDwell             | 0x11218     | 0x66   | STUBBED (lookup table)
+sequential_fuel_injection               | 0x211DC     | 0x1F4  | STUBBED (duty cycle)
+fuel_injection_duty_cycle               | 0x211CC     | -      | STUBBED (multiply)
+manifold_pressure_calc                  | 0x21190     | -      | STUBBED (2D lookup)
+main_fuel_control_pipeline              | 0x22094     | 0xB4   | STUBBED (28 calls)
+crank_gap_detect                        | 0x7E60      | 0x78   | STUBBED
+crank_position_state_machine            | 0x789E      | 0x20C  | STUBBED
+rotor_position_synchronization          | 0xAF10      | -      | STUBBED
+
+80ms Subsystem Tasks:
+idle_speed_control                      | 0x18054     | -      | STUBBED
+fuel_pump_control                       | 0x17510     | -      | STUBBED
+exhaust_port_control                    | 0x17700     | -      | STUBBED
+intake_air_control                      | 0x177A6     | -      | STUBBED
+torque_calc_with_damping                | -           | -      | STUBBED
+
+================================================================================
+2. ROM ADDRESS VERIFICATION
+================================================================================
+
+Verified via IDA disassembly (idalib_analyze_batch):
+
+[OK] 0x17F1C main_engine_cycle_10ms
+     - 48 instructions, calls 8 sub-functions
+     - Counter at 0xFFFFA964, 80ms divider (7/8 calls)
+     - Calls: idle_speed_control, fuel_pump_control, exhaust_port_control,
+              intake_air_control, torque_calc_with_damping, sub_17014,
+              ctrl_continuation_17b24, omp_control_task
+
+[OK] 0x11218 outputPerRotorIgnitionDwell
+     - Rotor 0/1 → can_addr_copy_57 (0xFFFFBC84)
+     - Rotor 2/3 → can_addr_copy_58 (0xFFFFBC88)
+     - Divides by constant from ROM:0x112DC
+
+[OK] 0x211DC sequential_fuel_injection
+     - Reads can_addr_copy_225 (0xFFFFBF24)
+     - Reads unk_FFFFB35C (fuel trim)
+     - Uses math_complement_2440 for duty cycle
+
+[OK] 0x1825E omp_control_task
+     - Reads ram_a968, unk_FFFFA969, unk_FFFFA96A, unk_FFFFA96B, ram_a96c
+     - Checks hwfault_reg (0xFFFF9ECD) bit 1
+     - Updates aux_ctrl_flags_write (0xFFFFA976)
+
+[OK] 0x22094 main_fuel_control_pipeline
+     - 28 sequential function calls verified
+     - First 11 calls identified from disassembly
+
+================================================================================
+3. TODO ITEMS (GAPS)
+================================================================================
+
+[TODO] ROM:0x7E60 crank_gap_detect
+       - Full gap detection algorithm not extracted
+       - Expected: interval comparison against 1.5× expected tooth interval
+
+[TODO] ROM:0x789E crank_position_state_machine
+       - Full FSM transitions not extracted
+       - 4 states: idle, searching, partial_sync, full_sync
+
+[TODO] ROM:0xAF10 rotor_position_synchronization
+       - Tooth-to-rotor mapping not extracted
+
+[TODO] ROM:0x11218-0x1127E outputPerRotorIgnitionDwell
+       - Float division and conversion not implemented
+       - Requires FPU emulation on host
+
+[TODO] ROM:0x11A9C calc_base_ignition_timing
+       - RPM/MAP 2D lookup not extracted
+
+[TODO] ROM:0x1E6B6 ignition_timing_output
+       - Final timing filter not extracted
+
+[TODO] ROM:0x211DC-0x213B4 sequential_fuel_injection
+       - Full sequential injection scheduling not extracted
+
+[TODO] ROM:0x211CC fuel_injection_duty_cycle
+       - Float multiply not implemented
+
+[TODO] ROM:0x21190 manifold_pressure_calc
+       - 2D lookup table not extracted
+
+[TODO] ROM:0x1825E-0x1853E omp_control_task
+       - State machine transitions not fully extracted
+       - Duty cycle calculation not implemented
+
+[TODO] Fuel Pipeline Calls 1-3, 5, 7, 9-28
+       - 17 of 28 pipeline calls not identified
+       - Remaining calls: calcCLorOLControl, setClosedLoopBool,
+         calcOpenLoopFuelingTarget, fpu_threshold_accumulate_divide,
+         adaptive_ignition_table, complex_fpu_compare_calc,
+         transmission_load_control, secondaryAirRequestStuff, etc.
+
+[TODO] 80ms Subsystem Tasks
+       - All 5 tasks stubbed, no implementation
+       - idle_speed_control, fuel_pump_control, exhaust_port_control,
+         intake_air_control, torque_calc_with_damping
+
+[TODO] Sub-functions not identified
+       - sub_17014 (called from main_engine_cycle_10ms)
+       - ctrl_continuation_17b24 (called from main_engine_cycle_10ms)
+
+================================================================================
+4. ROTARY ENGINE TERMINOLOGY VERIFICATION
+================================================================================
+
+[OK] Rotor (not piston)
+[OK] Eccentric shaft (not crankshaft)
+[OK] Leading spark (primary ignition)
+[OK] Trailing spark (secondary ignition)
+[OK] OMP (Oil Metering Port)
+[OK] Primary injector (main fuel delivery)
+[OK] Secondary injector (enrichment/cold start)
+[OK] Apex seal (not piston ring)
+[OK] 3x6+1 trigger wheel (20-tooth)
+[OK] Port control (VECS/VIAS)
+
+================================================================================
+5. BUILD LOG
+================================================================================
+
+$ make -C firmware check
+=== Checking firmware sources ===
+  CC c/boot.c
+  CC c/eeprom.c
+  CC c/serial.c
+  CC c/timer.c
+  CC c/main.c
+  CC c/can.c
+  CC c/engine.c
+=== All sources compile OK ===
+
+Build flags: -Os -ffreestanding -nostdlib -nostartfiles -Iinclude -Wall -Wextra -Werror
+
+================================================================================
+6. FILES CREATED
+================================================================================
+
+firmware/c/engine.c         — Main implementation (619 lines)
+firmware/include/engine.h   — Header with ROM address comments (298 lines)
+firmware/Makefile           — Updated with ENGINE_SRC
+
+================================================================================
+7. NEXT STEPS (RECOMMENDED)
+================================================================================
+
+1. Extract full disassembly for crank_gap_detect (0x7E60)
+2. Extract full disassembly for crank_position_state_machine (0x789E)
+3. Implement float operations via software FPU (or use fixed-point)
+4. Extract remaining 17 fuel pipeline calls from 0x220E0-0x2223C
+5. Extract 80ms subsystem task implementations
+6. Implement trigger decode interrupt handler
+7. Add hardware register definitions for coil/injector drivers
+
+================================================================================
+END OF REPORT
+================================================================================

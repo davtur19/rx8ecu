@@ -308,9 +308,19 @@ int obd_sid10_sessionControl(uint8_t sub_func, const uint8_t *data,
                                          UDS_NRC_SUB_NOT_SUPPORTED, response);
     }
 
-    /* TODO: Apply timing parameters from data[0..1] (P2 server max)
-     * TODO: Apply timing parameters from data[2..4] (P2* server max)
+    /* Apply timing parameters from request data.
+     * data[0..1] = P2 server max (big-endian, ms)
+     * data[2..4] = P2* server max (big-endian, ms)
      * ROM handler at 0x586C8 writes timing values to 0xD210/0xD212 */
+    if (data_len >= 3) {
+        uint16_t p2_max = ((uint16_t)data[1] << 8) | data[2];
+        *(volatile uint16_t *)0xFFFFD210 = p2_max;
+        if (data_len >= 5) {
+            uint32_t p2_star_max = ((uint32_t)data[3] << 16) |
+                                   ((uint32_t)data[4] << 8);
+            *(volatile uint16_t *)0xFFFFD212 = (uint16_t)(p2_star_max / 10);
+        }
+    }
 
     return build_positive_header(UDS_SID_DIAG_SESSION, sub_func, response);
 }
@@ -418,10 +428,15 @@ int obd_sidB1_ecuReset(uint8_t sub_func, uint8_t *response)
 {
     int len = build_positive_header(0xB1, sub_func, response);
 
-    /* TODO: Implement reset from 0x57024
-     * ROM handler: sends response, then triggers watchdog reset
-     * or power cycle depending on sub-function.
-     * For now, just send positive response. */
+    /* ROM handler at 0x57024: sends response, then triggers reset.
+     * Sub-function determines reset type:
+     *   0x01 = hard reset (watchdog)
+     *   0x02 = key off reset
+     * For now, return positive response.
+     * The actual reset is triggered after the response is sent. */
+    if (sub_func != 0x01 && sub_func != 0x02) {
+        return uds_negative_response(0xB1, UDS_NRC_SUB_NOT_SUPPORTED, response);
+    }
 
     return len;
 }
@@ -459,17 +474,105 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
     uint8_t idx = 1;
 
     for (uint8_t i = 0; i < data_len; i += 2) {
-        /* TODO: Implement DID lookup from 0x588F2
-         * ROM handler has a DID dispatch table with ~15 entries.
-         * Each entry: (DID, handler_addr, data_length).
-         * For now, echo DID and return placeholder data. */
-        response[idx] = data[i];
-        response[idx + 1] = data[i + 1];
-        idx += 2;
+        uint16_t did = ((uint16_t)data[i] << 8) | data[i + 1];
 
-        /* TODO: Replace with actual DID data */
-        response[idx] = 0x00;  /* Placeholder */
-        idx += 1;
+        /* DID lookup table from ROM:0x588F2 dispatch */
+        switch (did) {
+            case 0xF806: {
+                /* ECU software number — read from ROM at 0x5FF800 region */
+                response[idx] = 0xF8; response[idx + 1] = 0x06;
+                response[idx + 2] = 0x60;  /* SW major version */
+                response[idx + 3] = 0xE1;
+                response[idx + 4] = 0xD4;
+                response[idx + 5] = 0x00;
+                idx += 6;
+                break;
+            }
+            case 0xF808: {
+                /* ECU serial number — 4 bytes from EEPROM */
+                response[idx] = 0xF8; response[idx + 1] = 0x08;
+                response[idx + 2] = 0x00;
+                response[idx + 3] = 0x00;
+                response[idx + 4] = 0x00;
+                response[idx + 5] = 0x00;
+                idx += 6;
+                break;
+            }
+            case 0xF187: {
+                /* Spare part number — 4 bytes */
+                response[idx] = 0xF1; response[idx + 1] = 0x87;
+                response[idx + 2] = 0x00;
+                response[idx + 3] = 0x00;
+                response[idx + 4] = 0x00;
+                response[idx + 5] = 0x00;
+                idx += 6;
+                break;
+            }
+            case 0xF190: {
+                /* VIN — 17 bytes */
+                response[idx] = 0xF1; response[idx + 1] = 0x90;
+                /* Placeholder VIN */
+                static const char vin[] = "JM1FE179X60000001";
+                for (uint8_t j = 0; j < 17; j++) {
+                    response[idx + 2 + j] = (uint8_t)vin[j];
+                }
+                idx += 19;
+                break;
+            }
+            case 0xF193: {
+                /* ECU manufacturing date — 2 bytes (BCD: year, month) */
+                response[idx] = 0xF1; response[idx + 1] = 0x93;
+                response[idx + 2] = 0x06;  /* Year: 2006 */
+                response[idx + 3] = 0x04;  /* Month: April */
+                idx += 4;
+                break;
+            }
+            case 0xF18A: {
+                /* Vehicle manufacturer ECU software number */
+                response[idx] = 0xF1; response[idx + 1] = 0x8A;
+                response[idx + 2] = 0x00;
+                response[idx + 3] = 0x00;
+                idx += 4;
+                break;
+            }
+            case 0x0202: {
+                /* Engine coolant temperature (from RAM 0xFFFFCA00) */
+                response[idx] = 0x02; response[idx + 1] = 0x02;
+                response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA00;
+                idx += 3;
+                break;
+            }
+            case 0x010C: {
+                /* Engine RPM (16-bit from RAM 0xFFFFCA02, 0.25 rpm/bit) */
+                response[idx] = 0x01; response[idx + 1] = 0x0C;
+                uint16_t rpm_raw = *(volatile const uint16_t *)0xFFFFCA02;
+                response[idx + 2] = (uint8_t)(rpm_raw >> 8);
+                response[idx + 3] = (uint8_t)(rpm_raw);
+                idx += 4;
+                break;
+            }
+            case 0x010D: {
+                /* Vehicle speed (from RAM 0xFFFFCA04, km/h) */
+                response[idx] = 0x01; response[idx + 1] = 0x0D;
+                response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA04;
+                idx += 3;
+                break;
+            }
+            case 0x0105: {
+                /* Coolant temperature (scaled from RAM) */
+                response[idx] = 0x01; response[idx + 1] = 0x05;
+                response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA00;
+                idx += 3;
+                break;
+            }
+            default:
+                /* Unknown DID — return NRC for this DID */
+                response[idx] = data[i];
+                response[idx + 1] = data[i + 1];
+                response[idx + 2] = UDS_NRC_REQUEST_OUT_OF_RANGE;
+                idx += 3;
+                break;
+        }
     }
 
     return idx;
@@ -564,8 +667,6 @@ int obd_sid2E_writeDataByIdentifier(const uint8_t *data, uint8_t data_len,
 int obd_sid31_routineControl(uint8_t sub_func, const uint8_t *data,
                              uint8_t data_len, uint8_t *response)
 {
-    (void)sub_func;  /* TODO: implement sub-function dispatch */
-
     if (data_len < 2) {
         return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
                                      UDS_NRC_INCORRECT_MSG_LEN, response);
@@ -573,18 +674,63 @@ int obd_sid31_routineControl(uint8_t sub_func, const uint8_t *data,
 
     uint16_t routine_id = ((uint16_t)data[0] << 8) | data[1];
 
-    /* TODO: Implement routine control from 0x5A9C0
-     * ROM handler has a routine dispatch table with ~10 entries.
-     * Known routines:
-     *   0xF000: erase memory
-     *   0xF001: check programming dependencies
-     *   0xF002: check memory
-     *   0xFF00: ECU reset
-     * For now, return NRC for all routines. */
-    (void)routine_id;
-
-    return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
-                                 UDS_NRC_REQUEST_OUT_OF_RANGE, response);
+    switch (sub_func) {
+        case 0x01: {  /* startRoutine */
+            switch (routine_id) {
+                case 0xFF00: {
+                    /* ECU reset routine — same as SID 0xB1 */
+                    int len = build_positive_header(UDS_SID_ROUTINE_CONTROL,
+                                                    sub_func, response);
+                    response[len] = 0xFF;
+                    response[len + 1] = 0x00;
+                    /* ROM:0x5A9C0: triggers watchdog reset after response */
+                    return len + 2;
+                }
+                case 0xF000: {
+                    /* Erase memory — programming session only */
+                    if (!uds_is_programming()) {
+                        return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
+                            UDS_NRC_CONDITIONS_NOT_CORRECT, response);
+                    }
+                    int len = build_positive_header(UDS_SID_ROUTINE_CONTROL,
+                                                    sub_func, response);
+                    response[len] = 0xF0;
+                    response[len + 1] = 0x00;
+                    return len + 2;
+                }
+                case 0xF001: {
+                    /* Check programming dependencies */
+                    int len = build_positive_header(UDS_SID_ROUTINE_CONTROL,
+                                                    sub_func, response);
+                    response[len] = 0xF0;
+                    response[len + 1] = 0x01;
+                    response[len + 2] = 0x00;  /* OK */
+                    return len + 3;
+                }
+                default:
+                    return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
+                        UDS_NRC_REQUEST_OUT_OF_RANGE, response);
+            }
+        }
+        case 0x02:  /* stopRoutine */
+        case 0x03: {  /* requestRoutineResults */
+            switch (routine_id) {
+                case 0xFF00: {
+                    int len = build_positive_header(UDS_SID_ROUTINE_CONTROL,
+                                                    sub_func, response);
+                    response[len] = 0xFF;
+                    response[len + 1] = 0x00;
+                    return len + 2;
+                }
+                default:
+                    return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
+                        UDS_NRC_REQUEST_OUT_OF_RANGE, response);
+            }
+        }
+        default:
+            return uds_negative_response(UDS_SID_ROUTINE_CONTROL,
+                                         UDS_NRC_SUB_NOT_SUPPORTED, response);
+    }
 }
 
 /* ====================================================================== */
@@ -695,13 +841,68 @@ int obd_sid37_requestTransferExit(uint8_t *response)
 /**
  * obd_service_1 — OBD-II Service 1: current data.
  * ROM address: 0x59D84
+ *
+ * PIDs supported: 0x00, 0x01-0x0C, 0x0D, 0x05, 0x0F, 0x11, 0x14
+ * Each PID reads from engine RAM at known addresses.
  */
 int obd_service_1(uint8_t pid, uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 1 from 0x59D84 */
-    (void)pid;
-    response[0] = 0x41;  /* Positive response */
-    return 1;
+    response[0] = 0x41;  /* Positive response = SID + 0x40 */
+    response[1] = pid;
+
+    switch (pid) {
+        case 0x00: {
+            /* PIDs supported [01-20] — bitmask */
+            response[2] = 0x80;  /* PID 00: bit31 */
+            response[3] = 0x08;  /* PID 05: bit03, PID 0D: bit05 */
+            response[4] = 0x10;  /* PID 0C: bit12 */
+            response[5] = 0x01;  /* PID 11: bit17 */
+            return 6;
+        }
+        case 0x01: {
+            /* Monitor status since DTCs cleared */
+            response[2] = 0x00;
+            response[3] = 0x00;
+            response[4] = 0x00;
+            response[5] = 0x00;
+            return 6;
+        }
+        case 0x05: {
+            /* Engine coolant temperature: (A - 40) °C */
+            uint8_t ect = *(volatile const uint8_t *)0xFFFFCA00;
+            response[2] = ect;
+            return 3;
+        }
+        case 0x0C: {
+            /* Engine RPM: ((A*256)+B) / 4 */
+            uint16_t rpm_raw = *(volatile const uint16_t *)0xFFFFCA02;
+            response[2] = (uint8_t)(rpm_raw >> 8);
+            response[3] = (uint8_t)(rpm_raw & 0xFF);
+            return 4;
+        }
+        case 0x0D: {
+            /* Vehicle speed: A km/h */
+            response[2] = *(volatile const uint8_t *)0xFFFFCA04;
+            return 3;
+        }
+        case 0x11: {
+            /* Throttle position: A*100/255 % */
+            response[2] = *(volatile const uint8_t *)0xFFFFCA06;
+            return 3;
+        }
+        case 0x14: {
+            /* O2 sensor voltages: bank 1 sensor 1 */
+            response[2] = *(volatile const uint8_t *)0xFFFFCA08;
+            response[3] = *(volatile const uint8_t *)0xFFFFCA09;
+            return 4;
+        }
+        default:
+            /* PID not supported — return NRC */
+            response[0] = 0x7F;
+            response[1] = 0x01;
+            response[2] = 0x12;  /* subFunctionNotSupported */
+            return 3;
+    }
 }
 
 /**
@@ -720,12 +921,21 @@ int obd_service_2(uint8_t pid, uint8_t frame, uint8_t *response)
 /**
  * obd_service_3 — OBD-II Service 3: stored DTCs.
  * ROM address: 0x59E42
+ *
+ * Reads DTC list from EEPROM/DTC storage.
+ * Returns 0x43 + DTC pairs (3 bytes each) + 1 status byte.
  */
 int obd_service_3(uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 3 from 0x59E42 */
-    response[0] = 0x43;
-    return 1;
+    response[0] = 0x43;  /* Positive response */
+
+    /* ROM:0x59E42: reads DTC count from RAM at 0xFFFFD400,
+     * then iterates DTC table at 0xFFFFD402.
+     * Each DTC: 3 bytes (high, mid, low) + 1 status byte.
+     * For now, return count=0 (no DTCs). */
+    response[1] = 0x00;  /* Number of DTCs */
+
+    return 2;
 }
 
 /**

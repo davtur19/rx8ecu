@@ -77,6 +77,12 @@ struct can_mailbox_config {
 /*  HCAN Peripheral Registers                                             */
 /* ====================================================================== */
 
+/* Mailbox register addresses (absolute, for use with getHCANRegAddr / mailbox helpers) */
+#define HCAN_MBOX_REG_ADDR      0xFFFFE406  /* CAN0 mailbox status register */
+#define HCAN_MBOX_READY_ADDR    0xFFFFE40A  /* CAN0 mailbox ready/control */
+#define HCAN_MBOX_STATUS_ADDR   0xFFFFE40E  /* CAN0 mailbox status (RX check) */
+#define HCAN_MBOX_DATA_RDY_ADDR 0xFFFFE41A  /* CAN0 data ready / data copy */
+
 /* Mailbox register PFC offsets (relative to HCAN periph base 0xFFFFE402) */
 #define HCAN_REG_MBOX_OFFSET     0x0004  /* 0xFFFFE406: mailbox offset register */
 #define HCAN_REG_MBOX_READY      0x0008  /* 0xFFFFE40A: mailbox ready/control */
@@ -85,6 +91,9 @@ struct can_mailbox_config {
 
 /* HCAN enable value */
 #define HCAN_ENABLE_MAGIC        0x803E
+
+/* Mailbox data buffer area base (for write_verify / copy) */
+#define HCAN_MBOX_DATA_BASE     0xFFFFE4B0  /* CAN0 mailbox data area */
 
 /* ====================================================================== */
 /*  RAM Gate Flags                                                        */
@@ -465,20 +474,20 @@ void incr_counter_saturated_299DA(void);
 /**
  * getHCANRegAddr — Calculate HCAN register address.
  * ROM address: 0xD198
- * @param base    PFC base address (0xFFFFE402 for CAN0, 0xFFFFE600 for CAN1)
- * @param offset  Register offset
- * @return Register address
+ * @param controller  0=CAN0, 1=CAN1
+ * @param offset      CAN0 register address (e.g. 0xFFFFE406)
+ * @return Register address for the specified controller
  */
-uint16_t getHCANRegAddr(uint16_t base, uint16_t offset);
+uint32_t getHCANRegAddr(uint8_t controller, uint32_t offset);
 
 /**
  * can_get_mailbox_offset_high — Read mailbox status/offset.
  * ROM address: 0xD164
  * @param mailbox_idx  Mailbox index (byte)
- * @param pfc_reg      PFC register address
+ * @param reg_addr     Register address (CAN0 base address)
  * @return Pointer to mailbox register
  */
-volatile uint16_t *can_get_mailbox_offset_high(uint8_t mailbox_idx, uint16_t pfc_reg);
+volatile uint16_t *can_get_mailbox_offset_high(uint8_t mailbox_idx, uint32_t reg_addr);
 
 /**
  * can_get_mailbox_config — Get mailbox config word.
