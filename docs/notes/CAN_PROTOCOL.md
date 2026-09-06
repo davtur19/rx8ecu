@@ -109,6 +109,71 @@ secondary_system_controller:
   CAN47RX_Main(0x3939C)         → CAN ID 0x47 (KCM/immobiliser request, CAN1 MB7)
 ```
 
+### CAN → UDS Bridge (complete verified path)
+
+UDS diagnostic requests arrive on CAN0 0x7E0 (physical) or 0x7DF (broadcast).
+The response is sent on CAN0 0x7E8.
+
+```
+CAN0 0x7E0 frame arrives
+  ↓
+secondary_system_controller (0xDE8E)
+  reads CAN RX data via placeCANRX
+  ↓
+can_msg_parse_4657C (0x4657C)
+  pre-conditions checked:
+    - OBD session active (obd_service_handler_6743C)
+    - CAN state [0xFFFFCD02] == 1
+    - CAN enable [0xFFFFA110] == 1
+  monitors counter at [0xFFFFCC36] vs ROM threshold 0x7C396
+  if conditions met:
+  ↓
+can_to_uds_bridge (0x60774)
+  r4 = 0x67 (SID byte), r5 = 1 or 2 (request type)
+  ↓
+uds_task_entry (0x696DC)  [RTOS task table entry, marker=2, args=3]
+  ↓
+udsHandler (0x697E8)
+  dispatch table @ 0x5F57C (29 entries × 12 bytes)
+  linear scan: entry.SID == request byte → check session gate flags → jsr @handler
+  ↓
+UDS SID handler processes request
+  ↓
+Response packed into CAN0 0x7E8 mailbox
+  ↓
+can_tx_send_frame (0x9AE4)
+  disables interrupts (diag_getsr_3920)
+  resolves mailbox via can_get_mailbox_offset_high (PFC 0xFFFFE406)
+  writes CAN ID + data to mailbox HW registers
+  sets ready bit
+  restores interrupts (diag_setsr_3934)
+  ↓
+Frame transmitted on HS-CAN
+```
+
+**Key detail:** The CAN→UDS bridge is the SOLE path for diagnostic requests.
+There is no direct serial→UDS path — all UDS traffic goes through CAN.
+
+### UDS Dispatch Table (0x5F57C)
+
+29 entries × 12 bytes: `{SID byte @0, handler dword @4 (BE), flags dword @8}`.
+Sole consumer: `udsHandler` (0x697E8).
+
+Dispatcher algorithm: linear scan `r14 = r5*12 + 0x5F57C` (r5 up to 0xFF);
+entry byte == request byte r4 → `if (flags & r7)` with `r7 = 1 << byte@0xFFFFDE5C`
+(session/state gate) → `jsr @handler`.
+
+Flags: bit n set → service allowed when `byte@0xFFFFDE5C == n` (session state).
+Entries with 0x1000000x include high bit 0x10000000 (meaning unknown, possibly
+"requires security unlock" or "always allowed" marker).
+
+### 0x7E8 Response Buffer
+
+The UDS response is written to the CAN0 0x7E8 mailbox buffer at offset 0x0DE0C
+(config table entry 15, `0x4EA60` + 15×16). `can_tx_send_frame` copies the
+8-byte response payload from the staging area to the mailbox HW registers via
+`can_pack_tx_msg_write_verify` → `eeprom_write_verify_bytes` (actual HW write).
+
 ## Known Proprietary Broadcast IDs
 
 > Description column: **field-verified meanings** (per `can_protocol/verification/field_vs_firmware.md` and `can_protocol/rx8club_thread_276101_CAN_map.txt`); DLC/dir/ID from firmware mailbox config, unchanged.
@@ -151,8 +216,36 @@ Not accessible through standard OBD2 — it needs a raw-CAN logger (OBDX Pro or 
 - ECU responds to 0x7DF (broadcast) and 0x7E0 (unicast); response 0x7E8
 - Mailbox config at 0x4EA60 entries 13-15
 - All UDS through `udsHandler` (0x697E8) dispatched through table @0x5F57C
-- UDS entry from CAN: `udsEntryPoint` (0x69702) → `udsHandler`
-- Known DIDs (SID 0x22): `0xF190` VIN, `0xF18C` Calibration ID, `0xE611` Calibration Hex File (ASCII) — full detail in `docs/hardware/RX8_OBD_UDS_Protocol.txt`.
+- **29 SID handlers** all named and characterized (see `obd_dispatch_report.txt`)
+- UDS entry from CAN: `can_to_uds_bridge` (0x60774) → `uds_task_entry` (0x696DC) → `udsHandler`
+- Known DIDs (SID 0x22): `0xF190` VIN, `0xF18C` Calibration ID, `0xE611` Calibration Hex File (ASCII) — full detail in `docs/hardware/RX8_OBD_UDS_Protocol.txt`
+
+### UDS Dispatch Table (0x5F57C)
+
+29 entries × 12 bytes: `{SID byte @0, handler dword @4 (BE), flags dword @8}`.
+Linear scan in `udsHandler`: entry.SID == request → check `(flags & (1 << session_gate))` → dispatch.
+
+Key SIDs and their handlers:
+
+| SID | Handler | Flags | Notes |
+|---|---|---|---|
+| 0x01 | `obd_sid01_handler` (0x66258) | 0x00000001 | Mode 01 current data |
+| 0x10 | `obd_sid10_sessionControl` (0x586C8) | 0x1000000F | Session control |
+| 0x22 | `obd_sid22_readDataById` (0x57224) | 0x1000000F | Read data by ID |
+| 0x27 | `obd_sid27_securityAccess` (0x584A0) | 0x1000000E | Security access (seed/key) |
+| 0x34 | `obd_sid34_requestDownload` (0x5E1F8) | 0x00000002 | Request download (security) |
+| 0x36 | `obd_sid36_transferData` (0x5E270) | 0x00000002 | DENIED: always NRC 0x22 |
+| 0x37 | `obd_sid37_requestUpload` (0x5E2B0) | 0x00000002 | DENIED: always NRC 0x22 |
+| 0xB1 | `obd_sidB1_customMazda` (0x57024) | 0x0000000F | Mazda custom SID |
+
+### SecurityAccess flow (0x584A0)
+
+- SID 0x27, response SID 0x67, NRC prefix 0x7F
+- Seed generated with fixed level 3 (seed = `FF FF FF` on fast path)
+- Key validation via table @0x5FAA2 (10 entries, stride 3)
+- SendKey (subfunc 4) is UNREACHABLE in 60E1D400
+- Security state stored at `security_access_level` (0xFFFFD20C)
+- 4-byte seed at 0xFFFFD211-214 (`security_seed_copy`)
 
 ## Field vs firmware (cross-check summary)
 

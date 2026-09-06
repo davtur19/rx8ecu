@@ -239,3 +239,486 @@ Tutti e 4 verificati **CORRETTI** contro il disassembly:
 Il segmento RAM dell'ELF (0xFFFF6000–0xFFFFDFFF) rende importabili i simboli di `symbols/RAM_VARIABLES.csv` (**1613 indirizzi** 0xFFFF00B1–0xFFFFFFFF) come simboli dati.
 
 **Nota**: gli indirizzi **sotto 0xFFFF6000 NON sono coperti** dal segmento RAM.
+
+---
+
+## Analisi RTOS — Task Scheduler (sessione ae00d360)
+
+### Modello di scheduling
+
+Il scheduler è **cooperativo (non preemptive)**: i task girano fino al completamento e
+cedono il controllo esplicitamente. Nessun cambio di contesto forzato da timer interrupt.
+Le interruzioni postano nella coda task, non eseguono dispatch diretto.
+
+**4 livelli di priorità** (dal `task_priority_scheduler` 0x3C80):
+
+| Livello | Bits | Ruolo |
+|---|---|---|
+| 3 (massimo) | 0x60 | Engine control critico |
+| 2 | 0x40 | Timing / elaborazione sensori |
+| 1 | 0x20 | I/O e comunicazione |
+| 0 (minimo) | 0x00 | Task di background |
+
+### Ciclo di vita del task
+
+```
+Reset → Manual_Reset (0x8B8) → resetHandler (0x4E0)
+  → secondary_boot_main (0xA038)
+    → task_context_switch (0x3AD8, r4=0)  ← avvia RTOS
+      → jmp 0x3E10 (RTOS_init_entry)
+        → task_queue_init (0x3964)
+        → task_table_scan_init (0x3EC0)
+        → task_dependency_handler (0x3F10)
+        → task_set_current_ptr (0x3AC0)
+        → task_full_context_save (0x3BF4) → schedule
+```
+
+### Task queue (ring buffer)
+
+- 100 entry × 8 byte a `0xFFFFD4E0` (RAM)
+- Write index `[0xFFFFDFB4]` (u16), read index `[0xFFFFDFB6]` (u16)
+- `task_queue_pending_count` (0x3E0): `(write - read) mod 100`
+- `task_queue_get_next` (0x3B0): legge entry, incrementa read mod 100
+
+Entry format (8 byte):
+| Offset | Size | Descrizione |
+|---|---|---|
+| 0 | 1 | Source/origin byte |
+| 1 | 1 | Command type code (dispatched su `& 0xF8`) |
+| 2-7 | 6 | Payload / parametri |
+
+### Main loop — `main_task_dispatcher` (0x6C8)
+
+Pulisce `[0xFFFFDFB8]`, poi cicla:
+1. `task_scheduler_dispatch` (0x364) — processa EEPROM/diag
+2. `task_queue_pending_count` (0x3E0)
+3. Se pending == 0 → idle path
+4. `task_queue_get_next` (0x3B0)
+5. Dispatch su `task[1] & 0xF8`
+
+### Task table (ROM a 0x6873C)
+
+Entry a 8 byte: `{uint16_t marker, uint16_t arg_count, uint32_t func_ptr}`
+
+| Entry | Marker | Args | Funzione |
+|---|---|---|---|
+| 0 | 0x0002 | 3 | `uds_task_entry` (0x696DC) |
+| 1 | 0x0001 | 4 | 0x689E6 |
+| 2 | 0x0003 | 3 | 0x61ACE |
+| 3 | 0x0003 | 2 | 0x661BC |
+| 4 | 0x0003 | 2 | 0x563B2 |
+| 5 | 0x0003 | 1 | 0x625C8 |
+| 6 | 0x0003 | 0 | 0x65430 |
+
+`marker == 0xFFFF` → chiamata diretta; altrimenti → dispatcher 0x5F34 con marker come chiave.
+
+### Context switch
+
+- `task_context_switch` (0x3AD8): valida task_id, salva SR/PR, store SP → `[0xFFFF72D8]`, carica SR da `[0x4B04]`, SP da `[0x4938]`
+- `task_full_context_save` (0x3BF4): salva r5, PR, r8-r12, GBR, r13, MACH, r14, MACL; se type==4: anche fr12-fr15
+- Stack layout full save (partenza SP=0xFFFFDF00):
+  ```
+  0xFFFFDEFC: r5       0xFFFFDEE0: r12
+  0xFFFFDEF8: PR       0xFFFFDEDC: GBR
+  0xFFFFDEF4: pad      0xFFFFDED8: r13
+  0xFFFFDEF0: r8       0xFFFFDED4: MACH
+  0xFFFFDEEC: r9       0xFFFFDED0: r14
+  0xFFFFDEE8: r10      0xFFFFDECC: MACL
+  0xFFFFDEE4: r11      [se type==4: fr12/fr13/fr14/fr15]
+  ```
+
+### Timer tick
+
+- Fonte primaria: ATU (Advanced Timer Unit), canali configurati in `atu_timer_init` (0x10AC)
+- Interrupt timer postano nella coda, non eseguono dispatch diretto
+- Watchdog (WDT): `wdt_init` (0x572), usato per reset di sistema, non scheduling
+- Idle loop: `0xA06E` (loop infinito dopo avvio RTOS)
+
+### Funzioni RTOS verificate (28/28)
+
+| Funzione | Indirizzo | Note |
+|---|---|---|
+| `main_task_dispatcher` | 0x6C8 | Loop principale, dispatch su task[1]&0xF8 |
+| `task_scheduler_dispatch` | 0x364 | Queue scheduler, EEPROM/diag |
+| `task_queue_get_next` | 0x3B0 | Prossima entry dal ring buffer |
+| `task_queue_pending_count` | 0x3E0 | (write-read) mod 100 |
+| `task_queue_init` | 0x3964 | Azzera queue, init slot a -1 |
+| `task_context_switch` | 0x3AD8 | Save/restore SR/SP, jmp RTOS init |
+| `task_full_context_save` | 0x3BF4 | Full callee-saved register save |
+| `task_context_save_enter` | 0x3238 | ISR/switch entry, salva r2-r7 + FPU |
+| `task_priority_scheduler` | 0x3C80 | Selezione livello priorità |
+| `task_completion_handler` | 0x3D58 | Completamento task + consistency check |
+| `task_table_scan_init` | 0x3EC0 | Itera task, imposta stato inactive |
+| `task_dependency_handler` | 0x3F10 | Decrementa contatori, abilita dipendenti |
+| `task_ready_check` | 0x3FB0 | Valida indice, check ready bitmask |
+| `task_handler_run_by_index` | 0x5F34 | Marker dispatch, queue management |
+| `task_handler_init_and_run` | 0x6034 | Init + run per startup tasks |
+| `task_execute_by_index` | 0x3854 | Counter gating, dependency check |
+| `task_scheduler` | 0xAB06 | Scheduler superiore (timer-based) |
+| `task_state_mapper` | 0xAC94 | Mappa stato ECU → task state code |
+| `task_scheduler_check_and_sync` | 0xAECC | Rotor position sync |
+| `task_loader_dispatcher` | 0xBA56 | Loader/task dispatch |
+| `task_msg_dispatch_conditional` | 0xC2E6 | Conditional message dispatch |
+| `main_periodic_task` | 0xDD76 | CAN setup + PCM init sequence |
+| `task_flag_run_A` | 0x3588 | OR flag 0x10000, chiama handler, clear |
+| `task_flag_run_C` | 0x35EE | OR flag 0x8000, chiama handler, clear |
+| `wdt_init` | 0x572 | Watchdog timer init |
+| `eeprom_read_validate` | 0x450 | Read + valida EEPROM staging |
+| `diag_transfer_210` | 0x210 | Check PFC, chiama 0xACE |
+
+---
+
+## Analisi Seriale — Protocollo Comunicazione (sessione ae00d360)
+
+### Bus fisico
+
+L'ECU RX-8 usa DUE interfacce seriali distinte:
+
+**A) ATU-Based Serial (interfaccia diagnostica primaria)**
+- Hardware: SH-2 Advanced Timer Unit (ATU) canali configurati per I/O
+- Registri: range 0xFFFFE4xx (periferica custom, NON standard UART)
+- `0xFFFFE406`: Status register (bit 0x200 = busy, bit 0x80 = ready)
+- `0xFFFFE40A`: Data register (TX/RX)
+- `0xFFFFE40E`: RX status register (bit 0x100 = dati disponibili, bit 0x60 = status)
+- `0xFFFFE41A`: Error/clear register (bit 0x100 = errore)
+- `0xFFFFE4B0`/`0xFFFFE4B8`: Buffer registers
+- Implementazione seriale basata su TIMER (bit-banged o capture/compare)
+
+**B) SCI4 (interfaccia secondaria)**
+- Hardware: SH-2 Serial Communication Interface canale 4
+- Registri: `0xFFFFF020`–`0xFFFFF025`
+- Baud rate: 115200 (`sci4_init_8n1_115200`) e 57600 (`sci4_init_8n1_57600_verify`)
+- Formato: 8N1
+- Probabilmente usata per flash programming o debug
+
+La interfaccia diagnostica primaria (ATU) **NON ha baud rate fisso** in ROM.
+Il baud rate è determinato dalla configurazione ATU a runtime.
+
+### Tre canali logici
+
+| Codice cmd | Handler | Canale | RX Buffer | Descrizione |
+|---|---|---|---|---|
+| 0x88 | `serial_rx_handler_ch0` | ch0 | 0xFEC | Diagnostica principale |
+| 0x90 | `serial_rx_handler_ch1` | ch1 | 0xFF8 | Diagnostica secondaria |
+| 0xC0 | `serial_rx_handler_ch2` | ch2 | 0xFE4 | Diagnostica terziaria |
+| 0xB0 | `serial_data_read_handler` | — | — | Richiesta lettura dati |
+| 0x98 | `serial_data_write_handler` | — | — | Richiesta scrittura dati |
+| 0xA8 | `diag_transfer_806` | — | — | Transfer diagnostico |
+| 0xA0 | `exception_context_restore` | — | — | Gestione eccezioni |
+
+I tre canali (ch0/ch1/ch2) sono canali LOGICI, non UART separati.
+Condividono hardware ATU ma sono distinti da codici comando diversi e buffer RX diversi.
+
+### Formato frame seriale
+
+```
+[Source/origin][Length][Payload...][Checksum]
+```
+
+- Sync protocol: `0xAA` = slot pronto, `0x55` = messaggio scritto (ACK)
+- Buffer direct TX a `0xFFFFDFAC`
+- Buffer queue a `0xFFFFDFF0` (sync byte a offset 8)
+
+### Dispatch seriale (0x338)
+
+`serial_dispatch` instrada messaggi su DUE path:
+
+1. **Direct path** (`loc_256`, 0x256): se `[0xFFFFDFA8]==0` → copia payload direttamente a hardware
+2. **Queue path** (`serial_queue_message`, 0x47C): se busy → attende sync 0xAA, formatta, scrivi 0x55
+
+### Helper functions
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `build_be32_from_bytes` | 0xF4 | Costruisce valore 32-bit BE da 4 byte |
+| `calculate_checksum` | 0x11A | Checksum additivo con carry folding |
+| `write_verify_bytes` | 0xAE8 | Scrivi byte con verifica read-back |
+| `atu_wait_and_transfer` | 0x1168 | Attende ATU ready, trasferisce dati |
+| `atu_channel_transfer` | 0x1116 | Check ATU RX status, legge dati |
+| `serial_comm_init_490B0` | 0x490B0 | Init parametri comunicazione seriale |
+
+---
+
+## Analisi Motore Rotario — Engine Control (sessione ae00d360)
+
+### Posizione eccentric shaft
+
+Il Renesis 13B-MSP usa una ruota trigger a 3×6+1 (20 denti) sull'albero eccentrico
+con gap di sincronizzazione (dente mancante) per il sync del rotore.
+
+**RAM principali:**
+
+| Indirizzo | Ruolo |
+|---|---|
+| 0xFFFF9F94 | crank (state byte posizione principale) |
+| 0xFFFF9F95 | Stato macchina (max 0x24) |
+| 0xFFFF9FBC | Accumulatore timing crank (float) |
+| 0xFFFF9FC1 | Sync state: 0=idle, 1=searching, 2=partial, 3=synced |
+| 0xFFFF9FC2 | Contatore denti (satura a 0xFF) |
+| 0xFFFF9FCB | Flag rilevamento gap |
+| 0xFFFFA1E0 | Media mobile risultato sync rotore |
+
+**Funzioni principali:**
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `crank_position_state_machine` | 0x789E | State machine posizione eccentric shaft |
+| `crank_timing_update` | 0x7814 | Aggiorna timing base su eventi denti |
+| `crank_sync_acquire` | 0x7AAA | Acquisisce sincronizzazione |
+| `crank_tooth_validate` | 0x7AD6 | Valida singoli eventi denti |
+| `crank_gap_detect` | 0x7E60 | Rileva il gap (6° evento) |
+| `rotor_position_synchronization` | 0xAF10 | Sincronizzazione posizione rotore |
+
+### Ignition timing — Leading e trailing spark
+
+Il Renesis 13B-MSP usa 4 bobine di accensione (2 per rotore):
+- **Leading spark**: prima scintilla, vicino a TDC
+- **Trailing spark**: dopo leading, ritardata per emissioni
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `ignition_timing_output_1E6B6` | 0x1E6B6 | Output principale timing accensione |
+| `wankel_rotary_control_1E820` | 0x1E820 | Controllo specifico Wankel con correzione |
+| `ignition_timing_calc_E7F8` | 0xE7F8 | Calcolo core timing accensione |
+| `outputPerRotorIgnitionDwell` | 0x11218 | Output dwell per singolo rotore |
+| `ignitionDwellOutputInit` | 0x8F62 | Init hardware dwell output |
+| `ignition_advance_limiter` | 0xE38C | Limitatore anticipo accensione |
+| `adaptive_ignition_table_213D0` | 0x213D0 | Tabella accensione adattiva |
+| `calc_ignition_all_rotors_13C2C` | 0x13C2C | Calcolo accensione entrambi i rotori |
+| `ignition_timing_safety_check_1FAEA` | 0x1FAEA | Safety check timing |
+
+**RAM ignition:**
+
+| Indirizzo | Ruolo |
+|---|---|
+| 0xFFFFB0E8 | Timing accensione filtrato |
+| 0xFFFFB104 | Delta timing leading |
+| 0xFFFFB108 | Delta timing trailing |
+| 0xFFFFB12C | engine_ctrl_state (word stato engine) |
+
+### Fuel injection — 4 iniettori
+
+Il Renesis ha 4 iniettori:
+- **Primary**: sparano per intake port (erogazione principale)
+- **Secondary**: sparano per arricchimento (alto carico, avvio a freddo)
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `sequential_fuel_injection_211DC` | 0x211DC | Controllo iniezione sequenziale |
+| `calc_fuel_injection_all_rotors` | 0x13D3C | Calcolo iniezione entrambi i rotori |
+| `fuel_injector_multiplexed_control` | 0x101CA | Controllo multiplexato iniettori |
+| `fuel_inject_pulse_per_rotor` | 0xFBB6 | Calcolo impulso per rotore |
+| `fuel_injector_pulse_calc` | 0x10620 | Calcolo core lunghezza impulso |
+| `rpm_limiter_fuel_cutoff` | 0xC508 | Limite RPM fuel cutoff |
+| `calc_fuel_trims_adaptive` | 0x117B4 | Fuel trim adattivo |
+| `calc_fuel_trim_correction_map` | 0x136F0 | Mappa correzione fuel trim |
+| `rotary_fuel_enrichment_controller` | 0x14C2C | Controllo arricchimento specifico rotario |
+| `fuel_pressure_calc_with_interpolation` | 0xE6D8 | Calcolo pressione carburante |
+
+**RAM fuel:**
+
+| Indirizzo | Ruolo |
+|---|---|
+| 0xFFFFA73C | Valore iniezione rotore B |
+| 0xFFFFA740 | Flag enable iniezione |
+| 0xFFFFA744 | Valore iniezione rotore A |
+| 0xFFFFA56C | fuel_cut_flag (fuel cut attivo) |
+| 0xFFFF9F38 | Valore fuel rate float |
+| 0xFFFF9F96 | if_engine_run (flag engine in esecuzione) |
+
+### OMP (Oil Metering Port)
+
+L'OMP inietta olio nelle porte di aspirazione per la lubrificazione degli anelli
+apicali del rotore.
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `omp_control_task_1825E` | 0x1825E | Task principale controllo OMP |
+| `omp_stepper_waveform_driver` | 0x18552 | Driver waveform stepper |
+| `omp_waveform_state_machine_18860` | 0x18860 | State machine waveform 4 stati |
+| `rotor_sync_position_detector` | 0x189EE | Detector posizione sync rotore |
+
+**RAM OMP:**
+
+| Indirizzo | Ruolo |
+|---|---|
+| 0xFFFFA968..A96C | Stato OMP (5 byte) |
+| 0xFFFFA97B | Contatore decremento OMP |
+| 0xFFFF807C | Registro output OMP |
+
+### Main engine cycle (10ms task)
+
+**Funzione**: `main_engine_cycle_10ms` @ 0x17F1C (size 0x60)
+
+Catena di chiamata:
+```
+read_prev_rotor_pair_status (0x11794)
+  → idle_control_priority_task (0x1AA18)
+  → priority_task_dispatch_2B070 (0x2B070)
+  → main_engine_cycle_10ms (0x17F1C)  ← QUESTA FUNZIONE
+  → obd_service_handler_69624 (0x69624)
+```
+
+Logica timer:
+- Contatore 0xFFFFA964 incrementa ogni chiamata 10ms (ciclo 0-7)
+- Subset task girano ogni 80ms (counter < 8, 7/8 chiamate)
+- OMP control gira ogni 10ms indipendentemente
+
+Subset task (ogni 80ms):
+1. `idle_speed_control_18054` — controllo velocità idle
+2. `fuel_pump_control_0x17510` — relay pompa carburante
+3. `exhaust_port_control` (0x17700) — timing porta scarico
+4. `intake_air_control_0x177A6` — controllo aria aspirata
+5. `torque_calc_with_damping` (0x17952) — calcolo coppia
+
+Sempre (ogni 10ms): `omp_control_task_1825E`
+
+### Fuel control pipeline (28 chiamate)
+
+**Funzione**: `main_fuel_control_pipeline_22094` @ 0x22094
+
+Sequenza:
+```
+Sensor Inputs → calcCLorOLControl → manifold_pressure_calc
+  → sequential_fuel_injection → fuel_injection_duty_cycle
+  → adaptive_ignition_table → ignition_timing_output
+  → wankel_rotary_control → sensor_validation
+  → combustion_control_loop → ignition_timing_safety_check
+```
+
+### Statistiche sintesi
+
+- Funzioni specifiche rotario identificate: 43+
+- Funzioni accensione: 28
+- Funzioni iniezione: 50+
+- Funzioni posizione crank/eccentric shaft: 35+
+- RAM address identificati: 45+
+- Sottosistemi mappati: 5 (posizione, accensione, iniezione, OMP, ciclo 10ms)
+
+---
+
+## EEPROM — Analisi Esterna SPI (sessione ae00d360)
+
+### Architettura hardware
+
+L'ECU RX-8 usa un **chip EEPROM SPI esterno** (NON on-chip SH-2E).
+L'interfaccia SPI è bit-banged usando pin GPIO mappati through il CAN controller register space.
+
+**CHIAVE**: L'on-chip EEPROM SH-2E/SH7055 (tipicamente 2KB a 0xFFFFF000-0xFFFFF7FF)
+NON è usato per storage persistente. Tutte le operazioni EEPROM passano per chip SPI esterno.
+
+### SPI Register Map
+
+| Indirizzo | Nome | Ruolo |
+|---|---|---|
+| 0xFFFFE401 | SPI_CLK_DATA_CTRL | Bit 0: clock out, Bit 3: transfer status |
+| 0xFFFFE402 | SPI_CONTROL | SPI control register |
+| 0xFFFFE404 | SPI_CONFIG | SPI configuration |
+| 0xFFFFE406 | SPI_DATA_0 | SPI data register 0 |
+| 0xFFFFE40A | SPI_DATA_2 | SPI data/config register 2 |
+| 0xFFFFE414 | SPI_CHANNEL_CONFIG | SPI channel configuration |
+| 0xFFFFE4B0 | SPI_BUFFER_0 | SPI buffer register 0 |
+| 0xFFFFE4B8 | SPI_BUFFER_1 | SPI buffer register 1 |
+
+### Funzioni SPI
+
+| Funzione | Indirizzo | Ruolo |
+|---|---|---|
+| `spi_set_clk_high_wait` | 0x9C0 | Set clock HIGH, attende transfer complete |
+| `spi_set_clk_low_wait` | 0x9DE | Set clock LOW, attende data ready |
+| `spi_eeprom_read` | 0x49700 | Init operazione lettura SPI EEPROM |
+| `spi_eeprom_write` | 0x496BA | Scrittura con wear-leveling |
+| `spi_eeprom_verify` | 0x49778 | Verifica integrità dati EEPROM |
+| `flash_program` | 0x497B0 | Programmazione flash con verifica |
+| `flash_erase` | 0x4988C | Cancellazione blocco flash |
+| `flash_checksum` | 0x4990C | Checksum flash memory |
+
+### EEPROM Memory Map
+
+**RAM staging:**
+
+| Range | Size | Ruolo |
+|---|---|---|
+| 0xFFFFC2FE–0xFFFFC3FE | 256 byte | EEPROM data staging buffer |
+| 0xFFFFC3FE–0xFFFFC4FE | 256 byte | Copia invertita per verifica |
+| 0xFFFFDFE4 | 8 byte + status | RAM buffer A (0x55=valid, 0xAA=consumed) |
+| 0xFFFFDFF0 | 8 byte + status | RAM buffer B |
+
+**Strutture controllo:**
+
+| Indirizzo | Nome | Ruolo |
+|---|---|---|
+| 0xFFFFC297 | eeprom_busy_flag | Operazione in corso |
+| 0xFFFFC29B | eeprom_write_pending | Scrittura pending |
+| 0xFFFFC2D1 | eeprom_commit_request | Richiesta commit |
+| 0xFFFFC2D2 | eeprom_commit_done | Commit completato |
+| 0xFFFFC2F8 | eeprom_commit_status | Status per categoria |
+
+### EEPROM data categories
+
+| Categoria | Offset | Size | Scopo probabile |
+|---|---|---|---|
+| 0x01 | 0x0A | 2 | Security keys / dati immobilizer |
+| 0x02 | 0x02 | 8 | DTC codes |
+| 0x03 | 0x00 | 2 | Parametri configurazione |
+| 0x04 | 0x0C | 6 | Valori appresi (fuel trim, ecc.) |
+| 0x05 | 0x12 | 2 | Livello security access |
+| 0x06 | 0x0E | 2 | Dati adaptive learning |
+| 0x07 | 0x16 | 4 | Identificazione ECU |
+| 0x09 | 0x0C | 8 | Dati calibrazione |
+| 0x0E | 0x0C | 2 | Dati service interval |
+| 0x0F | 0x0E | 2 | Sync data immobilizer |
+| 0xFF | 0x00 | 32 | Reset/inizializzazione EEPROM |
+
+### EEPROM commit flow
+
+1. `diag_getsr_3920` — disabilita interruzioni
+2. Copia dati a staging buffer (`eeprom_atomic_ram_copy`)
+3. Salva copia invertita per verifica
+4. `diag_setsr_3934` — riabilita interruzioni
+5. Set flag commit request (`0xFFFFC2D1 = 1`)
+6. Chiama `eeprom_commit_dispatcher` con categoria
+7. Priority check (`eeprom_priority_check`)
+8. Attendi completamento
+9. Verifica status
+
+### Dimensione EEPROM stimata
+
+- Staging buffer: 256 byte
+- Verification buffer: 256 byte
+- Strutture controllo: ~100 byte
+- **Dimensione stimata**: 2KB (2048 byte) minimo
+- Più probabilmente **2KB (256×8)** o **4KB (512×8)**
+
+### Wear leveling
+
+- Contatore 0xFFFFCCF8 incrementa ad ogni scrittura
+- Reset a 0 quando scrittura non permessa
+- Suggerisce wear-leveling across multipli blocchi EEPROM
+
+---
+
+## DTC (Diagnostic Trouble Codes) — Placeholder
+
+> Analisi DTC in corso. Il sottosistema DTC è già parzialmente documentato in
+> `docs/functions/dtc_management.md` e `docs/functions/dtcRelated.md`.
+>
+> Funzioni verificate: dtcRelated@0x62002, dtc_handler_610FA@0x610FA,
+> dtc_handler_61550@0x61550, dtc_code_set/clear@0x46780/0x467AA,
+> dtc_debounce_monitor_43760@0x43760.
+>
+> Vedi anche: `FINDINGS.md` sezione "DTC Management subsystem — Track-A verified".
+
+---
+
+## RAM import — Risultati (sessione ae00d360)
+
+Da `symbols/RAM_VARIABLES.csv` (1613 indirizzi):
+- Importabili (RAM+Periph): 1569
+- Saltati (gap non mappato): 44 (range 0xFFFF0000–0xFFFF5FFF)
+- Collisioni pre-esistenti: 404
+- **Nuovi import questa sessione: 1165**
+- **Totali globals in IDA ora: 2028** (range 0xFFFF6000–0xFFFFFFFF)
+
+Metodo: tutti i nuovi simboli creati come `unsigned char` (1 byte).
+Verifica spot-check: 0xFFFFDFA0 flag_gate ✓, 0xFFFFDFB8 ram_dfb8 ✓, 0xFFFFDFFC warm_boot_magic ✓.
