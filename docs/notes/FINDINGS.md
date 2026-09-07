@@ -613,62 +613,62 @@ TX (CAN0): 0x7E8 (UDS response)
 ### Full Report
 `tmp/ida/can_analysis_report.txt` — complete function-by-function map with assembly details, RAM addresses, ROM config tables, register map, and flow traces.
 
-## Consolidamento Reverse-Engineering Completo (2026-09-06, sessione ae00d360)
+## Consolidated Reverse Engineering (2026-09-06, session ae00d360)
 
-Onde 1-5 di analisi completate. Tutti i risultati consolidati in `docs/notes/IDA_ANALYSIS.md`.
+Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANALYSIS.md`.
 
-### Session Gate — catena singola
-- `diag_session_gate_idx` (0xFFFFDE5C) scritto da UNA SOLA catena: `SessionControl` → `fuel_matrix_566ec` → `getSubFunctionMapping` → delay-slot indirect store
-- SecurityAccess NON scrive il gate index; scrive `security_access_level` (0xFFFFD20C) separatamente
-- Reset writer: 0x696D4 (setta gate_idx = 0)
+### Session Gate — single chain
+- `diag_session_gate_idx` (0xFFFFDE5C) written by ONE chain only: `SessionControl` → `fuel_matrix_566ec` → `getSubFunctionMapping` → delay-slot indirect store
+- SecurityAccess does NOT write the gate index; writes `security_access_level` (0xFFFFD20C) separately
+- Reset writer: 0x696D4 (sets gate_idx = 0)
 - Gate mechanism in udsHandler: `gate_mask = 1 << byte@diag_session_gate_idx`
 
-### RAM — 1165 nuovi simboli importati
-- Da `symbols/RAM_VARIABLES.csv`: 1613 indirizzi totali, 1569 importabili, 1165 nuovi import
-- Totale globals in IDA ora: 2028 (range 0xFFFF6000–0xFFFFFFFF)
-- 404 collisioni pre-esistenti preservate, 44 saltati (gap non mappato 0xFFFF0000–0xFFFF5FFF)
+### RAM — 1165 new symbols imported
+- From `symbols/RAM_VARIABLES.csv`: 1613 total addresses, 1569 importable, 1165 new imports
+- Total globals in IDA now: 2028 (range 0xFFFF6000–0xFFFFFFFF)
+- 404 pre-existing collisions preserved, 44 skipped (unmapped gap 0xFFFF0000–0xFFFF5FFF)
 
-### CAN — Due bus, bridge CAN→UDS verificato
-- **Two buses**: HS-CAN (CAN0, OBD-II pins 6/14) e MS-CAN (CAN1, pins 3/11)
+### CAN — two buses, CAN→UDS bridge verified
+- **Two buses**: HS-CAN (CAN0, OBD-II pins 6/14) and MS-CAN (CAN1, pins 3/11)
 - **Bridge path**: `can_msg_parse_4657C` → `can_to_uds_bridge` (0x60774) → `uds_task_entry` → `udsHandler`
-- TX: 11 ID rate-limited via `can_tx_send_frame` (0x9AE4)
-- RX: 7 handler via `placeCANRX` (0x99C4), retry 5x
-- Init: `canSetup` (0xDC8C) itera CAN0/CAN1 con config tables 0x4EA60/0x4EB60/0x4EC60
-- 46 renames applicati, 37 commenti aggiunti
+- TX: 11 rate-limited IDs via `can_tx_send_frame` (0x9AE4)
+- RX: 7 handlers via `placeCANRX` (0x99C4), 5x retry
+- Init: `canSetup` (0xDC8C) iterates CAN0/CAN1 with config tables 0x4EA60/0x4EB60/0x4EC60
+- 46 renames applied, 37 comments added
 
-### RTOS — Cooperativo, 4 priorità
-- **Cooperative (non preemptive)**: task girano fino al completamento
-- **4 priority levels** (0=minimo, 3=massimo)
-- Task queue: 100 entry × 8 byte a 0xFFFFD4E0
+### RTOS — cooperative, 4 priority levels
+- **Cooperative (non-preemptive)**: tasks run to completion
+- **4 priority levels** (0=minimum, 3=maximum)
+- Task queue: 100 entries × 8 bytes at 0xFFFFD4E0
 - Context switch: task_context_switch (0x3AD8), task_full_context_save (0x3BF4)
-- 28 funzioni RTOS verificate al 100%
+- 28 RTOS functions verified at 100%
 
-### Seriale — ATU-based, 3 canali
-- **Primary**: ATU-based timer serial (bit-banged, registri 0xFFFFE4xx)
+### Serial — ATU-based, 3 channels
+- **Primary**: ATU-based timer serial (bit-banged, registers 0xFFFFE4xx)
 - **Secondary**: SCI4 (115200/57600, 8N1)
 - **3 logical channels**: ch0 (0x88, OBD), ch1 (0x90, cluster), ch2 (0xC0, body)
 - Frame: `[source][length][payload...]`, sync 0xAA, ACK 0x55
-- Dispatch: direct path (hw) o queue path (0xFFFFDFF0)
+- Dispatch: direct path (hw) or queue path (0xFFFFDFF0)
 
-### Engine rotario — 141+ funzioni
+### Rotary engine — 141+ functions
 - **Position sensing**: eccentric shaft 20-tooth trigger wheel, 43 rotary functions
 - **Ignition**: leading + trailing spark, 28 ignition functions, 4 coils
 - **Fuel injection**: primary + secondary, 50+ functions, 4 injectors
 - **OMP**: Oil Metering Port, stepper waveform driver
-- **10ms cycle**: `main_engine_cycle_10ms` (0x17F1C), OMP ogni 10ms, idle/fuel/exhaust ogni 80ms
-- **Fuel pipeline**: 28 chiamate in sequenza (`main_fuel_control_pipeline_22094`)
+- **10ms cycle**: `main_engine_cycle_10ms` (0x17F1C), OMP every 10ms, idle/fuel/exhaust every 80ms
+- **Fuel pipeline**: 28 calls in sequence (`main_fuel_control_pipeline_22094`)
 
-### EEPROM — SPI esterno
-- **External SPI EEPROM** (NON on-chip SH-2E)
+### EEPROM — external SPI
+- **External SPI EEPROM** (NOT on-chip SH-2E)
 - SPI bit-banged via GPIO through CAN controller register space (0xFFFFE4xx)
 - Staging: 256B data + 256B verification inverted copy
 - 16 data categories (security, DTC, config, fuel trim, immobilizer)
 - Wear leveling via counter 0xFFFFCCF8
-- Dimensione stimata: 2-4 KB
+- Estimated size: 2-4 KB
 
-### OBD/UDS — Tabella dispatch completata
-- **Dispatch table** a 0x5F57C: 29 record × 12 byte `{SID, handler, flags}`
-- 29 SID handlers tutti nominati e caratterizzati
-- 236 obd_service_handler_* sono leaf/PID sub-handlers, NON dispatch table entries
-- SecurityAccess: seed fixed level 3, key validation via tabella 0x5FAA2
-- SendKey (subfunc 4) è UNREACHABLE in 60E1D400
+### OBD/UDS — dispatch table completed
+- **Dispatch table** at 0x5F57C: 29 records × 12 bytes `{SID, handler, flags}`
+- 29 SID handlers all named and characterized
+- 236 obd_service_handler_* are leaf/PID sub-handlers, NOT dispatch table entries
+- SecurityAccess: seed fixed level 3, key validation via table 0x5FAA2
+- SendKey (subfunc 4) is UNREACHABLE in 60E1D400

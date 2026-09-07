@@ -117,29 +117,29 @@ PFC 0xFFFFE40E/0xFFFFE41A, retries up to 5x, copies data via `can_pack_tx_msg_co
 | 0x4C0 | `can4C0RX_short` (0x2C780) | — | CAN1 | Short message |
 | 0x7E0 | `can_msg_parse_4657C` → `can_to_uds_bridge` | — | CAN0 | UDS request → udsHandler |
 
-### CAN → UDS Bridge (path completo verificato)
+### CAN → UDS Bridge (fully verified path)
 
 ```
-CAN0 0x7E0 arriva
+CAN0 0x7E0 arrives
   → secondary_system_controller (0xDE8E)
-      legge dati CAN via placeCANRX
+      reads CAN data via placeCANRX
   → can_msg_parse_4657C (0x4657C)
-      checks: sessione OBD attiva (obd_service_handler_6743C)
-              stato CAN [0xFFFFCD02]==1
-              enable CAN [0xFFFFA110]==1
-      monitora contatore [0xFFFFCC36] vs ROM 0x7C396
-      se condizioni OK:
+      checks: active OBD session (obd_service_handler_6743C)
+              CAN state [0xFFFFCD02]==1
+              CAN enable [0xFFFFA110]==1
+      monitors counter [0xFFFFCC36] vs ROM 0x7C396
+      if conditions OK:
   → can_to_uds_bridge (0x60774)  r4=0x67 (SID), r5=1/2
   → uds_task_entry (0x696DC) → udsHandler (0x697E8)
-  → risposta → CAN0 0x7E8 → can_tx_send_frame → trasmissione HW
+  → response → CAN0 0x7E8 → can_tx_send_frame → HW transmission
 ```
 
 ### CAN Init
 
-`canSetup` (0xDC8C): itera CAN0/CAN1. Usa tabella config primaria 0x4EA60 o
-alternativa 0x4EB60 (quando [0xB5A4]==0). Chiama `CANControllerSetup` (0x9878) per
-ogni controller: abilita mailbox interrupts, init IRQ mask, imposta mode/DLC,
-pointer control, ID mode. Set `[0xFFFFA410]=1` quando entrambi i controller pronti.
+`canSetup` (0xDC8C): iterates CAN0/CAN1. Uses primary config table 0x4EA60 or
+alternate 0x4EB60 (when [0xB5A4]==0). Calls `CANControllerSetup` (0x9878) for
+each controller: enables mailbox interrupts, inits IRQ mask, sets mode/DLC,
+pointer control, ID mode. Sets `[0xFFFFA410]=1` when both controllers are ready.
 
 ### RAM Gate Flags
 
@@ -187,97 +187,97 @@ writes back for TX.
 
 Full report: `tmp/ida/can_analysis_report.txt`
 
-## RTOS — Cooperative Scheduler (sessione ae00d360)
+## RTOS — Cooperative Scheduler (session ae00d360)
 
-Il sistema è un **RTOS cooperativo (non preemptive)**: i task girano fino al completamento.
-Le interruzioni postano nella coda task, non eseguono dispatch diretto.
+The system is a **cooperative (non-preemptive) RTOS**: tasks run to completion.
+Interrupts post to the task queue; they do not dispatch directly.
 
-**4 livelli di priorità:**
+**4 priority levels:**
 
-| Livello | Bits | Ruolo |
+| Level | Bits | Role |
 |---|---|---|
-| 3 (massimo) | 0x60 | Engine control critico |
-| 2 | 0x40 | Timing / elaborazione sensori |
-| 1 | 0x20 | I/O e comunicazione |
-| 0 (minimo) | 0x00 | Task di background |
+| 3 (maximum) | 0x60 | Critical engine control |
+| 2 | 0x40 | Timing / sensor processing |
+| 1 | 0x20 | I/O and communication |
+| 0 (minimum) | 0x00 | Background tasks |
 
-**Catena di avvio:**
+**Boot chain:**
 ```
 resetHandler → secondary_boot_main → task_context_switch(0) → RTOS_init_entry (0x3E10)
   → task_queue_init (0x3964), task_table_scan_init (0x3EC0),
     task_dependency_handler (0x3F10), task_full_context_save → schedule
 ```
 
-**Task queue:** 100 entry × 8 byte a `0xFFFFD4E0`, write/read index a `0xFFFFDFB4`/`0xFFFFDFB6`.
-Entry: `{source_byte, command_type, payload[6]}` — dispatch su `command_type & 0xF8`.
+**Task queue:** 100 entries × 8 bytes at `0xFFFFD4E0`, write/read index at `0xFFFFDFB4`/`0xFFFFDFB6`.
+Entry: `{source_byte, command_type, payload[6]}` — dispatched on `command_type & 0xF8`.
 
-**Main loop** (`main_task_dispatcher` 0x6C8): cicla `task_scheduler_dispatch` → `task_queue_pending_count` → `task_queue_get_next` → dispatch → `watchdogTimerRead`.
+**Main loop** (`main_task_dispatcher` 0x6C8): loops `task_scheduler_dispatch` → `task_queue_pending_count` → `task_queue_get_next` → dispatch → `watchdogTimerRead`.
 
-**Task table ROM** (`0x6873C`): entry a 8 byte `{marker:2, args:2, func:4}`. Marker `0xFFFF` = chiamata diretta; altrimenti dispatcher 0x5F34.
+**Task table ROM** (`0x6873C`): 8-byte entries `{marker:2, args:2, func:4}`. Marker `0xFFFF` = direct call; otherwise dispatcher 0x5F34.
 
-**Context switch**: `task_context_switch` (0x3AD8) salva SR/PR, store SP → `[0xFFFF72D8]`; `task_full_context_save` (0x3BF4) salva r5/r8-r12/GBR/r13-MACH/r14-MACL + fr12-fr15 se type==4.
+**Context switch**: `task_context_switch` (0x3AD8) saves SR/PR, stores SP → `[0xFFFF72D8]`; `task_full_context_save` (0x3BF4) saves r5/r8-r12/GBR/r13-MACH/r14-MACL + fr12-fr15 if type==4.
 
 Full report: `tmp/ida/rtos_analysis_report.txt`
 
-## Seriale — Protocollo ATU-based (sessione ae00d360)
+## Serial — ATU-based Protocol (session ae00d360)
 
-**Bus fisico primario:** ATU (Advanced Timer Unit) — timer-based serial, bit-banged o capture/compare. Registri: `0xFFFFE4xx` (periferica custom). Baud rate configurato a runtime via ATU timer settings (probabilmente 10400 per ISO 9141).
+**Primary physical bus:** ATU (Advanced Timer Unit) — timer-based serial, bit-banged or capture/compare. Registers: `0xFFFFE4xx` (custom peripheral). Baud rate configured at runtime via ATU timer settings (probably 10400 for ISO 9141).
 
-**Bus secondario:** SCI4 — 115200/57600 baud, 8N1, usato per flash programming o debug.
+**Secondary bus:** SCI4 — 115200/57600 baud, 8N1, used for flash programming or debug.
 
-**Tre canali logici** (condividono hardware ATU):
+**Three logical channels** (sharing ATU hardware):
 
-| Codice | Handler | Buffer RX | Uso probabile |
+| Code | Handler | RX Buffer | Likely use |
 |---|---|---|---|
 | 0x88 | `serial_rx_handler_ch0` | 0xFEC | OBD/ISO 9141 (scan tool) |
 | 0x90 | `serial_rx_handler_ch1` | 0xFF8 | Instrument cluster / sub-ECU |
-| 0xC0 | `serial_rx_handler_ch2` | 0xFE4 | Body control / altro |
+| 0xC0 | `serial_rx_handler_ch2` | 0xFE4 | Body control / other |
 
-**Frame format:** `[source][length][payload...]` con sync `0xAA` / ACK `0x55`.
+**Frame format:** `[source][length][payload...]` with sync `0xAA` / ACK `0x55`.
 
-**Dispatch**: `serial_dispatch` (0x338) → direct path (hw register write) se queue idle, oppure queue path (`serial_queue_message` 0x47C) se busy.
+**Dispatch**: `serial_dispatch` (0x338) → direct path (hw register write) if queue idle, otherwise queue path (`serial_queue_message` 0x47C) if busy.
 
 Full report: `tmp/ida/serial_analysis_report.txt`
 
-## Engine Control — Rotario 13B-MSP (sessione ae00d360)
+## Engine Control — 13B-MSP Rotary (session ae00d360)
 
-Il Renesis 13B-MSP è un motore rotario a 2 rotori con:
-- **Posizione eccentric shaft:** ruota trigger 20 denti (3×6+1) con gap sync
-- **Accensione:** 4 bobine (2 per rotore) — leading + trailing spark
-- **Iniezione:** 4 iniettori — primary (erogazione) + secondary (arricchimento)
-- **OMP:** Oil Metering Port per lubrificazione anelli apicali
+The Renesis 13B-MSP is a 2-rotor rotary engine with:
+- **Eccentric shaft position:** 20-tooth trigger wheel (3×6+1) with sync gap
+- **Ignition:** 4 coils (2 per rotor) — leading + trailing spark
+- **Fuel injection:** 4 injectors — primary (delivery) + secondary (enrichment)
+- **OMP:** Oil Metering Port for apex seal lubrication
 
-**Ciclo 10ms** (`main_engine_cycle_10ms` 0x17F1C):
-- Ogni 80ms (7/8 chiamate): idle speed, fuel pump, exhaust port, intake air, torque
-- Ogni 10ms: OMP control (`omp_control_task_1825E`)
+**10ms cycle** (`main_engine_cycle_10ms` 0x17F1C):
+- Every 80ms (7/8 calls): idle speed, fuel pump, exhaust port, intake air, torque
+- Every 10ms: OMP control (`omp_control_task_1825E`)
 
-**Fuel pipeline** (`main_fuel_control_pipeline_22094`): 28 chiamate in sequenza:
+**Fuel pipeline** (`main_fuel_control_pipeline_22094`): 28 calls in sequence:
 ```
-Sensori → calcCLorOLControl → manifold_pressure → sequential_fuel_injection
+Sensors → calcCLorOLControl → manifold_pressure → sequential_fuel_injection
   → fuel_injection_duty_cycle → adaptive_ignition_table → ignition_timing_output
   → wankel_rotary_control → sensor_validation → combustion_control_loop
   → ignition_timing_safety_check
 ```
 
-**Funzioni identificate:** 141+ (43 rotary, 28 ignition, 50+ fuel injection, 35 crank/rotor).
+**Functions identified:** 141+ (43 rotary, 28 ignition, 50+ fuel injection, 35 crank/rotor).
 
 Full report: `tmp/ida/engine_rotary_report.txt`
 
-## EEPROM — SPI Esterno (sessione ae00d360)
+## EEPROM — External SPI (session ae00d360)
 
-L'ECU usa un **chip EEPROM SPI esterno** (NON on-chip SH-2E). Interfaccia SPI bit-banged via GPIO through CAN controller register space (`0xFFFFE4xx`).
+The ECU uses an **external SPI EEPROM chip** (NOT on-chip SH-2E). SPI interface bit-banged via GPIO through CAN controller register space (`0xFFFFE4xx`).
 
 **Staging buffers:**
-- `0xFFFFC2FE`: 256 byte EEPROM data staging
-- `0xFFFFC3FE`: 256 byte copia invertita per verifica
+- `0xFFFFC2FE`: 256 bytes EEPROM data staging
+- `0xFFFFC3FE`: 256 bytes inverted copy for verification
 - `0xFFFFDFE4`: RAM buffer A (8B + 0x55/0xAA status)
 - `0xFFFFDFF0`: RAM buffer B
 
 **Data categories** (16, dispatcher `0x37000`): security keys (0x01), DTC (0x02), config (0x03), fuel trim (0x04), adaptive learning (0x06), immobilizer (0x0E/0x0F).
 
-**Commit flow:** disabilita interrupts → copia a staging → store invertito → riabilita → flag commit → dispatcher → priority check → verifica.
+**Commit flow:** disable interrupts → copy to staging → store inverted → re-enable → flag commit → dispatcher → priority check → verify.
 
-**Dimensione stimata:** 2-4 KB. Wear leveling via contatore 0xFFFFCCF8.
+**Estimated size:** 2-4 KB. Wear leveling via counter 0xFFFFCCF8.
 
 Full report: `tmp/ida/eeprom_analysis_report.txt`
 
