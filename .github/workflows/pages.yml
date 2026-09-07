@@ -1,14 +1,11 @@
-# GitHub Pages for rx8ecu — RX-8 ECU Firmware Explorer.
+# GitHub Pages for rx8ecu — RX-8 ECU Tools (Explorer + Emulator).
 #
 # Builds the static explorer (web/explorer/build_site.py — stdlib-only,
-# deterministic) and deploys web/explorer/dist to GitHub Pages with the modern
-# Actions flow (upload-pages-artifact + deploy-pages).
+# deterministic), copies the ecu-emu dist, and deploys the combined
+# web/explorer/dist to GitHub Pages with the modern Actions flow
+# (upload-pages-artifact + deploy-pages).
 #
-# Coexists with ci.yml (which it never touches): Pages runs on a path-filtered
-# push to the project's main branches, CI runs the full verification battery.
-#
-# NOTE: in the repo settings, "Pages → Build and deployment → Source" must be
-# set to "GitHub Actions" for this workflow to be able to deploy.
+# The landing page at dist/index.html links to explorer/ and emu/ subdirs.
 
 name: Pages
 
@@ -17,6 +14,7 @@ on:
     branches: [main, master]
     paths:
       - 'web/explorer/**'
+      - 'web/ecu-emu/**'
       - 'symbols/**'
       - 'docs/functions/**'
       - 'docs/subsystems/**'
@@ -33,15 +31,14 @@ permissions:
   id-token: write
 
 env:
-  # Match the local dev environment and ci.yml (Python 3.14.6 at time of writing).
   PYTHON_VERSION: "3.14"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # build: checkout, regenerate the whole site, upload it as a Pages artifact
+  # build: checkout, regenerate everything, upload as Pages artifact
   # ---------------------------------------------------------------------------
   build:
-    name: Build site (build_site.py)
+    name: Build site (build_site.py + ecu-emu)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,18 +50,23 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Regenerate the site (single command, no dependencies)
+      - name: Build ecu-emu (copy src/ to dist/)
+        run: make -C web/ecu-emu build
+
+      - name: Regenerate the explorer site (single command, no dependencies)
         run: python3 web/explorer/build_site.py
 
       - name: Sanity-check the generated site
         run: |
           test -f web/explorer/dist/index.html
-          test -f web/explorer/dist/app.js
-          test -f web/explorer/dist/style.css
-          test -f web/explorer/dist/data.json
-          test -f web/explorer/dist/data.js
-          test -f web/explorer/dist/.nojekyll
-          python3 -c "import json,sys; d=json.load(open('web/explorer/dist/data.json')); assert d['meta']['counts']['symbols']>0 and d['meta']['counts']['edges']>0; print('data.json OK:', d['meta']['counts']['symbols'], 'symbols,', d['meta']['counts']['edges'], 'edges')"
+          test -f web/explorer/dist/explorer/index.html
+          test -f web/explorer/dist/explorer/app.js
+          test -f web/explorer/dist/explorer/style.css
+          test -f web/explorer/dist/explorer/data.json
+          test -f web/explorer/dist/explorer/data.js
+          test -f web/explorer/dist/explorer/.nojekyll
+          test -f web/explorer/dist/emu/index.html
+          python3 -c "import json,sys; d=json.load(open('web/explorer/dist/explorer/data.json')); assert d['meta']['counts']['symbols']>0 and d['meta']['counts']['edges']>0; print('data.json OK:', d['meta']['counts']['symbols'], 'symbols,', d['meta']['counts']['edges'], 'edges')"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

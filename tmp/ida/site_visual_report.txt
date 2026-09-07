@@ -1,0 +1,70 @@
+Site Build & Visual Verification Report
+=========================================
+Date: 2026-09-07
+Server port: 8003
+
+BUILD
+-----
+1. ecu-emu: make build — OK (copied src/{index.html,app.js,style.css,pins.json} → dist/)
+2. explorer: python3 build_site.py — OK
+   - symbols=6083, edges=6952, tables=1210, with_values=616, docs=189, subsystems=15, models=9
+   - Landing page + explorer/ + emu/ all written to dist/
+3. dist/ structure verified: dist/index.html, dist/explorer/, dist/emu/
+
+SCREENSHOTS
+-----------
+tmp/ida/screenshots/landing.png          — Landing page (780px viewport)
+tmp/ida/screenshots/landing_full.png     — Landing page full page
+tmp/ida/screenshots/explorer.png         — Explorer dashboard
+tmp/ida/screenshots/explorer_scroll.png  — Explorer: category bars + top functions table
+tmp/ida/screenshots/explorer_tables.png  — Explorer: Calibration Tables tab
+tmp/ida/screenshots/explorer_tables2.png — Explorer: cal table entries (scroll)
+tmp/ida/screenshots/emu.png              — ECU Emulator desktop (1280x600)
+tmp/ida/screenshots/emu_scroll.png       — ECU Emulator scrolled (sensors + active pins)
+tmp/ida/screenshots/emu_mobile.png       — ECU Emulator mobile BEFORE fix (375px)
+tmp/ida/screenshots/emu_mobile_fixed.png — ECU Emulator mobile AFTER fix (375px)
+tmp/ida/screenshots/emu_mobile_scroll.png— ECU Emulator mobile scroll (sensors + pins)
+tmp/ida/screenshots/emu_desktop_final.png— ECU Emulator desktop final (1280x600)
+tmp/ida/screenshots/emu_tablet.png       — ECU Emulator tablet/breakpoint (760px)
+
+ISSUES FOUND & FIXED
+--------------------
+1. [FIXED] JS error: "rpm is not defined" in renderRegisters (app.js:554)
+   - Root cause: rpm was a local const inside computePinStates(), but renderRegisters()
+     referenced it as a free variable. Fixed by reading sensorState.rpm locally.
+   - File: web/ecu-emu/src/app.js line 554
+
+2. [FIXED] Missing responsive CSS for emu (no @media queries)
+   - Root cause: .main used fixed grid-template-columns:280px 1fr 320px with no
+     mobile fallback. On <768px, panels overlapped, legend clipped, header broke.
+   - Fix: Added @media (max-width:768px) block to web/ecu-emu/src/style.css:
+     - body overflow:auto, height:auto (allow scrolling)
+     - header flex-wrap, legend border-top:none, centered
+     - .main switches to display:flex;flex-direction:column
+     - Panels remove border-right, set overflow-y:visible
+     - Connector: max-height:50vh, overflow-y:auto
+     - Schematic: min-height:300px
+     - Scenarios: flex-direction:row;flex-wrap:wrap
+   - File: web/ecu-emu/src/style.css
+
+VERIFICATION (post-fix)
+-----------------------
+- Landing page: 2 cards (ROM Explorer, ECU Pin Emulator), dark theme, padding ok, footer ok
+- Explorer: Dashboard stats, category bars, top-functions table, Calibration Tables
+  tab with filters, no "Generic left gap", dark theme consistent
+- ECU Emulator desktop: 96-pin pinout (Row A 1-48), schematic with ECU+peripherals,
+  scenarios (IDLE/CRUISE/WOT/COLD/DECEL), sensor sliders, active pins with colored
+  bars, peripheral registers table, legend in header — all clean
+- ECU Emulator mobile (375px): Panels stack vertically, pinout full width, schematic
+  visible, sensors + active pins scrollable — responsive working
+- ECU Emulator tablet (760px): Responsive stacking at breakpoint — panels stack
+- Console errors: 0 (was 1 before fix)
+- JS error "rpm is not defined": resolved
+
+FILES MODIFIED
+--------------
+- web/ecu-emu/src/app.js        (line 554: rpm → sensorState.rpm)
+- web/ecu-emu/src/style.css     (added 18-line @media block at end)
+
+FINAL STATUS: PASS — all 3 pages render correctly at desktop, tablet, and mobile.
+No commits made (as instructed).

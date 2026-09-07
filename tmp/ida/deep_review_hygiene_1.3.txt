@@ -1,0 +1,366 @@
+========================================================================
+  REPO HYGIENE DEEP REVIEW — muse-spark-1.3
+  Repo: /home/davide/ailocal/rx8ecu
+  Date: 2026-09-07
+  Scope: full file tree, git history, gitignore coverage
+  Mode: READ-ONLY — no fixes applied
+========================================================================
+
+STATS
+  Total files on disk:  29,242
+  Tracked in git:       10,666
+  Untracked:               34
+  Modified (tracked):      10
+  On-disk total:        2.3 GB (excl .git)
+  Git objects:             57 MB
+  Branches: 1 (master)
+
+========================================================================
+1. USELESS FILES — candidates for deletion
+========================================================================
+
+[1A] tmp/ artifacts — gitignored but force-added (10 tracked)
+  These are inside tmp/ which IS in .gitignore, yet 10 files under
+  tmp/ida/ and tmp/README.md are force-added (git ls-files confirms).
+  The gitignore covers the directory, so the force-add is the only
+  reason these exist in git. They are scratch reports.
+
+  FORCE-ADD TRACKED (DELETE or un-track):
+    tmp/README.md
+    tmp/ida/emu_can_uds_report.txt
+    tmp/ida/emu_engine_dtc_rtos_report.txt
+    tmp/ida/firmware_can_report.txt
+    tmp/ida/firmware_dtc_report.txt
+    tmp/ida/firmware_engine_completion_report.txt
+    tmp/ida/firmware_engine_report.txt
+    tmp/ida/firmware_impl_report.txt
+    tmp/ida/firmware_rtos_report.txt
+    tmp/ida/firmware_uds_report.txt
+
+  Note: docs/notes/ECU.md and docs/notes/IDA_ANALYSIS.md reference
+  OTHER tmp/ida/ files (can_analysis_report.txt, rtos_analysis_report.txt,
+  serial_analysis_report.txt, engine_rotary_report.txt, eeprom_analysis_report.txt,
+  reimport_report.txt, name_verify_report.txt, dtc_analysis_report.txt,
+  60E1D400_bswap.bin, 60E1D400_be.elf, make_elf.py) — these exist on disk
+  but are NOT tracked. These are doc-referenced ephemera. See §5 below.
+
+[1B] tmp/ida/ bswap files (UNTRACKED, should be deleted)
+  tmp/ida/60E1D400_bswap.bin      — intermediate bswap artifact
+  tmp/ida/60E1D400_bswap.bin.i64  — IDA DB for same
+
+  These are derivation intermediates referenced only in docs as
+  "how we got here." Not needed for reproducibility; the ELF is
+  the canonical file. Safe to delete.
+
+[1C] Old corpus CSVs — docs/notes/corpus_20260812/ (4 files, 3 untracked)
+  corpus_all_result3.csv  — TRACKED (historical baseline)
+  corpus_all_result4.csv  — UNTRACKED
+  corpus_all_result5.csv  — UNTRACKED
+  corpus_all_result6.csv  — UNTRACKED
+
+  Each is ~200 KB. The latest result (result6) is the current state;
+  earlier results are incremental snapshots. result3 is committed.
+  Recommendation: keep result6 only (or track it if useful for
+  regression), delete result4/5 (untracked, stale). result3 could
+  be removed from git history via filter-branch but that is invasive.
+
+[1D] reconstructed/samples/tests/*.md — TRACKED but working docs
+  RESULTS.md          — modified, tracks latest test results
+  VERIFY_SUMMARY.md   — modified
+  style_audit.md      — modified
+  fix_xtrct_README.md — stable
+
+  These ARE tracked and serve as living status documents for the
+  reconstructed binary verification pipeline. They SHOULD be tracked.
+  Not useless — keep them.
+
+[1E] c/lib/f_*.c untracked files (7 new callee lifts)
+  c/lib/f_12F52.c   (27 lines, small stub)
+  c/lib/f_170.c     (186 lines)
+  c/lib/f_41D66.c   (18 lines, stub)
+  c/lib/f_41D68.c   (18 lines, stub)
+  c/lib/f_8A.c      (81 lines)
+  c/lib/f_C0.c      (40 lines)
+  c/lib/f_F4.c      (57 lines)
+
+  Total tracked f_*.c: 4,933. These 7 are new lifts not yet committed.
+  NOT useless — these should be committed (see §2 below).
+
+[1F] tools/gcl_bak*.py, __gcl_dbg.py, gcl_prep3.py, gen_c_lift_v8_patched.py
+  tools/gcl_bak24.py          — UNTRACKED, 4359 lines, backup of gcl_prep3
+  tools/gcl_bak27.py          — UNTRACKED, 4359 lines, backup of gcl_prep3
+  tools/__gcl_dbg.py          — UNTRACKED, 2912 lines, debug version
+  tools/gcl_prep3.py          — UNTRACKED, 4320 lines, working version
+  tools/gen_c_lift_v8_patched.py — UNTRACKED, 2497 lines, patch of gen_c_lift_v8
+
+  All 5 are backup/debug/patch copies. gcl_bak24 and gcl_bak27 are
+  snapshots of gcl_prep3 at different points (different md5sums).
+  __gcl_dbg is a debug-instrumented version.
+  gen_c_lift_v8_patched is a local patch of the committed gen_c_lift_v8.py.
+
+  SAFE TO DELETE: gcl_bak24.py, gcl_bak27.py, __gcl_dbg.py
+  KEEP (but decide track/no-track): gcl_prep3.py, gen_c_lift_v8_patched.py
+
+[1G] firmware/roms/stock/60E1D400.bin — UNTRACKED duplicate
+  This is a copy of roms/stock/60E1D400.bin (524,288 bytes, tracked).
+  The live ECU firmware directory has its own copy.
+  SAFE TO DELETE — roms/stock/ is the canonical location.
+
+[1H] roms/stock/60E1D400.bin.asm — UNTRACKED, 2.1 MB IDA disassembly
+  This is an IDA-generated disassembly of the stock ROM.
+  Reference-quality but large. See §3 and §5.
+
+[1I] roms/stock/60E1D400.bin.i64 — UNTRACKED, 2.3 MB IDA database
+  This is the IDA session database. Large binary artifact.
+  NEVER track .i64 files in git. SAFE TO DELETE or leave gitignored.
+
+[1J] .opencode/ local config — UNTRACKED, 70 MB (node_modules 63 MB)
+  Contains opencode internal state, goal-state files, sqlite DB,
+  node_modules. The .opencode/.gitignore already excludes node_modules
+  and other internals. This directory is correctly untracked.
+  SAFE TO IGNORE — it is local tooling state.
+
+[1K] build/ directory — gitignored, NOT tracked (correct)
+  build/ contains 74 MB of assembled .bin/.s/.elf/.o files.
+  Correctly gitignored. No issue.
+
+========================================================================
+2. UNTRACKED FILES — commit vs stay ignored
+========================================================================
+
+  SHOULD COMMIT:
+    firmware/Makefile                        — build system, needed
+    c/lib/f_12F52.c, f_170.c, f_41D66.c,    — new callee lifts
+      f_41D68.c, f_8A.c, f_C0.c, f_F4.c
+    docs/notes/corpus_20260812/corpus_all_result6.csv — latest corpus state
+    tools/gcl_prep3.py                       — current working tool version
+    tools/gen_c_lift_v8_patched.py           — if this is the current version
+
+  SHOULD STAY IGNORED (do not commit):
+    .opencode/*                              — local tooling state
+    firmware/roms/stock/60E1D400.bin         — duplicate of roms/stock/
+    roms/stock/60E1D400.bin.asm              — 2.1 MB IDA disassembly
+    roms/stock/60E1D400.bin.i64              — 2.3 MB IDA database
+    tools/__gcl_dbg.py                       — debug version
+    tools/gcl_bak24.py, gcl_bak27.py        — backup snapshots
+    docs/notes/corpus_20260812/corpus_all_result4.csv — stale
+    docs/notes/corpus_20260812/corpus_all_result5.csv — stale
+
+  MISSING (should exist but doesn't):
+    firmware/linker.ld                       — needed by firmware/Makefile
+
+========================================================================
+3. LARGE BINARIES in git
+========================================================================
+
+[3A] Tracked binary blobs over 1 MB:
+
+  c/tests/test_caller_648E.py     51.7 MB  (auto-generated, 432K lines)
+  c/tests/test_caller_65B2.py     42.5 MB
+  c/tests/test_caller_DBF6.py     24.8 MB
+  c/tests/test_caller_1151A.py    12.2 MB
+  c/tests/test_caller_64E8.py      9.9 MB
+  c/tests/test_caller_6372.py      5.8 MB
+  c/tests/test_caller_114FC.py     5.0 MB
+  c/tests/test_caller_65E8.py      4.6 MB
+  c/tests/test_caller_65CC.py      2.5 MB
+  c/tests/test_caller_3A384.py     2.1 MB
+
+  603 test_caller_*.py files total: 180 MB on disk, all tracked.
+  These are auto-generated by gen_c_lift_v8.py with embedded ROM
+  byte tables. They are the differential test corpus.
+  Concern: 180 MB of auto-generated test data in git bloats clones.
+
+  9 annotated assembly files in src/: 41 MB total (tracked)
+  src/60E15120_N3J1E_annotated.s     4.7 MB
+  src/60E32000_N3M5E_annotated.s     4.7 MB
+  src/60E0E700_N3YLEE_annotated.s    4.7 MB
+  src/60E1C500_N3J6EB_annotated.s    4.7 MB
+  src/60E0E500_annotated.s           4.7 MB
+  ... (and 4 more)
+  These are IDA disassembly + annotation. ~4.7 MB each.
+
+  roms/stock/*.bin (9 files): 524 KB each, 4.7 MB total (tracked)
+  These are stock ROM dumps — necessary for differential testing.
+
+[3B] Untracked large binaries (correctly NOT in git):
+  roms/stock/60E1D400.bin.i64      2.3 MB  — IDA database
+  roms/stock/60E1D400.bin.asm      2.1 MB  — IDA disassembly text
+  .opencode/node_modules/          63 MB   — local tooling
+  build/                           74 MB   — build artifacts (gitignored)
+
+========================================================================
+4. WEB EXPLORER
+========================================================================
+
+  web/explorer/src/    — 108 KB source (app.js, index.template.html, style.css)
+  web/explorer/dist/   — 6.6 MB build output (app.js, data.js, data.json, models/)
+
+  web/explorer/.gitignore contains: "dist/" — so dist/ is correctly ignored.
+  git ls-files confirms: dist/ is NOT tracked. No issue here.
+  node_modules/ not present in web/explorer/ (no npm install run).
+
+  Clean. No action needed.
+
+========================================================================
+5. DOCUMENTS REFERENCING GITIGNORED REPORTS
+========================================================================
+
+  docs/notes/ECU.md references 5 tmp/ida/ reports:
+    tmp/ida/can_analysis_report.txt
+    tmp/ida/rtos_analysis_report.txt
+    tmp/ida/serial_analysis_report.txt
+    tmp/ida/engine_rotary_report.txt
+    tmp/ida/eeprom_analysis_report.txt
+
+  docs/notes/FINDINGS.md references:
+    tmp/ida/can_analysis_report.txt
+
+  docs/notes/IDA_ANALYSIS.md references:
+    tmp/ida/60E1D400_bswap.bin
+    tmp/ida/60E1D400_be.elf
+    tmp/ida/reimport_report.txt
+    tmp/ida/name_verify_report.txt
+    tmp/ida/dtc_analysis_report.txt
+    tmp/ida/make_elf.py
+
+  Total: 11 unique files in tmp/ida/ referenced by tracked docs.
+  All are gitignored and not tracked. If the reports are durable
+  reference material (not just scratch), they should be promoted
+  to docs/reports/ and tracked. The 60E1D400_be.elf (IDA database)
+  should NOT be tracked (too large, binary).
+
+  Recommendation: move the .txt reports to docs/reports/ida/ and
+  update the doc links. Leave .bin/.elf/.i64 in tmp/.
+
+========================================================================
+6. STALE BRANCHES, OLD I64 FILES
+========================================================================
+
+  Branches: only master (no stale branches).
+  Remote: origin/master only.
+
+  I64 files:
+    tmp/ida/60E1D400_bswap.bin.i64 — untracked, derivation artifact
+    roms/stock/60E1D400.bin.i64    — untracked, IDA session for stock ROM
+
+  Neither is tracked. The stock .i64 was presumably created during
+  initial IDA analysis and left in the roms/ directory. Safe to
+  leave as-is (already ignored).
+
+========================================================================
+7. COMMIT HISTORY
+========================================================================
+
+[7A] Italian commit messages: NONE in recent 100 commits.
+  Translation commit 07bcd397 ("docs: translate remaining Italian to
+  English (555+ lines IDA_ANALYSIS, 21 ECU, 16 FINDINGS)") cleaned up
+  the docs. The current commit messages are all in English. Clean.
+
+[7B] Large commits:
+  Commit 4552d534: "c: lifted corpus (3485 functions...)" — 3,760,666
+  ins/del across 3,174 files. This is the initial corpus commit and
+  is expected to be massive. The 603 test_caller_*.py files account
+  for ~180 MB of this. This is a permanent git history bloat.
+
+  Commit 35aef658: "c/lib: regenerate 1059 DRAFT callee libs..." —
+  50,970 ins/del across 1,062 files. Another large regeneration.
+
+  Commit e2171355: "feat(firmware)..." — 13,670 ins/del, 26 files.
+  Manageable.
+
+[7C] Sensitive keys:
+  grep finds "key" references in:
+    c/security_access.c        — UDS security access implementation
+    c/security_access_aux.c    — key_validate table (public lookup table)
+    docs/notes/KNOWLEDGE.md    — documents the security access protocol
+
+  These document the RX-8 ECU's UDS security access scheme (seed/key).
+  The actual key bytes are part of the vehicle's security — the table
+  in security_access_aux.c contains the public lookup table used by
+  the ECU. This is reverse-engineering output and is inherent to the
+  project. The key material IS the project deliverable. No external
+  secrets (API keys, passwords, tokens) are present.
+
+[7D] Duplicate case filenames (case-insensitive filesystem risk):
+  c/atu2_edge_capture_config_6f3a.c  (tracked, DRAFT v3)
+  c/atu2_edge_capture_config_6F3A.c  (tracked, hand-annotated)
+
+  These are DIFFERENT files (different content, different generations)
+  with the same name differing only in case. On case-insensitive
+  filesystems (macOS default, Windows), one would shadow the other.
+  This is a portability hazard.
+
+========================================================================
+8. .GITIGNORE GAPS
+========================================================================
+
+  Current .gitignore covers:
+    build/, tools/toolchain/, captures/, eeprom/, dump_selfmade/,
+    tmp/, *.o, *.elf, *.bin.tmp, *.pyc, __pycache__/, .pytest_cache/,
+    core.*, .agents/, .git.private-backup/
+
+  MISSING from .gitignore (should add):
+    .opencode/               — local opencode config (70 MB, correctly
+                               untracked via its own .gitignore but the
+                               parent .gitignore should explicitly exclude it)
+    roms/stock/*.i64         — IDA databases
+    roms/stock/*.asm         — IDA disassembly
+    firmware/roms/           — duplicate ROM copies
+    *.bak                    — backup files (gcl_bak24.py, gcl_bak27.py)
+    *.sqlite*                — sqlite databases (.opencode/memory.sqlite*)
+
+  The root .gitignore does NOT have .opencode/ listed. It happens to
+  be untracked because .opencode/.gitignore handles its internals,
+  but the root should explicitly exclude it for safety.
+
+  The root .gitignore also does NOT exclude *.i64 or *.asm files.
+  The roms/stock/60E1D400.bin.i64 and .asm are untracked only
+  because they were never `git add`-ed, not because gitignore catches them.
+
+========================================================================
+9. HYGIENE SCORE
+========================================================================
+
+  CATEGORY                          SCORE   NOTES
+  ------------------------------------+------+-------------------------------
+  .gitignore completeness           6/10   Missing .opencode/, *.i64,
+                                            *.asm, firmware/roms/
+  Tracked binary bloat              3/10   180 MB test_caller_*.py,
+                                            41 MB annotated .s files
+  Force-added tmp/ artifacts        4/10   10 files in tmp/ida/ tracked
+                                            despite tmp/ in gitignore
+  Stale/backup files on disk        5/10   5 untracked backup/debug tool
+                                            copies, stale corpus CSVs
+  Commit history                    7/10   Clean English, but one massive
+                                            corpus commit (3.7M ins/del)
+  Case-sensitivity hazards          4/10   One case-only duplicate pair
+                                            in c/ root
+  Doc/integrity link rot            5/10   11 tmp/ida/ reports referenced
+                                            by tracked docs but gitignored
+  Missing essential files           7/10   firmware/linker.ld missing;
+                                            firmware/Makefile untracked
+  Branch hygiene                    9/10   Single master, no stale branches
+  Sensitive data                    9/10   No external secrets; ECU security
+                                            keys are the project itself
+  ------------------------------------+------+-------------------------------
+  OVERALL HYGIENE SCORE             5.9/10
+  ------------------------------------+------+-------------------------------
+
+  TOP 3 PRIORITIES:
+  1. Un-track the 10 force-added tmp/ida/ files (git rm --cached)
+  2. Add .opencode/, *.i64, *.asm, firmware/roms/ to .gitignore
+  3. Commit firmware/Makefile and the 7 new c/lib/f_*.c callee lifts
+
+  LOW PRIORITY BUT RECOMMENDED:
+  4. Promote the 11 referenced tmp/ida/*.txt reports to docs/reports/ida/
+  5. Rename c/atu2_edge_capture_config_6f3a.c to avoid case conflict
+  6. Consider if 180 MB of test_caller_*.py files should be git-lfs'd
+     or regenerated from tools/gen_c_lift_v8.py on demand
+  7. Delete stale tools/gcl_bak24.py, gcl_bak27.py, __gcl_dbg.py
+  8. Delete duplicate firmware/roms/stock/60E1D400.bin
+  9. Add firmware/linker.ld (needed by firmware/Makefile)
+
+========================================================================
+  END OF REPORT — no files modified, no commits made
+========================================================================

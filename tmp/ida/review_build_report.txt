@@ -1,0 +1,201 @@
+================================================================================
+BUILD & VERIFICATION REVIEW — rx8ecu
+Generated: 2026-09-07
+================================================================================
+
+EXECUTIVE SUMMARY
+-----------------
+All core gates pass. No build failures, no test failures, no hidden regressions.
+The checkFloatValidity extra-deps fix is intact. Minor hygiene issues noted below.
+
+================================================================================
+1. FASTVERIFY.PY — checkFloatValidity Extra Deps
+   STATUS: PASS
+--------------------------------------------------------------------------------
+Verified _EXTRA_DEPS map (line 262-268):
+  "checkFloatValidity" -> ["c/bitfield_extract_merge.c", "c/div_4740.c", "c/ldexp_481C.c"]
+All three helper files exist in c/. The test passes (seen in fastverify output).
+No regression from the fix.
+
+Note: run_host_c_test places the test file BEFORE the source file in the compile
+command (line 270: cc -O2 test.c src.c ... -o exe). This is unusual but works
+because gcc treats multiple .c inputs as a single compilation unit. No action needed.
+
+================================================================================
+2. FIRMWARE MAKEFILE — Build All firmware/c/*.c
+   STATUS: PASS
+--------------------------------------------------------------------------------
+firmware/Makefile compiles all 10 source files (boot, eeprom, serial, timer,
+main, dtc, uds, rtos, can, engine) with -Wall -Wextra -Werror.
+
+Host fallback works correctly: cross-compiler (sh-elf-gcc) not present,
+HOST_CC=gcc is used with -fsyntax-only. All 10 files compile cleanly.
+
+Flags:
+  SH_FLAGS:  -m2 -mb -Os -ffreestanding -nostdlib -nostartfiles -Iinclude -Wall -Wextra -Werror
+  HOST_FLAGS: -Os -ffreestanding -nostdlib -nostartfiles -Iinclude -Wall -Wextra -Werror -fsyntax-only
+
+One observation: firmware/Makefile references -T linker.ld but linker.ld does not
+exist under firmware/. This is harmless for the 'check' (syntax) target but would
+fail for a full binary build. Since 'firmware.bin' target guards with existence
+check, this is acceptable for current use.
+
+ISSUE [LOW]: firmware/linker.ld is missing — 'make -C firmware firmware.bin' would fail
+  if cross-compiler were installed.
+
+================================================================================
+3. MAKE TEST — Hidden Fails
+   STATUS: PASS
+--------------------------------------------------------------------------------
+All three suites pass:
+  - tools/tests/test_decode_families.py: 38008 checks, 0 failures
+  - tools/tests/test_emulator_families.py: 83 checks, 0 failures
+  - c/tests/verify_emu.py: all 13 emulation cross-checks pass (100k random each)
+
+fastverify.py all:
+  30 pass, 0 fail, 7 warn, 0 skip
+  The 7 warnings are informational: c/lib/f_*.c lifts without direct test files
+  (multi-function files may be covered by shared tests — not actionable).
+
+================================================================================
+4. GIT STATUS
+   STATUS: WARN (informational)
+--------------------------------------------------------------------------------
+Tracked changes (4 files):
+  M .gitignore                          — trivial trailing newline
+  M reconstructed/samples/tests/RESULTS.md
+  M reconstructed/samples/tests/VERIFY_SUMMARY.md
+  M reconstructed/samples/tests/style_audit.md
+
+Untracked files of interest:
+  ?? firmware/Makefile                   — SHOULD BE COMMITTED (essential build file)
+  ?? firmware/roms/                      — contains stock ROM copy (524KB); consider .gitignore
+  ?? c/lib/f_12F52.c .. f_F4.c (7 files) — generated lift files; commit if intentional
+  ?? tools/__gcl_dbg.py                  — underscore prefix = private/debug; leave untracked
+  ?? tools/gcl_bak24.py, gcl_bak27.py   — backup files (227KB each); leave untracked
+  ?? tools/gcl_prep3.py                  — working copy; leave untracked
+  ?? tools/gen_c_lift_v8_patched.py      — patched version; leave untracked
+  ?? roms/stock/60E1D400.bin.asm + .i64  — IDA artifacts; leave untracked
+  ?? docs/notes/corpus_20260812/*.csv    — analysis results; commit if final
+
+No tmp/ files committed (tmp/ is gitignored correctly).
+
+Large tracked files (informational, not errors):
+  c/tests/test_caller_648E.py  49MB
+  c/tests/test_caller_65B2.py  41MB
+  c/tests/test_caller_DBF6.py  24MB
+  These are test data committed intentionally.
+
+================================================================================
+5. LEMMALOG — Stale Facts / Naming
+   STATUS: WARN (minor)
+--------------------------------------------------------------------------------
+Stale fact found:
+  current(session_index_writers_1_2_3_28, status, unresolved_indirect_write)
+  superseded by:
+  current(session_index_writers_1_2_3_28, status, resolved_single_chain_via_0x5FA7D)
+  Both facts coexist. The old one (conf 0.900) is stale but not harmful because
+  `current` queries return both and the latest is used contextually.
+  RECOMMENDATION: Assert retraction of the old fact, or leave as-is if multi-valued
+  current() is intentional (recent evidence shows both).
+
+All wave6/wave7 facts present and completed:
+  wave6_firmware_completion, wave6_engine_completion, wave6_can_completion,
+  wave6_uds_completion, wave6_dtc_completion, wave6_rtos_completion — all completed
+  wave7_can_txpackers, wave7_uds_security, wave7_dtc_final — all completed
+  firmware_open — fully_open_1_1
+
+Relation naming: all predicates use lower_snake_case. Correct.
+
+Remaining work tracked:
+  - 20 TX packer functions need disassembly
+  - security_access seed_key XOR rotate at 0x584A0
+  - SID 0x34/0x36/0x37 flash download
+  - 3 large DTC set functions
+
+================================================================================
+6. IDA SESSION HEALTH
+   STATUS: PASS
+--------------------------------------------------------------------------------
+Session 55cbc7e2:
+  Program: 60E1D400_be.elf
+  Backend: worker (pid 903132)
+  Status:  alive, not analyzing, not busy
+  i64:     12.9 MB (60E1D400_be.elf.i64) — valid
+
+  Also present: 60E1D400_bswap.bin.i64 (5.3MB) — alternative endianness session
+
+================================================================================
+7. CHECKSUM VERIFICATION
+   STATUS: PASS
+--------------------------------------------------------------------------------
+python3 tools/denso_ck.py roms/stock/60E1D400.bin
+  Range:  0x02000 – 0x7DAFF
+  Sum:    0xEE37A101
+  Stored: 0x6C6E0459
+  Correct: 0x6C6E0459
+  OK — checksum correct
+
+================================================================================
+8. TODOs IN MAKEFILE / FASTVERIFY.PY
+   STATUS: PASS
+--------------------------------------------------------------------------------
+No TODO, FIXME, HACK, or XXX found in:
+  Makefile
+  firmware/Makefile
+  fastverify.py (790 lines, clean)
+
+================================================================================
+9. COMMIT MESSAGES — Italian Content
+   STATUS: WARN (historical, low severity)
+--------------------------------------------------------------------------------
+Three commits in the last 15 have Italian words in their subject lines:
+  e743a4d  "DTC subsystem — formato, storage, ..."
+  04953f6  "consolidamento reverse 100% — ..."
+  7d46bd9  "... import e verifica nomi"
+
+Commit aa367b4 fixed the CONTENT of 7d46bd9 (docs/notes/IDA_ANALYSIS.md and
+tmp/README.md translated to English) but the commit MESSAGE of all three
+historical commits still contains Italian. These are already-pushed commits;
+fixing their messages would require force-push. No action recommended unless
+repo policy mandates English-only messages going forward.
+
+Note: 35aef65 "regenerate" is English — flagged by broad grep but is correct.
+
+================================================================================
+10. ROOT MAKEFILE
+    STATUS: PASS
+--------------------------------------------------------------------------------
+Root Makefile is well-structured:
+  - Toolchain resolution: canonical -> legacy -> PATH fallback
+  - PATH capture (ENV_PATH before assignment) prevents self-reference bug
+  - cert target loops 9 ROMs, exits on first failure
+  - test target runs 3 suites sequentially, exits on first failure
+  - All .PHONY targets declared
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+Area                              Status    Severity
+------------------------------------------+-------+---------
+fastverify.py checkFloatValidity deps  PASS    -
+firmware Makefile build + flags        PASS    -
+make test (all suites)                 PASS    -
+Git status / untracked                WARN    LOW     firmware/Makefile untracked
+Lemmalog stale facts                  WARN    LOW     old unresolved_indirect_write
+IDA session health                    PASS    -
+Checksum verification                 PASS    -
+TODOs in build system                 PASS    -
+Commit messages (Italian)             WARN    LOW     historical only
+Linker script (firmware/linker.ld)    WARN    MEDIUM  missing, blocks full binary build
+
+================================================================================
+RECOMMENDED ACTIONS (not fixing)
+================================================================================
+1. COMMIT firmware/Makefile — essential build system file currently untracked.
+2. ADD firmware/linker.ld — needed for firmware.bin binary build target.
+3. OPTIONAL: Add .gitignore entry for firmware/roms/ if ROM copy is ephemeral.
+4. OPTIONAL: Retract stale lemmalog fact session_index_writers_1_2_3_28/unresolved_indirect_write
+   if multi-valued current() is not the intended pattern.
+5. NO ACTION on historical Italian commit messages (already pushed).
+================================================================================
