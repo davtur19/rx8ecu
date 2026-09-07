@@ -1,0 +1,139 @@
+/* can_live.css — Live CAN/OBD frame monitor */
+
+.can-panel {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg2);
+  font: 11px/1.4 var(--mono);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 8px;
+}
+
+.can-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.can-toolbar label {
+  font: 600 10px var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.can-toolbar input[type="text"] {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--text);
+  font: 11px var(--mono);
+  width: 80px;
+}
+
+.can-toolbar input[type="text"]::placeholder { color: var(--border2); }
+.can-toolbar input[type="text"]:focus { border-color: var(--accent); outline: none; }
+
+.can-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--text);
+  font: 600 10px var(--mono);
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+  white-space: nowrap;
+}
+.can-btn:hover { border-color: var(--accent); background: var(--accent-alpha); }
+.can-btn.active { border-color: var(--accent); background: var(--accent-alpha); color: var(--accent); }
+
+.can-stats {
+  margin-left: auto;
+  font: 10px var(--mono);
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+}
+.can-stats span { white-space: nowrap; }
+.can-stats .tx-count { color: var(--cyan); }
+.can-stats .rx-count { color: var(--purple); }
+
+.can-frame-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.can-frame-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 11px var(--mono);
+}
+
+.can-frame-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.can-frame-table th {
+  text-align: left;
+  padding: 4px 6px;
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--muted);
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.can-frame-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.can-frame-table tr:hover { background: var(--accent-alpha); }
+
+.can-frame-table .ts-col { color: var(--muted); width: 90px; }
+.can-frame-table .id-col { color: var(--cyan); font-weight: 700; width: 56px; }
+.can-frame-table .dlc-col { color: var(--muted); width: 30px; text-align: center; }
+.can-frame-table .data-col { color: var(--text); letter-spacing: 1px; }
+.can-frame-table .dir-col { width: 30px; text-align: center; }
+.can-frame-table .dir-col .tx { color: var(--cyan); font-weight: 700; }
+.can-frame-table .dir-col .rx { color: var(--purple); font-weight: 700; }
+.can-frame-table .desc-col { color: var(--accent2); font-size: 10px; }
+
+.can-frame-table tr.can-row-tx { }
+.can-frame-table tr.can-row-rx { }
+.can-frame-table tr.can-row-uds { background: rgba(227, 179, 65, .06); }
+
+/* Pause overlay */
+.can-paused-badge {
+  position: absolute;
+  top: 40px;
+  right: 12px;
+  background: var(--yellow);
+  color: var(--bg);
+  font: 700 10px var(--mono);
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  display: none;
+  z-index: 5;
+}
+.can-paused-badge.visible { display: block; }
