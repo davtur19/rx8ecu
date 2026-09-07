@@ -1,0 +1,31 @@
+========================================================================
+Emulator Validation Report: engine / DTC / RTOS
+ROM: 60E1D400.bin  Emulator: tools/sh2emu.py
+========================================================================
+
+--- ENGINE: outputPerRotorIgnitionDwell @0x11218 ---
+  PASS: 200/200 inputs passed (run + PR=SENT + RAM intact)
+--- ENGINE: fuel_injection_duty_cycle @0x211CC ---
+  PASS: 200/200 inputs passed (FPU fmul path)
+--- ENGINE: crank_position_state_machine @0x789E ---
+  PASS: 200/200 tests passed (run-no-crash + PR=SENT + state in range)
+--- ENGINE: rotor_position_synchronization @0xAF10 ---
+  PASS: 200/200 inputs passed (run-no-crash)
+--- ENGINE: omp_control_task @0x1825E ---
+  PASS: 200/200 tests passed (run-no-crash + PR=SENT)
+--- ENGINE: crank_gap_detect @0x7E60 ---
+  PASS: 100/100 tests passed (gap/no-gap paths)
+--- DTC: dtc_debounce_counter @0x43760 ---
+  PASS: 100/100 tests passed (fuel_cut zero + rts verification)
+--- DTC: dtc_set_flag @0x46780 ---
+  PASS: 200/200 tests passed (run-no-crash + PR=SENT)
+--- DTC: dtc_state_machine @0x61550 ---
+  PASS: 200/200 tests passed (run-no-crash + PR=SENT)
+--- RTOS: task_full_context_save @0x3BF4 ---
+  PASS: 200/200 inputs passed (bit-exact frame)
+--- RTOS: task_context_switch @0x3AD8 ---
+  PASS: 200/200 inputs passed (valid+invalid paths)
+
+========================================================================
+RESULT: ALL 11 functions PASSED (200 inputs each)
+========================================================================
