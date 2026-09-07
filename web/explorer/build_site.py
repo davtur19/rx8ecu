@@ -1292,8 +1292,9 @@ def main(argv):
     write_text(os.path.join(EXPLORER_DIST, ".nojekyll"), "")
     write_text(os.path.join(EXPLORER_DIST, "README.md"), render_dist_readme(data))
 
-    # 6) Landing page at dist/ root
+    # 6) Landing page at dist/ root + .nojekyll for GitHub Pages
     write_text(os.path.join(DIST, "index.html"), render_landing_page())
+    open(os.path.join(DIST, ".nojekyll"), "w").close()
 
     # 7) Copy ecu-emu dist into dist/emu/
     copy_emu_files()
