@@ -81,7 +81,9 @@ DOCS_DIR = os.path.join(ROOT, "docs", "functions")
 SUBSYS_DIR = os.path.join(ROOT, "docs", "subsystems")
 SRC = os.path.join(HERE, "src")
 DIST = os.path.join(HERE, "dist")
-MODELS_DIR = os.path.join(DIST, "models")
+EXPLORER_DIST = os.path.join(DIST, "explorer")
+EMU_DIST_SRC = os.path.join(HERE, "..", "ecu-emu", "dist")
+MODELS_DIR = os.path.join(EXPLORER_DIST, "models")
 TEMPLATE = os.path.join(SRC, "index.template.html")
 SRC_APP = os.path.join(SRC, "app.js")
 SRC_CSS = os.path.join(SRC, "style.css")
@@ -1037,6 +1039,7 @@ def serve_site(port):
     if not (0 < port < 65536):
         print("ERROR: invalid port %r" % (port,), file=sys.stderr)
         return 1
+    # Serve the combined dist/ (landing page at root, explorer/ and emu/ subdirs)
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     print("Serving %s at http://127.0.0.1:%d/  (Ctrl+C to stop)"
@@ -1048,6 +1051,193 @@ def serve_site(port):
     finally:
         httpd.server_close()
     return 0
+
+
+def render_landing_page():
+    """Landing page for the combined site at the repo root (/).
+    Two cards: ROM Explorer and ECU Pin Emulator, matching the dark theme."""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RX-8 ECU Tools</title>
+<style>
+:root {
+  --bg:#0b0e13; --bg2:#12161d; --bg3:#181d26; --border:#252c38; --border2:#333c4a;
+  --text:#e6ebf2; --muted:#8b96a3; --accent:#4d7cff; --accent2:#aab4c4;
+  --green:#7ee787; --red:#f85149; --purple:#bc8cff; --cyan:#39c5cf;
+  --accent-alpha:rgba(77,124,255,.14);
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+
+.brand { text-align: center; margin-bottom: 40px; }
+.logo {
+  width: 56px; height: 56px; border-radius: 12px; margin: 0 auto 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg2); border: 1px solid var(--border); color: var(--accent);
+}
+.logo svg { width: 32px; height: 32px; }
+.wordmark { font: 800 28px var(--mono); letter-spacing: .03em; color: var(--text); margin: 0; }
+.wm-accent { color: var(--accent); }
+.subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+
+.card-link {
+  display: block; width: 340px; padding: 0; text-decoration: none; color: inherit;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+  transition: border-color .2s, box-shadow .2s; overflow: hidden;
+}
+.card-link:hover { border-color: var(--accent); box-shadow: 0 0 24px rgba(77,124,255,.15); }
+
+.card-head {
+  padding: 20px 22px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+}
+.card-icon {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-alpha); border: 1px solid var(--border);
+  color: var(--accent); font: 700 16px var(--mono);
+}
+.card-icon svg { width: 22px; height: 22px; }
+.card-title { font: 700 17px var(--mono); color: var(--text); }
+.card-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+.card-body { padding: 16px 22px 20px; }
+.card-body p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.card-body .tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  display: inline-block; font: 11px var(--mono); padding: 2px 8px;
+  border-radius: 10px; border: 1px solid var(--border2); color: var(--muted);
+}
+.tag.green { color: var(--green); border-color: var(--green); }
+.tag.cyan { color: var(--cyan); border-color: var(--cyan); }
+.tag.purple { color: var(--purple); border-color: var(--purple); }
+.tag.blue { color: var(--accent); border-color: var(--accent); }
+
+.card-footer {
+  padding: 10px 22px; border-top: 1px solid var(--border);
+  font: 600 12px var(--mono); color: var(--accent); text-align: right;
+}
+.card-footer::after { content: " \\2192"; }
+
+footer {
+  margin-top: 40px; color: var(--muted); font-size: 11.5px; text-align: center;
+}
+
+@media (max-width: 760px) {
+  .cards { flex-direction: column; align-items: center; }
+  .card-link { width: 100%; max-width: 380px; }
+}
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <div class="logo" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor" stroke="currentColor"
+         stroke-width="2" stroke-linejoin="round">
+      <path d="M12 3.2 Q18.93 8.01 19.62 16.42 Q12 19.98 4.38 16.42 Q5.07 8.01 12 3.2 Z"/>
+      <circle cx="12" cy="12" r="3.2" style="fill:var(--bg2)" stroke="none"/>
+    </svg>
+  </div>
+  <h1 class="wordmark">RX-<span class="wm-accent">8</span> ECU Tools</h1>
+  <div class="subtitle">Mazda RX-8 &middot; Renesas SH7055 (SH-2E) &middot; Renesis 1.3L</div>
+</div>
+
+<div class="cards">
+
+  <a class="card-link" href="explorer/">
+    <div class="card-head">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">ROM Explorer</div>
+        <div class="card-sub">Firmware reverse-engineering browser</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <p>Browse 6,000+ symbols, interactive callgraph, 1,210 calibration
+      tables with extracted values across 9 stock firmware models.
+      Function documentation, address lookup, and subsystem docs.</p>
+      <div class="tags">
+        <span class="tag blue">callgraph</span>
+        <span class="tag green">calibration tables</span>
+        <span class="tag cyan">9 firmware models</span>
+        <span class="tag purple">documentation</span>
+      </div>
+    </div>
+    <div class="card-footer">Open Explorer</div>
+  </a>
+
+  <a class="card-link" href="emu/">
+    <div class="card-head">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+          <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">ECU Pin Emulator</div>
+        <div class="card-sub">Interactive 96-pin connector simulator</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <p>Interactive N3J1-18-881L 96-pin connector pinout with schematic view,
+      live sensor controls (RPM, ECT, IAT, MAP, TPS, O2),
+      ADC simulation, peripheral register view, and preset scenarios.</p>
+      <div class="tags">
+        <span class="tag blue">96-pin connector</span>
+        <span class="tag green">sensor sliders</span>
+        <span class="tag cyan">ADC simulation</span>
+        <span class="tag purple">schematics</span>
+      </div>
+    </div>
+    <div class="card-footer">Open Emulator</div>
+  </a>
+
+</div>
+
+<footer>
+  RX-8 ECU Tools &middot; Renesas SH7055 &middot; data from the
+  <a href="https://github.com/davtur19/rx8ecu" style="color:var(--accent)">rx8ecu</a> project
+</footer>
+
+</body>
+</html>"""
+
+
+def copy_emu_files():
+    """Copy ecu-emu dist files into dist/emu/ if the source exists."""
+    emu_dst = os.path.join(DIST, "emu")
+    if not os.path.isdir(EMU_DIST_SRC):
+        print("WARN: ecu-emu dist not found at %s — skipping emu/ copy" % EMU_DIST_SRC)
+        return False
+    os.makedirs(emu_dst, exist_ok=True)
+    for name in os.listdir(EMU_DIST_SRC):
+        src = os.path.join(EMU_DIST_SRC, name)
+        dst = os.path.join(emu_dst, name)
+        if os.path.isfile(src):
+            with open(src, "rb") as f:
+                data = f.read()
+            with open(dst, "wb") as f:
+                f.write(data)
+    print("-> copied ecu-emu dist -> %s/" % os.path.relpath(emu_dst, DIST))
+    return True
 
 
 def main(argv):
@@ -1063,30 +1253,30 @@ def main(argv):
     args = parser.parse_args(argv)
 
     print("=== %s ===" % GENERATOR)
-    os.makedirs(DIST, exist_ok=True)
+    os.makedirs(EXPLORER_DIST, exist_ok=True)
 
     data = build_dataset()
     model_values = data.pop("model_values", {})
     payload = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
 
-    # 1) index.html assembled from the template
-    write_text(os.path.join(DIST, "index.html"), render_html(data))
+    # 1) index.html assembled from the template (goes to dist/explorer/)
+    write_text(os.path.join(EXPLORER_DIST, "index.html"), render_html(data))
 
     # 2) app.js / style.css copied from src/
     with open(SRC_APP, encoding="utf-8") as f:
-        write_text(os.path.join(DIST, "app.js"), f.read())
+        write_text(os.path.join(EXPLORER_DIST, "app.js"), f.read())
     with open(SRC_CSS, encoding="utf-8") as f:
-        write_text(os.path.join(DIST, "style.css"), f.read())
+        write_text(os.path.join(EXPLORER_DIST, "style.css"), f.read())
 
     # 3) dataset
-    write_text(os.path.join(DIST, "data.json"), payload)
-    with open(os.path.join(DIST, "data.js"), "w", encoding="utf-8", newline="\n") as f:
+    write_text(os.path.join(EXPLORER_DIST, "data.json"), payload)
+    with open(os.path.join(EXPLORER_DIST, "data.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write("/* file:// fallback: generated by %s - use data.json via fetch when possible */\n" % GENERATOR)
         f.write("window.EXPLORER_DATA = ")
         f.write(payload)
         f.write(";\n")
 
-    # 4) per-model value files (dist/models/<key>.json), fetched on demand.
+    # 4) per-model value files (dist/explorer/models/<key>.json), fetched on demand.
     #    The default model (D400) values stay embedded in data.json.
     os.makedirs(MODELS_DIR, exist_ok=True)
     for key in sorted(model_values):
@@ -1099,17 +1289,24 @@ def main(argv):
                    json.dumps(mfile, separators=(",", ":"), ensure_ascii=False))
 
     # 5) .nojekyll + auto-generated README
-    write_text(os.path.join(DIST, ".nojekyll"), "")
-    write_text(os.path.join(DIST, "README.md"), render_dist_readme(data))
+    write_text(os.path.join(EXPLORER_DIST, ".nojekyll"), "")
+    write_text(os.path.join(EXPLORER_DIST, "README.md"), render_dist_readme(data))
+
+    # 6) Landing page at dist/ root
+    write_text(os.path.join(DIST, "index.html"), render_landing_page())
+
+    # 7) Copy ecu-emu dist into dist/emu/
+    copy_emu_files()
 
     # report
     c = data["meta"]["counts"]
-    print("-> %s" % os.path.join(DIST, "index.html"))
-    print("-> %s (%.1f KB)" % (os.path.join(DIST, "data.json"), os.path.getsize(os.path.join(DIST, "data.json")) / 1024))
-    print("-> %s (%.1f KB)" % (os.path.join(DIST, "data.js"), os.path.getsize(os.path.join(DIST, "data.js")) / 1024))
+    print("-> %s" % os.path.join(EXPLORER_DIST, "index.html"))
+    print("-> %s (%.1f KB)" % (os.path.join(EXPLORER_DIST, "data.json"), os.path.getsize(os.path.join(EXPLORER_DIST, "data.json")) / 1024))
+    print("-> %s (%.1f KB)" % (os.path.join(EXPLORER_DIST, "data.js"), os.path.getsize(os.path.join(EXPLORER_DIST, "data.js")) / 1024))
     for key in sorted(model_values):
         p = os.path.join(MODELS_DIR, key + ".json")
         print("-> %s (%.1f KB)" % (os.path.relpath(p, DIST), os.path.getsize(p) / 1024))
+    print("-> %s (landing page)" % os.path.join(DIST, "index.html"))
     print("symbols=%d edges=%d (bsr=%d ref=%d) tables_rows=%d (tables=%d axes=%d) "
           "with_values=%d function_docs=%d (attached=%d) subsystems=%d models=%d "
           "model_value_files=%d addr_map_entries=%d"

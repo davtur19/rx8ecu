@@ -1,0 +1,385 @@
+================================================================================
+RX-8 ECU (60E1D400) BOOT MODE DEBUG REPORT
+Generated: 2026-09-07
+ECU: N3J1-18-881L / Denso 279700-3313 / SH7055 (HD64F7055)
+================================================================================
+
+TABLE OF CONTENTS
+  1. SH7055 Boot Mode Requirements (Exact)
+  2. CN400 Connector Pinout (Verified)
+  3. Main Harness Connector Power Pins
+  4. Step-by-Step Wiring Checklist (Multimeter-Verified)
+  5. Minimal Bench Setup (Boot-Only, No Full Harness)
+  6. Common Failure Modes (Equinox Guide Pitfalls)
+  7. Diagnostic Verification Steps
+  8. Next Debug Steps
+
+================================================================================
+1. SH7055 BOOT MODE REQUIREMENTS (EXACT)
+================================================================================
+
+The SH7055 enters boot mode when MD1 is sampled LOW at the rising edge of
+RESET. The bootloader then communicates over SCI (serial) at 115200 baud.
+
+CRITICAL SEQUENCE (order matters):
+  1. MD1 = LOW  (before and during reset)
+  2. WDT = 150 Hz square wave, 50% duty (prevents watchdog reset loop)
+  3. FWE = HIGH (flash write enable, pull-up to 5V through 1k-10k resistor)
+  4. THEN apply +12V power
+  5. RESET is released (power-on reset)
+  6. CPU samples MD1 = LOW → enters BOOT mode
+  7. SCI TX/RX become active (115200 baud, 8N1)
+
+Pin Logic Levels:
+  - MD1:  LOW  = 0V (GND through 1k-10k resistor)
+  - FWE:  HIGH = 5V (through 1k-10k resistor)
+  - WDT:  Square wave 150 Hz, 0-5V, 50% duty
+  - TX:   ECU output, 5V logic (connect to USB-serial RX)
+  - RX:   ECU input, 5V logic (connect to USB-serial TX)
+  - GND:  0V, common ground
+
+NOTE: There is NO separate MD0 pin on this ECU's CN400 connector.
+      The SH7055 has MD0/MD1 mode pins, but CN400 only breaks out MD1.
+      MD0 is likely tied to a fixed level on the PCB (HIGH or LOW).
+      The equinox guide references MD1 only.
+
+Crystal: 10 MHz (X430, on-board). No external clock needed.
+
+================================================================================
+2. CN400 CONNECTOR PINOUT (VERIFIED)
+================================================================================
+
+CN400 "PBL" — 13-pin single row, back edge of PCB.
+Silk labels: WDT / FWE / MD1 / TX / RX above their holes.
+Near components: R407, R408, T701-T704, C482, C420.
+
+CONFIRMED PIN MAPPING (supersedes equinox92's original guess):
+
+  Pin  | Signal  | Function                    | Connection
+  -----|---------|-----------------------------|---------------------------
+   1   | (uncert)| Unknown / NC                | Do not connect
+   2   | (uncert)| Unknown / NC                | Do not connect
+   3   | WDT     | Watchdog timer PWM input    | Pro Mini pin 9 (tone 150Hz)
+   4   | (uncert)| Unknown / NC                | Do not connect
+   5   | (uncert)| Unknown / NC                | Do not connect
+   6   | FWE     | Flash Write Enable          | 5V through 1k-10k resistor
+   7   | (uncert)| Unknown / NC                | Do not connect
+   8   | MD1     | Mode pin 1 (boot select)    | GND through 1k-10k resistor
+   9   | TX      | SCI transmit (ECU → PC)     | USB-serial RX through 1k
+  10   | RX      | SCI receive (PC → ECU)      | USB-serial TX through 1k
+  11   | (uncert)| Unknown / NC                | Do not connect
+  12   | (uncert)| Unknown / NC                | Do not connect
+  13   | (uncert)| Unknown / NC                | Do not connect
+
+EQUINOX92'S ORIGINAL GUESS (WRONG — off by one on FWE/MD1/TX/RX):
+  WDT=3/FWE=5/MD1=7/TX=8/RX=9  ← INCORRECT
+  WDT=3/FWE=6/MD1=8/TX=9/RX=10 ← CORRECT (verified with schematic + photo)
+
+IMPORTANT: Verify pin identity with a multimeter before applying any voltage.
+  - Continuity check: pin 3 should trace to R407/T701 area (WDT path)
+  - Pin 6 should trace to R408 area (FWE pull-up path)
+  - Pin 8 should trace to R407 area (MD1 pull-down path)
+  - Pins 9/10 should trace to T703/T704 (TX/RX level shifters)
+
+================================================================================
+3. MAIN HARNESS CONNECTOR POWER PINS
+================================================================================
+
+The main harness connector (right edge, 5-block × multiple pins) provides
+power and CAN for bench operation. Pin naming: <block><letter>, loom side view.
+
+GROUND (all must be connected):
+  Pin 4A  ─┐
+  Pin 4J   │
+  Pin 5D   │
+  Pin 5O   ├──→ Bench supply GND (0V)
+  Pin 5R   │
+  Pin 5T  ─┘
+
++12V POWER (bypass main relay):
+  Pin 5AC ─┐
+  Pin 5AF  ├──→ +12V (simulates main relay closed, powers ECU logic)
+  Pin 4Q  ─┤
+  Pin 5J  ─┘
+
+CAN-BUS (for UDS diagnostics, if needed):
+  Pin 4S → CAN-L (to J2534 adapter)
+  Pin 4V → CAN-H (to J2534 adapter)
+
+LEAVE FLOATING:
+  Pin 4E → Main Relay enable (ECU OUTPUT, open-drain — do NOT drive!)
+
+================================================================================
+4. STEP-BY-STEP WIRING CHECKLIST (MULTIMETER-VERIFIED)
+================================================================================
+
+BEFORE ANY CONNECTION — ECU MUST BE UNPOWERED.
+
+Step 1: Identify CN400 Pins
+  [ ] Locate CN400 "PBL" on the back edge of the PCB (13-pin single row)
+  [ ] Count pins from the end closest to R407/R408 area
+  [ ] Pin 1 is at one end, pin 13 at the other
+  [ ] Use multimeter continuity mode to trace:
+      - Pin 3: should beep to R407 or T701 pad (WDT)
+      - Pin 6: should beep to R408 pad (FWE)
+      - Pin 8: should beep to a resistor pad going to GND (MD1)
+      - Pin 9: should beep to T703 pad (TX)
+      - Pin 10: should beep to T704 pad (RX)
+
+Step 2: Verify No Shorts
+  [ ] Multimeter continuity between CN400 pins:
+      - Pin 3 (WDT) to Pin 6 (FWE): should NOT beep (no short)
+      - Pin 8 (MD1) to Pin 6 (FWE): should NOT beep
+      - Pin 9 (TX) to Pin 10 (RX): should NOT beep
+  [ ] Check CN400 pins to main connector GND pins:
+      - Only Pin 8 (MD1) should show low resistance to GND (pull-down resistor)
+      - Pin 6 (FWE) should NOT show low resistance to GND
+
+Step 3: Build the Jig
+  [ ] Arduino Pro Mini 5V/16MHz (or equivalent with tone() function)
+      - Pin 9 output: tone(9, 150) → 150 Hz square wave
+      - VCC = 5V, GND = common
+  [ ] USB-serial adapter (FTDI/CH340/CP2102)
+      - 3.3V/5V jumper → SET TO 5V
+      - TX output → CN400 pin 10 (RX) through 1k resistor
+      - RX input  ← CN400 pin 9 (TX) through 1k resistor
+      - GND → common
+  [ ] Passive components:
+      - 1k-10k resistor: CN400 pin 6 (FWE) → +5V (pull-up)
+      - 1k-10k resistor: CN400 pin 8 (MD1) → GND (pull-down)
+      - 1k resistor: CN400 pin 9 (TX) → adapter RX (inline protection)
+      - 1k resistor: CN400 pin 10 (RX) → adapter TX (inline protection)
+
+Step 4: Power Connections (Main Connector)
+  [ ] Connect ALL 6 ground pins (4A, 4J, 5D, 5O, 5R, 5T) → bench supply GND
+  [ ] Connect +12V → pins 5AC, 5AF, 4Q, 5J (one wire to each, or daisy-chain)
+  [ ] Leave pin 4E (Main Relay) FLOATING — do not connect
+
+Step 5: Pre-Power Verification
+  [ ] Pro Mini powered via USB → verify 150 Hz tone on pin 9 with multimeter
+      (frequency mode or scope)
+  [ ] Verify CN400 pin 3 (WDT) shows 150 Hz square wave
+  [ ] Verify CN400 pin 6 (FWE) shows ~5V (pull-up active)
+  [ ] Verify CN400 pin 8 (MD1) shows ~0V (pull-down active)
+  [ ] Verify CN400 pin 9 (TX) idle state = ~5V (SCI idle high)
+  [ ] Verify common GND between Pro Mini, serial adapter, and bench supply
+
+Step 6: Power-Up Sequence
+  [ ] WDT signal RUNNING (150 Hz confirmed)
+  [ ] MD1 = LOW confirmed (0V at pin 8)
+  [ ] FWE = HIGH confirmed (5V at pin 6)
+  [ ] THEN turn on +12V bench supply
+  [ ] Observe current draw: should jump from ~0 mA to ~200-400 mA
+  [ ] If current is 0 mA: check +12V at pins 5AC/5AF, check GND continuity
+  [ ] If current is >500 mA: check for shorts, power off immediately
+
+Step 7: Verify Boot Mode Entry
+  [ ] Open terminal (PuTTY/TeraTerm) at 115200 baud, 8N1
+  [ ] Press ECU reset (power cycle with MD1 still low)
+  [ ] Look for boot prompt: typically 0x00 bytes or a prompt string
+  [ ] If FDT: click Connect — should sync within 2 seconds
+  [ ] If no response: verify WDT is running BEFORE power-up (critical!)
+
+================================================================================
+5. MINIMAL BENCH SETUP (BOOT-ONLY, NO FULL HARNESS)
+================================================================================
+
+Minimum equipment to prove boot mode entry without a full wiring harness:
+
+COMPONENTS:
+  - 1x bench power supply (12V, 2A minimum)
+  - 1x Arduino Pro Mini 5V/16MHz (or any Arduino with tone())
+  - 1x USB-serial adapter (FTDI/CH340, set to 5V logic)
+  - 4x resistors: 2x 4.7kΩ (FWE pull-up, MD1 pull-down), 2x 1kΩ (TX/RX protection)
+  - Breadboard or perfboard
+  - Multimeter
+
+WIRING DIAGRAM (text):
+
+  +12V PSU ────┬──── Pin 5AC (main connector)
+               ├──── Pin 5AF
+               ├──── Pin 4Q
+               └──── Pin 5J
+
+  GND PSU ─────┬──── Pin 4A (main connector, all 6 grounds)
+               ├──── Pin 4J
+               ├──── Pin 5D
+               ├──── Pin 5O
+               ├──── Pin 5R
+               ├──── Pin 5T
+               ├──── Pro Mini GND
+               ├──── USB-serial GND
+               └──── CN400 Pin 8 via 4.7kΩ (MD1 pull-down)
+
+  Pro Mini Pin 9 ───── CN400 Pin 3 (WDT, direct wire)
+
+  +5V (Pro Mini VCC) ─┬──── CN400 Pin 6 via 4.7kΩ (FWE pull-up)
+                      └──── USB-serial VCC (if needed)
+
+  USB-serial TX ──── 1kΩ ──── CN400 Pin 10 (RX)
+  USB-serial RX ──── 1kΩ ──── CN400 Pin 9 (TX)
+
+VERIFICATION WITHOUT FDT (just proves boot entry):
+  1. Wire the above
+  2. Start Pro Mini (WDT signal running)
+  3. Open serial terminal at 115200 baud
+  4. Apply +12V to ECU
+  5. If ECU enters boot mode:
+     - Serial terminal shows activity (0x00 bytes or boot prompt)
+     - Current draw: 200-400 mA (vs. ~0 mA when off)
+     - If you send a byte and get a response, SCI is alive
+  6. If ECU does NOT enter boot mode:
+     - Current draw may be lower (~50-100 mA = normal boot, not BOOT mode)
+     - No serial activity = MD1 not sampled low at reset
+
+CURRENT DRAW SIGNATURES:
+  - 0 mA: No power (check +12V/GND connections)
+  - 50-100 mA: ECU booted normally (MD1 was HIGH, not in BOOT mode)
+  - 200-400 mA: ECU in BOOT mode or actively running
+  - >500 mA: Short circuit or fault — power off immediately
+
+================================================================================
+6. COMMON FAILURE MODES (EQUINOX GUIDE PITFALLS)
+================================================================================
+
+ISSUE 1: WRONG PIN NUMBERING (MOST LIKELY)
+  Symptom: FDT "no sync" / no serial response / MD1 not recognized
+  Cause: equinox92's original pinout was WDT=3/FWE=5/MD1=7/TX=8/RX=9
+         Actual: WDT=3/FWE=6/MD1=8/TX=9/RX=10 (off by one on FWE/MD1/TX/RX)
+  Fix: Verify with multimeter continuity as in Step 1 above
+  Risk: FWE on wrong pin → flash not enabled; MD1 on wrong pin → no boot mode
+
+ISSUE 2: WDT NOT RUNNING BEFORE POWER-UP
+  Symptom: FDT "no sync", ECU resets in a loop, no serial response
+  Cause: WDT square wave must be present BEFORE +12V is applied
+         If WDT starts after power, the MCU has already reset multiple times
+         and may have entered normal boot (not BOOT mode)
+  Fix: Start Pro Mini first, verify 150 Hz on CN400 pin 3, THEN apply +12V
+
+ISSUE 3: MD1 NOT LOW AT RESET
+  Symptom: ECU boots normally (not in BOOT mode), no serial response
+  Cause: Pull-down resistor missing, wrong value, or connected to wrong pin
+  Fix: Verify 0V at CN400 pin 8 with multimeter before power-up
+  Note: MD1 must be LOW at the exact moment of reset release (power-on reset)
+
+ISSUE 4: FWE NOT PULLED HIGH
+  Symptom: FDT connects but cannot read/write flash
+  Cause: Pull-up resistor missing or connected to wrong pin
+  Fix: Verify 5V at CN400 pin 6 with multimeter before power-up
+
+ISSUE 5: WRONG LOGIC LEVEL (3.3V vs 5V)
+  Symptom: Garbled serial, FDT sync fails, intermittent communication
+  Cause: USB-serial adapter set to 3.3V instead of 5V
+  Fix: Set adapter jumper to 5V (SH7055 is 5V native logic)
+  Note: 1k inline resistors provide protection but don't fix level mismatch
+
+ISSUE 6: TX/RX REVERSED
+  Symptom: No serial communication, FDT "no sync"
+  Cause: ECU TX (pin 9) connected to adapter TX instead of RX
+  Fix: ECU TX (pin 9) → adapter RX; ECU RX (pin 10) → adapter TX
+
+ISSUE 7: MISSING OR INCOMPLETE GND
+  Symptom: Erratic behavior, ECU resets randomly, no communication
+  Cause: Not all 6 ground pins connected, or GND not common between devices
+  Fix: Connect ALL 6 ground pins (4A, 4J, 5D, 5O, 5R, 5T) to bench GND
+       Ensure Pro Mini, serial adapter, and bench supply share common GND
+
+ISSUE 8: PIN 4E (MAIN RELAY) DRIVEN
+  Symptom: ECU damage or unpredictable behavior
+  Cause: Accidentally driving the open-drain Main Relay output
+  Fix: Leave pin 4E FLOATING — it is an ECU output, not an input
+
+ISSUE 9: FDT DEVICE SELECTION WRONG
+  Symptom: FDT error 16184 "0.18um device"
+  Cause: SH7055 variant is HD64F7055S (older mask)
+  Fix: Re-create workspace with "Generic BOOT Device" instead of "7055" kernel
+
+ISSUE 10: POWER SEQUENCING WRONG
+  Symptom: ECU boots normally, not in BOOT mode
+  Cause: +12V applied before MD1 pull-down is active
+  Fix: Strict sequence: WDT running + MD1 low + FWE high → THEN apply +12V
+
+================================================================================
+7. DIAGNOSTIC VERIFICATION STEPS
+================================================================================
+
+A. MULTIMETER CHECKS (before power):
+  1. CN400 pin 3 (WDT) → Pro Mini pin 9: continuity OK
+  2. CN400 pin 6 (FWE) → +5V through 4.7kΩ: ~4.7kΩ resistance
+  3. CN400 pin 8 (MD1) → GND through 4.7kΩ: ~4.7kΩ resistance
+  4. CN400 pin 9 (TX) → adapter RX through 1kΩ: ~1kΩ resistance
+  5. CN400 pin 10 (RX) → adapter TX through 1kΩ: ~1kΩ resistance
+  6. No shorts between any signal pins
+
+B. POWER-ON CHECKS (after +12V applied):
+  1. +12V at pins 5AC, 5AF: measure directly at connector
+  2. GND at pins 4A, 4J, etc.: verify 0V relative to bench supply GND
+  3. CN400 pin 6 (FWE): still ~5V
+  4. CN400 pin 8 (MD1): still ~0V
+  5. CN400 pin 3 (WDT): still 150 Hz square wave
+  6. Current draw: 200-400 mA (BOOT mode signature)
+
+C. SERIAL CHECKS:
+  1. Terminal at 115200 baud, 8N1
+  2. Apply +12V with WDT running and MD1 low
+  3. Look for ANY activity on the serial line (even 0x00 bytes)
+  4. If FDT: Connect → should sync within 2 seconds
+  5. If FDT syncs: use Read/Upload (NOT Download) to dump flash
+
+D. FDT-SPECIFIC:
+  1. Workspace → device "7055" (or "Generic BOOT Device" if error 16184)
+  2. COM port → correct USB-serial adapter
+  3. Connection type: BOOT mode
+  4. Click Connect
+  5. Expected: "Connecting to target..." → "Connected" within 2 seconds
+  6. If stuck: check WDT signal, check MD1 level, check serial wiring
+
+================================================================================
+8. NEXT DEBUG STEPS
+================================================================================
+
+IF BOOT MODE STILL FAILS:
+
+1. SCOPE THE WDT SIGNAL
+   - Verify clean 150 Hz square wave at CN400 pin 3
+   - Amplitude should be 0-5V (not attenuated by long wires)
+   - If using long wires, add a 100nF cap near CN400 pin 3
+
+2. CHECK MD1 TIMING
+   - MD1 must be LOW at power-on reset release
+   - If using a switch instead of resistor, ensure MD1 is LOW before power
+   - The SH7055 samples MD1 only at reset — changing it after boot has no effect
+
+3. TRY ALTERNATIVE BOOT ENTRY
+   - Some SH7055 variants accept BOOT mode via SCI autobaud at 9600 baud
+   - Try sending 0x00 bytes at 9600 baud during power-up (unlikely but free)
+
+4. CHECK CRYSTAL
+   - X430 (10 MHz) must be oscillating for SCI to work
+   - If crystal is dead, no serial communication possible
+   - Probe crystal pins with scope (if accessible)
+
+5. VERIFY EEPROM IS NOT INTERFERING
+   - IC420 (S-93C56) shares GPIO with SH7055
+   - If ECU is powered, SH7055 may be driving EEPROM lines
+   - For BOOT mode, this should not matter — but if ECu is partially booting,
+     the GPIO contention could cause issues
+
+6. MINIMAL PROVE-IT TEST
+   - Disconnect everything except: +12V, GND, WDT, MD1, TX, RX
+   - No main connector CAN, no other signals
+   - If this works → add connections one by one to find the fault
+
+7. CHECK FOR BOARD DAMAGE
+   - Inspect CN400 pads for cold solder joints or corrosion
+   - Check R407/R408 (WDT/FWE/MD1 path resistors) for damage
+   - Check T703/T704 (TX/RX level shifters) for damage
+
+8. CONSIDER RENESAS ID-CODE PROTECTION
+   - If FDT connects but offers only "full chip erase" → ID code protection
+   - Do NOT erase — you will lose the firmware permanently
+   - STOP and reconsider the approach (UDS path via CAN may still work)
+
+================================================================================
+END OF REPORT
+================================================================================

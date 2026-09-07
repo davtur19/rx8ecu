@@ -1,0 +1,69 @@
+RX-8 ECU Pin Emulator WebUI — Build Report
+=============================================
+Date: 2026-09-07
+Status: COMPLETE
+
+## What was built
+
+web/ecu-emu/ — interactive ECU pin emulator webui (plain HTML/JS/CSS, zero deps)
+
+### Files created
+- web/ecu-emu/src/pins.json    — 96-pin connector data (48 active + 48 NC)
+- web/ecu-emu/src/index.html   — main page (3-panel layout)
+- web/ecu-emu/src/app.js       — application logic + emulator engine
+- web/ecu-emu/src/style.css    — dark theme (reuses explorer palette)
+- web/ecu-emu/Makefile          — build/serve targets
+- web/ecu-emu/dist/*            — built output (4 files)
+
+### Features
+1. Left panel: interactive 2×48 connector pinout
+   - Color-coded by type (power/GND/analog/digital/CAN/SCI)
+   - Click to select, hover for info
+   - Pins: 1-48 Row A, 49-96 Row B
+
+2. Center panel: SVG schematic view
+   - Default: subsystem overview (power, sensors, ignition, fuel, actuators, CAN)
+   - On pin select: pin-specific schematic with component + connection line
+   - Shows voltage range, peripheral register address
+
+3. Right panel: live pin states + controls
+   - 5 preset scenarios: idle (800), cruise (3000), WOT (7000), cold start, decel
+   - Sensor sliders: RPM, ECT, IAT, MAP, TPS, O2-F
+   - Active pins list with value bars
+
+4. Bottom panel: peripheral register table
+   - ADC channels 0-7 with hex values
+   - PORT latches 0-5
+   - ATU capture, CAN0/1 status, WDT
+
+### Emulator logic (mirrors tools/ecu_pin_emu.py)
+- NTC thermistor: R = R25 * exp(B*(1/T - 1/T25)), B=3435
+- MAP sensor: 0-105 kPa → 0.5-4.5V linear
+- TPS sensor: 0-100% → 0.5-4.5V linear
+- O2 sensors: 0-1V narrowband
+- ADC: 10-bit, Vref=5V
+- Port decode: COIL1-4 (port 0), INJ1-4 (port 1), OMP (port 2), FUEL (port 3), FAN (port 4)
+
+### Pin data highlights
+- 6x GND pins (3,4,49,50,51,52)
+- 4x BAT+12V (1,2,53,54)
+- 1x IG1 (switched +12V)
+- 4x COIL outputs (leading/trailing × 2 rotors)
+- 4x INJ outputs
+- 6x analog sensors (ECT, IAT, MAP, TPS, O2F, O2R)
+- 2x crank/cam (NE+, G1)
+- 4x CAN (CANH/L, MSCANH/L)
+- 2x SCI (TXD, RXD)
+- OMP, fuel pump, 2x fan, VVT, MIL, A/C, VSS, etc.
+
+### Verified
+- Build succeeds (make build)
+- dist/ contains 4 files (index.html, app.js, style.css, pins.json)
+- web/explorer/ untouched
+- No npm/Vite required (stdlib-only, like explorer)
+
+### How to run
+  cd web/ecu-emu
+  make serve     # serves at http://127.0.0.1:8001/
+  # or
+  python3 -m http.server 8001 --directory dist/

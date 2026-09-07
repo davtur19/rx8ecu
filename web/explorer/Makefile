@@ -34,10 +34,12 @@ serve-port: build
 clean:
 	rm -rf dist
 
-## check — verify dist/ exists, dist/data.json parses, and the per-model
-## value files (dist/models/*.json) exist and parse as JSON
+## check — verify dist/ exists, dist/explorer/data.json parses, and the per-model
+## value files (dist/explorer/models/*.json) exist and parse as JSON
 check:
 	@test -d dist || { echo "ERROR: dist/ not found - run 'make build' first"; exit 1; }
-	@test -f dist/data.json || { echo "ERROR: dist/data.json not found - run 'make build' first"; exit 1; }
-	@$(PYTHON) -c "import json; d = json.load(open('dist/data.json', encoding='utf-8')); c = d['meta']['counts']; m = d['meta']['models']; am = d['meta']['addr_map']; assert len(m) == c['models'] == 9, 'models != 9'; assert len(am) == 9, 'addr_map != 9 models'; assert c['addr_map_entries'] == c['tables_rows'] * c['models'], 'addr_map entries mismatch'; print('OK: dist/data.json valid (%(symbols)s symbols, %(edges)s edges, %(tables_rows)s table rows, %(docs_total)s docs, %(subsystems)s subsystems, %(models)s models)' % c)"
-	@$(PYTHON) -c "import json, os, glob; files = sorted(glob.glob('dist/models/*.json')); assert files, 'no model files'; [json.load(open(f, encoding='utf-8')) for f in files]; assert len(files) == 8, 'expected 8 model files (D400 stays in data.json), got %d' % len(files); print('OK: dist/models/*.json valid (%d files)' % len(files))"
+	@test -d dist/explorer || { echo "ERROR: dist/explorer/ not found - run 'make build' first"; exit 1; }
+	@test -f dist/index.html || { echo "ERROR: dist/index.html (landing page) not found"; exit 1; }
+	@test -f dist/explorer/data.json || { echo "ERROR: dist/explorer/data.json not found - run 'make build' first"; exit 1; }
+	@$(PYTHON) -c "import json; d = json.load(open('dist/explorer/data.json', encoding='utf-8')); c = d['meta']['counts']; m = d['meta']['models']; am = d['meta']['addr_map']; assert len(m) == c['models'] == 9, 'models != 9'; assert len(am) == 9, 'addr_map != 9 models'; assert c['addr_map_entries'] == c['tables_rows'] * c['models'], 'addr_map entries mismatch'; print('OK: dist/explorer/data.json valid (%(symbols)s symbols, %(edges)s edges, %(tables_rows)s table rows, %(docs_total)s docs, %(subsystems)s subsystems, %(models)s models)' % c)"
+	@$(PYTHON) -c "import json, os, glob; files = sorted(glob.glob('dist/explorer/models/*.json')); assert files, 'no model files'; [json.load(open(f, encoding='utf-8')) for f in files]; assert len(files) == 8, 'expected 8 model files (D400 stays in data.json), got %d' % len(files); print('OK: dist/explorer/models/*.json valid (%d files)' % len(files))"

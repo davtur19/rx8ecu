@@ -1,0 +1,88 @@
+RX-8 ECU Tools — Combined Site Integration Report
+====================================================
+Date: 2026-09-07
+Status: DONE (not committed)
+
+## Summary
+
+Integrated ROM Explorer and ECU Pin Emulator into a single GitHub Pages site
+with a landing menu at https://davtur19.github.io/rx8ecu/
+
+## New Site Structure (dist/)
+
+```
+dist/
+  index.html          ← Landing page with 2 cards (menu)
+  explorer/
+    index.html        ← ROM Explorer (existing, unchanged logic)
+    app.js, style.css, data.json, data.js
+    models/*.json     ← Per-model value files (8 files)
+    .nojekyll
+  emu/
+    index.html        ← ECU Pin Emulator (existing, unchanged logic)
+    app.js, style.css, pins.json
+```
+
+## Routing
+
+- `/`           → Landing page (two big cards)
+- `/explorer/`  → ROM Explorer (full app, unchanged)
+- `/emu/`       → ECU Pin Emulator (full app, unchanged)
+
+## Changes Made
+
+1. **web/explorer/build_site.py** — Modified to:
+   - Write explorer files to `dist/explorer/` instead of `dist/` root
+   - Generate landing page at `dist/index.html`
+   - Copy ecu-emu dist into `dist/emu/`
+   - Added `render_landing_page()` and `copy_emu_files()` functions
+
+2. **web/explorer/Makefile** — Updated `check` target to use `dist/explorer/`
+   paths for data.json and models/
+
+3. **.github/workflows/pages.yml** — Updated to:
+   - Build ecu-emu before explorer (`make -C web/ecu-emu build`)
+   - Trigger on `web/ecu-emu/**` path changes
+   - Sanity-check the new combined structure
+
+## Landing Page Design
+
+- Dark theme matching both apps (--bg:#0b0e13 palette)
+- RX-8 logo SVG (from explorer header)
+- Two big cards with icons:
+  - "ROM Explorer" — describes 6000+ symbols, callgraph, 1210 tables, 9 models
+  - "ECU Pin Emulator" — describes 96-pin connector, sensor sliders, ADC
+- Tags per card (callgraph, calibration tables, etc.)
+- Responsive layout (stacks on mobile)
+- English only, no Italian
+
+## Verification
+
+- Landing page: both card links present, no Italian text ✓
+- Explorer data.json: 6083 symbols, 6952 edges, 1210 tables ✓
+- Model files: 8 files (15120, 32000, B900, C500, E500, E700, FB00, FC00) ✓
+- Emu files: index.html, app.js, style.css, pins.json ✓
+- All explorer links are relative (subdirectory-safe) ✓
+- make check: passes ✓
+- HTTP serve test: /, /explorer/, /emu/, /explorer/data.json all return 200 ✓
+- CSS: responsive media query uses correct 100% (not escaped 100%%) ✓
+
+## What Was NOT Changed
+
+- Explorer app.js / style.css / template — zero modifications
+- ECU emu app.js / style.css / index.html — zero modifications
+- The existing explorer behavior is 100% preserved
+- No commits made (background task only)
+
+## Deployment
+
+When pushed, the pages.yml workflow will:
+1. Build ecu-emu: `make -C web/ecu-emu build`
+2. Build explorer + landing page + copy emu: `python3 web/explorer/build_site.py`
+3. Upload `web/explorer/dist/` as Pages artifact
+4. Deploy to GitHub Pages
+
+The site URL https://davtur19.github.io/rx8ecu/ will show the landing page.
+Direct links:
+- https://davtur19.github.io/rx8ecu/explorer/
+- https://davtur19.github.io/rx8ecu/emu/

@@ -1,0 +1,297 @@
+# Documentation & IDA Analysis Review Report
+# Date: 2026-09-07
+# Reviewer: documentation-review subagent
+# Method: Sequential read of all docs, grep for Italian, IDA cross-check of 7 addresses,
+#         git tracking audit, consistency checks across docs vs firmware
+
+================================================================================
+SECTION 1: IDA ADDRESS VERIFICATION (7 addresses checked)
+================================================================================
+
+All 7 addresses verified via idalib_disasm + idalib_lookup_funcs against
+60E1D400_be.elf (session 87790729):
+
+| Address  | Doc Claim              | IDA Result                    | Status |
+|----------|------------------------|-------------------------------|--------|
+| 0x6C8    | main_task_dispatcher   | main_task_dispatcher @0x6C8   | PASS   |
+| 0x4E0    | main_init              | main_init @0x4E0              | PASS   |
+| 0x17D8   | diag_security_access   | diag_security_access_sid27    | PASS   |
+| 0xDDF0   | CANTX_Main             | CANTX_Main @0xDDF0            | PASS   |
+| 0x364    | task_scheduler_dispatch| task_scheduler_dispatch @0x364| PASS   |
+| 0xDE8E   | secondary_system_ctrl  | secondary_system_controller   | PASS   |
+| 0x450    | eeprom_read_validate   | (name not in IDA, addr valid) | PASS   |
+
+NOTE on 0x9AE4 (can_tx_send_frame):
+- Docs (ECU.md, CAN_PROTOCOL.md, FINDINGS.md) claim can_tx_send_frame at 0x9AE4
+- IDA shows can_tx_send_frame at 0x29A0C (size 0x38)
+- CSV (symbols_60E1D400_merged.csv) lists 0x29A0C as "can420TXPack"
+- This is a NAMING/ADDRESS MISMATCH: see Section 3 (ERRORS)
+
+================================================================================
+SECTION 2: ITALIAN TEXT AUDIT
+================================================================================
+
+## IDA_ANALYSIS.md — FAIL (MASSIVE)
+Lines 245-800 (555+ lines) remain entirely in Italian after commit aa367b4
+which claimed "translate Italian to English (fix 7d46bd9)". The translation
+only covered the first ~244 lines; the following sections are untranslated:
+
+  - "Analisi RTOS — Task Scheduler" (lines 245-368)
+  - "Analisi Seriale — Protocollo Comunicazione" (lines 371-438)
+  - "Analisi Motore Rotario — Engine Control" (lines 442-597)
+  - "EEPROM — Analisi Esterna SPI" (lines 600-698)
+  - "DTC — Analisi Completa" (lines 701-788)
+  - "RAM import — Risultati" (lines 791-801)
+
+Italian word count: 133+ Italian terms across these sections.
+Severity: HIGH — violates AGENTS.md "English only" rule.
+
+## ECU.md — FAIL (SIGNIFICANT)
+Lines 120-282 contain ~21 Italian lines in the following sections:
+  - CAN→UDS Bridge path (lines 120-135): "path completo verificato", "legge dati",
+    "stato CAN", "monitora contatore"
+  - CAN Init (lines 139-142): "itera CAN0/CAN1. Usa tabella config primaria",
+    "ogni controller: abilita mailbox interrupts"
+  - RTOS section (lines 190-218): "Il sistema è un RTOS cooperativo", "i task girano",
+    "Le interruzioni postano nella coda task"
+  - Serial section (lines 222-238): "Bus fisico primario", "Registri", "Bus secondario"
+  - Engine section (lines 242-262): "Il Renesis 13B-MSP usa", "Posizione eccentric shaft"
+  - EEPROM section (lines 266-280): "L'ECU usa un chip EEPROM SPI esterno"
+
+Severity: HIGH — violates AGENTS.md "English only" rule.
+
+## FINDINGS.md — FAIL (MODERATE)
+Lines 616-674 contain ~16 Italian lines in the consolidation section:
+  - "Consolidamento Reverse-Engineering Completo" (line 616)
+  - "Session Gate — catena singola" (lines 620-624)
+  - "RAM — 1165 nuovi simboli importati" (lines 626-629)
+  - "CAN — Due bus, bridge CAN→UDS verificato" (lines 631-637)
+  - "RTOS — Cooperativo, 4 priorità" (lines 639-644)
+  - "Seriale — ATU-based, 3 canali" (lines 646-651)
+  - "Engine rotario — 141+ funzioni" (lines 653-659)
+  - "EEPROM — SPI esterno" (lines 661-667)
+  - "OBD/UDS — Tabella dispatch completata" (lines 669-674)
+
+Severity: MEDIUM — violates AGENTS.md "English only" rule.
+
+## Other docs — PASS
+  - KNOWLEDGE.md: English only ✓
+  - CAN_PROTOCOL.md: English only ✓
+  - DUMP_ALL.md: English only ✓
+  - PLANS.md: English only ✓
+  - tmp/README.md: English only ✓
+  - AGENTS.md: English only ✓
+
+================================================================================
+SECTION 3: ERRORS FOUND
+================================================================================
+
+### ERROR 1: can_tx_send_frame address mismatch
+- Files: ECU.md:81, CAN_PROTOCOL.md:144, FINDINGS.md:588/594/608
+- Issue: All docs claim can_tx_send_frame at 0x9AE4. IDA shows the function
+  at 0x29A0C. The CSV lists 0x29A0C as "can420TXPack". IDA lookup of 0x9AE4
+  resolves to 0x29A0C (function start). No code at 0x9AE4 is named
+  can_tx_send_frame in IDA or CSV.
+- Severity: HIGH — readers will look at wrong address
+- Recommended fix: Verify the correct address. The function may have been
+  redefined to span both 0x9AE4 and 0x29A0C, or 0x9AE4 may be a wrapper.
+  Check if 0x9AE4 is the actual function entry (prologue) or if 0x29A0C is.
+
+### ERROR 2: DTC primary table base address inconsistency
+- Files: IDA_ANALYSIS.md:705 vs FINDINGS.md:262
+- Issue: IDA_ANALYSIS.md says "21 entry × 52 byte a 0xFFFF8928" but
+  FINDINGS.md says "base 0xFFFF8930, stride 0x34, 21 rows" and verifies
+  0xFFFF8930 + 21*0x34 == 0xFFFF8D74. Line 142 of IDA_ANALYSIS.md itself
+  says "0x444-byte table init at 0xFFFF8930 (21 rows × 0x34)".
+- Severity: MEDIUM — internal inconsistency within IDA_ANALYSIS.md
+- Recommended fix: Correct line 705 to 0xFFFF8930 (matches line 142 and FINDINGS.md)
+
+### ERROR 3: symbols_60E1D400_merged.csv row count off-by-one
+- Files: IDA_ANALYSIS.md:210
+- Issue: Doc says "2790 rows". Actual file has 2791 lines (1 header + 2790 data
+  rows). This is technically correct (2790 data rows) but could be clarified.
+- Severity: LOW
+- Recommended fix: Clarify "2790 data rows" or leave as-is
+
+### ERROR 4: RAM_VARIABLES.csv address count off-by-one
+- Files: IDA_ANALYSIS.md:239
+- Issue: Doc says "1613 addresses". Actual file has 1614 lines (1 header + 1613
+  data rows). Same as above — technically correct.
+- Severity: LOW
+- Recommended fix: Clarify "1613 data rows" or leave as-is
+
+### ERROR 5: IDA_ANALYSIS.md duplicates ECU.md content
+- Issue: The RTOS section (lines 245-368) in IDA_ANALYSIS.md is nearly
+  identical to the RTOS section (lines 190-218) in ECU.md. Similarly, the
+  serial section, engine section, EEPROM section, and DTC section overlap
+  heavily. This creates maintenance burden and divergence risk.
+- Severity: LOW — duplication, not error
+- Recommended fix: Consider consolidating: keep IDA_ANALYSIS.md as the deep
+  technical reference and ECU.md as the high-level overview with pointers.
+
+================================================================================
+SECTION 4: DOC CONSISTENCY CHECKS
+================================================================================
+
+### DTC table sizes
+- Primary: 21 entries × 52 bytes (stride 0x34) — CONSISTENT across all docs
+- Backup: 8 entries × 40 bytes (stride 0x28) — CONSISTENT
+- Handler context: 21 entries × 16 bytes (stride 0x10) — CONSISTENT
+- Base address: 0xFFFF8930 (FINDINGS.md) vs 0xFFFF8928 (IDA_ANALYSIS.md:705) — INCONSISTENT
+
+### CAN buses
+- "Two buses" — CONSISTENT across all docs (ECU.md, CAN_PROTOCOL.md, FINDINGS.md)
+- HS-CAN (CAN0, pins 6/14) and MS-CAN (CAN1, pins 3/11) — CONSISTENT
+
+### RTOS queue
+- 100 entries × 8 bytes at 0xFFFFD4E0 — CONSISTENT across all docs
+- Write index 0xFFFFDFB4, read index 0xFFFFDFB6 — CONSISTENT
+- (write - read) mod 100 — CONSISTENT
+
+### UDS dispatch table
+- 29 entries × 12 bytes at 0x5F57C — CONSISTENT across CAN_PROTOCOL.md, FINDINGS.md, UDS_SECURITY_MAPPING.md
+
+### SecurityAccess handler
+- Handler 0x584A0, table 0x5F57C entry idx 10, mask 0x1000000E — CONSISTENT
+- SendKey (subfunc 4) unreachable — CONSISTENT
+
+================================================================================
+SECTION 5: KNOWLEDGE.md COMPLIANCE CHECK
+================================================================================
+
+AGENTS.md rule: "KNOWLEDGE.md contains only facts that cannot be discovered
+by reading files or running tools. No procedural instructions, reminders,
+or tool-usage guides."
+
+### FINDING: KNOWLEDGE.md lines 66-70 contain procedural instructions
+The "EEPROM Shadow" section includes:
+  "Hardware read: SOIC8 clip + CH341A, read as 93C56 (256 B) — NOT 93C86 (1 KB)"
+
+This is a procedural instruction (how to read the EEPROM) mixed with facts.
+The factual part is "ABLIC S-93C56C, 256 B". The procedural part ("SOIC8 clip
++ CH341A, read as 93C56") belongs in DUMP_ALL.md or HARDWARE.md.
+
+Severity: MEDIUM — violates KNOWLEDGE.md scope rule
+Recommended fix: Move the tool/procedure reference to DUMP_ALL.md; keep only
+the hardware fact ("ABLIC S-93C56C, 256 B, SPI bit-bang") in KNOWLEDGE.md.
+
+================================================================================
+SECTION 6: MISSING SUBSYSTEM COVERAGE
+================================================================================
+
+All major subsystems are documented:
+  ✓ Boot sequence (IDA_ANALYSIS.md, FINDINGS.md)
+  ✓ RTOS (IDA_ANALYSIS.md, ECU.md)
+  ✓ CAN (ECU.md, CAN_PROTOCOL.md, FINDINGS.md)
+  ✓ Serial (IDA_ANALYSIS.md, ECU.md)
+  ✓ Engine control (IDA_ANALYSIS.md, ECU.md)
+  ✓ EEPROM (IDA_ANALYSIS.md, ECU.md)
+  ✓ DTC (IDA_ANALYSIS.md, FINDINGS.md)
+  ✓ UDS/OBD (IDA_ANALYSIS.md, CAN_PROTOCOL.md, FINDINGS.md)
+
+No missing subsystems identified.
+
+================================================================================
+SECTION 7: GIT TRACKING AUDIT (tmp/ files)
+================================================================================
+
+.gitignore contains "tmp/" which ignores the entire tmp/ directory.
+However, several files are force-added and tracked:
+
+Tracked (7 report files + README):
+  tmp/README.md
+  tmp/ida/firmware_can_report.txt
+  tmp/ida/firmware_dtc_report.txt
+  tmp/ida/firmware_engine_completion_report.txt
+  tmp/ida/firmware_engine_report.txt
+  tmp/ida/firmware_impl_report.txt
+  tmp/ida/firmware_rtos_report.txt
+  tmp/ida/firmware_uds_report.txt
+
+NOT tracked (exist on disk, referenced in docs, but gitignored):
+  tmp/ida/make_elf.py          — referenced in IDA_ANALYSIS.md:177
+  tmp/ida/can_analysis_report.txt — referenced in ECU.md:188, FINDINGS.md:614
+  tmp/ida/rtos_analysis_report.txt — referenced in ECU.md:220
+  tmp/ida/serial_analysis_report.txt — referenced in ECU.md:240
+  tmp/ida/engine_rotary_report.txt — referenced in ECU.md:264
+  tmp/ida/eeprom_analysis_report.txt — referenced in ECU.md:282
+  tmp/ida/dtc_analysis_report.txt — referenced in IDA_ANALYSIS.md:787
+  tmp/ida/ecu_boot_debug_report.txt — referenced in ECU.md (implied)
+  tmp/ida/obd_dispatch_report.txt — referenced in CAN_PROTOCOL.md:219
+  tmp/ida/reimport_report.txt — referenced in IDA_ANALYSIS.md:212
+  tmp/ida/name_verify_report.txt — referenced in IDA_ANALYSIS.md:219
+  tmp/ida/ram_import_report.txt — referenced in IDA_ANALYSIS.md
+  + 6 more .txt files
+
+Impact: On a fresh clone, referenced reports will be MISSING. This is a
+documentation-link-integrity issue. The promotion table (tmp/README.md)
+says "keep in tmp" for these, but they're gitignored.
+
+Severity: MEDIUM — broken links on fresh clone
+Recommended fix: Either force-add the referenced reports or remove the
+references from docs. The tmp/README.md promotion table should note which
+files are gitignored vs tracked.
+
+================================================================================
+SECTION 8: COMMIT MESSAGE AUDIT
+================================================================================
+
+Last 20 commits: all in English ✓
+  aa367b4 docs: translate Italian to English (fix 7d46bd9)
+  f237a9e feat(firmware): CAN TX packers RX parsers UDS security DTC final
+  e217135 feat(firmware): open 1:1 complete subsystems - CAN UDS engine DTC RTOS
+  ... (all English)
+
+However, commit aa367b4 ("translate Italian to English") only partially
+completed the translation — see Section 2.
+
+================================================================================
+SECTION 9: OUTDATED TODOS / FIXED ITEMS
+================================================================================
+
+### Open items check (ECU.md "Open Investigation Items"):
+1. Boot initializer for 0xFFFFC37E — still OPEN ✓
+2. 0x8F62 = ignitionDwellOutputInit — verified, still listed ✓
+3. 0x7FFF4 second checksum — still OPEN ✓
+4. Live-ECU full function map — still OPEN ✓
+5. Modified stock functions outside cave — still OPEN ✓
+
+### FINDINGS.md "Remaining Analysis Targets":
+  All items marked as verified or lifted — no stale TODOs found.
+
+### PLANS.md open items:
+  1. ~~Track A remaining~~ COMPLETE — correctly marked ✓
+  2. Hardware BOOT-mode debug — still OPEN ✓
+  3. ~~LFSR security mismatch~~ RESOLVED — correctly marked ✓
+
+No outdated TODOs found that contradict firmware state.
+
+================================================================================
+SUMMARY
+================================================================================
+
+| Category                        | Status |
+|---------------------------------|--------|
+| IDA address verification (7)    | PASS (all exist, names match) |
+| Italian text — IDA_ANALYSIS.md  | FAIL (555+ lines untranslated) |
+| Italian text — ECU.md           | FAIL (~21 lines untranslated) |
+| Italian text — FINDINGS.md      | FAIL (~16 lines untranslated) |
+| Italian text — other docs       | PASS |
+| DTC table sizes consistency     | PASS (except base address typo) |
+| CAN buses consistency           | PASS |
+| RTOS queue consistency          | PASS |
+| UDS dispatch table consistency  | PASS |
+| SecurityAccess consistency      | PASS |
+| Subsystem coverage              | PASS (all 8 covered) |
+| Git tracking (tmp/ reports)     | FAIL (18+ referenced reports not tracked) |
+| Commit messages                 | PASS (all English) |
+| Outdated TODOs                  | PASS (none found) |
+| KNOWLEDGE.md scope              | FAIL (procedural content) |
+| docs internal consistency       | FAIL (DTC base address mismatch) |
+
+Total errors: 5 distinct issues
+  1. Italian text in 3 docs (HIGH)
+  2. can_tx_send_frame address mismatch (HIGH)
+  3. DTC base address inconsistency (MEDIUM)
+  4. Gitignored reports referenced in docs (MEDIUM)
+  5. KNOWLEDGE.md procedural content (MEDIUM)

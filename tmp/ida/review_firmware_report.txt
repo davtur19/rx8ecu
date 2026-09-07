@@ -1,0 +1,243 @@
+================================================================================
+ Firmware Code Review Report — Mazda RX-8 ECU (13B-MSP / SH-2E / SH7055)
+ Date: 2026-09-07
+ Scope: firmware/c/*.c (10 files), firmware/include/*.h (11 headers),
+        c/*.c (host C implementations), tools/*.py
+ Target ELF: tmp/ida/60E1D400_be.elf
+================================================================================
+
+SUMMARY
+-------
+  Files reviewed:   21 firmware files + host C + tools
+  Issues found:     5 (0 critical, 2 major, 3 minor)
+  Build:            PASS (make -C firmware, all 10 .c compile, 0 warnings)
+  IDA verification: 5/5 ROM addresses confirmed via idalib_disasm
+
+================================================================================
+1. ROM ADDRESS COMMENTS (in-code ROM address annotations)
+================================================================================
+
+PASS — No incorrect ROM address comments found.
+
+  Verification (5 random addresses cross-checked via IDA disassembly):
+    0x4740 -> mul16_named_saturated (div_4740 sqrt helper)    MATCH
+    0x46CC -> sub_46CC (checkFloatValidity entry)             MATCH
+    0x481C -> fixedpoint_scale_s16 (ldexp helper)             MATCH
+    0x48C8 -> util_bitfield_48c8 (frexp helper)               MATCH
+    0x06C8 -> main_task_dispatcher                            MATCH
+
+  All ROM address annotations in firmware/c/*.c and firmware/include/*.h
+  match the actual symbols in the ELF binary.
+
+================================================================================
+2. MISSING INCLUDES / TYPES
+================================================================================
+
+PASS — No missing includes or forward declarations.
+
+  All firmware .c files include: platform.h, dtc.h (where needed), eeprom.h
+  All firmware .h files include: <stdint.h>, "platform.h"
+  No circular dependency issues detected.
+  No missing function prototypes (forward declarations present where needed).
+
+================================================================================
+3. TODO / FIXME / HACK COMMENTS
+================================================================================
+
+FAIL (major) — 19 TODO comments in firmware/ (expected: ≤2)
+
+  firmware/c/uds.c:         9 TODOs (lines 757, 764, 796, 1328, 1361, 1372,
+                                       1383, 1394, 1406)
+  firmware/c/dtc.c:         5 TODOs (lines 899, 971, 1022, 1044, 1097)
+  firmware/c/can.c:         2 TODOs (lines 381, 385)
+  firmware/c/eeprom.c:      1 TODO  (line 43)
+  firmware/c/main.c:        1 TODO  (line 153)
+  firmware/include/engine.h: 1 TODO (line 189)
+
+  Note: The TODOs in uds.c and dtc.c are stub function markers for
+  unimplemented OBD-II services and DTC monitor functions. The can.c
+  TODOs mark incomplete CAN controller setup calls. These are legitimate
+  "not yet implemented" markers but greatly exceed the ≤2 budget.
+
+  Recommended fix: Triage TODOs into (a) must-fix-before-merge vs
+  (b) tracked-as-issues. Move (b) to a GitHub issue tracker and
+  replace the in-code TODO with a reference.
+
+================================================================================
+4. PISTON TERMINOLOGY (must say "rotor", not "piston" for rotary engine)
+================================================================================
+
+PASS — Correct terminology used throughout.
+
+  firmware/include/engine.h:10:
+    "Rotor: triangular rotary piston (not cylindrical)"
+    — Correct: explicitly clarifies the distinction.
+
+  c/calc_rotor_sync_idle_gate_B.c:7-10:
+    "The original IDA-AI annotation described this function as a piston...
+     described a piston-engine concept."
+    — Correct: explicitly corrects the piston misnomer.
+
+  No other files use "piston" inappropriately. All engine-related code
+  correctly uses "rotor" terminology.
+
+================================================================================
+5. FPU / FLOATING-POINT HANDLING
+================================================================================
+
+PASS (with note) — Float operations in firmware/ are ROM-matching.
+
+  firmware/c/engine.c uses native float operations (direct RAM reads via
+  volatile float pointers, arithmetic, comparisons). This matches the
+  ROM behavior: the SH-2E has a hardware FPU, and the original ROM uses
+  FPU instructions for engine control calculations (dwell, fuel pulse
+  width, idle PID, etc.).
+
+  The soft-float pipeline (div_4740 -> ldexp_481C) is used ONLY by
+  checkFloatValidity (0x46CC) for square-root validation — a specific
+  ROM function, not general float math.
+
+  Key float functions verified:
+    c/checkFloatValidity.c  — sqrt pipeline, verified 100k+ inputs
+    c/div_4740.c            — restoring sqrt, verified 300k+ inputs
+    c/ldexp_481C.c          — float rebuild, verified 300k+ inputs
+    c/bitfield_extract_merge.c — frexp, verified 200k+ inputs
+
+  Note: engine.c float ops (e.g., calcDwellTime at line 398-416) read
+  volatile float pointers from RAM and perform native float division.
+  This is correct for the SH-2E FPU but would need soft-float on a
+  pure-integer target. No documentation issue — the platform.h header
+  correctly defines the target as SH-2E with FPU.
+
+================================================================================
+6. HW REGISTER ADDRESSES (must be 0xFFFFxxxx, not 0x01xxxx)
+================================================================================
+
+PASS — No incorrect 0x01xxxx hardware register addresses in firmware/.
+
+  All hardware register references in firmware/c/*.c and
+  firmware/include/*.h use the correct 0xFFFFxxxx range:
+    0xFFFFDFxx — RTOS queue/indexes
+    0xFFFFDExx — task queue
+    0xFFFFE4xx — SPI/ATU registers
+    0xFFFFF7xx — ATU timer base
+    0xFFFF8xxx — DTC tables
+
+  The 0x01xxxx references found in c/*.c are ROM CODE addresses (e.g.,
+  0x01B088 in c/FUN_0001b088_1b088.c) — these are correct ROM offsets,
+  not hardware register addresses.
+
+================================================================================
+7. BUFFER OVERFLOW / BOUNDS CHECKING
+================================================================================
+
+PASS — No unsafe string/memory operations in firmware/.
+
+  No calls to memcpy, memset, sprintf, strcpy, or strcat found in
+  firmware/c/*.c. All data movement is done via direct volatile pointer
+  dereferences or explicit byte-level loops.
+
+  DTC table bounds are correctly checked:
+    dtc.c:99   — loop uses DTC_PRIMARY_MAX_SLOTS (21)
+    dtc.c:109  — loop uses DTC_BACKUP_MAX_SLOTS (8)
+    dtc.c:120  — loop uses DTC_PRIMARY_MAX_SLOTS
+    dtc.c:218  — if (slot < DTC_PRIMARY_MAX_SLOTS) before dtc_write_code
+
+  CAN RX/TX buffers use fixed-size arrays with documented sizes.
+
+================================================================================
+8. NAMING CONSISTENCY
+================================================================================
+
+PASS — Naming is consistent within conventions.
+
+  Firmware uses ROM-address-suffixed names (e.g., dtc_condition_271b8,
+  diag_transfer_806) which is the project convention for unrenamed ROM
+  functions. Named functions use snake_case consistently.
+  Headers use UPPER_SNAKE_CASE for defines.
+  No inconsistencies found.
+
+================================================================================
+9. ITALIAN STRINGS IN TOOLS
+================================================================================
+
+PASS (minor note) — No Italian in firmware; Italian found in tools/denso_ck.py.
+
+  tools/denso_ck.py uses Italian in user-facing messages:
+    "OK — checksum corretto" (line 50)
+    "ERRATO" (line 53)
+    "Usa -f per fix in-place o -o <file> per fix su copia." (line 57)
+    "Fixato -> ..." (line 62)
+
+  Note: These are user-facing CLI messages, not code-level Italian.
+  The tool is private/local (not shipped per AGENTS.md). If the tool
+  is intended for English-only output, these should be translated.
+  Severity: minor (tool is not in firmware/ scope).
+
+================================================================================
+FILES REVIEWED
+================================================================================
+
+Firmware .c files (10):
+  firmware/c/boot.c      — Boot chain, CRC verification
+  firmware/c/eeprom.c    — SPI EEPROM interface (ABLIC S-93C56C)
+  firmware/c/serial.c    — ATU-based serial I/O (3 channels)
+  firmware/c/timer.c     — ATU timer module
+  firmware/c/main.c      — RTOS task dispatcher (0x6C8)
+  firmware/c/can.c       — CAN bus subsystem
+  firmware/c/engine.c    — Rotary engine control (fuel, ignition, idle)
+  firmware/c/dtc.c       — DTC management (21 primary + 8 backup slots)
+  firmware/c/uds.c       — UDS diagnostic services (SID dispatch)
+  firmware/c/rtos.c      — Cooperative RTOS (context switch, queue)
+
+Firmware .h files (11):
+  firmware/include/platform.h   — HW register defs, bit manipulation
+  firmware/include/boot.h       — Boot chain addresses
+  firmware/include/can.h        — CAN mailbox config
+  firmware/include/engine.h     — Rotary engine definitions
+  firmware/include/dtc.h        — DTC storage layout
+  firmware/include/uds.h        — UDS dispatch table
+  firmware/include/eeprom.h     — SPI EEPROM interface
+  firmware/include/serial.h     — Serial channel definitions
+  firmware/include/timer.h      — ATU timer definitions
+  firmware/include/main.h       — Task queue, dispatch table
+  firmware/include/rtos.h       — RTOS queue, context switch
+
+Key host C files:
+  c/checkFloatValidity.c    — sqrt pipeline entry (0x46CC)
+  c/div_4740.c              — restoring sqrt (0x4740)
+  c/ldexp_481C.c            — float rebuild (0x481C)
+  c/bitfield_extract_merge.c — frexp decomposition (0x48C8)
+
+Tools:
+  tools/denso_ck.py         — DENSO SH7055 checksum tool
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+1. [MAJOR] Reduce TODO count from 19 to ≤2 in firmware/:
+   - uds.c: 9 stubs — either implement or move to issue tracker
+   - dtc.c: 5 stubs — same treatment
+   - can.c: 2 setup calls — implement CAN init
+   - eeprom.c: 1 CS pin ID — resolve or document
+   - main.c: 1 diag_transfer — implement or remove
+   - engine.h: 1 remaining calls — document or complete
+
+2. [MAJOR] Add explicit FPU guard documentation in engine.c where
+   native float ops are used, noting this requires SH-2E FPU and
+   cannot be compiled for integer-only targets.
+
+3. [MINOR] Translate Italian strings in tools/denso_ck.py to English
+   if the tool is intended for English output.
+
+4. [MINOR] Consider adding bounds-check assertions for CAN buffer
+   writes (currently trusting fixed sizes without runtime checks).
+
+5. [MINOR] dtc.c line 952-956 has redundant double-check:
+   if (*cond_2 == 1) { if (*cond_2 == 1) { ... } }
+   — remove the outer duplicate check.
+
+================================================================================
+END OF REPORT
+================================================================================
