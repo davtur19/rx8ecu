@@ -1,18 +1,18 @@
-# tmp/ — tabella di promozione
+# tmp/ — promotion table
 
-Nuovi artefatti vanno prima in `tmp/<topic>/`. Questa tabella definisce cosa
-tenere, cosa promuovere e cosa scartare. Regola generale (AGENTS.md): nuovi
-artefatti → `tmp/<topic>/`; promozione solo quando l'artefatto è maturo e
-riusabile fuori dal flusso di lavoro corrente.
+New artifacts go to `tmp/<topic>/` first. This table defines what to keep,
+what to promote, and what to discard. General rule (AGENTS.md): new
+artifacts → `tmp/<topic>/`; promote only when the artifact is mature and
+reusable outside the current workflow.
 
-## Tabella di promozione
+## Promotion table
 
-| Artefatto | Stato | Decisione |
+| Artifact | Status | Decision |
 |---|---|---|
-| `tmp/ida/make_elf.py` | **keep in tmp** | Script di build per la configurazione canonica ELF big-endian (`60E1D400_be.elf`), citato da `docs/notes/IDA_ANALYSIS.md`. La promozione a `tools/` è opzionale: è deterministico, ha `assert` sulle dimensioni ed è riusabile per ricostruire il file se serve. |
-| `tmp/ida/60E1D400_be.elf` | **keep in tmp** | Configurazione canonica IDA (ELF BE con ROM + RAM + periferiche). È un artefatto di lavoro, non un tool: resta in tmp. |
-| `tmp/ida/60E1D400_bswap.bin` + `tmp/ida/swap16.py` | **keep in tmp** | Configurazione superseded (workaround word-swap). Tenere per storia/confronto, NON promuovere. |
-| `tmp/ida/test_sh4.bin` (+ `.i64`) | **discard** | File di test per il probing dei loader SH. Nessun valore durevole. |
-| `tmp/ida/uds_obd_analysis.md` | **keep in tmp** | Analisi UDS/OBD complementare a `docs/notes/IDA_ANALYSIS.md` e `docs/notes/CAN_PROTOCOL.md`. |
-| `tmp/ida/chunks/` | **keep in tmp** | Chunk dell'import simboli (codearr_*/def_*/ren_*). Necessari per riprodurre o estendere l'import. |
-| `tmp/ida/reimport_report.txt` + `name_verify_report.txt` + `manual_names.txt` | **keep in tmp** | Report verificati dell'import simboli e della verifica nomi manuali; citati in `docs/notes/IDA_ANALYSIS.md`. |
+| `tmp/ida/make_elf.py` | **keep in tmp** | Build script for the canonical ELF big-endian configuration (`60E1D400_be.elf`), referenced by `docs/notes/IDA_ANALYSIS.md`. Promotion to `tools/` is optional: it is deterministic, has `assert` on sizes, and is reusable to rebuild the file if needed. |
+| `tmp/ida/60E1D400_be.elf` | **keep in tmp** | Canonical IDA configuration (ELF BE with ROM + RAM + peripherals). It is a working artifact, not a tool: stays in tmp. |
+| `tmp/ida/60E1D400_bswap.bin` + `tmp/ida/swap16.py` | **keep in tmp** | Superseded configuration (word-swap workaround). Keep for history/comparison, do NOT promote. |
+| `tmp/ida/test_sh4.bin` (+ `.i64`) | **discard** | Test file for SH loader probing. No lasting value. |
+| `tmp/ida/uds_obd_analysis.md` | **keep in tmp** | UDS/OBD analysis complementary to `docs/notes/IDA_ANALYSIS.md` and `docs/notes/CAN_PROTOCOL.md`. |
+| `tmp/ida/chunks/` | **keep in tmp** | Symbol import chunks (codearr_*/def_*/ren_*). Needed to reproduce or extend the import. |
+| `tmp/ida/reimport_report.txt` + `name_verify_report.txt` + `manual_names.txt` | **keep in tmp** | Verified reports for symbol import and manual name verification; referenced in `docs/notes/IDA_ANALYSIS.md`. |
