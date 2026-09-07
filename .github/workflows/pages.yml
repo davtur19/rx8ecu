@@ -12,13 +12,6 @@ name: Pages
 on:
   push:
     branches: [main, master]
-    paths:
-      - 'web/explorer/**'
-      - 'web/ecu-emu/**'
-      - 'symbols/**'
-      - 'docs/functions/**'
-      - 'docs/subsystems/**'
-      - 'roms/**'
   workflow_dispatch:
 
 concurrency:
