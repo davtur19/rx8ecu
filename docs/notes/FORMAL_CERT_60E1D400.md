@@ -85,7 +85,7 @@ Trap counts per ROM: 60E0E500=6, 60E0E700=6, 60E0FB00=12, 60E0FC00=14, 60E15120=
 ## Hidden code found and annotated (not declared)
 
 - **60E32000_N3M5E** — real hidden code `0x6CE06–0x6CF10` (coherent functions: prologues `mov.l r14,@-r15`/`sts.l pr,@-r15`, loop with `cmp/eq`+`bt/s`, `rts` epilogues with delay slots). The `.s` had these 133 words as `.word` data; re-annotated as instructions in `src/60E32000_N3M5E_annotated.s` (labels `L_06ce06`..`L_06cec2`, delay slots, branch targets). P2 stays 100% covered; all 10 LIVE P3 branches into this region now resolve.
-- **60E15120_N3J1E** — "code-run" targets (`0x6CFEA` etc.) triaged as DATA, not code: decoding shows repeating constant patterns (`78 78 78 7A 7C 7E 80`, `90 90 90`, `96 96 96`, `B6 B6`…) and no prologue/epilogue; they live in the 0x6F–0x7F calibration band whose words coincidentally decode as instruction runs. Declared as traps (motivo: branch into declared data table; source is derived-data region).
+- **60E15120_N3J1E** — "code-run" targets (`0x6CFEA` etc.) triaged as DATA, not code: decoding shows repeating constant patterns (`78 78 78 7A 7C 7E 80`, `90 90 90`, `96 96 96`, `B6 B6`…) and no prologue/epilogue; they live in the 0x6F–0x7F calibration band whose words coincidentally decode as instruction runs. Declared as traps (reason: branch into declared data table; source is derived-data region).
 - **60E0E500 / 60E1C500** — single `bra` each into a descriptor/vector data table (`00 00 00 01 04 00…`); declared as traps.
 
 ## Residuals (honest, non-fatal)
