@@ -1,8 +1,11 @@
 # Mazda RX-8 PCM Reverse Engineering
 
-Site: https://davtur19.github.io/rx8ecu/
-
 > ⚠️ AI-generated content. Unverified = hypothesis, not ground truth. Only explicit machine-checked claims below are verified.
+
+## Explorer
+
+Interactive firmware explorer — browse 56k symbols, callgraph, calibration tables and function docs across 9 ROM models.
+[https://davtur19.github.io/rx8ecu/](https://davtur19.github.io/rx8ecu/)
 
 This project reverse-engineers the **Mazda RX-8 PCM firmware** byte for byte.
 The firmware is Denso **279700-3313**. The CPU is a Renesas **SH-2E (SH7055/HD64F7055)**, 32-bit, big-endian. The program flash holds **512 KB**.
