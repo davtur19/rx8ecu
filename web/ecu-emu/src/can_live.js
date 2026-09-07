@@ -1,0 +1,495 @@
+/**
+ * can_live.js — Live CAN/OBD frame monitor for RX-8 ECU Emulator
+ *
+ * Generates CAN frames from the current sensor state using the same packing
+ * logic as the firmware TX packers (firmware/c/can.c, CAN_PROTOCOL.md).
+ *
+ * Frames are emitted at realistic intervals matching the ECU's periodic
+ * dispatch (CANTX_Main 0xDDF0). Each frame includes timestamp, CAN ID,
+ * DLC, data bytes (hex), direction TX/RX, and decoded meaning.
+ *
+ * Depends on: app.js (sensorState), emu_core.js (Module)
+ * Created files: can_live.css (styles)
+ */
+"use strict";
+
+var CANLive = (function() {
+
+  /* ====================================================================
+   *  Constants
+   * ==================================================================== */
+  var MAX_FRAMES = 500;        // max frames in buffer
+  var FRAME_INTERVAL_MS = 50;  // main loop tick (20 fps)
+
+  /* NTC B=3435 for temp→voltage conversion in CAN packers */
+  var NTC_B = 3435.0, NTC_R25 = 10000.0, NTC_RS = 10000.0;
+  var NTC_VREF = 5.0, NTC_T25_K = 298.15;
+
+  /* CAN ID → description lookup (from CAN_PROTOCOL.md) */
+  var CAN_DESC = {
+    0x041: "KCM/Immo response",
+    0x201: "RPM / VSS / Accel",
+    0x203: "Engine torque/status",
+    0x212: "ABS/DSC/Brake",
+    0x215: "Throttle position",
+    0x216: "Unknown RX",
+    0x231: "Engine state/Gear",
+    0x240: "Transmission/Gear",
+    0x250: "Inj pulse/IAT",
+    0x251: "Engine data",
+    0x420: "Coolant/MIL lamps",
+    0x430: "Cluster presence",
+    0x47:  "KCM/Immo request",
+    0x4B0: "Wheel speeds",
+    0x4B1: "DSC request",
+    0x4C0: "Short msg",
+    0x620: "Fan/AC status",
+    0x630: "Cooling fan data",
+    0x650: "Cruise lamps",
+    0x7DF: "UDS broadcast",
+    0x7E0: "UDS physical req",
+    0x7E8: "UDS response",
+  };
+
+  /* Rate limiters (matching CANTX_Main counters) */
+  var _counters = { c201: 0, c215: 0, c251: 0, c650: 0 };
+
+  /* State */
+  var _frames = [];
+  var _running = false;
+  var _timer = null;
+  var _paused = false;
+  var _filterId = "";       // hex string, empty = show all
+  var _stats = { tx: 0, rx: 0 };
+
+  /* ====================================================================
+   *  NTC helper (mirrors ecu_pin_emu.py ntc_temp_to_voltage)
+   * ==================================================================== */
+  function ntcTempToV(celsius) {
+    var tK = celsius + 273.15;
+    var r = NTC_R25 * Math.exp(NTC_B * (1.0 / tK - 1.0 / NTC_T25_K));
+    return NTC_VREF * r / (NTC_RS + r);
+  }
+
+  function mapRange(v, inMin, inMax, outMin, outMax) {
+    return outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
+  }
+
+  /* ====================================================================
+   *  CAN Frame packers — mirror firmware/c/can.c
+   * ==================================================================== */
+
+  /**
+   * CAN ID 0x201 — RPM / vehicle speed / accelerator
+   * ROM: can201_pack_staging (0x2A004)
+   *   bytes 0-1: RPM u16 BE ÷4  (RPM × 4 for raw)
+   *   bytes 2-3: vehicle speed u16 BE  ((raw − 10000) / 100 → km/h)
+   *   byte 4-5: accelerator u16 BE
+   *   byte 6:   accel pedal ÷2
+   *   byte 7:   status 0xFF
+   */
+  function pack0x201(st) {
+    var rpmRaw = Math.round(st.rpm * 4);
+    var vssRaw = Math.round(st.vss * 100 + 10000);   // vss in km/h
+    var accelRaw = Math.round(st.tps * 256 / 100);    // accel 0-255
+    var accel2 = Math.round(st.tps * 128 / 100);      // accel÷2
+    return [
+      (rpmRaw >> 8) & 0xFF, rpmRaw & 0xFF,
+      (vssRaw >> 8) & 0xFF, vssRaw & 0xFF,
+      (accelRaw >> 8) & 0xFF, accelRaw & 0xFF,
+      accel2 & 0xFF,
+      0xFF
+    ];
+  }
+
+  /**
+   * CAN ID 0x203 — Engine torque/status (7 bytes)
+   * ROM: can203pack (0x2A274)
+   */
+  function pack0x203(st) {
+    var torque = Math.round(mapRange(st.rpm, 0, 8000, 0, 200));
+    return [
+      torque & 0xFF,
+      st.rpm > 200 ? 0x01 : 0x00,
+      st.ect > 100 ? 0x04 : 0x00,
+      0x00, 0x00,
+      st.tps > 50 ? 0x01 : 0x00,
+      0x00
+    ];
+  }
+
+  /**
+   * CAN ID 0x420 — Coolant temp gauge + MIL/warning lamps (7 bytes)
+   * ROM: can420TXPack (0x29A0C)
+   *   byte 0: ECT raw − 40 (gauge)
+   *   byte 1: lamp flags
+   */
+  function pack0x420(st) {
+    var ectRaw = Math.round(st.ect + 40);
+    var lamps = 0;
+    if (st.ect > 105) lamps |= 0x04;  // water temp warning
+    if (st.oilLow)    lamps |= 0x02;  // oil pressure
+    if (st.battLow)   lamps |= 0x08;  // battery
+    if (st.mil)       lamps |= 0x01;  // check engine
+    return [
+      ectRaw & 0xFF,
+      lamps,
+      0x00, 0x00,
+      0x00,
+      0x00, 0x00
+    ];
+  }
+
+  /**
+   * CAN ID 0x630 — Cooling fan data (8 bytes)
+   * ROM: can630TX_dispatch (0x33974)
+   */
+  function pack0x630(st) {
+    var fan1 = st.ect > 90 ? 0x01 : 0x00;
+    var fan2 = st.ect > 100 ? 0x02 : 0x00;
+    return [
+      fan1 | fan2,
+      0x00, 0x00, 0x00,
+      0x00, 0x00,
+      st.ect > 100 ? 0x01 : 0x00,
+      fan1
+    ];
+  }
+
+  /**
+   * CAN ID 0x650 — Cruise control lamps (1 byte)
+   * ROM: can650TX_getAndPack (0x2C806)
+   */
+  function pack0x650(st) {
+    return [0x00];  // cruise off
+  }
+
+  /**
+   * CAN ID 0x041 — KCM/immobiliser (8 bytes, per-cycle)
+   * ROM: can41TXPack (0x39348)
+   */
+  function pack0x041(st) {
+    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+  }
+
+  /**
+   * CAN ID 0x620 — Fan/AC status (7 bytes)
+   * ROM: can620TX_pack (0x33A68)
+   */
+  function pack0x620(st) {
+    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+  }
+
+  /**
+   * CAN ID 0x251 — Engine data (8 bytes, every 2 cycles)
+   * ROM: can251TX_getAndPack (0x2AAB6)
+   */
+  function pack0x251(st) {
+    var ectRaw = Math.round(mapRange(st.ect, -40, 215, 0, 255));
+    var mapRaw = Math.round(mapRange(st.map, 0, 105, 0, 255));
+    var tpsRaw = Math.round(st.tps * 255 / 100);
+    return [
+      (Math.round(st.rpm * 4) >> 8) & 0xFF,
+      Math.round(st.rpm * 4) & 0xFF,
+      ectRaw,
+      mapRaw,
+      tpsRaw,
+      0x00,
+      0x00,
+      0x00
+    ];
+  }
+
+  /**
+   * CAN ID 0x240 — Transmission/gear (8 bytes)
+   * ROM: can240TX_pack (0x4C888)
+   */
+  function pack0x240(st) {
+    return [
+      0x00, 0x00,
+      0x00, Math.round(st.ect + 40) & 0xFF,
+      0x00, 0x00,
+      0x00, 0x00
+    ];
+  }
+
+  /**
+   * CAN ID 0x250 — Injection pulse / IAT (8 bytes)
+   * ROM: can250TX_pack (0x4C984)
+   */
+  function pack0x250(st) {
+    var iatRaw = Math.round(st.iat + 40);
+    var injPw = Math.round(mapRange(st.rpm, 0, 8000, 1, 8));
+    return [
+      0x00, 0x00,
+      0x00, iatRaw & 0xFF,
+      0x00, 0x00,
+      (injPw >> 8) & 0xFF, injPw & 0xFF
+    ];
+  }
+
+  /**
+   * CAN ID 0x231 — Engine state/gear (5 bytes)
+   */
+  function pack0x231(st) {
+    return [
+      st.rpm > 500 ? 0x01 : 0x00,
+      0x00,
+      (Math.round(st.rpm * 4) >> 8) & 0xFF,
+      Math.round(st.rpm * 4) & 0xFF,
+      0x00
+    ];
+  }
+
+  /* ====================================================================
+   *  RX frames (simulated bus traffic — ABS/DSC, immo, cluster)
+   * ==================================================================== */
+  function packRX0x212(st) {
+    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+  }
+  function packRX0x4B0(st) {
+    var spd = Math.round(st.vss * 100 + 10000);
+    return [
+      (spd >> 8) & 0xFF, spd & 0xFF,
+      (spd >> 8) & 0xFF, spd & 0xFF,
+      (spd >> 8) & 0xFF, spd & 0xFF,
+      (spd >> 8) & 0xFF, spd & 0xFF
+    ];
+  }
+  function packRX0x47(st) {
+    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+  }
+  function packRX0x430(st) {
+    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+  }
+
+  /* ====================================================================
+   *  Frame generation — CANTX_Main dispatch emulation
+   * ==================================================================== */
+  function generateFrame() {
+    if (!window.sensorState) return null;
+    var st = window.sensorState;
+    // Derived state
+    st.vss = st.vss || 0;      // vehicle speed (km/h)
+    st.oilLow = false;
+    st.battLow = false;
+    st.mil = false;
+
+    var id, dlc, data, dir, desc, isUds = false;
+    var rand = Math.random();
+
+    // Per-cycle: 0x041
+    if (rand < 0.15) {
+      id = 0x041; dlc = 8; data = pack0x041(st); dir = "TX"; desc = CAN_DESC[0x041];
+    }
+    // Every 4: 0x201
+    else if (rand < 0.30) {
+      _counters.c201++;
+      if (_counters.c201 >= 4) { _counters.c201 = 0; id = 0x201; }
+      else { id = 0x203; }
+      if (id === 0x201) { dlc = 8; data = pack0x201(st); } else { dlc = 7; data = pack0x203(st); }
+      dir = "TX"; desc = CAN_DESC[id];
+    }
+    // Every 4: 0x215
+    else if (rand < 0.40) {
+      _counters.c215++;
+      if (_counters.c215 >= 4) { _counters.c215 = 0; id = 0x215; dlc = 8; data = pack0x203(st); dir = "TX"; desc = CAN_DESC[0x215]; }
+      else { id = 0x251; _counters.c251++; dlc = 8; data = pack0x251(st); dir = "TX"; desc = CAN_DESC[0x251]; }
+    }
+    // Every 2: 0x251
+    else if (rand < 0.50) {
+      _counters.c251++;
+      id = 0x251; dlc = 8; data = pack0x251(st); dir = "TX"; desc = CAN_DESC[0x251];
+    }
+    // Per-cycle: 0x420
+    else if (rand < 0.60) {
+      id = 0x420; dlc = 7; data = pack0x420(st); dir = "TX"; desc = CAN_DESC[0x420];
+    }
+    // Per-cycle: 0x620
+    else if (rand < 0.68) {
+      id = 0x620; dlc = 7; data = pack0x620(st); dir = "TX"; desc = CAN_DESC[0x620];
+    }
+    // Per-cycle: 0x630
+    else if (rand < 0.74) {
+      id = 0x630; dlc = 8; data = pack0x630(st); dir = "TX"; desc = CAN_DESC[0x630];
+    }
+    // Every 12: 0x650
+    else if (rand < 0.80) {
+      _counters.c650++;
+      if (_counters.c650 >= 12) { _counters.c650 = 0; id = 0x650; dlc = 1; data = pack0x650(st); dir = "TX"; desc = CAN_DESC[0x650]; }
+      else { id = 0x240; dlc = 8; data = pack0x240(st); dir = "TX"; desc = CAN_DESC[0x240]; }
+    }
+    // Periodic: 0x250
+    else if (rand < 0.86) {
+      id = 0x250; dlc = 8; data = pack0x250(st); dir = "TX"; desc = CAN_DESC[0x250];
+    }
+    // Periodic: 0x231
+    else if (rand < 0.90) {
+      id = 0x231; dlc = 5; data = pack0x231(st); dir = "TX"; desc = CAN_DESC[0x231];
+    }
+    // RX frames (ABS/DSC, immo, cluster)
+    else if (rand < 0.93) {
+      id = 0x212; dlc = 7; data = packRX0x212(st); dir = "RX"; desc = CAN_DESC[0x212];
+    }
+    else if (rand < 0.95) {
+      id = 0x4B0; dlc = 8; data = packRX0x4B0(st); dir = "RX"; desc = CAN_DESC[0x4B0];
+    }
+    else if (rand < 0.97) {
+      id = 0x47; dlc = 8; data = packRX0x47(st); dir = "RX"; desc = CAN_DESC[0x47]; isUds = true;
+    }
+    else {
+      id = 0x430; dlc = 7; data = packRX0x430(st); dir = "RX"; desc = CAN_DESC[0x430];
+    }
+
+    return { ts: Date.now(), id: id, dlc: dlc, data: data, dir: dir, desc: desc || "", uds: isUds };
+  }
+
+  /* ====================================================================
+   *  Rendering
+   * ==================================================================== */
+  function dataToHex(data) {
+    var parts = [];
+    for (var i = 0; i < data.length; i++) {
+      parts.push(("0" + data[i].toString(16).toUpperCase()).slice(-2));
+    }
+    return parts.join(" ");
+  }
+
+  function tsStr(ts) {
+    var d = new Date(ts);
+    return ("0" + d.getHours()).slice(-2) + ":" +
+           ("0" + d.getMinutes()).slice(-2) + ":" +
+           ("0" + d.getSeconds()).slice(-2) + "." +
+           ("00" + d.getMilliseconds()).slice(-3);
+  }
+
+  function renderTable() {
+    var tbody = document.getElementById("can-frame-body");
+    if (!tbody) return;
+    var frag = document.createDocumentFragment();
+    var filter = _filterId ? parseInt(_filterId, 16) : 0;
+
+    for (var i = 0; i < _frames.length; i++) {
+      var f = _frames[i];
+      if (filter && f.id !== filter) continue;
+
+      var tr = document.createElement("tr");
+      tr.className = f.dir === "TX" ? "can-row-tx" : "can-row-rx";
+      if (f.uds) tr.className += " can-row-uds";
+
+      tr.innerHTML =
+        '<td class="ts-col">' + tsStr(f.ts) + '</td>' +
+        '<td class="id-col">0x' + ("000" + f.id.toString(16).toUpperCase()).slice(-3) + '</td>' +
+        '<td class="dlc-col">' + f.dlc + '</td>' +
+        '<td class="data-col">' + dataToHex(f.data) + '</td>' +
+        '<td class="dir-col"><span class="' + f.dir.toLowerCase() + '">' + f.dir + '</span></td>' +
+        '<td class="desc-col">' + f.desc + '</td>';
+      frag.appendChild(tr);
+    }
+
+    tbody.innerHTML = "";
+    tbody.appendChild(frag);
+
+    // Auto-scroll
+    var wrap = document.getElementById("can-frame-wrap");
+    if (wrap) wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function updateStats() {
+    var el = document.getElementById("can-stats");
+    if (!el) return;
+    var visible = _filterId ? _frames.filter(function(f) {
+      return f.id === parseInt(_filterId, 16);
+    }).length : _frames.length;
+    el.innerHTML =
+      '<span class="tx-count">TX: ' + _stats.tx + '</span>' +
+      '<span class="rx-count">RX: ' + _stats.rx + '</span>' +
+      '<span>Frames: ' + visible + '</span>';
+  }
+
+  /* ====================================================================
+   *  Main loop
+   * ==================================================================== */
+  function tick() {
+    if (_paused) return;
+    var frame = generateFrame();
+    if (!frame) return;
+
+    _frames.push(frame);
+    if (frame.dir === "TX") _stats.tx++; else _stats.rx++;
+
+    // Trim
+    while (_frames.length > MAX_FRAMES) _frames.shift();
+
+    renderTable();
+    updateStats();
+  }
+
+  /* ====================================================================
+   *  Public API
+   * ==================================================================== */
+
+  /** Build and inject CAN panel into a container element */
+  function init(containerId) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML =
+      '<div class="can-panel" id="can-panel">' +
+        '<div class="can-toolbar">' +
+          '<label>Filter</label>' +
+          '<input type="text" id="can-filter" placeholder="ID hex">' +
+          '<button class="can-btn" id="can-pause-btn">Pause</button>' +
+          '<button class="can-btn" id="can-clear-btn">Clear</button>' +
+          '<div class="can-stats" id="can-stats">' +
+            '<span class="tx-count">TX: 0</span>' +
+            '<span class="rx-count">RX: 0</span>' +
+            '<span>Frames: 0</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="can-paused-badge" id="can-paused-badge">PAUSED</div>' +
+        '<div class="can-frame-wrap" id="can-frame-wrap">' +
+          '<table class="can-frame-table">' +
+            '<thead><tr>' +
+              '<th>Time</th><th>ID</th><th>DLC</th><th>Data</th><th>Dir</th><th>Description</th>' +
+            '</tr></thead>' +
+            '<tbody id="can-frame-body"></tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>';
+
+    // Wire controls
+    document.getElementById("can-filter").addEventListener("input", function(e) {
+      _filterId = e.target.value.trim();
+      renderTable();
+      updateStats();
+    });
+
+    document.getElementById("can-pause-btn").addEventListener("click", function() {
+      _paused = !_paused;
+      this.textContent = _paused ? "Resume" : "Pause";
+      this.classList.toggle("active", _paused);
+      document.getElementById("can-paused-badge").classList.toggle("visible", _paused);
+    });
+
+    document.getElementById("can-clear-btn").addEventListener("click", function() {
+      _frames = [];
+      _stats.tx = 0;
+      _stats.rx = 0;
+      renderTable();
+      updateStats();
+    });
+
+    // Start
+    _running = true;
+    _timer = setInterval(tick, FRAME_INTERVAL_MS);
+  }
+
+  /** Stop the frame generator */
+  function stop() {
+    _running = false;
+    if (_timer) { clearInterval(_timer); _timer = null; }
+  }
+
+  return { init: init, stop: stop };
+})();
