@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RX-8 ECU Pin Emulator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">8</div>
+    <div>
+      <h1 class="wordmark">RX-8 <span class="wm-accent">ECU</span> Pin Emulator</h1>
+      <div class="subtitle">SH7055 · N3J1-18-881L · 96-pin connector</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-power)"></div>Power</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-gnd)"></div>GND</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-analog)"></div>Analog</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-digital)"></div>Digital</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-can)"></div>CAN</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--type-sci)"></div>SCI</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- Left: connector pinout -->
+  <div class="panel" id="pinout-panel">
+    <div class="panel-title">Connector Pinout (2×48)</div>
+    <div class="connector" id="connector-a">
+      <div class="conn-header">Row A (1–48)</div>
+    </div>
+    <div class="connector" id="connector-b">
+      <div class="conn-header">Row B (49–96)</div>
+    </div>
+  </div>
+
+  <!-- Center: schematic -->
+  <div class="panel schematic" id="schematic-panel">
+    <div class="panel-title" style="position:absolute;top:0;left:0;right:0">Schematic</div>
+    <svg id="schematic-svg" viewBox="0 0 800 500"></svg>
+    <div class="info-overlay" id="schematic-info" style="display:none">
+      <div class="pin-title" id="info-title"></div>
+      <dl class="pin-detail">
+        <dt>Type</dt><dd id="info-type"></dd>
+        <dt>Direction</dt><dd id="info-dir"></dd>
+        <dt>Connects to</dt><dd id="info-goes"></dd>
+        <dt>Voltage range</dt><dd id="info-voltage"></dd>
+        <dt>State</dt><dd id="info-state"></dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Right: live states + controls -->
+  <div class="panel" id="states-panel">
+    <div class="panel-title">Live Pin States</div>
+    <div class="scenario-list" id="scenarios"></div>
+    <div class="panel-title" style="border-top:1px solid var(--border)">Sensor Controls</div>
+    <div id="sliders"></div>
+    <div class="panel-title" style="border-top:1px solid var(--border)">Active Pins</div>
+    <div class="states-list" id="states-list"></div>
+  </div>
+
+  <!-- Bottom: register view -->
+  <div class="panel" id="reg-panel">
+    <div class="panel-title">Peripheral Registers</div>
+    <div class="reg-table" id="reg-table"></div>
+  </div>
+</div>
+
+<script src="pins.json" type="application/json" id="pins-data"></script>
+<script src="app.js"></script>
+</body>
+</html>
