@@ -92,33 +92,32 @@ void Manual_Reset(void)
  * This is a minimal init — the full BSC setup happens in peripheral_init_chain_A.
  *
  * Register writes:
- *   - BSC mode register (0xFFFFEC80): sets bus width and timing
- *   - BSC wait register: configures external memory access timing
+ *   - BSC mode register (0xFFFFEC20): sets bus width and timing
+ *   - BSC wait register (0xFFFFEC22, 0xFFFFEC24, 0xFFFFEC26): configures external memory access timing
+ *
+ * Verified against ROM 60E1D400 via IDA disassembly at 0x8CC:
+ *   mov.w #0xEC20, r4        ; r4 = BSC base (0xFFFFEC20)
+ *   mov #0x0F, r3
+ *   mov.w r3, @r4             ; [0xFFFFEC20] = 0x000F
+ *   mov.l @(off_9B0), r0     ; r0 = 0x0000
+ *   mov.w r0, @(2,r4)        ; [0xFFFFEC22] = 0x0000
+ *   mov.w r0, @(4,r4)        ; [0xFFFFEC24] = 0x0000
+ *   mov #0, r5
+ *   mov r5, r0
+ *   mov.w r0, @(6,r4)        ; [0xFFFFEC26] = 0x0000
  */
 void bsc_init(void)
 {
-    /*
-     * From ROM disassembly at 0x8CC:
-     *   mov.l @(0x10, r15), r0    ; read saved SR
-     *   mov.l r0, @(8, r15)       ; save to stack
-     *   mov #0x8C, r0             ; r0 = SR value (imask=8)
-     *   ldc r0, sr                ; set SR
-     *   ; ... BSC register writes ...
-     *   rte                       ; return from exception
-     *   lds.l @r15+, pr
-     *
-     * The BSC init is typically a series of SFR writes to configure
-     * external bus timing. On the SH-2E, these are at 0xFFFFEC80+.
-     */
+    /* BSC base register: 0xFFFFEC20 (SH-2E Bus State Controller) */
+    volatile uint16_t *bsc = (volatile uint16_t *)0xFFFFEC20;
 
     /* BSC mode register: external bus configuration */
-    /* These values are from the ROM's literal pool analysis */
-    volatile uint16_t *bsc_mode = (volatile uint16_t *)0xFFFFEC80;
-    volatile uint16_t *bsc_wait = (volatile uint16_t *)0xFFFFEC82;
+    bsc[0] = 0x000F;  /* Bus width/timing (verified from ROM) */
 
-    /* Minimal BSC init: configure bus for external peripherals */
-    *bsc_wait = 0x0000;  /* Wait state default */
-    *bsc_mode = 0x0000;  /* Mode register default */
+    /* BSC wait registers: external memory access timing */
+    bsc[1] = 0x0000;  /* Wait state 0 */
+    bsc[2] = 0x0000;  /* Wait state 1 */
+    bsc[3] = 0x0000;  /* Wait state 2 */
 }
 
 /* ====================================================================== */

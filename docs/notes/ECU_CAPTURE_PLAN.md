@@ -96,7 +96,6 @@ Reviewed 2026-08-04 (curl + GitHub REST API + indexed web search). **No public r
 ### 7.1 Live 0x27 exchange (bench RX-8 ICM) — rnd-ash wiki
 - https://github.com/rnd-ash/rx8-reverse-engineering/wiki (pages: "Instrument cluster", "RX8 CANBUS", "powertrain control module") — ISO-TP trace of live KWP2000-over-CAN bench sessions, 2006 S1 RX-8 (231 PS).
 - ICM (0x720→0x728): `27 01` → `67 01 46 4E 7F` — **3-byte seed**; SecurityAccess **only in session 0x87**; Mazda NRC quirk: `0x22` used instead of `0x80`. PCM diag IDs confirmed: 0x7E0/0x7E8.
-- **TODO (futuro)**: catturare il seed di una **PCM stock** (0x7E0→0x7E8) come cross-validation live. La cattura ICM esistente (rnd-ash wiki §7.1) proviene da un tool di tuning (**VersaTuner**), quindi **non è evidence della chiave stock PCM** e non è presentata come già cross-validata.
 - **TODO (future)**: capture the seed of a stock **PCM** (0x7E0→0x7E8) for live cross-validation. The existing ICM capture (rnd-ash wiki §7.1) comes from a tuning tool (**VersaTuner**), so it is **not evidence of the stock PCM key** and is not presented as already cross-validated.
 
 ### 7.2 Working seed-key ROM-dump implementation — ConnorRigby/rx8-ecu-dump

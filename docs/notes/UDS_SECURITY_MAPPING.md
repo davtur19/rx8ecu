@@ -34,8 +34,8 @@ Input: `r4` = msg_len (16-bit, NOT a pointer), `r5` = subfunction byte (RESOLVED
 ### position_check `0x56892` — table lookup @`0x5FA90` (stride 6)
 
 - Loop `i=0..3`: compare `entry[i][1]` with the input byte (`0x568A8`-`0x568AC`). Entries (byte[1] → index `i`):
-  | indice | entry @0x5FA90+6i            | byte[1] | word @+4 (2º stadio) |
-  |--------|------------------------------|---------|----------------------|
+  | Index | entry @0x5FA90+6i            | byte[1] | word @+4 (2nd stage) |
+  |-------|------------------------------|---------|----------------------|
   | 0      | `00 00 00 00 00 00`          | `0x00`  | `0x0000`             |
   | 1      | `01 01 02 00 FF FD`          | `0x01`  | `0xFFFD`             |
   | 2      | `F1 F1 F2 00 FF FC`          | `0xF1`  | `0xFFFC`             |
@@ -72,11 +72,11 @@ Input: `r4` = msg_len (16-bit, NOT a pointer), `r5` = subfunction byte (RESOLVED
 
 Call @`0x58538`-`0x58542` (RequestSeed branch), after `position_check`:
 
-| param | registro | origine                                  |
-|-------|----------|------------------------------------------|
-| b0    | r4       | `[r15+8]` = risultato `jsr @0x568E6`     |
-| b1    | r5       | `r10`    = **stesso valore** (duplicato)  |
-| b2    | r6       | `r12`    = risultato `position_check`     |
+| param | register | origin                                      |
+|-------|----------|---------------------------------------------|
+| b0    | r4       | `[r15+8]` = result of `jsr @0x568E6`        |
+| b1    | r5       | `r10`    = **same value** (duplicated)       |
+| b2    | r6       | `r12`    = result of `position_check`        |
 
 - `0x584D2`-`0x584D6`: `jsr @0x568E6` → `[r15+8] = r0`; `0x584DA`: `r10 = r0`.
 - `0x568E6` reads **`byte @0xFFFFD20C` = SECURITY_STATE_2** (`mov.l 0x5690C,r3`).
@@ -94,7 +94,7 @@ Call @`0x58538`-`0x58542` (RequestSeed branch), after `position_check`:
 @0x5FAB4: 03 02 02
 @0x5FAB7: 04 00 01
 @0x5FABA: 04 01 01
-@0x5FABD: 05 03 03   b0==5 → termina il loop
+@0x5FABD: 05 03 03   b0==5 → terminates the loop
 ```
 The loop stops at the first entry with `b0 >= 5` → first 9 entries.
 

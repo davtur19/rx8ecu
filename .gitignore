@@ -5,6 +5,8 @@ src/*.bin
 *.o
 *.elf
 *.bin.tmp
+*.i64
+*.asm
 # Toolchain (fetched by get_toolchain.sh)
 tools/toolchain/
 # Third-party + personal data (kept locally, not published)
@@ -12,6 +14,7 @@ captures/
 eeprom/
 dump_selfmade/
 tmp/
+firmware/roms/
 # Python cache
 .pytest_cache/
 # Junk / scratch
@@ -20,3 +23,5 @@ core.*
 __pycache__/
 .agents/
 .git.private-backup/
+.opencode/
+

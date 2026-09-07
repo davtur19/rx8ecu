@@ -28,6 +28,7 @@
 
 #include "platform.h"
 #include "serial.h"
+#include "timer.h"    /* atu_timer_init, atu_capture_compare_init */
 
 /* ====================================================================== */
 /*  ATU Serial Channel State                                              */
@@ -117,47 +118,6 @@ void serial_init(void)
 
     /* Enable serial interrupts */
     serial_enable_interrupts();
-}
-
-/**
- * atu_timer_init — Initialize ATU timer for serial communication.
- *
- * Sets up the ATU prescaler and channel modes for serial I/O.
- * Configures timer for bit-bang serial baud rate generation.
- */
-void atu_timer_init(void)
-{
-    /* Configure prescaler: divide by 4 for 1MHz tick */
-    atu_reg_write(ATU_TSTR_OFFSET, ATU_PRESCALER_DIV4);
-
-    /* Configure channel 0 for serial timing */
-    atu_reg_write(ATU_TCR0_OFFSET, 0x0000);
-
-    /* Configure channel 1 for serial timing */
-    atu_reg_write(ATU_TCR1_OFFSET, 0x0000);
-
-    /* Configure channel 2 for serial timing */
-    atu_reg_write(ATU_TCR2_OFFSET, 0x0000);
-}
-
-/**
- * atu_capture_compare_init — Initialize ATU capture/compare channels.
- *
- * Sets up input capture for serial RX and output compare for TX.
- */
-void atu_capture_compare_init(void)
-{
-    /* Enable capture on channel 0 (RX) */
-    atu_reg_write(ATU_TIOR0_OFFSET, 0x0004);
-
-    /* Enable compare on channel 1 (TX) */
-    atu_reg_write(ATU_TIOR1_OFFSET, 0x0001);
-
-    /* Enable interrupt on capture match (RX ready) */
-    atu_reg_write(ATU_TIER0_OFFSET, 0x0001);
-
-    /* Enable interrupt on compare match (TX ready) */
-    atu_reg_write(ATU_TIER1_OFFSET, 0x0001);
 }
 
 /**
@@ -373,31 +333,6 @@ void serial_rx_handler_ch2(void)
     if (ch->rx_idx >= ch->rx_len) {
         ch->status |= SERIAL_STATUS_RX_READY;
     }
-}
-
-/* ====================================================================== */
-/*  Hardware Init for Serial                                              */
-/* ====================================================================== */
-
-/**
- * hardware_init_serial_timers — Initialize serial communication timers.
- *
- * ROM address: 0xB6BC
- *
- * Configures ATU timers for serial communication.
- * Sets up registers at 0xFFFFF74E, 0xFFFFF72C.
- * Configures 0xFFFFF008, 0xFFFFF00A, 0xFFFFF00E.
- */
-void hardware_init_serial_timers(void)
-{
-    /* Configure ATU channel 0 for serial timing */
-    atu_reg_write(0x004E, 0x0000);  /* Timer control */
-    atu_reg_write(0x002C, 0x0000);  /* Timer mode */
-
-    /* Configure interrupt controller */
-    intc_reg_write(0x0008);  /* INTC enable */
-    intc_reg_write(0x000A);  /* INTC config */
-    intc_reg_write(0x000E);  /* INTC priority */
 }
 
 /* ====================================================================== */

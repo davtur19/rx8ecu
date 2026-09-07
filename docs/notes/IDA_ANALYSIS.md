@@ -686,8 +686,7 @@ is NOT used for persistent storage. All EEPROM operations go through the externa
 - Staging buffer: 256 bytes
 - Verification buffer: 256 bytes
 - Control structures: ~100 bytes
-- **Estimated size**: 2KB (2048 bytes) minimum
-- More likely **2KB (256×8)** or **4KB (512×8)**
+- **Estimated size**: 256 bytes (ABLIC S-93C56C)
 
 ### Wear leveling
 
