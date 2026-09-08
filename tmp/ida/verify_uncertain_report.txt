@@ -787,3 +787,103 @@ confidence cells only; category/signal untouched); BOM + CRLF preserved;
 (pass1+pass2) renames touched; no 60E1D400 rows touched.
 
 END THIRD PASS
+
+FOURTH PASS (2026-09-08, IDA session fc00_verify on tmp/ida/60E0FC00_be.elf)
+--------------------------------------------------------------------------------
+Scope: 4 mandated targets (0x30728/0x3083C cranking-fuel siblings, 0x10EE6
+dwell-region, 0x136D6 CC30/CC32 identity) + 5 extras from the third-pass
+appendix ONLY (0x30904, 0x18D3C, 0x253CC, 0x2D0CE, 0x2D1C0) = 9 examined.
+Method unchanged: disasm + xrefs_to + data_ref producer/consumer linkage;
+no Hex-Rays for SH-2E. Rename bar unchanged: >80% with concrete evidence
+(callers, RAM producer/consumer pairs, ROM constants, 1.0-confidence anchors).
+
+RENAMED (2):
+  0x3083C  throttleDownDeFloodCheck? -> calcCrankingDeFloodFactor [0.85]
+      evidence: body runs ONLY while A428==0 (cranking gate, same polarity as
+      calcInjectorCrankingTime 306B4 0.85); SOLE writer of BE88 (data_ref: only
+      3084A writes, only 306CA in 306B4 reads) — BE88 is the base factor of the
+      BE78 crank-add product in 306B4, so this fn directly feeds the crank-add
+      pair via 306B4 (not the 30344 arbitrator; no xrefs either way). AA2C
+      throttle identity 1.0-anchored (read as pedal input by
+      calculateThrottlePedalPositionMapBased 2326C 1.0 + throttle-percent-during-
+      lift 42230 1.0): AA2C vs ROM 77044 -> BE88=0.0 (flood-clear); else 1.0 or
+      ADA8-pedal 2D-lookup via 68F98. Callers setPrevLoops 216D4 (0.85) +
+      fuel_subsystem_init_task 21AF8 (1.0). Residual unknowns (not blocking):
+      C5EA/B46F interlock selection between 1.0 and lookup paths.
+  0x136D6  getKnockSensorFaultedStatus? -> updateKnockSensorFaultFlag [0.85]
+      evidence: SETTER not getter (writes A739=CC30 AND CC32, no r0 return).
+      CC30-CC33 proven knock-sensor fault flags: sole writer 1.0
+      getknockSensorFaultStatus 48F68 (writes CC30+CC32 pair at 49002/49004,
+      CC31/CC33 pairs, plus full-clear path 4901A-4902E) and 1.0
+      updateKnockSensorFaultMemory 49040 maps CC31/CC30->DTC 0x22 (1/2) and
+      CC33/CC32->DTC 0x23 (1/2) via updateFaultStatus 5E644. A739 consumed by
+      1.0 getKnockControlActive 136FE (= A738 from updateKnockControlAllowedFlag
+      13686 0.85 AND A739 -> A730) -> 1.0 knock derate 138A4. Called from 1.0
+      engineControlCalculateTiming 141FC at 1421E inside the knock chain
+      (13686 -> 136D6 -> 136FE -> 13808 -> 138A4). Polarity note: A739=1 means
+      both CC30/CC32 fault flags set (matches 'FaultFlag' name).
+
+STILL KEPT (7 = 9 - 2; 123 '?' remain = 125 - 2):
+  - 0x30728 getDiagnosticFuelPulseCranking?: answers the mandate — feeds the
+    crank-add pipeline INDIRECTLY as sole runtime updater of the BE9C filtered
+    factor consumed by calcInjectorCrankingTime 306B4 (BE9C refs: init 30570,
+    filter-update 30822/3082C here via firstOrderFilter 23B0, consume 306D4);
+    shares the A428/BE5C crank gate (early-return unless running or BE5C>0);
+    does NOT write BE78/BE5C and does not touch the 30344 arbitrator. KEPT:
+    single blocking unknown = A9FC identity + BEC6 private-mode meaning (A9FC
+    vs ROM 7701C/7701C+ thresholds select BE98=77020/77024); plus outputs
+    BE90/BE94/BE98/BE8C/BEBC have ZERO data_ref readers (dead staging until a
+    consumer is found). Caller engineControlGetFueling 217B2 (1.0) banked.
+  - 0x10EE6 getEngineCrankingStatus?: array identity now PROVEN as 2x0x2C-entry
+    per-rotor ignition-dwell objects at A578 (CORRECTION of pass-3 'x3': loop
+    bounds A578..A578+0x58 stride 0x2C = entries 0,1 = 2 rotors; same bounds in
+    10EAC and 10FEA): init by ign_dwell_init_per_rotor 1024C (fields
+    +0/+1/+2/+4/+8/+9), reload by ign_dwell_config_reload 1031C, consumed by 1.0
+    calculatePerRotorIgnitionDwell 10386 (trampoline to 10FEA reading +0xC per
+    entry into 1.0 outputPerRotorIgnitionDwell 10F84), merged by
+    fuel_cut_bits_merge 10EAC (reads +0 flags); called from 1.0
+    engineControlCalculateTiming at 1437C in the dwell phase (after 1.0 dwell
+    calc 10386, before 1.0 fuel-cut check 2C548 + 1.0 dwell adder 4B89C). KEPT:
+    single blocking unknown = reader/semantics of the +2 byte it bulk-sets to
+    1 (init value = channel index; no 1.0 reader; only 0.4-cluster candidates
+    1038C/10650/1080A/10902/10A8C). Cranking link: none found (no
+    A428/A79C/BE5C contact) — proving it needs the +2 consumer, not more
+    cranking context.
+  - 0x30904 handleDiagInjectorPulseSomething?: cranking-gated sibling (A428==0
+    branch at 309AA); stages BEB0 (77034/77038/7703C-select float), BEB8 word,
+    BEBB/BEC5/BECA/BEC9 flags around the BEB4 accumulation read at 30A94
+    (clamped vs ROM 77030) that addInjectorPulse 30B14 (0.85) fadds with BE78;
+    callers setPrevLoops 216D4 (0.85) + fault_sync_fuel_chain 21DA0 (1.0).
+    KEPT: single blocking unknown = writers of BEB4 and BEBA (ZERO data_ref
+    writers for either) + A42C/CCFA mode semantics.
+  - 0x18D3C dscRelatedTiming?: full 205-insn body verified — BCB3==4-gated
+    float path over BCxx RAM (BCC0/BCC4/BCC8/BCD8/BCE4/BCA8/BC0C/BAFC) with
+    B594/C0D8, 3D-lookups via 20DC on ROM 67D58/67D3C/67D74, outputs
+    A998/A994/A990 floats + A9AC compare flag; sole caller 141FC at 1427A
+    (between limit-derates 12CE8 and cranking-timing-leading 43168). KEPT:
+    single blocking unknown = NO BC02/CCE4 DSC gate anywhere in the body and
+    no 1.0 DSC consumer of its outputs (DSC rests on BCB3-flag association
+    only, ~0.75).
+  - 0x253CC getAutoTransCal??: full 13-insn body = [B580] = ([ROM 749B0]!=0)
+    presence-flag copy; sole writer of B580 (48 data_ref readers across
+    fuel/ign/idle/OBD, none AT-specific); callers sensor_chain_wrapper 6372
+    (0.3) + vehicle_speed_omp_time_task 1AA9C (Oil Metering 1.0, non-AT).
+    KEPT: single blocking unknown = ROM 0x749B0 meaning or one AT-specific
+    B580 consumer.
+  - 0x2D0CE dscPerRotorCut? + 0x2D1C0 arbitrateDSCFuelCut? (examined as a pair):
+    2D0CE maps BCB3 (2->1, 4->3) into BCB4/BCB5 per rotor-param byte (0xC
+    selector), calls 2D1C0 with BCB4/BCB5, tails to E2D8; 2D1C0 bit-splits its
+    input to arbitration flags BCB6/BCB7 (>=4 clears both, else bit0->BCB6,
+    bit1->BCB7). Cut-vs-arbitrate structure RESOLVED (dispatcher + splitter)
+    but KEPT: single blocking unknown = DSC attribution (no BC02 gate, no 1.0
+    DSC consumer of BCB6/BCB7; rests on BCB3-BCB7 flag identity via
+    dscDerateInit 0.85, ~0.75).
+  Counts: renamed 2 / kept 7 examined (of which 0 structural) / '?' 125 -> 123.
+
+CSV integrity: 6082 data rows unchanged count; 2 rows changed (name +
+confidence cells only; category/signal untouched); BOM + CRLF preserved (6083
+CRLF lines, 0 bare LF); 123 '?' remain; no collisions with existing names;
+none of the 108 prior (pass1+pass2+pass3) renames touched; no 60E1D400 rows
+touched.
+
+END FOURTH PASS

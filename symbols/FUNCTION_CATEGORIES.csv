@@ -1209,7 +1209,7 @@
 60E0FC00,0x13674,updateKnockRamTHUNK,Ignition & Knock,1.000,name
 60E0FC00,0x1367E,csum_float_pair_store_8038,Memory & CRC,0.700,assembly
 60E0FC00,0x13686,updateKnockControlAllowedFlag,Ignition & Knock,0.85,name
-60E0FC00,0x136D6,getKnockSensorFaultedStatus?,Faults & DTC,1.000,name
+60E0FC00,0x136D6,updateKnockSensorFaultFlag,Faults & DTC,0.85,name
 60E1D400,0x136F0,calc_fuel_trim_correction_map,Fuel & Lambda,1.000,name
 60E0FC00,0x136FE,getKnockControlActive,Ignition & Knock,1.000,name
 60E0FC00,0x13760,calcKnockRAMUpdate?,Ignition & Knock,1.000,name
@@ -2628,7 +2628,7 @@
 60E1D400,0x3075A,fuel_bitfield_3075a,Fuel & Lambda,1.000,name
 60E1D400,0x307D4,fuel_control_307d4,Fuel & Lambda,1.000,name
 60E1D400,0x307E8,priority_task_multi_sensor_init_307E8,Sensors,1.000,name
-60E0FC00,0x3083C,throttleDownDeFloodCheck?,Throttle & Torque,1.000,name
+60E0FC00,0x3083C,calcCrankingDeFloodFactor,Throttle & Torque,0.85,name
 60E1D400,0x3085C,fpu_multiply_abs_compare_3085C,Math / FPU,1.000,name
 60E1D400,0x30888,conditional_fpu_accumulate_handler_30888,Math / FPU,1.000,name
 60E0FC00,0x3089A,setStartupInjectorPwMult,Fuel & Lambda,1.000,name
