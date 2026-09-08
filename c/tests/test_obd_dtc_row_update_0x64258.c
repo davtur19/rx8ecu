@@ -41,7 +41,7 @@ static void set_row(uint16_t row)
 
 static int check(uint16_t row, uint8_t b32, uint8_t b07, uint8_t b08)
 {
-    uint8_t *p = (uint8_t *)(BASE + (uint32_t)row * STRIDE);
+    uint8_t *p = (uint8_t *)(uintptr_t)(BASE + (uint32_t)row * STRIDE);
     set_row(row);
     p[0x32] = b32; p[0x07] = b07; p[0x08] = b08;
 

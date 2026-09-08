@@ -34,7 +34,7 @@ static void map_page(uintptr_t addr)
     }
 }
 
-static uint8_t *rowp(uint32_t i) { return (uint8_t *)(BASE + i * STRIDE); }
+static uint8_t *rowp(uint32_t i) { return (uint8_t *)(uintptr_t)(BASE + i * STRIDE); }
 
 static int32_t ref(uint32_t r4, uint16_t currow)
 {

@@ -36,7 +36,7 @@ static void map_page(uintptr_t addr)
 
 static void seed_row(uint16_t idx, uint16_t code, uint8_t t6)
 {
-    uint8_t *p = (uint8_t *)(BASE + (uint32_t)idx * 16);
+    uint8_t *p = (uint8_t *)(uintptr_t)(BASE + (uint32_t)idx * 16);
     *(volatile uint16_t *)p = code;
     p[6] = t6;
 }

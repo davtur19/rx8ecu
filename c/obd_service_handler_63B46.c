@@ -49,7 +49,7 @@
 uint32_t obd_service_handler_63B46(uint32_t r4)
 {
     uint16_t idx = *(volatile uint16_t *)CUR_INDEX;
-    uint8_t *p = (uint8_t *)(CTX_BASE + (uint32_t)(idx & 0xFFFFu) * CTX_STRIDE);
+    uint8_t *p = (uint8_t *)(uintptr_t)(CTX_BASE + (uint32_t)(idx & 0xFFFFu) * CTX_STRIDE);
     p[0x0E] = (uint8_t)((int32_t)(int8_t)p[0x0E] + (int32_t)(int8_t)p[0x0D]
                         - (int32_t)r4);
     p[0x0D] = (uint8_t)r4;

@@ -29,7 +29,7 @@
 
 static uint8_t *idx_p(uint32_t r4)
 {
-    return (uint8_t *)(IDX_BASE + (uint32_t)(r4 & 0xFF) * IDX_STRIDE);
+    return (uint8_t *)(uintptr_t)(IDX_BASE + (uint32_t)(r4 & 0xFF) * IDX_STRIDE);
 }
 
 /* 0x68780 — zero the table entry's three words */

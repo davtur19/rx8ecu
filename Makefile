@@ -73,29 +73,25 @@ export PATH := $(if $(TC),$(TC):$(ENV_PATH),$(ENV_PATH))
 # Host-C compile settings (wave2b). CC is overridable (CC=clang make c-test-c);
 # never hardcoded in recipes — always $(CC).
 CC ?= cc
-C_TEST_FLAGS := -O2 -Wall -Wextra -std=c11
-# NOTE (wave2b, re-probed 2026-09-08): -Werror is deliberately NOT in
-# C_TEST_FLAGS. Fixed this round (uintptr_t round-trip, zero behavior
-# change): c/req_queue_69602.c + c/tests/test_req_queue_69602.c
-# (-Wint-to-pointer-cast) and c/tests/test_osTaskScheduler.c
-# (-Wuninitialized: test_dispatcher_path now inits entry.func_ptr).
-# REMAINING blockers, all -Wint-to-pointer-cast (absolute-address MMIO,
-# same uintptr_t fix pattern, but owned by sibling agents — NOT touched
-# here): c/idx_table_helpers_68780.c:32 +
-# c/tests/test_idx_table_helpers_68780.c:44,
-# c/obd_dtc_find_0x643D4.c:36 + c/tests/test_obd_dtc_find_0x643D4.c:37,
-# c/obd_dtc_find_0x6443E.c:35 + c/tests/test_obd_dtc_find_0x6443E.c:37,
-# c/obd_dtc_row_update_0x64258.c:28 +
-# c/tests/test_obd_dtc_row_update_0x64258.c:44,
-# c/obd_dtc_row_update_0x64418.c:26 +
-# c/tests/test_obd_dtc_row_update_0x64418.c:38,
-# c/obd_dtc_row_update_0x64490.c:25 +
-# c/tests/test_obd_dtc_row_update_0x64490.c:39,
-# c/obd_service_handler_63834.c:82 +
-# c/tests/test_obd_service_handler_63834.c:39,
-# c/obd_service_handler_63B46.c:52 + c/tests/test_obd_service_handler_63B46.c:33
-# (verified 2026-09-08: 18/26 suites clean under -Werror, 8 fail as
-# above). Re-probe with:
+C_TEST_FLAGS := -O2 -Wall -Wextra -Werror -std=c11
+# NOTE (wave2b, re-probed 2026-09-08): -Werror enabled in C_TEST_FLAGS
+# (26/26 suites clean under -Werror). Fixed with the behavior-neutral
+# uintptr_t round-trip (proven in 307e202, zero behavior change for
+# addresses <2^32): c/req_queue_69602.c + c/tests/test_req_queue_69602.c
+# (-Wint-to-pointer-cast), c/tests/test_osTaskScheduler.c
+# (-Wuninitialized: test_dispatcher_path now inits entry.func_ptr), plus
+# the 8 remaining -Wint-to-pointer-cast suites fixed this round
+# (absolute-address MMIO, same uintptr_t pattern
+# (TYPE *)(BASE + off) -> (TYPE *)(uintptr_t)(BASE + off)):
+# c/idx_table_helpers_68780.c + c/tests/test_idx_table_helpers_68780.c,
+# c/obd_dtc_find_0x643D4.c + c/tests/test_obd_dtc_find_0x643D4.c,
+# c/obd_dtc_find_0x6443E.c + c/tests/test_obd_dtc_find_0x6443E.c,
+# c/obd_dtc_row_update_0x64258.c + c/tests/test_obd_dtc_row_update_0x64258.c,
+# c/obd_dtc_row_update_0x64418.c + c/tests/test_obd_dtc_row_update_0x64418.c,
+# c/obd_dtc_row_update_0x64490.c + c/tests/test_obd_dtc_row_update_0x64490.c,
+# c/obd_service_handler_63834.c + c/tests/test_obd_service_handler_63834.c,
+# c/obd_service_handler_63B46.c + c/tests/test_obd_service_handler_63B46.c.
+# Re-probe with:
 #   cc -O2 -Wall -Wextra -Werror -std=c11 c/req_queue_69602.c c/tests/test_req_queue_69602.c -o /tmp/t -lm
 
 # Default target: rebuild the stock ROM (documented `make` behavior).
