@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-denso_ck.py — DENSO SH7055 checksum tool
+denso_ck.py - DENSO SH7055 checksum tool
 
-Verifica o corregge il checksum di una ROM Mazda RX-8 (60Exxxxx).
+Verify or fix the checksum of a Mazda RX-8 ROM (60Exxxxx).
 
-  Algoritmo: sum_dwords(ROM, lo, hi, step=4) + diff = 0x5AA5A55A
-  Descriptor a 0x7FB80: [lo:4][hi:4][diff:4]
+  Algorithm: sum_dwords(ROM, lo, hi, step=4) + diff = 0x5AA5A55A
+  Descriptor at 0x7FB80: [lo:4][hi:4][diff:4]
 
-Utilizzo:
-  python denso_ck.py <rom.bin>              # solo verifica
-  python denso_ck.py <rom.bin> -f           # fix in-place
-  python denso_ck.py <rom.bin> -o out.bin   # fix su copia
+Usage:
+  python denso_ck.py <rom.bin>              # verify only
+  python denso_ck.py <rom.bin> -f           # fix in place
+  python denso_ck.py <rom.bin> -o out.bin   # fix a copy
 """
 
 import sys
@@ -53,8 +53,8 @@ def check_bounds(lo, hi, length):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("rom")
-    ap.add_argument("-f", "--fix",    action="store_true", help="fix in-place")
-    ap.add_argument("-o", "--output", metavar="FILE",      help="fix su copia")
+    ap.add_argument("-f", "--fix",    action="store_true", help="fix in place")
+    ap.add_argument("-o", "--output", metavar="FILE",      help="fix a copy")
     args = ap.parse_args(argv)
 
     if args.fix and args.output:
@@ -86,7 +86,7 @@ def main(argv=None):
               file=sys.stderr)
         return 1
 
-    print(f"Range  : 0x{lo:05X} – 0x{hi:05X}")
+    print(f"Range  : 0x{lo:05X} - 0x{hi:05X}")
     print(f"Sum    : 0x{s:08X}")
     print(f"Stored : 0x{stored:08X}")
     print(f"Correct: 0x{correct:08X}")
@@ -97,13 +97,13 @@ def main(argv=None):
         return 1
 
     if stored == correct:
-        print("OK — checksum corretto")
+        print("OK: checksum valid")
         return 0
 
-    print("ERRATO")
+    print("FAIL: checksum mismatch")
 
     if not args.fix and not args.output:
-        print("Usa -f per fix in-place o -o <file> per fix su copia.")
+        print("Use -f to fix in place or -o <file> for a copy.")
         return 1
 
     # Patch a COPY first, then re-compute and compare before touching disk.
@@ -126,7 +126,7 @@ def main(argv=None):
         except OSError as e:
             print(f"Error: cannot write {args.output}: {e}", file=sys.stderr)
             return 1
-        print(f"Fixato -> {args.output}  (0x{stored:08X} -> 0x{correct:08X})")
+        print(f"Fixed -> {args.output}  (0x{stored:08X} -> 0x{correct:08X})")
         return 0
 
     # In-place fix: keep a .bak of the original, stage via a temp file,
@@ -156,7 +156,7 @@ def main(argv=None):
         print(f"Error: in-place fix failed: {e} (backup at {bak})",
               file=sys.stderr)
         return 1
-    print(f"Fixato -> {src}  (0x{stored:08X} -> 0x{correct:08X}) [backup: {bak}]")
+    print(f"Fixed -> {src}  (0x{stored:08X} -> 0x{correct:08X}) [backup: {bak}]")
     return 0
 
 

@@ -690,6 +690,47 @@ def print_mem_report(selected, counters, args):
     print('options: --mode mem --dryrun --n %d --seed %d' % (args.n, args.seed))
 
 
+def _gate_and_publish(c_text, out_path, err_len=300):
+    """Atomic compile gate: write `c_text` to a mkstemp temp source in
+    out_path's directory, compile-gate it (cc -O2 -c) to a mkstemp object
+    file, and os.replace() it onto out_path ONLY on gate PASS.
+
+    On gate FAIL the temp source is removed and any pre-existing out_path
+    is left untouched — never truncated, never deleted (the old
+    `open(out, 'w')` + `os.remove(out)` sequence destroyed a good lift).
+    mkstemp (not /tmp PID names) avoids object-file races between
+    concurrent processes.  Returns (True, None) on PASS,
+    (False, stderr_tail) on FAIL."""
+    outdir = os.path.dirname(out_path) or '.'
+    os.makedirs(outdir, exist_ok=True)
+    tmp_c = None
+    fd, tmp_c = tempfile.mkstemp(dir=outdir, prefix='.gate_', suffix='.c')
+    try:
+        with os.fdopen(fd, 'w') as f:
+            f.write(c_text)
+        os.chmod(tmp_c, 0o644)
+        fd_o, tmp_o = tempfile.mkstemp(prefix='gate_', suffix='.o')
+        os.close(fd_o)
+        try:
+            gate = subprocess.run(['cc', '-O2', '-c', tmp_c, '-o', tmp_o],
+                                  capture_output=True, text=True)
+        finally:
+            try:
+                os.remove(tmp_o)
+            except OSError:
+                pass
+        if gate.returncode != 0:
+            return False, (gate.stderr or '')[:err_len]
+        os.replace(tmp_c, out_path)
+        return True, None
+    finally:
+        try:
+            if tmp_c is not None and os.path.exists(tmp_c):
+                os.remove(tmp_c)
+        except OSError:
+            pass
+
+
 def sanitize(name):
     return re.sub(r'\W', '_', name or 'fun') or 'fun'
 
@@ -762,19 +803,11 @@ def emit(addr, name, size, instrs, rom, seed, out_c, out_t):
         'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
         '{\n%s\n}\n') % (fn, addr, cbody)
 
-    with open(out_c, 'w') as f:
-        f.write(c_text)
-
     # ---- compile gate: must pass the repo's real C gate (PASSO 1: cc -O2) ----
-    # If the lift doesn't compile, drop it: remove the .c, write no test, warn.
-    tmp_obj = os.path.join(tempfile.gettempdir(),
-                           'gen_c_lift_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(out_c)
+    # Atomic: gated on a temp source, published only on PASS; a pre-existing
+    # out_c survives a FAIL untouched.
+    ok, _err = _gate_and_publish(c_text, out_c)
+    if not ok:
         print('WARNING: lift 0x%X %-40s failed `cc -O2 -c`; .c dropped, no test written'
               % (addr, fn))
         return False
@@ -1230,18 +1263,9 @@ def emit_mem(addr, name, size, entry, rom, seed, out_c, out_t):
               '#include <stdint.h>\n'
               'uint32_t %s_%x(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)\n'
               '{\n%s\n}\n') % (fn, addr, cbody)
-    with open(out_c, 'w') as f:
-        f.write(c_text)
-
-    # ---- compile gate (same gate as the pure path) ----
-    tmp_obj = os.path.join(tempfile.gettempdir(),
-                           'gen_c_lift_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(out_c)
+    # ---- compile gate (same gate as the pure path: atomic, publish-on-PASS) ----
+    ok, _err = _gate_and_publish(c_text, out_c)
+    if not ok:
         print('WARNING: lift 0x%X %-40s failed `cc -O2 -c`; .c dropped, no test written'
               % (addr, fn))
         return False

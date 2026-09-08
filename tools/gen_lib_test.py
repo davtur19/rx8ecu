@@ -35,6 +35,33 @@ BANK = '60E0FC00'
 ROM_PATH = os.path.join(ROOT, 'roms', 'stock', '%s.bin' % BANK)
 LIB_DIR = os.path.join(ROOT, 'c', 'lib')
 
+# Default lib-address list.  Overridable via the LIB_ADDRS_FILE env var or by
+# passing explicit --addrs (no silent dependence on one fixed /tmp path).
+LIB_ADDRS_FILE = os.environ.get('LIB_ADDRS_FILE', '/tmp/opencode/lib_addrs.txt')
+
+
+def _read_addrs_file(path):
+    """Read one address per line (hex 0x.. or decimal); blank lines and `#`
+    comments are skipped.  Returns [int].  Raises ValueError naming the
+    offending line (never a bare int() traceback) and FileNotFoundError
+    naming the file."""
+    addrs = []
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        raise FileNotFoundError("address list not found: %s "
+                                "(set LIB_ADDRS_FILE or pass --addrs)" % path)
+    for ln, line in enumerate(lines, 1):
+        tok = line.strip()
+        if not tok or tok.startswith('#'):
+            continue
+        try:
+            addrs.append(int(tok, 0))
+        except ValueError:
+            raise ValueError("bad address %r in %s line %d "
+                             "(want 0x... hex or decimal)" % (tok, path, ln))
+    return addrs
 # The 20-lib validation set (task spec): 5 OTHER-BUG + 10 CFG + 5 v7leaf.
 OTHER_BUG = [0x29DEA, 0x686A0, 0x54BE, 0x5DDC, 0x387A2]
 CFG_SET = [0x3E38A, 0x1B3EA, 0xE278]
@@ -89,12 +116,18 @@ def _compile_gate(addr):
     c_path = os.path.join(LIB_DIR, 'f_%X.c' % addr)
     if not os.path.exists(c_path):
         return False, 'missing-c'
-    tmp_obj = os.path.join(tempfile.gettempdir(),
-                           'gen_lib_test_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', c_path, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
+    # mkstemp (not a /tmp PID name) so concurrent gates never share an
+    # object path; always removed (success or fail).
+    fd, tmp_obj = tempfile.mkstemp(prefix='gen_lib_test_', suffix='.o')
+    os.close(fd)
+    try:
+        gate = subprocess.run(['cc', '-O2', '-c', c_path, '-o', tmp_obj],
+                              capture_output=True, text=True, timeout=120)
+    finally:
+        try:
+            os.remove(tmp_obj)
+        except OSError:
+            pass
     if gate.returncode != 0:
         return False, (gate.stderr or '').strip().split('\n')[-1][:160]
     return True, None
@@ -204,7 +237,7 @@ def _load_rom_catalog():
 
 def pick_20():
     """The 20-lib set: 5 OTHER-BUG + 10 CFG + 5 v7leaf (all in the 1059)."""
-    addrs = [int(x) for x in open('/tmp/opencode/lib_addrs.txt')]
+    addrs = _read_addrs_file(LIB_ADDRS_FILE)
     cfg_pool = [a for a in addrs if _banner_kind(a) == 'cfg']
     v7_pool = [a for a in addrs if _banner_kind(a) == 'v7']
     cfg20 = []
@@ -272,17 +305,29 @@ def main():
 
     if args.sweep_all or args.addrs or args.csv:
         if args.sweep_all:
-            addrs = [int(x) for x in open('/tmp/opencode/lib_addrs.txt')]
+            try:
+                addrs = _read_addrs_file(LIB_ADDRS_FILE)
+            except (FileNotFoundError, ValueError) as e:
+                print("gen_lib_test: %s" % e, file=sys.stderr)
+                return 1
         elif args.addrs:
             addrs = []
             for tok in args.addrs.split(','):
                 tok = tok.strip()
-                if tok.lower().startswith('0x'):
-                    addrs.append(int(tok, 16))
-                elif tok.lower().startswith('f_'):
-                    addrs.append(int(tok[2:], 16))
-                else:
-                    addrs.append(int(tok, 16))
+                if not tok:
+                    continue
+                try:
+                    if tok.lower().startswith('0x'):
+                        addrs.append(int(tok, 16))
+                    elif tok.lower().startswith('f_'):
+                        addrs.append(int(tok[2:], 16))
+                    else:
+                        addrs.append(int(tok, 16))
+                except ValueError:
+                    print("gen_lib_test: bad --addrs token %r "
+                          "(want 0x... hex or f_... names)" % tok,
+                          file=sys.stderr)
+                    return 1
         else:
             addrs = pick_20()
         rows = []

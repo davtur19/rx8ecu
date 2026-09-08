@@ -162,7 +162,7 @@ def disasm_one(op, pc, rd16=None, rd32=None):
                 try:
                     fval = struct.unpack('>f', struct.pack('>I', val & MASK))[0]
                     ann = f" ; 0x{val:08X} = {fval}"
-                except:
+                except Exception:
                     ann = f" ; 0x{val:08X}"
             else:
                 ann = f" ; 0x{val:08X}"
@@ -495,15 +495,25 @@ def disasm_one(op, pc, rd16=None, rd32=None):
 
 
 def disasm_range(rom, start, length, base=0):
-    """Disassemble a range of ROM bytes starting at `start` offset (relative to base addr)."""
+    """Disassemble a range of ROM bytes starting at `start` offset (relative to base addr).
+
+    Bounds-validated: negative start/length raise ValueError (never
+    struct.error); ranges running past the ROM end are truncated; a
+    trailing odd byte that cannot form an opcode is emitted as an
+    ("unknown", ...) line instead of raising.
+    """
+    if start < 0 or length < 0:
+        raise ValueError("disasm_range: start=%r length=%r must be >= 0"
+                         % (start, length))
     lines = []
+    end = min(start + length, len(rom))
     i = 0
-    while i < length:
+    while start + i + 2 <= end:
         addr = start + i
         op = struct.unpack('>H', rom[addr:addr + 2])[0]
 
         def rd16(a):
-            if a >= base and a - base < len(rom):
+            if a >= base and a - base + 2 <= len(rom):
                 return struct.unpack('>H', rom[a - base:a - base + 2])[0]
             return 0
 
@@ -516,6 +526,11 @@ def disasm_range(rom, start, length, base=0):
         a = ann and f"  {ann}" or ""
         lines.append(f"  0x{addr:04X}:  {op:04X}    {mne:12s} {ops}{a}")
         i += 2
+    if start + i < end:
+        # Trailing odd byte: cannot form a 16-bit opcode — report it as
+        # unknown data instead of raising struct.error on the short slice.
+        addr = start + i
+        lines.append(f"  0x{addr:04X}:  {rom[addr]:02X}      {'unknown':12s} 0x{rom[addr]:02X}")
     return lines
 
 

@@ -111,7 +111,7 @@ def lit16(rom, pc, disp):
     """mov.w @(disp,PC): sign-extended 16-bit value.  None when the
     displacement target lands outside the (possibly truncated) ROM."""
     addr = (pc + 4 + disp * 2) & MASK
-    if addr + 2 > len(rom) or addr < 0:
+    if addr + 2 > len(rom):
         return None
     return s16(struct.unpack('>H', rom[addr:addr + 2])[0]) & MASK
 
@@ -120,7 +120,7 @@ def lit32(rom, pc, disp):
     """mov.l @(disp,PC): 32-bit value at ((pc+4)&~3)+disp*4.  None when the
     displacement target lands outside the (possibly truncated) ROM."""
     addr = ((pc + 4) & ~3) + disp * 4
-    if addr + 4 > len(rom) or addr < 0:
+    if addr + 4 > len(rom):
         return None
     return struct.unpack('>I', rom[addr:addr + 4])[0] & MASK
 

@@ -23,6 +23,12 @@ def compute_key(seed_bytes: bytes, secret_bytes: bytes) -> bytes:
     secret_bytes: 5-byte shared secret (b'MazdA' for stock RX-8)
     Returns:      3-byte key to send (27 02 XX YY ZZ)
     """
+    if len(seed_bytes) != 3:
+        raise ValueError("compute_key: seed_bytes must be exactly 3 bytes, "
+                         "got %d" % len(seed_bytes))
+    if len(secret_bytes) != 5:
+        raise ValueError("compute_key: secret_bytes must be exactly 5 bytes, "
+                         "got %d" % len(secret_bytes))
     s1, s2, s3, s4, s5 = secret_bytes
     seed = (seed_bytes[0] << 16) | (seed_bytes[1] << 8) | seed_bytes[2]
 
