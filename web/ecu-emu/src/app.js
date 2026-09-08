@@ -33,6 +33,7 @@ let selectedPin = null;
 let sensorState = {
   rpm: 800, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45
 };
+let pinOutputs = {};  // name → live value, populated by computePinStates()
 
 /* ======================================================================
  *  Helpers
@@ -63,8 +64,10 @@ function computePinStates() {
   Module.emu_step_ms(10);
 
   /* Read pin voltages from core */
+  pinOutputs = {};
   PINS.forEach(p => {
     p._value = Module.emu_get_pin(p.num);
+    pinOutputs[p.name] = p._value;
   });
 }
 

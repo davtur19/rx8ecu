@@ -1,7 +1,7 @@
 {
   "_meta": {
     "connector": "N3J1-18-881L (Denso 279700-3313)",
-    "description": "Mazda RX-8 13B-MSP ECU pin map (2x48 pins, 96 total)",
+    "description": "Mazda RX-8 13B-MSP ECU pin map (2×48 pins, 96 total)",
     "source": "HARDWARE.md, ecu_pin_emu.py, firmware/c/*.c"
   },
   "pins": [

@@ -9,7 +9,7 @@ PORT = 8001
 
 .PHONY: build serve clean
 
-build: $(DIST)/index.html $(DIST)/app.js $(DIST)/style.css $(DIST)/pins.json $(DIST)/emu_core.js $(DIST)/engine_sim.js $(DIST)/can_live.js $(DIST)/can_live.css
+build: $(DIST)/index.html $(DIST)/app.js $(DIST)/style.css $(DIST)/pins.json $(DIST)/emu_core.js $(DIST)/engine_sim.js $(DIST)/can_live.js $(DIST)/can_live.css $(DIST)/icons.svg
 
 $(DIST)/index.html: $(SRC)/index.html
 	@mkdir -p $(DIST)
@@ -34,6 +34,9 @@ $(DIST)/can_live.js: $(SRC)/can_live.js
 	cp $< $@
 
 $(DIST)/can_live.css: $(SRC)/can_live.css
+	cp $< $@
+
+$(DIST)/icons.svg: $(SRC)/icons.svg
 	cp $< $@
 
 serve: build

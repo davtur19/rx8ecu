@@ -9,8 +9,7 @@
 </head>
 <body>
 <!-- SVG icon sprite (hidden, referenced via <use href="#icon-xxx">) -->
-<object data="icons.svg" type="image/svg+xml" style="display:none" aria-hidden="true"></object>
-<body>
+<div id="icon-sprite" style="display:none" aria-hidden="true"></div>
 <header>
   <div class="brand">
     <div class="logo">8</div>
@@ -87,6 +86,18 @@
 </div>
 
 <script src="pins.json" type="application/json" id="pins-data"></script>
+<script>
+/* Inline SVG sprite so <use href="#icon-xxx"> works across all browsers */
+(function(){
+  fetch("icons.svg").then(function(r){return r.text()}).then(function(svg){
+    var d=document.getElementById("icon-sprite");
+    d.innerHTML=svg;
+    /* Remove the display:none from the root <svg> so symbols are in scope */
+    var s=d.querySelector("svg");
+    if(s){s.style.display="none";s.setAttribute("aria-hidden","true");}
+  }).catch(function(){});
+})();
+</script>
 <script src="emu_core.js"></script>
 <script src="engine_sim.js"></script>
 <script src="can_live.js"></script>
