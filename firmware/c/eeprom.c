@@ -48,9 +48,37 @@
  *     0xFFFF7304 hits — a different peripheral — plus the ATU writes).
  *   - ROM SPI init (hw_init_1 @0x170) and the clock helpers (0x9C0/0x9DE)
  *     use only 0xFFFFE4xx (E401 clk/status, E402-E42C config, E4B0/B8).
- * Real CS still unidentified — hunt the single-bit toggle in the E4xx
- * Microwire data path (E406/E408/E40A per the header map) or bench-probe
- * before trusting these helpers on hardware. */
+ * CS HUNT 2026-09-08 (session f3480f35) — verdict NOT-FOUND, no define
+ * changed (bar: same CS bit framing a read AND a write transaction with
+ * SK-toggle + DI-shift + DO-sample shape; never met, so no new address):
+ *   - All 8 ROM refs to 0xFFFFE401 checked (hw_init_1 @0x176/@0x1F0,
+ *     atu_timer_init @0x10AE/@0x1100, eeprom_task_handler_A @0x9BFA,
+ *     getHCANSomething @0x9C3E, can_enable/disable_mailbox_int
+ *     @0xCC74/@0xCC8C + shared helper loc_9E14): every one is CAN/ATU
+ *     status or init. Clock helpers 0x9C0/0x9DE are called ONLY from
+ *     hw_init_1 (init); they have no runtime callers — so there is no
+ *     runtime E4xx bit-bang in ROM. E4xx = HCAN/ATU space, not SPI GPIO.
+ *   - Alleged ROM SPI ops disassembled, all RAM-only (zero GPIO): 0x49700
+ *     (flag gate setting read-request @0xFFFFCD01), 0x496BA (wear-counter
+ *     gate @0xFFFFCCF8), 0x49778, 0x4B4A0, 0x3D2EE, 0x51A86 (RAM tables),
+ *     dispatcher 0x37000, getFromE2/writeToE2 0x39170/0x39124 (staging
+ *     copies + validity filter). The "ROM address" cross-refs on
+ *     eeprom_read/write/erase_byte below mark these request-flag gates,
+ *     NOT chip shift routines.
+ *   - c/eeprom_immo.h "CS=0xFFFFF74E / data=0xFFFFF738" claim checked and
+ *     NOT confirmed: F74E is a multi-owner PFC register (bit0 sampled as
+ *     input @0x4F1E6, bit3 set at boot @0xA054, bit8 set @0x70AC, bit10
+ *     pulsed @0xC0A8); F738 bit11 sampled @0xC0DA, bit15 toggled @0xA9F4
+ *     from the CAN periodic task. Only single pulse+sample shape exists
+ *     (test_pbdr_bit11_set_pfdr_filter @0xC0A8, used as a validity filter
+ *     in RAM paths) — no CS-frame + SK-toggle + DI-shift + DO-sample
+ *     counted loop (11/19-bit Microwire frame) found anywhere in ROM.
+ * BENCH PROBE (to resolve): power the ECU, scope SOIC8 IC420 (S-93C56C)
+ * CS/SK/DI/DO at key-on; continuity-test the CS pin back to the SH7055;
+ * watch PFC bits F74E:b10 and F738:b11/b15 as first candidates. Promote a
+ * pin to the define below only after observing the CS-frame shape
+ * (HIGH once at start, held through SK toggling, LOW at end) at both a
+ * read and a write transaction. */
 #define SPI_CS_PORT     (*(volatile uint16_t *)0xFFFFF730)
 #define SPI_CS_BIT      0x0001  /* Bit 0 = chip select (active LOW) */
 
