@@ -9116,15 +9116,6 @@ Y,0x7b43c,B900,0x7a1e0,content_match,high
 Y,0x7b43c,E700,0x79d64,family_shift,medium
 Y,0x7b43c,15120,0x7b674,content_match,high
 Y,0x7b43c,32000,0x7c25c,content_match,high
-Y,0x7b43c,D400,0x7b43c,same_addr,high
-Y,0x7b43c,E500,0x79cb4,family_shift,low
-Y,0x7b43c,C500,0x79cb4,content_match,high
-Y,0x7b43c,FB00,0x7a1e0,content_match,high
-Y,0x7b43c,FC00,0x7a1e0,content_match,high
-Y,0x7b43c,B900,0x7a1e0,content_match,high
-Y,0x7b43c,E700,0x79d64,family_shift,low
-Y,0x7b43c,15120,0x7b674,content_match,high
-Y,0x7b43c,32000,0x7c25c,content_match,high
 Table 2D - 271_,0x7b464,D400,0x7b464,same_addr,high
 Table 2D - 271_,0x7b464,E500,0x79cdc,content_match,high
 Table 2D - 271_,0x7b464,C500,0x79cdc,content_match,high

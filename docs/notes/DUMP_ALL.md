@@ -8,7 +8,7 @@ First move: needs **zero** car infrastructure — no cluster, wheel-speed sim, C
 
 - **Location**: IC420, front side, directly adjacent to IC430 (SH7055 CPU) — `docs/notes/HARDWARE.md`.
 - **Part**: ABLIC S-93C56C, 256 bytes, 3-wire (Microwire), confirmed marking `S93C56` + `BD`.
-- **Critical**: ECU must be **completely unpowered** during the clip read. IC420's CS/CLK/DI/DO lines are normally bit-banged by the SH7055 (IC430) over GPIO. If powered, the CPU may drive those lines and fight the CH341A, so the read can corrupt.
+- **Critical**: ECU must be **completely unpowered** during the clip read. IC420's CS/CLK/DI/DO routing is **unresolved** — no SH-side SPI/Microwire driver found in the ROM image (likely companion-ASIC-fed; see `KNOWLEDGE.md` EEPROM Shadow). If powered, board logic may drive those lines and fight the CH341A, so the read can corrupt.
 - **Tool/settings**: CH341A + SOIC8 test clip, **93C56 (256 byte)** organization — same settings as the existing saved EEPROM dump. Clip orientation: pin-1 dot to clip's marked pin 1.
 - **Verify**: first byte `0x55` (valid marker, per `docs/notes/KNOWLEDGE.md`). Save as a new file (do not overwrite) and diff — same ECU → byte-for-byte match.
 

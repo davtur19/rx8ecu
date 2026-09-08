@@ -48,7 +48,7 @@ Offset  Size  Endian Description
 | 0x0041 | MB9     | 8   | TX  | 0x01C518   | KCM keyless/immobiliser response (field-verified — see "Field vs firmware") |
 | 0x0240 | MB10    | 8   | TX  | 0x01CEA4   | Transmission / gear — *byte3 = coolant?* per field: OPEN, needs bench verification |
 | 0x0250 | MB11    | 8   | TX  | 0x01CEB8   | Injection pulse width — *byte3 = IAT* per field: OPEN, needs bench verification |
-| 0x0251 | MB11    | 8   | TX  | 0x01BB9C   | Engine data, every 2 cycles — shares TX buf 0xFFFFBB9C with 0x215 staging (see "CAN ID 0x251") |
+| 0x0251 | — (no config-table entry) | 8   | TX  | 0xFFFFBB9C (RAM staging, time-multiplexed with 0x215) | Engine data, every 2 cycles (see "CAN ID 0x251") |
 | 0x04B1 | MB12    | 8   | TX? | 0x01CE90   | DSC request (bidirectional?) |
 | 0x07DF | MB13    | 8   | RX  | 0x0DE04    | UDS broadcast request |
 | 0x07E0 | MB14    | 8   | RX  | 0x0DE04    | UDS physical request |
@@ -177,7 +177,7 @@ The UDS response is written to the CAN0 0x7E8 mailbox buffer at offset 0x0DE0C
 
 ## Known Proprietary Broadcast IDs
 
-> Description column: **field-verified meanings** (per `can_protocol/verification/field_vs_firmware.md` and `can_protocol/rx8club_thread_276101_CAN_map.txt`); DLC/dir/ID from firmware mailbox config, unchanged.
+> Description column: **field-verified meanings** (cross-checked against public field captures; no local capture files are shipped); DLC/dir/ID from firmware mailbox config, unchanged.
 
 | ID | Mailbox | TX/RX | Content |
 |----|---------|-------|---------|
@@ -190,7 +190,7 @@ The UDS response is written to the CAN0 0x7E8 mailbox buffer at offset 0x0DE0C
 | 0x231 | CAN0 MB4 | TX    | Engine state / gear selector — *field data differs* (MT/AT DLC split): OPEN, needs bench verification |
 | 0x240 | CAN0 MB10| TX    | Transmission / gear data — *byte3 = coolant?* per field: OPEN, needs bench verification |
 | 0x250 | CAN0 MB11| TX    | Injection pulse width, fuel — *byte3 = IAT* per field: OPEN, needs bench verification |
-| 0x251 | CAN0 MB11| TX    | Engine data, every 2 cycles (3× u16 BE + status bytes — see "CAN ID 0x251") |
+| 0x251 | CAN0 — (no mailbox) | TX    | Engine data, every 2 cycles (3× u16 BE + status bytes — see "CAN ID 0x251") |
 | 0x420 | CAN0 MB5 | TX    | Coolant temp gauge (byte0 raw−40) + MIL/oil/batt/water warning lamps |
 | 0x430 | CAN1 MB4 | RX    | Instrument cluster presence (immo role unconfirmed) |
 | 0x47  | CAN1 MB7 | RX    | KCM keyless/immobiliser request (key-on chat) |
@@ -298,4 +298,4 @@ Firmware mailbox config (ID sets above, ROM 60E1D400) vs **field-observed** RX-8
 
 Field-decoded meanings for the 7 disagreements: confidence tier **[A]** (≥2 independent sources; 0x041/0x047 confirmed on two cars). The 3 "PARTIAL" rows are **OPEN — need bench/Ghidra verification**.
 
-Source: `can_protocol/verification/field_vs_firmware.md` (+ `can_protocol/rx8club_thread_276101_CAN_map.txt`).
+Sources: the public field captures named above; no local capture files are shipped.

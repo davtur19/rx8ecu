@@ -15,7 +15,7 @@ processes).
 
 Reads (read-only, nothing is ever modified):
     ../../symbols/callgraph.csv                  (callgraph edges, 60E0FC00 context)
-    ../../symbols/cal_tables.csv                 (1210 calibration-table entries)
+     ../../symbols/cal_tables.csv                 (1209 calibration-table entries: 548 tables + 661 axes)
     ../../symbols/symbols_60E0FC00.csv           (symbols with ranges, ROM 60E0FC00)
     ../../symbols/symbols_60E0FC00_ghidra.csv    (ghidra hand names, ROM 60E0FC00)
     ../../symbols/symbols_60E1D400_ida.csv       (baseline 60E1D400 symbols)
@@ -25,7 +25,7 @@ Reads (read-only, nothing is ever modified):
     ../../docs/functions/*.md                    (content: title + address + markdown body)
     ../../docs/subsystems/*.md                   (content: "Subsystems" view)
     data/roms_meta.json                          (the 9 stock ROM models metadata)
-    data/table_addr_map_long.csv                 (per-ROM address mapping of the 1210 tables)
+     data/table_addr_map_long.csv                 (per-ROM address mapping of the 1209 tables)
     src/index.template.html, src/app.js, src/style.css  (site sources)
 
 Writes the complete static site into dist/:
@@ -1167,7 +1167,7 @@ def render_landing_page(data=None):
         landing_stats = ("Firmware open &middot; %d symbols &middot; %d tables"
                          % (c["symbols"], c["tables_rows"]))
     else:
-        landing_stats = "Firmware open &middot; 6083 symbols &middot; 1210 tables"
+        landing_stats = "Firmware open &middot; 6083 symbols &middot; 1209 tables"
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1302,7 +1302,7 @@ footer {
       </div>
     </div>
     <div class="card-body">
-      <p>Browse 6,000+ symbols, interactive callgraph, 1,210 calibration
+      <p>Browse 6,000+ symbols, interactive callgraph, 1,209 calibration
       tables with extracted values across 9 stock firmware models.
       Function documentation, address lookup, and subsystem docs.</p>
       <div class="tags">

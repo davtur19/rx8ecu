@@ -43,8 +43,8 @@ push.
 
 - `Makefile` — build / serve / clean / check
 - `data/` — REQUIRED INPUTS (committed, NOT gitignored): `roms_meta.json` (9 stock
-  ROM models), `table_addr_map.csv` (wide, 1210 rows), `table_addr_map_long.csv`
-  (long, 1210 x 9 = 10890 rows), `MAPPING_NOTES.md` (methodology, EN of IT notes)
+  ROM models), `table_addr_map.csv` (wide, 1209 rows), `table_addr_map_long.csv`
+  (long, 1209 x 9 = 10881 rows), `MAPPING_NOTES.md` (methodology, EN of IT notes)
 - `src/` — `index.template.html` + `app.js` + `style.css`
 - `build_site.py` — THE builder: dataset + site assembly (+ optional `--serve`)
 - `dist/` — generated output (git-ignored, `.gitignore` ignores `dist/` only); edit
@@ -52,7 +52,7 @@ push.
 
 ## Inputs read (read-only)
 
-- `../../symbols/callgraph.csv` (6953 edges) · `../../symbols/cal_tables.csv` (1210
+- `../../symbols/callgraph.csv` (6953 edges) · `../../symbols/cal_tables.csv` (1209
   entries) · `../../symbols/symbols_60E0FC00.csv` + `..._ghidra.csv` (60E0FC00) ·
   `../../symbols/symbols_60E1D400_ida.csv` + `..._merged.csv` (baseline 60E1D400)
 - `../../roms/stock/60E1D400.bin` — **real values** (default model) ·
@@ -67,7 +67,7 @@ push.
 **Functions & Symbols** — live search (name/address), category/ROM/doc filters; click →
 details + callers/callees + **Documentation** (real `.md`) · **Callgraph** — canvas
 ego-graph: depth 1–2, `bsr`/`ref` filters; force layout, pan/zoom, drag, re-center ·
-**Calibration Tables** — 1210 CSV entries (548 tables + 662 axes), filters; model/base
+**Calibration Tables** — 1209 CSV entries (548 tables + 661 axes), filters; model/base
 address, method/confidence, type, values; heatmap/chart when mapped, else est. f32 +
 raw bytes · **Documentation** — all `docs/functions/*.md` + `docs/subsystems/*.md`,
 full-text search, minimal markdown · **Address Lookup** — hex address → function /

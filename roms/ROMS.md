@@ -62,8 +62,8 @@ Observations:
   S1 RX-8. `N3` prefix = RENESIS 13B. Editor/logger defs:
   [equinox311/RX8Defs](https://github.com/equinox311/RX8Defs).
 - **CPU = Renesas HD64F7055(S)** (SH7055, SH-2 core + single-precision FPU =
-  SH-2E). Flash recovery through BOOT mode on header CN400 — see
-  `docs/notes/FULL_ANALYSIS.md` / `docs/notes/BOOT_RECOVERY.md`.
+   SH-2E). Flash recovery through BOOT mode on header CN400 — see
+   `docs/notes/BOOT_RECOVERY.md`.
 
 No tuned- or modified-ROM images are tracked in this repo. IDA project files
 (`*.i64`) and Ghidra archives (`*.gar`) are also excluded from the public repo
