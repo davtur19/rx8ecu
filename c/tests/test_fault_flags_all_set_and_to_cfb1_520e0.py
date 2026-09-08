@@ -171,24 +171,7 @@ def main():
         c_ = rnd.randint(0, 0xFFFFFFFF)
         d = rnd.randint(0, 0xFFFFFFFF)
         fr_in = [((caso * 0x9E3779B1 + i * 0x1000003) & 0xFFFFFFFF) for i in range(16)]
-        fr_in = [((x & 0x7F7FFFFF) | 0x3F800000) for x in fr_in]  # finite, positive, no NaN/Inf
-        if caso == 329:
-            # TODO(NaN): quarantined — HOST ARTIFACT, not a lift bug. caso=329's
-            # "finite" vectors are actually NaN: the filter above yields
-            # exp=0xFF whenever the raw exponent has bit7 set, so all 16 fr_in
-            # lanes are 0x7FCB64xx qNaN here, and the RAM prefill word at
-            # 0xFFFFAE64 is 0xFFB06112 (negative sNaN). Mirror and emu then
-            # evaluate the IDENTICAL expression ts(f2+f3) on bit-identical
-            # doubles (fr2=fffe0c2240000000 fr3=fff96c9040000000 at 0x520ea),
-            # yet x86 propagates different NaN payloads depending on process
-            # history (fresh cpu -> FFCB6482, reused cpu -> FFF06112;
-            # pure-Python repro: first ts(a+b) of a sequence returns src2's
-            # payload, steady state src1's). Pre-existing on HEAD (failed at
-            # FR there); sNaN migration only moved it to the RAM store bytes
-            # (0xFFFFD115: mirror=CB emu=F0). Finite oracle untouched; the
-            # template filter bug is queued as follow-up.
-            skipped += 1
-            continue
+        fr_in = [((x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23)) for x in fr_in]  # true-finite (+) normal: fold exp-bit7, 0->0x40
         try:
             m = spec_mirror(a, b, c_, d, dict(ram), fr_in)
         except ValueError:

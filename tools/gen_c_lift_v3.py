@@ -3008,10 +3008,18 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
 # fr_bits, fpul) where fr_bits = [f2bits(f) for f in fr] (exact bit patterns).
 # main() seeds FR input deterministically per case:
 #   fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF
-#   then NaN/Inf-free filtered: (x & 0x7F7FFFFF) | 0x3F800000
-#   — clears the sign bit and forces exponent < 0xFF so no -0.0 edge/NaN/Inf
-#   (every bit pattern is a finite, positive float32; the OR keeps the value
-#   >= 1.0 magnitude so denormal corner cases never enter the comparison).
+#   then true-finite filtered:
+#     (x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23)
+#   GUARANTEE: every value is finite, normalized, positive: sign=0 (no -0.0),
+#   exp in 0x01..0x7F (never 0x00 denormal/zero, never 0xFF NaN/Inf), mantissa
+#   fully preserved. Construction folds the raw exponent's bit7 (e & 0x7F, so
+#   0x80..0xFF map onto 0x00..0x7F) and remaps folded 0x00 to 0x40 (small
+#   normal ~1e-19, mid-range to avoid underflow back to denormal in results).
+#   This replaces the old (x & 0x7F7FFFFF) | 0x3F800000 filter, which forced
+#   the low 7 exp bits to 1 but let raw bit30 (exp bit7) through, yielding
+#   exp=0xFF (NaN/Inf) whenever it was set — ~50% of vectors, e.g. all 16
+#   lanes of caso=329. Folded range keeps 127 distinct exponents
+#   (values ~1.2e-38..2.0) instead of collapsing everything into [1,2).
 # The sh2emu oracle is fed the SAME bit patterns as float32 values:
 #   cpu.call(..., fr={i: bits2f(fr_in[i]) for i in range(16)}, ...).
 # Comparison: r0..r15, the 16 FR bit patterns (payload-insensitive via
@@ -3051,8 +3059,10 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         'prefill around the literal addresses plus a synthetic 0x400-byte stack at\n'
         'STACK_BASE.  FR inputs are seeded per case as 16 uint32 bit patterns\n'
         'fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with\n'
-        '(x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive\n'
-        'float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).\n'
+        '(x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23) to guarantee\n'
+        'every value a finite positive normalized float32 (sign=0, exp\n'
+        '0x01..0x7F: fold raw exp-bit7, remap folded 0x00->0x40 — no\n'
+        'NaN/Inf/denormal/-0.0 in the diff).\n'
         'Scope: finite + sNaN — main vectors are finite/positive as above; one\n'
         'extra raw-bits sNaN edge case (EDGE_NAN_BITS cycled over FR0-15)\n'
         'covers NaN quieting with a payload-insensitive FR oracle\n'
@@ -3204,7 +3214,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '        d = rnd.randint(0, 0xFFFFFFFF)\n'
         '        gbr = rnd.randint(0, 0xFFFFFFFF)\n'
         '        fr_in = [((caso * 0x9E3779B1 + i * 0x1000003) & 0xFFFFFFFF) for i in range(16)]\n'
-        '        fr_in = [((x & 0x7F7FFFFF) | 0x3F800000) for x in fr_in]  # finite, positive, no NaN/Inf\n'
+        '        fr_in = [((x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23)) for x in fr_in]  # true-finite (+) normal: fold exp-bit7, 0->0x40\n'
         '        try:\n'
         '            m = spec_mirror(a, b, c_, d, dict(ram), fr_in, gbr)\n'
         '        except ValueError:\n'
