@@ -21,7 +21,9 @@ import os, random, struct, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, ts, f2bits
+from float_compare import same_result_bits, EDGE_NAN_BITS
 
 ROM = os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin')
 ADDR = 0x3ED0C
@@ -58,9 +60,33 @@ def main():
             want = ts(ts(a) / ts(b))        # fdiv on single-precision operands
         cpu.call(ADDR, fr={4: a, 5: b}, ram={})
         got = cpu.fr[0]
-        if f2bits(got) != f2bits(want):
+        if not same_result_bits(f2bits(got), f2bits(want)):
             print('MISMATCH iter=%d mode=%d a=%g b=%g want=%g got=%g' % (it, mode, a, b, want, got))
             fails += 1
+            if fails >= 3:
+                break
+
+    # NaN-payload / Inf edge matrix (floats decoded from raw bits; the oracle
+    # compare is payload-insensitive while NaN-vs-Inf still compares exactly).
+    # Divisors exclude zero: b == 0 takes the ROM early-return paths above,
+    # never the fdiv whose result `want` models here.
+    if fails < 3:
+        edge_as = [struct.unpack('>f', struct.pack('>I', b))[0]
+                   for b in EDGE_NAN_BITS]
+        edge_as += [float('inf'), float('-inf'), 0.0, -0.0, 1.0]
+        edge_bs = [struct.unpack('>f', struct.pack('>I', b))[0]
+                   for b in EDGE_NAN_BITS]
+        edge_bs += [float('inf'), float('-inf'), 1.0, -1.0]
+        for a in edge_as:
+            for b in edge_bs:
+                want = ts(ts(a) / ts(b))        # fdiv on single-precision operands
+                cpu.call(ADDR, fr={4: a, 5: b}, ram={})
+                got = cpu.fr[0]
+                if not same_result_bits(f2bits(got), f2bits(want)):
+                    print('MISMATCH edge a=%r b=%r want=%r got=%r' % (a, b, want, got))
+                    fails += 1
+                    if fails >= 3:
+                        break
             if fails >= 3:
                 break
 

@@ -28,7 +28,9 @@ Run from repo root: python3 c/tests/test_throttle_position_adc_reader_19FC0.py [
 import math, os, random, struct, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, ts  # noqa: E402
+from float_compare import same_result_bits, EDGE_NAN_BITS  # noqa: E402
 
 rom = open(os.path.join(ROOT, 'roms', 'stock', '60E1D400.bin'), 'rb').read()
 cpu = SH2(rom)
@@ -58,6 +60,26 @@ def ref(adc, f):
     return (0, True, r14 & 0xFFFF, r14 & 0xFFFF)
 
 
+def ref_bits(adc, bits):
+    """Raw-bits variant of ref(): NaN-ness and the checksum come straight
+    from the bit pattern, with no host-float round-trip (which would quiet
+    signaling-NaN payloads before the oracle sees them)."""
+    adc &= 0xFFFF
+    bits &= 0xFFFFFFFF
+    if adc < LIM:
+        return (0x6F9EC, False, None, None)   # r0 = table-desc addr, untouched
+    if (bits & 0x7F800000) == 0x7F800000 and (bits & 0x007FFFFF) != 0:
+        return (1, False, None, None)
+    r14 = (~((s16(bits >> 16) + s16(bits & 0xFFFF)) & 0xFFFFFFFF)) & 0xFFFFFFFF
+    return (0, True, r14 & 0xFFFF, r14 & 0xFFFF)
+
+
+def w8088_ok(got_bytes, exp_bytes):
+    """NaN-payload-insensitive compare of the f32 side-effect word."""
+    return same_result_bits(int.from_bytes(got_bytes, 'big'),
+                            int.from_bytes(exp_bytes, 'big'))
+
+
 def main():
     N = int(sys.argv[1]) if len(sys.argv) > 1 else 20000
     rng = random.Random(0x19FC0)
@@ -69,6 +91,26 @@ def main():
         ram = {}
         ram[A424] = (adc & 0xFF00) >> 8; ram[A424 + 1] = adc & 0xFF
         b = struct.pack('>f', ts(f))
+        for i in range(4):
+            ram[AA10 + i] = b[i]
+        # sentinels for side-effect words
+        ram[W8088] = (SENT32 >> 24) & 0xFF; ram[W8088 + 1] = (SENT32 >> 16) & 0xFF
+        ram[W8088 + 2] = (SENT32 >> 8) & 0xFF; ram[W8088 + 3] = SENT32 & 0xFF
+        ram[W808C] = (SENT16 >> 8) & 0xFF; ram[W808C + 1] = SENT16 & 0xFF
+        ram[W808E] = (SENT16 >> 8) & 0xFF; ram[W808E + 1] = SENT16 & 0xFF
+        ret = cpu.call(ADDR, ram=ram)
+        g8088 = bytes(cpu.ram.get(W8088 + i, 0) for i in range(4))
+        g808c = bytes(cpu.ram.get(W808C + i, 0) for i in range(2))
+        g808e = bytes(cpu.ram.get(W808E + i, 0) for i in range(2))
+        return ret, g8088, g808c, g808e
+
+    def run_bits(adc, bits):
+        """Raw-bits variant of run(): stages the f32 input RAM bytes directly
+        from the bit pattern via struct.pack('>I', bits) — never via a host
+        float, so signaling-NaN payloads reach the emulator intact."""
+        ram = {}
+        ram[A424] = (adc & 0xFF00) >> 8; ram[A424 + 1] = adc & 0xFF
+        b = struct.pack('>I', bits & 0xFFFFFFFF)
         for i in range(4):
             ram[AA10 + i] = b[i]
         # sentinels for side-effect words
@@ -104,14 +146,36 @@ def main():
             exp8088 = struct.pack('>I', SENT32)
             exp808c = struct.pack('>H', SENT16)
             exp808e = struct.pack('>H', SENT16)
-        if (got_ret != ret or g8088 != exp8088 or g808c != exp808c
-                or g808e != exp808e):
+        if (got_ret != ret or not w8088_ok(g8088, exp8088)
+                or g808c != exp808c or g808e != exp808e):
             fails += 1
             if fails <= 10:
                 print("FAIL adc=%04x f=%r\n  got ret=%x 8088=%s 808C=%s 808E=%s"
                       % (adc, f, got_ret, g8088.hex(), g808c.hex(), g808e.hex()))
                 print("  want ret=%x 8088=%s 808C=%s 808E=%s"
                       % (ret, exp8088.hex(), exp808c.hex(), exp808e.hex()))
+    # NaN-payload edge inputs seeded from raw bits (above) x ADC limbs.
+    for bits in EDGE_NAN_BITS:
+        for adc in (0, 1, LIM - 1, LIM, LIM + 1, 0xFFFF):
+            ret, w, c, e = ref_bits(adc, bits)
+            got_ret, g8088, g808c, g808e = run_bits(adc, bits)
+            tests += 1
+            if w:
+                exp8088 = struct.pack('>I', bits & 0xFFFFFFFF)
+                exp808c = struct.pack('>H', c)
+                exp808e = struct.pack('>H', e)
+            else:
+                exp8088 = struct.pack('>I', SENT32)
+                exp808c = struct.pack('>H', SENT16)
+                exp808e = struct.pack('>H', SENT16)
+            if (got_ret != ret or not w8088_ok(g8088, exp8088)
+                    or g808c != exp808c or g808e != exp808e):
+                fails += 1
+                if fails <= 10:
+                    print("FAIL edge adc=%04x bits=%08x\n  got ret=%x 8088=%s 808C=%s 808E=%s"
+                          % (adc, bits, got_ret, g8088.hex(), g808c.hex(), g808e.hex()))
+                    print("  want ret=%x 8088=%s 808C=%s 808E=%s"
+                          % (ret, exp8088.hex(), exp808c.hex(), exp808e.hex()))
     print("throttle_position_adc_reader @0x19FC0: %d tests, %d failures"
           % (tests, fails))
     if fails == 0:
