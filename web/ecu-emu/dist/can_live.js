@@ -79,6 +79,33 @@ var CANLive = (function() {
     return outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
   }
 
+  /* Wave A2: live core readers (fan states, A/C clutch, battery, oil).
+   * Fall back to the sensorState snapshot when the core predates the API. */
+  function coreFlag(fn, fb) {
+    try {
+      if (typeof Module !== "undefined" && Module && typeof Module[fn] === "function") {
+        return Module[fn]() ? 1 : 0;
+      }
+    } catch (e) {}
+    return fb ? 1 : 0;
+  }
+  function coreFan(i, fb) {
+    try {
+      if (typeof Module !== "undefined" && Module && typeof Module.emu_get_fan === "function") {
+        return Module.emu_get_fan(i) ? 1 : 0;
+      }
+    } catch (e) {}
+    return fb ? 1 : 0;
+  }
+  function coreNum(fn, fb) {
+    try {
+      if (typeof Module !== "undefined" && Module && typeof Module[fn] === "function") {
+        var v = Module[fn]();
+        if (typeof v === "number" && isFinite(v)) return v;
+      }
+    } catch (e) {}
+    return fb;
+  }
   /* Clamp RPM×4 to a u16 (BE split below); guards negative/huge rpm. */
   function rpmRawU16(rpm) {
     var r = (typeof rpm === "number" && isFinite(rpm)) ? rpm : 0;
@@ -168,15 +195,20 @@ var CANLive = (function() {
   /**
    * CAN ID 0x630 — Cooling fan data (8 bytes)
    * ROM: can630TX_dispatch (0x33974)
+   * Wave A2: fan bits come from the LIVE core fan states (hysteresis +
+   * after-run), not from raw ECT thresholds. Byte 1 carries battery
+   * terminal voltage x10 (A2 extension, emulator-level).
    */
   function pack0x630(st) {
-    var fan1 = st.ect > 90 ? 0x01 : 0x00;
-    var fan2 = st.ect > 100 ? 0x02 : 0x00;
+    var fan1 = coreFan(0, st.ect > 90);
+    var fan2 = coreFan(1, st.ect > 100);
+    var bv10 = Math.round(coreNum("emu_get_batt_v", 12.6) * 10);
     return [
-      fan1 | fan2,
-      0x00, 0x00, 0x00,
+      fan1 | (fan2 << 1),
+      bv10 & 0xFF,
       0x00, 0x00,
-      st.ect > 100 ? 0x01 : 0x00,
+      0x00, 0x00,
+      fan2,
       fan1
     ];
   }
@@ -200,9 +232,26 @@ var CANLive = (function() {
   /**
    * CAN ID 0x620 — Fan/AC status (7 bytes)
    * ROM: can620TX_pack (0x33A68)
+   * NOTE: no byte layout is documented in firmware/c/can.c, so this is an
+   * emulator best-effort frame carrying the LIVE A2 values (consistent
+   * with dlc=7): byte 0 fan flags (bit0 low, bit1 high), byte 1 A/C clutch,
+   * byte 2 battery terminal V x10, byte 3 SoC %, byte 4 after-run flag.
    */
   function pack0x620(st) {
-    return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+    var fan1 = coreFan(0, st.ect > 90);
+    var fan2 = coreFan(1, st.ect > 100);
+    var ac = coreFlag("emu_get_ac", false);
+    var bv10 = Math.round(coreNum("emu_get_batt_v", 12.6) * 10);
+    var soc = Math.round(coreNum("emu_get_soc", 100));
+    var after = coreFlag("emu_get_afterrun", false);
+    return [
+      (fan1 | (fan2 << 1)) & 0xFF,
+      ac & 0xFF,
+      bv10 & 0xFF,
+      soc & 0xFF,
+      after & 0xFF,
+      0x00, 0x00
+    ];
   }
 
   /**
@@ -364,8 +413,9 @@ var CANLive = (function() {
       o2f: num(src.o2f, 0.45),
       o2r: num(src.o2r, 0.45),
       vss: num(src.vss, 0),
-      oilLow: src.oilLow === true,
-      battLow: src.battLow === true,
+      /* Wave A2: oil/battery lamps follow the live core flags. */
+      oilLow: coreFlag("emu_get_oil_low", src.oilLow === true) === 1,
+      battLow: coreFlag("emu_get_batt_weak", src.battLow === true) === 1,
       mil: src.mil === true
     };
 
@@ -636,5 +686,31 @@ var CANLive = (function() {
     if (_timer) { clearInterval(_timer); _timer = null; }
   }
 
-  return { init: init, stop: stop };
+  /* Wave A2 headless test hook: pack one frame for `id` from the current
+   * live state (core fans/battery + window.sensorState). Returns
+   * { id, dlc, data } or null for unknown ids. No DOM touched. */
+  function pack(id) {
+    if (typeof window === "undefined" || !window.sensorState) return null;
+    var src = window.sensorState;
+    function num(v, d) { return (typeof v === "number" && isFinite(v)) ? v : d; }
+    var st = {
+      rpm: num(src.rpm, 0), ect: num(src.ect, 80), iat: num(src.iat, 25),
+      map: num(src.map, 35), tps: num(src.tps, 0),
+      o2f: num(src.o2f, 0.45), o2r: num(src.o2r, 0.45), vss: num(src.vss, 0),
+      oilLow: coreFlag("emu_get_oil_low", false) === 1,
+      battLow: coreFlag("emu_get_batt_weak", false) === 1,
+      mil: src.mil === true
+    };
+    var table = { 0x201: 8, 0x203: 7, 0x420: 7, 0x630: 8, 0x620: 7,
+      0x215: 8, 0x251: 8, 0x240: 8, 0x250: 8, 0x231: 5, 0x650: 1, 0x041: 8 };
+    var fn = { 0x201: pack0x201, 0x203: pack0x203, 0x420: pack0x420,
+      0x630: pack0x630, 0x620: pack0x620, 0x215: pack0x215, 0x251: pack0x251,
+      0x240: pack0x240, 0x250: pack0x250, 0x231: pack0x231, 0x650: pack0x650,
+      0x041: pack0x041 }[id];
+    if (!fn || table[id] === undefined) return null;
+    var data = fn(st);
+    return { id: id, dlc: table[id], data: data };
+  }
+
+  return { init: init, stop: stop, pack: pack };
 })();
