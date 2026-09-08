@@ -30,7 +30,7 @@ static void map_page(uintptr_t addr)
 
 static int check(uint32_t r4, uint16_t idx, uint8_t b0d, uint8_t b0e)
 {
-    uint8_t *p = (uint8_t *)(BASE + (uint32_t)(idx & 0xFFFF) * 16);
+    uint8_t *p = (uint8_t *)(uintptr_t)(BASE + (uint32_t)(idx & 0xFFFF) * 16);
     *(volatile uint16_t *)CUR = idx;
     p[0x0D] = b0d;
     p[0x0E] = b0e;

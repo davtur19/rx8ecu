@@ -79,7 +79,7 @@ int32_t obd_service_handler_63834(uint32_t r4)
 {
     uint16_t cur = *(volatile uint16_t *)CUR_INDEX;
     for (uint32_t i = 0; i < CTX_COUNT; i++) {
-        uint8_t *p = (uint8_t *)(CTX_BASE + i * CTX_STRIDE);
+        uint8_t *p = (uint8_t *)(uintptr_t)(CTX_BASE + i * CTX_STRIDE);
         if (*(volatile uint16_t *)p == (uint16_t)(r4 & 0xFFFFu)
             && i != (uint32_t)(cur & 0xFFFFu))
             return (int32_t)(int8_t)p[6];

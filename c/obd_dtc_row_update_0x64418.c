@@ -23,7 +23,7 @@
 void obd_dtc_row_update_0x64418(uint32_t r4)
 {
     uint16_t row = *(volatile uint16_t *)0xFFFF8D74;
-    uint8_t *p = (uint8_t *)(0xFFFF8930 + (uint32_t)row * 0x34);
+    uint8_t *p = (uint8_t *)(uintptr_t)(0xFFFF8930 + (uint32_t)row * 0x34);
     p[0x32] = (uint8_t)((int32_t)(int8_t)p[0x32] + (int32_t)(int8_t)p[0x08]
                         - (int32_t)r4);
     p[0x08] = (uint8_t)r4;

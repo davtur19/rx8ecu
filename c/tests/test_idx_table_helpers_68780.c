@@ -41,7 +41,7 @@ static void map_page(uintptr_t addr)
 
 static uint8_t *paddr(uint32_t r4)
 {
-    return (uint8_t *)(BASE + (uint32_t)(r4 & 0xFF) * STRIDE);
+    return (uint8_t *)(uintptr_t)(BASE + (uint32_t)(r4 & 0xFF) * STRIDE);
 }
 
 static uint16_t rd16(uint8_t *p) { return *(volatile uint16_t *)p; }

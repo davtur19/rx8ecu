@@ -32,7 +32,7 @@ int32_t obd_dtc_find_0x6443E(uint32_t r4)
     uint8_t key = r4 & 0xFF;
     uint16_t currow = *(volatile uint16_t *)DTC_CURROW;
     for (uint32_t i = 0; i < DTC_ROWS; i++) {
-        uint8_t *p = (uint8_t *)(DTC_BASE + i * DTC_STRIDE);
+        uint8_t *p = (uint8_t *)(uintptr_t)(DTC_BASE + i * DTC_STRIDE);
         if (p[0x06] == key && i != currow) {
             return (int32_t)(int8_t)p[0x08];
         }

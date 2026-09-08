@@ -35,7 +35,7 @@ static void map_page(uintptr_t addr)
 
 static int check(uint32_t r4, uint16_t row, uint8_t b32, uint8_t b08)
 {
-    uint8_t *p = (uint8_t *)(BASE + (uint32_t)row * STRIDE);
+    uint8_t *p = (uint8_t *)(uintptr_t)(BASE + (uint32_t)row * STRIDE);
     *(volatile uint16_t *)ROW_ADDR = row;
     p[0x32] = b32; p[0x08] = b08;
 
