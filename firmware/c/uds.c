@@ -406,17 +406,23 @@ int obd_sid10_sessionControl(uint8_t sub_func, const uint8_t *data,
      * dropping the low byte). Fixed to data[0..1] / data[2..4], requiring 2
      * bytes for P2 and 5 bytes for P2*.
      *
-     * rom-check (B16 resolved — overlap was firmware-introduced, stores
-     * removed): ROM SessionControl (0x586C8) performs NO timing-parameter
-     * RAM writes (session dispatch via callees only). ROM touches D210
-     * solely as a BYTE session-state slot (uds_security_unlock_state_set
-     * @0x56728-0x5676E: mov.b 0/1/2 -> [0xFFFFD210], with a u16 companion
-     * at D20E), the 4-byte seed lives at D211-D214 (diag_security_5699a
-     * @0x5699a), and NO ROM instruction references 0xFFFFD212 at all —
-     * so the old u16 stores to D210/D212 corrupted seed bytes D211/D213
-     * with zero ROM basis. P2/P2* are parsed and length-checked but NOT
-     * stored: their ROM backing store is unconfirmed, and storing them
-     * must wait for a ROM address (do NOT relocate blindly). */
+     * rom-check (resolved — no P2/P2* store exists): ROM SessionControl
+     * (0x586C8) enforces req_len == 1 (extu.w r4 / cmp #1 @0x586DE, else
+     * NRC 0x12 @0x5873E) and reads only payload byte 0 (sub-function via
+     * @r15); full callee sweep shows zero timing reads or writes —
+     * 68BC0 (SID table-scan only), 5681E (tables 5FA7C/5FA7E + word D3F0),
+     * 5878C (reads D208/D209 only), 56866 (reads byte D20B only), 566EC
+     * (writes D20B raw idx / D20D mapped gate / DE5C gate + security
+     * clear), 58768/553AA (stack-built TX only, via 68B60/68858 TX ring
+     * @D998 and 69792 scheduler). Len > 1 never reaches the handler, so
+     * P2/P2* have no ROM backing store: parsed below for layout
+     * documentation only, NOT stored (do NOT relocate blindly).
+     * Correction: D212 IS ROM-referenced (security_seed_byte2 — writer
+     * diag_security_5699a @0x56A9E, readers 0x56AC4/0x56B64); the old
+     * "D212 unreferenced" claim is withdrawn, but the u16-timer-store
+     * removal stands (D211-D214 are seed+id bytes, D210 is a BYTE
+     * session-state slot per uds_security_unlock_state_set @0x56728
+     * with a u16 companion at D20E). */
     if (data_len >= 2) {
         uint16_t p2_max = ((uint16_t)data[0] << 8) | data[1];
         (void)p2_max;

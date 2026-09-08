@@ -78,9 +78,14 @@
 #define UDS_SEED_BYTE3_ADDR     0xFFFFD213   /* Seed byte 3 (security_seed_byte3) */
 /* rom-check (B16-adjacent, D214 resolved): ROM diag_security_5699a stores
  * the access level to [0xFFFFD214] alongside seed bytes D211-D213, so D214
- * keeps its meaning below. NEEDS-ROM-CHECK (narrowed): only the
- * tester-present flag address is unconfirmed — 0xFFFFD215 has no documented
- * use; ROM must confirm the real TesterPresent (0x3E) RAM address. */
+ * keeps its meaning below. NEEDS-ROM-CHECK (narrowed, sharpened): the
+ * 0x3E TesterPresent handler is ROM 0x56F44 (dispatch-table record), but
+ * its full path (68BC0 table-scan, 56FEA response-build, 68B60/68858 TX
+ * ring @D998, 55362/55386 wrappers) performs zero persistent RAM writes
+ * (reads D3F0 + sub-function byte only), 0xFFFFD215 has zero ROM xrefs,
+ * and DE5C supervision (writers 566EC/696D4, reader 697EC) consumes no
+ * D21x flag — so the real TesterPresent RAM address (if any) is still
+ * unconfirmed and 0xFFFFD215 below stays a firmware-local guess. */
 #define UDS_SEED_ID_ADDR        0xFFFFD214   /* Security access ID byte */
 #define UDS_SERIAL_NUM_ADDR     0xFFFFF430   /* ECU serial number (4 bytes) */
 
@@ -136,9 +141,11 @@
 #define UDS_SESSION_LEVEL_ADDR  0xFFFFDE5C
 #define UDS_SECURITY_LEVEL_ADDR 0xFFFFD20C
 /* rom-check (B16): no UDS_SESSION_TIMER u16 at 0xFFFFD210 — ROM uses D210
- * as a BYTE session-state slot (mov.b @0x56728) overlapping nothing, and
- * nothing in ROM references 0xFFFFD212, so the old timer define is deleted
- * rather than relocated. P2/P2* timing storage awaits a ROM address. */
+ * as a BYTE session-state slot (mov.b @0x56728) with a u16 companion at
+ * D20E, and D211-D214 are seed+id bytes (diag_security_5699a @0x5699a;
+ * D212 = security_seed_byte2, xrefs 0x56A9E/0x56AC4/0x56B64), so the old
+ * timer define is deleted rather than relocated. P2/P2* have no ROM
+ * backing store (0x586C8 enforces len == 1, see uds.c SID 0x10 note). */
 /* review-fix: was 0xFFFFD214 (seed/level byte, see above). Moved to 0xFFFFD215
  * pending ROM confirmation — NEEDS-ROM-CHECK. */
 #define UDS_TESTER_PRESENT_ADDR 0xFFFFD215
