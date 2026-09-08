@@ -187,10 +187,11 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x9:
             return _mk('r%d = (r%d << 16) | (r%d >> 16);' % (n, m, m),
                        'r[%d] = ((r[%d] << 16) | (r[%d] >> 16)) & 0xFFFFFFFF' % (n, m, m), ['r%d' % n, 'r%d' % m])
-        if nib == 0xA:   # negc Rm,Rn  (mirror sh2emu: T = borrow, rn = 0-rm-T;
-            # T reads r[m] AFTER the write, so n==m sees the negated value)
-            return _mk('{ uint32_t _m0 = r%d; r%d = (uint32_t)(0u - _m0 - T); T = ((r%d + T) & 0xFFFFFFFFu) ? 1u : 0u; }' % (m, n, m),
-                       's = -r[%d] - T\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if (r[%d] + T) & 0xFFFFFFFF else 0' % (m, n, m),
+        if nib == 0xA:   # negc Rm,Rn  (mirror sh2emu: T = borrow from ORIGINAL Rm;
+            # both the C and the py mirror snapshot Rm (_m0) BEFORE the write so
+            # the n==m alias (negc r5,r5) tests the original value, as HW does)
+            return _mk('{ uint32_t _m0 = r%d; uint32_t _t0 = T; r%d = (uint32_t)(0u - _m0 - _t0); T = ((_m0 + _t0) & 0xFFFFFFFFu) ? 1u : 0u; }' % (m, n),
+                       '_m0 = r[%d]\n            _t0 = T\n            s = -_m0 - _t0\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if (_m0 + _t0) & 0xFFFFFFFF else 0' % (m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
 
     # ---- arithmetic / compare (n0==3) ----
