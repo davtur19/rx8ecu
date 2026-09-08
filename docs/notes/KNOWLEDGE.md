@@ -41,6 +41,13 @@ Flash reprogramming SIDs: 0x34→0x1A70, 0x36→0x1B8C, 0x37→0x1CB8. SecurityA
 
 S3: no S3/tester-present timeout supervision in either ROM bank — non-default session persists until explicit switch or reset; TesterPresent keep-alive is vacuous.
 TesterPresent flag D215 has no ROM references; real keep-alive flag, if any, lives off-ROM image.
+D210 = byte session-state; D211–D214 = 4-byte seed (D212 = second seed byte); no ROM instruction references 0xFFFFD212 directly.
+
+---
+
+## CAN
+
+0x251 is real ECU TX: can251TX_getAndPack @ ROM 0x2AAB6, DLC 8 via MB11 buf 0xFFFFBB9C (shared staging with 0x215), counter 0xFFFFBBC8 every 2 CANTX_Main calls; payload bytes 0–1 @0xFFFFBBBC / 2–3 @0xFFFFBBBE / 4–5 @0xFFFFBBC0 BE + 0xFFFFBBC2/0xFFFFBBC3.
 
 ---
 
@@ -73,6 +80,12 @@ If the ECU responds **NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expec
 - LC checksum window: `0xFFFFC37E–0xFFFFC38E` (17 bytes, signed byte sum must = −23)
 - **OPEN**: boot function that populates `0xFFFFC37E` not yet identified
 - 93C56 likely fed by Denso companion ASIC (no SH-side SPI/Microwire driver in ROM image); SH-side CS pin unknown.
+
+---
+
+## Timer
+
+TGR byte-lane read at base+1 (ROM RX handlers use mov.b @(1,r4) for TGR0) — not base.
 
 ---
 
