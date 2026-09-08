@@ -395,6 +395,12 @@ function applyScenario(key) {
   sensorState.iat = sc.iat;
   sensorState.map = sc.map;
   sensorState.tps = sc.tps;
+  /* Keep the engine sim from pulling rpm away from the scenario value:
+   * drive its throttle from the scenario rpm (neutral rev, load cleared). */
+  try {
+    if (typeof window.__setSimFromRPM === "function") window.__setSimFromRPM(sc.rpm);
+    else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sc.rpm);
+  } catch (e) {}
   updateSliders();
   refresh();
   // Highlight active scenario
@@ -432,6 +438,15 @@ function renderSliders() {
     input.addEventListener("input", () => {
       sensorState[s.key] = parseFloat(input.value);
       document.getElementById(`val-${s.key}`).textContent = `${sensorState[s.key]}${s.unit}`;
+      /* A hand-dragged RPM slider must stick: the engine-sim tick pulls
+       * rpm toward its throttle target, so drive the sim throttle from the
+       * slider value (inverse map, load cleared for a neutral rev). */
+      if (s.key === "rpm") {
+        try {
+          if (typeof window.__setSimFromRPM === "function") window.__setSimFromRPM(sensorState[s.key]);
+          else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sensorState[s.key]);
+        } catch (e) {}
+      }
       refresh();
     });
   });

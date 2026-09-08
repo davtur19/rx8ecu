@@ -17,9 +17,12 @@ var EngineSim = (function() {
    * ==================================================================== */
   var CRANK_TEETH = 20;           // 20-tooth trigger wheel
   var CANVAS_SIZE = 220;          // crank wheel canvas
-  var GAUGE_SIZE = 80;            // mini gauge diameter
+  var GAUGE_SIZE = 80;            // mini gauge diameter (ECT/MAP)
+  var TACHO_SIZE = 220;           // RX-8 style tachometer dial diameter
   var TICK_MS = 33;               // ~30 fps
   var REDLINE = 9000;
+  var TACHO_REDLINE = 8500;       // redline flash/glow threshold
+  var IDLE_RPM = 800;
   var OVERHEAT = 110;             // ECT DTC threshold (°C)
   var DTC_CODES = {
     P0300: "Random/Multiple misfire",
@@ -39,6 +42,8 @@ var EngineSim = (function() {
   var _dtcs = [];          // active DTCs
   var _milOn = false;
   var _cruiseOn = false;
+  var _tachoRPM = 800;   // smoothed needle value (eases toward actual rpm)
+  var _tachoAngle = 0;   // last needle angle in radians (exposed for tests)
 
   /* Canvas contexts */
   var _crankCtx = null;
@@ -56,6 +61,66 @@ var EngineSim = (function() {
   function mapRange(v, inMin, inMax, outMin, outMax) {
     return outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
   }
+
+  /* ====================================================================
+   *  Sim throttle/load control (also driven by the RPM sensor slider)
+   *
+   *  The 33ms tick pulls sensorState.rpm toward the throttle target, so a
+   *  hand-dragged #slider-rpm value would otherwise be overwritten.
+   *  app.js calls setFromRPM() on RPM-slider input: throttle is set to the
+   *  inverse-mapped value and load is cleared (neutral rev) so the sim
+   *  target equals the slider value and the drag sticks. The esim
+   *  throttle/load sliders remain the primary sim control afterwards.
+   * ==================================================================== */
+  function clampThrottle(v) {
+    v = Number(v);
+    if (isNaN(v)) return 0;
+    return Math.max(0, Math.min(100, v));
+  }
+
+  function syncSimUI() {
+    var tEl = document.getElementById("esim-throttle");
+    var tVal = document.getElementById("esim-throttle-val");
+    if (tEl) tEl.value = Math.round(_throttle);
+    if (tVal) tVal.textContent = Math.round(_throttle) + "%";
+    var lEl = document.getElementById("esim-load");
+    var lVal = document.getElementById("esim-load-val");
+    if (lEl) lEl.value = Math.round(_load);
+    if (lVal) lVal.textContent = Math.round(_load) + "%";
+  }
+
+  function setThrottle(v) {
+    _throttle = clampThrottle(v);
+    var tEl = document.getElementById("esim-throttle");
+    var tVal = document.getElementById("esim-throttle-val");
+    if (tEl) tEl.value = Math.round(_throttle);
+    if (tVal) tVal.textContent = Math.round(_throttle) + "%";
+    return _throttle;
+  }
+
+  function getThrottle() { return _throttle; }
+
+  function setLoad(v) {
+    _load = clampThrottle(v);
+    var lEl = document.getElementById("esim-load");
+    var lVal = document.getElementById("esim-load-val");
+    if (lEl) lEl.value = Math.round(_load);
+    if (lVal) lVal.textContent = Math.round(_load) + "%";
+    return _load;
+  }
+
+  function getLoad() { return _load; }
+
+  function setFromRPM(rpm) {
+    rpm = Number(rpm);
+    if (isNaN(rpm)) return _throttle;
+    setThrottle((rpm - IDLE_RPM) / (REDLINE - IDLE_RPM) * 100);
+    setLoad(0);
+    return _throttle;
+  }
+
+  function getTachoRPM() { return _tachoRPM; }
+  function getTachoAngle() { return _tachoAngle; }
 
   /* ====================================================================
    *  DTC Logic
@@ -247,6 +312,185 @@ var EngineSim = (function() {
   }
 
   /* ====================================================================
+   *  RX-8 style tachometer dial (large canvas, 0-9 x1000 rpm)
+   *
+   *  Dedicated dial (not drawGauge): numbered 0-9 scale, redline arc
+   *  8.5-9.0, smoothed needle, canvas digital readout + #tacho-digital
+   *  mirror, red flash/glow above 8500 rpm. Dark-theme palette.
+   * ==================================================================== */
+  function drawTacho(canvasId, rpm) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    if (typeof rpm !== "number" || isNaN(rpm)) rpm = getRPM();
+    var actual = rpm;
+
+    // Needle smoothing: ease displayed value toward actual rpm.
+    var diff = actual - _tachoRPM;
+    _tachoRPM += diff * 0.25;
+    if (Math.abs(diff) < 1) _tachoRPM = actual;
+    var disp = _tachoRPM;
+
+    var s = canvas.width || TACHO_SIZE;
+    var cx = s / 2, cy = s / 2;
+    var r = s * 0.40;
+    var min = 0, max = REDLINE;
+    var startAngle = Math.PI * 0.75;
+    var endAngle = Math.PI * 2.25;
+    var sweep = endAngle - startAngle;
+    function rpmToAngle(v) {
+      var f = (v - min) / (max - min);
+      if (f < 0) f = 0;
+      if (f > 1) f = 1;
+      return startAngle + sweep * f;
+    }
+    var needleAngle = rpmToAngle(disp);
+    _tachoAngle = needleAngle;
+    var isRed = actual > TACHO_REDLINE;
+
+    ctx.clearRect(0, 0, s, s);
+
+    // Bezel
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 12, 0, Math.PI * 2);
+    ctx.fillStyle = "#12161d";
+    ctx.fill();
+    ctx.strokeStyle = "#333c4a";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Redline outer flash ring
+    if (isRed) {
+      var flash = (Math.floor(Date.now() / 300) % 2 === 0) ? 1 : 0.35;
+      ctx.save();
+      ctx.globalAlpha = 0.25 + 0.55 * flash;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 12, 0, Math.PI * 2);
+      ctx.strokeStyle = "#f85149";
+      ctx.lineWidth = 4;
+      ctx.shadowColor = "#f85149";
+      ctx.shadowBlur = 18;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Track background
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.strokeStyle = "#252c38";
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    // Redline arc 8.5-9.0
+    var rlStart = rpmToAngle(8500);
+    var rlEnd = rpmToAngle(9000);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, rlStart, rlEnd);
+    ctx.strokeStyle = "#f85149";
+    ctx.lineWidth = 8;
+    ctx.lineCap = "butt";
+    if (isRed) { ctx.shadowColor = "#f85149"; ctx.shadowBlur = 12; }
+    ctx.stroke();
+    ctx.restore();
+
+    // Value arc
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, needleAngle);
+    ctx.strokeStyle = isRed ? "#f85149" : "#39c5cf";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    // Ticks: minor every 500, major every 1000
+    var v, a, x1, y1, x2, y2;
+    for (v = 0; v <= 9000; v += 500) {
+      a = rpmToAngle(v);
+      var major = (v % 1000 === 0);
+      var inRed = v >= 8500;
+      var outer = r - 10;
+      var inner = major ? r - 24 : r - 17;
+      x1 = cx + Math.cos(a) * inner;
+      y1 = cy + Math.sin(a) * inner;
+      x2 = cx + Math.cos(a) * outer;
+      y2 = cy + Math.sin(a) * outer;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = inRed ? "#f85149" : (major ? "#e6ebf2" : "#8b96a3");
+      ctx.lineWidth = major ? 2 : 1;
+      ctx.stroke();
+    }
+
+    // Numerals 0-9 (x1000)
+    ctx.font = "700 12px monospace";
+    ctx.fillStyle = "#e6ebf2";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (v = 0; v <= 9; v++) {
+      a = rpmToAngle(v * 1000);
+      var nx = cx + Math.cos(a) * (r - 34);
+      var ny = cy + Math.sin(a) * (r - 34);
+      ctx.fillStyle = (v * 1000 >= 8500) ? "#f85149" : "#e6ebf2";
+      ctx.fillText(String(v), nx, ny);
+    }
+
+    // Dial labels
+    ctx.font = "600 8px monospace";
+    ctx.fillStyle = "#8b96a3";
+    ctx.fillText("x1000 r/min", cx, cy + r * 0.42);
+    ctx.fillStyle = isRed ? "#f85149" : "#39c5cf";
+    ctx.font = "700 9px monospace";
+    ctx.fillText("RENESIS", cx, cy - r * 0.35);
+
+    // Needle
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx - Math.cos(needleAngle) * 8, cy - Math.sin(needleAngle) * 8);
+    ctx.lineTo(cx + Math.cos(needleAngle) * (r - 14), cy + Math.sin(needleAngle) * (r - 14));
+    ctx.strokeStyle = isRed ? "#f85149" : "#e6ebf2";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    if (isRed) { ctx.shadowColor = "#f85149"; ctx.shadowBlur = 10; }
+    ctx.stroke();
+    ctx.restore();
+
+    // Center cap
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = isRed ? "#f85149" : "#e6ebf2";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+    ctx.fillStyle = "#0b0e13";
+    ctx.fill();
+
+    // Canvas digital readout
+    ctx.font = "700 15px monospace";
+    ctx.fillStyle = isRed ? "#f85149" : "#e6ebf2";
+    ctx.fillText(String(Math.round(actual)), cx, cy + r * 0.68);
+
+    // Test hooks + HTML mirror
+    try {
+      canvas.dataset.rpm = String(Math.round(disp));
+      canvas.dataset.angle = String(needleAngle.toFixed(4));
+      canvas.dataset.redline = isRed ? "1" : "0";
+    } catch (e) {}
+    var dig = document.getElementById("tacho-digital");
+    if (dig) {
+      dig.textContent = Math.round(actual) + " RPM";
+      if (isRed) dig.classList.add("tacho-redline");
+      else dig.classList.remove("tacho-redline");
+    }
+    var wrap = document.getElementById("tacho-wrap");
+    if (wrap) {
+      if (isRed) wrap.classList.add("tacho-redline");
+      else wrap.classList.remove("tacho-redline");
+    }
+  }
+
+  /* ====================================================================
    *  Update simulation state from throttle/load
    * ==================================================================== */
   function updateFromThrottle() {
@@ -327,9 +571,13 @@ var EngineSim = (function() {
     // Redraw crank wheel
     drawCrankWheel();
 
-    // Update gauges
-    drawGauge("gauge-rpm", rpm, 0, 9000, "RPM", "", "#39c5cf",
-      { warn: 8000, crit: 8500 });
+    // Update gauges: RX-8 tachometer dial + mini ECT/MAP (untouched).
+    // Legacy #gauge-rpm mini is still drawn when present (backward compat).
+    drawTacho("tacho-canvas", rpm);
+    if (document.getElementById("gauge-rpm")) {
+      drawGauge("gauge-rpm", rpm, 0, 9000, "RPM", "", "#39c5cf",
+        { warn: 8000, crit: 8500 });
+    }
     drawGauge("gauge-ect", getECT(), -20, 120, "ECT", "°C", "#7ee787",
       { warn: 100, crit: 110 });
     drawGauge("gauge-map", getMAP(), 0, 105, "MAP", "kPa", "#4d7cff",
@@ -351,15 +599,22 @@ var EngineSim = (function() {
     container.innerHTML =
       '<div class="engine-sim-panel">' +
 
+        /* --- RX-8 tachometer dial --- */
+        '<div class="tacho-wrap" id="tacho-wrap">' +
+          '<div class="esim-label">TACHOMETER · RENESIS</div>' +
+          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="800" data-angle="0" data-redline="0"></canvas>' +
+          '<div id="tacho-digital" class="tacho-digital">800 RPM</div>' +
+          '<div class="tacho-sub">x1000 r/min · redline 8.5–9.0</div>' +
+        '</div>' +
+
         /* --- Crank wheel --- */
         '<div class="esim-section">' +
           '<div class="esim-label">CRANK TRIGGER (20-TOOTH)</div>' +
           '<canvas id="crank-canvas" width="' + CANVAS_SIZE + '" height="' + CANVAS_SIZE + '"></canvas>' +
         '</div>' +
 
-        /* --- Gauges row --- */
+        /* --- Mini gauges (ECT/MAP) --- */
         '<div class="esim-gauges">' +
-          '<canvas id="gauge-rpm" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '"></canvas>' +
           '<canvas id="gauge-ect" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '"></canvas>' +
           '<canvas id="gauge-map" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '"></canvas>' +
         '</div>' +
@@ -395,6 +650,11 @@ var EngineSim = (function() {
    * ==================================================================== */
   function init(containerId) {
     buildPanel(containerId);
+    syncSimUI();
+
+    // Seed the tachometer needle at the current rpm (avoids sweep from 800
+    // when the page boots into a non-idle scenario).
+    try { _tachoRPM = getRPM(); } catch (e) {}
 
     // Get canvas contexts
     var crankCanvas = document.getElementById("crank-canvas");
@@ -404,8 +664,7 @@ var EngineSim = (function() {
     var throttleEl = document.getElementById("esim-throttle");
     if (throttleEl) {
       throttleEl.addEventListener("input", function() {
-        _throttle = parseInt(this.value);
-        document.getElementById("esim-throttle-val").textContent = _throttle + "%";
+        setThrottle(parseInt(this.value, 10));
       });
     }
 
@@ -413,8 +672,7 @@ var EngineSim = (function() {
     var loadEl = document.getElementById("esim-load");
     if (loadEl) {
       loadEl.addEventListener("input", function() {
-        _load = parseInt(this.value);
-        document.getElementById("esim-load-val").textContent = _load + "%";
+        setLoad(parseInt(this.value, 10));
       });
     }
 
@@ -428,5 +686,24 @@ var EngineSim = (function() {
     if (_timer) { clearInterval(_timer); _timer = null; }
   }
 
-  return { init: init, stop: stop };
+  /* Test/sim-link hooks (available at script load, before init). */
+  try {
+    if (typeof window !== "undefined") {
+      window.__setSimThrottle = setThrottle;
+      window.__getSimThrottle = getThrottle;
+      window.__setSimLoad = setLoad;
+      window.__getSimLoad = getLoad;
+      window.__setSimFromRPM = setFromRPM;
+      window.__getTachoRPM = getTachoRPM;
+      window.__getTachoAngle = getTachoAngle;
+    }
+  } catch (e) {}
+
+  return {
+    init: init, stop: stop,
+    setThrottle: setThrottle, getThrottle: getThrottle,
+    setLoad: setLoad, getLoad: getLoad,
+    setFromRPM: setFromRPM,
+    getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle
+  };
 })();
