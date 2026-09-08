@@ -1,7 +1,7 @@
 /**
  * app.js — RX-8 ECU Emulator webui
  *
- * Pure JS, zero deps. Reads pins.json (embedded as script tag), renders
+ * Pure JS, zero deps. Reads pins.json (fetched via fetch("pins.json")), renders
  * interactive connector pinout, schematic view, live pin states with
  * sensor sliders, and peripheral register table.
  *
@@ -461,6 +461,7 @@ function applyScenario(key) {
     if (typeof window.__setSimFromRPM === "function") window.__setSimFromRPM(sc.rpm);
     else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sc.rpm);
   } catch (e) {}
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   updateSliders();
   refresh();
   // Highlight active scenario

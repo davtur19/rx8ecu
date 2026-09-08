@@ -680,6 +680,7 @@ var EngineSim = (function() {
    *  Init
    * ==================================================================== */
   function init(containerId) {
+    if(_timer)clearInterval(_timer);
     buildPanel(containerId);
     syncSimUI();
 

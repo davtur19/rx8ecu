@@ -533,6 +533,7 @@ var CANLive = (function() {
 
   /** Build and inject CAN panel into a container element */
   function init(containerId) {
+    if(_timer)clearInterval(_timer);
     var container = document.getElementById(containerId);
     if (!container) return;
 
