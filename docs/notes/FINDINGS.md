@@ -672,3 +672,40 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 - 236 obd_service_handler_* are leaf/PID sub-handlers, NOT dispatch table entries
 - SecurityAccess: seed fixed level 3, key validation via table 0x5FAA2
 - SendKey (subfunc 4) is UNREACHABLE in 60E1D400
+
+## 2026-09-08 — night improvement session
+
+### Emulator (af3b1ca, 1ffdb1e, a8a734f, ad9c5bf, 8c2644e, c8cf422, 5d0e513)
+- RPM ceiling raised to 9000 (Renesis redline): slider max 8000→9000, sim REDLINE 7500→9000, gauge warn 7000→8000 / crit 7500→8500 (af3b1ca; tools/ecu_pin_emu.py WOT scenario 7000→9000).
+- RX-8 style tachometer dial added (220px canvas, 0–9 scale, redline arc); RPM slider drives sim throttle via setFromRPM so drags stick (1ffdb1e).
+- can_live protocol correctness: dedicated 8-byte pack0x215 (TPSx100 u16 BE + raw byte) replaces pack0x203 reuse; 0x251 kept as real firmware traffic; table perf, no state mutation (a8a734f).
+- CAN 0x251 proven real TX: can251TX_getAndPack ROM 0x2AAB6, counter 0xFFFFBBC8 every 2 CANTX_Main calls, DLC 8 MB11 buf 0xFFFFBB9C (shared staging with 0x215), bytes 0–1 BBBC / 2–3 BBBE / 4–5 BBC0 BE + BBC2/BBC3 (5d0e513).
+- CAN 0x215 layout gap documented: DLC 8 confirmed (MB3, counter 0xFFFFD7C4 vs threshold 0xFFFFD7C6 at ROM 0x2A242, forwards CAN_TX_BUF_0215 only) — emulator frame provisional (5d0e513).
+- Core correctness: MIL latch drives port 5 bit 7 (P5 = 0x0080 via emu_set_mil); crank gap model (teeth 5/15 at 1.5x period, gap flag bit 31 in capture mirror); OMP runs at rpm>0; fuel-pump key-on prime latch; deterministic knock texture 0.05–0.35 V; BATT single source 14 V (8c2644e).
+- emu_get_reg unsigned MMIO dispatch: addr mask changed to >>> 0, capture register visible (c8cf422).
+- Live-view sync (o2r slider, reachable DTCs, NaN guards, 16-bit registers) (ad9c5bf); Wankel-rotor SVG favicon (3b7c3f0).
+
+### Symbols (6f4d603, 5c61467, 900ff56, 5aae455)
+- Uncertain names: 110/233 renamed across 4 passes (67 + 28 + 13 + 2), 123 kept; CSV integrity held each pass (6082 rows, BOM+CRLF, category/signal untouched, no collisions, no 60E1D400 rows touched).
+- Hex-Rays unavailable for SH-2E in this IDA build (passes 3–4 used disasm+xref+data_ref only).
+- RAM identities banked: AA04 coolant, A0AC injector table, C070 knock byte, BE78/BE5C crank-add pair, CC30–CC33 knock-sensor fault flags, A578 per-rotor dwell objects (2x0x2C), BC02 DSC flag, A738 knock-allow, C0C6/C0C8 pedal debounce counters.
+
+### Firmware (43b17be, 76595aa)
+- Review waves 1+2 landed: scheduler, CAN gate, timer regs, context frame, volatile (wave 1); dispatch/collision/mutex follow-ups plus majors and todos (wave 2).
+- UDS per-SID dispatch: allow-list SID ranges (0x01–0x3E, 0x80–0x87, 0xB1–0xB8), dispatch-table lookup at 0x697E8 (29x12 at 0x5F57C), session gate at 0x5FA7D; P2/P2* offsets fixed; seed overlap at 0xFFFFD210–D214 kept open (ROM 0x586C8 arbitrates).
+- RTOS idle 0xFF: queue slots init to 0xFF (-1), ROM 0x3964 documented; emptiness is index-based.
+- Open NEEDS-ROM-CHECK markers carry ROM addresses (e.g. engine table extent 0xDA05, serial lane choice, eeprom 0xFFFFF730/bit0, main idle path 0x78C, timer channel offsets, CAN polarity/config words, UDS 0xFFFFD210–D214 overlap, 0x210/0xACE).
+
+### Explorer (98b788b, 951d7bb)
+- Build counts (build_site.py): symbols 6083, edges 6953 (bsr 758 / ref 6195), tables_rows 1210 (tables 548, axes 662), with_values 497, function_docs 189, subsystems 15, models 9.
+- Builder correctness: table_role axis fix (suffix + kind fallback), edge placeholder-before-sort (data.json stays address-sorted for binary search), fail-closed need() on cal_tables/ROM/meta/addr-map plus build_manifest.json (SHA-256 inputs + counts) with freshness check.
+- Template/css: site nav (home/emulator), pager hooks, mobile stacking, focus outlines, unmapped-row styling.
+- Search hardening: case-insensitive hex match, debounced input, escaped name rendering, address lookup.
+
+### Hygiene (c0d410b, 046bc54)
+- Stale root copies removed: emu/ + explorer/ legacy duplicates deleted (19 files, 3172 deletions); .gitignore covers .playwright-mcp/ + corpus-driver outputs (tracked result3.csv baseline kept).
+- c/tests/test_caller_*.py KEPT (603 files): committed differential-verification evidence, auto-discovered by run_tests_parallel.py, exercised in CI.
+- Dead root index.html removed (163 lines); Pages serves the dist artifact, landing lives in web/explorer.
+
+### Live QA
+- 26/27 then 27/27 including P5 after the emu core landed (MIL bit-7 path).
