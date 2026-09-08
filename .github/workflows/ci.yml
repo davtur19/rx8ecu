@@ -16,8 +16,9 @@
 #                 standard runner on a public repo; its default cpu_count-1
 #                 would be 3 workers).
 #
-# The four jobs run in parallel and each fails the workflow on any failing step.
+# The five jobs run in parallel and each fails the workflow on any failing step.
 # (catalog job: determinism gate for tools/classify_functions.py + gen_catalog.py.)
+# (suites job: durable emulator suite + firmware host check + explorer build+check.)
 #
 # Environment reproduced from the local dev box:
 #   - Python 3.14  (local: 3.14.6)
@@ -51,6 +52,13 @@ permissions:
 env:
   # Match the local dev environment (Python 3.14.6 at time of writing).
   PYTHON_VERSION: "3.14"
+
+# B1/B4: run every step under bash (fail-fast; pipefail on, so a missing
+# tool on the left of `tool --version | head -1` fails the step instead of
+# passing on head's empty-input success).
+defaults:
+  run:
+    shell: bash
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -89,6 +97,7 @@ jobs:
 
       - name: Sanity-check toolchain and capstone
         run: |
+          test -x tools/toolchain/usr/bin/sh-elf-as
           tools/toolchain/usr/bin/sh-elf-as --version | head -1
           python3 -c 'import capstone; print("capstone", capstone.__version__)'
 
@@ -147,6 +156,39 @@ jobs:
           python3 tools/run_tests_parallel.py -j 4
 
   # ---------------------------------------------------------------------------
+  # suites: durable emulator suite + firmware host check + explorer build+check
+  #
+  # B1: these three batteries were never gated in CI (only the C tests + the
+  # Python subset ran). Each step fails the job on any failure.
+  # ---------------------------------------------------------------------------
+  suites:
+    name: Suites (emu + firmware + explorer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Emulator suite (make -C web/ecu-emu test, 75 tests)
+        run: make -C web/ecu-emu test
+
+      - name: Firmware host check (make -C firmware check)
+        run: make -C firmware check
+
+      - name: Firmware regression harnesses + tripwire (make -C firmware/tests check)
+        run: make -C firmware/tests check
+
+      - name: Explorer build + check (build_site.py + make check)
+        run: |
+          python3 web/explorer/build_site.py
+          make -C web/explorer check
+
+  # ---------------------------------------------------------------------------
   # catalog: determinism gate for the classifier + master-catalog generators.
   #
   # tools/classify_functions.py and tools/gen_catalog.py are run by hand with
@@ -202,7 +244,7 @@ jobs:
             symbols/CATALOG_MASTER.csv \
             symbols/CATALOG_STATUS.md \
             symbols/NAMES_STATUS.md; then
-            echo "::error::catalog drift: run 'make catalog classify' and commit the refresh"
+            echo "::error::catalog drift: run 'make classify catalog' and commit the refresh"
             exit 1
           fi
 

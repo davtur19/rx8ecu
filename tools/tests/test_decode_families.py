@@ -351,6 +351,11 @@ def main():
             print("  GNU-as 2.46 bulk round-trip:")
             test_rom_roundtrip()
         else:
+            # Intended graceful degradation (SKIP + exit 0): a bare checkout
+            # without the sh-elf toolchain still passes the tables/coverage
+            # checks. CI always puts tools/toolchain/usr/bin on PATH (tests
+            # job in .github/workflows/ci.yml), so the bulk round-trip is
+            # gated there and cannot silently skip.
             print("  SKIP bulk round-trip: sh-elf-as not on PATH")
     print(f"\n{CHECKS[0]} checks, {len(FAILS)} failures")
     sys.exit(1 if FAILS else 0)

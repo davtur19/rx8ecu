@@ -61,6 +61,12 @@ jobs:
           test -f web/explorer/dist/emu/index.html
           python3 -c "import json,sys; d=json.load(open('web/explorer/dist/explorer/data.json')); assert d['meta']['counts']['symbols']>0 and d['meta']['counts']['edges']>0; print('data.json OK:', d['meta']['counts']['symbols'], 'symbols,', d['meta']['counts']['edges'], 'edges')"
 
+      # B5: the real deploy gate — a degraded build (e.g. 0 edges, missing
+      # model files, addr_map/count mismatch) must not deploy. `make check`
+      # reconciles 9 models / 8 value files / full counts.
+      - name: Gate deploy on the real explorer check (make -C web/explorer check)
+        run: make -C web/explorer check
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

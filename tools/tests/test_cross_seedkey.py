@@ -243,7 +243,11 @@ def test_rom_vectors():
     print("  ── levels 1-4 via our ROM reference model (12/12) ──")
     rom_ok = True
     if not os.path.exists(ROM_PATH):
-        print(f"    SKIP: ROM not found at {ROM_PATH}")
+        # Fail-closed: ROMs ship in-repo, so a missing ROM means a broken
+        # checkout, not an optional skip. Never report a reduced-coverage PASS.
+        print(f"    FAIL: ROM not found at {ROM_PATH} (expected in-repo)")
+        rom_ok = False
+        all_ok = False
     else:
         for level, seed_hex, want_hex in ROM_VECTORS:
             got = rom_reference_key(level, seed_hex)
