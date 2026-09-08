@@ -380,11 +380,23 @@ void can_setup(void)
     for (controller_idx = 0; controller_idx < 2; controller_idx++) {
         if (controller_idx == 0) {
             /* CAN0: setup with TX config table (16 entries) */
-            /* TODO(ROM:0xDCC0): call CANControllerSetup(0, tx_config, 16) */
+            /* review-fix w2 (DOCUMENTED-gap): ROM CANControllerSetup
+             * (0x9878) HW sequence NOT yet reconstructed — call sites
+             * ROM:0xDCC0 (CAN0: setup(0, tx_config, 16)) and ROM:0xDCE0
+             * (CAN1: setup(1, CAN1_RX_CONFIG, 6)) are known, but no C
+             * declaration/definition of CANControllerSetup exists and the
+             * per-mailbox HW writes must come from ROM 0x9878 (expected
+             * shape per ECU.md: can_enable_mailbox_int 0xCC6C,
+             * can_init_mailbox_irq_mask 0xCD12, can_set_mailbox_mode_dlc
+             * 0xCDC4, can_set_mailbox_ptr_control 0xCDF0,
+             * can_set_mailbox_id_mode 0xCE34). can_message_setup below
+             * covers the mailbox loop; the controller-level init (mode,
+             * bit-timing, error handling) still needs the IDA read. */
             configured |= can_message_setup(0, tx_config);
         } else {
             /* CAN1: setup with RX config table (6 entries) */
-            /* TODO(ROM:0xDCE0): call CANControllerSetup(1, CAN1_RX_CONFIG, 6) */
+            /* review-fix w2 (DOCUMENTED-gap): same gap, CAN1 side
+             * (ROM:0xDCE0). See CAN0 note above for the needed ROM read. */
             configured |= can_message_setup(1, (const uint8_t *)(uintptr_t)CAN1_RX_CONFIG);
         }
     }
@@ -983,8 +995,17 @@ void can251TX_getAndPack(void)
      *   counter_saturate_decrement_2AB74
      * Result: status byte computed into 0xFFFFBBC3
      *
-     * NOTE(ROM:0x2AB28): Complex sensor computation chain not fully
-     * implemented. Stores default status byte. */
+      * NOTE(ROM:0x2AB28): Complex sensor computation chain not fully
+      * implemented. Stores default status byte.
+      * review-fix w2 (DOCUMENTED-gap): the chain above
+      * (sensor_scale_and_index_2ACD2 → counter_decrement_clamp_2AD96 →
+      * fuel_trim_control_query_2AE04 → lambda_sensor_active_check_2AE82 →
+      * sensor_secondary_2aeaa → exhaust_port_condition_2AF80, plus the
+      * ram_word_copy/saturate helpers) computes the 0x251 status byte at
+      * 0xFFFFBBC3 from live sensor RAM. Contract for a real
+      * implementation: input = sensor RAM words, output = one status byte
+      * at 0xFFFFBBC3, no other side effects. Needs IDA reads of each
+      * 0x2Axxx helper for its scale/threshold constants. */
     *(volatile uint8_t *)(uintptr_t)0xFFFFBBC3 = 0;  /* default status */
 
     /* ROM:0x2AAD2: call counter_decrement_2AAE8 — packs 0x251 frame
@@ -1644,7 +1665,17 @@ void can4B0RX_unpack(void)
     uint8_t buf[8];
 
     /* ROM:0x2BE6E: placeCANRX(0x4ECA0) — read CAN1 HW mailbox.
-     * review-fix: honor the result; on failure bump timeout and return. */
+     * review-fix: honor the result; on failure bump timeout and return.
+     * review-fix w2 (B17 verdict: NEEDS-ROM-CHECK — shared-vs-typo
+     * unresolved, behavior kept): can4C0RX_short below reads the SAME
+     * config entry 0x4ECA0, and can430_4C0RX_dispatch claims 0x4C0 via
+     * 0x4EC80. Mailbox-table evidence (CAN_PROTOCOL.md: CAN1 RX config
+     * 0x4EC60 = 6x16B; doc maps 0x4B0→MB5, 0x4C0→MB6, 0x47→MB7 while
+     * can47RX_Main(MB7) uses 0x4ECB0) fits NEITHER a clean stride NOR two
+     * IDs sharing one entry: either 0x4B0/0x4C0 share an acceptance-mask
+     * mailbox (one entry, two IDs — possible, masks can cover both), or
+     * one of the two 0x4ECA0 literals is a typo for the 0x4C0 entry.
+     * ROM 0x2BE6E vs 0x2C780 must arbitrate; do not "fix" by splitting. */
     if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
         can4b0_rx_timeout++;
         return;
@@ -1748,7 +1779,13 @@ void can4C0RX_short(void)
     uint8_t rx_byte;
 
     /* ROM:0x2C780: placeCANRX(0x4ECA0) — read CAN1 HW mailbox. DLC=1.
-     * review-fix: honor the result; on failure bump timeout and return. */
+     * review-fix: honor the result; on failure bump timeout and return.
+     * review-fix w2 (B17 verdict: NEEDS-ROM-CHECK — see the full analysis
+     * at can4B0RX_unpack above): this 0x4C0 short-message handler shares
+     * config entry 0x4ECA0 with the 0x4B0 wheel-speed handler, while
+     * can430_4C0RX_dispatch (0x4EC80) ALSO claims 0x4C0 — so 0x4C0 is
+     * currently handled twice via two different entries. Shared-mask
+     * mailbox vs typo: ROM 0x2C780 vs 0x2BE6E/0x33BA0 must arbitrate. */
     if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
         can4c0_rx_timeout++;
         return;
@@ -1840,7 +1877,11 @@ void incr_counter_saturated_299DA(void)
 
     /* ROM:0x299F0: call set_ram_constant_29A44
      * Computes coolant temperature-based value.
-     * NOTE(ROM:0x29A44): FPU computation not fully implemented. */
+     * NOTE(ROM:0x29A44): FPU computation not fully implemented.
+     * review-fix w2 (DOCUMENTED-gap): contract needed — input = coolant
+     * temp RAM, output = the RAM word consumed by can420TXPack
+     * (ROM:0x29A0C); the FPU scale/offset constants live in 0x29A44.
+     * Needs IDA read of ROM 0x29A44. Call stays commented out. */
     /* set_ram_constant_29A44(); */
 
     /* ROM:0x299F4: call can420TXPack (tail call at 0x29A0C) */
@@ -2043,13 +2084,21 @@ void secondary_system_controller(void)
 
     /* ROM:0x29BE8: can_lookup_table_indexed — table-based sensor lookup
      * NOTE(ROM:0x29BE8): Table lookup not implemented.
-     * On real ECU: indexes sensor data from lookup tables. */
+     * On real ECU: indexes sensor data from lookup tables.
+     * review-fix w2 (DOCUMENTED-gap): contract needed — input = sensor
+     * index RAM, table base address in ROM, output = looked-up value's
+     * destination RAM. Neither the table base nor the I/O addresses are
+     * documented, so this stays a no-op pending IDA read of 0x29BE8. */
     /* Placeholder: no-op */
 
     if (CAN_GATE_B5A4 == 0) {
         /* ROM:0x29E9C: table_lookup_dispatch_29E9C — manual transmission dispatch
          * NOTE(ROM:0x29E9C): MT-specific dispatch not implemented.
-         * On real ECU: dispatches MT-specific sensor reads and CAN data. */
+         * On real ECU: dispatches MT-specific sensor reads and CAN data.
+         * review-fix w2 (DOCUMENTED-gap): contract needed — the MT sensor
+         * set read, their destination RAM, and the gate on [0xB5A4]==0
+         * (already coded above). Stays a no-op pending IDA read of
+         * ROM 0x29E9C. */
         /* Placeholder: no-op */
     }
 

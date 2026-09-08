@@ -904,7 +904,12 @@ int obd_sid12_readDTCByStatus(uint8_t sub_func, uint8_t status_mask,
 /**
  * dtc_injector_fault_check — Check injector circuit faults.
  * ROM address: 0x43476
- * TODO: Implement from ROM analysis
+ *
+ * review-fix w2: stale TODO removed — body is implemented (RAM map +
+ * result writes per the ROM comment). Residual gaps vs ROM 0x43476:
+ * fault-flag (0xFFFFC9A2) write ordering against the fuel-cut early
+ * return is unverified; collapsed a provably redundant nested
+ * `if (*cond_2 == 1)` below (no behavior change).
  */
 uint16_t dtc_injector_fault_check(void)
 {
@@ -957,11 +962,10 @@ uint16_t dtc_injector_fault_check(void)
     }
 
     /* Additional fault condition */
+    /* review-fix w2: collapsed redundant nested `if (*cond_2 == 1)`. */
     if (*cond_2 == 1) {
-        if (*cond_2 == 1) {
-            r_a = 1;
-            r_b = 0;
-        }
+        r_a = 1;
+        r_b = 0;
     }
 
     *result_a = r_a;
@@ -976,7 +980,10 @@ uint16_t dtc_injector_fault_check(void)
 /**
  * dtc_o2_circuit_fault — Check O2 sensor circuit fault.
  * ROM address: 0x45F54
- * TODO: Implement from ROM analysis
+ *
+ * review-fix w2: stale TODO removed — body is implemented. Residual gap:
+ * always returns 0 and the result-flag compare (val vs previous u16 at
+ * 0xFFFFCC2A through an 8-bit flag view) is unverified vs ROM 0x45F54.
  */
 uint16_t dtc_o2_circuit_fault(void)
 {
@@ -1027,7 +1034,9 @@ uint16_t dtc_o2_circuit_fault(void)
 /**
  * dtc_o2_response_slow — Check O2 sensor slow response.
  * ROM address: 0x45F9C
- * TODO: Implement from ROM analysis
+ *
+ * review-fix w2: stale TODO removed — body implements the documented
+ * 8-byte tail-call (updateMem8bit(0xFFFF8750, 0)) in full. No known gap.
  */
 uint16_t dtc_o2_response_slow(void)
 {
@@ -1049,7 +1058,10 @@ uint16_t dtc_o2_response_slow(void)
 /**
  * dtc_cat_efficiency — Check catalyst efficiency.
  * ROM address: 0x45FAC
- * TODO: Implement from ROM analysis
+ *
+ * review-fix w2: stale TODO removed — body is implemented. Residual gap:
+ * the ROM's obd_service_handler_6743C cat-ready call is skipped (system
+ * assumed ready); ROM 0x45FAC must confirm the ready-gate condition.
  */
 uint16_t dtc_cat_efficiency(void)
 {
@@ -1102,7 +1114,12 @@ uint16_t dtc_cat_efficiency(void)
 /**
  * dtc_misfire_cylinder_detect — Detect cylinder misfires.
  * ROM address: 0x468D6
- * TODO: Implement from ROM analysis
+ *
+ * review-fix w2: stale TODO removed — body is implemented. Residual gaps:
+ * engine-ready assumed (obd_service_handler_6743C call skipped) and the
+ * counter thresholds are hardcoded (100 / 10) pending IDA read of the ROM
+ * words at 0x7C3A2/0x7C3A0; the can_to_uds_bridge tail-calls are signaled
+ * via return value instead.
  */
 uint16_t dtc_misfire_cylinder_detect(void)
 {
@@ -1214,10 +1231,15 @@ void dtc_set_p0110_iat_circuit(void)
     /*
      * ROM:0x46DC2 — P0110 IAT Circuit Malfunction.
      * 8-byte tail-call: stores 0 to IAT sensor flag.
+     *
+     * review-fix w2 (DOCUMENTED-gap, body intentionally left empty):
+     * the sibling 8-byte pattern exists (dtc_o2_response_slow writes 0 to
+     * 0xFFFF8750, dtc_set_p0100 gates on 0xFFFF8788), but the IAT target
+     * byte for THIS setter is not documented anywhere in code or
+     * docs-notes. Needed from ROM 0x46DC2 (IDA read): the destination
+     * byte address, whether an enable gate is tested first, and the exact
+     * updateMem8bit(0x3EE58) argument pair. Do not invent the address.
      */
-    /* NOTE: ROM implementation is a simple store; tail-call to updateMem8bit.
-     * For this DTC, the function checks conditions and sets/clears the flag.
-     * As an 8-byte function, it is a minimal store operation. */
 }
 
 void dtc_set_p0120_tps_circuit(void)
@@ -1225,8 +1247,12 @@ void dtc_set_p0120_tps_circuit(void)
     /*
      * ROM:0x46DCA — P0120 TPS Circuit Malfunction.
      * 8-byte tail-call: stores 0 to TPS sensor flag.
+     *
+     * review-fix w2 (DOCUMENTED-gap, body intentionally left empty):
+     * same gap as P0110 — the TPS target byte is undocumented. Needed
+     * from ROM 0x46DCA (IDA read): destination byte address, enable
+     * gating, and the updateMem8bit(0x3EE58) argument pair.
      */
-    /* NOTE: Same structure as P0110 — minimal 8-byte function. */
 }
 
 void dtc_set_p0130_o2_circuit(void)

@@ -65,10 +65,16 @@ void rtos_init(void)
     current_priority = RTOS_PRIORITY_S3;
     scheduler_running = 0;
 
-    /* Clear all queue entries */
+    /* Clear all queue entries.
+     * review-fix w2: was 0x00; unified to 0xFF (-1). Emptiness is
+     * index-based everywhere it is consumed (rtos_queue_is_empty,
+     * task_queue_pending_count), so no reader keys on a 0x00 sentinel;
+     * 0xFF is the ROM-documented idle value (task_queue_init ROM:0x3964,
+     * main.h: "Initializes each slot to -1 (0xFF)"). This also keeps the
+     * DISPATCH_FATAL_ERROR src==0xFF trip from arming on stale slots. */
     volatile uint8_t *queue = (volatile uint8_t *)(uintptr_t)RTOS_QUEUE_BASE;
     for (int i = 0; i < RTOS_QUEUE_MAX_SLOTS * RTOS_QUEUE_ENTRY_SIZE; i++) {
-        queue[i] = 0;
+        queue[i] = 0xFF;
     }
 }
 

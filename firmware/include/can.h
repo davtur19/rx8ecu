@@ -172,13 +172,25 @@ struct can_tx_frame {
 /*  RAM Staging Buffers (filled by TX packers, consumed by can_tx_send_frame) */
 /* ====================================================================== */
 
-/* RAM data buffers for CAN TX frames (0xFFFFxxxx RAM addresses) */
+/* RAM data buffers for CAN TX frames (0xFFFFxxxx RAM addresses)
+ *
+ * review-fix w2 (A13 — shared staging, NOT a bug, do NOT "fix" by
+ * splitting): CAN_TX_BUF_0215 and CAN_TX_BUF_0251 are BOTH 0xFFFFBB9C by
+ * ROM design. Per docs/notes/CAN_PROTOCOL.md ("CAN ID 0x251", "CAN ID
+ * 0x215"): the 0x251 packer (ROM 0x2AAB6, real TX traffic, every 2
+ * CANTX_Main cycles, MB11) and the 0x215 forwarder (ROM 0x2A242, MB3,
+ * counter/threshold gate at 0xFFFFD7C4/0xFFFFD7C6, packs no bytes itself)
+ * time-multiplex a single shared staging buffer — each send re-packs it
+ * just before its own transmit, so the overlap is safe by schedule, not
+ * by address. Bench-check pending: the 0x215 byte layout is still unknown
+ * (provisional best-effort frame only); confirm on the bench that no
+ * 0x215/0x251 interleaving violates the pack-then-send ordering. */
 #define CAN_TX_BUF_0041    0xFFFFC518   /* ROM:0x39348 staging buffer */
 #define CAN_TX_BUF_0201    0xFFFFBB5C   /* ROM:0x2A004 staging buffer */
 #define CAN_TX_BUF_0203    0xFFFFBB78   /* ROM:0x2A274 staging buffer */
-#define CAN_TX_BUF_0215    0xFFFFBB9C   /* ROM:0x2A242 staging buffer */
+#define CAN_TX_BUF_0215    0xFFFFBB9C   /* ROM:0x2A242 staging buffer (SHARED, see above) */
 #define CAN_TX_BUF_0231    0xFFFFBCC4   /* ROM:0x2D434 staging buffer */
-#define CAN_TX_BUF_0251    0xFFFFBB9C   /* ROM:0x2AAE8 staging buffer */
+#define CAN_TX_BUF_0251    0xFFFFBB9C   /* ROM:0x2AAE8 staging buffer (SHARED, see above) */
 #define CAN_TX_BUF_0420    0xFFFFBB0C   /* ROM:0x29A0C staging buffer */
 #define CAN_TX_BUF_0620    0xFFFFC054   /* ROM:0x33A68 staging buffer */
 #define CAN_TX_BUF_0630    0xFFFFC044   /* ROM:0x33974 staging buffer */

@@ -24,6 +24,7 @@
  * IDA Session: ae00d360
  */
 
+#include <stdint.h>
 #include "platform.h"
 #include "boot.h"
 #include "eeprom.h"   /* spi_clk_high_wait, spi_clk_low_wait */
@@ -33,21 +34,23 @@
 /*  ROM Data References (resolved from PC-relative pools)                 */
 /* ====================================================================== */
 
-/* Watchdog timer register addresses (from ROM 0x586-0x594) */
-#define ROM_HW_INIT_1_ADDR  (*(uint16_t *)0x586)   /* = 0x0170 */
-#define ROM_HW_INIT_2_ADDR  (*(uint16_t *)0x588)   /* = 0x041C */
-#define ROM_HW_INIT_3_ADDR  (*(uint16_t *)0x58A)   /* = 0x03D4 */
-#define ROM_DEFAULT_RV      (*(uint16_t *)0x58C)   /* = 0x06C8 */
-#define ROM_ALT_OFFSET      (*(uint16_t *)0x58E)   /* = 0x1000 */
-#define ROM_REASON_ADDR     (*(uint16_t *)0x590)   /* = 0xDFA8 */
-#define ROM_WARM_FN_ADDR    (*(uint16_t *)0x592)   /* = 0x08F6 */
-#define ROM_BOOT_CONT_ADDR  (*(uint16_t *)0x594)   /* = 0x0040 */
+/* Watchdog timer register addresses (from ROM 0x586-0x594).
+ * review-fix w2: these observe absolute ROM/hardware addresses — volatile
+ * (no caching across reads) + uintptr_t (integer-to-pointer discipline). */
+#define ROM_HW_INIT_1_ADDR  (*(volatile uint16_t *)(uintptr_t)0x586)   /* = 0x0170 */
+#define ROM_HW_INIT_2_ADDR  (*(volatile uint16_t *)(uintptr_t)0x588)   /* = 0x041C */
+#define ROM_HW_INIT_3_ADDR  (*(volatile uint16_t *)(uintptr_t)0x58A)   /* = 0x03D4 */
+#define ROM_DEFAULT_RV      (*(volatile uint16_t *)(uintptr_t)0x58C)   /* = 0x06C8 */
+#define ROM_ALT_OFFSET      (*(volatile uint16_t *)(uintptr_t)0x58E)   /* = 0x1000 */
+#define ROM_REASON_ADDR     (*(volatile uint16_t *)(uintptr_t)0x590)   /* = 0xDFA8 */
+#define ROM_WARM_FN_ADDR    (*(volatile uint16_t *)(uintptr_t)0x592)   /* = 0x08F6 */
+#define ROM_BOOT_CONT_ADDR  (*(volatile uint16_t *)(uintptr_t)0x594)   /* = 0x0040 */
 
 /* Longword constants from ROM data pools */
-#define ROM_MAGIC_VALUE     (*(uint32_t *)0x59C)   /* = 0x5AA5A55A */
-#define ROM_MAGIC_LOC       (*(uint32_t *)0x5A0)   /* = 0xFFFFDFFC */
-#define ROM_WDT_STATUS      (*(uint32_t *)0x5A4)   /* = 0x0007FFFC */
-#define ROM_WDT_ALT         (*(uint32_t *)0x5A8)   /* = 0x0007FFF8 */
+#define ROM_MAGIC_VALUE     (*(volatile uint32_t *)(uintptr_t)0x59C)   /* = 0x5AA5A55A */
+#define ROM_MAGIC_LOC       (*(volatile uint32_t *)(uintptr_t)0x5A0)   /* = 0xFFFFDFFC */
+#define ROM_WDT_STATUS      (*(volatile uint32_t *)(uintptr_t)0x5A4)   /* = 0x0007FFFC */
+#define ROM_WDT_ALT         (*(volatile uint32_t *)(uintptr_t)0x5A8)   /* = 0x0007FFF8 */
 
 /* ====================================================================== */
 /*  Manual_Reset @ 0x8B8 — Reset Vector Entry Point                       */

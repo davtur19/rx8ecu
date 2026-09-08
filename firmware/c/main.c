@@ -149,8 +149,17 @@ void task_scheduler_dispatch(void)
     volatile uint8_t *busy_flag = (volatile uint8_t *)0xFFFFDFBA;
 
     if (*busy_flag == 0) {
-        /* Not busy: process diagnostic transfer */
-        /* diag_transfer_210(); -- TODO: implement when diag is ready */
+        /* Not busy: process diagnostic transfer.
+         * review-fix w2 (DOCUMENTED-gap, call intentionally absent):
+         * ROM diag_transfer_210 (0x210) contract per IDA_ANALYSIS.md —
+         * check PFC 0xFFFFE40E/0xFFFFE41A bit 0x100, then call helper
+         * 0xACE(entry, 8, 0, 0xFFFFE4B0) to move bytes into the serial RX
+         * path. That 0xACE callee has NO C counterpart yet (serial.c
+         * implements neither it nor serial_dispatch/tx_direct/queue_message),
+         * so emitting a call would break the link. Needed: IDA read of
+         * ROM 0x210 (exact PFC mask/branch + 0xACE signature) and a C
+         * implementation of 0xACE; then declare diag_transfer_210 in
+         * main.h and call it here. */
     } else {
         /* Busy: try to validate EEPROM data */
         uint8_t temp_buf[8];
@@ -166,6 +175,18 @@ void task_scheduler_dispatch(void)
 /* ====================================================================== */
 /*  Watchdog Timer Read                                                   */
 /* ====================================================================== */
+
+/**
+ * cpu_idle_sleep — Enter low-power wait until the next interrupt.
+ *
+ * Executes the SH-2 `sleep` instruction: the CPU halts until an
+ * interrupt (task enqueue, timer tick, serial RX) wakes it. On the host
+ * syntax-check build the asm string is opaque and never assembled.
+ */
+static inline void cpu_idle_sleep(void)
+{
+    __asm__ __volatile__("sleep");
+}
 
 /**
  * watchdogTimerRead — Read and service the watchdog timer.
@@ -216,8 +237,20 @@ void main_task_dispatcher(void)
         int pending = task_queue_pending_count();
 
         if (pending == 0) {
-            /* Idle path: no tasks pending, read watchdog and wait */
-            watchdogTimerRead();
+            /* Idle path: no tasks pending — sleep until the next
+             * interrupt instead of spinning.
+             * review-fix w2: the old code fed the watchdog on EVERY
+             * idle spin, so a stuck scheduler (never dispatching) would
+             * still look alive to the WDT. Feed only after forward
+             * progress (Step 7 below); in idle, sleep and feed at most
+             * once per 256 spins as a last-resort keepalive.
+             * NEEDS-ROM-CHECK: ROM idle path 0x78C must confirm the
+             * real sleep/wake + feed policy. */
+            static uint8_t idle_spins = 0;
+            cpu_idle_sleep();
+            if (++idle_spins == 0) {
+                watchdogTimerRead();
+            }
             continue;
         }
 
@@ -271,7 +304,7 @@ void main_task_dispatcher(void)
                 break;
         }
 
-        /* Step 7: Service watchdog */
+        /* Step 7: Service watchdog (forward progress: a task dispatched) */
         watchdogTimerRead();
     }
 }

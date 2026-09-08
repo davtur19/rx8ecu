@@ -247,13 +247,90 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
                                      response);
     }
 
-    /* Dispatch to handler (function pointer cast) */
-    typedef int (*handler_fn)(const uint8_t *, uint8_t, uint8_t *);
-    handler_fn fn = (handler_fn)(uintptr_t)handler;
+    /* Dispatch to handler with the convention each SID implements.
+     * review-fix w2 (B15, CONFIRMED dispatch-convention mismatch): the old
+     * code cast every ROM-table handler to a single 3-arg
+     * `(data, len, resp)` prototype and called `fn(request+1, len, resp)`.
+     * But our C handlers use three different conventions — 4-arg
+     * `(sub_func, data, len, resp)` for 0x10/0x27/0x31, 2-arg
+     * `(sub_func, resp)` for 0xB1, 4-arg `(block_seq, data, len, resp)`
+     * for 0x36, 1-arg `(resp)` for 0x37 — so the generic call passed the
+     * data pointer where sub_func belongs and left the real response
+     * pointer in the wrong register (on SH-2: r4=data instead of
+     * sub_func, response never delivered). Split sub_func/block_seq out
+     * of request[1] per SID below. SIDs the ROM table knows but no C
+     * function implements yet return SERVICE_NOT_SUPPORTED;
+     * NEEDS-ROM-CHECK: confirm against the ROM call sites that r4 carries
+     * sub_func for 0x10/0x27/0x31/0xB1/0x36. (No C dispatch exists yet for
+     * the OBD 0x01-0x0A services — see the gap notes on obd_service_*.) */
+    (void)handler;  /* Presence in the ROM table gates reachability above. */
+    switch (sid) {
+        case UDS_SID_DIAG_SESSION:
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_sid10_sessionControl(request[1], request + 2,
+                                            (uint8_t)(req_len - 2), response);
 
-    int result = fn(request + 1, req_len - 1, response);
+        case UDS_SID_SECURITY_ACCESS:
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_sid27_securityAccess(request[1], request + 2,
+                                            (uint8_t)(req_len - 2), response);
 
-    return result;
+        case UDS_SID_ROUTINE_CONTROL:
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_sid31_routineControl(request[1], request + 2,
+                                            (uint8_t)(req_len - 2), response);
+
+        case 0xB1:  /* Mazda-specific ECU reset (obd_sidB1_ecuReset) */
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_sidB1_ecuReset(request[1], response);
+
+        case UDS_SID_READ_DATA_ID:
+            return obd_sid22_readDataByIdentifier(request + 1,
+                                                 (uint8_t)(req_len - 1),
+                                                 response);
+
+        case UDS_SID_READ_MEM_ADDR:
+            return obd_sid23_readMemoryByAddress(request + 1,
+                                                (uint8_t)(req_len - 1),
+                                                response);
+
+        case UDS_SID_WRITE_DATA_ID:
+            return obd_sid2E_writeDataByIdentifier(request + 1,
+                                                  (uint8_t)(req_len - 1),
+                                                  response);
+
+        case UDS_SID_REQ_DOWNLOAD:
+            return obd_sid34_requestDownload(request + 1,
+                                            (uint8_t)(req_len - 1),
+                                            response);
+
+        case UDS_SID_TRANSFER_DATA:
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_sid36_transferData(request[1], request + 2,
+                                          (uint8_t)(req_len - 2), response);
+
+        case UDS_SID_REQ_TRANS_EXIT:
+            return obd_sid37_requestTransferExit(response);
+
+        default:
+            return uds_negative_response(sid, UDS_NRC_SERVICE_NOT_SUPPORTED,
+                                         response);
+    }
 }
 
 /* ====================================================================== */
@@ -328,7 +405,20 @@ int obd_sid10_sessionControl(uint8_t sub_func, const uint8_t *data,
      * review-fix: P2 was read from data[1..2] (off by one vs the layout
      * above) and P2* was built from only 2 bytes (data[3..4] << 16/8,
      * dropping the low byte). Fixed to data[0..1] / data[2..4], requiring 2
-     * bytes for P2 and 5 bytes for P2*. */
+     * bytes for P2 and 5 bytes for P2*.
+     *
+     * review-fix w2 (B16 verdict: overlap CONFIRMED, union-vs-wrong-address
+     * NEEDS-ROM-CHECK — behavior kept): these two u16 writes overlap the
+     * security-seed RAM. UDS_SESSION_TIMER_ADDR (0xFFFFD210, u16) covers
+     * bytes D210+D211, and D211 IS UDS_SEED_BYTE1_ADDR; the P2* write to
+     * 0xFFFFD212 (u16) covers D212+D213 = SEED_BYTE2 + SEED_BYTE3
+     * (4-byte seed D211-D214 per UDS_SECURITY_MAPPING.md/IDA_ANALYSIS.md).
+     * No doc covers P2/P2* timing addresses, so both readings are possible:
+     * (a) lifecycle union — timing params are only written on a session
+     * transition while the seed is only live during an 0x27 exchange, so
+     * the overlap never corrupts live state; or (b) wrong address — the
+     * ROM 0x586C8 destination is elsewhere. ROM 0x586C8 must arbitrate
+     * before this overlap is "cleaned up" (do NOT relocate blindly). */
     if (data_len >= 2) {
         uint16_t p2_max = ((uint16_t)data[0] << 8) | data[1];
         *(volatile uint16_t *)0xFFFFD210 = p2_max;
@@ -416,9 +506,23 @@ static int security_access_generate_seed(void)
  * Algorithm: XOR+rotate with "MazdA" prefix constant from ROM:0x5FAC0.
  *   1. Build 8-byte working buffer: [seed0, seed1, seed2, 'M', 'a', 'z', 0xFF, 0xFF]
  *   2. Load 3-byte lookup table from ROM:0x5FAC5 indexed by security level
- *   3. Perform 64 iterations of rotate-right through the 8-byte buffer
+ *   3. Perform 11 rotate-right passes through the 8-byte buffer (8 + 3)
+ *      (review-fix w2: was "64 iterations" — contradicted by the
+ *      intra-function ROM cites below: 0x56B7A-0x56BAE = 8 iterations,
+ *      0x56BC4-0x56BF8 = 3 iterations. Code comments win: 11 total.)
  *   4. XOR result bytes with lookup table values
  *   5. Compare computed key against provided key
+ *
+ * review-fix w2 (provenance/gap note — best-effort status): ROM-cited
+ * parts are the "MazdA" prefix address (0x5FAC0), the level table address
+ * (0x5FAC5), the rotate/XOR/nibble address trail (0x56B26 → 0x56CAA) and
+ * the call chain (0x5859A → seed_copy/0x5698A/0x56ADA/0x56720 per
+ * UDS_SECURITY_MAPPING.md). NOT ROM-verified: the literal table contents
+ * below, the buf[3..7] construction from the prefix, and the 8+3 pass
+ * split (vs a "64" claim elsewhere) — the crypto math needs a
+ * seed/key bench capture before any key this function ACCEPTS is trusted
+ * for unlock decisions. Contract it must satisfy: input (level, 3-byte
+ * key) → output 1 = key matches ROM algorithm, 0 = reject.
  *
  * @param level  Security level (0x01 or 0x03)
  * @param key    Pointer to 4-byte key from request
@@ -456,17 +560,20 @@ static int security_access_validate_key(uint8_t level, const uint8_t *key)
     buf[6] = mazda_prefix[6];
     buf[7] = mazda_prefix[7];
 
-    /* Load level-dependent lookup bytes ROM:0x56B26 */
+    /* Load level-dependent lookup bytes ROM:0x56B26.
+     * review-fix w2: removed dead `if (lv_idx > 3) lv_idx = 3;` —
+     * lv_idx = level & 0x03 is already in [0,3], so the check could never
+     * fire. */
     uint8_t lv_idx = (level & 0x03);
-    if (lv_idx > 3) lv_idx = 3;
     uint8_t lut_a = level_table[lv_idx][0];
     uint8_t lut_b = level_table[lv_idx][1];
     uint8_t lut_c = level_table[lv_idx][2];
 
-    /* Rotate-right 8-byte buffer through carry, 64 iterations
+    /* Rotate-right 8-byte buffer through carry, 11 iterations total
+     * (review-fix w2: was "64 iterations" — the ROM cites in this same
+     * comment say 8 + 3, and the loop below does 8 + 3 = 11).
      * ROM:0x56B7A-0x56BAE (first pass: 8 iterations)
-     * ROM:0x56BC4-0x56BF8 (second pass: 3 iterations)
-     * Total effective iterations extract key bits from the seed. */
+     * ROM:0x56BC4-0x56BF8 (second pass: 3 iterations) */
     for (int pass = 0; pass < 2; pass++) {
         int count = (pass == 0) ? 8 : 3;
         for (int i = 0; i < count; i++) {
@@ -772,17 +879,22 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
 int obd_sid23_readMemoryByAddress(const uint8_t *data, uint8_t data_len,
                                   uint8_t *response)
 {
-    (void)data;  /* TODO: implement address/length parsing */
+    (void)data;
 
     if (data_len < 3) {
         return uds_negative_response(UDS_SID_READ_MEM_ADDR,
                                      UDS_NRC_INCORRECT_MSG_LEN, response);
     }
 
-    /* TODO: Implement memory read from 0x57028
-     * Format byte encodes address/length byte counts.
-     * Must validate address is in allowed range (see ECU memory map).
-     * For now, return NRC. */
+    /* review-fix w2 (DOCUMENTED-gap, NRC behavior kept): ROM 0x57028
+     * contract needed — (a) addressAndLengthFormatIdentifier nibble split
+     * (low nibble = memorySize bytes, high nibble = memoryAddress bytes);
+     * (b) the allowed-range table (which flash/RAM windows are readable —
+     * cf. the 0x34 download ranges: flash 0x00000000-0x0007FFFF, RAM
+     * 0xFFFF8000-0xFFFFFFFF — but the 0x23 read-allow list may differ);
+     * (c) response layout: 0x63 + raw memory bytes. Until an IDA read of
+     * 0x57028 supplies (a)+(b), any implementation risks exposing the
+     * security/seed RAM — keep rejecting. */
 
     return uds_negative_response(UDS_SID_READ_MEM_ADDR,
                                  UDS_NRC_REQUEST_OUT_OF_RANGE, response);
@@ -811,13 +923,12 @@ int obd_sid2E_writeDataByIdentifier(const uint8_t *data, uint8_t data_len,
 
     uint16_t did = ((uint16_t)data[0] << 8) | data[1];
 
-    /* TODO: Implement DID write from 0x5798E
-     * ROM handler has a DID write table with ~8 entries.
-     * Each entry: (DID, handler_addr, max_data_length).
-     * Writable DIDs may include:
-     *   0xF806: ECU software number (programming session only)
-     *   0xF190: VIN (extended session, security unlocked)
-     * For now, return NRC for all DIDs. */
+    /* review-fix w2 (DOCUMENTED-gap, NRC behavior kept): ROM 0x5798E
+     * contract needed — the DID write table (~8 entries of
+     * DID/handler/max-length), per-DID session+security gates (the old
+     * comment's 0xF806/0xF190 guesses are NOT ROM-confirmed), and the
+     * 0x6E + DID echo layout. Until an IDA read of 0x5798E supplies the
+     * table, keep rejecting: a permissive stub could brick calibration. */
     (void)did;
 
     return uds_negative_response(UDS_SID_WRITE_DATA_ID,
@@ -1135,12 +1246,9 @@ int obd_sid36_transferData(uint8_t block_seq, const uint8_t *data,
                          ((uint32_t)size_b1 << 8) |
                          (uint32_t)size_b0;
 
-    /* Data payload starts at data[0] (which is block_seq in the UDS frame,
-     * but our caller already extracted it). The actual transfer data is
-     * data[0..data_len-1]. Wait — from uds_handler dispatch, the handler
-     * receives request+1 (after SID), so data[0] = block_seq, data[1..] = payload.
-     * But block_seq is passed separately, so data[0] is actually the first
-     * payload byte. */
+    /* Data payload is data[0..data_len-1]: uds_handler strips the SID and
+     * passes block_seq (request[1]) separately, so data[0] is the first
+     * payload byte (review-fix w2: convention resolved, see uds_handler). */
     uint8_t payload_len = data_len;
 
     /* Validate payload doesn't exceed remaining size */
@@ -1343,7 +1451,13 @@ int obd_service_1(uint8_t pid, uint8_t *response)
  */
 int obd_service_2(uint8_t pid, uint8_t frame, uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 2 from 0x59E16 */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59E16 contract
+     * needed — (a) freeze-frame slot addressing: how (DTC, frame#) maps to
+     * the snapshot store RAM address; (b) response layout: 0x42 + PID +
+     * frame-data bytes (length varies by PID, cf. obd_service_1). Until an
+     * IDA read of 0x59E16 supplies (a), this returns a bare 0x42 header
+     * with NO data — a tester-visible fake-positive: callers must treat a
+     * 1-byte 0x42 response as "not implemented", not as valid data. */
     (void)pid;
     (void)frame;
     response[0] = 0x42;
@@ -1376,7 +1490,13 @@ int obd_service_3(uint8_t *response)
  */
 int obd_service_4(uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 4 from 0x59E98 */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59E98 contract
+     * needed — the clear routine: which stores are wiped (DTC primary
+     * table 0xFFFF8928, backup 0xFFFF8EA0, freeze-frame slots, readiness
+     * bits?) and in what order, plus the positive response (0x44).
+     * Current bare-0x44 return clears NOTHING — fake-positive: a tester
+     * sees success while DTCs remain stored. Do not wire a partial clear
+     * without the ROM sequence. */
     response[0] = 0x44;
     return 1;
 }
@@ -1387,7 +1507,10 @@ int obd_service_4(uint8_t *response)
  */
 int obd_service_6(uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 6 from 0x59EDE */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59EDE contract
+     * needed — supported Test IDs, per-TID result RAM addresses, and the
+     * 0x46 + TID + result layout. Bare-0x46 return is a fake-positive
+     * (no monitor results attached). Needs IDA read of 0x59EDE. */
     response[0] = 0x46;
     return 1;
 }
@@ -1398,7 +1521,11 @@ int obd_service_6(uint8_t *response)
  */
 int obd_service_7(uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 7 from 0x59EE2 */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59EE2 contract
+     * needed — pending-DTC store layout (cf. obd_service_3's documented
+     * count@0xFFFFD400 + table@0xFFFFD402 pattern for STORED codes) and
+     * the 0x47 + DTC-list layout. Bare-0x47 return is a fake-positive.
+     * Needs IDA read of 0x59EE2. */
     response[0] = 0x47;
     return 1;
 }
@@ -1409,7 +1536,12 @@ int obd_service_7(uint8_t *response)
  */
 int obd_service_9(uint8_t sub_func, uint8_t *response)
 {
-    /* TODO: Implement OBD-II service 9 from 0x59C8C */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59C8C contract
+     * needed — supported InfoTypes (VIN, calibration ID/CVN, ...) with
+     * their source addresses (cf. SID 0x22 DIDs 0xF190/0xF18A already
+     * reconstructed above) and the 0x49 + InfoType + message-count +
+     * data layout. Bare-0x49 return is a fake-positive. Needs IDA read
+     * of 0x59C8C. */
     (void)sub_func;
     response[0] = 0x49;
     return 1;
@@ -1421,7 +1553,9 @@ int obd_service_9(uint8_t sub_func, uint8_t *response)
  */
 int obd_service_A(uint8_t *response)
 {
-    /* TODO: Implement OBD-II service A from 0x59F26 */
+    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59F26 contract
+     * needed — permanent-DTC store layout and the 0x4A + DTC-list layout.
+     * Bare-0x4A return is a fake-positive. Needs IDA read of 0x59F26. */
     response[0] = 0x4A;
     return 1;
 }
