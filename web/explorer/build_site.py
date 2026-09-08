@@ -1053,15 +1053,23 @@ def serve_site(port):
     return 0
 
 
-def render_landing_page():
+def render_landing_page(data=None):
     """Landing page for the combined site at the repo root (/).
     Two cards: ROM Explorer and ECU Emulator, matching the dark theme."""
+    if data is not None:
+        c = data["meta"]["counts"]
+        landing_stats = ("Firmware open &middot; %d symbols &middot; %d tables"
+                         % (c["symbols"], c["tables_rows"]))
+    else:
+        landing_stats = "Firmware open &middot; 6083 symbols &middot; 1210 tables"
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RX-8 ECU Tools</title>
+<meta name="description" content="RX-8 ECU — open firmware reverse-engineering project: ROM Explorer and ECU Emulator.">
+<meta name="theme-color" content="#0b0e13">
+<title>RX-8 ECU</title>
 <link rel="icon" href="data:,">
 <style>
 :root {
@@ -1074,31 +1082,39 @@ def render_landing_page():
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 body {
-  background: var(--bg); color: var(--text);
+  background:
+    radial-gradient(960px 420px at 50% -120px, rgba(77,124,255,.13), rgba(77,124,255,0) 65%),
+    var(--bg);
+  color: var(--text);
   font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh;
+  min-height: 100vh; padding: 40px 16px;
 }
 
-.brand { text-align: center; margin-bottom: 40px; }
-.logo {
-  width: 56px; height: 56px; border-radius: 12px; margin: 0 auto 14px;
+.hero { text-align: center; margin-bottom: 36px; max-width: 640px; }
+.hero .logo {
+  width: 72px; height: 72px; border-radius: 16px; margin: 0 auto 16px;
   display: flex; align-items: center; justify-content: center;
   background: var(--bg2); border: 1px solid var(--border); color: var(--accent);
+  box-shadow: 0 0 32px rgba(77,124,255,.18);
 }
-.logo svg { width: 32px; height: 32px; }
-.wordmark { font: 800 28px var(--mono); letter-spacing: .03em; color: var(--text); margin: 0; }
+.hero .logo svg { width: 44px; height: 44px; }
+.wordmark { font: 800 34px var(--mono); letter-spacing: .03em; color: var(--text); margin: 0; }
 .wm-accent { color: var(--accent); }
-.subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.tagline { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
 
 .cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
 
 .card-link {
   display: block; width: 340px; padding: 0; text-decoration: none; color: inherit;
   background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
-  transition: border-color .2s, box-shadow .2s; overflow: hidden;
+  transition: border-color .2s, box-shadow .2s, transform .2s; overflow: hidden;
 }
-.card-link:hover { border-color: var(--accent); box-shadow: 0 0 24px rgba(77,124,255,.15); }
+.card-link:hover, .card-link:focus-visible {
+  border-color: var(--accent); box-shadow: 0 0 24px rgba(77,124,255,.15);
+  transform: translateY(-2px);
+}
+.card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .card-head {
   padding: 20px 22px 14px; border-bottom: 1px solid var(--border);
@@ -1133,32 +1149,41 @@ body {
 .card-footer::after { content: " \\2192"; }
 
 footer {
-  margin-top: 40px; color: var(--muted); font-size: 11.5px; text-align: center;
+  margin-top: 36px; color: var(--muted); font-size: 11.5px; text-align: center;
 }
+.status { font: 12px var(--mono); color: var(--accent2); margin-bottom: 6px; }
 
 @media (max-width: 760px) {
   .cards { flex-direction: column; align-items: center; }
   .card-link { width: 100%; max-width: 380px; }
 }
+@media (max-width: 480px) {
+  body { padding: 28px 14px; }
+  .hero { margin-bottom: 28px; }
+  .hero .logo { width: 60px; height: 60px; border-radius: 14px; }
+  .hero .logo svg { width: 36px; height: 36px; }
+  .wordmark { font-size: 27px; }
+  .tagline { font-size: 13px; }
+}
 </style>
 </head>
 <body>
 
-<div class="brand">
+<header class="hero">
   <div class="logo" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor" stroke="currentColor"
+    <svg viewBox="0 0 24 24" width="44" height="44" fill="currentColor" stroke="currentColor"
          stroke-width="2" stroke-linejoin="round">
       <path d="M12 3.2 Q18.93 8.01 19.62 16.42 Q12 19.98 4.38 16.42 Q5.07 8.01 12 3.2 Z"/>
       <circle cx="12" cy="12" r="3.2" style="fill:var(--bg2)" stroke="none"/>
     </svg>
   </div>
-  <h1 class="wordmark">RX-<span class="wm-accent">8</span> ECU Tools</h1>
-  <div class="subtitle">Mazda RX-8 &middot; Renesas SH7055 (SH-2E) &middot; Renesis 1.3L</div>
-</div>
+  <h1 class="wordmark">RX-<span class="wm-accent">8</span> ECU</h1>
+  <p class="tagline">Open firmware reverse-engineering project &mdash; SH7055 &middot; 96-pin &middot; Renesis</p>
+</header>
 
-<div class="cards">
+<main class="cards">
 
-  <a class="card-link" href="explorer/">
+  <a class="card-link" href="explorer/" aria-label="Open ROM Explorer">
     <div class="card-head">
       <div class="card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1184,7 +1209,7 @@ footer {
     <div class="card-footer">Open Explorer</div>
   </a>
 
-  <a class="card-link" href="emu/">
+  <a class="card-link" href="emu/" aria-label="Open ECU Emulator">
     <div class="card-head">
       <div class="card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1211,15 +1236,16 @@ footer {
     <div class="card-footer">Open Emulator</div>
   </a>
 
-</div>
+</main>
 
 <footer>
-  RX-8 ECU Tools &middot; Renesas SH7055 &middot; data from the
-  <a href="https://github.com/davtur19/rx8ecu" style="color:var(--accent)">rx8ecu</a> project
+  <div class="status">__LANDING_STATS__</div>
+  <div>data from the
+  <a href="https://github.com/davtur19/rx8ecu" style="color:var(--accent)">rx8ecu</a> project</div>
 </footer>
 
 </body>
-</html>"""
+</html>""".replace("__LANDING_STATS__", landing_stats)
 
 
 def copy_emu_files():
@@ -1294,7 +1320,7 @@ def main(argv):
     write_text(os.path.join(EXPLORER_DIST, "README.md"), render_dist_readme(data))
 
     # 6) Landing page at dist/ root + .nojekyll for GitHub Pages
-    write_text(os.path.join(DIST, "index.html"), render_landing_page())
+    write_text(os.path.join(DIST, "index.html"), render_landing_page(data))
     open(os.path.join(DIST, ".nojekyll"), "w").close()
 
     # 7) Copy ecu-emu dist into dist/emu/
