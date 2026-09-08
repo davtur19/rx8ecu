@@ -58,12 +58,12 @@ int main(void)
     for (unsigned b = 0; b < 256; b++) {
         uint32_t basev = (uint32_t)rand();
         uint32_t r5 = (uint32_t)rand();
-        *(volatile uint32_t *)BASE = basev;
-        *(volatile uint8_t *)(FLAGS + b) = 0;
+        *(volatile uint32_t *)(uintptr_t)BASE = basev;
+        *(volatile uint8_t *)(uintptr_t)(FLAGS + b) = 0;
         req_queue_store_69602(b, r5);
         uint32_t exp = ((uint32_t)r5 * 0x0FA0u) + basev;
         uint32_t got = rd32(VALUES + b * 4);
-        if (got != exp || *(volatile uint8_t *)(FLAGS + b) != 1) {
+        if (got != exp || *(volatile uint8_t *)(uintptr_t)(FLAGS + b) != 1) {
             printf("FAIL store b=%u r5=%08X base=%08X got=%08X exp=%08X\n",
                    b, r5, basev, got, exp);
             failures++;
@@ -74,9 +74,9 @@ int main(void)
 
     /* clear: all 256 indices */
     for (unsigned b = 0; b < 256; b++) {
-        *(volatile uint8_t *)(FLAGS + b) = 1;
+        *(volatile uint8_t *)(uintptr_t)(FLAGS + b) = 1;
         req_queue_clear_69694(b);
-        if (*(volatile uint8_t *)(FLAGS + b) != 0) {
+        if (*(volatile uint8_t *)(uintptr_t)(FLAGS + b) != 0) {
             printf("FAIL clear b=%u\n", b);
             failures++;
             break;
@@ -90,19 +90,19 @@ int main(void)
         if (rand() & 1) {
             uint32_t basev = (uint32_t)rand();
             uint32_t r5 = (uint32_t)rand();
-            *(volatile uint32_t *)BASE = basev;
-            *(volatile uint8_t *)(FLAGS + b) = 0;
+            *(volatile uint32_t *)(uintptr_t)BASE = basev;
+            *(volatile uint8_t *)(uintptr_t)(FLAGS + b) = 0;
             req_queue_store_69602(b, r5);
             uint32_t exp = ((uint32_t)r5 * 0x0FA0u) + basev;
-            if (rd32(VALUES + b * 4) != exp || *(volatile uint8_t *)(FLAGS + b) != 1) {
+            if (rd32(VALUES + b * 4) != exp || *(volatile uint8_t *)(uintptr_t)(FLAGS + b) != 1) {
                 printf("FAIL rnd store b=%u\n", b);
                 failures++;
                 break;
             }
         } else {
-            *(volatile uint8_t *)(FLAGS + b) = (uint8_t)rand();
+            *(volatile uint8_t *)(uintptr_t)(FLAGS + b) = (uint8_t)rand();
             req_queue_clear_69694(b);
-            if (*(volatile uint8_t *)(FLAGS + b) != 0) {
+            if (*(volatile uint8_t *)(uintptr_t)(FLAGS + b) != 0) {
                 printf("FAIL rnd clear b=%u\n", b);
                 failures++;
                 break;

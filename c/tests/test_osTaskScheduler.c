@@ -115,6 +115,7 @@ static void test_dispatcher_path(void)
     struct TaskEntry entry;
     entry.marker    = 0x0007;      /* some dispatch marker/ID */
     entry.arg_count = 1;
+    entry.func_ptr  = 0x00000000; /* initialized: copied to frame[0], never dereferenced here */
 
     /* Create a test frame */
     uint32_t frame[8];
