@@ -1,5 +1,6 @@
 # RX-8 ECU Emulator — build
 # Usage: make build   (copies src/ to dist/)
+#        make test    (durable regression suite, node stdlib only)
 #        make serve   (build + serve on port 8001)
 #        make clean   (remove dist/)
 
@@ -7,7 +8,10 @@ SRC = src
 DIST = dist
 PORT = 8001
 
-.PHONY: build serve clean
+.PHONY: build serve clean test
+
+test:
+	node --test tests/
 
 build: $(DIST)/index.html $(DIST)/app.js $(DIST)/style.css $(DIST)/pins.json $(DIST)/emu_core.js $(DIST)/engine_sim.js $(DIST)/can_live.js $(DIST)/can_live.css $(DIST)/icons.svg
 
