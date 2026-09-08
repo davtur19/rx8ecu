@@ -23,6 +23,15 @@
  *   emu_get_crank_gap()  — return 1 when the current tooth is a gap (5/15)
  *   emu_get_crank_capture() — return ATU capture mirror (bit 31 = gap flag)
  *   emu_get_tooth_period_ms() — return current per-tooth period in ms
+ *   emu_get_fuel_cut()   — return 1 when injector fuel cut is active (rpm >= 9000)
+ *   emu_get_inj_duty()   — return current injector duty 0..1 (0 during fuel cut)
+ *
+ * Injector/ignition model: injectors fire sequentially (one 1..8ms pulse
+ * per injector per revolution, duty = pw / rev-period, clamped 2..85%);
+ * coils fire sequentially with a narrow ~8% window each. Both toggle with
+ * sim time so the Active-pins view flickers faster with RPM. At/above the
+ * 9000 rpm redline the injectors are fuel-cut (port 1 = 0) while the
+ * coils keep firing — the visible redline signature.
  */
 "use strict";
 
@@ -36,6 +45,11 @@ var Module = (function() {
   var _msAccum = 0;          // fractional ms accumulator
   var _mil = false;          // internal MIL/DTC latch (drives port 5 bit 7)
   var _fuelPrime = true;     // key-on fuel-pump prime latch (set at init)
+  var _simMs = 0;            // absolute sim time in ms (drives inj/coil phasing)
+
+  /* Redline fuel cut: injectors off at/above 9000 rpm (Renesis redline). */
+  var REDLINE_RPM = 9000;
+  var COIL_DUTY = 0.08;      // per-coil window as a fraction of one revolution
 
   /* NTC constants (from ecu_pin_emu.py) */
   var NTC_B     = 3435.0;
@@ -162,6 +176,41 @@ var Module = (function() {
   }
 
   /* ================================================================
+   *  Injector / ignition phasing (drives the Active-pins view)
+   * ================================================================ */
+  /* Injector pulse width grows with rpm: 1ms at 0 rpm .. 8ms at 9000
+   * (matches the can_live.js 0x250 injPw packing). */
+  function injPulseMs(rpm) {
+    return 1 + (rpm / REDLINE_RPM) * 7;
+  }
+
+  /* Per-injector duty for one revolution (0 during fuel cut / stall). */
+  function injDuty(rpm) {
+    if (rpm >= REDLINE_RPM) return 0;  // fuel cut at/above redline
+    if (rpm <= 200) return 0;          // below cranking threshold
+    if (rpm <= 0) return 0;
+    var period_ms = 60000.0 / rpm;     // ms per revolution
+    var d = injPulseMs(rpm) / period_ms;
+    if (d < 0.02) d = 0.02;
+    if (d > 0.85) d = 0.85;
+    return d;
+  }
+
+  function isFuelCut() {
+    return _rpm >= REDLINE_RPM;
+  }
+
+  /* Continuous 0..1 phase within the current revolution. */
+  function revPhase01() {
+    if (_rpm <= 0) return 0;
+    var period_ms = 60000.0 / _rpm;
+    if (!(period_ms > 0)) return 0;
+    var m = _simMs % period_ms;
+    if (m < 0) m += period_ms;
+    return m / period_ms;
+  }
+
+  /* ================================================================
    *  GPIO decode (port latches from RPM/ECT/TPS)
    * ================================================================ */
   function updatePorts() {
@@ -169,11 +218,40 @@ var Module = (function() {
     var ect = _ect;
     var tps = _tps;
 
-    // Port 0: COIL1-4 — enabled when RPM > 0
-    portLatches[0] = rpm > 0 ? 0x0F : 0x00;
+    // Port 0: COIL1-4 — sequential firing, one narrow window per coil
+    // per revolution (offset from the injectors). Frequency scales with
+    // rpm via revPhase01; coils keep firing through fuel cut.
+    if (rpm <= 0) {
+      portLatches[0] = 0x00;
+    } else {
+      var cPhase = revPhase01();
+      var cBits = 0;
+      for (var c = 0; c < 4; c++) {
+        var cOff = (c * 0.25 + 0.125) % 1;
+        var cRel = cPhase - cOff;
+        cRel -= Math.floor(cRel);
+        if (cRel < COIL_DUTY) cBits |= (1 << c);
+      }
+      portLatches[0] = cBits;
+    }
 
-    // Port 1: INJ1-4 — enabled when RPM > 200
-    portLatches[1] = rpm > 200 ? 0x0F : 0x00;
+    // Port 1: INJ1-4 — sequential injection, duty grows with rpm
+    // (low duty at idle, high duty near redline); fuel cut at/above
+    // the 9000 rpm redline forces all injectors off.
+    if (isFuelCut() || rpm <= 200) {
+      portLatches[1] = 0x00;
+    } else {
+      var duty = injDuty(rpm);
+      var iPhase = revPhase01();
+      var iBits = 0;
+      for (var i = 0; i < 4; i++) {
+        var iOff = (i * 0.25) % 1;
+        var iRel = iPhase - iOff;
+        iRel -= Math.floor(iRel);
+        if (iRel < duty) iBits |= (1 << i);
+      }
+      portLatches[1] = iBits;
+    }
 
     // Port 2: OMP — metering pump runs whenever the engine turns (idle included)
     portLatches[2] = rpm > 0 ? 0x01 : 0x00;
@@ -322,6 +400,7 @@ var Module = (function() {
     _msAccum = 0;
     _mil = false;        // MIL off at power-on; set via emu_set_mil
     _fuelPrime = true;   // key-on prime: fuel relay on from IG, rpm-independent
+    _simMs = 0;          // reset phasing clock (inj/coil duty restarts in phase)
   }
 
   function emu_set_sensor(id, value) {
@@ -337,6 +416,8 @@ var Module = (function() {
   }
 
   function emu_step_ms(ms) {
+    if (typeof ms !== "number" || !(ms > 0)) ms = 0;
+    _simMs += ms;
     crankStep(ms);
     updateADC();
     updatePorts();
@@ -381,6 +462,14 @@ var Module = (function() {
     return 60000.0 / (_rpm * 20); // ms per full 18° tooth
   }
 
+  function emu_get_fuel_cut() {
+    return isFuelCut() ? 1 : 0;
+  }
+
+  function emu_get_inj_duty() {
+    return injDuty(_rpm);
+  }
+
   function emu_set_pins(pinData) {
     pins = pinData;
   }
@@ -401,6 +490,8 @@ var Module = (function() {
     emu_get_crank_gap: emu_get_crank_gap,
     emu_get_crank_capture: emu_get_crank_capture,
     emu_get_tooth_period_ms: emu_get_tooth_period_ms,
+    emu_get_fuel_cut: emu_get_fuel_cut,
+    emu_get_inj_duty: emu_get_inj_duty,
     emu_set_pins: emu_set_pins
   };
 })();
