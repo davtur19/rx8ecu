@@ -14,10 +14,15 @@ sh2emu.py doesn't implement.
 
 Run from repo root:  python3 c/tests/test_math_primitives.py [N]
 """
-import os, sys, random
+import math, os, sys, random
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 from sh2emu import SH2, ts, f2bits, s32, MASK
+
+# Determinism (wave2b): fixed seed (subtractAbsolute @0x23DC, first function
+# in this TU). Two runs must diff clean:
+#   python3 c/tests/test_math_primitives.py > /tmp/m1.log && python3 c/tests/test_math_primitives.py > /tmp/m2.log && diff /tmp/m1.log /tmp/m2.log
+random.seed(0x23DC)
 
 
 class SH2E(SH2):
@@ -53,7 +58,16 @@ def saturate(s, lo, hi):
 def encode(x):                          x &= 0xFF; return ((x << 8) | ((~x) & 0xFF)) & 0xFFFF
 def isNotZero(x, c, t):                 return 1 if (ts(c - t) > x or x > ts(c + t)) else 0
 def _tofp(num, sca, off, hi):
-    i = int(ts(ts(ts(num - off) / sca) + 0.5))
+    # Saturate-model guard (wave2b): int() raises on inf/nan (OverflowError /
+    # ValueError), so non-finite intermediates are clamped before conversion.
+    # ROM saturates the same way (probed 2026-09-08 on 60E0FC00 @0x2490/0x24D0
+    # with sca=1.0/off=0.0: +inf -> hi, -inf/nan -> 0).
+    v = ts(ts(ts(num - off) / sca) + 0.5)
+    if math.isnan(v):
+        return 0
+    if math.isinf(v):
+        return hi if v > 0 else 0
+    i = int(v)
     return 0 if i < 0 else (hi if i > hi else i)
 def floatToFP_16bit(n, s, o):           return _tofp(n, s, o, 0xFFFF)
 def floatToInt(n, s, o):                return _tofp(n, s, o, 0xFF)
@@ -76,12 +90,23 @@ def fixedPointScaling(a, b, frac):
     v    = ts(diff * t)
     if v >= 2147483648.0:    d = 0x7FFFFFFF   # ftrc +overflow saturates
     elif v < -2147483648.0:  d = 0x80000000   # ftrc -overflow saturates
+    elif math.isnan(v):      d = 0            # guard: int(nan) would raise; unreachable
+    #                                          # from integer args (finite*finite never
+    #                                          # yields nan) but keeps the model total
     else:                    d = int(v)       # ftrc: trunc toward zero
     return s32((a + d) & 0xFFFFFFFF)
 
 def rf():
     return ts(random.choice([random.uniform(-1e4, 1e4), random.uniform(-2, 2),
                              random.uniform(0, 300), random.uniform(-300, 0)]))
+
+# Saturate-path edge vectors (wave2b): non-finite, subnormal, signed-zero and
+# large-finite inputs. All models above are total over this set (the _tofp /
+# fixedPointScaling guards keep int() from raising); ROM-vs-model bit-exactness
+# over this set was probed 2026-09-08 before wiring it in (0 mismatches).
+EDGE_FLOATS = [float('inf'), float('-inf'), float('nan'),
+               5e-324, -5e-324, 1e-40, -1e-40,
+               0.0, -0.0, 1e30, -1e30, 3.4028235e38, -3.4028235e38]
 
 IR_ADDR = 0xFFFF9000  # scratch RAM cell for invertAndReturn_8bit_ADDR's (hi,lo) pair
 
@@ -130,6 +155,19 @@ def main():
         lo = (~hi) & 0xFF
         r0 = cpu.call(0x2044, r4=IR_ADDR, ram={IR_ADDR: hi, IR_ADDR + 1: lo})
         chk('invertAndReturn_8bit_ADDR', (r0 & 0xFF) == 0)
+    # saturate-path edge vectors: every EDGE_FLOAT against every float entry
+    # point (lo=0.0/hi=1.0 window for saturate; sca=1.0/off=0.0 for _tofp).
+    for e in EDGE_FLOATS:
+        a = ts(e)
+        cpu.call(0x23DC, fr={4: a, 5: ts(1.0)}); chk('subtractAbsolute', b(cpu.fr[0]) == b(subtractAbsolute(a, ts(1.0))))
+        cpu.call(0x23E4, fr={4: a, 5: ts(1.0)}); chk('saturateLow', b(cpu.fr[0]) == b(saturateLow(a, ts(1.0))))
+        cpu.call(0x23F4, fr={4: a, 5: ts(1.0)}); chk('minValue',    b(cpu.fr[0]) == b(minValue(a, ts(1.0))))
+        cpu.call(0x2404, fr={4: a, 5: ts(0.0), 6: ts(1.0)}); chk('saturate', b(cpu.fr[0]) == b(saturate(a, ts(0.0), ts(1.0))))
+        chk('isNotZero_wDivideByZeroProtect', (cpu.call(0x2440, fr={4: a, 5: ts(1.0), 6: ts(0.1)}) & 0xFF) == isNotZero(a, ts(1.0), ts(0.1)))
+        chk('floatToFP_16bit', (cpu.call(0x2490, fr={4: a, 5: ts(1.0), 6: ts(0.0)}) & 0xFFFFFFFF) == (floatToFP_16bit(a, ts(1.0), ts(0.0)) & 0xFFFFFFFF))
+        chk('floatToInt',      (cpu.call(0x24D0, fr={4: a, 5: ts(1.0), 6: ts(0.0)}) & 0xFFFFFFFF) == (floatToInt(a, ts(1.0), ts(0.0)) & 0xFFFFFFFF))
+        cpu.call(0x24C0, r4=0x1234, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_16bit', b(cpu.fr[0]) == b(fixedPointToFloat_16bit(a, ts(1.0), 0x1234)))
+        cpu.call(0x2500, r4=0x34, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_8bit', b(cpu.fr[0]) == b(fixedPointToFloat_8bit(a, ts(1.0), 0x34)))
     names = ['subtractAbsolute', 'saturateLow', 'minValue', 'saturate', 'encode',
              'isNotZero_wDivideByZeroProtect', 'floatToFP_16bit', 'floatToInt',
              'fixedPointToFloat_16bit', 'fixedPointToFloat_8bit',

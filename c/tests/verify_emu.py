@@ -22,14 +22,31 @@ Coverage manifest (claims list == hosted + skipped, no silent gaps):
     it. The runner prints each SKIP line and asserts FUNCS | SKIP covers the
     full CLAIMS list, so coverage == claims by construction.
 """
-import ctypes, os, random, subprocess, sys
+import argparse, ctypes, os, random, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RE = os.path.abspath(os.path.join(HERE, '..', '..'))          # repo root
 sys.path.insert(0, os.path.join(RE, 'tools'))                 # sh2emu.py lives in tools/
 from sh2emu import SH2
 
-ROM = os.path.join(RE, 'roms', 'stock', '60E1D400.bin')
+# Determinism (wave2b): fixed seed so every run generates the identical
+# vector stream. Prove with two runs + diff:
+#   python3 c/tests/verify_emu.py > /tmp/v1.log && python3 c/tests/verify_emu.py > /tmp/v2.log && diff /tmp/v1.log /tmp/v2.log
+RANDOM_SEED = 0x60E1D400
+random.seed(RANDOM_SEED)
+
+DEFAULT_ROM = os.path.join(RE, 'roms', 'stock', '60E1D400.bin')
+# Backward-compat alias: the default ROM path (overridable via --rom / RX8ECU_ROM).
+ROM = DEFAULT_ROM
+
+
+def parse_args():
+    ap = argparse.ArgumentParser(description='Track-A verifier: C lifts vs emulated ROM')
+    ap.add_argument('--rom', default=os.environ.get('RX8ECU_ROM', DEFAULT_ROM),
+                    help='ROM image to emulate (default: %(default)s; env RX8ECU_ROM overrides the default)')
+    ap.add_argument('--seed', type=int, default=RANDOM_SEED,
+                    help='random seed for the vector stream (default: %(default)s = 0x60E1D400)')
+    return ap.parse_args()
 
 # name: (entry@60E1D400, ret_bytes, [arg_bytes,...]) or
 #       (entry@60E1D400, ret_bytes, [arg_bytes,...], [reg,...]) for non-r4 ABI.
@@ -125,11 +142,32 @@ SKIP = {
     'getFromE2':              ('0x39170', 'EEPROM hardware interface (SPI bit-bang)', 'test_getFromE2.py'),
 }
 
+# --- float/mem registry stub (wave2b) ---
+# This harness only hosts pure functions of INTEGER args (FUNCS above). The
+# float-arg and redundant-RAM lifts are NOT duplicated here because their
+# sister registries already exist and own those vectors:
+#   * float-arg lifts (subtractAbsolute, saturate, floatToInt, ...) ->
+#     c/tests/test_math_primitives.py (seeded, ROM-differential vs 60E0FC00)
+#   * redundant-RAM lifts (readValue_*, updateMemoryAtAddress_*, ...) ->
+#     c/tests/test_mem_accessors.py (seeded, ROM-differential vs 60E0FC00)
+# The SKIP manifest below points at exactly those suites per lift, so there
+# is no silent gap and no second registry to drift. (If those sister suites
+# did not exist, the gap would be: every SKIP row whose covering test is
+# test_math_primitives.py / test_mem_accessors.py would have no executable
+# differential — i.e. 15 float rows + 11 RAM rows uncovered.)
+
 RT = {1: ctypes.c_uint8, 2: ctypes.c_uint16, 4: ctypes.c_uint32}
 
 
 def emu_call(cpu, entry, args, regmap):
-    """Call the ROM with args mapped onto the given registers."""
+    """Call the ROM with args mapped onto the given registers.
+
+    No state bleeds between vectors: SH2.call rebuilds the full CPU state
+    on entry (r[*], fr[*], T, SR, FPSCR, MACH/MACL, GBR, PR/VBR — see
+    tools/sh2emu.py SH2.call), so reusing one cpu across vectors is safe.
+    The loop below additionally resets T/SR/FPSCR explicitly per vector
+    (defense in depth; SH2.call re-establishes the same values on entry).
+    """
     kwargs = {}
     reg_ov = {}
     for r, a in zip(regmap, args):
@@ -143,7 +181,9 @@ def emu_call(cpu, entry, args, regmap):
 
 
 def main():
-    rom = open(ROM, 'rb').read()
+    args = parse_args()
+    random.seed(args.seed)
+    rom = open(args.rom, 'rb').read()
     cpu = SH2(rom)
     fails = 0
     for name, spec in FUNCS.items():
@@ -160,6 +200,9 @@ def main():
         for _ in range(100000):
             vectors.append([random.randint(0, (1 << (8 * b)) - 1) for b in argb])
         for args in vectors:
+            # Explicit per-vector CPU reset (T/SR/FPSCR); SH2.call resets the
+            # same state on entry, so this is belt-and-braces, not load-bearing.
+            cpu.T = 0; cpu.sr = 0xF0; cpu.fpscr = 0
             c = fn(*args) & retmask
             e = emu_call(cpu, entry, args, regmap) & retmask
             if c != e:

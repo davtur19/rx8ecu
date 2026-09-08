@@ -23,6 +23,22 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 from sh2emu import SH2, MASK, s8, s16, s32, ts, f2bits
 
+# Determinism (wave2b): fixed seed (readValue_8bit @0x3E0DC, first function
+# in this TU). Two runs must diff clean:
+#   python3 c/tests/test_mem_accessors.py > /tmp/a1.log && python3 c/tests/test_mem_accessors.py > /tmp/a2.log && diff /tmp/a1.log /tmp/a2.log
+random.seed(0x3E0DC)
+
+# Saturate-path edge floats (wave2b) for the float-cell paths below
+# (readValue_float @0x3E1AA, validateAddressCopy_float @0x3E38A): non-finite,
+# subnormal, signed-zero and large-finite values. ROM-vs-model bit-exactness
+# over this set was probed 2026-09-08 before wiring it in (0 mismatches).
+# NOTE: this TU performs no int() conversions of floats (values travel as
+# f32 bits via struct.pack/unpack, which is total over inf/nan), so no
+# saturate-model int() guard is needed here — unlike test_math_primitives.py.
+EDGE_FLOATS = [float('inf'), float('-inf'), float('nan'),
+               5e-324, -5e-324, 1e-40, -1e-40,
+               0.0, -0.0, 1e30, -1e30]
+
 
 class SH2E(SH2):
     """Self-contained: mov.b/mov.w @(disp,Rm),R0 (correct 0xFF00 mask) + cmp/pz + cmp/pl,
@@ -188,6 +204,29 @@ def main():
             if u16(cpu.ram, A + 4) != c1: bad('validateAddressCopy_32bit_ADDRESS_untouched_copy1')
             if u16(cpu.ram, A + 6) != c2: bad('validateAddressCopy_32bit_ADDRESS_untouched_copy2')
 
+    # ---- float-cell edge vectors (inf/-inf/NaN/subnormal/+-0.0/large) ----
+    for fval_raw in EDGE_FLOATS:
+        fval = ts(fval_raw)
+        bits = struct.unpack('>I', struct.pack('>f', fval))[0]
+        hi = (bits >> 16) & 0xFFFF; lo = bits & 0xFFFF
+        cs = checksum32(bits)
+        for mode in ('valid1', 'valid2', 'invalid'):
+            c1, c2 = rand_checksum_pair(cs, mode)
+            dfltf = ts(1.5)
+            ram = {**stub(),
+                   A: (hi >> 8) & 0xFF, A + 1: hi & 0xFF, A + 2: (lo >> 8) & 0xFF, A + 3: lo & 0xFF,
+                   A + 4: (c1 >> 8) & 0xFF, A + 5: c1 & 0xFF, A + 6: (c2 >> 8) & 0xFF, A + 7: c2 & 0xFF}
+            cpu.call(0x3E1AA, r4=A, ram=ram, fr={4: dfltf})
+            r = cpu.fr[0]
+            expect = fval if mode != 'invalid' else dfltf
+            if f2bits(r) != f2bits(expect): bad('readValue_float_EDGE')
+            ram = {**stub(),
+                   A: (hi >> 8) & 0xFF, A + 1: hi & 0xFF, A + 2: (lo >> 8) & 0xFF, A + 3: lo & 0xFF,
+                   A + 4: (c1 >> 8) & 0xFF, A + 5: c1 & 0xFF, A + 6: (c2 >> 8) & 0xFF, A + 7: c2 & 0xFF}
+            r = cpu.call(0x3E38A, r4=A, ram=ram)
+            expect = 0 if mode != 'invalid' else 1
+            if (r & 0xFF) != expect: bad('validateAddressCopy_float_EDGE')
+
     names = ['updateMemoryAtAddress_8bit', 'updateMemoryAtAddress_16bit', 'readValue_8bit', 'readValue_16bit',
              'updateMemoryAtAddress_32bit_value', 'updateMemoryAtAddress_32bit_copy1', 'updateMemoryAtAddress_32bit_copy2',
              'readValue_32bit_ADDRESS_VAL', 'readValue_float_DEFAULTVAL_ADDRESS',
@@ -195,9 +234,10 @@ def main():
              'validateAddressCopy_float_ADDRESS',
              'validateAddressCopy_float_ADDRESS_scrub_copy1', 'validateAddressCopy_float_ADDRESS_scrub_copy2',
              'validateAddressCopy_float_ADDRESS_untouched_copy1', 'validateAddressCopy_float_ADDRESS_untouched_copy2',
-             'validateAddressCopy_32bit_ADDRESS',
-             'validateAddressCopy_32bit_ADDRESS_scrub_copy1', 'validateAddressCopy_32bit_ADDRESS_scrub_copy2',
-             'validateAddressCopy_32bit_ADDRESS_untouched_copy1', 'validateAddressCopy_32bit_ADDRESS_untouched_copy2']
+              'validateAddressCopy_32bit_ADDRESS',
+              'validateAddressCopy_32bit_ADDRESS_scrub_copy1', 'validateAddressCopy_32bit_ADDRESS_scrub_copy2',
+              'validateAddressCopy_32bit_ADDRESS_untouched_copy1', 'validateAddressCopy_32bit_ADDRESS_untouched_copy2',
+              'readValue_float_EDGE', 'validateAddressCopy_float_EDGE']
     print("inputs/function: %d" % N)
     for n in names:
         print("  %-42s %s (%d)" % (n, "OK" if not f.get(n) else "FAIL", f.get(n, 0)))
