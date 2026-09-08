@@ -13,34 +13,41 @@ PORT = 8001
 test:
 	node --test tests/
 
-build: $(DIST)/index.html $(DIST)/app.js $(DIST)/style.css $(DIST)/pins.json $(DIST)/emu_core.js $(DIST)/engine_sim.js $(DIST)/can_live.js $(DIST)/can_live.css $(DIST)/icons.svg
+build: $(DIST)/index.html $(DIST)/app.js $(DIST)/style.css $(DIST)/pins.json $(DIST)/emu_core.js $(DIST)/engine_sim.js $(DIST)/can_live.js $(DIST)/audio.js $(DIST)/can_live.css $(DIST)/icons.svg
 
-$(DIST)/index.html: $(SRC)/index.html
-	@mkdir -p $(DIST)
+# B6: single mkdir rule consumed via order-only prerequisites — parallel
+# `make -j` no longer races 8 concurrent `mkdir -p` + copy pairs.
+$(DIST):
+	mkdir -p $(DIST)
+
+$(DIST)/index.html: $(SRC)/index.html | $(DIST)
 	cp $< $@
 
-$(DIST)/app.js: $(SRC)/app.js
+$(DIST)/app.js: $(SRC)/app.js | $(DIST)
 	cp $< $@
 
-$(DIST)/style.css: $(SRC)/style.css
+$(DIST)/style.css: $(SRC)/style.css | $(DIST)
 	cp $< $@
 
-$(DIST)/pins.json: $(SRC)/pins.json
+$(DIST)/pins.json: $(SRC)/pins.json | $(DIST)
 	cp $< $@
 
-$(DIST)/emu_core.js: $(SRC)/emu_core.js
+$(DIST)/emu_core.js: $(SRC)/emu_core.js | $(DIST)
 	cp $< $@
 
-$(DIST)/engine_sim.js: $(SRC)/engine_sim.js
+$(DIST)/engine_sim.js: $(SRC)/engine_sim.js | $(DIST)
 	cp $< $@
 
-$(DIST)/can_live.js: $(SRC)/can_live.js
+$(DIST)/can_live.js: $(SRC)/can_live.js | $(DIST)
 	cp $< $@
 
-$(DIST)/can_live.css: $(SRC)/can_live.css
+$(DIST)/audio.js: $(SRC)/audio.js | $(DIST)
 	cp $< $@
 
-$(DIST)/icons.svg: $(SRC)/icons.svg
+$(DIST)/can_live.css: $(SRC)/can_live.css | $(DIST)
+	cp $< $@
+
+$(DIST)/icons.svg: $(SRC)/icons.svg | $(DIST)
 	cp $< $@
 
 serve: build

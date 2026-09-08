@@ -8,10 +8,11 @@ CI definition for the rx8ecu repo. It is self-contained: CI requires **no repo-r
 |-----|-------|------------------|
 | `verify` | `make verify-all` — byte-exact rebuild of **all 9 public stock ROMs** (`sha256` match); `make c-test` (26/26); `make c-emu` (5×100k random) | same three make targets |
 | `tests` | `python3 tools/run_tests_parallel.py -j 4` — auto-discovers every `c/tests/test_*.py` and `tools/tests/test_*.py` suite; new files picked up automatically | `make test-fast` |
+| `suites` | `make -C web/ecu-emu test` (75 tests) + `make -C firmware check` + `make -C firmware/tests check` (tripwire gate + 22 harnesses) + `python3 web/explorer/build_site.py` and `make -C web/explorer check` | same four commands |
 | `catalog` | `python3 tools/classify_functions.py` + `python3 tools/gen_catalog.py` on clean checkout, then `git diff --exit-code` on four catalog artifacts — **fails on drift** (skipped unless catalog paths changed, via `dorny/paths-filter`) | `make classify catalog` |
 | `formal-cert` | `make cert` — formal certification (`tools/verify_formal.py`) of **all 9 stock ROMs**; **fails unless CERTIFIED** (skipped unless `src/**`, verifier, or configs changed) | `make cert` |
 
-All four jobs run in **parallel** (subject to path triggers). Each job **fails the workflow** on any failed step.
+All five jobs run in **parallel** (subject to path triggers). Each job **fails the workflow** on any failed step.
 
 ### Triggers
 

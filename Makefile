@@ -28,10 +28,10 @@
 #   make clean
 #
 # Catalog tooling (orchestration for the classifier / catalog):
-#   make all        catalog + classify + test (full catalog pipeline)
+#   make all        classify + catalog + test (full catalog pipeline)
 #   make catalog    regen symbols/CATALOG_MASTER.csv + CATALOG_STATUS.md + NAMES_STATUS.md
 #   make classify   regen symbols/FUNCTION_CATEGORIES.csv (hybrid classifier)
-#   make test       default gate: c-test-c (26 C) + c-test-py subset (5 py suites)
+#   make test       default gate: c-test-c (26 C) + c-test-py subset (6 py suites)
 #   make test-fast  full parallel battery (auto-discovery, incl. generated caller suites)
 #
 # NOTE: the pre-release Makefile had a private personal-ROM target for the
@@ -67,6 +67,11 @@ endif
 # assignment to PATH shadows the environment value, so `export PATH := ...$(PATH)`
 # would self-reference and expand empty.
 export PATH := $(if $(TC),$(TC):$(ENV_PATH),$(ENV_PATH))
+
+# B2: recipes below rely on `set -o pipefail` (c-test-py-full discovery +
+# xargs pipeline must fail loudly, never report success on empty output).
+# /bin/sh is dash on Debian/Ubuntu (no pipefail), so pin recipes to bash.
+SHELL := /bin/bash
 
 .PHONY: build all verify verify-all cert src c-test c-test-c c-test-py c-test-py-full c-emu test test-fast catalog classify clean
 
@@ -172,6 +177,7 @@ c-emu:
 #   c/tests/verify_emu.py                (C<->emulated-ROM cross-check; prints COVERAGE 9+44)
 #   c/tests/test_math_primitives.py      (scalar float/int leaf differential)
 #   c/tests/test_mem_accessors.py        (redundant-RAM accessor differential)
+#   c/tests/smoke_dtc_functions.py       (6 DTC entries x 25 states, 512 checks; ~0.1 s)
 # Failure of any suite aborts with non-zero status.
 #
 # NOTE: test_decode_families.py needs sh-elf-as on PATH for the bulk round-trip;
@@ -180,16 +186,17 @@ c-emu:
 # and put the sh-elf binutils on PATH, e.g.:
 #   PATH=tools/toolchain/usr/bin:$$PATH python3 tools/tests/test_decode_families.py
 c-test-py:
-	@echo "c-test-py: 5-suite default-gate subset (decode + emulator families + verify_emu + math_primitives + mem_accessors)"
+	@echo "c-test-py: 6-suite default-gate subset (decode + emulator families + verify_emu + math_primitives + mem_accessors + smoke_dtc)"
 	@for t in \
 	  tools/tests/test_decode_families.py \
 	  tools/tests/test_emulator_families.py \
 	  c/tests/verify_emu.py \
 	  c/tests/test_math_primitives.py \
-	  c/tests/test_mem_accessors.py; do \
+	  c/tests/test_mem_accessors.py \
+	  c/tests/smoke_dtc_functions.py; do \
 	  echo "== $$t =="; python3 $$t || exit 1; \
 	done
-	@echo "c-test-py: subset passed (decode + emulator + verify_emu[COVERAGE 9+44] + math_primitives + mem_accessors)"
+	@echo "c-test-py: subset passed (decode + emulator + verify_emu[COVERAGE 9+44] + math_primitives + mem_accessors + smoke_dtc)"
 
 # c-test-py-full: the FULL non-caller differential battery — every
 # c/tests/test_*.py EXCEPT generated test_caller_*.py (603 files, ~182 MB of
@@ -202,17 +209,18 @@ c-test-py:
 # use `make test-fast` (CI tests job, 90-min budget).
 c-test-py-full:
 	@echo "c-test-py-full: full non-caller differential battery (excludes generated test_caller_*.py)"
-	@export TMPD=$$(mktemp -d) && trap 'rm -rf "$$TMPD"' EXIT INT TERM && \
-	ls c/tests/test_*.py tools/tests/test_*.py c/tests/verify_emu.py 2>/dev/null | grep -v test_caller_ | sort -u > "$$TMPD/list" && \
-	echo "c-test-py-full: $$(wc -l < "$$TMPD/list") suites" && \
-	xargs -P 7 -a "$$TMPD/list" -I{} sh -c 'python3 "$$1" >"$$TMPD/OUT_$$(echo "$$1" | tr / _).log" 2>&1 || echo "$$1" >>"$$TMPD/fails"' _ {} ; \
+	@set -euo pipefail; export TMPD=$$(mktemp -d); trap 'rm -rf "$$TMPD"' EXIT INT TERM; \
+	ls c/tests/test_*.py tools/tests/test_*.py c/tests/verify_emu.py 2>/dev/null | grep -v test_caller_ | sort -u > "$$TMPD/list" || true; \
+	[ -s "$$TMPD/list" ] || { echo "c-test-py-full: ERROR: discovery found 0 suites - refusing to report success"; exit 1; }; \
+	echo "c-test-py-full: $$(wc -l < "$$TMPD/list") suites"; \
+	xargs -P 7 -a "$$TMPD/list" -I{} sh -c 'python3 "$$1" >"$$TMPD/OUT_$$(echo "$$1" | tr / _).log" 2>&1 || echo "$$1" >>"$$TMPD/fails"' _ {} || { echo "c-test-py-full: FAILED (xargs error)"; exit 1; }; \
 	if [ -s "$$TMPD/fails" ]; then echo "FAILURES:"; cat "$$TMPD/fails"; echo "c-test-py-full: FAILED"; exit 1; else echo "c-test-py-full: all non-caller suites passed"; fi
 
 # Default gate: honest split — C behavior-equivalence (26 suites) plus the
-# stated 5-suite Python subset. Full batteries are opt-in: `make c-test-py-full`
+# stated 6-suite Python subset. Full batteries are opt-in: `make c-test-py-full`
 # (non-caller differential) and `make test-fast` (everything, parallel).
 test: c-test-c c-test-py
-	@echo "test: default gate passed (c-test-c 26 C + c-test-py 5-suite subset); full: make c-test-py-full / make test-fast"
+	@echo "test: default gate passed (c-test-c 26 C + c-test-py 6-suite subset); full: make c-test-py-full / make test-fast"
 
 # Parallel runner for the full Python regression suite (auto-discovered: all
 # c/tests/test_*.py INCLUDING generated test_caller_*.py + tools/tests/test_*.py
@@ -227,7 +235,7 @@ test-fast:
 # no further diff (guarded in CI by `git diff --exit-code` on the four
 # catalog artifacts). tools/verify_roms.py does not exist in this repo, so no
 # `verify` target is provided here.
-all: catalog classify test
+all: classify catalog test
 
 catalog:
 	python3 tools/gen_catalog.py
