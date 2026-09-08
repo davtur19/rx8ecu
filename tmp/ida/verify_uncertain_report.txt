@@ -510,3 +510,166 @@ H. IDA/listing issue — needs definition (1)
       reason: IDA mismatch nearest fn 0x77F0; push-prologue bytes but no reliable disasm; needs definition
 
 END
+
+SECOND PASS (2026-09-08, IDA session fc00_verify on tmp/ida/60E0FC00_be.elf)
+--------------------------------------------------------------------------------
+Scope: the 166 kept '?' names from the first pass. Focus groups D (53) + F (6)
++ G (81) = 140 candidates. Groups A/B/C/E/H skipped as structural (thunk /
+inner-label / data / overclaim / needs-definition) except where trivially
+verifiable (none were). Method: idalib_xrefs_to per candidate (callers reveal
+role), idalib_disasm for disambiguation, idalib_find data_ref for RAM/ROM
+identity (AA04 coolant, A0AC injector table, C070 knock byte, 6D498 zeros),
+CSV cross-evidence from 1.0-confidence names. Rename bar: >80% with concrete
+evidence; else kept (a wrong rename is worse than a kept '?').
+
+RENAMED (28):
+  0x63F48  coolantTempPlausibilityCheck??? -> coolantTempPlausibilityCheck [0.85]
+      evidence: calls returnCoolantTemp 5E584 + returnCoolantTemp2 5E58A, |T1-T2|
+      vs threshold float, fault-flag write [8E9E] via 241E helper (28 insns, verified disasm)
+  0xA266  getRotorNumberForControl? -> getRotorControlSlot [0.85]
+      evidence: r4-indexed stride-12 struct @A170 (matches setupStructRotorNumber A230),
+      byte counter +9 round-robins 0/1, returns slot pointer in r0; called from
+      engineTaskRotor0 65F6 + engineTaskRotor1 661E (both renamed 0.85)
+  0x1477C  getEngineCrankingState?? -> updateEngineCrankingState [0.85]
+      evidence: NOT a getter — writes cranking flags A79C/A79E (same flags cleared by
+      engineCrankingConditionsInit 1476C, renamed 0.85) from RPM B594 (confirmed via
+      getRPMForOBD) vs ROM thresholds; called from engineControlCalculateTiming 141FC (1.0)
+  0x528C4  set_CAN_fault??? -> setCANFault [0.85]
+      evidence: sole caller can_keyOnHandlerAtomic 2A99C (CAN Bus 1.0); A40A-gated
+      state 1/2 tail-jmp to updateFaultStatus 5E644 (11 insns, verified disasm)
+  0x296CC  scaleCoolantTempForCAN?? -> scaleCoolantTempForCAN [0.85]
+      evidence: sole caller updateCAN420Data 295C4 (CAN Bus 1.0); scales float @AA04
+      (coolant RAM: adjacent to AA08 = returnCoolantTemp2 source, used by coolant fns
+      19A24/19A80) via 2404/24CE to CAN byte [BAE3], 0xFF default
+  0x2DBC4  getCruiseControlAllowedBool?? -> updateCruiseAllowedFlag [0.85]
+      evidence: sole caller cruiseControlMain 2EB40 (1.0); 4-flag interlock
+      BD18/19/1A/2E + ROM 762A5 + speed BFBC vs ROM 76298, writes [BD1C] (setter, not getter)
+  0x325AC  cruiseControllAccelResCheck?? -> cruiseControlAccelResCheck [0.85]
+      evidence: called from cruiseControlMain 2EB40 (typo fixed); gated on BD1C allowed
+      flag; speed-delta windows vs ROM 77A14/77A18; updates switch latches [BFD1]/[BFE5]
+  0x32750  cruiseControlACCELRESAllowed? -> cruiseControlAccelResAllowed [0.85]
+      evidence: called from cruiseControlMain 2EB40; set-vs-current diff BFC0-BFBC vs
+      ROM 77A24 gated BD1D/BFE8/BC6E; writes [BFD4]=1/0 + [BFE8] latch
+  0x524C0  getTireSizeChecksumthing? -> checkTireSizeMarker [0.85]
+      evidence: called from tire_size_checksum_init_chain 38E5C (1.0) +
+      aux_sensor_task_iat_tire 3A10A (1.0); reads E2 addr 0x95 via getFromE2 38610,
+      '*' (0x2A) marker compare + ROM 7C23C gate, result flag [CFC1] (no checksum computed)
+  0x298A4  can216RXParse? -> can216RXParse [0.9]
+      evidence: sole caller CAN216RX_Main 29768 (CAN Bus 1.0); BB0C FFFF-guard +
+      BB5C/BB5E signal parse
+  0x29738  canRX_216_stubs? -> can216RXInit [0.85]
+      evidence: called from canInitVals 2A8F4 (CAN 1.0); calls can216ResetTimer 299D0
+      (CAN 1.0) + inits BB0C/BB0E=FFFE + BAFC/BB00 floats (same buffer can216RXParse reads)
+  0x2ED54  calculateACClutchOn?? -> calculateACClutchOn [0.85]
+      evidence: sole caller diag_accompressorcontrolmain 2F5DA (1.0); RPM-window staging
+      vs ROM 76660+ to clutch flags [BDB4]/[BDB5]/[BDA4]/[BD88] via interlocks
+  0x21BB2  getFuelingSlowtask? -> fuelingSlowtask [0.85]
+      evidence: called from task3 1182A (RTOS 1.0); 25+ straight-line fueling callee
+      chain (1FB24/1F890/1F8AA/20CAC/30C7C/1E114/20EEC/1F360/194A0/1EB94/EE86...),
+      tail-jmp 3934, no return value ('get' misnomer)
+  0x30B14  diagCrankingInjectorPulseAdder? -> addInjectorPulse [0.85]
+      evidence: PROVEN adder — gated read-modify-write [BEB4]+=[BE78] (fadd);
+      sole caller engineControlGetFueling 217B2 (1.0); BE78 = 306B4 injector-pulse output
+      (diag/cranking specifics unproven, dropped to honest general name)
+  0x33CB2  detectKnockCondition?? -> detectKnockCondition [0.85]
+      evidence: knock-enable 78E7E + A424-threshold pair (same as getKnockControlAllowed),
+      C0A8-interp vs A62C/A634 timing deviation compare, writes knock byte [C070]
+      (C070 = knock byte per knock_byte_c070_clear 3397A 0.9, consumed by knock-timing
+      fns 13808/138A4/139B4/13A0E/13A86)
+  0x11F54  getKnownBooleanValue?? -> getFlag8E9C [0.85]
+      evidence: 7-insn [8E9C]==1 boolean getter (verified disasm); 20+ callers in
+      fault-cond evaluators (4A5C0/527DC...), obd_status_calc 58FBA, reset_flag_11f54
+      stores 57202/57414 (role unproven -> honest mechanism name, aligns with existing
+      reset_flag_11f54_* names)
+  0xC116  enableDisableCruiseControl?? -> updateCruiseControlState [0.85]
+      evidence: called from cruiseControlInit 3390C (1.0) + cruise_rpm_window_enable_check
+      33D2C (1.0) x2; validated-input state-change detect on [A38C], updates
+      [A384]=FF/[A385]=0/[A324]=0, tail-jmp 3934
+  0x1ADE6  filterMAF?? -> filterMAF [0.85]
+      evidence: sole caller sensor_throttle_maf_calc_protected 1A4BC (1.0); ring-buffer
+      filter AA70/AA80/AA98 indexed AAB8 feeding AA74 (confirmed MAF source used by
+      getMAFForOBD), AE40/A428 corrected, outputs AA78/AA7C
+  0x2AA62  checkCANFaults?? -> checkCANFaults [0.85]
+      evidence: called from task3 1182A (RTOS 1.0); dispatches EBCMCommEval DE72 (1.0) +
+      can216RXFaultEval DF08 (1.0) + can_fault_counter_update DE46 (0.4) + fault_status_a403_update DF6C (0.4)
+  0x5131E  IATTimerOperation?? -> iatTimerOperation [0.85]
+      evidence: sole caller aux_sensor_task_iat_tire 3A10A (Sensors 1.0, IAT task);
+      BBE8 speed vs ROM 7C050 timer to [CF68]/[CF64]
+  0x3E93A  catTempRelated? -> catTempCalc [0.85]
+      evidence: sole caller catTempRelated 3F0D6 (Sensors 1.0); large float routine via
+      C0D8/B594/A9FC (renamed 'Calc' to stay unique vs caller)
+  0x5B19C  ssvDiagControl? -> ssvDiagControl [0.85]
+      evidence: sole caller ssvControl 220CC (Sensors 1.0); D12D-gated triplet step
+      with 5AAD4/5B848
+  0x2A0C0  calculateDesiredTorque_?? -> calculateDesiredTorque [0.85]
+      evidence: sole caller getEngineTorqueMetricsForCAN 29E28 (CAN Bus 1.0);
+      2D-lookup torque computation on AE40 via 2068
+  0x4D53C  initLTFTStuff? -> initLTFT [0.85]
+      evidence: sole caller setupFuelingVariables 39210 (Fuel 1.0); B134==0x8000 guard,
+      fmul init to [CE10]
+  0x1020C  setAllInjectorto0? -> setAllInjectorTo0 [0.85]
+      evidence: 3x 86AC sel 0/1/2 with ROM floats [6D498]/[6D49C] VERIFIED 8 zero bytes
+      (two 0.0 floats) via IDA memory read; A0AC = injector table (written by
+      injectorRelatedFunc 83CA 1.0 + fuel_injectorStateTimerUpdate 871C 1.0);
+      caller fuel_channel_table_init F454; tail-jmp fpu_context_clear 74D4 (typo fixed)
+  0x86AC  fuelinjectorSet0?? -> setInjectorChannelValue [0.85]
+      evidence: per-selector pair-store of passed value to A0AC injector table
+      (sel0->[+0,+C], sel1->[+4,+10], sel2->[+8,+14], 18 insns verified); called 3x
+      from setAllInjectorTo0 with 0.0
+  0xE054  setMsgRXFlag_?? -> setCANRXFlag [0.85]
+      evidence: 4-insn [A408]=1 setter (verified); sole caller 38838 CAN RX-copy routine
+      (calls 9890, on nonzero copies frame C4CC->C4D5/C4D8, sets C4DB/C4DC, then E054)
+  0x6CDC  readADCs_coolantTempInHere?? -> readADCs [0.85]
+      evidence: ADC scan-result harvester — gated on [9F2F+2], copies ADC regs F840-F84E
+      to 9EE4 table with 8/4/1 mode select (verified disasm); caller atu2_any_capture_pending
+      6A4C (coolant-channel specifics unproven, dropped to honest general name)
+
+STILL KEPT (138 = 166 - 28):
+  Structural A/B/C/E/H: 32 kept as before (thunk/inner-label/data/overclaim/needs-definition).
+  Notable second-pass evidence that TESTED but did not clear the bar:
+  - 0x306B4 calcInjectorCrankingTime??: writes [BE78]/[BE74-class] injector pulse from
+    BE88*7700C chain, callers setPrevLoops 216D4 (0.85 renamed) + engineControlGetFueling
+    217B2 (1.0); KEPT because A428 gate looks like engine-running (E244 accumulates
+    engine-on-time while A428), so 'cranking' rests only on unproven BE5C/BE88 identity.
+  - 0x17AB0 batteryRelatedFaults??: 15-insn chain 3920->stepper_fault_flag_set 189E8 (0.5)
+    ->stepper_fault_dtc_raise 18AB4 (0.6)->3934, caller task3; 'battery' likely WRONG
+    (stepper suggested) but combined 0.8 does not clear bar — KEPT, needs stepper-flag proof.
+  - 0x7724 reInitCrankSensor??: 3x callers in rotor_sync_state_machine 787A (0.6) +
+    crank_sensor_reinit_speed 765A (0.6) + crank_edge_period_counter 7ECA (0.5); KEPT,
+    caller confidences too low to clear 80%.
+  - 0x121A4/0x12294 (DSC derates), 0x13414/0x13544 (idle corrections), 0x18D3C, 0x136D6,
+    0x13686: ALL called from engineControlCalculateTiming 141FC (1.0) at adjacent sites
+    (1421A/14220/1424A/14250/1433A/14358/1427A) — timing-correction roles confirmed as a
+    group, but idle-vs-DSC attribution still unproven — KEPT.
+  - 0x10EE6 getEngineCrankingStatus?: verified 15-insn bulk-init writing 1 to [A578+2] +
+    [A578+2E] (stride-0x2C pair), caller engineControlCalculateTiming; KEPT (region identity).
+  - 0x52A12 udsResponseRelated??: 12 callers all UDS-service range (incl ClearFaults 53BC8);
+    builds param struct, calls thunk_to_0x9630 -> osTaskScheduler 9630; KEPT (scheduler
+    payload semantics unproven).
+  - 0x53BC8/0x59744/0x5C024/0x67590: zero xrefs confirmed (table-called); service numbers
+    unprovable without dispatch-table RE — KEPT.
+  - 0x253CC getAutoTransCal??: callers sensor_chain_wrapper 6372 (0.3) + vehicle_speed_omp_time_task
+    1AA9C (Oil Metering 1.0) — non-AT context WEAKENS the claim; KEPT.
+  - 0x2BA68/0x2BB0C: called from uncertain 2AA02 (circular) — KEPT with 2AA02 (caller
+    engineControlTASK2 117C8 documented).
+  - 0x30728/0x3083C/0x30904/0x30C7C/0x345C4/0x1E85C: sole callers engineControlGetFueling 217B2
+    (1.0) / fuel_subsystem_init_task 21AF8 (1.0) / fault_sync_fuel_chain 21DA0 (1.0) /
+    fuelingSlowtask 21BB2 (0.85 renamed) — fueling context banked, specifics unproven — KEPT.
+  - 0x1F360/0x1EB94/0x194A0/0xEE86/0x1E114/0x20EEC/0x20CAC: confirmed fuelingSlowtask stages
+    (call sites 21Bxx) — context banked, specifics unproven — KEPT.
+  - 0x325AC/0x32750/0x2DBC4 sequential calls from cruiseControlMain (2EB64/2EB70/2EB7C) — KEPT-pair resolved.
+  - 0x63F0 interruptSetup???: dispatcher (A3AC/6A4C/7438/ACFC/B602/1151A + 9F52 counter +
+    F746 atomics + A936 + 3D58), zero xrefs (likely ISR); role unverified — KEPT.
+  - 0x33F20 detectDriverIntentKnockControl?: counter C0AC + ADA8 vs ROM 78F00 -> [C0C6]/[C0C8]
+    via 245E, caller aux_driver_inputs_calc 1A728 (0.7); 0.75, no clear — KEPT.
+  - 0x11C4, 0x10E14, 0xE564, 0x21B6A, 0x21AB6, 0x233A4, 0x2C250/0x2C2D0, 0x2D0CE/0x2D1C0,
+    0x33366, 0x32F8A, 0x37C88, 0x284D6, 0x3A384, 0x42330, 0x4D0D0, 0x58060, 0x1C948, 0x118FE,
+    0x10F04, 0xFFDA, 0x7C0C, 0x7518, 0xA936, 0xAB8A, 0xFB90, 0x85E4, 0x21762, 0x10ED2,
+    0x13760, 0x13C44, 0x1477C(done->renamed): caller/callee context recorded above; KEPT.
+  Counts: renamed 28 / still kept 138 / skipped structural 32 (of the 138) / focus-group keeps 106.
+
+CSV integrity: 6082 data rows unchanged count; 28 rows changed (name + confidence cells only;
+category/signal untouched); BOM + CRLF preserved (6083 CRLF lines, 0 bare LF); 138 '?' remain;
+no collisions with existing names; none of the 67 first-pass renames touched; no 60E1D400 rows touched.
+
+END SECOND PASS
