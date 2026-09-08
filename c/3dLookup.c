@@ -28,6 +28,7 @@
  * type=16 (s16 cells + scale/offset): 10000/10000 random surfaces & inputs.
  */
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 #include "sh2_fpu.h"      /* ftrc_sat: SH-2E float->int32 saturation */
 
@@ -43,14 +44,38 @@ typedef struct {
     float        offset;    /* +24 */
 } Map2D;
 
+static uint16_t cell_u16(const void *v, int idx)
+{
+    uint16_t w;
+    memcpy(&w, (const uint8_t *)v + (size_t)idx * sizeof(w), sizeof(w));
+    return w;
+}
+
+static int16_t cell_s16(const void *v, int idx)
+{
+    int16_t w;
+    memcpy(&w, (const uint8_t *)v + (size_t)idx * sizeof(w), sizeof(w));
+    return w;
+}
+
+static float cell_f32(const void *v, int idx)
+{
+    float f;
+    memcpy(&f, (const uint8_t *)v + (size_t)idx * sizeof(f), sizeof(f));
+    return f;
+}
+
+/* Cell readers are byte-wise memcpy (alignment-safe; see c/2DLookup.c) over
+ * HOST-ORDER cells — the BE->host conversion happens when a surface is
+ * materialized from ROM bytes (c/rom_be.h), never by casting the ROM image. */
 static float cell2(const void *v, uint8_t type, int idx)
 {
     switch (type) {
     case 4:  return (float)((const uint8_t  *)v)[idx];
-    case 8:  return (float)((const uint16_t *)v)[idx];
+    case 8:  return (float)cell_u16(v, idx);
     case 12: return (float)((const int8_t   *)v)[idx];
-    case 16: return (float)((const int16_t  *)v)[idx];
-    default: return ((const float *)v)[idx];        /* type 0 = f32 cells */
+    case 16: return (float)cell_s16(v, idx);
+    default: return cell_f32(v, idx);        /* type 0 = f32 cells */
     }
 }
 
@@ -145,16 +170,16 @@ uint8_t ThreeDLookup_FP_8bit(const Map2D *m, float x, float y)
 {
     int cx = m->count_x, cy = m->count_y, ix, iy, ix1, iy1;
     float tx, ty, c00, c10, c01, c11, row0, row1, interp;
-    const uint8_t *values = (const uint8_t *)m->values;
+    const void *values = m->values;   /* host-order u8 cells */
 
     indexLookupSomething(m, x, y, &ix, &iy, &tx, &ty);
     ix1 = ix + 1 < cx ? ix + 1 : ix;
     iy1 = iy + 1 < cy ? iy + 1 : iy;
 
-    c00 = (float)values[iy  * cx + ix];
-    c10 = (float)values[iy  * cx + ix1];
-    c01 = (float)values[iy1 * cx + ix];
-    c11 = (float)values[iy1 * cx + ix1];
+    c00 = (float)((const uint8_t *)values)[iy  * cx + ix];
+    c10 = (float)((const uint8_t *)values)[iy  * cx + ix1];
+    c01 = (float)((const uint8_t *)values)[iy1 * cx + ix];
+    c11 = (float)((const uint8_t *)values)[iy1 * cx + ix1];
     row0 = fmaf(tx, c10 - c00, c00);
     row1 = fmaf(tx, c11 - c01, c01);
     interp = fmaf(ty, row1 - row0, row0);
@@ -180,16 +205,16 @@ uint16_t ThreeDLookup_FP_16bit(const Map2D *m, float x, float y)
 {
     int cx = m->count_x, cy = m->count_y, ix, iy, ix1, iy1;
     float tx, ty, c00, c10, c01, c11, row0, row1, interp;
-    const uint16_t *values = (const uint16_t *)m->values;
+    const void *values = m->values;   /* host-order u16 cells */
 
     indexLookupSomething(m, x, y, &ix, &iy, &tx, &ty);
     ix1 = ix + 1 < cx ? ix + 1 : ix;
     iy1 = iy + 1 < cy ? iy + 1 : iy;
 
-    c00 = (float)values[iy  * cx + ix];
-    c10 = (float)values[iy  * cx + ix1];
-    c01 = (float)values[iy1 * cx + ix];
-    c11 = (float)values[iy1 * cx + ix1];
+    c00 = (float)cell_u16(values, iy  * cx + ix);
+    c10 = (float)cell_u16(values, iy  * cx + ix1);
+    c01 = (float)cell_u16(values, iy1 * cx + ix);
+    c11 = (float)cell_u16(values, iy1 * cx + ix1);
     row0 = fmaf(tx, c10 - c00, c00);
     row1 = fmaf(tx, c11 - c01, c01);
     interp = fmaf(ty, row1 - row0, row0);

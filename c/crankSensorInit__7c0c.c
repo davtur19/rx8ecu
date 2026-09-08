@@ -11,6 +11,7 @@ uint32_t crankSensorInit__7c0c(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t T = 0;
+    (void)r5; (void)r6; (void)r7; (void)r1; /* no lifted dataflow: silence -Wall */
     /* 0x007C0C: op 0x600C */
     r0 = r0 & 0xFFu;
     /* 0x007C0E: op 0x8801 */
@@ -42,7 +43,8 @@ uint32_t crankSensorInit__7c0c(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r
     r4 = r4 + (uint32_t)(int32_t)(int8_t)0x24;
     goto L_7C2A;
     L_7C28: ;
-    /* 0x007C28: op 0x9416 */
+    /* 0x007C28: op 0x9416 (mov.w @(0x2C,PC),r4; literal @0x7C58 = 0x00FF
+     * -> +255; (int16_t) correct, not (int8_t) — 16-bit literal load) */
     r4 = (uint32_t)(int32_t)(int16_t)0xFFu;
     L_7C2A: ;
     /* 0x007C2A: op 0xD314 */
@@ -51,5 +53,4 @@ uint32_t crankSensorInit__7c0c(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r
     /* 0x007C2E: mov.b r4,@r3 */
     *(volatile uint8_t*)0xFFFF9FC6 = r4; /* RAM 0xFFFF9FC6 */
     return r0;
-    return r0; /* fallthrough */
 }

@@ -44,16 +44,9 @@
 #include <stdint.h>
 #include <math.h>
 
-/* ---- 1-D lookup descriptor (20 bytes, big-endian SH-2E; see c/2DLookup.c) ---- */
-typedef struct {
-    uint16_t     count;    /* +0 */
-    uint8_t      type;     /* +2 */
-    uint8_t      _pad;     /* +3 */
-    const float *axis;     /* +4 */
-    const void  *values;   /* +8 */
-    float        scale;    /* +12 */
-    float        offset;   /* +16 */
-} Map1D;
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *),
+                             shared with the leading twin (the local Map1D
+                             duplicate this file used to carry is removed) */
 
 /* ---- RAM globals (mov.w literals sign-extend to 0xFFFFxxxx) ---- */
 #define GATE_B588 (*(volatile uint8_t *)0xFFFFB588)  /* u8 crank gate (==1)     */
@@ -70,11 +63,11 @@ typedef struct {
 
 #define DESC_699E0 ((const Map1D *)0x000699E0)     /* 9-pt u8 flat temp map */
 
-/* ---- verified ROM leaves ---- */
+/* ---- verified ROM leaves (canonical shared names, as in the leading twin) ---- */
 extern float TwoDLookup(const Map1D *m, float x);              /* 0x2068 */
 extern float minValue(float a, float b);                       /* 0x23F4 */
-extern float ratio(float num, float den);                      /* 0x3E0AC */
-extern float filters(float neu, float old, float w, float d);  /* 0x23B0 */
+extern float guarded_div_0x3E0AC(float num, float den);         /* 0x3E0AC */
+extern float firstOrderFilter(float sig, float sigprev, float ff, float min); /* 0x23B0 */
 
 void calculateCrankingTimingTrailing_0x431E6(void)
 {
@@ -84,10 +77,10 @@ void calculateCrankingTimingTrailing_0x431E6(void)
         TMP_C9A8 = twoD;
         if (ST_C9AD == 0) {                       /* tst ; bf/s @0x4321A      */
             float c = minValue(ROM_P_7979C, 1.0f);/* jsr @0x23F4 @0x4322C     */
-            FIN_C9A0 = ratio(twoD, c);            /* jsr @0x3E0AC @0x43234    */
+            FIN_C9A0 = guarded_div_0x3E0AC(twoD, c);/* jsr @0x3E0AC @0x43234  */
         } else {
-            FIN_C9A0 = filters(twoD, FIN_C9A0,
-                               ROM_P_797A0, ROM_D_4327C); /* jsr @0x23B0   */
+            FIN_C9A0 = firstOrderFilter(twoD, FIN_C9A0,
+                                ROM_P_797A0, ROM_D_4327C); /* jsr @0x23B0   */
         }
         ST_C9AD = GATE_B588;                      /* mov.b r12,@r2 @0x432A0  */
     } else {

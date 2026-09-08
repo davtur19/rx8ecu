@@ -35,6 +35,7 @@
  * differ only in the cell read and are verifiable identically.
  */
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 #include "map_lookup.h"   /* canonical Map1D + TwoDLookup declaration */
 #include "sh2_fpu.h"      /* ftrc_sat: SH-2E float->int32 saturation */
@@ -94,14 +95,39 @@ void dataLookup(int n, const float *axis, float x, int *out_i, float *out_t)
 
 /* Map1D comes from map_lookup.h (single canonical definition). */
 
+/* Cell readers: byte-wise memcpy (no misaligned-word UB, no strict-aliasing
+ * violation if `values` points at packed bytes). Cells are HOST-ORDER: the
+ * BE->host conversion happens once when a descriptor is materialized from
+ * ROM bytes (see c/rom_be.h) — these bodies never cast the ROM image. */
+static uint16_t cell_u16(const void *v, int i)
+{
+    uint16_t w;
+    memcpy(&w, (const uint8_t *)v + (size_t)i * sizeof(w), sizeof(w));
+    return w;
+}
+
+static int16_t cell_s16(const void *v, int i)
+{
+    int16_t w;
+    memcpy(&w, (const uint8_t *)v + (size_t)i * sizeof(w), sizeof(w));
+    return w;
+}
+
+static float cell_f32(const void *v, int i)
+{
+    float f;
+    memcpy(&f, (const uint8_t *)v + (size_t)i * sizeof(f), sizeof(f));
+    return f;
+}
+
 static float map1d_cell(const void *v, uint8_t type, int i)
 {
     switch (type) {
     case 4:  return (float)((const uint8_t  *)v)[i];   /* u8  (handler 0x26B0) */
-    case 8:  return (float)((const uint16_t *)v)[i];   /* u16 (handler 0x26D0) */
+    case 8:  return (float)cell_u16(v, i);             /* u16 (handler 0x26D0) */
     case 12: return (float)((const int8_t   *)v)[i];   /* s8  (handler 0x26F4) */
-    case 16: return (float)((const int16_t  *)v)[i];   /* s16 (handler 0x2690) */
-    default: return ((const float *)v)[i];             /* type 0 = f32 cells (handler 0x2678) */
+    case 16: return (float)cell_s16(v, i);             /* s16 (handler 0x2690) */
+    default: return cell_f32(v, i);                    /* type 0 = f32 cells (handler 0x2678) */
     }
 }
 
@@ -148,7 +174,7 @@ uint16_t TwoDLookup_FP_16bit(const Map1D *m, float x)
 {
     int n = (int)m->count, i;
     float t, v0, v1, interp;
-    const uint16_t *values = (const uint16_t *)m->values;
+    const void *values = m->values;   /* host-order u16 cells (see map1d_cell note) */
 
     if (!(x < m->axis[n - 1])) { i = n - 1; t = 0.0f; }
     else if (x < m->axis[0])   { i = 0;     t = 0.0f; }
@@ -158,9 +184,12 @@ uint16_t TwoDLookup_FP_16bit(const Map1D *m, float x)
         t = (x - m->axis[i]) / (m->axis[i + 1] - m->axis[i]);
     }
 
-    v0 = (float)values[i];
-    v1 = (float)values[i + 1 < n ? i + 1 : i];
-    interp = v0 + t * (v1 - v0);
+    v0 = (float)cell_u16(values, i);
+    v1 = (float)cell_u16(values, i + 1 < n ? i + 1 : i);
+    /* Single rounding like the ROM: @0x26E8-0x26EC is fsub then
+     * `fmac fr0,fr1,fr2` (see c/tests/test_2DLookup_FP_16bit.py) — the same
+     * fused step interp_leaves.c's u16 leaf uses. */
+    interp = fmaf(t, v1 - v0, v0);
     /* ftrc with SH-2E saturation first (NaN/huge interp, e.g. from a
      * degenerate axis interval, must not hit a bare UB cast), then narrow. */
     return (uint16_t)ftrc_sat(interp);

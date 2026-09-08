@@ -111,10 +111,10 @@ typedef struct {
     const float   *rom_d4327c;
 } CrankLeadCtx;
 
-/* ---- verified ROM leaves ---- */
+/* ---- verified ROM leaves (canonical shared names) ---- */
 extern float minValue(float a, float b);                       /* 0x23F4 */
-extern float ratio(float num, float den);                      /* 0x3E0AC */
-extern float filters(float neu, float old, float w, float d);  /* 0x23B0 */
+extern float guarded_div_0x3E0AC(float num, float den);         /* 0x3E0AC */
+extern float firstOrderFilter(float sig, float sigprev, float ff, float min); /* 0x23B0 */
 
 void calculateCrankingTimingLeading_0x43168(const CrankLeadCtx *ctx)
 {
@@ -124,10 +124,10 @@ void calculateCrankingTimingLeading_0x43168(const CrankLeadCtx *ctx)
         *ctx->tmp_c9a4 = twoD;
         if (*ctx->st_c9ac == 0) {                      /* tst ; bf/s @0x4319C      */
             float c = minValue(*ctx->rom_p79794, 1.0f);/* jsr @0x23F4 @0x431AE     */
-            *ctx->fin_c99c = ratio(twoD, c);           /* jsr @0x3E0AC @0x431B6    */
+            *ctx->fin_c99c = guarded_div_0x3E0AC(twoD, c);/* jsr @0x3E0AC @0x431B6 */
         } else {
-            *ctx->fin_c99c = filters(twoD, *ctx->fin_c99c,
-                                     *ctx->rom_p79798, *ctx->rom_d4327c); /* jsr @0x23B0 */
+            *ctx->fin_c99c = firstOrderFilter(twoD, *ctx->fin_c99c,
+                                      *ctx->rom_p79798, *ctx->rom_d4327c); /* jsr @0x23B0 */
         }
         *ctx->st_c9ac = *ctx->gate_b588;               /* mov.b r12,@r2 @0x431DA  */
     } else {

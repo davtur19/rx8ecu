@@ -34,5 +34,22 @@ int32_t shift_right_arithmetic_r0(int32_t val, int32_t cnt)
 {
     if (cnt < 0) return val;
     if (cnt >= 32) return (val < 0) ? -1 : 0;
-    return val >> cnt;
+    if (cnt == 0) return val;
+    /* Portable arithmetic shift: a signed `>>` on a negative value is
+     * implementation-defined in C (gcc/clang do extend the sign, but the
+     * standard does not promise it), so shift the unsigned image logically
+     * and fill the top `cnt` bits explicitly when val is negative. Requires
+     * two's complement (asserted below); no -fwrapv-style flag needed since
+     * no signed overflow occurs anywhere on this path. */
+    {
+        uint32_t u = (uint32_t)val >> (uint32_t)cnt;
+        if (val < 0)
+            u |= (uint32_t)~((((uint32_t)1 << (32u - (uint32_t)cnt)) - 1u));
+        return (int32_t)u;
+    }
 }
+
+/* Two's complement with no padding bits: (uint32_t)-1 is all ones, so the
+ * unsigned-shift + sign-fill above reproduces the ROM's sign extension. */
+_Static_assert((uint32_t)(int32_t)-1 == 0xFFFFFFFFu,
+               "shift_right_arithmetic_r0 needs two's complement int32");

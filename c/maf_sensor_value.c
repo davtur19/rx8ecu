@@ -12,7 +12,8 @@
  * Calibration:
  *   MAF Scaling @ 0x6FBD8 — 2D lookup table: voltage → air flow (g/s)
  * 
- * Scale factor: 7.62939e-5 = 5.0V / 65536 (16-bit ADC to voltage)
+ * Scale factor: 7.62939e-5 = 5.0V / 65536 (16-bit ADC to voltage;
+ * verified ROM source f32 @0x74B4 per test_getMAFSensorValue_745C.py)
  */
 
 #include <stdint.h>
@@ -23,9 +24,15 @@
 #define MAF_VALUE_ADDR     (volatile float*)   0xFFFF9F78
 #define MAF_STATUS_ADDR    (volatile uint8_t*) 0xFFFF9F7C
 
-#define MAF_SCALE_FACTOR   7.62939e-5f  /* 5.0V / 65536 */
+#define MAF_SCALE_FACTOR   7.62939e-5f  /* 5.0V / 65536 — value matches
+                                          ROM f32 @0x74B4 (=7.62939453125e-5)
+                                          per test_getMAFSensorValue_745C.py;
+                                          literal kept, source cited */
 
-/* Calibration lookup table address for MAF Scaling (descriptor; cast at call) */
+/* Calibration lookup table address for MAF Scaling (descriptor; cast at call)
+ * GAP — the pinned ROM descriptor is @0x6A0E4 (48-pt FP32: axis @0x6FB18,
+ * values @0x6FBD8); casting the values array @0x6FBD8 itself as a Map1D
+ * descriptor is unverified. See test_getMAFSensorValue_745C.py. */
 #define MAF_CAL_TABLE_ADDR 0x006FBD8
 
 void getMAFSensorValue(void)

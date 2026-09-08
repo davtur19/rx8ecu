@@ -28,8 +28,14 @@
  *   Threshold values @ 0x6CF90, 0x6CF94 (min/max ADC for fault detection)
  *
  * Scale factor: 7.62939e-5 = 5.0V / 65536 (16-bit ADC, 0-5V input range)
+ *   GAP — generic LSB weight, not ROM data. The pinned ROM formula
+ *   (c/tests/test_readECMVoltage_735C.py, differential vs ROM,
+ *   0 mismatches) is voltage = clamped / f32[0x73B0](=65536.0)
+ *   * f32[0x6CF4C](=20.0) with single-precision steps — no 5V factor.
  *
- * The CLT sensor characteristic (typical NTC thermistor):
+ * GAP — no NTC resistance/voltage curve is verified for this path, so
+ * none is stated here (replaces the illustrative cold/hot/pull-up
+ * description below, which is not ROM data):
  *   - High resistance when cold (low voltage across pull-up)
  *   - Low resistance when hot (high voltage across pull-up)
  *   - Nonlinear: lookup table linearizes the response
@@ -55,7 +61,9 @@
 
 /* ================================================================
  * Constants from ROM literal pools
- * ================================================================ */
+ * ================================================================
+ * GAP — generic 16-bit 0-5V LSB weight, not ROM data for this path
+ * (pinned formula uses ROM f32 @0x73B0 = 65536.0; see readECMVoltage). */
 #define ADC_SCALE_5V         7.62939e-5f   /* 5.0V / 65536 */
 
 /**
@@ -103,7 +111,12 @@ void readECMVoltage(void)
     
     /* Call delta-limit function @ 0x2510
      * r4 = adc_curr, r5 = adc_prev, r6 = delta_thresh
-     * Returns clamped value in r0 */
+     * Returns clamped value in r0
+     * GAP — the integer clamp below is unverified: the pinned ROM
+     * helper @0x2510 is float math (fr2=2^-8; fr3=float(th)*fr2;
+     * fr1=1-fr3; fr3=float(prev)-float(curr); fr1=fr3*fr1;
+     * r3=ftrc(fr1); r0=curr+r3, with K=f32 @0x2538=0.00390625).
+     * See c/tests/test_readECMVoltage_735C.py. */
     uint16_t clamped;
     /* Inline: limit the rate of change */
     if (adc_curr > adc_prev) {
@@ -114,7 +127,10 @@ void readECMVoltage(void)
         clamped = (delta > delta_thresh) ? (adc_prev - delta_thresh) : adc_curr;
     }
     
-    /* Convert clamped ADC to voltage through divider ratio */
+    /* Convert clamped ADC to voltage through divider ratio
+     * GAP — `* divider` shape unverified as written (the pinned ROM
+     * formula is clamped / 65536.0 * f32[0x6CF4C], i.e. the ROM
+     * constant 20.0 already absorbs any divider scaling). */
     float divider_ratio = *(volatile float *)0x0006CF4C;
     float voltage = (float)clamped * ADC_SCALE_5V * divider_ratio;
     
@@ -145,8 +161,10 @@ float coolantVoltageToTemperature(float voltage)
     #define CLT_TABLE_ADDR    0x0006CF50
     
     float temp = TwoDLookup((const Map1D *)(uintptr_t)CLT_TABLE_ADDR, voltage);
-    
-    /* Clamp to valid physical range (-40°C to +150°C) */
+
+    /* Clamp to valid physical range
+     * GAP — (-40, +150) limits are addr-less and unverified; no ROM
+     * source is known for this path. */
     if (temp < -40.0f) temp = -40.0f;
     if (temp > 150.0f) temp = 150.0f;
     
@@ -159,9 +177,12 @@ float coolantVoltageToTemperature(float voltage)
  * Checks coolant temp sensor ADC against over/under-range thresholds.
  * Sets fault flags if out of range.
  *
- * Thresholds:
- *   Upper limit @ 0x6CF90 (u16): ~32000 counts (~2.44V)
- *   Lower limit @ 0x6CF94 (u16): ~400 counts (~0.03V)
+ * Thresholds (corrected per c/tests/test_coolant_temp_out_of_range_check_E50C.py,
+ * differential vs ROM, 0 mismatches): ROM holds f32 250.0 @0x6CF90 and
+ * f32 500.0 @0x6CF94, compared as floats against f32 input @0xFFFFB5B8
+ * with output u8 @0xFFFFA428 (fr4<250:0; 250<=fr4<500:unchanged;
+ * fr4>=500 or NaN:1). The u16 reads below are therefore suspect (GAP)
+ * and the old "~32000 counts / ~400 counts" claims were wrong.
  *
  * Output flags:
  *   0xFFFFC5D2 = 1 if below minimum (short circuit / ground)
@@ -194,15 +215,24 @@ void coolant_temp_out_of_range_check(void)
  * (e.g., enable closed-loop only if coolant > threshold).
  *
  * Checks:
- *   - Temperature above cold-start threshold (~40°C)
- *   - Temperature below overheat threshold (~120°C)
+ *   - Temperature above cold-start threshold
+ *   - Temperature below overheat threshold
  *   - Rate of change within limits
+ *
+ * GAP — the 40/120 thresholds below are addr-less and unverified, and
+ * the (float)->u8 signature is speculative: the pinned ROM model
+ * (c/tests/test_coolant_temp_boundary_check_1F99A.py, differential vs
+ * ROM, 0 mismatches) reads f32 @0xFFFFAA1C and u16 @0xFFFFB364,
+ * compares against f32 @0x71A48 (=80.0) and u16 @0x719C4/@0x719C6
+ * (=2750), and writes u8 @0xFFFFB14E. Re-lift against that model.
  */
 uint8_t coolant_temp_boundary_check(float temp_degc)
 {
-    /* Cold threshold — below this, engine is warming up */
+    /* Cold threshold — below this, engine is warming up
+     * GAP: addr-less, unverified (see function doc). */
     float cold_thresh = 40.0f;
-    /* Hot threshold — above this, engine is overheating */
+    /* Hot threshold — above this, engine is overheating
+     * GAP: addr-less, unverified (see function doc). */
     float hot_thresh = 120.0f;
     
     if (temp_degc < cold_thresh) {

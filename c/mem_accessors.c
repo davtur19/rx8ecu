@@ -34,19 +34,26 @@
  */
 #include <stdint.h>
 #include <string.h>
+#include "rom_be.h"   /* BE encode/decode: target layout is BE, host is usually LE */
 
-/* ---- writes: store value together with its complement ---- */
+/* ---- writes: store value together with its complement ----
+ * All accessors take `uint8_t *` and encode big-endian explicitly, so the
+ * byte layout matches the BE SH-2E target on any host. (An earlier revision
+ * used word stores through 16/32-bit pointers, which lay the bytes out
+ * host-endian and break the layout on LE hosts.) */
 
 /* 0x3E1F8  *(uint16_t*)addr = value:~value  (8-bit datum, 16-bit redundant cell) */
-void updateMemoryAtAddress_8bit(uint16_t *addr, uint8_t val)
+void updateMemoryAtAddress_8bit(uint8_t *addr, uint8_t val)
 {
-    *addr = (uint16_t)((val << 8) | (uint8_t)~val);
+    uint16_t cell = (uint16_t)(((uint16_t)val << 8) | (uint8_t)~val);
+    rom_be16_write(addr, cell);
 }
 
 /* 0x3E208  *(uint32_t*)addr = value:~value  (16-bit datum, 32-bit redundant cell) */
-void updateMemoryAtAddress_16bit(uint32_t *addr, uint16_t val)
+void updateMemoryAtAddress_16bit(uint8_t *addr, uint16_t val)
 {
-    *addr = ((uint32_t)val << 16) | (uint16_t)~val;
+    uint32_t cell = ((uint32_t)val << 16) | (uint16_t)~val;
+    rom_be32_write(addr, cell);
 }
 
 /* 0x3E218  *(uint32_t*)addr = val; checksum = ~(hi16(val)+lo16(val)) written TWICE
@@ -58,10 +65,9 @@ void updateMemoryAtAddress_32bit_ADDR_VAL(uint8_t *addr, uint32_t val)
     uint16_t lo = (uint16_t)val;
     uint16_t checksum = (uint16_t)~(uint16_t)(hi + lo);
 
-    addr[0] = (uint8_t)(hi >> 8);  addr[1] = (uint8_t)hi;
-    addr[2] = (uint8_t)(lo >> 8);  addr[3] = (uint8_t)lo;
-    addr[4] = (uint8_t)(checksum >> 8); addr[5] = (uint8_t)checksum;   /* checksum copy 1 */
-    addr[6] = (uint8_t)(checksum >> 8); addr[7] = (uint8_t)checksum;   /* checksum copy 2 */
+    rom_be32_write(addr, val);
+    rom_be16_write(addr + 4, checksum);   /* checksum copy 1 */
+    rom_be16_write(addr + 6, checksum);   /* checksum copy 2 */
 }
 
 /* ---- reads: validate the complement/checksum, else return the default ---- */
@@ -78,10 +84,10 @@ uint8_t readValue_8bit(const uint8_t *addr, uint8_t dflt)
 }
 
 /* 0x3E11C  read a 16-bit redundant cell; return value if intact, else `dflt` (+error flag). */
-uint16_t readValue_16bit(const uint16_t *addr, uint16_t dflt)
+uint16_t readValue_16bit(const uint8_t *addr, uint16_t dflt)
 {
-    uint16_t value = addr[0];
-    uint16_t comp  = addr[1];
+    uint16_t value = rom_be16(addr);
+    uint16_t comp  = rom_be16(addr + 2);
     if (value == (uint16_t)~comp)
         return value;
     /* setMemInsideFUNCto1(): flag corruption */
@@ -94,14 +100,15 @@ uint16_t readValue_16bit(const uint16_t *addr, uint16_t dflt)
  * valid, else `dflt` (+error flag). */
 uint32_t readValue_32bit_ADDRESS_VAL(const uint8_t *addr, uint32_t dflt)
 {
-    uint16_t hi = (uint16_t)(((uint16_t)addr[0] << 8) | addr[1]);
-    uint16_t lo = (uint16_t)(((uint16_t)addr[2] << 8) | addr[3]);
+    uint32_t val = rom_be32(addr);
+    uint16_t hi = (uint16_t)(val >> 16);
+    uint16_t lo = (uint16_t)val;
     uint16_t checksum = (uint16_t)~(uint16_t)(hi + lo);
-    uint16_t copy1 = (uint16_t)(((uint16_t)addr[4] << 8) | addr[5]);
-    uint16_t copy2 = (uint16_t)(((uint16_t)addr[6] << 8) | addr[7]);
+    uint16_t copy1 = rom_be16(addr + 4);
+    uint16_t copy2 = rom_be16(addr + 6);
 
     if (checksum == copy1 || checksum == copy2)
-        return ((uint32_t)hi << 16) | lo;
+        return val;
     /* setMemInsideFUNCto1(): flag corruption */
     return dflt;
 }
@@ -115,14 +122,14 @@ uint32_t readValue_32bit_ADDRESS_VAL(const uint8_t *addr, uint32_t dflt)
  * the (only) integer arg, dflt is still the (only) float arg. */
 float readValue_float_DEFAULTVAL_ADDRESS(const uint8_t *addr, float dflt)
 {
-    uint16_t hi = (uint16_t)(((uint16_t)addr[0] << 8) | addr[1]);
-    uint16_t lo = (uint16_t)(((uint16_t)addr[2] << 8) | addr[3]);
+    uint32_t bits = rom_be32(addr);
+    uint16_t hi = (uint16_t)(bits >> 16);
+    uint16_t lo = (uint16_t)bits;
     uint16_t checksum = (uint16_t)~(uint16_t)(hi + lo);
-    uint16_t copy1 = (uint16_t)(((uint16_t)addr[4] << 8) | addr[5]);
-    uint16_t copy2 = (uint16_t)(((uint16_t)addr[6] << 8) | addr[7]);
+    uint16_t copy1 = rom_be16(addr + 4);
+    uint16_t copy2 = rom_be16(addr + 6);
 
     if (checksum == copy1 || checksum == copy2) {
-        uint32_t bits = ((uint32_t)hi << 16) | lo;
         float value;
         memcpy(&value, &bits, sizeof(value));
         return value;
@@ -151,8 +158,8 @@ int validateAddressCopy_8bit_ADDRESS(const uint8_t *addr)
  * Returns 0 if intact, 1 if corrupted (+ SetMemoryNotValid2() error flag on the 1 path). */
 int validateAddressCopy_16bit_ADDRESS(const uint8_t *addr)
 {
-    uint16_t value = (uint16_t)(((uint16_t)addr[0] << 8) | addr[1]);
-    uint16_t comp  = (uint16_t)(((uint16_t)addr[2] << 8) | addr[3]);
+    uint16_t value = rom_be16(addr);
+    uint16_t comp  = rom_be16(addr + 2);
     if (value == (uint16_t)~comp)
         return 0;
     /* SetMemoryNotValid2(): flag corruption */
@@ -169,15 +176,16 @@ int validateAddressCopy_16bit_ADDRESS(const uint8_t *addr)
  * touches the value bytes (addr+0..3) and performs no write on the invalid path. */
 int validateAddressCopy_float_ADDRESS(uint8_t *addr)
 {
-    uint16_t hi = (uint16_t)(((uint16_t)addr[0] << 8) | addr[1]);
-    uint16_t lo = (uint16_t)(((uint16_t)addr[2] << 8) | addr[3]);
+    uint32_t val = rom_be32(addr);
+    uint16_t hi = (uint16_t)(val >> 16);
+    uint16_t lo = (uint16_t)val;
     uint16_t checksum = (uint16_t)~(uint16_t)(hi + lo);
-    uint16_t copy1 = (uint16_t)(((uint16_t)addr[4] << 8) | addr[5]);
-    uint16_t copy2 = (uint16_t)(((uint16_t)addr[6] << 8) | addr[7]);
+    uint16_t copy1 = rom_be16(addr + 4);
+    uint16_t copy2 = rom_be16(addr + 6);
 
     if (checksum == copy1 || checksum == copy2) {
-        addr[4] = (uint8_t)(checksum >> 8); addr[5] = (uint8_t)checksum;   /* re-sync copy 1 */
-        addr[6] = (uint8_t)(checksum >> 8); addr[7] = (uint8_t)checksum;   /* re-sync copy 2 */
+        rom_be16_write(addr + 4, checksum);   /* re-sync copy 1 */
+        rom_be16_write(addr + 6, checksum);   /* re-sync copy 2 */
         return 0;
     }
     /* SetMemoryNotValid2(): flag corruption */
@@ -202,15 +210,16 @@ int validateAddressCopy_float_ADDRESS(uint8_t *addr)
  * mismatches. Test: c/tests/test_mem_accessors.py. */
 int validateAddressCopy_32bit_ADDRESS(uint8_t *addr)
 {
-    uint16_t hi = (uint16_t)(((uint16_t)addr[0] << 8) | addr[1]);
-    uint16_t lo = (uint16_t)(((uint16_t)addr[2] << 8) | addr[3]);
+    uint32_t val = rom_be32(addr);
+    uint16_t hi = (uint16_t)(val >> 16);
+    uint16_t lo = (uint16_t)val;
     uint16_t checksum = (uint16_t)~(uint16_t)(hi + lo);
-    uint16_t copy1 = (uint16_t)(((uint16_t)addr[4] << 8) | addr[5]);
-    uint16_t copy2 = (uint16_t)(((uint16_t)addr[6] << 8) | addr[7]);
+    uint16_t copy1 = rom_be16(addr + 4);
+    uint16_t copy2 = rom_be16(addr + 6);
 
     if (checksum == copy1 || checksum == copy2) {
-        addr[4] = (uint8_t)(checksum >> 8); addr[5] = (uint8_t)checksum;   /* re-sync copy 1 */
-        addr[6] = (uint8_t)(checksum >> 8); addr[7] = (uint8_t)checksum;   /* re-sync copy 2 */
+        rom_be16_write(addr + 4, checksum);   /* re-sync copy 1 */
+        rom_be16_write(addr + 6, checksum);   /* re-sync copy 2 */
         return 0;
     }
     /* SetMemoryNotValid2(): flag corruption */

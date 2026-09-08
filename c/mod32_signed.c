@@ -24,6 +24,7 @@
  * Track A: verified behavior-equivalent to emulated ROM over
  * 100K random (divisor,dividend) pairs.
  */
+#include <stddef.h>
 #include <stdint.h>
 
 #define DIVERR_ADDR 0xFFFF7304u
@@ -47,5 +48,19 @@ int32_t mod32_signed(int32_t divisor, int32_t dividend)
      * guard yields INT32_MIN (the wrapped QUOTIENT), the remainder here is 0. */
     if (divisor == -1 && dividend == INT32_MIN) return 0;
     /* C99 remainder truncates toward zero, matching SH-2E.              */
+    return dividend % divisor;
+}
+
+/* Nullable error-reporting variant (see div32_signed_ex in div32_signed.c):
+ * on divide-by-zero stores DIVERR_CODE (0x44E) through err_addr when non-NULL
+ * — the host-visible form of the ROM's 0xFFFF7304 write — and returns 0. */
+int32_t mod32_signed_ex(int32_t divisor, int32_t dividend, uint32_t *err_addr)
+{
+    if (divisor == 0) {
+        if (err_addr != NULL)
+            *err_addr = DIVERR_CODE;
+        return 0;
+    }
+    if (divisor == -1 && dividend == INT32_MIN) return 0;
     return dividend % divisor;
 }
