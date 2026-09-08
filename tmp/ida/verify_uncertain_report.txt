@@ -887,3 +887,59 @@ none of the 108 prior (pass1+pass2+pass3) renames touched; no 60E1D400 rows
 touched.
 
 END FOURTH PASS
+
+MICRO-PAIRS (same-bank duplicate disambiguation, IDA sessions fc00_verify + 01df5d7f, no Hex-Rays/SH2E: disasm + xrefs only)
+--------------------------------------------------------------------------------
+Pair 1: UnknownFueling1 x2, bank 60E0FC00 — RENAMED to DIFFERENT names.
+  0xE444 -> fuelPulseTermTrampoline (0.85). Body is 2 insns: bra loc_E458 + nop,
+  i.e. a trampoline entry into the E458 compute body (IDA fn sub_E444 spans
+  0xE444-0xE492 and CONTAINS loc_E458; 0xE458 is an inner label, not a function
+  entry — that is why Ghidra/equinox listed two "functions"). Sole code caller:
+  setPrevLoops 0x216D4 (Rev Limit 0.85, jsr at 0x216D8, head of its chain).
+  Bytes 0xE448-0xE456 (byte [0xFFFF9F8C]==1 init/warm-restart gate, cf
+  RAM_VARIABLES flag_mirror high + FINDINGS warm-restart gate) form a second
+  mid-entry loc_E448, called by fuel_subsystem_init_task 0x21AF8 (1.000, jsr at
+  0x21B1C) — unreachable from the E444 entry (bra skips it), reached only via
+  the E448 entry.
+  0xE458 -> calcHighRpmInjectorPulseTerm (0.85). Body: fr3=3000.0 (const pool
+  0xE4D0 = 0x453B8000); fr2=float [0xFFFFB594] (engine speed/RPM per 5
+  convergent FUNCTION_RENAMES rows: fuel_rpm_baro_correction, evap_purge_flow,
+  load_calc, ac_compressor_load, idle_target_rpm — min-confidence edge 0.85);
+  fcmp/gt + bf/s returns unless [B594] > 3000.0, i.e. computes ONLY above
+  3000 rpm — this REFUTES the equinox311 getCrankingInjectionAngle? hypothesis
+  (CATALOG_MASTER rows 22502/22504; equinox311_60E0FC00_named.csv lines
+  276/278): cranking is ~250 rpm, far below the gate. Then [0xFFFFA440] =
+  30.0*(24.0 - ROM_float[0x6D4A0]=9.0) + 5.0 (const pools 0xE4D4/0xE4D8/
+  0xE4E0/0xE4E4; ROM branch 9.0>2.0 always taken, E4E0/12.0 path dead).
+  A440 is an additive injector-pulse term: sole other data_ref is fuelInjectionRelated
+  0xFF36 (Fuel & Lambda 1.000), whose mode-0 path does ([A440]+[0x1001C]) *
+  base -> ftrc -> integer pulse ticks (sibling channels A434/A438/A43C in
+  mode-1 path). Direct caller: engineControlGetFueling 0x217B2 (Fuel & Lambda
+  1.000, jsr at 0x217C2, head of fueling pipeline; IDA itself labels target
+  loc_E458, confirming inner-label status).
+Pair 2: calc_spark_advance x2, bank 60E1D400 (0x18C apart) — RENAMED to DIFFERENT names.
+  0x121F0 -> calc_spark_advance_rotor_A (0.85). 0x1237C -> calc_spark_advance_rotor_B (0.85).
+  NOT leading/trailing: no evidence for plug-axis split; the proven axis is ROTOR (front/rear chains).
+  Evidence: (a) same parent engineControlCalculateTiming 0x14584 calls producers
+  back-to-back (jsr 0x121F0 at 0x14596, jsr 0x1237C at 0x1459C) then the consumers
+  back-to-back (jsr 0x126EA at 0x146B6, jsr 0x127DE at 0x146D4) — A-then-B order twice;
+  (b) identical algorithm (same prologue, same RAM inputs B5B8/C12C/B188/AA10/A7BC,
+  same helpers f_2DLookup 0x2068 / f_3dLookup 0x20DC / fpu_sqrt_float, same CDA0-flag
+  and B19D==1 branch structure) with disjoint ROM tables (2D 0x69A54 vs 0x69A7C;
+  3D 0x69AA4/0x69A68/0x69ADC|0x69AF8/0x69AC0/0x69B84 vs 0x69B14/0x69A90/0x69B4C|
+  0x69B68/0x69B30/0x69B98; consts 0x6D554-0x6D568 vs 0x6D56C-0x6D580) and disjoint RAM;
+  (c) EXCLUSIVE producer->consumer pairing, deterministic (data_ref counts = 2 = self-write + one consumer, no other refs):
+  121F0 outputs A5EC(final, wr 0x122EA)+A5F4(wr 0x12248) read ONLY by 0x126EA
+  (rd 0x127C0/0x127A8); 1237C outputs A5F0(final, wr 0x12476)+A5F8(wr 0x123D4) read
+  ONLY by 0x127DE (rd 0x128A6/0x12890); (d) consumers are the established
+  calc_rotor_A_pressure_load / calc_rotor_B_pressure_load (1.000/name, c-lift source),
+  writing per-rotor outputs A64C/A65C with adjacent per-rotor flags A66C/A66D.
+  Base name calc_spark_advance kept (out of scope to re-litigate the ida-ai base;
+  ignition-pipeline position supports it); rotor suffix is the minimal proven distinguisher.
+CSV integrity: 6083 data rows unchanged count; 4 rows changed (name + confidence
+cells only; category/signal untouched); BOM + CRLF preserved (6084 CRLF lines,
+0 bare LF); 0 UnknownFueling1 / 0 bare calc_spark_advance rows remain (only
+calc_spark_advance_offset_map 0x148A8 untouched); 4 new names collision-free;
+no other rows touched (tools/ working-tree changes are other agents' — not committed here).
+
+END MICRO-PAIRS
