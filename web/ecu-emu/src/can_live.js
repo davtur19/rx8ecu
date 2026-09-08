@@ -61,6 +61,10 @@ var CANLive = (function() {
   var _paused = false;
   var _filterId = "";       // hex string, empty = show all
   var _stats = { tx: 0, rx: 0 };
+  /* Incremental render state: rows are appended, never rebuilt per tick. */
+  var _renderedIdx = 0;     // _frames entries already flushed to the tbody
+  var _lastFilterKey = "";  // filter string used for the current tbody
+  var MAX_RENDERED = 50;    // max rows kept in the DOM
 
   /* ====================================================================
    *  NTC helper (mirrors ecu_pin_emu.py ntc_temp_to_voltage)
@@ -73,6 +77,27 @@ var CANLive = (function() {
 
   function mapRange(v, inMin, inMax, outMin, outMax) {
     return outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
+  }
+
+  /* Clamp RPM×4 to a u16 (BE split below); guards negative/huge rpm. */
+  function rpmRawU16(rpm) {
+    var r = (typeof rpm === "number" && isFinite(rpm)) ? rpm : 0;
+    if (r < 0) r = 0;
+    var raw = Math.round(r * 4);
+    if (raw < 0) raw = 0;
+    if (raw > 65535) raw = 65535;
+    return raw;
+  }
+
+  /* Clamp a 0-255 byte value derived from TPS percent. */
+  function tpsByte(tps, full) {
+    var t = (typeof tps === "number" && isFinite(tps)) ? tps : 0;
+    if (t < 0) t = 0;
+    if (t > 100) t = 100;
+    var v = Math.round(t * full / 100);
+    if (v < 0) v = 0;
+    if (v > full) v = full;
+    return v;
   }
 
   /* ====================================================================
@@ -89,10 +114,10 @@ var CANLive = (function() {
    *   byte 7:   status 0xFF
    */
   function pack0x201(st) {
-    var rpmRaw = Math.round(st.rpm * 4);
+    var rpmRaw = rpmRawU16(st.rpm);
     var vssRaw = Math.round(st.vss * 100 + 10000);   // vss in km/h
-    var accelRaw = Math.round(st.tps * 256 / 100);    // accel 0-255
-    var accel2 = Math.round(st.tps * 128 / 100);      // accel÷2
+    var accelRaw = tpsByte(st.tps, 255);              // accel 0-255 (255 at 100%)
+    var accel2 = tpsByte(st.tps, 127);                // accel÷2 0-127
     return [
       (rpmRaw >> 8) & 0xFF, rpmRaw & 0xFF,
       (vssRaw >> 8) & 0xFF, vssRaw & 0xFF,
@@ -181,16 +206,41 @@ var CANLive = (function() {
   }
 
   /**
+   * CAN ID 0x215 — Throttle position (8 bytes)
+   * Mailbox config (CAN_PROTOCOL.md CAN0 TX 0x4EA60): CAN0 MB3, DLC 8.
+   * NOTE: firmware/c/can.c counter_check_dispatch_2A242 only forwards
+   * CAN_TX_BUF_0215 — no byte layout is documented there, so this is an
+   * emulator best-effort 8-byte throttle frame consistent with DLC=8.
+   * (Replaces the prior reuse of the 7-byte 0x203 payload, which
+   * mismatched the declared dlc=8.)
+   */
+  function pack0x215(st) {
+    var tps10 = Math.round(
+      Math.max(0, Math.min(100,
+        (typeof st.tps === "number" && isFinite(st.tps)) ? st.tps : 0)) * 100);
+    var tpsRaw = tpsByte(st.tps, 255);
+    return [
+      (tps10 >> 8) & 0xFF, tps10 & 0xFF,
+      tpsRaw & 0xFF,
+      tpsRaw & 0xFF,
+      0x00, 0x00, 0x00, 0x00
+    ];
+  }
+
+  /**
    * CAN ID 0x251 — Engine data (8 bytes, every 2 cycles)
-   * ROM: can251TX_getAndPack (0x2AAB6)
+   * ROM: can251TX_getAndPack (0x2AAB6) — see firmware/c/can.c.
+   * KEPT: 0x251 is real firmware traffic (CAN_ID_0251, DLC 8, MB11),
+   * also listed in the CANTX_Main dispatch (CAN_PROTOCOL.md).
    */
   function pack0x251(st) {
+    var rpmRaw = rpmRawU16(st.rpm);
     var ectRaw = Math.round(mapRange(st.ect, -40, 215, 0, 255));
     var mapRaw = Math.round(mapRange(st.map, 0, 105, 0, 255));
-    var tpsRaw = Math.round(st.tps * 255 / 100);
+    var tpsRaw = tpsByte(st.tps, 255);
     return [
-      (Math.round(st.rpm * 4) >> 8) & 0xFF,
-      Math.round(st.rpm * 4) & 0xFF,
+      (rpmRaw >> 8) & 0xFF,
+      rpmRaw & 0xFF,
       ectRaw,
       mapRaw,
       tpsRaw,
@@ -232,11 +282,12 @@ var CANLive = (function() {
    * CAN ID 0x231 — Engine state/gear (5 bytes)
    */
   function pack0x231(st) {
+    var rpmRaw = rpmRawU16(st.rpm);
     return [
       st.rpm > 500 ? 0x01 : 0x00,
       0x00,
-      (Math.round(st.rpm * 4) >> 8) & 0xFF,
-      Math.round(st.rpm * 4) & 0xFF,
+      (rpmRaw >> 8) & 0xFF,
+      rpmRaw & 0xFF,
       0x00
     ];
   }
@@ -268,12 +319,24 @@ var CANLive = (function() {
    * ==================================================================== */
   function generateFrame() {
     if (!window.sensorState) return null;
-    var st = window.sensorState;
-    // Derived state
-    st.vss = st.vss || 0;      // vehicle speed (km/h)
-    st.oilLow = false;
-    st.battLow = false;
-    st.mil = false;
+    // Local derived snapshot — never writes back to the shared
+    // window.sensorState object. EngineSim exposes no MIL accessor,
+    // so MIL is read read-only from sensorState (never written).
+    var src = window.sensorState;
+    function num(v, d) { return (typeof v === "number" && isFinite(v)) ? v : d; }
+    var st = {
+      rpm: num(src.rpm, 0),
+      ect: num(src.ect, 80),
+      iat: num(src.iat, 25),
+      map: num(src.map, 35),
+      tps: num(src.tps, 0),
+      o2f: num(src.o2f, 0.45),
+      o2r: num(src.o2r, 0.45),
+      vss: num(src.vss, 0),
+      oilLow: src.oilLow === true,
+      battLow: src.battLow === true,
+      mil: src.mil === true
+    };
 
     var id, dlc, data, dir, desc, isUds = false;
     var rand = Math.random();
@@ -293,7 +356,7 @@ var CANLive = (function() {
     // Every 4: 0x215
     else if (rand < 0.40) {
       _counters.c215++;
-      if (_counters.c215 >= 4) { _counters.c215 = 0; id = 0x215; dlc = 8; data = pack0x203(st); dir = "TX"; desc = CAN_DESC[0x215]; }
+      if (_counters.c215 >= 4) { _counters.c215 = 0; id = 0x215; dlc = 8; data = pack0x215(st); dir = "TX"; desc = CAN_DESC[0x215]; }
       else { id = 0x251; _counters.c251++; dlc = 8; data = pack0x251(st); dir = "TX"; desc = CAN_DESC[0x251]; }
     }
     // Every 2: 0x251
@@ -363,43 +426,82 @@ var CANLive = (function() {
            ("00" + d.getMilliseconds()).slice(-3);
   }
 
+  /* Parse the hex filter box; empty/invalid → 0 (show all). */
+  function parseFilterId() {
+    if (!_filterId) return 0;
+    var v = parseInt(_filterId, 16);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function frameRow(f) {
+    var tr = document.createElement("tr");
+    tr.className = f.dir === "TX" ? "can-row-tx" : "can-row-rx";
+    if (f.uds) tr.className += " can-row-uds";
+
+    tr.innerHTML =
+      '<td class="ts-col">' + tsStr(f.ts) + '</td>' +
+      '<td class="id-col">0x' + ("000" + f.id.toString(16).toUpperCase()).slice(-3) + '</td>' +
+      '<td class="dlc-col">' + f.dlc + '</td>' +
+      '<td class="data-col">' + dataToHex(f.data) + '</td>' +
+      '<td class="dir-col"><span class="' + f.dir.toLowerCase() + '">' + f.dir + '</span></td>' +
+      '<td class="desc-col">' + f.desc + '</td>';
+    return tr;
+  }
+
   function renderTable() {
     var tbody = document.getElementById("can-frame-body");
     if (!tbody) return;
-    var frag = document.createDocumentFragment();
-    var filter = _filterId ? parseInt(_filterId, 16) : 0;
+    var wrap = document.getElementById("can-frame-wrap");
+    // Capture stick-to-bottom BEFORE mutating the DOM.
+    var nearBottom = true;
+    if (wrap) {
+      nearBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 40;
+    }
+    var filter = parseFilterId();
+    var key = _filterId || "";
 
-    for (var i = 0; i < _frames.length; i++) {
-      var f = _frames[i];
-      if (filter && f.id !== filter) continue;
-
-      var tr = document.createElement("tr");
-      tr.className = f.dir === "TX" ? "can-row-tx" : "can-row-rx";
-      if (f.uds) tr.className += " can-row-uds";
-
-      tr.innerHTML =
-        '<td class="ts-col">' + tsStr(f.ts) + '</td>' +
-        '<td class="id-col">0x' + ("000" + f.id.toString(16).toUpperCase()).slice(-3) + '</td>' +
-        '<td class="dlc-col">' + f.dlc + '</td>' +
-        '<td class="data-col">' + dataToHex(f.data) + '</td>' +
-        '<td class="dir-col"><span class="' + f.dir.toLowerCase() + '">' + f.dir + '</span></td>' +
-        '<td class="desc-col">' + f.desc + '</td>';
-      frag.appendChild(tr);
+    // Filter changed (or first run): rebuild only the last-50 window.
+    if (key !== _lastFilterKey) {
+      _lastFilterKey = key;
+      tbody.innerHTML = "";
+      var match = [];
+      for (var k = 0; k < _frames.length; k++) {
+        var mf = _frames[k];
+        if (!filter || mf.id === filter) match.push(mf);
+      }
+      var start = Math.max(0, match.length - MAX_RENDERED);
+      var frag0 = document.createDocumentFragment();
+      for (var j = start; j < match.length; j++) frag0.appendChild(frameRow(match[j]));
+      tbody.appendChild(frag0);
+      _renderedIdx = _frames.length;
+    } else {
+      // Incremental: append only frames added since the last tick.
+      if (_renderedIdx < 0) _renderedIdx = 0;
+      if (_renderedIdx > _frames.length) _renderedIdx = _frames.length;
+      var frag = document.createDocumentFragment();
+      for (var i = _renderedIdx; i < _frames.length; i++) {
+        var f = _frames[i];
+        if (filter && f.id !== filter) continue;
+        frag.appendChild(frameRow(f));
+      }
+      _renderedIdx = _frames.length;
+      tbody.appendChild(frag);
+      // Cap DOM rows to the last MAX_RENDERED.
+      while (tbody.children.length > MAX_RENDERED) {
+        tbody.removeChild(tbody.firstChild);
+      }
     }
 
-    tbody.innerHTML = "";
-    tbody.appendChild(frag);
-
-    // Auto-scroll
-    var wrap = document.getElementById("can-frame-wrap");
-    if (wrap) wrap.scrollTop = wrap.scrollHeight;
+    // Autoscroll ONLY if the user was already near the bottom.
+    if (wrap && nearBottom) wrap.scrollTop = wrap.scrollHeight;
   }
 
   function updateStats() {
     var el = document.getElementById("can-stats");
     if (!el) return;
-    var visible = _filterId ? _frames.filter(function(f) {
-      return f.id === parseInt(_filterId, 16);
+    var filter = parseFilterId();
+    var visible = filter ? _frames.filter(function(f) {
+      return f.id === filter;
     }).length : _frames.length;
     el.innerHTML =
       '<span class="tx-count">TX: ' + _stats.tx + '</span>' +
@@ -418,8 +520,8 @@ var CANLive = (function() {
     _frames.push(frame);
     if (frame.dir === "TX") _stats.tx++; else _stats.rx++;
 
-    // Trim
-    while (_frames.length > MAX_FRAMES) _frames.shift();
+    // Trim (keep render index aligned with the shifted buffer)
+    while (_frames.length > MAX_FRAMES) { _frames.shift(); if (_renderedIdx > 0) _renderedIdx--; }
 
     renderTable();
     updateStats();
@@ -476,12 +578,16 @@ var CANLive = (function() {
       _frames = [];
       _stats.tx = 0;
       _stats.rx = 0;
+      _renderedIdx = 0;
+      _lastFilterKey = "\0"; // force renderTable() to rebuild (empty) tbody
       renderTable();
       updateStats();
     });
 
     // Start
     _running = true;
+    _renderedIdx = 0;
+    _lastFilterKey = "\0"; // force first renderTable() to build the window
     _timer = setInterval(tick, FRAME_INTERVAL_MS);
   }
 
