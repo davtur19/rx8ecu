@@ -8,6 +8,7 @@ STACK_BASE.  FR inputs are seeded per case as 16 uint32 bit patterns
 fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with
 (x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive
 float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).
+Scope: finite-only — vectors exclude NaN/Inf/-0.0 and denormals by construction, so sNaN quieting and Inf/denormal handling are NOT covered by this file.
 The mirror converts bit patterns to float32 via bits2f (sh2emu
 semantics); the oracle is fed the same patterns as float values via
 cpu.call(..., fr={i: bits2f(fr_in[i]) ...}).  Compared: r0..r15, the 16
