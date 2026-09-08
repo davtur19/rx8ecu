@@ -131,6 +131,16 @@ header{display:flex;justify-content:space-between;align-items:center;padding:10p
 .esim-gauges{display:flex;gap:8px;flex-shrink:0}
 .esim-gauges canvas{display:block}
 
+/* --- RX-8 tachometer dial --- */
+.tacho-wrap{display:flex;flex-direction:column;align-items:center;flex:0 0 auto;min-width:220px}
+#tacho-canvas{width:220px;height:220px;max-width:100%;display:block}
+.tacho-digital{font:700 16px var(--mono);color:var(--text);margin-top:4px;letter-spacing:.5px}
+.tacho-sub{font:600 9px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.tacho-wrap.tacho-redline #tacho-digital{color:var(--red);animation:tacho-blink .5s step-end infinite}
+.tacho-wrap.tacho-redline #tacho-canvas{filter:drop-shadow(0 0 6px rgba(248,81,73,.6))}
+#tacho-digital.tacho-redline{color:var(--red)}
+@keyframes tacho-blink{50%{opacity:.45}}
+
 /* --- MIL lamp --- */
 .mil-lamp{
   display:inline-block;
@@ -177,4 +187,11 @@ header{display:flex;justify-content:space-between;align-items:center;padding:10p
 }
 #can-panel-container{
   overflow:visible;
+}
+
+/* ---------- tachometer responsive (same 768px breakpoint) ---------- */
+@media (max-width:768px) {
+  .tacho-wrap{min-width:0;width:100%}
+  #tacho-canvas{width:200px;height:200px;margin:0 auto}
+  .engine-sim-panel{justify-content:center}
 }
