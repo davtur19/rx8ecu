@@ -21,7 +21,9 @@ Run from repo root:  python3 c/tests/test_mem_accessors.py [N]
 import os, sys, random, struct
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, MASK, s8, s16, s32, ts, f2bits
+from float_compare import same_result_bits, EDGE_NAN_BITS
 
 # Determinism (wave2b): fixed seed (readValue_8bit @0x3E0DC, first function
 # in this TU). Two runs must diff clean:
@@ -148,7 +150,7 @@ def main():
         cpu.call(0x3E1AA, r4=A, ram=ram, fr={4: dfltf})
         r = cpu.fr[0]
         expect = fval if mode != 'invalid' else dfltf
-        if f2bits(r) != f2bits(expect): bad('readValue_float_DEFAULTVAL_ADDRESS')
+        if not same_result_bits(f2bits(r), f2bits(expect)): bad('readValue_float_DEFAULTVAL_ADDRESS')
 
         # ---- validateAddressCopy_8bit_ADDRESS @ 0x3E29E ----
         v = random.randint(0, 255)
@@ -219,9 +221,51 @@ def main():
             cpu.call(0x3E1AA, r4=A, ram=ram, fr={4: dfltf})
             r = cpu.fr[0]
             expect = fval if mode != 'invalid' else dfltf
-            if f2bits(r) != f2bits(expect): bad('readValue_float_EDGE')
+            if not same_result_bits(f2bits(r), f2bits(expect)): bad('readValue_float_EDGE')
             ram = {**stub(),
                    A: (hi >> 8) & 0xFF, A + 1: hi & 0xFF, A + 2: (lo >> 8) & 0xFF, A + 3: lo & 0xFF,
+                   A + 4: (c1 >> 8) & 0xFF, A + 5: c1 & 0xFF, A + 6: (c2 >> 8) & 0xFF, A + 7: c2 & 0xFF}
+            r = cpu.call(0x3E38A, r4=A, ram=ram)
+            expect = 0 if mode != 'invalid' else 1
+            if (r & 0xFF) != expect: bad('validateAddressCopy_float_EDGE')
+
+    # ---- raw-bits NaN-payload edges (EDGE_NAN_BITS): the float-cell bytes
+    # are staged directly from the bit pattern via struct.pack('>I', bits) —
+    # never via a host float, which would quiet sNaN payloads (0x7F800001 ->
+    # 0x7FC00001 on x86) before the emulator sees them. The valid-path oracle
+    # compares the raw staged bits payload-insensitively (the host fr[]
+    # round-trip quiets sNaN on the ROM-result side too); NaN-vs-Inf still
+    # compares exactly. Same bad-keys as the EDGE_FLOATS loop above.
+    # Validate boundary (probed 2026-09-08 on 60E0FC00 @0x3E38A): the ROM
+    # recomputes its checksum over an fmov.s STACK COPY of the cell
+    # (fmov.s @r14,fr3 / fr3,@r4, then integer checksum over the copy), and
+    # the emulator's float store (sh2emu.wrf: pack('>f')) quiets sNaN, so an
+    # sNaN cell with a matching checksum still reports invalid IN THE
+    # EMULATOR (real HW fmov.s is a pure bit move and would report valid;
+    # readValue_float @0x3E1AA checksums integer RAM bytes directly and is
+    # unaffected). sNaN payloads are therefore asserted on the readValue path
+    # only; the validate path is asserted for the quiet-NaN member.
+    for bits in EDGE_NAN_BITS:
+        b4 = struct.pack('>I', bits & 0xFFFFFFFF)
+        cs = checksum32(bits & 0xFFFFFFFF)
+        is_snan = ((bits & 0x7F800000) == 0x7F800000 and (bits & 0x007FFFFF) != 0
+                   and (bits & 0x00400000) == 0)
+        for mode in ('valid1', 'valid2', 'invalid'):
+            c1, c2 = rand_checksum_pair(cs, mode)
+            dfltf = ts(1.5)
+            ram = {**stub(),
+                   A: b4[0], A + 1: b4[1], A + 2: b4[2], A + 3: b4[3],
+                   A + 4: (c1 >> 8) & 0xFF, A + 5: c1 & 0xFF, A + 6: (c2 >> 8) & 0xFF, A + 7: c2 & 0xFF}
+            cpu.call(0x3E1AA, r4=A, ram=ram, fr={4: dfltf})
+            r = cpu.fr[0]
+            if mode != 'invalid':
+                if not same_result_bits(f2bits(r), bits & 0xFFFFFFFF): bad('readValue_float_EDGE')
+            else:
+                if not same_result_bits(f2bits(r), f2bits(dfltf)): bad('readValue_float_EDGE')
+            if is_snan:
+                continue  # validate boundary above: emulator-quieted, HW-valid
+            ram = {**stub(),
+                   A: b4[0], A + 1: b4[1], A + 2: b4[2], A + 3: b4[3],
                    A + 4: (c1 >> 8) & 0xFF, A + 5: c1 & 0xFF, A + 6: (c2 >> 8) & 0xFF, A + 7: c2 & 0xFF}
             r = cpu.call(0x3E38A, r4=A, ram=ram)
             expect = 0 if mode != 'invalid' else 1
