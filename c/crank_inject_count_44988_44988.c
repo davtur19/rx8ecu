@@ -9,6 +9,7 @@ uint32_t crank_inject_count_44988_44988(uint32_t r4, uint32_t r5, uint32_t r6, u
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t T = 0;
+    (void)r6; (void)r7; /* overwritten with addresses, never read: silence -Wall */
     /* 0x044988: op 0x9276 */
     r2 = (uint32_t)(int32_t)(int16_t)0x0000AADAu;
     /* 0x04498A: op 0xD740 */
@@ -54,7 +55,8 @@ uint32_t crank_inject_count_44988_44988(uint32_t r4, uint32_t r5, uint32_t r6, u
     /* 0x0449AE: op 0x0009 */
     
     if (!T) goto L_449B6;
-    /* 0x0449B0: op 0x9363 */
+    /* 0x0449B0: op 0x9363 (mov.w @(0xC6,PC),r3; literal @0x44A7A = 0x00FF
+     * -> +255; (int16_t) correct, not (int8_t) — 16-bit literal load) */
     r3 = (uint32_t)(int32_t)(int16_t)0xFFu;
     /* 0x0449B2: op 0x353C */
     r5 = r5 + r3;
@@ -65,5 +67,4 @@ uint32_t crank_inject_count_44988_44988(uint32_t r4, uint32_t r5, uint32_t r6, u
     /* 0x0449B8: mov.b r4,@r7 */
     *(volatile uint8_t*)0xFFFFCB0A = r4; /* RAM 0xFFFFCB0A */
     return r0;
-    return r0; /* fallthrough */
 }

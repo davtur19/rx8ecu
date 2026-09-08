@@ -10,6 +10,7 @@ uint32_t crank_mode_transition_7fd4(uint32_t r4, uint32_t r5, uint32_t r6, uint3
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t fr3 = 0;
+    (void)r4; (void)r5; (void)r6; (void)r7; (void)r1; /* no lifted dataflow: silence -Wall */
     /* 0x007FD4: op 0xD23A */
     r2 = 0xFFFF9FE8u;
     /* 0x007FD6: op 0xE300 */
@@ -24,7 +25,8 @@ uint32_t crank_mode_transition_7fd4(uint32_t r4, uint32_t r5, uint32_t r6, uint3
     r0 = 0xFFFF9F90u;
     /* 0x007FE0: fmov.s fr3,@r0 */
     *(volatile uint32_t*)0xFFFF9F90 = fr3; /* RAM 0xFFFF9F90 */
-    /* 0x007FE2: op 0x9363 */
+    /* 0x007FE2: op 0x9363 (mov.w @(0xC6,PC),r3; literal @0x80AC = 0x00FF
+     * -> +255; (int16_t) correct, not (int8_t) — 16-bit literal load) */
     r3 = (uint32_t)(int32_t)(int16_t)0xFFu;
     /* 0x007FE4: op 0xD13A */
     r1 = 0xFFFF9FC5u;
@@ -39,5 +41,4 @@ uint32_t crank_mode_transition_7fd4(uint32_t r4, uint32_t r5, uint32_t r6, uint3
     /* 0x007FEE: mov.b r2,@r0 */
     *(volatile uint8_t*)0xFFFF9F94 = r2; /* RAM 0xFFFF9F94 */
     return r0;
-    return r0; /* fallthrough */
 }

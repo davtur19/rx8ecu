@@ -24,6 +24,7 @@
  * Track A: verified behavior-equivalent to emulated ROM over random inputs
  * (see c/tests/test_div32_unsigned.py).
  */
+#include <stddef.h>
 #include <stdint.h>
 
 #define DIVERR_ADDR 0xFFFF7304u
@@ -36,6 +37,19 @@ uint32_t div32_unsigned(uint32_t divisor, uint32_t dividend)
         /* Host test: skip hardware write to avoid segfault.
          * Emulator tests validate the actual ROM behavior. */
         /* *(volatile uint32_t *)DIVERR_ADDR = DIVERR_CODE; */
+        return 0;
+    }
+    return dividend / divisor;
+}
+
+/* Nullable error-reporting variant (see div32_signed_ex in div32_signed.c):
+ * on divide-by-zero stores DIVERR_CODE (0x44E) through err_addr when non-NULL
+ * — the host-visible form of the ROM's 0xFFFF7304 write — and returns 0. */
+uint32_t div32_unsigned_ex(uint32_t divisor, uint32_t dividend, uint32_t *err_addr)
+{
+    if (divisor == 0) {
+        if (err_addr != NULL)
+            *err_addr = DIVERR_CODE;
         return 0;
     }
     return dividend / divisor;

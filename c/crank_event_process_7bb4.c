@@ -10,6 +10,7 @@ uint32_t crank_event_process_7bb4(uint32_t r4, uint32_t r5, uint32_t r6, uint32_
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t T = 0;
+    (void)r4; (void)r5; (void)r6; (void)r7; /* no lifted dataflow: silence -Wall */
     /* 0x007BB4: op 0xD42E */
     r4 = 0xFFFF9FC8u;
     /* 0x007BB6: mov.b @r4,r3 */
@@ -59,41 +60,11 @@ uint32_t crank_event_process_7bb4(uint32_t r4, uint32_t r5, uint32_t r6, uint32_
     L_7BDE: ;
     /* 0x007BDE: rts */
     /* 0x007BE0: op 0x0009 */
-    
+
     return r0;
-    /* 0x007BE2: op 0xD422 */
-    r4 = 0xFFFF9FC7u;
-    /* 0x007BE4: op 0x9238 */
-    r2 = (uint32_t)(int32_t)(int16_t)0xFFu;
-    /* 0x007BE6: mov.b @r4,r3 */
-    uint32_t t10 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFF9FC7; /* RAM 0xFFFF9FC7 */
-    r3 = t10;
-    /* 0x007BE8: op 0x633C */
-    r3 = r3 & 0xFFu;
-    /* 0x007BEA: op 0x3323 */
-    T = ((int32_t)r3 >= (int32_t)r2) ? 1u : 0u;
-    /* 0x007BEC: bt.s 0x007BF6 */
-    /* 0x007BEE: op 0x0009 */
-    
-    if (T) goto L_7BF6;
-    /* 0x007BF0: mov.b @r4,r1 */
-    uint32_t t12 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0xFFFF9FC7; /* RAM 0xFFFF9FC7 */
-    r1 = t12;
-    /* 0x007BF2: op 0x7101 */
-    r1 = r1 + (uint32_t)(int32_t)(int8_t)0x01;
-    /* 0x007BF4: mov.b r1,@r4 */
-    *(volatile uint8_t*)0xFFFF9FC7 = r1; /* RAM 0xFFFF9FC7 */
-    L_7BF6: ;
-    /* 0x007BF6: op 0xD220 */
-    r2 = 0x0006CF58u;
-    /* 0x007BF8: op 0xD01D */
-    r0 = 0xFFFF9FC8u;
-    /* 0x007BFA: mov.b @r2,r3 */
-    uint32_t t14 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)0x0006CF58; /* ROM */
-    r3 = t14;
-    /* 0x007BFC: rts */
-    /* 0x007BFE: mov.b r3,@r0 */
-    *(volatile uint8_t*)0xFFFF9FC8 = r3; /* RAM 0xFFFF9FC8 */
-    return r0;
-    return r0; /* fallthrough */
+    /* NOTE: bytes 0x7BE2..0x7BFF (the old DRAFT's unreachable tail) are NOT
+     * part of this function — they are the entry of the following ROM
+     * function(s) at 0x7BE2+ (linear decode: mov.l @PC,r2 / mov.w @PC,r2 /
+     * ..., covered by test_crank_angle_timeout_calc_7be4.py). Dropped here;
+     * same precedent as crank_angle_timeout_calc_7be4.c's post-rts note. */
 }

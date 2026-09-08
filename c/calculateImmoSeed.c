@@ -60,10 +60,16 @@ uint32_t calculateImmoSeed(uint32_t r4, uint32_t r5, uint32_t r6)
     uint32_t byte0 = m2 & 0xFFu;
     uint32_t byte1 = m4 & 0xFFu;
 
-    uint32_t sc1 = ((((m1 & 0xFFu) << 7) & 0xFFFFu) >> 8) + ((m1 & 0xFFu) << 7);
-    uint32_t sc2 = ((((byte0 << 7) & 0xFFFFu) >> 8) + (byte0 << 7));
-    uint32_t sc3 = ((((m3 & 0xFFu) << 7) & 0xFFFFu) >> 8) + ((m3 & 0xFFu) << 7);
-    uint32_t sc4 = ((((byte1 << 7) & 0xFFFFu) >> 8) + ((byte1 << 7) & 0xFFFFu));
+    /* Each scale step is ((x<<7)>>8) + (x<<7) with x a zero-extended byte
+     * (ROM `extu.w`: the high half is masked, the low half is the raw <<7;
+     * masking the low half again would be a no-op since a byte<<7 < 0x10000).
+     * All four lines are intentionally identical. */
+    uint32_t x1 = m1 & 0xFFu;
+    uint32_t x3 = m3 & 0xFFu;
+    uint32_t sc1 = (((x1 << 7) & 0xFFFFu) >> 8) + (x1 << 7);
+    uint32_t sc2 = (((byte0 << 7) & 0xFFFFu) >> 8) + (byte0 << 7);
+    uint32_t sc3 = (((x3 << 7) & 0xFFFFu) >> 8) + (x3 << 7);
+    uint32_t sc4 = (((byte1 << 7) & 0xFFFFu) >> 8) + (byte1 << 7);
 
     uint32_t r14 = (r5 >> 16) ^ sc2;
     uint32_t r7  = sc3 ^ (r5 >> 8);

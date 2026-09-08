@@ -7,7 +7,9 @@ uint32_t crank_mode_write_7c00(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r
     uint32_t r0 = 0;
     uint32_t r1 = 0;
     uint32_t r3 = 0;
-    /* 0x007C00: op 0x912A */
+    (void)r4; (void)r5; (void)r6; (void)r7; (void)r3; /* no lifted dataflow: silence -Wall */
+    /* 0x007C00: op 0x912A (mov.w @(0x54,PC),r1; literal @0x7C58 = 0x00FF
+     * -> +255; (int16_t) correct, not (int8_t) — 16-bit literal load) */
     r1 = (uint32_t)(int32_t)(int16_t)0xFFu;
     /* 0x007C02: op 0xD31E */
     r3 = 0xFFFF9FC6u;
@@ -15,5 +17,4 @@ uint32_t crank_mode_write_7c00(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r
     /* 0x007C06: mov.b r1,@r3 */
     *(volatile uint8_t*)0xFFFF9FC6 = r1; /* RAM 0xFFFF9FC6 */
     return r0;
-    return r0; /* fallthrough */
 }

@@ -1,36 +1,35 @@
 /**
  * battery_voltage_monitor.c
  *
- * RX-8 ECU Battery Voltage Monitoring
- *
- * The ECU continuously monitors the battery voltage to detect
- * over-voltage, under-voltage, and charging system faults.
- * Battery voltage affects alternator field control, fuel pump
- * output, injector delivery, and idle speed compensation.
+ * RX-8 ECU Battery Voltage / Charging-Fault Monitor
  *
  * Primary function: getBatteryVoltageStatus @ 0x26766
+ * (ROM body 0x26766..0x2687E; the ROM routine is a void periodic task —
+ * the host lift returns the stage-1 flag byte for convenience.)
  *
- * RAM map:
- *   0xFFFFB600 (float): Current battery voltage (V)
- *   0xFFFFB67A (float): Compensated battery voltage
- *   0xFFFFB6B6 (u8):    Over-voltage flag
- *   0xFFFFB6C4 (float): ADC raw to voltage conversion intermediate
- *   0xFFFFB6C8 (float): Reference voltage for comparison
+ * RAM map (verified by c/tests/test_battery_voltage_monitor_26766.py,
+ * differential vs sh2emu, 0 mismatches):
+ *   0xFFFFB600 (f32): battery voltage input (V)
+ *   0xFFFFA428 (u8):  TPS / engine-state input byte
+ *   0xFFFFB6C4 (f32): ADC-processing intermediate input
+ *   0xFFFFB6C8 (f32): reference voltage input
+ *   0xFFFFB6B6 (u8):  stage-1 charging-fault byte (in/out)
+ *   0xFFFFB67A (u16): compensation word (in/out, NOT a float)
+ *   0xFFFFB6AC (u16): counter A (in/out)
+ *   0xFFFFB6AE (u16): counter B (in/out)
  *
- * Calibration constants at ROM 0x751B0-0x751C4:
- *   0x751B0 (float): 10.0V     — over-voltage threshold high
- *   0x751B4 (float): 1.0V      — over-voltage threshold low (deadband)
- *   0x751C0 (float): 16.973V   — critical over-voltage threshold
- *   0x751C4 (float): 10.938V   — under-voltage warning threshold
+ * Calibration constants (ROM literal pool, values read back from ROM):
+ *   0x751B0 (f32): 10.0    — stage-1 high threshold
+ *   0x751B4 (f32): 1.0     — stage-1 hysteresis delta (the 9.0 low edge
+ *                   is computed at runtime as 10.0 - 1.0 by fsub)
+ *   0x751C0 (f32): 16.9729 — stage-2 comparison constant
+ *   0x751C4 (f32): 10.938  — stage-2 comparison constant
+ *   0x751A2/0x751A4 (u16): 63  — counter comparison constants
+ *   0x751A8 (u16): 312     — compensation-word reload value
  *
  * Status outputs:
- *   getBatteryVoltageStatus → over-voltage flag at 0xFFFFB6B6
- *   Battery voltage available at 0xFFFFB600 (float, volts)
- *
- * Notes:
- *   - 16.973V threshold suggests protection against alternator regulator failure
- *   - 10.938V under-voltage threshold (~70% charge on 12V lead-acid)
- *   - 1.0V hysteresis prevents oscillation around thresholds
+ *   getBatteryVoltageStatus → stage-1 flag at 0xFFFFB6B6
+ *   (0 = bat < 9.0, hold 9.0 <= bat < 10.0, 1 = bat >= 10.0 or NaN)
  */
 
 #include <stdint.h>
@@ -38,138 +37,70 @@
 /* ================================================================
  * RAM Map
  * ================================================================ */
-#define BAT_VOLTAGE          (*(volatile float    *)0xFFFFB600)   /* battery voltage (V) */
-#define BAT_VOLTAGE_COMP     (*(volatile float    *)0xFFFFB67A)   /* compensated voltage */
-#define BAT_OVER_VOLT_FLAG   (*(volatile uint8_t  *)0xFFFFB6B6)   /* 1=over voltage */
-#define BAT_INTERMEDIATE     (*(volatile float    *)0xFFFFB6C4)   /* ADC processing temp */
-#define BAT_REF_VOLTAGE      (*(volatile float    *)0xFFFFB6C8)   /* reference for cmp */
+#define BAT_VOLTAGE          (*(volatile float    *)0xFFFFB600)   /* battery voltage input (V) */
+#define BAT_VOLTAGE_COMP     (*(volatile uint16_t *)0xFFFFB67A)   /* compensation word (u16, stage 2 — not lifted) */
+#define BAT_OVER_VOLT_FLAG   (*(volatile uint8_t  *)0xFFFFB6B6)   /* 1=charging fault (stage 1) */
+#define BAT_INTERMEDIATE     (*(volatile float    *)0xFFFFB6C4)   /* ADC intermediate input (stage 2 — not lifted) */
+#define BAT_REF_VOLTAGE      (*(volatile float    *)0xFFFFB6C8)   /* reference voltage input (stage 2 — not lifted) */
 
 /* ================================================================
- * Calibration Constants (ROM literal pool)
+ * Calibration Constants (ROM literal pool, values read back from ROM)
  * ================================================================ */
 static float get_ov_threshold_high(void)
 {
-    return *(volatile float *)0x000751B0;  /* 10.0V */
+    return *(volatile float *)0x000751B0;  /* 10.0 */
 }
 
-static float get_ov_threshold_low(void)
+static float get_ov_hysteresis_delta(void)
 {
-    return *(volatile float *)0x000751B4;  /* 1.0V (hysteresis) */
+    return *(volatile float *)0x000751B4;  /* 1.0 hysteresis delta (not a threshold) */
 }
-
-static float get_critical_ov_threshold(void)
-{
-    return *(volatile float *)0x000751C0;  /* 16.973V */
-}
-
-static float get_uv_warning_threshold(void)
-{
-    return *(volatile float *)0x000751C4;  /* 10.938V */
-}
-
-/* ADC scale factor for battery voltage measurement
- * (may include voltage divider ratio for the battery sense circuit) */
-#define BAT_ADC_SCALE        7.62939e-5f     /* 5.0V / 65536 */
 
 /**
- * getBatteryVoltageStatus @ 0x26766
+ * getBatteryVoltageStatus @ 0x26766 (stage 1 only)
  *
- * Evaluates battery voltage against multiple thresholds and sets
- * status flags for the system to respond to charging faults.
+ * Stage-1 charging-fault byte with hold band, test-pinned by
+ * c/tests/test_battery_voltage_monitor_26766.py (differential vs ROM,
+ * 0 mismatches). The ROM compares with fcmp/gt (T=0 on NaN, as C `>`):
+ *   - bat >= 10.0 (or NaN): flag = 1
+ *   - bat < 9.0 (9.0 = 10.0 - 1.0 via runtime fsub): flag = 0
+ *   - 9.0 <= bat < 10.0: flag holds its previous value (ROM skips the
+ *     write; the lift models the hold by re-storing the old byte)
  *
- * Algorithm:
- *   1. Load current battery voltage from RAM (0xFFFFB600)
- *   2. Compare against over-voltage threshold with hysteresis
- *       - If voltage > 10.0V: set over-voltage flag
- *       - Else if voltage > 1.0V: clear over-voltage flag
- *       - (The 1.0V low threshold acts as a latch-clearing level,
- *         ensuring the flag stays set until voltage drops very low)
- *   3. Check for critical over-voltage (> 16.973V):
- *       - Cross-reference with reference voltage at 0xFFFFB6C8
- *       - If both criteria met: set additional fault status
- *   4. Under-voltage detection (< 10.938V not shown in this fragment)
- *
- * Returns: Over-voltage flag value (0=normal, 1=over-voltage)
- *
- * Note: The function @ 0x26766 also loads from 0xFFFFB6C4 and
- * 0xFFFFB6C8 for compensation/reference comparisons, suggesting
- * temperature-compensated voltage monitoring.
+ * Returns: stage-1 flag value (0=normal, 1=charging fault)
  */
 uint8_t getBatteryVoltageStatus(void)
 {
     float bat_voltage = BAT_VOLTAGE;
-    float ov_high = get_ov_threshold_high();     /* 10.0V */
-    float ov_low = get_ov_threshold_low();       /* 1.0V (hysteresis) */
-    
+    float ov_high = get_ov_threshold_high();              /* 10.0 */
+    float ov_low = ov_high - get_ov_hysteresis_delta();   /* 9.0 via runtime fsub */
+
     uint8_t ov_flag;
-    
-    /* Over-voltage check with hysteresis */
-    if (bat_voltage > ov_high) {
-        ov_flag = 1;   /* Voltage above threshold */
-    } else if (bat_voltage > ov_low) {
-        ov_flag = 0;   /* Normal range (between 1V and 10V) */
-        /* Note: flag stays set from previous cycle if voltage
-         * is between 1V and 10V; cleared only below 1V */
+
+    /* Charging-fault check with 9-10V hold band (fcmp/gt semantics:
+     * NaN fails both `>` tests, so NaN takes the fault branch). */
+    if (!(ov_high > bat_voltage)) {
+        ov_flag = 1;   /* bat >= 10.0 (or NaN) */
+    } else if (ov_low > bat_voltage) {
+        ov_flag = 0;   /* bat < 9.0 */
     } else {
-        ov_flag = 0;   /* Below 1V — clear flag */
+        ov_flag = BAT_OVER_VOLT_FLAG;   /* 9.0 <= bat < 10.0: hold */
     }
-    
+
     BAT_OVER_VOLT_FLAG = ov_flag;
-    
-    /* Critical over-voltage check (> 16.973V) */
-    float crit_ov = get_critical_ov_threshold();      /* 16.973V */
-    float ref_voltage = BAT_REF_VOLTAGE;              /* reference from 0xFFFFB6C8 */
-    float intermed = BAT_INTERMEDIATE;                /* processing temp from 0xFFFFB6C4 */
-    
-    if (bat_voltage > crit_ov && ref_voltage > 0.0f) {
-        /* Critical over-voltage — set additional fault bits */
-        /* This triggers over-voltage protection responses */
-        /* Typical actions: reduce alternator field, log DTC */
-    }
-    
-    /* Under-voltage detection */
-    float uv_thresh = get_uv_warning_threshold();     /* 10.938V */
-    if (bat_voltage < uv_thresh && bat_voltage > 0.0f) {
-        /* Under-voltage warning — system may compensate
-         * by increasing idle speed or reducing loads */
-    }
-    
+
+    /* GAP — stages 2..4 of ROM 0x26766 (B67A compensation word reload/
+     * decay gated on f32 @0x751C0=16.9729 / @0x751C4=10.938 plus the
+     * A428 input byte and old B6B6/B6AC/B6AE; B6AC/B6AE saturating
+     * counters via helper @0x2460) are not lifted here. Their behavior
+     * lives only in c/tests/test_battery_voltage_monitor_26766.py
+     * (differential vs ROM, 0 mismatches) — do not re-invent. */
+
     return ov_flag;
 }
 
-/**
- * adcToBatteryVoltage
- *
- * Converts raw ADC count to battery voltage.
- * Battery voltage is measured through a voltage divider
- * (typically ~4:1 ratio on RX-8) to bring the 12-14V range
- * into the 0-5V ADC range.
- *
- * @param adc_raw Raw ADC count (0-65535)
- * @return Battery voltage in volts
- */
-float adcToBatteryVoltage(uint16_t adc_raw)
-{
-    /* Voltage divider ratio for battery sense circuit
-     * Typical: R1=10kΩ, R2=3.3kΩ → divider = 3.3/(10+3.3) = 0.248
-     * With 5V reference: max measurable = 5.0/0.248 = 20.16V */
-    #define BAT_DIVIDER_RATIO   4.03f   /* voltage divider factor */
-    
-    float adc_voltage = (float)adc_raw * BAT_ADC_SCALE;
-    return adc_voltage * BAT_DIVIDER_RATIO;
-}
-
-/**
- * readBatteryVoltageADC
- *
- * Reads the battery voltage ADC channel and updates the
- * RAM voltage value at 0xFFFFB600.
- *
- * Called periodically from the ADC scan task.
- */
-void readBatteryVoltageADC(void)
-{
-    uint16_t adc_raw = *(volatile uint16_t *)0xFFFF9EE8;
-    float voltage = adcToBatteryVoltage(adc_raw);
-    BAT_VOLTAGE = voltage;
-}
+/* GAP — ADC-to-voltage conversion is not part of the ROM 0x26766 body
+ * (the verified reconstruction notes adcToBatteryVoltage /
+ * readBatteryVoltageADC are absent from this vector). No ADC source
+ * address and no voltage-divider ratio are verified for this path, so
+ * no invented BAT_DIVIDER_RATIO/divider math is kept here. */

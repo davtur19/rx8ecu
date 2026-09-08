@@ -87,16 +87,22 @@ uint8_t floatToInt(float signal, float mult, float offset)
     return (uint8_t)i;
 }
 
-/* 0x24C0  unsigned 16-bit fixed point -> float:  mult * raw + off  (fused mac)       */
+/* 0x24C0  unsigned 16-bit fixed point -> float:  mult * raw + off  (fused mac)
+ * Confirmed from ROM disasm: `extu.w r4,r4 ; lds r4,fpul ; float fpul,fr3 ;
+ * fmov fr4,fr0 ; fmac fr0,fr3,fr5` — a genuine fused multiply-add (single
+ * rounding), so fmaf() is the exact host equivalent. A plain
+ * `mult * (float)raw + off` rounds twice and differs from the ROM by 1 ULP
+ * on live inputs (see interp_leaves.c for the same effect, measured there). */
 float fixedPointToFloat_16bit(float mult, float off, uint16_t raw)
 {
-    return mult * (float)raw + off;
+    return fmaf(mult, (float)raw, off);
 }
 
-/* 0x2500  unsigned 8-bit fixed point -> float:  mult * raw + off                     */
+/* 0x2500  unsigned 8-bit fixed point -> float:  mult * raw + off
+ * Same fmac shape as 0x24C0 (`extu.b` + `fmac fr0,fr3,fr5`), same fmaf lift. */
 float fixedPointToFloat_8bit(float mult, float off, uint8_t raw)
 {
-    return mult * (float)raw + off;
+    return fmaf(mult, (float)raw, off);
 }
 
 /* ---------------------------------------------------------------------------------
