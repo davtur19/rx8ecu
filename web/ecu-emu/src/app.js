@@ -411,7 +411,7 @@ function renderSliders() {
   container.innerHTML = "";
 
   const sliders = [
-    {key:"rpm",  label:"RPM",   min:0, max:8000, step:100, unit:""},
+    {key:"rpm",  label:"RPM",   min:0, max:9000, step:100, unit:""},
     {key:"ect",  label:"ECT",   min:-20,max:120, step:1,   unit:"°C"},
     {key:"iat",  label:"IAT",   min:-20,max:60,  step:1,   unit:"°C"},
     {key:"map",  label:"MAP",   min:0,  max:105, step:1,   unit:"kPa"},

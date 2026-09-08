@@ -107,7 +107,7 @@ var CANLive = (function() {
    * ROM: can203pack (0x2A274)
    */
   function pack0x203(st) {
-    var torque = Math.round(mapRange(st.rpm, 0, 8000, 0, 200));
+    var torque = Math.round(mapRange(st.rpm, 0, 9000, 0, 200));
     return [
       torque & 0xFF,
       st.rpm > 200 ? 0x01 : 0x00,
@@ -219,7 +219,7 @@ var CANLive = (function() {
    */
   function pack0x250(st) {
     var iatRaw = Math.round(st.iat + 40);
-    var injPw = Math.round(mapRange(st.rpm, 0, 8000, 1, 8));
+    var injPw = Math.round(mapRange(st.rpm, 0, 9000, 1, 8));
     return [
       0x00, 0x00,
       0x00, iatRaw & 0xFF,

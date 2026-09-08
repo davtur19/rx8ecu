@@ -19,7 +19,7 @@ var EngineSim = (function() {
   var CANVAS_SIZE = 220;          // crank wheel canvas
   var GAUGE_SIZE = 80;            // mini gauge diameter
   var TICK_MS = 33;               // ~30 fps
-  var REDLINE = 7500;
+  var REDLINE = 9000;
   var OVERHEAT = 110;             // ECT DTC threshold (°C)
   var DTC_CODES = {
     P0300: "Random/Multiple misfire",
@@ -329,7 +329,7 @@ var EngineSim = (function() {
 
     // Update gauges
     drawGauge("gauge-rpm", rpm, 0, 9000, "RPM", "", "#39c5cf",
-      { warn: 7000, crit: 7500 });
+      { warn: 8000, crit: 8500 });
     drawGauge("gauge-ect", getECT(), -20, 120, "ECT", "°C", "#7ee787",
       { warn: 100, crit: 110 });
     drawGauge("gauge-map", getMAP(), 0, 105, "MAP", "kPa", "#4d7cff",
