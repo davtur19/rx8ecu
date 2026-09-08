@@ -107,13 +107,30 @@ function renderPinout() {
     cell.className = "pin-cell";
     cell.dataset.type = p.type;
     cell.dataset.num = p.num;
-    cell.innerHTML = `
-      <div class="pin-indicator"></div>
-      <span class="pin-num">${p.num}</span>
-      <span class="pin-name">${p.name}</span>
-    `;
-    cell.addEventListener("click", () => selectPin(p));
+    /* XSS-hardened: pin names come from pins.json — render via textContent. */
+    const indicator = document.createElement("div");
+    indicator.className = "pin-indicator";
+    const numEl = document.createElement("span");
+    numEl.className = "pin-num";
+    numEl.textContent = String(p.num);
+    const nameEl = document.createElement("span");
+    nameEl.className = "pin-name";
+    nameEl.textContent = p.name;
+    cell.append(indicator, numEl, nameEl);
+    /* Keyboard a11y: pin cells act as buttons. */
+    cell.setAttribute("role", "button");
+    cell.setAttribute("tabindex", "0");
+    cell.setAttribute("aria-label", `Pin ${p.num}: ${p.name}`);
+    const activate = () => selectPin(p);
+    cell.addEventListener("click", activate);
+    cell.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        activate();
+      }
+    });
     cell.addEventListener("mouseenter", () => showPinInfo(p));
+    cell.addEventListener("focus", () => showPinInfo(p));
 
     if (p.num <= 48) {
       connA.appendChild(cell);
@@ -385,11 +402,22 @@ function renderStates() {
       barColor = "var(--muted)";
     }
 
-    item.innerHTML = `
-      <div class="state-name" style="color:${getTypeColor(p.type)}">${p.name}</div>
-      <div class="state-bar"><div class="state-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
-      <div class="state-value">${displayVal}</div>
-    `;
+    /* XSS-hardened: pin names come from pins.json — render via textContent. */
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "state-name";
+    nameDiv.style.color = getTypeColor(p.type);
+    nameDiv.textContent = p.name;
+    const barWrap = document.createElement("div");
+    barWrap.className = "state-bar";
+    const barFill = document.createElement("div");
+    barFill.className = "state-bar-fill";
+    barFill.style.width = `${barPct}%`;
+    barFill.style.background = barColor;
+    barWrap.appendChild(barFill);
+    const valDiv = document.createElement("div");
+    valDiv.className = "state-value";
+    valDiv.textContent = displayVal;
+    item.append(nameDiv, barWrap, valDiv);
     list.appendChild(item);
   });
 }
@@ -404,7 +432,14 @@ function renderScenarios() {
   Object.entries(SCENARIOS).forEach(([key, sc]) => {
     const btn = document.createElement("button");
     btn.className = "scenario-btn";
-    btn.innerHTML = `<div class="sc-name">${key.toUpperCase()}</div><div class="sc-desc">${sc.desc}</div>`;
+    /* XSS-hardened: scenario keys/descriptions come from pins.json. */
+    const scName = document.createElement("div");
+    scName.className = "sc-name";
+    scName.textContent = key.toUpperCase();
+    const scDesc = document.createElement("div");
+    scDesc.className = "sc-desc";
+    scDesc.textContent = sc.desc;
+    btn.append(scName, scDesc);
     btn.addEventListener("click", () => applyScenario(key));
     container.appendChild(btn);
   });
