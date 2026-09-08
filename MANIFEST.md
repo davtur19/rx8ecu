@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **10731 entries, 293.4M.** Regenerated 2026-08-02 for the
+in the working repository. **10736 entries, 293.4M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
@@ -19,13 +19,13 @@ in the working repository. **10731 entries, 293.4M.** Regenerated 2026-08-02 for
 | tools/tests/ | 5 | 79.1K |
 | docs/ | 228 | 1.2M |
 | hardware/ | 1 | 2.0K |
-| web/ | 30 | 1.3M |
+| web/ | 35 | 1.3M |
 | analysis/ | 40 | 9.4M |
 | .github/ | 4 | 16.5K |
 | reconstructed/experiments/match/ | 74 | 212.8K |
 | reconstructed/samples/ | 464 | 3.3M |
 | tmp/ | 36 | 909.8K |
-| **Total** | **10731** | 293.4M |
+| **Total** | **10736** | 293.4M |
 
 ## External dependencies
 
@@ -10201,25 +10201,30 @@ or the toolchain install (git-ignored; re-create with
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `web/ecu-emu/Makefile` | `7736bcf95d97c3d2aa379da2cc3fed167f1cdfa14c8d7fa8d4ad01fa3b01ab4c` | 1009B | Tracked file |
-| `web/ecu-emu/dist/app.js` | `047804e8bbb1b21c3a1938e9e3c7ab2a4b0236ad34ebee4c9047ba7da5fbd1b0` | 60.7K | Tracked file |
+| `web/ecu-emu/Makefile` | `2898a968eb074f7fc8309fd590263f4831d12d08aaeddfdfe9756e8aec19c33f` | 1.1K | Tracked file |
+| `web/ecu-emu/dist/app.js` | `ab2ba5a6678da6d00db1b3ce51dee948cf7fcf1daa9b36c1a9551757246fc274` | 60.9K | Tracked file |
 | `web/ecu-emu/dist/can_live.css` | `219bb96658cc42f77791d715e004761a6733f54493323dd1df074b58f0c10599` | 3.4K | Tracked file |
-| `web/ecu-emu/dist/can_live.js` | `d346af7b455e4894e48d886c8447b14d27f658ea8d5f9b3720c0ef45db899525` | 25.5K | Tracked file |
-| `web/ecu-emu/dist/emu_core.js` | `010a63f1c23450fda269fdc073bc9f842cbf52ec1864791036591177e8478e5f` | 35.5K | Tracked file |
+| `web/ecu-emu/dist/can_live.js` | `fa3e4acd281f2b19c5d5099f6b2f9ad94a63e10480912e9c86c1718de9ff00e2` | 25.7K | Tracked file |
+| `web/ecu-emu/dist/emu_core.js` | `fd326863b9e5bc22bcb2d970c3f5d132d460742d6b7619d3f0909f9e7bfcc47a` | 36.6K | Tracked file |
 | `web/ecu-emu/dist/engine_sim.js` | `2a8e2f5cf2b82a5c761f33bdd503c4a613dec3b93ae77541faa628d7ef0a6f14` | 36.5K | Tracked file |
 | `web/ecu-emu/dist/icons.svg` | `358b02c562008eef9fdfa542f9fad9d3cd6e7abc2ee12ff4c3ed9759978d0d47` | 10.6K | Tracked file |
 | `web/ecu-emu/dist/index.html` | `185cdd6b32db704d5f32cffa3b49fa57ffde2e99e38a12e30a2b265d0fee0acb` | 18.0K | Tracked file |
 | `web/ecu-emu/dist/pins.json` | `4bcf5ccf231f6d0ce0585c8a2e4037fae3a9b9f61484a6b6108058ab707f66a7` | 16.4K | Tracked file |
 | `web/ecu-emu/dist/style.css` | `210befb983954ce11b020836d1f57aef0bbfcd6b815834ae182830109627eccd` | 16.6K | Tracked file |
-| `web/ecu-emu/src/app.js` | `047804e8bbb1b21c3a1938e9e3c7ab2a4b0236ad34ebee4c9047ba7da5fbd1b0` | 60.7K | Tracked file |
+| `web/ecu-emu/src/app.js` | `ab2ba5a6678da6d00db1b3ce51dee948cf7fcf1daa9b36c1a9551757246fc274` | 60.9K | Tracked file |
 | `web/ecu-emu/src/can_live.css` | `219bb96658cc42f77791d715e004761a6733f54493323dd1df074b58f0c10599` | 3.4K | Tracked file |
-| `web/ecu-emu/src/can_live.js` | `d346af7b455e4894e48d886c8447b14d27f658ea8d5f9b3720c0ef45db899525` | 25.5K | Tracked file |
-| `web/ecu-emu/src/emu_core.js` | `010a63f1c23450fda269fdc073bc9f842cbf52ec1864791036591177e8478e5f` | 35.5K | Tracked file |
+| `web/ecu-emu/src/can_live.js` | `fa3e4acd281f2b19c5d5099f6b2f9ad94a63e10480912e9c86c1718de9ff00e2` | 25.7K | Tracked file |
+| `web/ecu-emu/src/emu_core.js` | `fd326863b9e5bc22bcb2d970c3f5d132d460742d6b7619d3f0909f9e7bfcc47a` | 36.6K | Tracked file |
 | `web/ecu-emu/src/engine_sim.js` | `2a8e2f5cf2b82a5c761f33bdd503c4a613dec3b93ae77541faa628d7ef0a6f14` | 36.5K | Tracked file |
 | `web/ecu-emu/src/icons.svg` | `358b02c562008eef9fdfa542f9fad9d3cd6e7abc2ee12ff4c3ed9759978d0d47` | 10.6K | Tracked file |
 | `web/ecu-emu/src/index.html` | `185cdd6b32db704d5f32cffa3b49fa57ffde2e99e38a12e30a2b265d0fee0acb` | 18.0K | Tracked file |
 | `web/ecu-emu/src/pins.json` | `4bcf5ccf231f6d0ce0585c8a2e4037fae3a9b9f61484a6b6108058ab707f66a7` | 16.4K | Tracked file |
 | `web/ecu-emu/src/style.css` | `210befb983954ce11b020836d1f57aef0bbfcd6b815834ae182830109627eccd` | 16.6K | Tracked file |
+| `web/ecu-emu/tests/app_registers.test.js` | `666820612b96c1670b1446ec9709f519ee99f06cae0612a0eed9f57e15498b3f` | 2.6K | Tracked file |
+| `web/ecu-emu/tests/can.test.js` | `1136683851f8b1b2f075ab1276c3794c113e4ea646e118fd63b0d749bb818978` | 5.2K | Tracked file |
+| `web/ecu-emu/tests/engine_sim.test.js` | `9e9b91c1535c7ba6eb9d41d9a63692991ed0d970f2de3103b6e5e98e8df14394` | 3.6K | Tracked file |
+| `web/ecu-emu/tests/helpers.js` | `95b169dbeaaafa95b4b04a27c64aba246c6e4c838cee14de04bdf8283a357fcf` | 3.0K | Tracked file |
+| `web/ecu-emu/tests/static.test.js` | `58312936ff836b88d09f8ece6cdfb3bea1a3d64c9394331e565cdfe156d13030` | 10.3K | Tracked file |
 | `web/explorer/.gitignore` | `9e38f3635d6b89b9d202765b2624d45192da67b8c0c593bfb75c405b070e6a9b` | 66B | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/Makefile` | `e6aef72e09b05b18e5af42221caf1f806e6f292bfa8c3abf0c365628e097d6c5` | 2.6K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/README.md` | `e01c7d2595379d153df4d21d2d911254730a9f953102e964467e239c869ac3e0` | 7.4K | Web explorer (static firmware browser; see web/explorer/README.md) |
