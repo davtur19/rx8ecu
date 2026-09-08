@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **10730 entries, 293.2M.** Regenerated 2026-08-02 for the
+in the working repository. **10731 entries, 293.2M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
@@ -15,7 +15,7 @@ in the working repository. **10730 entries, 293.2M.** Regenerated 2026-08-02 for
 | c/ | 7338 | 25.0M |
 | c/tests/ | 2389 | 194.4M |
 | firmware/ | 22 | 477.1K |
-| tools/ | 35 | 1.4M |
+| tools/ | 36 | 1.4M |
 | tools/tests/ | 5 | 79.1K |
 | docs/ | 228 | 1.2M |
 | hardware/ | 1 | 2.0K |
@@ -25,7 +25,7 @@ in the working repository. **10730 entries, 293.2M.** Regenerated 2026-08-02 for
 | reconstructed/experiments/match/ | 74 | 212.8K |
 | reconstructed/samples/ | 464 | 3.3M |
 | tmp/ | 36 | 909.8K |
-| **Total** | **10730** | 293.2M |
+| **Total** | **10731** | 293.2M |
 
 ## External dependencies
 
@@ -9934,6 +9934,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/gen_manifest.py` | `a5203133dd9bd2295954d082f2a63df0e08552898a15fcc5f7c7e250a6a1ec43` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
+| `tools/make_elf.py` | `ebf51e814135e78eb0e0b376afb452e7c1d6c21d82dc361df2488ab500c333b5` | 6.1K | Tracked file |
 | `tools/make_elf_fc00.py` | `6b5884b58c5ffcfa7ea2f37e2772bb321f4bf49cb4e84d969c42d0f0e1204ac6` | 6.1K | Tracked file |
 | `tools/mapscan.py` | `3d7afcb8e03327b07620cb1b8bed426f54df0b6e34c6932ccd5c72f8575b7d5c` | 5.8K | RE tool (see tools/README.md) |
 | `tools/mazda_security.py` | `33e9f6e895cb2a9c78aa1b04419476ca8c60c64e0af2d3d4f90a2bf653f70ea3` | 5.0K | RE tool (see tools/README.md) |
