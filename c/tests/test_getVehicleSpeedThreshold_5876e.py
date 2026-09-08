@@ -247,7 +247,7 @@ def main():
         try:
             g = run(cpu, ram, a, b, c_, d, fr_in)
         except (StepLimitExceeded, NotImplementedError, RuntimeError, ValueError):
-            pass
+            skipped += 1
         else:
             _, exp_regs, _, exp_ram, exp_pr, exp_fr, exp_fpul, exp_macl, exp_mach = m
             _, got_regs, got_ram, got_pr, got_fr, got_fpul, got_macl, got_mach = g

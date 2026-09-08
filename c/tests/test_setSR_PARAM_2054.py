@@ -54,10 +54,10 @@ def _wrw(ram, a, n, v):
 CODE = {
     0x2054: {"kind": 'reg', "py": 'r[0] = sr', "slot_py": None, "target": None, "cond": None},
     0x2056: {"kind": 'reg', "py": 'r[0] = (r[0] & 0xF0) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
-    0x2058: {"kind": 'reg', "py": 'T = 1 if r[5] >= r[0] else 0', "slot_py": None, "target": None, "cond": None},
+    0x2058: {"kind": 'reg', "py": 'T = 1 if (r[5] & 0xFFFFFFFF) >= (r[0] & 0xFFFFFFFF) else 0\nsr = (sr & ~1) | (T & 1)', "slot_py": None, "target": None, "cond": None},
     0x205a: {"kind": "branch", "py": None, "slot_py": '_wrw(ram, r[4], 4, r[0])', "target": 0x2060, "cond": 'T'},
     0x205e: {"kind": 'reg', "py": 'r[5] = r[0]', "slot_py": None, "target": None, "cond": None},
-    0x2060: {"kind": "ret", "py": None, "slot_py": 'sr = r[5]', "target": None, "cond": None},}
+    0x2060: {"kind": "ret", "py": None, "slot_py": 'sr = r[5]\nT = sr & 1\nQ = (sr >> 8) & 1\nM = (sr >> 9) & 1', "target": None, "cond": None},}
 
 def spec_mirror(r4, r5, r6, r7, ram):
     """pc-interpreter over CODE; returns ("RET", regs, writes, ram, pr) or

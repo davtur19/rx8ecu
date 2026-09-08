@@ -329,7 +329,7 @@ def test_negc_alias():
     c_text = ' '.join(d['c'])
     check('_m0' in c_text and '(_m0 + _t0)' in c_text,
           "negc/7: C lift tests original Rm (_m0): %s" % c_text)
-    ns = {'r': [0] * 16, 'T': 1}
+    ns = {'r': [0] * 16, 'T': 1, 'sr': 0}
     ns['r'][5] = 0
     code = '\n'.join(ln.strip() for ln in '\n'.join(d['py']).splitlines()
                      if ln.strip())
@@ -371,8 +371,268 @@ def test_crank_n20_periods():
           "crank/M: 20-cycle visits all positions and wraps")
 
 
+# ---------------------------------------------------------------------------
+# 8. run_tests_parallel CRITICAL-1: inline `},}` close must never truncate
+#    (v7-era shape: CODE block closed inline, no standalone `}` line).
+# ---------------------------------------------------------------------------
+def test_runner_dedup_inline_close():
+    import run_tests_parallel as rtp
+
+    # (a) v7-style file with an inline close and all-unique entries: nothing
+    # to dedup, and the body after CODE must survive byte-for-byte.
+    src_inline = (
+        'CODE = {\n'
+        '    0x27eae: {"kind": \'reg\', "py": \'r[4] = 1\'},\n'
+        '    0x27eb0: {"kind": "ret", "py": None, "slot_py": \'r[0] = 1\'},}\n'
+        '\n'
+        'def spec_mirror():\n'
+        '    return 1\n'
+        '\n'
+        'def main():\n'
+        '    import sys; sys.exit(0)\n'
+    )
+    check(rtp._dedup_code_block(src_inline) == src_inline,
+          "runner/8a: inline-close unique CODE block round-trips unchanged")
+    check(rtp._find_code_end(src_inline.split('\n'),
+          next(i for i, l in enumerate(src_inline.split('\n'))
+               if l.startswith('CODE = {'))) is not None,
+          "runner/8a: brace matcher finds the inline close")
+
+    # Inline close WITH heavy duplication must still dedup (not bail out),
+    # and the deduped output must keep the close plus the trailing body.
+    dup_lines = ['CODE = {'] + ['    0x1000: %d,' % i for i in range(12)]
+    dup_lines[-1] = dup_lines[-1] + '}'
+    dup_lines += ['}', 'def main():', '    import sys; sys.exit(1)']
+    # NOTE: the last entry line already carries one '}' (dict close); add the
+    # CODE close inline to mimic the v7 `},}` shape.
+    dup_lines[12] = dup_lines[12][:-1] + '},}'
+    dup_lines.pop(13)  # drop the standalone '}' -> pure inline close
+    src_dup_inline = '\n'.join(dup_lines) + '\n'
+    deduped = rtp._dedup_code_block(src_dup_inline)
+    check(deduped != src_dup_inline,
+          "runner/8a: inline-close duplicated block is still dedup-eligible")
+    check('def main():' in deduped and 'sys.exit(1)' in deduped,
+          "runner/8a: deduped inline-close block keeps trailing body")
+
+    # End-to-end: a v7-shaped suite with a failing body must fail via run_one
+    # (old code truncated everything after CODE into an always-pass stub).
+    with tempfile.TemporaryDirectory() as td:
+        victim = os.path.join(td, 'test_inline_fail_xyz.py')
+        with open(victim, 'w') as fh:
+            fh.write('CODE = {\n'
+                     '    0x1000: {"kind": \'reg\'},\n'
+                     '    0x1002: {"kind": "ret"},}\n'
+                     'import sys\n'
+                     'print("INLINE-FAIL-MARKER-xyz")\n'
+                     'sys.exit(1)\n')
+        orig, rc, wall, out = rtp.run_one(victim)
+        check(rc != 0, "runner/8a: failing inline-close suite returns rc != 0")
+        check('INLINE-FAIL-MARKER-xyz' in out,
+              "runner/8a: failing inline-close suite output is captured")
+
+
+# ---------------------------------------------------------------------------
+# 9. run_tests_parallel MEDIUM-5: non-uniform CODE blocks are left alone
+# ---------------------------------------------------------------------------
+def test_runner_dedup_preserves_nonmatching():
+    import run_tests_parallel as rtp
+
+    src_comment = ('CODE = {\n'
+                   '    0x1000: (1, 2),\n'
+                   '    # comment\n'
+                   '    0x1000: (3, 4),\n'
+                   '    0x2000: (5, 6),\n'
+                   '}\n'
+                   'x = 1\n')
+    check(rtp._dedup_code_block(src_comment) == src_comment,
+          "runner/9: CODE block with comment line round-trips unchanged")
+
+    src_nested = ('CODE = {\n'
+                  '    0x1000: (1, 2),\n'
+                  '    0x1000: (3, 4),\n'
+                  '    0x2000: {\n'
+                  "        'a': 1,\n"
+                  '    },\n'
+                  '}\n'
+                  'x = 1\n')
+    check(rtp._dedup_code_block(src_nested) == src_nested,
+          "runner/9: CODE block with nested dict round-trips unchanged")
+
+    # Unterminated CODE block: fail-closed, never truncate.
+    src_unterm = 'CODE = {\n    0x1000: 1,\n    0x1000: 2,\n'
+    check(rtp._dedup_code_block(src_unterm) == src_unterm,
+          "runner/9: unterminated CODE block returns source unchanged")
+
+
+# ---------------------------------------------------------------------------
+# 10. run_tests_parallel CRITICAL-1(d): mutant CODE value must fail via runner
+# ---------------------------------------------------------------------------
+def test_runner_dedup_mutant_fails():
+    import run_tests_parallel as rtp
+    import shutil
+
+    src_real = os.path.join(ROOT, 'c', 'tests', 'test_caller_27EAE.py')
+    # NOTE: the mutant copy must live in c/tests/ (with a non-test_ prefix so
+    # discovery ignores it): caller suites derive ROOT from __file__, so a
+    # /tmp copy would resolve imports against /tmp/tools and fail to import.
+    mutant = os.path.join(ROOT, 'c', 'tests', '.mutant_27EAE_xyz.py')
+    try:
+        shutil.copy(src_real, mutant)
+        src = open(mutant).read()
+        check('0xFFFF8680' in src, "runner/10: 27EAE fixture has expected value")
+        open(mutant, 'w').write(src.replace('0xFFFF8680', '0xDEADBEEF', 1))
+        orig, rc, wall, out = rtp.run_one(mutant)
+        check(rc != 0, "runner/10: flipped CODE value fails via run_one")
+        check('MISMATCH' in out,
+              "runner/10: mutant output names the MISMATCH")
+    finally:
+        try:
+            os.unlink(mutant)
+        except OSError:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# 11. HIGH: c/tests/test_getFaultStatus.py must be able to fail
+# ---------------------------------------------------------------------------
+def test_getfaultstatus_can_fail():
+    src = open(os.path.join(ROOT, 'c', 'tests', 'test_getFaultStatus.py')).read()
+    check(src.count('bad += 1') >= 2,
+          "getFaultStatus/11: mismatch and exception paths increment bad")
+    p = subprocess.run([sys.executable,
+                        os.path.join(ROOT, 'c', 'tests', 'test_getFaultStatus.py')],
+                       capture_output=True, text=True, timeout=120)
+    out = (p.stdout or '') + (p.stderr or '')
+    check(p.returncode != 0,
+          "getFaultStatus/11: discordant vectors fail (rc=%d)" % p.returncode)
+    check('FAIL' in out, "getFaultStatus/11: failure output names FAIL")
+
+
+# ---------------------------------------------------------------------------
+# 12. MEDIUM: 28 v7-era caller suites carry the `or ok == 0` guard
+# ---------------------------------------------------------------------------
+_V7_NOGUARD = ['27EAE', '2CCBC', '3F3D8', '45F9C', '4634A', '46A06', '46DC2',
+               '474FA', '4790A', '479DE', '48038', '490E8', '490F0', '490F8',
+               '49A92', '49AC0', '53978', '53D04', '54114', '54184', '54250',
+               '542C0', '543C8', '546A0', '548DC', '5494C', '55080', '551B4']
+
+
+def test_caller_ok_guard():
+    import glob as _glob
+    missing = []
+    for p in sorted(_glob.glob(os.path.join(ROOT, 'c', 'tests',
+                                            'test_caller_*.py'))):
+        if 'or ok == 0' not in open(p, encoding='utf-8',
+                                    errors='replace').read():
+            missing.append(os.path.basename(p))
+    check(not missing,
+          "caller-guard/12: every caller suite has `or ok == 0` (missing=%r)"
+          % (missing[:5],))
+    for tag in _V7_NOGUARD:
+        p = os.path.join(ROOT, 'c', 'tests', 'test_caller_%s.py' % tag)
+        check(os.path.isfile(p) and 'or ok == 0' in open(
+            p, encoding='utf-8', errors='replace').read(),
+              "caller-guard/12: v7 suite %s has the guard" % tag)
+
+
+# ---------------------------------------------------------------------------
+# 13. MEDIUM: verify_emu SKIP with a dangling reference must fail closed
+# ---------------------------------------------------------------------------
+def test_verify_emu_missing_ref_fails():
+    sys.path.insert(0, os.path.join(ROOT, 'c', 'tests'))
+    import importlib
+    ve = importlib.import_module('verify_emu')
+    importlib.reload(ve)
+    check(ve._missing_skip_refs() == [],
+          "verify_emu/13: current SKIP references all resolve")
+    bogus = dict(ve.SKIP)
+    bogus['_BOGUS_MISSING_XYZ'] = ('0x0', 'test reason',
+                                   'test_no_such_file_xyz.py')
+    check(ve._missing_skip_refs(bogus) == ['_BOGUS_MISSING_XYZ'],
+          "verify_emu/13: dangling reference is reported, not skipped")
+
+
+# ---------------------------------------------------------------------------
+# 14. MEDIUM: gen_lib_test._run_test must not let TimeoutExpired escape
+# ---------------------------------------------------------------------------
+def test_gen_lib_test_timeout():
+    sys.path.insert(0, os.path.join(ROOT, 'tools'))
+    import gen_lib_test as glt
+    with tempfile.TemporaryDirectory() as td:
+        sleeper = os.path.join(td, 'sleeper_xyz.py')
+        with open(sleeper, 'w') as fh:
+            fh.write('import time; time.sleep(5)\n')
+        try:
+            status, verdict, out = glt._run_test(0x1234, sleeper, timeout=1)
+        except subprocess.TimeoutExpired:
+            check(False, "gen_lib_test/14: TimeoutExpired escaped _run_test")
+            return
+        check(status == 'FAIL',
+              "gen_lib_test/14: timeout yields a FAIL row (got %r)" % status)
+        check('timeout after 1s' in verdict,
+              "gen_lib_test/14: verdict names the timeout (%r)" % verdict)
+
+
+# ---------------------------------------------------------------------------
+# 15. LOW: runner extras resolve against ROOT; raising suites become FAIL rows
+# ---------------------------------------------------------------------------
+def test_runner_extras_and_result_guard():
+    import run_tests_parallel as rtp
+    import io
+    import contextlib
+
+    # (a) cwd-independent extras: from /tmp, a ROOT-relative extra must name
+    # the ROOT file, not a /tmp phantom.
+    old_cwd = os.getcwd()
+    os.chdir('/tmp')
+    try:
+        rel = os.path.join('c', 'tests', 'test_getFaultStatus.py')
+        resolved = os.path.normpath(os.path.join(rtp.ROOT, rel))
+        phantom = os.path.abspath(rel)
+        check(resolved == os.path.normpath(os.path.join(rtp.ROOT, rel))
+              and resolved != phantom,
+              "runner/15a: extras resolve against ROOT, not cwd")
+        check(os.path.isfile(resolved),
+              "runner/15a: ROOT-resolved extra exists")
+    finally:
+        os.chdir(old_cwd)
+
+    # (b) a suite that raises (null-byte path escapes run_one's OSError guard
+    # as ValueError) must surface as a FAIL row + summary, never abort.
+    for mode in (['--serial'], []):
+        old_argv, old_disc = sys.argv, rtp.discover_tests
+        sys.argv = ['run_tests_parallel.py'] + mode
+        rtp.discover_tests = lambda: ['/tmp/\x00boom_xyz.py']
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                rc_main = rtp.main()
+        except Exception as e:  # noqa: BLE001 — the bug being tested
+            check(False, "runner/15b: main(%s) raised %r instead of FAIL row"
+                  % (mode or ['parallel'], e))
+            continue
+        finally:
+            sys.argv = old_argv
+            rtp.discover_tests = old_disc
+        out_main = buf.getvalue()
+        check(rc_main != 0,
+              "runner/15b: main(%s) exit != 0 with raising suite"
+              % (mode or ['parallel']))
+        check('SUMMARY' in out_main,
+              "runner/15b: main(%s) still prints a summary"
+              % (mode or ['parallel']))
+
+
 def main():
     test_runner_dedup_failure_reported()
+    test_runner_dedup_inline_close()
+    test_runner_dedup_preserves_nonmatching()
+    test_runner_dedup_mutant_fails()
+    test_getfaultstatus_can_fail()
+    test_caller_ok_guard()
+    test_verify_emu_missing_ref_fails()
+    test_gen_lib_test_timeout()
+    test_runner_extras_and_result_guard()
     test_run_until_hits_target()
     test_adc_bytes()
     test_step_ram_persists_and_pc_advances()

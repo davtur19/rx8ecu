@@ -59,23 +59,23 @@ def main():
                 cpu.call(ADDR, ram=ram_init, r4=ch)
                 emu_result = cpu.r[0] & 0xFF
             except (RuntimeError, NotImplementedError, Exception) as e:
-                # Secondary check (getFaultEvalState) likely has unimplemented
-                # opcodes. This is expected — mark as untested.
-                print(f"  EMU KNOWN LIMIT ch={ch} mask=0x{mask:08X}: {e}")
+                # Emulation must be honest: an unimplemented opcode means this
+                # vector is UNVERIFIED, not silently passing. Count it so the
+                # suite fails closed instead of hiding gaps as skips.
+                print(f"  FAIL ch={ch} mask=0x{mask:08X}: emu raised {e}")
+                bad += 1
                 continue
             
             c_result = c_lift(ch, mask)
             
             if emu_result != c_result:
-                # The secondary check in the ROM may return 1 where our
-                # simplified model returns 0. This is expected.
-                print(f"  INFO ch={ch} mask=0x{mask:08X}: emu={emu_result} c={c_result} "
-                      f"(secondary eval diff)")
-                # Don't count as failure — the primary check matches
-                # and differences are from the unimplemented secondary check
+                # Any divergence (including the secondary-eval path the
+                # simplified model does not cover) is a hard failure: the
+                # suite must be able to fail, never silently PASS.
+                print(f"  FAIL ch={ch} mask=0x{mask:08X}: emu={emu_result} c={c_result}")
+                bad += 1
     
-    print(f"getFaultStatus: tested={tested} channels, {bad} hard failures "
-          f"(secondary eval may differ — expected)")
+    print(f"getFaultStatus: tested={tested} channels, {bad} hard failures")
     sys.exit(1 if bad else 0)
 
 

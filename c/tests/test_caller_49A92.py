@@ -167,7 +167,7 @@ def main():
                 print("MISMATCH case=%d addr=0x%08X mirror=%02X emu=%02X" % (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))
                 sys.exit(1)
     ok = N - skipped
-    if skipped > 200:
+    if skipped > 200 or ok == 0:
         print("FAIL %d/%d (skipped=%d)" % (ok, N, skipped))
         sys.exit(1)
     print("PASS %d/%d (skipped=%d)" % (ok, N, skipped))

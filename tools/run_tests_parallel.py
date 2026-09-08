@@ -76,30 +76,126 @@ atexit.register(_cleanup_temps)
 _CODE_ENTRY = re.compile(r'^\s*(0x[0-9a-fA-F]+):')
 
 
+def _find_code_end(lines, start):
+    """Return the line index closing the CODE dict opened at lines[start].
+
+    String/comment-aware brace matching from the opening ``{``: tracks
+    single/double/triple-quoted strings (with backslash escapes) and ``#``
+    comments so braces inside literals never affect the depth.  Returns None
+    when the block never closes cleanly (fail-closed signal: the caller must
+    return the source unchanged, never truncate).
+    """
+    text = '\n'.join(lines)
+    # Offset of the opening brace on the start line.
+    brace_col = lines[start].find('{')
+    if brace_col < 0:
+        return None
+    off = sum(len(l) + 1 for l in lines[:start]) + brace_col
+    depth = 0
+    i = off
+    n = len(text)
+    # Lexer state: None | "'" | '"' | "'''" | '"""' | '#'
+    state = None
+    while i < n:
+        if state == '#':
+            if text[i] == '\n':
+                state = None
+            i += 1
+            continue
+        if state in ("'", '"'):
+            if text[i] == '\\':
+                i += 2
+                continue
+            if text[i] == state:
+                state = None
+            i += 1
+            continue
+        if state in ("'''", '"""'):
+            if text.startswith(state, i):
+                state = None
+                i += 3
+                continue
+            if text[i] == '\\':
+                i += 2
+                continue
+            i += 1
+            continue
+        # Code state.
+        if text[i] == '#':
+            state = '#'
+            i += 1
+            continue
+        if text.startswith("'''", i):
+            state = "'''"
+            i += 3
+            continue
+        if text.startswith('"""', i):
+            state = '"""'
+            i += 3
+            continue
+        if text[i] in ("'", '"'):
+            state = text[i]
+            i += 1
+            continue
+        if text[i] == '{':
+            depth += 1
+        elif text[i] == '}':
+            depth -= 1
+            if depth == 0:
+                return text.count('\n', 0, i)
+        i += 1
+    return None
+
+
 def _dedup_code_block(source):
     """Collapse repeated single-line CODE-dict entries (last occurrence wins).
 
-    Returns the original source unchanged when there is no CODE block or the
-    duplication is not worth the rewrite, so normal-sized suites are untouched.
+    Returns the original source unchanged when there is no CODE block, the
+    duplication is not worth the rewrite, the block end is not found cleanly
+    (fail-closed: never truncate), or any in-block line is not a plain
+    single-line ``_CODE_ENTRY`` (comments, multi-line values, nested dicts —
+    dedup would change semantics or break syntax, so leave it alone).
     """
     lines = source.split('\n')
     try:
         start = next(i for i, l in enumerate(lines) if l.startswith('CODE = {'))
     except StopIteration:
         return source
-    end = start + 1
-    while end < len(lines) and lines[end].rstrip() != '}':
-        end += 1
+    end = _find_code_end(lines, start)
+    if end is None or end >= len(lines):
+        return source                    # fail-closed: never truncate
     if end - start < 4:
         return source
-    last = {}
+    # Fail-closed for non-uniform blocks (MEDIUM-5): every in-block line must
+    # be blank/whitespace-only or a single-line _CODE_ENTRY; otherwise the
+    # block may hold comments, multi-line values, or nested dicts that the
+    # kept-lines reconstruction would delete or corrupt.
     for i in range(start + 1, end):
+        if not lines[i].strip():
+            continue
+        if not _CODE_ENTRY.match(lines[i]):
+            return source
+    # The closing line itself must be either a standalone '}' or a final
+    # CODE entry carrying the inline close (e.g. '...},}'); anything else
+    # means an unexpected shape — leave it alone.
+    end_stripped = lines[end].strip()
+    end_is_entry = bool(_CODE_ENTRY.match(lines[end]))
+    if not end_is_entry and end_stripped != '}':
+        return source
+    last = {}
+    stop = end if not end_is_entry else end + 1
+    for i in range(start + 1, stop):
         m = _CODE_ENTRY.match(lines[i])
         if m:
             last[m.group(1).lower()] = i
-    if len(last) * 2 >= (end - start):
+    if len(last) * 2 >= (stop - start):
         return source                      # few duplicates: nothing to gain
     kept = sorted(last.values())
+    if end_is_entry:
+        # Inline close ('},}'): the closing brace lives on the last entry
+        # line, which is always kept (last line == last occurrence of its
+        # key, sorted last), so the suffix starts AFTER it to avoid doubling.
+        return '\n'.join(lines[:start + 1] + [lines[i] for i in kept] + lines[end + 1:])
     return '\n'.join(lines[:start + 1] + [lines[i] for i in kept] + lines[end:])
 
 
@@ -186,9 +282,18 @@ def main():
     args = ap.parse_args()
 
     tests = discover_tests()
-    # de-duplicate while preserving order
+    # de-duplicate while preserving order.  Extras are resolved against ROOT
+    # (not the cwd) so `cd /tmp; run_tests_parallel.py c/tests/x.py` names
+    # the same absolute path discovery produced instead of a cwd-dependent
+    # phantom that either double-runs or spuriously fails.
+    resolved_extras = []
+    for e in args.extras:
+        if os.path.isabs(e):
+            resolved_extras.append(os.path.normpath(e))
+        else:
+            resolved_extras.append(os.path.normpath(os.path.join(ROOT, e)))
     seen, ordered = set(), []
-    for t in tests + [os.path.abspath(e) for e in args.extras]:
+    for t in tests + resolved_extras:
         if t not in seen:
             seen.add(t)
             ordered.append(t)
@@ -209,7 +314,12 @@ def main():
     results = []
     if args.serial:
         for t in tests:
-            results.append(run_one(t, args.verbose))
+            try:
+                res = run_one(t, args.verbose)
+            except Exception as e:  # run_one must not abort the whole run
+                res = (t, 1, 0.0, 'RUNNER-ERROR %s: %s\n'
+                       % (os.path.relpath(t, ROOT), e))
+            results.append(res)
             path, rc, wall, out = results[-1]
             status = 'PASS' if rc == 0 else 'FAIL'
             print('%-14s %-58s %6.1fs' % (status, os.path.relpath(path, ROOT), wall),
@@ -222,7 +332,13 @@ def main():
             # Preserve discovery order in the summary; results come back as done.
             done = {}
             for fut in as_completed(futs):
-                path, rc, wall, out = fut.result()
+                try:
+                    path, rc, wall, out = fut.result()
+                except Exception as e:  # one raising suite -> FAIL row, not abort
+                    t = futs[fut]
+                    path, rc, wall, out = (
+                        t, 1, 0.0, 'RUNNER-ERROR %s: %s: %s\n'
+                        % (os.path.relpath(t, ROOT), type(e).__name__, e))
                 done[path] = (rc, wall, out)
                 if not args.quiet:
                     status = 'PASS' if rc == 0 else 'FAIL'
