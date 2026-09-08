@@ -145,9 +145,9 @@ def main():
 
     # Build buckets preserving byte-sorted order (git ls-files is sorted).
     sections = [
-        "(root)", "roms", "src", "symbols", "c", "c/tests", "tools",
+        "(root)", "roms", "src", "symbols", "c", "c/tests", "firmware", "tools",
         "tools/tests", "docs", "hardware", "web", "analysis", ".github",
-        "reconstructed/experiments/match", "reconstructed/samples",
+        "reconstructed/experiments/match", "reconstructed/samples", "tmp",
     ]
     buckets = {s: [] for s in sections}
     for path in sorted(entries):
