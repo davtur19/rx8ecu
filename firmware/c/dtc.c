@@ -35,6 +35,7 @@
 
 #include "platform.h"
 #include "dtc.h"
+#include "uds.h"
 #include "eeprom.h"
 
 /* ====================================================================== */
@@ -111,7 +112,7 @@ void dtc_init(void)
         /* Backup table corrupted: reinitialize backup slots to 0xFFFF.
          * Best-effort: cannot restore from primary without EEPROM. */
         for (uint8_t i = 0; i < DTC_BACKUP_MAX_SLOTS; i++) {
-            uint16_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
+            uint32_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
             *(volatile uint16_t *)(uintptr_t)addr = 0xFFFF;
             *(volatile uint8_t *)(uintptr_t)(addr + DTC_BK_CODE2_OFFSET) = 0xFF;
             *(volatile uint8_t *)(uintptr_t)(addr + DTC_BK_CODE2_OFFSET + 1) = 0xFF;
@@ -130,7 +131,7 @@ void dtc_init(void)
 
     /* Count active DTCs in backup table */
     for (uint8_t i = 0; i < DTC_BACKUP_MAX_SLOTS; i++) {
-        uint16_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
+        uint32_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
         uint16_t code = *(volatile uint16_t *)(uintptr_t)addr;
         if (code != 0xFFFF && code != 0x0000) {
             dtc_backup_count++;
@@ -220,7 +221,7 @@ void dtc_pending_state_clear(void)
     /* Clear pending state in current DTC record */
     uint8_t slot = dtc_get_current_slot();
     if (slot < DTC_PRIMARY_MAX_SLOTS) {
-        uint16_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE)
+        uint32_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE)
                         + DTC_REC_FLAGS3_OFFSET;
         *(volatile uint8_t *)(uintptr_t)addr &= ~DTC_STATUS_PENDING;
     }
@@ -275,7 +276,7 @@ void dtc_freezeframe_store(uint16_t dtc_code)
     }
 
     /* Calculate freeze-frame destination address */
-    uint16_t freeze_addr = DTC_PRIMARY_TABLE_BASE
+    uint32_t freeze_addr = DTC_PRIMARY_TABLE_BASE
                            + (target_slot * DTC_PRIMARY_ENTRY_SIZE)
                            + DTC_REC_FREEZE_OFFSET;
 
@@ -454,13 +455,24 @@ void dtc_state_machine(uint16_t dtc_code, uint8_t mode)
     }
 
     /* Calculate record base address */
-    uint16_t rec_addr = DTC_PRIMARY_TABLE_BASE
+    uint32_t rec_addr = DTC_PRIMARY_TABLE_BASE
                         + (target_slot * DTC_PRIMARY_ENTRY_SIZE);
 
     volatile uint8_t *rec = (volatile uint8_t *)(uintptr_t)rec_addr;
 
     switch (mode) {
         case 1:  /* SET: Mark fault as confirmed */
+            /* N3: persist the ROM +0x06 status byte as well
+             * (docs/notes/IDA_ANALYSIS.md:707: "+0x06: status byte (bit 7 =
+             * confirmed, bit 6 = failed)"). The SET event means the monitor
+             * just failed AND the fault is confirmed, so both bits go up.
+             * (DTC_REC_TYPE_OFFSET names the +0x06 slot; it is the ROM
+             * status byte, not just an OBD class byte — the macro name is
+             * kept to avoid rippling every reader.) The SEVERITY/FLAGS3
+             * writes below are kept, so the SEV|FLAGS3 composite reader
+             * (dtc_read_status) continues to match. */
+            rec[DTC_REC_TYPE_OFFSET] |=
+                (uint8_t)(DTC_STATUS_CONFIRMED | DTC_STATUS_FAILED);
             rec[DTC_REC_SEVERITY_OFFSET] = DTC_STATUS_CONFIRMED;
             rec[DTC_REC_FLAGS3_OFFSET] |= DTC_STATUS_TEST_FAILED;
             break;
@@ -638,6 +650,11 @@ int dtc_debounce_counter(uint16_t dtc_code)
  * Lower severity byte = higher priority.
  * Status byte check: bit 7 (confirmed) + bit 6 (failed).
  *
+ * FLAGGED (out of scope, do not "fix" here): the ranking compares raw
+ * status-bit patterns as severity levels without consulting the 0x5F7F8
+ * severity table — kept as-is in this task. The `i < 20` bound is a ROM
+ * quirk (IDA_ANALYSIS.md:750, "iterates 20 slots") and is CORRECT.
+ *
  * @param status_mask  Status mask for filtering
  * @param out_code     Output: worst DTC code
  * @param out_severity Output: severity of worst DTC
@@ -696,7 +713,7 @@ int dtc_read_full_status(uint16_t dtc_code, uint8_t *out_buf)
     /* Find the DTC in the primary table */
     for (uint8_t i = 0; i < DTC_PRIMARY_MAX_SLOTS; i++) {
         if (dtc_read_code(i) == dtc_code) {
-            uint16_t rec_addr = DTC_PRIMARY_TABLE_BASE
+            uint32_t rec_addr = DTC_PRIMARY_TABLE_BASE
                                 + (i * DTC_PRIMARY_ENTRY_SIZE);
 
             /* Copy 9 bytes of status data */
@@ -731,6 +748,12 @@ int dtc_read_full_status(uint16_t dtc_code, uint8_t *out_buf)
  *   3. If 0xFF00: histogram_0x563CE (reset all records)
  *   4. Send positive response
  *
+ * Session gating note: this handler performs no in-function session check
+ * by design — reachability in Sessions 1+3 is enforced by the ROM dispatch
+ * gate table at 0x5FA7D (SID 0x14 mask; CAN_UDS_SUBSYSTEM.md dispatch
+ * table), applied in uds_handler before this function runs. Do not add
+ * in-function session checks here.
+ *
  * @param group_hi  High byte of DTC group
  * @param group_lo  Low byte of DTC group
  * @return 0 on success, negative NRC on failure
@@ -746,7 +769,7 @@ int obd_sid14_clearDTC(uint8_t group_hi, uint8_t group_lo)
 
     /* Clear all DTCs in primary table */
     for (uint8_t i = 0; i < DTC_PRIMARY_MAX_SLOTS; i++) {
-        uint16_t addr = DTC_PRIMARY_TABLE_BASE + (i * DTC_PRIMARY_ENTRY_SIZE);
+        uint32_t addr = DTC_PRIMARY_TABLE_BASE + (i * DTC_PRIMARY_ENTRY_SIZE);
 
         /* Mark slot as empty */
         *(volatile uint16_t *)(uintptr_t)addr = 0xFFFF;
@@ -759,7 +782,7 @@ int obd_sid14_clearDTC(uint8_t group_hi, uint8_t group_lo)
 
     /* Clear all DTCs in backup table */
     for (uint8_t i = 0; i < DTC_BACKUP_MAX_SLOTS; i++) {
-        uint16_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
+        uint32_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
 
         /* Mark slot as empty (0xFFFF) */
         *(volatile uint16_t *)(uintptr_t)addr = 0xFFFF;
@@ -826,7 +849,7 @@ int obd_sid18_readDTCInfo(uint8_t sub_func, uint8_t status_mask,
          * then reports remaining DTCs by status mask 0x00.
          * sub_func 0xFF with status_mask 0x00 means "clear pending, report all". */
         for (uint8_t i = 0; i < DTC_PRIMARY_MAX_SLOTS; i++) {
-            uint16_t addr = DTC_PRIMARY_TABLE_BASE + (i * DTC_PRIMARY_ENTRY_SIZE);
+            uint32_t addr = DTC_PRIMARY_TABLE_BASE + (i * DTC_PRIMARY_ENTRY_SIZE);
             volatile uint8_t *rec = (volatile uint8_t *)(uintptr_t)addr;
             /* Clear pending flag (bit 5) from status byte at +0x09 */
             rec[DTC_REC_FLAGS3_OFFSET] &= ~DTC_STATUS_PENDING;
@@ -869,12 +892,18 @@ int obd_sid18_readDTCInfo(uint8_t sub_func, uint8_t status_mask,
 int obd_sid12_readDTCByStatus(uint8_t sub_func, uint8_t status_mask,
                               uint8_t *out_buf)
 {
-    if (sub_func < 2) {
+    /* ROM subs are exactly 2 and 4 (docs/notes/IDA_ANALYSIS.md:751:
+     * "SID 0x12: readDTCByStatusMask — sub 2/4"). The old `sub_func < 2`
+     * gate admitted 3, 5..255. Anything but 2/4 → NRC 0x12. */
+    if (sub_func != 2 && sub_func != 4) {
         return -0x12;  /* NRC: subFunctionNotSupported */
     }
 
     /* Build response with matching DTCs */
-    uint8_t idx = 2;  /* Start after header */
+    /* uint16_t: 21 slots x 3 bytes + 2-byte header = 65 bytes max, but the
+     * index must still be wide + bounded (cf. sid22_need in uds.c) so a
+     * future slot-count change cannot wrap the response. */
+    uint16_t idx = 2;  /* Start after header */
 
     /* Response header: [0x52, sub_func] */
     out_buf[0] = 0x52;  /* Positive response SID */
@@ -885,6 +914,10 @@ int obd_sid12_readDTCByStatus(uint8_t sub_func, uint8_t status_mask,
         if ((status & status_mask) != 0) {
             uint16_t code = dtc_read_code(i);
             if (code != 0xFFFF && code != 0x0000) {
+                /* Bound check (cf. sid22_need): 3-byte DTC entry must fit. */
+                if ((uint32_t)idx + 3u > (uint32_t)UDS_MAX_RESPONSE_SIZE) {
+                    return -UDS_NRC_RESPONSE_TOO_LONG;
+                }
                 /* Encode DTC code (2 bytes) + status (1 byte) */
                 out_buf[idx]     = (code >> 8) & 0xFF;
                 out_buf[idx + 1] = code & 0xFF;
@@ -952,6 +985,11 @@ uint16_t dtc_injector_fault_check(void)
     if (*fuel_cut == 1) {
         *result_a = 0;
         *result_b = 0;
+        /* L10: the fault flag at 0xFFFFC9A2 must be written on ALL paths.
+         * This early return used to skip the store at the tail of the
+         * function, so a previously latched 1 survived a fuel-cut cycle
+         * as a stale fault. Write the current `fault` value here too. */
+        *(volatile uint8_t *)0xFFFFC9A2 = (fault != 0) ? 1 : 0;
         return 0;
     }
 
@@ -1796,39 +1834,47 @@ int dtc_region_checksum_validate_8928(void)
     /*
      * ROM:0x610FA — Validate primary DTC table checksum.
      *
-     * Validates region checksum: sum of 15 bytes per entry.
-     * Guard words at 0xFFFF8920/0xFFFF8924.
+     * Documented contract (docs/notes/IDA_ANALYSIS.md:715): guard words at
+     * 0xFFFF8920/0xFFFF8924, plus a 15-byte additive sum per 52-byte entry
+     * (bytes +0x00..+0x0E) that must equal 0xA5 (mod 256). The old code
+     * ignored both halves — its only check (`sum == 0 → fail`) sat inside
+     * a branch that already excluded sum == 0, so it always returned 1.
      *
-     * For each of 21 slots:
-     *   Sum bytes at slot+0 through slot+0x0E (15 bytes).
-     *   The expected sum should equal the guard word at 0xFFFF8920.
-     *
-     * NOTE: The exact checksum algorithm uses additive sum with
-     * carry folding. We use the calc_checksum helper.
+     * Guard semantics are best-effort: the ROM's exact guard comparison is
+     * undocumented beyond the addresses, so a blank/erased guard pair
+     * (0xFFFF = erased flash, 0x0000 = cleared RAM) is treated as corrupt.
+     * Empty slots (code 0xFFFF/0x0000) carry no checksum and are skipped —
+     * an erased slot sums to 0xF1, not 0xA5, by construction.
      */
+    /* Guard words must not be blank (M2). */
+    uint16_t guard0 = *(volatile uint16_t *)(uintptr_t)0xFFFF8920;
+    uint16_t guard1 = *(volatile uint16_t *)(uintptr_t)0xFFFF8924;
+    if (guard0 == 0xFFFF || guard0 == 0x0000 ||
+        guard1 == 0xFFFF || guard1 == 0x0000) {
+        return 0;
+    }
+
     volatile uint8_t *table = (volatile uint8_t *)DTC_PRIMARY_TABLE_BASE;
 
     for (uint8_t i = 0; i < DTC_PRIMARY_MAX_SLOTS; i++) {
-        uint32_t offset = i * DTC_PRIMARY_ENTRY_SIZE;
+        uint32_t offset = (uint32_t)i * DTC_PRIMARY_ENTRY_SIZE;
 
-        /* Sum 15 bytes of the record (code + flags + type + severity + aging + flags3) */
-        uint8_t sum = 0;
+        /* Skip empty slots — no checksum stored for them. */
+        uint16_t code = dtc_read_code(i);
+        if (code == 0xFFFF || code == 0x0000) {
+            continue;
+        }
+
+        /* Sum 15 bytes of the record (code + flags + type + status +
+         * severity + aging + flags3 + padding through +0x0E). */
+        uint16_t sum = 0;
         for (uint8_t j = 0; j < 15; j++) {
             sum += table[offset + j];
         }
 
-        /* If sum is not zero and not 0xFF (empty slot), check against guard word */
-        if (sum != 0x00 && sum != 0xFF) {
-            /* Non-empty slot with non-trivial sum: assume valid for now.
-             * The exact guard word comparison depends on whether the
-             * slot is populated. Empty slots (0xFFFF code) are skipped. */
-            uint16_t code = *(volatile uint16_t *)&table[offset];
-            if (code != 0xFFFF && code != 0x0000) {
-                /* Populated slot — basic sanity: sum must be non-zero */
-                if (sum == 0) {
-                    return 0;  /* Checksum failed */
-                }
-            }
+        /* M2: per-entry 15-byte sum must equal 0xA5 (mod 256). */
+        if ((sum & 0xFFu) != 0xA5u) {
+            return 0;  /* Checksum failed */
         }
     }
 
@@ -1902,7 +1948,7 @@ int dtc_region_checksum_validate_8ea0(void)
 static void dtc_backup_sync_to_primary(void)
 {
     for (uint8_t bk = 0; bk < DTC_BACKUP_MAX_SLOTS; bk++) {
-        uint16_t bk_addr = DTC_BACKUP_TABLE_BASE + (bk * DTC_BACKUP_ENTRY_SIZE);
+        uint32_t bk_addr = DTC_BACKUP_TABLE_BASE + (bk * DTC_BACKUP_ENTRY_SIZE);
         uint16_t bk_code = *(volatile uint16_t *)(uintptr_t)bk_addr;
 
         /* Skip empty backup slots */
@@ -1941,7 +1987,7 @@ static void dtc_backup_sync_to_primary(void)
             /* DTC exists in primary: merge backup status.
              * Copy backup data (offset 0x02, 30 bytes) into primary record
              * starting at DTC_REC_FREEZE_OFFSET (0x0A). */
-            uint16_t pr_addr = DTC_PRIMARY_TABLE_BASE
+            uint32_t pr_addr = DTC_PRIMARY_TABLE_BASE
                                + (found_slot * DTC_PRIMARY_ENTRY_SIZE);
             volatile uint8_t *pr_rec = (volatile uint8_t *)(uintptr_t)pr_addr;
             volatile uint8_t *bk_rec = (volatile uint8_t *)(uintptr_t)bk_addr;
@@ -1952,7 +1998,7 @@ static void dtc_backup_sync_to_primary(void)
             }
         } else if (empty_slot >= 0) {
             /* New DTC: promote backup entry to primary table */
-            uint16_t pr_addr = DTC_PRIMARY_TABLE_BASE
+            uint32_t pr_addr = DTC_PRIMARY_TABLE_BASE
                                + (empty_slot * DTC_PRIMARY_ENTRY_SIZE);
             volatile uint8_t *pr_rec = (volatile uint8_t *)(uintptr_t)pr_addr;
 
@@ -2014,7 +2060,7 @@ static void dtc_primary_to_backup_promote(uint16_t dtc_code)
 
     /* Check if already in backup table */
     for (uint8_t i = 0; i < DTC_BACKUP_MAX_SLOTS; i++) {
-        uint16_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
+        uint32_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
         uint16_t code = *(volatile uint16_t *)(uintptr_t)addr;
         if (code == dtc_code) {
             return;  /* Already backed up */
@@ -2024,7 +2070,7 @@ static void dtc_primary_to_backup_promote(uint16_t dtc_code)
     /* Find empty backup slot */
     int8_t bk_slot = -1;
     for (uint8_t i = 0; i < DTC_BACKUP_MAX_SLOTS; i++) {
-        uint16_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
+        uint32_t addr = DTC_BACKUP_TABLE_BASE + (i * DTC_BACKUP_ENTRY_SIZE);
         uint16_t code = *(volatile uint16_t *)(uintptr_t)addr;
         if (code == 0xFFFF || code == 0x0000) {
             bk_slot = (int8_t)i;
@@ -2037,9 +2083,9 @@ static void dtc_primary_to_backup_promote(uint16_t dtc_code)
     }
 
     /* Copy primary record to backup */
-    uint16_t pr_addr = DTC_PRIMARY_TABLE_BASE
+    uint32_t pr_addr = DTC_PRIMARY_TABLE_BASE
                        + (pr_slot * DTC_PRIMARY_ENTRY_SIZE);
-    uint16_t bk_addr = DTC_BACKUP_TABLE_BASE
+    uint32_t bk_addr = DTC_BACKUP_TABLE_BASE
                        + (bk_slot * DTC_BACKUP_ENTRY_SIZE);
 
     volatile uint8_t *pr_rec = (volatile uint8_t *)(uintptr_t)pr_addr;

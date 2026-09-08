@@ -19,6 +19,7 @@
 
 #include "platform.h"
 #include "uds.h"
+#include "dtc.h"
 #include "eeprom.h"
 #include "timer.h"
 #include "boot.h"
@@ -244,9 +245,17 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
      * a gated SID must still answer (predict: yes); an idle-only
      * 0x7F/0x22 reject would point off-ROM (e.g. K-line kernel). */
     if (sid == UDS_SID_TESTER_PRESENT) {
+        /* M7: accept only sub-function 0x00 (KNOWLEDGE.md:30: `3E 00`
+         * correct, `3E 80` → NRC 0x12 subFunctionNotSupported). The old code
+         * echoed request[1] unvalidated, accepting any sub-function. */
+        uint8_t tp_sub = (req_len > 1) ? request[1] : 0x00;
+        if (tp_sub != 0x00) {
+            return uds_negative_response(sid, UDS_NRC_SUB_NOT_SUPPORTED,
+                                         response);
+        }
         *(volatile uint8_t *)UDS_TESTER_PRESENT_ADDR = 1;
         response[0] = UDS_SID_TESTER_PRESENT + UDS_POS_RESPONSE_OFFSET;
-        response[1] = (req_len > 1) ? request[1] : 0x00;
+        response[1] = 0x00;
         return 2;
     }
 
@@ -342,6 +351,89 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
 
         case UDS_SID_REQ_TRANS_EXIT:
             return obd_sid37_requestTransferExit(response);
+
+        case UDS_SID_CLEAR_DTC:  /* 0x14 */
+            if (req_len < 3) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            {
+                int rc14 = obd_sid14_clearDTC(request[1], request[2]);
+                if (rc14 != 0) {
+                    return uds_negative_response(sid, (uint8_t)(-rc14),
+                                                 response);
+                }
+            }
+            response[0] = UDS_SID_CLEAR_DTC + UDS_POS_RESPONSE_OFFSET;
+            return 1;
+
+        case UDS_SID_READ_DTC_INFO:  /* 0x18 */
+            if (req_len < 3) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            {
+                int rc18 = obd_sid18_readDTCInfo(request[1], request[2],
+                                                response);
+                if (rc18 < 0) {
+                    return uds_negative_response(sid, (uint8_t)(-rc18),
+                                                 response);
+                }
+                return rc18;
+            }
+
+        case UDS_SID_READ_DTC_STATUS:  /* 0x12 */
+            if (req_len < 3) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            {
+                int rc12 = obd_sid12_readDTCByStatus(request[1], request[2],
+                                                    response);
+                if (rc12 < 0) {
+                    return uds_negative_response(sid, (uint8_t)(-rc12),
+                                                 response);
+                }
+                return rc12;
+            }
+
+        case UDS_SID_OBD_SVC1:  /* 0x01 */
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_service_1(request[1], response);
+
+        case UDS_SID_OBD_SVC2:  /* 0x02 */
+            if (req_len < 3) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_service_2(request[1], request[2], response);
+
+        case UDS_SID_OBD_SVC3:  /* 0x03 */
+            return obd_service_3(response);
+
+        case UDS_SID_OBD_SVC4:  /* 0x04 */
+            return obd_service_4(response);
+
+        case UDS_SID_OBD_SVC6:  /* 0x06 */
+            return obd_service_6(response);
+
+        case UDS_SID_OBD_SVC7:  /* 0x07 */
+            return obd_service_7(response);
+
+        case UDS_SID_OBD_SVC9:  /* 0x09 */
+            if (req_len < 2) {
+                return uds_negative_response(sid, UDS_NRC_INCORRECT_MSG_LEN,
+                                             response);
+            }
+            return obd_service_9(request[1], response);
+
+        /* No 0x0A arm: the ROM dispatch table at 0x5F57C (28 entries + 0xFF
+         * sentinel, docs/subsystems/CAN_UDS_SUBSYSTEM.md:199-230) contains
+         * no 0x0A entry, so Service 0x0A is unreachable on target. Requests
+         * for 0x0A fall through to the default NRC 0x11 arm below. */
 
         default:
             return uds_negative_response(sid, UDS_NRC_SERVICE_NOT_SUPPORTED,
@@ -519,113 +611,153 @@ static int security_access_generate_seed(void)
     return 1;
 }
 
+/* ROM addresses for the SecurityAccess crypto material (60E1D400).
+ * 0x5FAC0: 5-byte shared secret ("MazdA" stock); 0x5FAC5-0x5FAC7: FF padding
+ * after the secret; 0x5FAC8: per-level LFSR INIT table, 3 bytes per level
+ * (KNOWLEDGE.md:54-64). */
+#define UDS_SA_SECRET_ADDR      0x5FAC0
+#define UDS_SA_SECRET_LEN       5
+#define UDS_SA_INIT_TABLE_ADDR  0x5FAC8
+/* LFSR taps 0x909028 = bits {23,20,15,12,5,3}: the SeedKeyRelated @0x56ADA
+ * hardcodes these tap XORs at 0x56C1E-0x56C38 (tools/mazda_security.py). */
+#define UDS_SA_LFSR_TAPS        0x909028u
+/* Level-1 INIT C5 41 A9 = 0xC541A9: first entry of the 0x5FAC8 table and the
+ * fixed init used by tools/mazda_security.py (ROM-verified). */
+#define UDS_SA_LFSR_INIT_L1     0xC541A9u
+#define UDS_SA_LFSR_MASK24      0xFFFFFFu
+
+/**
+ * uds_sa_lfsr_clock — One clock of the 24-bit Galois LFSR.
+ *
+ * Direct port of tools/mazda_security.py:_clock: feedback = (state & 1) ^
+ * input_bit; shift right; on feedback, XOR taps 0x909028 (sets bit 23 and
+ * the tap bits 20,15,12,5,3); mask to 24 bits.
+ */
+static uint32_t uds_sa_lfsr_clock(uint32_t state, uint8_t input_bit)
+{
+    uint8_t feedback = (uint8_t)((state & 1u) ^ (input_bit & 1u));
+    state >>= 1;
+    if (feedback != 0) {
+        state ^= UDS_SA_LFSR_TAPS;
+    }
+    return state & UDS_SA_LFSR_MASK24;
+}
+
+/**
+ * uds_sa_compute_key — Seed→key via the ROM LFSR algorithm.
+ *
+ * Direct port of tools/mazda_security.py:compute_key (ROM-verified stock
+ * vector: seed 0x45820A + secret "MazdA", level-1 init 0xC541A9 → key
+ * 0xA07258; KNOWLEDGE.md:60-64):
+ *   w1 = s1<<24 | shuffled seed bytes (phase-1 input, 32 clocks)
+ *   w2 = s5..s2 packed little-endian (phase-2 input, 32 clocks)
+ *   key bytes extracted from the final state with the nibble interleave
+ *   (b0/b1 nibble-swapped, byte 0/2 order swapped vs naive ordering).
+ *
+ * @param seed    3 seed bytes (ECU response to 27 01)
+ * @param secret  5-byte shared secret (ROM 0x5FAC0, "MazdA" stock)
+ * @param init    24-bit LFSR init (per-level entry from 0x5FAC8)
+ * @param key     Output: 3 key bytes (for 27 02)
+ */
+static void uds_sa_compute_key(const uint8_t seed[3], const uint8_t secret[5],
+                               uint32_t init, uint8_t key[3])
+{
+    uint32_t seed24 = ((uint32_t)seed[0] << 16) |
+                      ((uint32_t)seed[1] << 8) |
+                      (uint32_t)seed[2];
+
+    /* Phase 1 input: s1 in bits 24-31, seed bytes shuffled in bits 0-23. */
+    uint32_t w1 = ((uint32_t)secret[0] << 24) |
+                  ((seed24 & 0xFFu) << 16) |
+                  (seed24 & 0xFF00u) |
+                  ((seed24 >> 16) & 0xFFu);
+
+    /* Phase 2 input: s2..s5 packed little-endian. */
+    uint32_t w2 = ((uint32_t)secret[4] << 24) |
+                  ((uint32_t)secret[3] << 16) |
+                  ((uint32_t)secret[2] << 8) |
+                  (uint32_t)secret[1];
+
+    uint32_t state = init & UDS_SA_LFSR_MASK24;
+
+    for (uint8_t i = 0; i < 32; i++) {
+        state = uds_sa_lfsr_clock(state, (uint8_t)((w1 >> i) & 1u));
+    }
+    for (uint8_t i = 0; i < 32; i++) {
+        state = uds_sa_lfsr_clock(state, (uint8_t)((w2 >> i) & 1u));
+    }
+
+    /* Key extraction: byte 0 = nibble[16:20] low + nibble[0:4] high,
+     * byte 1 = nibble[20:24] low + nibble[12:16] high, byte 2 = bits[4:12];
+     * bytes 0 and 2 swapped vs the naive ordering. */
+    uint8_t b0 = (uint8_t)(((state >> 16) & 0xFu) | ((state & 0xFu) << 4));
+    uint8_t b1 = (uint8_t)(((state >> 20) & 0xFu) | (((state >> 12) & 0xFu) << 4));
+    uint8_t b2 = (uint8_t)((state >> 4) & 0xFFu);
+
+    key[0] = b2;
+    key[1] = b1;
+    key[2] = b0;
+}
+
+/**
+ * uds_sa_level_init — Read the per-level LFSR INIT from ROM.
+ *
+ * Table at 0x5FAC8, entry = 3 bytes big-endian at (level-1)*3
+ * (tools/mazda_security.py: entry[level] read as
+ * entry[0]<<16|entry[1]<<8|entry[2]; level 1 = C5 41 A9). Level 0 is
+ * invalid and falls back to the level-1 init.
+ */
+static uint32_t uds_sa_level_init(uint8_t level)
+{
+    if (level < 1) {
+        level = 1;
+    }
+    volatile const uint8_t *tab =
+        (volatile const uint8_t *)(uintptr_t)
+        (UDS_SA_INIT_TABLE_ADDR + (uint32_t)(level - 1u) * 3u);
+    return ((uint32_t)tab[0] << 16) | ((uint32_t)tab[1] << 8) | tab[2];
+}
+
 /**
  * security_access_validate_key — Validate security key against stored seed.
  * ROM address: 0x56ADA (SeedKeyRelated)
  *
- * Algorithm: XOR+rotate with "MazdA" prefix constant from ROM:0x5FAC0.
- *   1. Build 8-byte working buffer: [seed0, seed1, seed2, 'M', 'a', 'z', 0xFF, 0xFF]
- *   2. Load 3-byte lookup table from ROM:0x5FAC5 indexed by security level
- *   3. Perform 11 rotate-right passes through the 8-byte buffer (8 + 3)
- *      (review-fix w2: was "64 iterations" — contradicted by the
- *      intra-function ROM cites below: 0x56B7A-0x56BAE = 8 iterations,
- *      0x56BC4-0x56BF8 = 3 iterations. Code comments win: 11 total.)
- *   4. XOR result bytes with lookup table values
- *   5. Compare computed key against provided key
+ * N1 (replaces the former XOR-rotate-nibble fiction, whose level table at
+ * "0x5FAC5" sat on the FF padding documented in KNOWLEDGE.md:60-62 and whose
+ * math never matched the ROM): the ROM algorithm is the 24-bit Galois LFSR
+ * above (taps 0x909028 per the 0x56C1E-0x56C38 xor trail, per-level INIT
+ * from the 0x5FAC8 table, 5-byte secret from 0x5FAC0) — see
+ * tools/mazda_security.py and KNOWLEDGE.md:54-64.
  *
- * review-fix w2 (provenance/gap note — best-effort status): ROM-cited
- * parts are the "MazdA" prefix address (0x5FAC0), the level table address
- * (0x5FAC5), the rotate/XOR/nibble address trail (0x56B26 → 0x56CAA) and
- * the call chain (0x5859A → seed_copy/0x5698A/0x56ADA/0x56720 per
- * UDS_SECURITY_MAPPING.md). NOT ROM-verified: the literal table contents
- * below, the buf[3..7] construction from the prefix, and the 8+3 pass
- * split (vs a "64" claim elsewhere) — the crypto math needs a
- * seed/key bench capture before any key this function ACCEPTS is trusted
- * for unlock decisions. Contract it must satisfy: input (level, 3-byte
- * key) → output 1 = key matches ROM algorithm, 0 = reject.
+ * Contract: input (level, 3-byte key) → 1 = key matches the ROM algorithm
+ * for the seed bytes in RAM D211-D213, 0 = reject.
  *
  * @param level  Security level (0x01 or 0x03)
- * @param key    Pointer to 4-byte key from request
+ * @param key    Pointer to 3-byte key from the request
  * @return 1 if key valid, 0 if invalid
  */
 static int security_access_validate_key(uint8_t level, const uint8_t *key)
 {
-    /* ROM:0x5FAC0 — "MazdA" prefix constant */
-    static const uint8_t mazda_prefix[8] = {
-        0x4D, 0x61, 0x7A, 0x64, 0x41, 0xFF, 0xFF, 0xFF
-    };
-
-    /* ROM:0x5FAC5 — Level-indexed lookup table (3 bytes per level) */
-    static const uint8_t level_table[4][3] = {
-        { 0xFF, 0xFF, 0x00 },  /* Level 0 (unused) */
-        { 0xC5, 0x41, 0x00 },  /* Level 1 (0x5F level) */
-        { 0xA9, 0xA3, 0x95 },  /* Level 2 (0x3F level) */
-        { 0x82, 0xFF, 0xFF },  /* Level 3 (internal) */
-    };
-
-    /* Read stored seed bytes */
-    volatile uint8_t *seed1_ptr = (volatile uint8_t *)UDS_SEED_BYTE1_ADDR;
-    volatile uint8_t *seed2_ptr = (volatile uint8_t *)UDS_SEED_BYTE2_ADDR;
-    volatile uint8_t *seed3_ptr = (volatile uint8_t *)UDS_SEED_BYTE3_ADDR;
-
-    /* Build 8-byte working buffer from seed + "MazdA" prefix
-     * ROM:0x56AF6-0x56B16 */
-    uint8_t buf[8];
-    buf[0] = *seed1_ptr;
-    buf[1] = *seed2_ptr;
-    buf[2] = *seed3_ptr;
-    buf[3] = mazda_prefix[3];
-    buf[4] = mazda_prefix[4];
-    buf[5] = mazda_prefix[5];
-    buf[6] = mazda_prefix[6];
-    buf[7] = mazda_prefix[7];
-
-    /* Load level-dependent lookup bytes ROM:0x56B26.
-     * review-fix w2: removed dead `if (lv_idx > 3) lv_idx = 3;` —
-     * lv_idx = level & 0x03 is already in [0,3], so the check could never
-     * fire. */
-    uint8_t lv_idx = (level & 0x03);
-    uint8_t lut_a = level_table[lv_idx][0];
-    uint8_t lut_b = level_table[lv_idx][1];
-    uint8_t lut_c = level_table[lv_idx][2];
-
-    /* Rotate-right 8-byte buffer through carry, 11 iterations total
-     * (review-fix w2: was "64 iterations" — the ROM cites in this same
-     * comment say 8 + 3, and the loop below does 8 + 3 = 11).
-     * ROM:0x56B7A-0x56BAE (first pass: 8 iterations)
-     * ROM:0x56BC4-0x56BF8 (second pass: 3 iterations) */
-    for (int pass = 0; pass < 2; pass++) {
-        int count = (pass == 0) ? 8 : 3;
-        for (int i = 0; i < count; i++) {
-            uint8_t carry = buf[0] & 0x01;
-            for (int b = 0; b < 7; b++) {
-                buf[b] = (buf[b] >> 1) | ((buf[b + 1] & 0x01) ? 0x80 : 0x00);
-            }
-            buf[7] = (buf[7] >> 1) | (carry ? 0x80 : 0x00);
-        }
+    /* 5-byte shared secret from ROM 0x5FAC0 ("MazdA" stock). */
+    volatile const uint8_t *secret_rom =
+        (volatile const uint8_t *)(uintptr_t)UDS_SA_SECRET_ADDR;
+    uint8_t secret[UDS_SA_SECRET_LEN];
+    for (uint8_t i = 0; i < UDS_SA_SECRET_LEN; i++) {
+        secret[i] = secret_rom[i];
     }
 
-    /* XOR operations from ROM:0x56C1C-0x56C38 */
-    uint8_t comp_a = buf[0] ^ 0x08 ^ 0x20;
-    uint8_t comp_b = buf[1] ^ 0x10 ^ 0x80;
-    uint8_t comp_c = buf[2] ^ 0x10;
+    /* Stored seed bytes from RAM D211-D213. */
+    uint8_t seed[3];
+    seed[0] = *(volatile uint8_t *)UDS_SEED_BYTE1_ADDR;
+    seed[1] = *(volatile uint8_t *)UDS_SEED_BYTE2_ADDR;
+    seed[2] = *(volatile uint8_t *)UDS_SEED_BYTE3_ADDR;
 
-    /* Nibble-swap and combine for final 3-byte key
-     * ROM:0x56C4E-0x56CAA: nibble exchange between bytes */
-    uint8_t result[3];
-    result[0] = (comp_a & 0xF0) >> 4;
-    result[0] |= (lut_a & 0x0F) << 4;
-    result[1] = (comp_b & 0xF0) >> 4;
-    result[1] |= (lut_b & 0x0F) << 4;
-    result[2] = (comp_c & 0xF0) >> 4;
-    result[2] |= (lut_c & 0x0F) << 4;
+    uint8_t expect[3];
+    uds_sa_compute_key(seed, secret, uds_sa_level_init(level), expect);
 
-    /* Compare computed key against provided key (ROM:0x56C14-0x56C3A)
-     * The comparison uses the 3 bytes from the lookup table XOR'd
-     * with the rotation result. Match means valid key. */
-    return (result[0] == key[0] &&
-            result[1] == key[1] &&
-            result[2] == key[2]) ? 1 : 0;
+    return (expect[0] == key[0] &&
+            expect[1] == key[1] &&
+            expect[2] == key[2]) ? 1 : 0;
 }
 
 int obd_sid27_securityAccess(uint8_t sub_func, const uint8_t *data,
@@ -637,8 +769,14 @@ int obd_sid27_securityAccess(uint8_t sub_func, const uint8_t *data,
             /* Request seed: generate and return.
              * ROM:0x584C2 — handler entry for seed request.
              * Calls diag_security_5699a(3) to initialize/check state,
-             * then security_seed_copy to build response. */
-            if (data_len < 1) {
+             * then security_seed_copy to build response.
+             *
+             * N7: RequestSeed msg_len == 1 excluding the SID byte
+             * (FINDINGS 2026-08-04: RequestSeed msg_len=1, SendKey
+             * msg_len=4) = sub-function only, so data_len must be 0
+             * (bare `27 01`). The old `data_len < 1` gate rejected the
+             * only legal shape with NRC 0x13. */
+            if (data_len != 0) {
                 return uds_negative_response(UDS_SID_SECURITY_ACCESS,
                                              UDS_NRC_INCORRECT_MSG_LEN,
                                              response);
@@ -651,29 +789,33 @@ int obd_sid27_securityAccess(uint8_t sub_func, const uint8_t *data,
                                              response);
             }
 
-            /* Read generated seed bytes */
-            uint8_t seed[4];
+            /* Read generated seed bytes (3 bytes — the SEED_ID byte at
+             * D214 stays in RAM only; see below). */
+            uint8_t seed[3];
             seed[0] = *(volatile uint8_t *)UDS_SEED_BYTE1_ADDR;
             seed[1] = *(volatile uint8_t *)UDS_SEED_BYTE2_ADDR;
             seed[2] = *(volatile uint8_t *)UDS_SEED_BYTE3_ADDR;
-            seed[3] = *(volatile uint8_t *)UDS_SEED_ID_ADDR;
 
+            /* N1: ROM response shape is [0x67, sub, 3 seed bytes]
+             * (resp builder 0x5864A, FINDINGS 2026-08-04) — 5 bytes total.
+             * The old code appended the SEED_ID RAM byte as a 4th seed
+             * byte (6-byte response), which the ROM never sends. */
             int len = build_positive_header(UDS_SID_SECURITY_ACCESS,
                                             sub_func, response);
             response[len]     = seed[0];
             response[len + 1] = seed[1];
             response[len + 2] = seed[2];
-            response[len + 3] = seed[3];
-            return len + 4;
+            return len + 3;
         }
 
         case UDS_SEC_SUB_SEND_KEY_1:
         case UDS_SEC_SUB_SEND_KEY_2: {
-            /* Send key: validate and unlock.
-             * ROM:0x5859A — handler entry for key validation.
-             * Calls security_seed_copy, ctrl_decision_5698a,
-             * SeedKeyRelated, then fuel_transpose_56720 on success. */
-            if (data_len < 4) {
+            /* N7: SendKey msg_len == 4 excluding the SID byte
+             * (FINDINGS 2026-08-04) = sub-function + 3 key bytes, so
+             * data_len must be 3 (`27 02 K1K2K3`). The old `data_len < 4`
+             * gate rejected the only legal shape with NRC 0x13, while
+             * validate_key only ever read key[0..2]. */
+            if (data_len != 3) {
                 return uds_negative_response(UDS_SID_SECURITY_ACCESS,
                                              UDS_NRC_INCORRECT_MSG_LEN,
                                              response);
@@ -688,12 +830,29 @@ int obd_sid27_securityAccess(uint8_t sub_func, const uint8_t *data,
                                              response);
             }
 
-            /* Validate key against stored seed (ROM:0x56ADA) */
+            /* Validate key against stored seed with the ROM LFSR
+             * (0x56ADA). The validation runs so the length gate above is
+             * exercised against the real crypto path (N7), but the unlock
+             * itself is gated off (N1, see below). */
             uint8_t level = (sub_func == UDS_SEC_SUB_SEND_KEY_1)
                             ? 0x01 : 0x03;
 
             int valid = security_access_validate_key(level, data);
 
+#if 0
+            /* N1 ROM-divergence — SendKey UNREACHABLE in 60E1D400
+             * (FINDINGS 2026-08-04, docs/notes/UDS_SECURITY_MAPPING.md):
+             * entry 0x584B6-0x584BE routes only subfunc==1 (RequestSeed);
+             * the SendKey body at 0x58592-0x58610 has exactly one incoming
+             * ref (bf/s @0x58516, itself unreachable); subfunc != 1 falls
+             * to 0x5862C where subfunc==0 gets a 0x55386 response and any
+             * other subfunc gets NO response (silent). This reference body
+             * is kept for documentation only — it must NOT be enabled
+             * without reconciling the ROM reachability evidence above
+             * (likely shared-codebase remnant; 60E32000 differs at 0x58592).
+             * NOTE: enabling it also needs the LFSR INIT/secret to match
+             * the ROM actually installed (KNOWLEDGE.md:66: NRC 0x35 means
+             * the tool's "MazdA" disagrees with the ECU's ROM key). */
             if (valid) {
                 /* Determine security level from sub-function
                  * ROM:0x585E0 — calls fuel_transpose_56720(level)
@@ -709,6 +868,15 @@ int obd_sid27_securityAccess(uint8_t sub_func, const uint8_t *data,
                 return uds_negative_response(UDS_SID_SECURITY_ACCESS,
                                              UDS_NRC_INVALID_KEY, response);
             }
+#else
+            /* SendKey is unreachable on the target ROM (see above): report
+             * subFunctionNotSupported. (The ROM itself sends NO response for
+             * subfunc != 1; NRC 0x12 is the host-reconstruction mapping so a
+             * tester sees an explicit reject instead of a timeout.) */
+            (void)valid;
+            return uds_negative_response(UDS_SID_SECURITY_ACCESS,
+                                         UDS_NRC_SUB_NOT_SUPPORTED, response);
+#endif
         }
 
         default:
@@ -750,6 +918,18 @@ int obd_sidB1_ecuReset(uint8_t sub_func, uint8_t *response)
 /*  SID 0x22 — Read Data By Identifier                                     */
 /* ====================================================================== */
 
+/* Bound check for one SID 0x22 DID block. Returns 0 when `need` bytes fit
+ * at idx in a UDS_MAX_RESPONSE_SIZE buffer, else writes NRC 0x14
+ * (responseTooLong) and returns the NRC length. */
+static int sid22_need(uint16_t idx, uint16_t need, uint8_t *response)
+{
+    if ((uint32_t)idx + (uint32_t)need > (uint32_t)UDS_MAX_RESPONSE_SIZE) {
+        return uds_negative_response(UDS_SID_READ_DATA_ID,
+                                     UDS_NRC_RESPONSE_TOO_LONG, response);
+    }
+    return 0;
+}
+
 /**
  * obd_sid22_readDataByIdentifier — UDS SID 0x22 read data by ID.
  * ROM address: 0x588F2, Size: 210 bytes
@@ -776,7 +956,8 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
     }
 
     response[0] = UDS_SID_READ_DATA_ID + UDS_POS_RESPONSE_OFFSET;
-    uint8_t idx = 1;
+    /* uint16_t: a multi-DID response exceeds 255 bytes (14x VIN = 267). */
+    uint16_t idx = 1;
 
     for (uint8_t i = 0; i < data_len; i += 2) {
         uint16_t did = ((uint16_t)data[i] << 8) | data[i + 1];
@@ -785,6 +966,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
         switch (did) {
             case 0xF806: {
                 /* ECU software number — read from ROM at 0x5FF800 region */
+                int chk = sid22_need(idx, 6, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF8; response[idx + 1] = 0x06;
                 response[idx + 2] = 0x60;  /* SW major version */
                 response[idx + 3] = 0xE1;
@@ -795,6 +980,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0xF808: {
                 /* ECU serial number — 4 bytes from EEPROM */
+                int chk = sid22_need(idx, 6, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF8; response[idx + 1] = 0x08;
                 response[idx + 2] = 0x00;
                 response[idx + 3] = 0x00;
@@ -805,6 +994,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0xF187: {
                 /* Spare part number — 4 bytes */
+                int chk = sid22_need(idx, 6, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF1; response[idx + 1] = 0x87;
                 response[idx + 2] = 0x00;
                 response[idx + 3] = 0x00;
@@ -815,6 +1008,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0xF190: {
                 /* VIN — 17 bytes */
+                int chk = sid22_need(idx, 19, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF1; response[idx + 1] = 0x90;
                 /* Placeholder VIN */
                 static const char vin[] = "JM1FE179X60000001";
@@ -826,6 +1023,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0xF193: {
                 /* ECU manufacturing date — 2 bytes (BCD: year, month) */
+                int chk = sid22_need(idx, 4, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF1; response[idx + 1] = 0x93;
                 response[idx + 2] = 0x06;  /* Year: 2006 */
                 response[idx + 3] = 0x04;  /* Month: April */
@@ -834,6 +1035,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0xF18A: {
                 /* Vehicle manufacturer ECU software number */
+                int chk = sid22_need(idx, 4, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0xF1; response[idx + 1] = 0x8A;
                 response[idx + 2] = 0x00;
                 response[idx + 3] = 0x00;
@@ -842,6 +1047,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0x0202: {
                 /* Engine coolant temperature (from RAM 0xFFFFCA00) */
+                int chk = sid22_need(idx, 3, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0x02; response[idx + 1] = 0x02;
                 response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA00;
                 idx += 3;
@@ -849,6 +1058,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0x010C: {
                 /* Engine RPM (16-bit from RAM 0xFFFFCA02, 0.25 rpm/bit) */
+                int chk = sid22_need(idx, 4, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0x01; response[idx + 1] = 0x0C;
                 uint16_t rpm_raw = *(volatile const uint16_t *)0xFFFFCA02;
                 response[idx + 2] = (uint8_t)(rpm_raw >> 8);
@@ -858,6 +1071,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0x010D: {
                 /* Vehicle speed (from RAM 0xFFFFCA04, km/h) */
+                int chk = sid22_need(idx, 3, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0x01; response[idx + 1] = 0x0D;
                 response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA04;
                 idx += 3;
@@ -865,6 +1082,10 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             case 0x0105: {
                 /* Coolant temperature (scaled from RAM) */
+                int chk = sid22_need(idx, 3, response);
+                if (chk != 0) {
+                    return chk;
+                }
                 response[idx] = 0x01; response[idx + 1] = 0x05;
                 response[idx + 2] = *(volatile const uint8_t *)0xFFFFCA00;
                 idx += 3;
@@ -872,6 +1093,12 @@ int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
             }
             default:
                 /* Unknown DID — return NRC for this DID */
+                {
+                    int chk = sid22_need(idx, 3, response);
+                    if (chk != 0) {
+                        return chk;
+                    }
+                }
                 response[idx] = data[i];
                 response[idx + 1] = data[i + 1];
                 response[idx + 2] = UDS_NRC_REQUEST_OUT_OF_RANGE;
@@ -1083,13 +1310,13 @@ int obd_sid34_requestDownload(const uint8_t *data, uint8_t data_len,
     }
 
     /* Validate request length: format(1) + addr(3) + size(4) = 8 bytes
-     * ROM:0x5E21A-0x5E228: checks data_len+1 == 8 (including sub-function)
-     * Our data[] starts after sub_func, so we need data_len >= 8.
-     * Actually, the ROM checks total payload (sub_func+data) == 8,
-     * meaning data after SID = 8 bytes: sub_func(1) + format(1) + addr(3) + size(3).
-     * But the standard UDS 0x34 format is:
-     *   [SID][sub_func (compressionMethod+encryptMethod)][memAddr][memSize]
-     * For this ECU: data = format(1) + addr(3) + size(3) = 7 bytes minimum */
+     * ROM:0x5E21A-0x5E228: checks data_len+1 == 8 (including sub-function).
+     * C2: the code's own ROM contract (data_len+1 == 8) demands exactly
+     * 3 address bytes + 3 size bytes — the ECU has no 1/2/4-byte
+     * addr/size encoding, and accepting them only masked the old
+     * left-aligned store truncation. Reject anything but 3+3 with NRC 0x13.
+     * Our data[] starts after sub_func, so a legal request is exactly
+     * format(1) + addr(3) + size(3) = 7 bytes. */
     if (data_len < 7) {
         return uds_negative_response(UDS_SID_REQ_DOWNLOAD,
                                      UDS_NRC_INCORRECT_MSG_LEN,
@@ -1105,11 +1332,11 @@ int obd_sid34_requestDownload(const uint8_t *data, uint8_t data_len,
     uint8_t addr_bytes = format & 0x0F;    /* Low nibble: address bytes */
     uint8_t size_bytes = (format >> 4) & 0x0F;  /* High nibble: size bytes */
 
-    /* Validate byte counts: ECU uses 3-byte address, 3-byte size */
-    if (addr_bytes < 1 || addr_bytes > 4 ||
-        size_bytes < 1 || size_bytes > 4) {
+    /* C2: exactly 3+3 per the ROM contract above — not the old 1..4 range
+     * (which truncated 4-byte values to 24 bits in the store). */
+    if (addr_bytes != 3 || size_bytes != 3) {
         return uds_negative_response(UDS_SID_REQ_DOWNLOAD,
-                                     UDS_NRC_REQUEST_OUT_OF_RANGE,
+                                     UDS_NRC_INCORRECT_MSG_LEN,
                                      response);
     }
 
@@ -1153,15 +1380,20 @@ int obd_sid34_requestDownload(const uint8_t *data, uint8_t data_len,
                                      response);
     }
 
-    /* Store download parameters to RAM (ROM:0x5E1FE stores to stack/RAM) */
+    /* Store download parameters to RAM (ROM:0x5E1FE stores to stack/RAM).
+     * Right-aligned fixed BE24/BE32 image of the correctly parsed mem_addr /
+     * mem_size above. (Was: raw-index copies — for size_bytes<4 the bytes
+     * landed left-aligned in B3/B2/B1 with B0 forced 0, i.e. size << 8, so
+     * remaining never reached 0; MEM_HI/MEM_LO were likewise only correct
+     * for addr_bytes==3.) */
     *(volatile uint8_t *)UDS_DL_FORMAT_ADDR = format;
-    *(volatile uint8_t *)UDS_DL_MEM_HI_ADDR = data[1];
-    *(volatile uint8_t *)UDS_DL_MEM_MID_ADDR = data[2];
-    *(volatile uint8_t *)UDS_DL_MEM_LO_ADDR = (addr_bytes >= 3) ? data[3] : 0;
-    *(volatile uint8_t *)UDS_DL_SIZE_B3_ADDR = data[1 + addr_bytes];
-    *(volatile uint8_t *)UDS_DL_SIZE_B2_ADDR = (size_bytes >= 2) ? data[2 + addr_bytes] : 0;
-    *(volatile uint8_t *)UDS_DL_SIZE_B1_ADDR = (size_bytes >= 3) ? data[3 + addr_bytes] : 0;
-    *(volatile uint8_t *)UDS_DL_SIZE_B0_ADDR = (size_bytes >= 4) ? data[4 + addr_bytes] : 0;
+    *(volatile uint8_t *)UDS_DL_MEM_HI_ADDR = (uint8_t)(mem_addr >> 16);
+    *(volatile uint8_t *)UDS_DL_MEM_MID_ADDR = (uint8_t)(mem_addr >> 8);
+    *(volatile uint8_t *)UDS_DL_MEM_LO_ADDR = (uint8_t)(mem_addr);
+    *(volatile uint8_t *)UDS_DL_SIZE_B3_ADDR = (uint8_t)(mem_size >> 24);
+    *(volatile uint8_t *)UDS_DL_SIZE_B2_ADDR = (uint8_t)(mem_size >> 16);
+    *(volatile uint8_t *)UDS_DL_SIZE_B1_ADDR = (uint8_t)(mem_size >> 8);
+    *(volatile uint8_t *)UDS_DL_SIZE_B0_ADDR = (uint8_t)(mem_size);
     *(volatile uint8_t *)UDS_DL_BLOCK_SEQ_ADDR = 0x01;  /* First block sequence */
     *(volatile uint8_t *)UDS_DL_STATE_ADDR = UDS_DL_STATE_ACTIVE;
 
@@ -1568,14 +1800,8 @@ int obd_service_9(uint8_t sub_func, uint8_t *response)
 }
 
 /**
- * obd_service_A — OBD-II Service A: pending DTCs.
- * ROM address: 0x59F26
- */
-int obd_service_A(uint8_t *response)
-{
-    /* review-fix w2 (DOCUMENTED-gap, behavior kept): ROM 0x59F26 contract
-     * needed — permanent-DTC store layout and the 0x4A + DTC-list layout.
-     * Bare-0x4A return is a fake-positive. Needs IDA read of 0x59F26. */
-    response[0] = 0x4A;
-    return 1;
-}
+ * NOTE (Service 0x0A removed): the ROM dispatch table at 0x5F57C has no 0x0A
+ * entry (docs/subsystems/CAN_UDS_SUBSYSTEM.md:199-230), so the former
+ * obd_service_A stub (bare-0x4A fake-positive) was unreachable on target and
+ * has been deleted along with its dispatch arm and the UDS_SID_OBD_SVCA
+ * constant. A tester asking for 0x0A gets NRC 0x11 via the default arm. */

@@ -41,21 +41,21 @@
 /* Read 8-bit value from task queue entry */
 static inline uint8_t task_read8(uint16_t idx, uint8_t offset)
 {
-    uint16_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
+    uint32_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
     return *(volatile uint8_t *)(uintptr_t)addr;
 }
 
 /* Read 16-bit value from task queue entry */
 static inline uint16_t task_read16(uint16_t idx, uint8_t offset)
 {
-    uint16_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
+    uint32_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
     return *(volatile uint16_t *)(uintptr_t)addr;
 }
 
 /* Write 16-bit value to task queue entry */
 static inline void task_write16(uint16_t idx, uint8_t offset, uint16_t value)
 {
-    uint16_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
+    uint32_t addr = TASK_QUEUE_BASE + (idx * TASK_QUEUE_ENTRY_SIZE) + offset;
     *(volatile uint16_t *)(uintptr_t)addr = value;
 }
 
@@ -120,7 +120,7 @@ void task_queue_init(void)
     /* Clear all queue entries */
     for (uint16_t i = 0; i < TASK_QUEUE_SIZE; i++) {
         for (uint8_t j = 0; j < TASK_QUEUE_ENTRY_SIZE; j++) {
-            uint16_t addr = TASK_QUEUE_BASE + (i * TASK_QUEUE_ENTRY_SIZE) + j;
+            uint32_t addr = TASK_QUEUE_BASE + (i * TASK_QUEUE_ENTRY_SIZE) + j;
             *(volatile uint8_t *)(uintptr_t)addr = 0xFF;
         }
     }
@@ -166,8 +166,20 @@ void task_scheduler_dispatch(void)
         int result = eeprom_read_validate(temp_buf);
 
         if (result == 1) {
-            /* Valid data: increment write index */
-            TASK_QUEUE_WRITE_IDX = (TASK_QUEUE_WRITE_IDX + 1) % TASK_QUEUE_SIZE;
+            /* Valid data: copy the 8 validated bytes into the write slot
+             * BEFORE advancing.
+             * review-fix M3: the old code advanced WRITE_IDX without
+             * copying temp_buf anywhere (phantom enqueue — the slot kept
+             * stale bytes while pending grew). Sharpened: eeprom_read_
+             * validate CONSUMES the marker (writes 0xAA, eeprom.c:443), so
+             * the 8 bytes are unrecoverable after this call except via
+             * temp_buf — dropping the copy discards them permanently. */
+            uint16_t wi = TASK_QUEUE_WRITE_IDX;
+            for (int i = 0; i < 8; i++) {
+                uint32_t addr = TASK_QUEUE_BASE + (wi * TASK_QUEUE_ENTRY_SIZE) + i;
+                *(volatile uint8_t *)(uintptr_t)addr = temp_buf[i];
+            }
+            TASK_QUEUE_WRITE_IDX = (uint16_t)((wi + 1) % TASK_QUEUE_SIZE);
         }
     }
 }

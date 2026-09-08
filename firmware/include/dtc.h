@@ -63,10 +63,13 @@
 #define DTC_REC_CODE_OFFSET     0x00    /* uint16: DTC internal code (0x02-0x4C) */
 #define DTC_REC_FLAGS1_OFFSET   0x02    /* uint16: status/flags word 1 */
 #define DTC_REC_FLAGS2_OFFSET   0x04    /* uint16: status/flags word 2 */
-#define DTC_REC_TYPE_OFFSET     0x06    /* uint8: DTC type byte (OBD class) */
+#define DTC_REC_TYPE_OFFSET     0x06    /* uint8: ROM status byte (bit7=confirmed, bit6=failed; IDA_ANALYSIS.md:707).
+                                         * Now written by the dtc_state_machine SET path (N3). */
 #define DTC_REC_SEVERITY_OFFSET 0x07    /* uint8: Severity (0x80=confirmed, 0xC0=confirmed+failed) */
 #define DTC_REC_AGING_OFFSET    0x08    /* uint8: Aging counter / sub-status */
-#define DTC_REC_FLAGS3_OFFSET   0x09    /* uint8: Additional flags */
+#define DTC_REC_FLAGS3_OFFSET   0x09    /* uint8: Firmware-local working flags (NOT ROM-documented:
+                                         * the IDA record layout jumps +0x07→+0x0A, so +0x09 has
+                                         * no ROM provenance; used for TEST_FAILED/PENDING bits). */
 #define DTC_REC_FREEZE_OFFSET   0x0A    /* uint8[40]: Freeze-frame / snapshot data */
 #define DTC_REC_TOTAL_SIZE      0x34    /* 52 bytes */
 
@@ -404,30 +407,43 @@ int dtc_region_checksum_validate_8ea0(void);
 /* Read DTC code from primary table slot */
 static inline uint16_t dtc_read_code(uint8_t slot)
 {
-    uint16_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);
+    uint32_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);
     return *(volatile uint16_t *)(uintptr_t)addr;
 }
 
 /* Read DTC severity from primary table slot */
 static inline uint8_t dtc_read_severity(uint8_t slot)
 {
-    uint16_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE)
+    uint32_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE)
                     + DTC_REC_SEVERITY_OFFSET;
     return *(volatile uint8_t *)(uintptr_t)addr;
 }
 
-/* Read DTC status from primary table slot */
+/* Read DTC status from primary table slot.
+ *
+ * Returns the SEVERITY|FLAGS3 composite. Provenance split (N3):
+ *   +0x07 severity — ROM status/severity byte (IDA_ANALYSIS.md:707), written
+ *     by the dtc_state_machine SET path;
+ *   +0x09 FLAGS3 — FIRMWARE-LOCAL working flags with no ROM provenance (the
+ *     IDA record layout jumps +0x07→+0x0A); the SET path sets TEST_FAILED /
+ *     PENDING here and the composite reader observes them. The reader is
+ *     kept as-is (Wave A behavior); the N3 fix closed the gap from the
+ *     writer side by persisting the ROM +0x06 status byte on SET.
+ * NOTE (out of scope, flagged): dtc_find_worst_priority ranks these
+ * status-bit patterns as severity levels without consulting the 0x5F7F8
+ * severity table — left unchanged in this task. */
 static inline uint8_t dtc_read_status(uint8_t slot)
 {
-    uint16_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE)
-                    + DTC_REC_TYPE_OFFSET;
-    return *(volatile uint8_t *)(uintptr_t)addr;
+    uint32_t base = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);
+    uint8_t sev = *(volatile uint8_t *)(uintptr_t)(base + DTC_REC_SEVERITY_OFFSET);
+    uint8_t fl3 = *(volatile uint8_t *)(uintptr_t)(base + DTC_REC_FLAGS3_OFFSET);
+    return (uint8_t)(sev | fl3);
 }
 
 /* Write DTC code to primary table slot */
 static inline void dtc_write_code(uint8_t slot, uint16_t code)
 {
-    uint16_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);
+    uint32_t addr = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);
     *(volatile uint16_t *)(uintptr_t)addr = code;
 }
 

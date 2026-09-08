@@ -136,11 +136,14 @@ void crank_position_state_machine(void)
      */
     uint8_t state = *sync_counter;
 
-    /* Validate state bounds */
-    if (state > 0x24) {
-        /* review-fix: write the clamped value back to *sync_counter. The old
-         * code fixed only the local copy, leaving the RAM state out of range
-         * for other readers and future calls. */
+    /* Validate state bounds: the FSM has states 0-3 only (idle, searching,
+     * partial_sync, full_sync). The 0x24 bound belongs to the 0xDA05 rotor
+     * table clamp below, not to this FSM — clamping here to 0x24 leaves
+     * states 4-36 to fall through every branch (no recovery) and starves
+     * the rotor-B acquire path. Clamp to the FSM domain and write back. */
+    if (state > 3) {
+        /* review-fix M1: was `state > 0x24` (rotor-table domain leaked into
+         * the FSM clamp). Wave A added the write-back; M1 fixes the bound. */
         *sync_counter = 0;
         state = 0;
     }
@@ -249,29 +252,37 @@ void rotor_position_synchronization(void)
      * Teeth 0-9: Rotor A (faces 0-5 + gap)
      * Teeth 10-19: Rotor B (faces 0-5 + gap)
      *
-     * review-fix (NEEDS-ROM-CHECK): the 10/10 split is kept but its ROM
-     * basis is ambiguous — ROM cross-check unavailable (no IDA session).
-     * Conflicting in-code signals, all preserved:
-     *   - header: 3x6+1 pattern, TRIGGER_TEETH_PER_ROTOR=6, TOTAL_TEETH=20;
+     * review-fix C3-followup (NEEDS-ROM-CHECK, strengthened): the 10/10
+     * split is kept but its ROM basis is ambiguous — ROM cross-check
+     * unavailable (no IDA session). Conflicting in-code signals, preserved:
+     *   - header: 3x6+1 pattern, TRIGGER_TEETH_PER_ROTOR=6, TOTAL_TEETH=20
+     *     (note 3*6+1=19, so the "20-tooth" total is itself incoherent);
      *     face index uses count % 6 below (consistent with 6 teeth/rotor).
      *   - crank_timing_update passes rotor_offset 0 or 6 (offset 6 suggests
      *     rotor B starts at tooth 6, not 10).
      *   - FULL_SYNC checks crank_tooth_count == 0x1C (28) or 0x0A (10),
      *     i.e. the counter ranges beyond 20 in some paths.
-     * ROM 0xAF10 must arbitrate the true A/B boundary before changing this.
+     * Decisive for the COUNTER SHAPE (not the A/B boundary):
+     * docs/notes/IDA_ANALYSIS.md:449-460 (session ae00d360) lists the
+     * tooth counter at 0xFFFF9FC2 as "saturates at 0xFF" (no wrap), while
+     * the state machine byte at 0xFFFF9F95 carries "max 0x24". A wrapping
+     * 0..19 counter can never reach the 0x1C FULL_SYNC arm, so the ISR now
+     * saturates at 0xFF and the A/B map below uses a LOCAL count % 20
+     * without touching the global. ROM 0xAF10 must still arbitrate the
+     * true A/B boundary before changing the 10/10 split.
      */
-    if (count < 10) {
+    uint8_t local = (uint8_t)(count % TRIGGER_TOTAL_TEETH);
+    if (local < 10) {
         crank_rotor_id = 0;  /* Rotor A */
-        crank_rotor_position = count % TRIGGER_TEETH_PER_ROTOR;
-    } else if (count < 20) {
-        crank_rotor_id = 1;  /* Rotor B */
-        crank_rotor_position = (count - 10) % TRIGGER_TEETH_PER_ROTOR;
+        crank_rotor_position = (uint8_t)(local % TRIGGER_TEETH_PER_ROTOR);
     } else {
-        /* Wrap around */
-        crank_tooth_count = 0;
-        crank_rotor_id = 0;
-        crank_rotor_position = 0;
+        crank_rotor_id = 1;  /* Rotor B */
+        crank_rotor_position = (uint8_t)((local - 10) % TRIGGER_TEETH_PER_ROTOR);
     }
+    /* review-fix C3-followup: the old else-branch reset the GLOBAL
+     * crank_tooth_count here, so this read path had a write side effect
+     * (a saturated counter >20 was zeroed on every call, re-hiding the
+     * 0x1C arm). The map is now pure: local % 20, global untouched. */
 }
 
 /**
@@ -296,18 +307,37 @@ void crank_timing_update(void)
     /* 1. Read timer capture */
     uint32_t now = *timer_capture;
 
+    /* Each ISR entry corresponds to one eccentric-shaft tooth edge: advance
+     * the tooth counter with saturation at 0xFF (no wrap). The 0..19 domain
+     * rotor_position_synchronization assumes for the A/B map is derived via
+     * a LOCAL count % 20 there, so the global must NOT wrap: wrap-20 made
+     * the FULL_SYNC 0x1C (28) arm permanently unreachable. IDA evidence:
+     * docs/notes/IDA_ANALYSIS.md:449-460 — tooth counter at 0xFFFF9FC2
+     * "saturates at 0xFF"; state-machine byte at 0xFFFF9F95 "max 0x24".
+     * NEEDS-ROM-CHECK (strengthened): ROM 0x7814 must confirm the ISR
+     * increment site and the saturate-vs-wrap shape; if ROM wraps, revert
+     * to wrap-20 and re-hide the 0x1C arm deliberately. */
+    if (crank_tooth_count < 0xFF) {
+        crank_tooth_count++;
+    }
+
     /* 2. Store previous ratio, update */
     *prev_ratio = *ratio_r;
 
     /* 3. Run position state machine */
     crank_position_state_machine();
 
-    /* 4-5. Sync acquisition */
+    /* 4-5. Sync acquisition.
+     * review-fix M1: was `state == 0x12` — sync_counter holds FSM states
+     * 0-3, so 0x12 never matches and the rotor-B acquire(6) path never ran
+     * (the ISR comment :305 documents a "tooth 18" event, i.e. the TOOTH
+     * counter, which the old code never consulted). Compare the tooth
+     * counter against 0x12. */
     uint8_t state = *sync_counter;
     if (state == 0) {
         /* Not synced: try to acquire sync from offset 0 */
         crank_sync_acquire(0);
-    } else if (state == 0x12) {
+    } else if (crank_tooth_count == 0x12) {
         /* Tooth 18: try to acquire sync from offset 6 */
         crank_sync_acquire(6);
     }
@@ -375,11 +405,13 @@ void crank_sync_acquire(uint8_t rotor_offset)
                 /* RPM above limit: try gap detection */
                 crank_gap_detect(rotor_offset);
                 uint8_t gap_r = *gap_detect_r;
-                if (gap_r == 0xFF) {
+                /* review-fix M6: was `gap_r == 0xFF` — crank_gap_detect
+                 * stores 0/1 into *gap_detect_r (:111-115), never the 0xFF
+                 * no-gap sentinel, so teeth_since was never stored here.
+                 * Test the stored domain consistently: !=0 means gap. */
+                if (gap_r != 0) {
                     /* Gap detected: store tooth result */
                     *teeth_since = rotor_offset;
-                } else if (gap_r != 0) {
-                    *gap_ctr = 1;
                 } else {
                     *gap_ctr = 0;
                 }
@@ -392,7 +424,9 @@ void crank_sync_acquire(uint8_t rotor_offset)
             crank_gap_detect(rotor_offset);
         }
         uint8_t gap_r = *gap_detect_r;
-        if (gap_r == 0xFF) {
+        /* review-fix M6: was `gap_r == 0xFF` — same stored-domain mismatch
+         * as above; the engine-running gap-toggle never executed. */
+        if (gap_r != 0) {
             /* Check rotor offset */
             if (extu_b(rotor_offset) == 0) {
                 uint8_t gc = *gap_ctr;
@@ -460,15 +494,25 @@ void outputPerRotorIgnitionDwell(uint8_t rotor_idx)
      * Needs IDA read of 0x1126E before touching the conversion. */
     float raw = *dwell_source;
     float divided = raw / (float)DWELL_BASE_DIVISOR;
-    dwell_time_us = (uint16_t)divided;
 
-    /* Clamp to valid range */
-    if (dwell_time_us < DWELL_MIN_US) {
-        dwell_time_us = DWELL_MIN_US;
+    /* Clamp the float BEFORE converting: a float->u16 conversion of an
+     * out-of-range or negative value is UB in C (and wraps mod 2^16 on
+     * SH-2), so clamping after the cast cannot constrain it.
+     * NaN policy (H4 decision): NaN inhibits the coil (dwell=0) instead of
+     * firing a weak MIN spark on a faulted input — precedent in this same
+     * function (rotor_idx>3 → dwell=0 inhibit, :456-460) prefers a clean
+     * inhibit over a fault-driven fire. Finite values keep the MIN/MAX
+     * clamp. NaN is detected by self-comparison (no math.h dependency). */
+    if (divided != divided) {
+        dwell_time_us = 0;
+        return;
     }
-    if (dwell_time_us > DWELL_MAX_US) {
-        dwell_time_us = DWELL_MAX_US;
+    if (divided < (float)DWELL_MIN_US) {
+        divided = (float)DWELL_MIN_US;
+    } else if (divided > (float)DWELL_MAX_US) {
+        divided = (float)DWELL_MAX_US;
     }
+    dwell_time_us = (uint16_t)divided;
 }
 
 /**
