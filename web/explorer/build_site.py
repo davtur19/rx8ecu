@@ -1062,6 +1062,7 @@ def render_landing_page():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RX-8 ECU Tools</title>
+<link rel="icon" href="data:,">
 <style>
 :root {
   --bg:#0b0e13; --bg2:#12161d; --bg3:#181d26; --border:#252c38; --border2:#333c4a;
