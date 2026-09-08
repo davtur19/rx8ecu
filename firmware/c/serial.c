@@ -303,12 +303,12 @@ void serial_rx_handler_ch0(void)
 
     /* Read received byte from ATU capture register.
      * review-fix w2: was `(uint8_t)atu_reg_read(...)` — a 16-bit read
-     * truncated to the LOW byte. TGRs are 16-bit timer registers and the
-     * SH-2 is big-endian, so an 8-bit access at the same (even) address
-     * observes the HIGH byte instead. Use the 8-bit helper and document
-     * the lane choice: NEEDS-ROM-CHECK — ROM must confirm whether the RX
-     * byte is the high or low byte of TGR0. */
-    uint8_t data = atu_reg_read8(ATU_TGR0_OFFSET);
+     * truncated to the LOW byte; 8-bit width kept.
+     * rom-check (resolved): all three ROM RX handlers (ch0 @0x4C, ch1
+     * @0x64, ch2 @0xC0) read their byte with 8-bit `mov.b @(1,r4)` —
+     * base address + 1, i.e. the odd/LOW byte of a big-endian 16-bit
+     * register. Read TGR0 at base+1 to match the ROM lane. */
+    uint8_t data = atu_reg_read8(ATU_TGR0_OFFSET + 1);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {
@@ -331,9 +331,9 @@ void serial_rx_handler_ch1(void)
     volatile serial_channel_state_t *ch = &serial_channels[1];
 
     /* Read received byte from ATU capture register.
-     * review-fix w2: 8-bit access (see ch0 note); NEEDS-ROM-CHECK for the
-     * high-vs-low byte-lane choice on big-endian SH-2 TGR1. */
-    uint8_t data = atu_reg_read8(ATU_TGR1_OFFSET);
+     * rom-check (resolved, see ch0 note): ROM ch1 handler @0x64 uses
+     * 8-bit `mov.b @(1,r4)` — odd/LOW byte lane. */
+    uint8_t data = atu_reg_read8(ATU_TGR1_OFFSET + 1);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {
@@ -356,9 +356,9 @@ void serial_rx_handler_ch2(void)
     volatile serial_channel_state_t *ch = &serial_channels[2];
 
     /* Read received byte from ATU capture register.
-     * review-fix w2: 8-bit access (see ch0 note); NEEDS-ROM-CHECK for the
-     * high-vs-low byte-lane choice on big-endian SH-2 TGR2. */
-    uint8_t data = atu_reg_read8(ATU_TGR2_OFFSET);
+     * rom-check (resolved, see ch0 note): ROM ch2 handler @0xC0 uses
+     * 8-bit `mov.b @(1,r4)` — odd/LOW byte lane. */
+    uint8_t data = atu_reg_read8(ATU_TGR2_OFFSET + 1);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {

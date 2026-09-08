@@ -76,13 +76,11 @@
 #define UDS_SEED_BYTE1_ADDR     0xFFFFD211   /* Seed byte 1 (security_seed_byte1) */
 #define UDS_SEED_BYTE2_ADDR     0xFFFFD212   /* Seed byte 2 (security_seed_byte2) */
 #define UDS_SEED_BYTE3_ADDR     0xFFFFD213   /* Seed byte 3 (security_seed_byte3) */
-/* review-fix (NEEDS-ROM-CHECK): 0xFFFFD214 keeps its ROM-documented meaning
- * (4th seed byte / security level slot — UDS_SECURITY_MAPPING.md seed_gen
- * 0x5699A writes level to [0xFFFFD214]; IDA_ANALYSIS.md confirms the 4-byte
- * seed at 0xFFFFD211-214). UDS_TESTER_PRESENT_ADDR used to alias the same
- * address, so every TesterPresent (0x3E) request overwrote seed byte 4. The
- * tester-present flag moves to the adjacent byte 0xFFFFD215, which has no
- * documented use — ROM must confirm the real tester-present RAM address. */
+/* rom-check (B16-adjacent, D214 resolved): ROM diag_security_5699a stores
+ * the access level to [0xFFFFD214] alongside seed bytes D211-D213, so D214
+ * keeps its meaning below. NEEDS-ROM-CHECK (narrowed): only the
+ * tester-present flag address is unconfirmed — 0xFFFFD215 has no documented
+ * use; ROM must confirm the real TesterPresent (0x3E) RAM address. */
 #define UDS_SEED_ID_ADDR        0xFFFFD214   /* Security access ID byte */
 #define UDS_SERIAL_NUM_ADDR     0xFFFFF430   /* ECU serial number (4 bytes) */
 
@@ -137,7 +135,10 @@
 
 #define UDS_SESSION_LEVEL_ADDR  0xFFFFDE5C
 #define UDS_SECURITY_LEVEL_ADDR 0xFFFFD20C
-#define UDS_SESSION_TIMER_ADDR  0xFFFFD210
+/* rom-check (B16): no UDS_SESSION_TIMER u16 at 0xFFFFD210 — ROM uses D210
+ * as a BYTE session-state slot (mov.b @0x56728) overlapping nothing, and
+ * nothing in ROM references 0xFFFFD212, so the old timer define is deleted
+ * rather than relocated. P2/P2* timing storage awaits a ROM address. */
 /* review-fix: was 0xFFFFD214 (seed/level byte, see above). Moved to 0xFFFFD215
  * pending ROM confirmation — NEEDS-ROM-CHECK. */
 #define UDS_TESTER_PRESENT_ADDR 0xFFFFD215

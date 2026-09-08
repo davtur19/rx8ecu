@@ -473,10 +473,10 @@ void can4B1RX_event_check(void);
 void can4C0RX_short(void);
 
 /**
- * can430_4C0RX_dispatch — Process CAN ID 0x0430/0x04C0 cluster data.
- * ROM address: 0x33BA0
+ * can430RX_dispatch — Process CAN ID 0x0430 cluster data.
+ * ROM address: 0x33BA0 (rom-check B17: 0x430 only, via entry 0x4EC80).
  */
-void can430_4C0RX_dispatch(void);
+void can430RX_dispatch(void);
 
 /**
  * incr_counter_saturated_299DA — CAN 0x216 timeout counter.

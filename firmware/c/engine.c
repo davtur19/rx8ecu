@@ -206,12 +206,13 @@ void crank_position_state_machine(void)
     if (*sync_flag_1 == 1) {
         /* Sync acquired: update rotor position tracking */
         uint8_t rot = *sync_counter;
-        /* review-fix w2: clamp before indexing the ROM table at 0xDA05.
-         * rot*2 must stay in-bounds; the entry clamp above covers the
-         * fall-through value, but *sync_counter is re-read here after
-         * state transitions. NEEDS-ROM-CHECK: the true table extent at
-         * ROM 0xDA05 is unverified — 0x24 is the state-machine bound,
-         * not a confirmed table size. */
+        /* rom-check (resolved): ROM table at 0xDA05 holds 37 entries
+         * (rot 0x00-0x24); entry 0x24 is (0x00,0x00) and rot>=0x25 reads
+         * non-table bytes (04 03 02 02 02 00, then 0xFF fill). Both ROM
+         * use sites (crank_timing_update @0x7860, sub_7B7C @0x7B8C) index
+         * raw — extu.b; shll r2; mov.b @(r0,r2) — with no clamp, so the
+         * clamp below is a safety net that matches the true table extent
+         * (max valid rot 0x24). */
         if (rot > 0x24) {
             rot = 0x24;
         }
@@ -314,9 +315,9 @@ void crank_timing_update(void)
     /* 6-7. Check sync and compute timing delta if applicable */
     if (*sync_flag_1 == 1) {
         uint8_t rot = *sync_counter;
-        /* review-fix w2: clamp before indexing the ROM table at 0xDA05
-         * (this path never passes through the state-machine entry clamp).
-         * NEEDS-ROM-CHECK: true table extent at ROM 0xDA05 unverified. */
+        /* rom-check (resolved, see note at the state-machine site above):
+         * ROM table 0xDA05 = 37 entries, max valid rot 0x24. Clamp kept
+         * (this path never passes through the entry clamp). */
         if (rot > 0x24) {
             rot = 0x24;
         }
