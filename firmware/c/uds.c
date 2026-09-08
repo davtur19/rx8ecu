@@ -30,6 +30,7 @@
 /* SID range validation limits (from 0x697E8) */
 #define UDS_SID_MIN             0x01
 #define UDS_SID_MAX_NORMAL      0x3E
+#define UDS_SID_EXT_MIN         0x80    /* review-fix: extended range start */
 #define UDS_SID_MAX_HIGH        0x87
 #define UDS_SID_OBD_MIN         0xB1
 #define UDS_SID_OBD_MAX         0xB8
@@ -41,12 +42,17 @@
 /*  Internal State                                                         */
 /* ====================================================================== */
 
+/* review-fix: volatile — UDS session/security state is shared between the
+ * CAN/serial RX paths (uds_handler, tester-present) and main-loop SID
+ * handlers. Guard strategy: writers run under diag_getsr/diag_setsr (or
+ * disable/restore_interrupts) critical sections; single volatile accesses
+ * are atomic on SH-2 (8/16/32-bit). */
 /* UDS flags word: session bits 0-3, in-progress bit28 */
-static uint32_t uds_flags = 0;
+static volatile uint32_t uds_flags = 0;
 
 /* Shadow copies */
-static uint8_t uds_session_shadow = 0;
-static uint8_t uds_security_shadow = 0;
+static volatile uint8_t uds_session_shadow = 0;
+static volatile uint8_t uds_security_shadow = 0;
 
 /* ====================================================================== */
 /*  Initialization                                                         */
@@ -203,14 +209,21 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
 
     uint8_t sid = request[0];
 
-    /* SID range validation */
-    if ((sid < UDS_SID_MIN) ||
-        (sid > UDS_SID_MAX_NORMAL && sid < UDS_SID_OBD_MIN) ||
-        (sid > UDS_SID_OBD_MAX && sid < UDS_SID_MAX_HIGH) ||
-        (sid > UDS_SID_MAX_HIGH && sid < UDS_SID_OBD_MIN) ||
-        (sid > UDS_SID_OBD_MAX)) {
-        return uds_negative_response(sid, UDS_NRC_SERVICE_NOT_SUPPORTED,
-                                     response);
+    /* SID range validation as an allow-list.
+     * review-fix: the old 4-clause expression rejected the valid 0x80-0x87
+     * range and contained a dead third clause
+     * (`sid > UDS_SID_OBD_MAX && sid < UDS_SID_MAX_HIGH`, i.e. sid > 0xB8 &&
+     * sid < 0x87 — unsatisfiable). Unknown SIDs inside an allowed range are
+     * still rejected below by the dispatch-table lookup. */
+    {
+        int sid_allowed =
+            ((sid >= UDS_SID_MIN && sid <= UDS_SID_MAX_NORMAL) ||   /* 0x01-0x3E */
+             (sid >= UDS_SID_EXT_MIN && sid <= UDS_SID_MAX_HIGH) || /* 0x80-0x87 */
+             (sid >= UDS_SID_OBD_MIN && sid <= UDS_SID_OBD_MAX));   /* 0xB1-0xB8 */
+        if (!sid_allowed) {
+            return uds_negative_response(sid, UDS_NRC_SERVICE_NOT_SUPPORTED,
+                                         response);
+        }
     }
 
     /* Tester present: always allowed, no dispatch needed */
@@ -311,13 +324,18 @@ int obd_sid10_sessionControl(uint8_t sub_func, const uint8_t *data,
     /* Apply timing parameters from request data.
      * data[0..1] = P2 server max (big-endian, ms)
      * data[2..4] = P2* server max (big-endian, ms)
-     * ROM handler at 0x586C8 writes timing values to 0xD210/0xD212 */
-    if (data_len >= 3) {
-        uint16_t p2_max = ((uint16_t)data[1] << 8) | data[2];
+     * ROM handler at 0x586C8 writes timing values to 0xD210/0xD212.
+     * review-fix: P2 was read from data[1..2] (off by one vs the layout
+     * above) and P2* was built from only 2 bytes (data[3..4] << 16/8,
+     * dropping the low byte). Fixed to data[0..1] / data[2..4], requiring 2
+     * bytes for P2 and 5 bytes for P2*. */
+    if (data_len >= 2) {
+        uint16_t p2_max = ((uint16_t)data[0] << 8) | data[1];
         *(volatile uint16_t *)0xFFFFD210 = p2_max;
         if (data_len >= 5) {
-            uint32_t p2_star_max = ((uint32_t)data[3] << 16) |
-                                   ((uint32_t)data[4] << 8);
+            uint32_t p2_star_max = ((uint32_t)data[2] << 16) |
+                                   ((uint32_t)data[3] << 8) |
+                                   (uint32_t)data[4];
             *(volatile uint16_t *)0xFFFFD212 = (uint16_t)(p2_star_max / 10);
         }
     }

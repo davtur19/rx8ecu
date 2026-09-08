@@ -359,7 +359,9 @@ int can_pack_tx_msg_copy(uint8_t mailbox_idx, uint8_t dlc,
  * For CAN1: uses 0x4EC60 config (6 entries).
  * Calls CANControllerSetup (0x9878) for each controller.
  * Calls canMessageSetup (0x2B320) to configure individual mailboxes.
- * Sets [0xFFFFA410]=1 when CAN0 ready, [0xFFFFA411]=0 when CAN1 ready.
+ * On success clears the init flags to 0 = ready (see CAN_GATE_INIT_CAN0/1:
+ * 0 = initialized/ready, non-zero = not ready — the state CANTX_Main and
+ * secondary_system_controller gate on).
  */
 void can_setup(void)
 {
@@ -387,10 +389,15 @@ void can_setup(void)
         }
     }
 
-    /* Set init-complete flags if all controllers configured */
+    /* Set init-complete flags if all controllers configured.
+     * review-fix: was CAN0=1/CAN1=0 with a self-contradictory comment
+     * ("1 when CAN0 ready" vs "0 when CAN1 ready"). CANTX_Main,
+     * secondary_system_controller, CAN_PROTOCOL.md and ECU.md all agree the
+     * gate is [0xA410]==0 / [0xA411]==0, i.e. 0 = initialized/ready, so the
+     * old CAN0=1 left TX permanently gated off after setup. Set both to 0. */
     if (configured) {
-        CAN_GATE_INIT_CAN0 = 1;
-        CAN_GATE_INIT_CAN1 = 0;  /* CAN1 ready, set to 0 per ROM behavior */
+        CAN_GATE_INIT_CAN0 = 0;
+        CAN_GATE_INIT_CAN1 = 0;
     }
 }
 
@@ -409,7 +416,9 @@ uint8_t can_message_setup(uint8_t controller, const void *table_ptr)
 
     /* Determine PFC base for this controller */
     /* CAN0: 0xFFFFE400, CAN1: 0xFFFFE600 */
-    uint16_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
+    /* review-fix: was uint16_t, truncating 0xFFFFE600/0xFFFFE400 to
+     * 0xE600/0xE400 and probing the wrong address. */
+    uint32_t pfc_base = controller ? 0xFFFFE600 : 0xFFFFE400;
 
     /* Check if controller is in expected state */
     uint8_t current_mode = *(volatile uint8_t *)(uintptr_t)pfc_base;
@@ -696,7 +705,13 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
     /* Step 3: Read mailbox status */
     mbox_status = *mbox_reg;
 
-    /* Step 4: Get mailbox config and check busy */
+    /* Step 4: Get mailbox config and check busy.
+     * review-fix (NEEDS-ROM-CHECK): polarity kept as-coded (bit SET in the
+     * status word = mailbox busy). In-code evidence: placeCANRX (ROM:0x99C4,
+     * same file) treats a SET bit on the RX status register as "data
+     * present", so SET = occupied is the file-consistent reading for the TX
+     * status register too. ROM 0x9AE4 must still confirm which bit means
+     * busy on 0xFFFFE406 — do not flip this without that disasm. */
     mbox_config = can_get_mailbox_config(frame->mailbox_idx);
 
     /* Check if mailbox is available (bit test) */
@@ -716,11 +731,16 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
                                       frame->dlc,
                                       frame->data_ptr, 0);
 
-        /* Set ready bit to trigger transmission */
-        volatile uint16_t *ready_reg2 = can_get_mailbox_offset_high(
+        /* Set ready bit to trigger transmission.
+         * review-fix (NEEDS-ROM-CHECK): the two config-word writes above
+         * (ready register 0xFFFFE40A before the data, status/offset register
+         * 0xFFFFE406 after) target different registers, matching algorithm
+         * steps 4a/4c in the header comment, so neither was dropped. ROM
+         * 0x9AE4 must confirm the trigger register and sequence. The
+         * redundant recompute of mbox_config is removed (value unchanged). */
+        volatile uint16_t *trig_reg = can_get_mailbox_offset_high(
             frame->mailbox_idx, HCAN_MBOX_OFFSET);
-        mbox_config = can_get_mailbox_config(frame->mailbox_idx);
-        *ready_reg2 = mbox_config;
+        *trig_reg = mbox_config;
 
         result = 0;  /* success */
     } else {
@@ -1517,6 +1537,43 @@ int placeCANRX(const uint8_t *config)
 
 /* --- CAN RX Handler Functions --- */
 
+/* review-fix: per-handler RX timeout counters. Bumped when placeCANRX reports
+ * no data / mailbox error and the handler drops the cycle. File-static
+ * reconstruction aids (no ROM RAM address claimed); success paths reset the
+ * ROM timeout flags as before. */
+static uint16_t can212_rx_timeout = 0;
+static uint16_t can4b0_rx_timeout = 0;
+static uint16_t can4b1_rx_timeout = 0;
+static uint16_t can4c0_rx_timeout = 0;
+static uint16_t can430_rx_timeout = 0;
+
+/* review-fix: shared RX-mailbox read. Calls placeCANRX for the documented
+ * config entry and, on success, copies the deposited frame (up to 8 bytes,
+ * zero-padded) into the caller's buffer. Returns 0 on success, non-zero when
+ * the caller must bump its timeout counter and return WITHOUT unpacking, so
+ * stale/zero data is never treated as a valid frame. */
+static int can_rx_read_mailbox(const uint8_t *rx_cfg, uint8_t *buf)
+{
+    uint8_t dlc;
+    uint32_t bp;
+    const volatile uint8_t *src;
+    uint8_t n;
+    uint8_t i;
+
+    if (placeCANRX(rx_cfg) != 0) {
+        return -1;
+    }
+
+    dlc = can_parse_mailbox_dlc(rx_cfg);
+    bp = can_parse_mailbox_buf_ptr(rx_cfg);
+    src = (const volatile uint8_t *)(uintptr_t)bp;
+    n = (dlc > 8) ? 8 : dlc;
+    for (i = 0; i < 8; i++) {
+        buf[i] = (i < n) ? src[i] : 0;
+    }
+    return 0;
+}
+
 /**
  * CAN212RX_Main — Process CAN ID 0x212 ABS/DSC/brake lamps.
  * ROM address: 0x2C0C4
@@ -1535,17 +1592,14 @@ int placeCANRX(const uint8_t *config)
 void CAN212RX_Main(void)
 {
     uint8_t buf[8];
-    uint32_t saved_sr;
     volatile uint16_t *w_brake = (volatile uint16_t *)(uintptr_t)0xFFFFBC46;
 
-    /* ROM:0x2C0C4: placeCANRX(0x4EC60) — read CAN1 HW mailbox */
-    /* Simplified: disable IRQs around mailbox read (ROM:0x2C0C8-0x2C0D6) */
-    saved_sr = diag_getsr_3920(0x90);
-    /* NOTE(ROM:0x2C0D8-0x2C0E6): HW mailbox read sequence not implemented.
-     * On real ECU: reads from CAN1 MB0 via CAN_RX_BUFFER. */
-    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
-    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
-    diag_setsr_3934(saved_sr);
+    /* ROM:0x2C0C4: placeCANRX(0x4EC60) — read CAN1 HW mailbox.
+     * review-fix: honor the result; on failure bump timeout and return. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4EC60, buf) != 0) {
+        can212_rx_timeout++;
+        return;
+    }
 
     /* ROM:0x2C0E8: if placeCANRX returned 0 (success): */
     {
@@ -1588,15 +1642,13 @@ void CAN212RX_Main(void)
 void can4B0RX_unpack(void)
 {
     uint8_t buf[8];
-    uint32_t saved_sr;
 
-    /* ROM:0x2BE6E: placeCANRX(0x4ECA0) — read CAN1 HW mailbox */
-    saved_sr = diag_getsr_3920(0x90);
-    /* NOTE(ROM:0x2BE72-0x2BE80): HW mailbox read not implemented.
-     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. */
-    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
-    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
-    diag_setsr_3934(saved_sr);
+    /* ROM:0x2BE6E: placeCANRX(0x4ECA0) — read CAN1 HW mailbox.
+     * review-fix: honor the result; on failure bump timeout and return. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
+        can4b0_rx_timeout++;
+        return;
+    }
 
     /* ROM:0x2BE82: if placeCANRX returned 0: */
     {
@@ -1656,15 +1708,13 @@ void can47RX_Main(void)
 void can4B1RX_event_check(void)
 {
     uint8_t buf[8];
-    uint32_t saved_sr;
 
-    /* ROM:0x4C78C: placeCANRX(0x4EA20) — read CAN0 HW mailbox */
-    saved_sr = diag_getsr_3920(0x90);
-    /* NOTE(ROM:0x4C790-0x4C79E): HW mailbox read not implemented.
-     * On real ECU: reads from CAN0 MB via CAN_RX_BUFFER. */
-    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
-    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
-    diag_setsr_3934(saved_sr);
+    /* ROM:0x4C78C: placeCANRX(0x4EA20) — read CAN0 HW mailbox.
+     * review-fix: honor the result; on failure bump timeout and return. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4EA20, buf) != 0) {
+        can4b1_rx_timeout++;
+        return;
+    }
 
     /* ROM:0x4C7A0: if placeCANRX returned 0: */
     {
@@ -1694,15 +1744,16 @@ void can4B1RX_event_check(void)
  */
 void can4C0RX_short(void)
 {
+    uint8_t buf[8];
     uint8_t rx_byte;
-    uint32_t saved_sr;
 
-    /* ROM:0x2C780: placeCANRX(0x4ECA0) — read CAN1 HW mailbox */
-    saved_sr = diag_getsr_3920(0x90);
-    /* NOTE(ROM:0x2C784-0x2C792): HW mailbox read not implemented.
-     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. DLC=1. */
-    rx_byte = 0;
-    diag_setsr_3934(saved_sr);
+    /* ROM:0x2C780: placeCANRX(0x4ECA0) — read CAN1 HW mailbox. DLC=1.
+     * review-fix: honor the result; on failure bump timeout and return. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
+        can4c0_rx_timeout++;
+        return;
+    }
+    rx_byte = buf[0];
 
     /* ROM:0x2C794: if placeCANRX returned 0: */
     {
@@ -1727,15 +1778,13 @@ void can4C0RX_short(void)
 void can430_4C0RX_dispatch(void)
 {
     uint8_t buf[8];
-    uint32_t saved_sr;
 
-    /* ROM:0x33BA0: placeCANRX(0x4EC80) — read CAN1 HW mailbox */
-    saved_sr = diag_getsr_3920(0x90);
-    /* NOTE(ROM:0x33BA4-0x33BB2): HW mailbox read not implemented.
-     * On real ECU: reads from CAN1 MB via CAN_RX_BUFFER. */
-    buf[0] = 0; buf[1] = 0; buf[2] = 0; buf[3] = 0;
-    buf[4] = 0; buf[5] = 0; buf[6] = 0; buf[7] = 0;
-    diag_setsr_3934(saved_sr);
+    /* ROM:0x33BA0: placeCANRX(0x4EC80) — read CAN1 HW mailbox.
+     * review-fix: honor the result; on failure bump timeout and return. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4EC80, buf) != 0) {
+        can430_rx_timeout++;
+        return;
+    }
 
     /* ROM:0x33BB4: if placeCANRX returned 0: */
     {

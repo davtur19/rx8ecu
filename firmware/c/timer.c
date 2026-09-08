@@ -25,26 +25,22 @@
 /*  ATU Channel Configuration (for serial I/O)                            */
 /* ====================================================================== */
 
-/* Channel register offsets (relative to ATU_BASE) */
-#define CH_REG_STRIDE   0x10    /* Bytes per channel register set */
-
-/* Channel 0: serial RX timing */
-#define CH0_TCR     0x00    /* Timer control */
-#define CH0_TIOR    0x04    /* I/O control */
-#define CH0_TIER    0x08    /* Interrupt enable */
-#define CH0_TGR     0x0C    /* General register (compare/capture) */
-
-/* Channel 1: serial TX timing */
-#define CH1_TCR     0x10
-#define CH1_TIOR    0x14
-#define CH1_TIER    0x18
-#define CH1_TGR     0x1C
-
-/* Channel 2: extra timing */
-#define CH2_TCR     0x20
-#define CH2_TIOR    0x24
-#define CH2_TIER    0x28
-#define CH2_TGR     0x2C
+/* review-fix (NEEDS-ROM-CHECK): the local CH*_TCR/TIOR/TIER/TGR offset block
+ * (TCR at +0x00/+0x10/+0x20, TIOR at +0x04/..., stride 0x10) is deleted and
+ * all accesses use the shared platform.h scheme (TSTR +0x00, TCR0/1/2
+ * +0x10/+0x20/+0x30, TIOR0/1 +0x40/+0x50, TIER0/1 +0x60/+0x70, TGR0/1/2
+ * +0x80/+0x90/+0xA0, TISRA +0xB0 — already used by serial.c).
+ * Rationale: the local scheme placed CH0_TCR at offset 0x00, which IS the
+ * TSTR start/stop register on SH (TSTR holds counter start bits; the CKS
+ * prescaler bits live in each channel TCR), so every channel-0 TCR write hit
+ * TSTR. The header scheme is the SH-manual-consistent one. Full ROM/manual
+ * confirmation of the ATU map is still pending (raw ROM offsets 0x2C/0x4E
+ * written below match neither scheme), hence NEEDS-ROM-CHECK.
+ * Channel 2 has no TIOR/TIER definition in platform.h, so its two offsets
+ * are kept as raw values (numerically identical to the old locals) pending
+ * ROM/manual arbitration. */
+#define ATU_CH2_TIOR_RAW_OFFSET  0x24    /* NEEDS-ROM-CHECK: ex-CH2_TIOR */
+#define ATU_CH2_TIER_RAW_OFFSET  0x28    /* NEEDS-ROM-CHECK: ex-CH2_TIER */
 
 /* ====================================================================== */
 /*  Timer Read/Write Helpers                                              */
@@ -75,20 +71,17 @@ static inline void timer_write16(uint16_t offset, uint16_t value)
  */
 void atu_timer_init(void)
 {
-    /* Stop all timers before configuration */
+    /* Stop all timers before configuration (TSTR holds start bits only) */
     timer_write16(ATU_TSTR_OFFSET, 0x0000);
 
-    /* Configure prescaler: divide by 4 for 1 MHz tick */
-    timer_write16(ATU_TSTR_OFFSET, ATU_PRESCALER_DIV4);
-
-    /* Channel 0: Timer mode, no prescaler override */
-    timer_write16(CH0_TCR, 0x0000);
-
-    /* Channel 1: Timer mode */
-    timer_write16(CH1_TCR, 0x0000);
-
-    /* Channel 2: Timer mode */
-    timer_write16(CH2_TCR, 0x0000);
+    /* review-fix: the CKS prescaler bits live in each channel TCR, not in
+     * TSTR. The old code wrote ATU_PRESCALER_DIV4 to ATU_TSTR_OFFSET, which
+     * asserts timer start bit 0 instead of selecting a /4 divider. Set timer
+     * mode with /4 prescaler per channel (mode field is 0). TSTR is used only
+     * for start bits above. */
+    timer_write16(ATU_TCR0_OFFSET, ATU_PRESCALER_DIV4);
+    timer_write16(ATU_TCR1_OFFSET, ATU_PRESCALER_DIV4);
+    timer_write16(ATU_TCR2_OFFSET, ATU_PRESCALER_DIV4);
 }
 
 /* ====================================================================== */
@@ -107,22 +100,22 @@ void atu_timer_init(void)
 void atu_capture_compare_init(void)
 {
     /* Channel 0: Input capture on rising edge (RX) */
-    timer_write16(CH0_TIOR, 0x0004);   /* Capture on rising edge */
+    timer_write16(ATU_TIOR0_OFFSET, 0x0004);   /* Capture on rising edge */
 
     /* Channel 1: Output compare, set pin on match (TX) */
-    timer_write16(CH1_TIOR, 0x0001);   /* Output compare, pin=LOW on match */
+    timer_write16(ATU_TIOR1_OFFSET, 0x0001);   /* Output compare, pin=LOW on match */
 
-    /* Channel 2: Timer mode, no I/O */
-    timer_write16(CH2_TIOR, 0x0000);
+    /* Channel 2: Timer mode, no I/O (raw offset, see NEEDS-ROM-CHECK above) */
+    timer_write16(ATU_CH2_TIOR_RAW_OFFSET, 0x0000);
 
     /* Enable interrupt on channel 0 capture (RX byte received) */
-    timer_write16(CH0_TIER, 0x0001);
+    timer_write16(ATU_TIER0_OFFSET, 0x0001);
 
     /* Enable interrupt on channel 1 compare (TX byte sent) */
-    timer_write16(CH1_TIER, 0x0001);
+    timer_write16(ATU_TIER1_OFFSET, 0x0001);
 
-    /* Channel 2: no interrupt */
-    timer_write16(CH2_TIER, 0x0000);
+    /* Channel 2: no interrupt (raw offset, see NEEDS-ROM-CHECK above) */
+    timer_write16(ATU_CH2_TIER_RAW_OFFSET, 0x0000);
 }
 
 /* ====================================================================== */
@@ -142,7 +135,14 @@ void atu_configure_io_channel(uint8_t channel)
 {
     if (channel > 2) return;
 
-    uint16_t tior_offset = CH0_TIOR + (channel * CH_REG_STRIDE);
+    /* review-fix: unified on the platform.h scheme (see note above); the old
+     * CH0_TIOR + channel * CH_REG_STRIDE arithmetic is gone. */
+    uint16_t tior_offset;
+    switch (channel) {
+        case 0: tior_offset = ATU_TIOR0_OFFSET; break;
+        case 1: tior_offset = ATU_TIOR1_OFFSET; break;
+        default: tior_offset = ATU_CH2_TIOR_RAW_OFFSET; break;  /* NEEDS-ROM-CHECK */
+    }
 
     /* Default: no I/O (timer only) */
     timer_write16(tior_offset, 0x0000);
@@ -167,8 +167,15 @@ void hardware_init_serial_timers(void)
     timer_write16(0x004E, 0x0000);  /* Timer control */
     timer_write16(0x002C, 0x0000);  /* Timer mode */
 
-    /* Configure interrupt controller */
-    intc_reg_write(0x0008);  /* INTC enable */
-    intc_reg_write(0x000A);  /* INTC config */
-    intc_reg_write(0x000E);  /* INTC priority */
+    /* Configure interrupt controller.
+     * review-fix (NEEDS-ROM-CHECK): the old code called intc_reg_write()
+     * three times with 0x0008/0x000A/0x000E, which writes all three VALUES to
+     * the SAME register (INTC_REGISTER, 0xFFFFF02E) — only the last stuck.
+     * Per this function's contract (timer.h: registers 0xFFFFF008,
+     * 0xFFFFF00A, 0xFFFFF00E) these are three DISTINCT INTC registers, so
+     * each value goes to its own address. Values are preserved as-coded;
+     * ROM 0xB6BC must confirm both addresses and values. */
+    intc_reg_write_at(INTC_TMR_IPR0_ADDR, 0x0008);  /* INTC enable */
+    intc_reg_write_at(INTC_TMR_IPR1_ADDR, 0x000A);  /* INTC config */
+    intc_reg_write_at(INTC_TMR_IPR2_ADDR, 0x000E);  /* INTC priority */
 }

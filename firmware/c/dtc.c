@@ -59,9 +59,13 @@
 /*  DTC Internal State                                                     */
 /* ====================================================================== */
 
+/* review-fix: volatile — slot counters are shared between fault-detection
+ * (ISR/debounce) context and the main-loop DTC manager. Guard strategy:
+ * writers update under diag_getsr/diag_setsr critical sections; single
+ * volatile accesses are atomic on SH-2 (8-bit). */
 /* DTC slot state tracking */
-static uint8_t dtc_slot_count = 0;
-static uint8_t dtc_backup_count = 0;
+static volatile uint8_t dtc_slot_count = 0;
+static volatile uint8_t dtc_backup_count = 0;
 
 /* Forward declarations for backup sync functions */
 static void dtc_backup_sync_to_primary(void);
@@ -589,8 +593,12 @@ int dtc_debounce_counter(uint16_t dtc_code)
                 *flag2 = 1;
             }
         } else {
-            /* Path B: long runtime, increment counter B */
-            if (*counter_b < thr_b) {
+            /* Path B: long runtime — counter_b already >= thr_b here.
+             * review-fix: the old code re-tested `*counter_b < thr_b`
+             * (dead branch — the else guarantees >= thr_b), so counter_b
+             * never incremented and the increment path was unreachable.
+             * Restructured to increment-then-compare with saturation. */
+            if (*counter_b < 0xFFFF) {
                 (*counter_b)++;
             }
             if (*counter_b >= thr_b) {
