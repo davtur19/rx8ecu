@@ -6,7 +6,7 @@ Compares a Python pc-interpreter spec_mirror against the sh2emu oracle
 prefill around the literal addresses plus a synthetic 0x400-byte stack at
 STACK_BASE.  FR inputs are seeded per case as 16 uint32 bit patterns
 fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with
-(x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive
+(x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23) to keep every value a finite positive
 float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).
 Scope: finite + sNaN — main vectors are finite/positive as above; one extra raw-bits sNaN edge case (EDGE_NAN_BITS cycled over FR0-15) covers NaN quieting with a payload-insensitive FR oracle (same_result_bits). Inf/denormals remain out of scope.
 The mirror converts bit patterns to float32 via bits2f (sh2emu
