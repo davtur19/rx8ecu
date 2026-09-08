@@ -2,15 +2,15 @@
 
 An autonomous analysis generated this map. The script is in `/tmp/opencode/rx8/map_final.py`;
 it is not committed. The analysis covered the 9 stock 512 KB ROMs (`roms/stock/*.bin`,
-SH-2E big-endian). It used `symbols/cal_tables.csv` (1210 entries) as the master
+SH-2E big-endian). It used `symbols/cal_tables.csv` (1209 entries) as the master
 list. **No repository source file was modified; output only in `web/explorer/data/`.**
 
 ## Produced files
 
 | file | content |
 |---|---|
-| `table_addr_map.csv` | wide format: 1210 rows (one per table), columns `table_id, baseline_addr, addr_D400, addr_E500, addr_C500, addr_FB00, addr_FC00, addr_B900, addr_E700, addr_15120, addr_32000, method, confidence`. `method`/`confidence` are per-row summaries (`method:count`); the per-ROM detail is in `table_addr_map_long.csv` |
-| `table_addr_map_long.csv` | long format (10890 rows = 1210 tables × 9 ROMs): `table_id, baseline_addr, rom, addr, method, confidence` — convenient for the web UI "choose firmware model → read address" |
+| `table_addr_map.csv` | wide format: 1209 rows (one per table), columns `table_id, baseline_addr, addr_D400, addr_E500, addr_C500, addr_FB00, addr_FC00, addr_B900, addr_E700, addr_15120, addr_32000, method, confidence`. `method`/`confidence` are per-row summaries (`method:count`); the per-ROM detail is in `table_addr_map_long.csv` |
+| `table_addr_map_long.csv` | long format (10881 rows = 1209 tables × 9 ROMs): `table_id, baseline_addr, rom, addr, method, confidence` — convenient for the web UI "choose firmware model → read address" |
 | `roms_meta.json` | metadata of the 9 ROMs (cal ID, SW module, task module, security-key offset, sha256, code_end, cal_lo/span, `SW-` string offset, family, family shift vs baseline, coverage statistics) |
 | `MAPPING_NOTES.md` | this document |
 
@@ -76,19 +76,19 @@ The cal layout is NOT a uniform shift. The shift is **piecewise-constant**
 The per-table drift curve was reconstructed from the **unambiguous** matches
 (16B windows with a single occurrence in the target) and validated (see below).
 
-## Coverage per ROM (1210 tables in cal_tables.csv)
+## Coverage per ROM (1209 tables in cal_tables.csv)
 
 | ROM | mapped | unmapped | high | medium | low | prevailing method |
 |---|---|---|---|---|---|---|
-| D400 (baseline) | 1210 | 0 | 1209 | 0 | 1* | same_addr |
-| E500 | 1209 | 1 | 845 | 232 | 132 | content_match |
-| C500 | 1209 | 1 | 947 | 178 | 84 | content_match |
-| FB00 | 1210 | 0 | 762 | 144 | 304 | content_match |
-| FC00 | 1210 | 0 | 764 | 141 | 305 | content_match |
-| B900 | 1210 | 0 | 764 | 141 | 305 | content_match |
-| E700 | 1209 | 1 | 723 | 265 | 221 | content_match |
-| 15120 | 1209 | 1 | 799 | 207 | 203 | content_match |
-| 32000 | 1194 | 16 | 401 | 16 | 777 | family_shift |
+| D400 (baseline) | 1209 | 0 | 1208 | 0 | 1* | same_addr |
+| E500 | 1208 | 1 | 845 | 232 | 131 | content_match |
+| C500 | 1208 | 1 | 946 | 178 | 84 | content_match |
+| FB00 | 1209 | 0 | 761 | 144 | 304 | content_match |
+| FC00 | 1209 | 0 | 763 | 141 | 305 | content_match |
+| B900 | 1209 | 0 | 763 | 141 | 305 | content_match |
+| E700 | 1208 | 1 | 723 | 265 | 220 | content_match |
+| 15120 | 1208 | 1 | 798 | 207 | 203 | content_match |
+| 32000 | 1193 | 16 | 400 | 16 | 777 | family_shift |
 
 \* the baseline "low" is the hole table (`hole`).
 
@@ -125,7 +125,7 @@ tables of the baseline @0x7C4F4–0x7D92C not mappable: the 32000 span ends firs
 - Duplicated axes/tables (same sequences reused by several tables) can produce
   multiple exact matches. The per-curve disambiguation resolves them in most
   cases but is not guaranteed.
-- `cal_tables.csv` includes 662 X/Y axes and 548 tables: for the "Table 3D" (87)
+- `cal_tables.csv` includes 661 X/Y axes and 548 tables (443 table + 105 intermediate): for the "Table 3D" (87)
   the true size (from the descriptor) is unknown; the verification window uses
   the extent up to the next entry (cap 512 B).
 

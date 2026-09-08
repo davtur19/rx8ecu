@@ -32,7 +32,7 @@ Classification bands are anchored on the RE baseline 60E1D400:
   cal_data   0x6CEE0-0x7DAFF  (checksummed calibration tables region)
   tail       0x7DAFF-0x7FFFF  (checksum descriptor @0x7FB80 + trailing words)
 
-Exact known-table classification uses symbols/cal_tables.csv (1210 addrs,
+Exact known-table classification uses symbols/cal_tables.csv (1209 addrs,
 extracted from the 60E1D400 ROM).  Those addresses are only valid for
 ROMs sharing the 60E1D400 table layout; other families relocate the
 table block (cal_start measured per ROM: J-line 0x6CEE0, Z-line 0x6D300,
@@ -400,7 +400,7 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A(f'  - `padding` 0x{code_end:05X}-0x{cal_lo-1:05X}  baseline 0xFF filler gap(s)')
     A(f'  - `cal_data` 0x{cal_lo:05X}-0x{CAL_HI:05X}  calibration tables region')
     A(f'  - `tail`    0x{CAL_HI:05X}-0x7FFFF  checksum descriptor @0x7FB80 + trailing')
-    A('- Known-table hits use `symbols/cal_tables.csv` (1210 addrs, 60E1D400 '
+    A('- Known-table hits use `symbols/cal_tables.csv` (1209 addrs, 60E1D400 '
       'layout). Valid only for J-line builds; other families relocate the table block.')
     A('- All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), '
       'so headers are aligned; divergence accumulates through the body.')
@@ -575,7 +575,7 @@ Python 3.8+, no third-party packages.
 ## Inputs (read-only)
 
 - `roms/stock/*.bin` — 9 stock 512 KB SH-2E ROMs
-- `symbols/cal_tables.csv` — 1210 calibration-table addresses (60E1D400 layout)
+- `symbols/cal_tables.csv` — 1209 calibration-table addresses (60E1D400 layout)
 
 ## Outputs
 
