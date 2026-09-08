@@ -86,25 +86,42 @@ void Manual_Reset(void)
  * bsc_init — Initialize the Bus State Controller.
  *
  * ROM address: 0x8CC
- * Size: 14 bytes (0x8B8 + 14 = 0x8C6)
+ * IDA function bounds: 0x8CC-0x8F4 (40 bytes, rts at 0x8F2).
+ * The EC2x register block is 0x8CC-0x8DC (18 bytes); the 0x8DE-0x8F4
+ * tail (writes to 0xFFFFF70A/0xFFFFED18 + poll loop, see NOTE below)
+ * is part of the same IDA function.
  *
  * The BSC controls memory bus timing, wait states, and chip selects.
  * This is a minimal init — the full BSC setup happens in peripheral_init_chain_A.
  *
  * Register writes:
- *   - BSC mode register (0xFFFFEC20): sets bus width and timing
- *   - BSC wait register (0xFFFFEC22, 0xFFFFEC24, 0xFFFFEC26): configures external memory access timing
+ *   - BSC base + 0 (0xFFFFEC20) = 0x000F: bus width/timing
+ *   - BSC base + 2 (0xFFFFEC22) = 0xFFFF
+ *   - BSC base + 4 (0xFFFFEC24) = 0xFFFF
+ *   - BSC base + 6 (0xFFFFEC26) = 0x0000
  *
- * Verified against ROM 60E1D400 via IDA disassembly at 0x8CC:
- *   mov.w #0xEC20, r4        ; r4 = BSC base (0xFFFFEC20)
- *   mov #0x0F, r3
- *   mov.w r3, @r4             ; [0xFFFFEC20] = 0x000F
- *   mov.l @(off_9B0), r0     ; r0 = 0x0000
- *   mov.w r0, @(2,r4)        ; [0xFFFFEC22] = 0x0000
- *   mov.w r0, @(4,r4)        ; [0xFFFFEC24] = 0x0000
- *   mov #0, r5
- *   mov r5, r0
- *   mov.w r0, @(6,r4)        ; [0xFFFFEC26] = 0x0000
+ * Verified against ROM 60E1D400 via IDA disassembly at 0x8CC
+ * (session f3480f35, IDA function bsc_init @ 0x8CC):
+ *   0x8CC: mov.w @(0x99E), r4   ; r4 = [0x99E] = 0xEC20 sign-extended
+ *   0x8CE: mov #0x0F, r3        ; r3 = 0x0F
+ *   0x8D0: mov.w r3, @r4        ; [0xFFFFEC20] = 0x000F
+ *   0x8D2: mov.l @(0x9B0), r0   ; r0 = [0x9B0] = 0x0000FFFF (u32be = 65535)
+ *   0x8D4: mov.w r0, @(2,r4)    ; [0xFFFFEC22] = 0xFFFF (low 16 bits of r0)
+ *   0x8D6: mov.w r0, @(4,r4)    ; [0xFFFFEC24] = 0xFFFF
+ *   0x8D8: mov #0, r5
+ *   0x8DA: mov r5, r0           ; r0 = 0
+ *   0x8DC: mov.w r0, @(6,r4)    ; [0xFFFFEC26] = 0x0000
+ *
+ * NOTE (EC80 vs EC20 recheck): the EC80->EC20 fix is correct — the only
+ * SFR literal loaded here is the word 0xEC20 at ROM 0x99E (u16be = 60448).
+ * No instruction in bsc_init references 0xFFFFEC80, and a whole-image
+ * search finds no mov.w/mov.l literal pool loading 0xEC80 as an SFR
+ * address (raw "EC 80" byte hits at 0x274BF/0x2E537/0x2E543/0x2E54F/0x33C56
+ * sit inside FPU opcode encodings, and "EC80" text hits are ROM addresses
+ * such as loc_EC80 @ 0xEC80 — not 0xFFFFEC80 SFR accesses). The original
+ * 0xFFFFEC80 was a guess, not an IDA alias artifact of a real EC80 write.
+ * TODO: model the 0x8DE-0x8F4 tail of this IDA function:
+ *   [0xFFFFF70A] = 0x3C04, [0xFFFFED18] = 0, then poll [0xFFFFED18] & 0x8000.
  */
 void bsc_init(void)
 {
@@ -114,9 +131,9 @@ void bsc_init(void)
     /* BSC mode register: external bus configuration */
     bsc[0] = 0x000F;  /* Bus width/timing (verified from ROM) */
 
-    /* BSC wait registers: external memory access timing */
-    bsc[1] = 0x0000;  /* Wait state 0 */
-    bsc[2] = 0x0000;  /* Wait state 1 */
+    /* BSC wait registers: external memory access timing (ROM: r0 = 0x0000FFFF) */
+    bsc[1] = 0xFFFF;  /* Wait state 0 (low 16 bits of literal at ROM 0x9B0) */
+    bsc[2] = 0xFFFF;  /* Wait state 1 (same literal) */
     bsc[3] = 0x0000;  /* Wait state 2 */
 }
 
