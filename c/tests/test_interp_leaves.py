@@ -23,7 +23,9 @@ Run from repo root:  python3 c/tests/test_interp_leaves.py [N]
 import os, sys, random, struct
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, MASK, ts, s32
+from float_compare import same_result_bits, EDGE_NAN_BITS
 
 
 class SH2E(SH2):
@@ -138,6 +140,12 @@ def run_leaf(name, entry, cells, n, cellsize):
     for _ in range(N):
         i = random.randint(0, n - 2)
         cases.append((i, random.uniform(0.0, 1.0)))
+    # NaN-payload edge: t decoded from raw bits (host fr[] round-trip may
+    # quiet sNaN payloads — the oracle compare is payload-insensitive).
+    for b in EDGE_NAN_BITS:
+        nan_t = struct.unpack('>f', struct.pack('>I', b))[0]
+        for i in range(n - 1):
+            cases.append((i, nan_t))
     for i, t in cases:
         ram = {}
         base = 0x30000000
@@ -151,7 +159,8 @@ def run_leaf(name, entry, cells, n, cellsize):
         got = cpu.fr[2]
         want = ref_leaf(cells, n, i, t)
         tested += 1
-        if struct.pack('>f', got) != struct.pack('>f', want):
+        if not same_result_bits(struct.unpack('>I', struct.pack('>f', got))[0],
+                                   struct.unpack('>I', struct.pack('>f', want))[0]):
             fails += 1
             if fails <= 8:
                 print("MISMATCH %s i=%d t=%r got=%r want=%r" % (name, i, t, got, want))
@@ -165,6 +174,11 @@ def run_index_lookup():
     tested = 0
     xs = list(AXIS_X) + [a - 0.001 for a in AXIS_X] + [a + 0.001 for a in AXIS_X] + [-1000.0, 1000.0]
     ys = list(AXIS_Y) + [a - 0.001 for a in AXIS_Y] + [a + 0.001 for a in AXIS_Y] + [-1000.0, 1000.0]
+    # NaN-payload edge inputs decoded from raw bits (oracle compare is
+    # payload-insensitive; NaN axis input takes the clamp-to-last path).
+    nan_edges = [struct.unpack('>f', struct.pack('>I', b))[0] for b in EDGE_NAN_BITS]
+    xs += nan_edges
+    ys += nan_edges
     cases = [(x, y) for x in xs for y in ys]
     for _ in range(N):
         cases.append((random.uniform(-60, 130), random.uniform(-1, 8)))
@@ -175,8 +189,10 @@ def run_index_lookup():
         want_iy, want_ty = ref_axis_search(AXIS_Y, CY, y)
         tested += 1
         ok = (ix == want_ix and iy == want_iy and
-              struct.pack('>f', tx) == struct.pack('>f', want_tx) and
-              struct.pack('>f', ty) == struct.pack('>f', want_ty))
+              same_result_bits(struct.unpack('>I', struct.pack('>f', tx))[0],
+                               struct.unpack('>I', struct.pack('>f', want_tx))[0]) and
+              same_result_bits(struct.unpack('>I', struct.pack('>f', ty))[0],
+                               struct.unpack('>I', struct.pack('>f', want_ty))[0]))
         if not ok:
             fails += 1
             if fails <= 8:

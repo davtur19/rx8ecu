@@ -23,7 +23,9 @@ Run from repo root:  python3 c/tests/test_dataLookup.py [N]
 import os, sys, random, struct, math
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, MASK, ts, s32
+from float_compare import same_result_bits, EDGE_NAN_BITS
 
 
 class SH2E(SH2):
@@ -102,13 +104,18 @@ def main():
     tested = 0
     xs = list(AXIS) + [a - 0.001 for a in AXIS] + [a + 0.001 for a in AXIS]
     xs += [-1000.0, 1000.0, AXIS[0], AXIS[-1], float('nan')]
+    # NaN-payload edge inputs decoded from raw bits (the host fr[] round-trip
+    # may quiet sNaN payloads — the oracle compare below is payload-insensitive).
+    xs += [struct.unpack('>f', struct.pack('>I', b))[0] for b in EDGE_NAN_BITS]
     xs += [random.uniform(-60, 130) for _ in range(N)]
     for x in xs:
         cpu.call_leaf(0x2624, regs={0: COUNT, 1: AXP}, fr={0: x})
         got_i, got_t = cpu.r[0], cpu.fr[0]
         want_i, want_t = ref(x)
         tested += 1
-        ok = (got_i == want_i and struct.pack('>f', got_t) == struct.pack('>f', want_t))
+        ok = (got_i == want_i and same_result_bits(
+            struct.unpack('>I', struct.pack('>f', got_t))[0],
+            struct.unpack('>I', struct.pack('>f', want_t))[0]))
         if not ok:
             fails += 1
             if fails <= 8:
