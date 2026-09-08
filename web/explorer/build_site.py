@@ -527,6 +527,7 @@ def extract_table(d, by_vp, by_axp, by_ayp, addr):
     else:
         out["ax"] = [r4(v) for v in m["ax"]]
         out["ay"] = [r4(v) for v in m["ay"]]
+        out["cy"] = len(m["ay"])
         fmt, sz = CELL[m["type"]]
         grid = []
         for j in range(m["cy"]):
