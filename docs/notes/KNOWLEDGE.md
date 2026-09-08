@@ -39,6 +39,9 @@ PCI byte stripped by DLL: `Data[4]` = first UDS byte in callbacks.
 
 Flash reprogramming SIDs: 0x34→0x1A70, 0x36→0x1B8C, 0x37→0x1CB8. SecurityAccess first.
 
+S3: no S3/tester-present timeout supervision in either ROM bank — non-default session persists until explicit switch or reset; TesterPresent keep-alive is vacuous.
+TesterPresent flag D215 has no ROM references; real keep-alive flag, if any, lives off-ROM image.
+
 ---
 
 ## Security Keys (5 bytes @ ROM 0x5FAC0)
@@ -69,6 +72,7 @@ If the ECU responds **NRC 7F2735 (InvalidKey)**: tool sends `"MazdA"`, ECU expec
 - `0xFFFFC004` = `EEPROM_PairingByte` — non-zero = ECU paired
 - LC checksum window: `0xFFFFC37E–0xFFFFC38E` (17 bytes, signed byte sum must = −23)
 - **OPEN**: boot function that populates `0xFFFFC37E` not yet identified
+- 93C56 likely fed by Denso companion ASIC (no SH-side SPI/Microwire driver in ROM image); SH-side CS pin unknown.
 
 ---
 
