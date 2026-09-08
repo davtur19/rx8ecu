@@ -3049,6 +3049,7 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         'fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with\n'
         '(x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive\n'
         'float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).\n'
+        'Scope: finite-only — vectors exclude NaN/Inf/-0.0 and denormals by construction, so sNaN quieting and Inf/denormal handling are NOT covered by this file.\n'
         'The mirror converts bit patterns to float32 via bits2f (sh2emu\n'
         'semantics); the oracle is fed the same patterns as float values via\n'
         'cpu.call(..., fr={i: bits2f(fr_in[i]) ...}).  Compared: r0..r15, the 16\n'
