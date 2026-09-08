@@ -24,4 +24,8 @@ __pycache__/
 .agents/
 .git.private-backup/
 .opencode/
+# Machine-generated browser logs (Playwright MCP)
+.playwright-mcp/
+# Regenerable corpus-driver run outputs (result3.csv is tracked baseline)
+docs/notes/corpus_20260812/corpus_all_result*.csv
 
