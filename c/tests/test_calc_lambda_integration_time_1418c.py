@@ -8,7 +8,7 @@ STACK_BASE.  FR inputs are seeded per case as 16 uint32 bit patterns
 fr_in[i] = (case*0x9E3779B1 + i*0x1000003) & 0xFFFFFFFF, filtered with
 (x & 0x7F7FFFFF) | 0x3F800000 to keep every value a finite positive
 float32 (sign cleared, exponent < 0xFF — no NaN/Inf/-0.0 in the diff).
-Scope: finite-only — vectors exclude NaN/Inf/-0.0 and denormals by construction, so sNaN quieting and Inf/denormal handling are NOT covered by this file.
+Scope: finite + sNaN — main vectors are finite/positive as above; one extra raw-bits sNaN edge case (EDGE_NAN_BITS cycled over FR0-15) covers NaN quieting with a payload-insensitive FR oracle (same_result_bits). Inf/denormals remain out of scope.
 The mirror converts bit patterns to float32 via bits2f (sh2emu
 semantics); the oracle is fed the same patterns as float values via
 cpu.call(..., fr={i: bits2f(fr_in[i]) ...}).  Compared: r0..r15, the 16
@@ -19,10 +19,12 @@ BEFORE the delay slot (as sh2emu); cases where either side leaves the
 modeled span / exceeds max_steps are skipped.
 Run from repo root: python3 c/tests/test_calc_lambda_integration_time_1418c.py
 """
-import os, random, sys
+import os, random, struct, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from float_compare import same_result_bits, EDGE_NAN_BITS
 from sh2emu import SH2, StepLimitExceeded
 from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits
 
@@ -190,9 +192,10 @@ def main():
                 print("MISMATCH case=%d reg=r%d mirror=%08X emu=%08X" % (caso, i, exp_regs[i], got_regs[i]))
                 sys.exit(1)
         for i in range(16):
-            if exp_fr[i] != got_fr[i]:
+            if not same_result_bits(exp_fr[i], got_fr[i]):
                 print("MISMATCH case=%d fr%d mirror=%08X emu=%08X" % (caso, i, exp_fr[i], got_fr[i]))
                 sys.exit(1)
+        # fpul: integer conversion results only (ftrc saturates NaN to 0x80000000 on both sides) — exact compare retained.
         if exp_fpul != got_fpul:
             print("MISMATCH case=%d fpul mirror=%08X emu=%08X" % (caso, exp_fpul, got_fpul))
             sys.exit(1)
@@ -203,6 +206,54 @@ def main():
             if exp_ram.get(ad, 0) != got_ram.get(ad, 0):
                 print("MISMATCH case=%d addr=0x%08X mirror=%02X emu=%02X" % (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))
                 sys.exit(1)
+    # ---- sNaN edge (raw bits, one extra case, caso=N) ----
+    # FR inputs staged directly from EDGE_NAN_BITS bit patterns via
+    # struct.pack('>I', b) bytes identity — never via a host float, which
+    # would quiet sNaN (0x7F800001 -> 0x7FC00001 on x86) before the emulator
+    # sees it (float_compare seeding rule). FR oracle is payload-insensitive
+    # (same_result_bits, sign only); fpul exact compare retained (see note).
+    caso = N
+    ram = {}
+    if RAM_MIN is not None:
+        for a in range(RAM_MIN - 0x400, RAM_MAX + 0x401):
+            ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF
+    for a in range(STACK_BASE, STACK_BASE + 0x400):
+        ram[a] = (a * 0x9E3779B1 + caso * 0x10003) & 0xFF
+    a = 0x12345678
+    b = 0x9ABCDEF0
+    c_ = 0x0FEDCBA9
+    d = 0x87654321
+    fr_in = [struct.unpack('>I', struct.pack('>I', EDGE_NAN_BITS[i % len(EDGE_NAN_BITS)]))[0] for i in range(16)]
+    try:
+        m = spec_mirror(a, b, c_, d, dict(ram), fr_in)
+    except ValueError:
+        m = ("SKIP", None)
+    if m[0] == "RET":
+        try:
+            g = run(cpu, ram, a, b, c_, d, fr_in)
+        except (StepLimitExceeded, NotImplementedError, RuntimeError, ValueError):
+            pass
+        else:
+            _, exp_regs, _, exp_ram, exp_pr, exp_fr, exp_fpul = m
+            _, got_regs, got_ram, got_pr, got_fr, got_fpul = g
+            for i in range(16):
+                if exp_regs[i] != got_regs[i]:
+                    print("MISMATCH sNaN reg=r%d mirror=%08X emu=%08X" % (i, exp_regs[i], got_regs[i]))
+                    sys.exit(1)
+            for i in range(16):
+                if not same_result_bits(exp_fr[i], got_fr[i]):
+                    print("MISMATCH sNaN fr%d mirror=%08X emu=%08X" % (i, exp_fr[i], got_fr[i]))
+                    sys.exit(1)
+            if exp_fpul != got_fpul:
+                print("MISMATCH sNaN fpul mirror=%08X emu=%08X" % (exp_fpul, got_fpul))
+                sys.exit(1)
+            if exp_pr != got_pr:
+                print("MISMATCH sNaN reg=pr mirror=%08X emu=%08X" % (exp_pr, got_pr))
+                sys.exit(1)
+            for ad in sorted(set(exp_ram) | set(got_ram)):
+                if exp_ram.get(ad, 0) != got_ram.get(ad, 0):
+                    print("MISMATCH sNaN addr=0x%08X mirror=%02X emu=%02X" % (ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))
+                    sys.exit(1)
     ok = N - skipped
     if skipped > 200 or ok == 0:
         print("FAIL %d/%d (skipped=%d)" % (ok, N, skipped))
