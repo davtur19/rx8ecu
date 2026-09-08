@@ -7,7 +7,11 @@
 
 /* ============================ BOOT / DATA ============================ */
 const DATA = { meta: null, symbols: [], edges: [], tables: [], docs: [], subsystems: [] };
-const $ = (id) => document.getElementById(id);
+const $ = (id) => {
+  const el = document.getElementById(id);
+  console.assert(el, "explorer: missing element #" + id);
+  return el;
+};
 let bootEl, bootMsg;
 
 /* Selected firmware model + lazily loaded per-model values.
@@ -20,11 +24,19 @@ let CUR_MODEL = "D400";
 const MODEL_LOAD = {};
 let modelRevCache = null;
 
+function validateData(j) {
+  if (!j || typeof j.meta !== "object" || j.meta === null) throw new Error("bad schema: meta");
+  if (!Array.isArray(j.symbols)) throw new Error("bad schema: symbols");
+  if (!Array.isArray(j.edges)) throw new Error("bad schema: edges");
+  if (!Array.isArray(j.tables)) throw new Error("bad schema: tables");
+}
+
 async function loadData() {
   try {
     const r = await fetch("data.json");
     if (!r.ok) throw new Error("HTTP " + r.status);
     const j = await r.json();
+    validateData(j);
     DATA.meta = j.meta; DATA.symbols = j.symbols; DATA.edges = j.edges; DATA.tables = j.tables;
     DATA.docs = j.docs || []; DATA.subsystems = j.subsystems || [];
     DATA.models = j.meta.models || [];
@@ -35,6 +47,7 @@ async function loadData() {
   } catch (e) {
     if (window.EXPLORER_DATA && window.EXPLORER_DATA.meta) {
       const j = window.EXPLORER_DATA;
+      validateData(j);
       DATA.meta = j.meta; DATA.symbols = j.symbols; DATA.edges = j.edges; DATA.tables = j.tables;
       DATA.docs = j.docs || []; DATA.subsystems = j.subsystems || [];
       DATA.models = j.meta.models || [];
@@ -67,6 +80,10 @@ function parseHex(s) {
   if (!/^[0-9a-fA-F]+$/.test(s)) return null;
   const v = parseInt(s, 16);
   return isNaN(v) ? null : v;
+}
+function debounce(fn, ms) {
+  let t = 0;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
 /* ============================ FIRMWARE MODEL SELECTOR ============================ */
@@ -109,7 +126,9 @@ async function loadModelValues(key) {
     }
     return MODEL_LOAD[key].values;
   }
-  if (MODEL_LOAD[key]) return MODEL_LOAD[key].values;
+  const prev = MODEL_LOAD[key];
+  if (prev && prev.state !== "failed") return prev.values;
+  if (prev) delete MODEL_LOAD[key]; // failed loads are never served from cache: re-attempt below
   MODEL_LOAD[key] = { state: "loading", values: null };
   try {
     const r = await fetch("models/" + key + ".json");
@@ -214,10 +233,12 @@ function updateTblModelNote() {
   if (CUR_MODEL === DATA.defaultModel) vnote = "values embedded in <code>data.json</code>";
   else if (!st) vnote = "loading values…";
   else if (st.state === "loading") vnote = "loading values from <code>models/" + esc(CUR_MODEL) + ".json</code>…";
-  else if (st.state === "failed") vnote = '<span class="tag unmapped">values unavailable</span> <span class="muted">(could not fetch <code>models/' + esc(CUR_MODEL) + '.json</code> — serve the site over HTTP, e.g. <code>make serve</code>)</span>';
+  else if (st.state === "failed") vnote = '<span class="tag unmapped">values unavailable</span> <span class="muted">(could not fetch <code>models/' + esc(CUR_MODEL) + '.json</code> — serve the site over HTTP, e.g. <code>make serve</code>)</span> <button id="model-retry" class="linkish">retry</button>';
   else vnote = "values from <code>models/" + esc(CUR_MODEL) + ".json</code> (lazy-loaded)";
   note.innerHTML = `Showing <b>${esc(m.cal_id)}</b> <span class="muted">(${esc(m.family)} · ${esc(m.file)})</span>`
     + ` — ${fmtNum(mapped)} mapped, <b>${fmtNum(unmatched)} not mapped</b> in this model · ${vnote}`;
+  const rb = document.getElementById("model-retry");
+  if (rb) rb.addEventListener("click", () => { retryModelLoad(); });
 }
 
 /* Reverse map (current model): model addr (int) -> first table row index. */
@@ -228,6 +249,18 @@ function modelReverse() {
     arr.forEach((e, i) => { if (e) { const k = parseInt(e[0], 16); if (!modelRevCache.has(k)) modelRevCache.set(k, i); } });
   }
   return modelRevCache;
+}
+
+async function retryModelLoad() {
+  const key = CUR_MODEL;
+  if (key === DATA.defaultModel) return;
+  delete MODEL_LOAD[key]; // drop the failed entry so the next load re-attempts the fetch
+  updateTblModelNote();
+  await loadModelValues(key);
+  if (CUR_MODEL !== key) return; // user switched again meanwhile
+  updateTblModelNote();
+  TblApply();
+  if (Tbl.sel !== null && Tbl.sel >= 0) TblDetail(Tbl.sel);
 }
 
 async function setModel(key) {
@@ -263,7 +296,14 @@ function mdInline(s) {
   s = s.replace(/`([^`]+)`/g, (m, c) => "<code>" + c + "</code>");
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
-  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, u) => {
+    // Allowlist href schemes: http/https, page fragments, and relative URLs.
+    // Anything with a non-http(s) scheme (javascript:, data:, vbscript:, …)
+    // is rendered as plain text instead of a link.
+    const ok = /^(https?:\/\/|#)/i.test(u) || !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(u);
+    if (!ok) return "[" + t + "](" + u + ")";
+    return '<a href="' + u + '" target="_blank" rel="noopener">' + t + "</a>";
+  });
   return s;
 }
 
@@ -377,6 +417,9 @@ const symIdx = new Map();       // addr -> symbol index
 const byAddr = new Map();       // addr -> symbol object
 let inEdges = [], outEdges = []; // per-index list of [otherIdx, kind]
 let indeg = [], outdeg = [];
+/* Lowercased search caches (built once in buildIndex so keystrokes don't
+ * re-lowercase thousands of names on every input event). */
+let symNameLower = [], tblNameLower = [], docSubLower = [], docFunLower = [];
 
 function buildIndex() {
   for (let i = 0; i < DATA.symbols.length; i++) {
@@ -391,19 +434,24 @@ function buildIndex() {
     outEdges[si].push([di, k]); indeg[di]++;
     inEdges[di].push([si, k]); outdeg[si]++;
   }
+  symNameLower = DATA.symbols.map((s) => (s.n || "").toLowerCase());
+  tblNameLower = DATA.tables.map((t) => (t.n || "").toLowerCase());
+  docSubLower = DATA.subsystems.map((d) => ((d.t || "") + " " + (d.f || "") + " " + (d.b || "")).toLowerCase());
+  docFunLower = DATA.docs.map((d) => ((d.t || "") + " " + (d.f || "") + " " + (d.b || "")).toLowerCase());
 }
 const totalDegree = (i) => indeg[i] + outdeg[i];
 
-/* Function containing an address (binary search on start addr, then range) */
+/* Function containing an address: adjacent ranges can overlap, so collect every
+ * candidate with start <= addr <= end and keep the tightest (smallest span). */
 function findContainingSymbol(addr) {
-  const s = DATA.symbols;
-  let lo = 0, hi = s.length - 1, ans = -1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (s[mid].a <= addr) { ans = mid; lo = mid + 1; } else hi = mid - 1;
+  let best = null, bestSpan = Infinity;
+  for (const sym of DATA.symbols) {
+    if (sym.a <= addr && addr <= sym.e) {
+      const span = sym.e - sym.a;
+      if (span < bestSpan) { bestSpan = span; best = sym; }
+    }
   }
-  if (ans >= 0 && addr < s[ans].e) return s[ans];
-  return null;
+  return best;
 }
 function findExactSymbol(addr) { return byAddr.get(addr) || null; }
 
@@ -418,7 +466,6 @@ function catColor(cat) {
   }
   return CAT_COLORS[cat];
 }
-const ROM_LABEL = { 1: "FC00", 2: "FC00-hand", 4: "E1D400-ida", 8: "E1D400" };
 function romTags(r) {
   const out = [];
   if (r & 3) out.push("FC00");
@@ -431,7 +478,7 @@ function renderSymRow(sym, i) {
   const cs = [fmtNum(indeg[i]), fmtNum(outdeg[i])];
   return `<tr data-i="${i}">
     <td class="addr">${hex(sym.a)}</td>
-    <td class="name">${esc(sym.n)}${sym.d ? ' <span class="tag doc">doc</span>' : ""}</td>
+    <td class="name">${esc(sym.n)}</td>
     <td class="cat">${catCellHtml(sym)}</td>
     <td><span class="tag">${romTags(sym.r)}</span></td>
     <td>${sym.d ? '<span class="tag doc">doc</span>' : ""}</td>
@@ -559,17 +606,17 @@ const SymBrowser = {
     const q = $("sym-search").value.trim().toLowerCase();
     const cat = $("sym-cat").value, rom = $("sym-rom").value, doc = $("sym-doc").value;
     const qHex = parseHex(q);
-    this.rows = DATA.symbols.map((s, i) => ({ s, i })).filter(({ s }) => {
+    this.rows = DATA.symbols.map((s, i) => ({ s, i })).filter(({ s, i }) => {
       if (cat && s.c !== cat) return false;
       if (rom === "F" && !(s.r & 3)) return false;
       if (rom === "E" && !(s.r & 12)) return false;
       if (rom === "FE" && !((s.r & 3) && (s.r & 12))) return false;
       if (doc === "1" && !s.d) return false;
       if (!q) return true;
-      if (s.n.toLowerCase().includes(q)) return true;
+      if ((symNameLower[i] || s.n.toLowerCase()).includes(q)) return true;
       if (s.a === qHex) return true;
-      const hs = hex6(s.a);
-      return hs.includes(q) || ("0x" + hs).includes(q) || hs.toLowerCase().includes(q.replace(/^0x/, ""));
+      const hs = hex6(s.a).toLowerCase();
+      return hs.includes(q) || ("0x" + hs).includes(q) || hs.includes(q.replace(/^0x/, ""));
     });
     this.page = 0;
     this.render();
@@ -587,12 +634,14 @@ const SymBrowser = {
   },
   showDetail(i) {
     $("sym-detail").innerHTML = detailSymbolHtml(i);
-    $("sym-detail").querySelector("[data-cg]").addEventListener("click", () => openCallgraph(i));
+    const cgBtn = $("sym-detail").querySelector("[data-cg]");
+    if (cgBtn) cgBtn.addEventListener("click", () => openCallgraph(i));
     try { history.pushState(null, "", "#sym-0x" + hex6(DATA.symbols[i].a)); } catch (e) { /* file:// ok */ }
   },
 };
 function wireSymbols() {
-  ["sym-search", "sym-cat", "sym-rom", "sym-doc"].forEach((id) =>
+  $("sym-search").addEventListener("input", debounce(() => SymBrowser.apply(), 200));
+  ["sym-cat", "sym-rom", "sym-doc"].forEach((id) =>
     $(id).addEventListener("input", () => SymBrowser.apply()));
   $("sym-prev").addEventListener("click", () => { SymBrowser.page--; SymBrowser.render(); });
   $("sym-next").addEventListener("click", () => { SymBrowser.page++; SymBrowser.render(); });
@@ -718,14 +767,16 @@ function layoutEgo() {
   }
   // start stepped simulation
   CG.simTick = 0;
+  CG.settled = false;
   runSim();
 }
 function runSim() {
   CG.running = true;
   if (CG.simTimer) clearTimeout(CG.simTimer);
+  CG.simMax = CG.nodes.length > 200 ? 220 : 380; // fewer ticks for large ego-graphs
   const step = () => {
-    for (let k = 0; k < 24 && CG.simTick < 380; k++) simStep();
-    if (CG.simTick >= 380) { CG.running = false; drawCG(); return; }
+    for (let k = 0; k < 24 && CG.simTick < CG.simMax && !CG.settled; k++) simStep();
+    if (CG.simTick >= CG.simMax || CG.settled) { CG.running = false; drawCG(); return; }
     drawCG();
     CG.simTimer = setTimeout(step, 8);
   };
@@ -736,6 +787,7 @@ function simStep() {
   const N = nodes.length;
   const pos = CG.pos, vel = CG.vel;
   const krep = 5200, kspring = 0.03, klev = 0.05, kc = 0.002, damping = 0.86;
+  let maxD = 0;
   const targetX = nodes.map((n, i) => CG.level[i] * 170);
   for (let i = 0; i < N; i++) {
     for (let j = i + 1; j < N; j++) {
@@ -765,10 +817,12 @@ function simStep() {
     if (CG.pinned.has(i)) continue;
     pos[i].x += vel[i].x;
     pos[i].y += vel[i].y;
+    maxD = Math.max(maxD, Math.abs(vel[i].x), Math.abs(vel[i].y));
     if (Math.abs(pos[i].x) > 2600) pos[i].x = pos[i].x > 0 ? 2600 : -2600;
     if (Math.abs(pos[i].y) > 2200) pos[i].y = pos[i].y > 0 ? 2200 : -2200;
   }
   CG.simTick++;
+  if (CG.simTick > 30 && maxD < 0.02) CG.settled = true; // epsilon early-exit
 }
 function nodeRadius(i) {
   const r = 3.2 + 4.2 * Math.log10(1 + CG.deg[i]);
@@ -778,11 +832,30 @@ function cssVar(name, fb) {
   try { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); return v || fb; }
   catch (e) { return fb; }
 }
+/* Theme colors / mono font are read from CSS once and cached: drawCG runs
+ * every animation frame, so per-node getComputedStyle calls are too costly. */
+let CG_COLORS = null, CG_MONO = null;
+function cgColors() {
+  if (!CG_COLORS) {
+    CG_COLORS = {
+      root: cssVar("--accent2", "#d29922"),
+      caller: cssVar("--accent", "#58a6ff"),
+      callee: cssVar("--green", "#7ee787"),
+      mixed: cssVar("--purple", "#bc8cff"),
+    };
+  }
+  return CG_COLORS;
+}
+function cgMono(cv) {
+  if (!CG_MONO) {
+    try { CG_MONO = getComputedStyle(cv).getPropertyValue("--mono").trim() || "monospace"; }
+    catch (e) { CG_MONO = "monospace"; }
+  }
+  return CG_MONO;
+}
 function nodeColor(role) {
-  if (role === "root") return cssVar("--accent2", "#d29922");
-  if (role === "caller") return cssVar("--accent", "#58a6ff");
-  if (role === "callee") return cssVar("--green", "#7ee787");
-  return cssVar("--purple", "#bc8cff");
+  const c = cgColors();
+  return c[role] || c.mixed;
 }
 function drawCG() {
   const cv = $("cg-canvas");
@@ -807,6 +880,7 @@ function drawCG() {
   g.setLineDash([]);
   // nodes
   const fontBase = 10 / Math.max(s, 0.35);
+  const mono = cgMono(cv);
   for (let i = 0; i < CG.nodes.length; i++) {
     const r = nodeRadius(i);
     const x = sx(CG.pos[i]), y = sy(CG.pos[i]);
@@ -823,7 +897,6 @@ function drawCG() {
       if (s2 && !/^FUN_[0-9a-f]+$/.test(s2.n)) {
         let label = s2.n;
         if (label.length > 16) label = label.slice(0, 15) + "…";
-        const mono = getComputedStyle(cv).getPropertyValue("--mono") || "monospace";
         g.font = "10px " + mono;
         g.fillStyle = "rgba(230,237,243,0.85)";
         g.textAlign = "center";
@@ -835,7 +908,7 @@ function drawCG() {
     g.fillStyle = "rgba(139,148,158,0.8)";
     g.font = "11px monospace";
     g.textAlign = "left";
-    g.fillText("layout in progress… (" + CG.simTick + "/380)", 10, 18);
+    g.fillText("layout in progress… (" + CG.simTick + "/" + (CG.simMax || 380) + ")", 10, 18);
   }
 }
 function cgNodeAt(mx, my) {
@@ -855,7 +928,7 @@ function cgDetail(i) {
   const role = CG.role[i];
   const callers = inEdges[n].filter(([o, k]) => cgEdgeOk(k)).slice(0, 40);
   const callees = outEdges[n].filter(([o, k]) => cgEdgeOk(k)).slice(0, 40);
-  const row = (o, k) => `<tr><td class="k">${k === "b" ? "bsr" : "ref"}</td><td>${hex(DATA.symbols[o].a)}</td><td class="name">${esc(DATA.symbols[o].n)}</td></tr>`;
+  const row = (o, k) => `<tr><td class="k">${k === "b" ? "bsr" : "ref"}</td><td>${hex(DATA.symbols[o].a)}</td><td class="name" data-sym="${o}">${esc(DATA.symbols[o].n)}</td></tr>`;
   $("cg-detail").innerHTML = `
     <h4>${esc(s.n)}</h4>
     <div class="kv-list">
@@ -914,28 +987,41 @@ function wireCallgraph() {
       cv.classList.add("dragging");
     }
   });
-  window.addEventListener("mousemove", (ev) => {
+  let cgMouse = null, cgMouseQueued = false;
+  cv.addEventListener("mousemove", (ev) => {
     const rect = cv.getBoundingClientRect();
-    const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
-    if (CG.dragging !== null && CG.dragging >= 0) {
-      CG.pos[CG.dragging].x = (mx - CG.view.x) / CG.view.s;
-      CG.pos[CG.dragging].y = (my - CG.view.y) / CG.view.s;
-      drawCG(); return;
-    }
-    if (pan) {
-      CG.view.x = pan.vx + (ev.clientX - pan.x);
-      CG.view.y = pan.vy + (ev.clientY - pan.y);
-      drawCG(); return;
-    }
-    const i = cgNodeAt(mx, my);
-    if (i !== CG.hover) { CG.hover = i; drawCG(); }
-    const tip = $("cg-tip");
-    if (i >= 0) {
-      const s = DATA.symbols[CG.nodes[i]];
-      tip.textContent = `${s.n} · ${hex(s.a)}`;
-      tip.style.left = (mx + 12) + "px"; tip.style.top = (my + 12) + "px";
-      tip.classList.remove("hidden");
-    } else tip.classList.add("hidden");
+    cgMouse = { x: ev.clientX, y: ev.clientY, mx: ev.clientX - rect.left, my: ev.clientY - rect.top };
+    if (cgMouseQueued) return;
+    cgMouseQueued = true;
+    requestAnimationFrame(() => {
+      cgMouseQueued = false;
+      const m = cgMouse;
+      if (!m) return;
+      const mx = m.mx, my = m.my;
+      if (CG.dragging !== null && CG.dragging >= 0) {
+        CG.pos[CG.dragging].x = (mx - CG.view.x) / CG.view.s;
+        CG.pos[CG.dragging].y = (my - CG.view.y) / CG.view.s;
+        drawCG(); return;
+      }
+      if (pan) {
+        CG.view.x = pan.vx + (m.x - pan.x);
+        CG.view.y = pan.vy + (m.y - pan.y);
+        drawCG(); return;
+      }
+      const i = cgNodeAt(mx, my);
+      if (i !== CG.hover) { CG.hover = i; drawCG(); }
+      const tip = $("cg-tip");
+      if (i >= 0) {
+        const s = DATA.symbols[CG.nodes[i]];
+        tip.textContent = `${s.n} · ${hex(s.a)}`;
+        tip.style.left = (mx + 12) + "px"; tip.style.top = (my + 12) + "px";
+        tip.classList.remove("hidden");
+      } else tip.classList.add("hidden");
+    });
+  });
+  cv.addEventListener("mouseleave", () => {
+    const tip = document.getElementById("cg-tip");
+    if (tip) tip.classList.add("hidden");
   });
   window.addEventListener("mouseup", () => {
     pan = null; CG.dragging = null; cv.classList.remove("dragging");
@@ -981,7 +1067,7 @@ function wireCallgraph() {
     items = [];
     for (let i = 0; i < DATA.symbols.length && items.length < 14; i++) {
       const s = DATA.symbols[i];
-      if (s.n.toLowerCase().includes(q) || (qHex !== null && (s.a === qHex || hex6(s.a).includes(q.replace(/^0x/, "").toLowerCase())))) {
+      if (s.n.toLowerCase().includes(q) || (qHex !== null && (s.a === qHex || hex6(s.a).toLowerCase().includes(q.replace(/^0x/, ""))))) {
         items.push(i);
       }
     }
@@ -1024,12 +1110,13 @@ function wireCallgraph() {
   });
   $("cg-ref").addEventListener("change", () => { CG.showRef = $("cg-ref").checked; if (CG.root !== null) buildAndLayout(); });
   $("cg-bsr").addEventListener("change", () => { CG.showBsr = $("cg-bsr").checked; if (CG.root !== null) buildAndLayout(); });
-  // click on rows in the detail lists -> navigate
+  // click on rows in the detail lists -> navigate (symbol index in data-sym:
+  // names are not unique, so name-equality lookup would pick the wrong node)
   $("cg-detail").addEventListener("click", (ev) => {
     const td = ev.target.closest("td.name");
-    if (!td) return;
-    const i = CG.nodes.findIndex((n) => DATA.symbols[n].n === td.textContent.trim());
-    if (i >= 0) { CG.root = CG.nodes[i]; buildAndLayout(); }
+    if (!td || td.dataset.sym === undefined) return;
+    const si = parseInt(td.dataset.sym, 10);
+    if (!isNaN(si) && DATA.symbols[si]) { CG.root = si; buildAndLayout(); }
   });
 }
 
@@ -1054,6 +1141,11 @@ function TblApply() {
   const q = $("tbl-search").value.trim().toLowerCase();
   const cat = $("tbl-cat").value, typ = $("tbl-type").value, role = $("tbl-role").value;
   const qHex = parseHex(q);
+  // While per-model values are still loading, the type filter cannot be
+  // evaluated (modelVal returns null -> "noval" for every row): skip it so
+  // the list is not emptied, and flag the loading state in the count line.
+  const typePending = !!typ && CUR_MODEL !== DATA.defaultModel &&
+    (!MODEL_LOAD[CUR_MODEL] || MODEL_LOAD[CUR_MODEL].state === "loading");
   Tbl.rows = DATA.tables.map((t, i) => ({ t, i })).filter(({ t, i }) => {
     if (role === "t" && t.role !== "t") return false;
     if (role === "x" && t.role !== "x") return false;
@@ -1061,16 +1153,18 @@ function TblApply() {
     if (cat && t.c !== cat) return false;
     // type filter follows the CURRENT model's values (fallback: baseline when
     // the model values are not loaded yet)
-    const vk = valTypeKey(modelVal(i));
-    if (typ === "grid" && vk !== "grid") return false;
-    if (typ === "vals" && vk !== "vals") return false;
-    if (typ === "scalar" && vk !== "scalar") return false;
-    if (typ === "axis" && vk !== "axis") return false;
-    if (typ === "noval" && vk !== "noval") return false;
+    if (!typePending) {
+      const vk = valTypeKey(modelVal(i));
+      if (typ === "grid" && vk !== "grid") return false;
+      if (typ === "vals" && vk !== "vals") return false;
+      if (typ === "scalar" && vk !== "scalar") return false;
+      if (typ === "axis" && vk !== "axis") return false;
+      if (typ === "noval" && vk !== "noval") return false;
+    }
     if (!q) return true;
-    if (t.n.toLowerCase().includes(q)) return true;
+    if ((tblNameLower[i] || t.n.toLowerCase()).includes(q)) return true;
     if (t.a === qHex) return true;
-    const hs = hex6(t.a);
+    const hs = hex6(t.a).toLowerCase();
     if (hs.includes(q) || ("0x" + hs).includes(q)) return true;
     if (t.role !== "t" && t.tbl && t.tbl.toLowerCase().includes(q)) return true;
     return false;
@@ -1107,7 +1201,9 @@ function TblRender() {
       <td>${mapCell}</td>
       <td>${valCell}</td></tr>`;
   }).join("") || `<tr><td colspan="8" class="muted">No matches</td></tr>`;
-  $("tbl-count").textContent = `${fmtNum(n)} entries · page ${Tbl.page + 1}/${pages}`;
+  $("tbl-count").textContent = `${fmtNum(n)} entries · page ${Tbl.page + 1}/${pages}` +
+    (CUR_MODEL !== DATA.defaultModel && (!MODEL_LOAD[CUR_MODEL] || MODEL_LOAD[CUR_MODEL].state === "loading")
+      ? " · loading model values…" : "");
   $("tbl-prev").disabled = Tbl.page <= 0;
   $("tbl-next").disabled = Tbl.page >= pages - 1;
 }
@@ -1135,7 +1231,7 @@ function TblDetail(rid) {
     return;
   }
   if (t.role !== "t") {
-    html += `<div>Group tables</div><div>${hex(t.tbladdr !== null && t.tbladdr !== undefined ? t.tbladdr : 0)}</div>`;
+    html += `<div>Group tables</div><div>${t.tbladdr !== null && t.tbladdr !== undefined ? hex(t.tbladdr) : "—"}</div>`;
     if (mv && mv.ax) html += `<div>f32 axis (n=${mv.ax.length})</div><div>${mv.ax.map((v) => fmtNum(v, 2)).join(", ")}</div>`;
     else if (!mv) html += `<div>Axis values</div><div><span class="muted">not extracted for this model${CUR_MODEL !== DATA.defaultModel ? " (load failed?)" : ""}</span></div>`;
     html += `</div>`;
@@ -1176,14 +1272,15 @@ function TblDetail(rid) {
     if (!t0.grid && !t0.vals) { viz2.innerHTML = ""; }
     else {
       viz2.innerHTML = `<div class="kv-list"><div>${t0.kind === "2D" ? "X axis" : "Axis"}</div><div>${t0.ax.map((v) => fmtNum(v, 2)).join(", ")}</div></div>`;
-      if (t0.kind === "2D")
+      if (t0.kind === "2D" && t0.ay)
         viz2.innerHTML += `<div class="kv-list" style="margin-top:6px"><div>Y axis</div><div>${t0.ay.map((v) => fmtNum(v, 2)).join(", ")}</div></div>`;
     }
   }
   try { history.pushState(null, "", "#tbl-0x" + hex6(t.a)); } catch (e) { /* file:// ok */ }
 }
 function wireTables() {
-  ["tbl-search", "tbl-cat", "tbl-type", "tbl-role"].forEach((id) =>
+  $("tbl-search").addEventListener("input", debounce(() => TblApply(), 200));
+  ["tbl-cat", "tbl-type", "tbl-role"].forEach((id) =>
     $(id).addEventListener("input", () => TblApply()));
   $("tbl-prev").addEventListener("click", () => { Tbl.page--; TblRender(); });
   $("tbl-next").addEventListener("click", () => { Tbl.page++; TblRender(); });
@@ -1214,17 +1311,17 @@ const DocView = {
     DATA.symbols.forEach((s, i) => { if (s.di !== undefined && symOfDoc[s.di] === undefined) symOfDoc[s.di] = i; });
     this.rows = [];
     DATA.subsystems.forEach((d, i) => {
-      this.rows.push({ type: "sub", t: d.t, f: d.f, b: d.b, symI: -1 });
+      this.rows.push({ type: "sub", t: d.t, f: d.f, b: d.b, symI: -1, low: docSubLower[i] });
     });
     DATA.docs.forEach((d, i) => {
-      this.rows.push({ type: "fun", t: d.t, f: d.f, b: d.b, a: d.a, symI: symOfDoc[i] !== undefined ? symOfDoc[i] : -1 });
+      this.rows.push({ type: "fun", t: d.t, f: d.f, b: d.b, a: d.a, symI: symOfDoc[i] !== undefined ? symOfDoc[i] : -1, low: docFunLower[i] });
     });
     this.rows = this.rows.filter((r) => {
       if (grp === "fun" && (r.type !== "fun" || r.symI < 0)) return false;
       if (grp === "unatt" && (r.type !== "fun" || r.symI >= 0)) return false;
       if (grp === "sub" && r.type !== "sub") return false;
       if (!q) return true;
-      return (r.t + " " + r.f + " " + r.b).toLowerCase().includes(q);
+      return (r.low || (r.t + " " + r.f + " " + r.b).toLowerCase()).includes(q);
     });
     this.render();
   },
@@ -1299,14 +1396,24 @@ const DocView = {
 };
 function openSymFromDoc(i) {
   document.querySelector("#tabs button[data-tab=symbols]").click();
+  // Clear filters and jump to the row's page so the selection is visible
+  // even when the browser is currently filtered or paginated elsewhere.
+  $("sym-search").value = "";
+  $("sym-cat").value = ""; $("sym-rom").value = ""; $("sym-doc").value = "";
+  SymBrowser.apply();
+  const pos = SymBrowser.rows.findIndex((r) => r.i === i);
+  if (pos >= 0) {
+    SymBrowser.page = Math.floor(pos / SymBrowser.perPage);
+    SymBrowser.render();
+  }
   document.querySelectorAll("#sym-tbody tr.sel").forEach((x) => x.classList.remove("sel"));
   const tr = Array.from(document.querySelectorAll("#sym-tbody tr[data-i]")).find((t) => +t.dataset.i === i);
   if (tr) { tr.classList.add("sel"); tr.scrollIntoView({ block: "center" }); }
   SymBrowser.showDetail(i);
 }
 function wireDocs() {
-  ["doc-search", "doc-group"].forEach((id) =>
-    $(id).addEventListener("input", () => DocView.apply()));
+  $("doc-search").addEventListener("input", debounce(() => DocView.apply(), 200));
+  $("doc-group").addEventListener("input", () => DocView.apply());
   $("doc-list").addEventListener("click", (ev) => {
     const it = ev.target.closest(".doc-item");
     if (it) DocView.select(parseInt(it.dataset.k, 10));
@@ -1337,18 +1444,30 @@ function heatColor(t) {
   const i = Math.floor(t), f = t - i, a = INFERNO[i], b = INFERNO[Math.min(i + 1, INFERNO.length - 1)];
   return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
 }
+/* Canvas with device-pixel-ratio scaling (same approach as the callgraph). */
+function makeCanvas(W, H) {
+  const dpr = window.devicePixelRatio || 1;
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [cv, g];
+}
 function drawHeatmap(host, t0) {
   const cx = t0.cx, cy = t0.cy, grid = t0.grid;
-  const vals = grid.filter((v) => v !== null && v !== undefined);
+  const vals = (grid || []).filter((v) => v !== null && v !== undefined);
+  if (!cx || !cy || !vals.length) {
+    host.innerHTML = '<div class="muted">no numeric values</div>';
+    return;
+  }
   let min = Math.min(...vals), max = Math.max(...vals);
   if (min === max) { min -= 1; max += 1; }
   const cell = Math.max(10, Math.min(34, Math.floor(880 / cx)));
   const m = { t: 34, l: 56, b: 40, r: 16 };
   const W = m.l + cx * cell + m.r, H = m.t + cy * cell + m.b;
-  const cv = document.createElement("canvas");
-  cv.width = W; cv.height = H;
+  const [cv, g] = makeCanvas(W, H);
   host.appendChild(cv);
-  const g = cv.getContext("2d");
   g.fillStyle = "#0d1117"; g.fillRect(0, 0, W, H);
   for (let j = 0; j < cy; j++) {
     for (let i = 0; i < cx; i++) {
@@ -1412,19 +1531,22 @@ function drawHeatmap(host, t0) {
   cv.addEventListener("mouseleave", () => tip.classList.add("hidden"));
 }
 function draw1D(host, t0) {
-  const vals = t0.vals, ax = t0.ax;
+  const vals = t0.vals || [], ax = t0.ax || [];
+  const nums = vals.filter((v) => v !== null && v !== undefined);
+  if (!ax.length || !nums.length) {
+    host.innerHTML = '<div class="muted">no numeric values</div>';
+    return;
+  }
   const W = Math.max(420, ax.length * 34), H = 220;
   const m = { t: 26, l: 58, b: 34, r: 16 };
-  const cv = document.createElement("canvas");
-  cv.width = W; cv.height = H;
+  const [cv, g] = makeCanvas(W, H);
   host.appendChild(cv);
-  const g = cv.getContext("2d");
-  g.fillStyle = "#0d1117"; g.fillRect(0, 0, W, H);
-  let min = Math.min(...vals.filter((v) => v !== null)), max = Math.max(...vals.filter((v) => v !== null));
+  let min = Math.min(...nums), max = Math.max(...nums);
   if (min === max) { min -= 1; max += 1; }
+  g.fillStyle = "#0d1117"; g.fillRect(0, 0, W, H);
   const iw = (W - m.l - m.r) / ax.length;
   vals.forEach((v, i) => {
-    if (v === null) return;
+    if (v === null || v === undefined) return;
     const x = m.l + i * iw, h = (v - min) / (max - min) * (H - m.t - m.b);
     g.fillStyle = heatColor((v - min) / (max - min));
     g.fillRect(x + 1, H - m.b - h, iw - 2, h);
@@ -1444,13 +1566,16 @@ function draw1D(host, t0) {
   host.appendChild(lg);
 }
 function drawAxis(host, ax, name) {
+  if (!ax || !ax.length) {
+    host.innerHTML = '<div class="muted">no numeric values</div>';
+    return;
+  }
   const W = Math.max(420, ax.length * 30), H = 120;
-  const cv = document.createElement("canvas");
-  cv.width = W; cv.height = H;
+  const [cv, g] = makeCanvas(W, H);
   host.appendChild(cv);
-  const g = cv.getContext("2d");
-  g.fillStyle = "#0d1117"; g.fillRect(0, 0, W, H);
   let min = ax[0], max = ax[ax.length - 1];
+  if (min === max) { min -= 1; max += 1; }
+  g.fillStyle = "#0d1117"; g.fillRect(0, 0, W, H);
   const m = { t: 18, l: 58, b: 28, r: 16 };
   const iw = (W - m.l - m.r) / ax.length;
   g.strokeStyle = "#7ee787"; g.lineWidth = 1.5;
@@ -1475,7 +1600,7 @@ function wireLookup() {
   const run = () => {
     const a = parseHex($("lk-input").value);
     const out = $("lk-result");
-    if (a === null || a < 0 || a > 0x7FFFF) {
+    if (a === null || a < 0 || a > 0xFFFFFFFF) {
       out.innerHTML = `<div class="card"><p class="muted">Enter a valid hex address (e.g. <code>0x6cf6c</code>, <code>9fc</code>, <code>0x2000</code>).</p></div>`;
       return;
     }
@@ -1513,14 +1638,18 @@ function wireLookup() {
     if (exact.length) {
       exact.forEach(tableLine);
     } else {
-      // nearest
-      const near = DATA.tables.slice()
-        .map((t) => ({ t, d: Math.abs(t.a - a) }))
-        .sort((x, y) => x.d - y.d).slice(0, 5);
+      // nearest: distance is computed on the CURRENT model's mapped address
+      // when a model is active, otherwise on the baseline address.
+      const useMapped = CUR_MODEL !== DATA.defaultModel;
+      const near = DATA.tables.map((t, i) => {
+        const mm = modelMap(i);
+        const addr = (useMapped && mm) ? mm.a : t.a;
+        return { t, d: Math.abs(addr - a), addr };
+      }).sort((x, y) => x.d - y.d).slice(0, 5);
       html += `<p class="muted">No table entry at this exact address. Nearest entries:</p><table class="data-table"><thead><tr><th>Distance</th><th>Baseline addr</th><th>Model addr (${esc(m ? m.cal_id : CUR_MODEL)})</th><th>Name</th><th>Role</th><th>Map</th></tr></thead><tbody>` +
-        near.map(({ t, d }) => {
+        near.map(({ t, d, addr }) => {
           const mm = modelMap(DATA.tables.indexOf(t));
-          return `<tr><td class="addr">${hex(t.a)} (Δ${d})</td><td class="addr">${hex(t.a)}</td>` +
+          return `<tr><td class="addr">${hex(addr)} (Δ${d})</td><td class="addr">${hex(t.a)}</td>` +
             (mm ? `<td class="addr">${hex(mm.a)}</td>` : `<td class="muted">—</td>`) +
             `<td class="name">${esc(t.n)}</td><td>${t.role}</td><td>${mm ? confBadge(mm.c) : `<span class="tag unmapped">not mapped</span>`}</td></tr>`;
         }).join("") + `</tbody></table>`;
@@ -1613,6 +1742,13 @@ async function init() {
 
 init().catch((e) => {
   console.error(e);
-  $("boot-msg").textContent = "";
-  $("boot-err").classList.remove("hidden");
+  const sp = document.querySelector("#boot .spinner") || document.querySelector(".spinner");
+  if (sp) sp.classList.add("hidden");
+  const bm = document.getElementById("boot-msg");
+  if (bm) bm.textContent = "";
+  const be = document.getElementById("boot-err");
+  if (be) {
+    be.classList.remove("hidden");
+    be.setAttribute("role", "alert");
+  }
 });
