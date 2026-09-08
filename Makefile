@@ -21,7 +21,7 @@
 #   make src        annotated source (60E1D400, equinox+IDA names) -> src/
 #   make c-test     behavior-equivalence tests (host compiler; alias of c-test-c)
 #   make c-test-c   behavior-equivalence tests (host compiler, 26 C suites)
-#   make c-test-py  differential Python subset for the default gate (5 suites)
+#   make c-test-py  differential Python subset for the default gate (6 suites)
 #   make c-test-py-full  full non-caller differential battery (~1757 suites, parallel)
 #   make c-emu      emulator cross-checks (c/tests/verify_emu.py)
 #   make ROM=roms/stock/<id>.bin verify   # any image in the dataset

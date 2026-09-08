@@ -47,16 +47,16 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": -2048,
   "table_map": {
-   "mapped": 1209,
+   "mapped": 1208,
    "unmatched": 1,
    "methods": {
     "content_match": 845,
-    "family_shift": 364
+    "family_shift": 363
    },
    "confidence": {
     "high": 845,
     "medium": 232,
-    "low": 132
+    "low": 131
    }
   }
  },
@@ -78,14 +78,14 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": -2048,
   "table_map": {
-   "mapped": 1209,
+   "mapped": 1208,
    "unmatched": 1,
    "methods": {
-    "content_match": 947,
+    "content_match": 946,
     "family_shift": 262
    },
    "confidence": {
-    "high": 947,
+    "high": 946,
     "medium": 178,
     "low": 84
    }
@@ -109,15 +109,15 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": 1280,
   "table_map": {
-   "mapped": 1210,
+   "mapped": 1209,
    "unmatched": 0,
    "methods": {
-    "content_match": 762,
+    "content_match": 761,
     "family_shift": 447,
     "hole": 1
    },
    "confidence": {
-    "high": 762,
+    "high": 761,
     "medium": 144,
     "low": 304
    }
@@ -141,15 +141,15 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": 1280,
   "table_map": {
-   "mapped": 1210,
+   "mapped": 1209,
    "unmatched": 0,
    "methods": {
-    "content_match": 764,
+    "content_match": 763,
     "family_shift": 445,
     "hole": 1
    },
    "confidence": {
-    "high": 764,
+    "high": 763,
     "medium": 141,
     "low": 305
    }
@@ -173,15 +173,15 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": 1280,
   "table_map": {
-   "mapped": 1210,
+   "mapped": 1209,
    "unmatched": 0,
    "methods": {
-    "content_match": 764,
+    "content_match": 763,
     "family_shift": 445,
     "hole": 1
    },
    "confidence": {
-    "high": 764,
+    "high": 763,
     "medium": 141,
     "low": 305
    }
@@ -205,16 +205,16 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": -2048,
   "table_map": {
-   "mapped": 1209,
+   "mapped": 1208,
    "unmatched": 1,
    "methods": {
     "content_match": 723,
-    "family_shift": 486
+    "family_shift": 485
    },
    "confidence": {
     "high": 723,
     "medium": 265,
-    "low": 221
+    "low": 220
    }
   }
  },
@@ -236,14 +236,14 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": -3584,
   "table_map": {
-   "mapped": 1209,
+   "mapped": 1208,
    "unmatched": 1,
    "methods": {
-    "content_match": 799,
+    "content_match": 798,
     "family_shift": 410
    },
    "confidence": {
-    "high": 799,
+    "high": 798,
     "medium": 207,
     "low": 203
    }
@@ -267,15 +267,15 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": 18176,
   "table_map": {
-   "mapped": 1194,
+   "mapped": 1193,
    "unmatched": 16,
    "methods": {
-    "content_match": 401,
+    "content_match": 400,
     "family_shift": 792,
     "hole": 1
    },
    "confidence": {
-    "high": 401,
+    "high": 400,
     "low": 777,
     "medium": 16
    }
