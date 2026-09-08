@@ -43,8 +43,10 @@ push.
 
 - `Makefile` — build / serve / clean / check
 - `data/` — REQUIRED INPUTS (committed, NOT gitignored): `roms_meta.json` (9 stock
-  ROM models), `table_addr_map.csv` (wide, 1209 rows), `table_addr_map_long.csv`
-  (long, 1209 x 9 = 10881 rows), `MAPPING_NOTES.md` (methodology, EN of IT notes)
+  ROM models), `table_addr_map_long.csv` (long, 1209 x 9 = 10881 rows),
+  `MAPPING_NOTES.md` (methodology, EN of IT notes). `table_addr_map.csv`
+  (wide, 1209 rows) is reference/legacy only — not consumed by the builder
+  (the builder joins per-ROM rows from the long map on `baseline_addr`).
 - `src/` — `index.template.html` + `app.js` + `style.css`
 - `build_site.py` — THE builder: dataset + site assembly (+ optional `--serve`)
 - `dist/` — generated output (git-ignored, `.gitignore` ignores `dist/` only); edit
@@ -104,7 +106,7 @@ Tables**. `#doc-<filename>` opens **Documentation**.
   symbols; 962 nodes non-FUN, 911 hand) and **60E1D400** (baseline IDA).
 - **Calibration tables** → `cal_tables.csv` labeled `60E1D400` (RE baseline). The
   addresses match 1:1 the verified map descriptors in `roms/stock/60E1D400.bin`; all
-  499 find the RX8Defs name by pointer. Values are *physical* (`raw × scale + offset`
+  497 find the RX8Defs name by pointer. Values are *physical* (`raw × scale + offset`
   per Map1D/Map2D in `c/2DLookup.c` / `c/3dLookup.c`); axes monotonic `f32`. The
   cross-ROM methodology is in [`data/MAPPING_NOTES.md`](data/MAPPING_NOTES.md):
   **content-identity + per-table drift, not global shift**. Highest confidence is
@@ -131,6 +133,6 @@ Tables**. `#doc-<filename>` opens **Documentation**.
 - The ego-graph caps at ~320 nodes. Category assignment is a name-keyword heuristic.
   The markdown renderer is **minimal** (no images, no footnotes, no task lists, no
   syntax highlighting).
-- 6 `.md` files do not match a symbol: case-duplicates, consolidated
+- 3 `.md` files do not match a symbol: case-duplicates, consolidated
   `dtc_management`, missing `security_access_handler` address, conflicting
   `mod32_signed`/`div32_signed`. All these appear in **Documentation**.

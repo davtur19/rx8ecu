@@ -121,9 +121,14 @@ def need(path, label):
 # 1. Symbols: union of the 4 CSV files, with name priority and ROM tags
 # --------------------------------------------------------------------------
 # ROM bitmask: 1 = 60E0FC00.csv, 2 = 60E0FC00_ghidra.csv, 4 = 60E1D400_ida.csv, 8 = 60E1D400_merged.csv
+# Priority 5 (top): symbols/FUNCTION_CATEGORIES.csv names (curated checkpoint,
+# provenance: symbols/FUNCTION_RENAMES.csv). FC carries the newer renames, so
+# its NAME wins over the 4-CSV union; category is applied separately in
+# build_dataset() via load_categories().
 def load_symbols():
     by_addr = {}
     order = []
+    invalid = 0
 
     def put(addr, name, src, rombit, end=None, priority=0):
         if addr in by_addr:
@@ -147,6 +152,8 @@ def load_symbols():
             try:
                 a = int(r["addr"], 16)
             except Exception:
+                invalid += 1
+                warn("invalid symbol address in %s: %r" % (p, r.get("addr")))
                 continue
             end = None
             try:
@@ -166,6 +173,8 @@ def load_symbols():
             try:
                 a = int(r["addr"], 16)
             except Exception:
+                invalid += 1
+                warn("invalid symbol address in %s: %r" % (p, r.get("addr")))
                 continue
             put(a, r["name"], r.get("source", "ghidra-hand"), 2, priority=3)
     else:
@@ -178,6 +187,8 @@ def load_symbols():
             try:
                 a = int(r["addr"], 16)
             except Exception:
+                invalid += 1
+                warn("invalid symbol address in %s: %r" % (p, r.get("addr")))
                 continue
             end = None
             try:
@@ -195,6 +206,8 @@ def load_symbols():
             try:
                 a = int(r["addr"], 16)
             except Exception:
+                invalid += 1
+                warn("invalid symbol address in %s: %r" % (p, r.get("addr")))
                 continue
             end = None
             try:
@@ -205,7 +218,32 @@ def load_symbols():
     else:
         warn("missing " + p)
 
-    return by_addr, order
+    # FUNCTION_CATEGORIES.csv names — priority 5 (curated checkpoint, top).
+    # H1: FC carries the newer renames (FUNCTION_RENAMES.csv provenance), so
+    # its NAME wins over the 4-CSV union. Fallbacks above are kept for addrs
+    # with no FC entry (e.g. callgraph-only placeholders).
+    p = os.path.join(SYM, "FUNCTION_CATEGORIES.csv")
+    if os.path.exists(p):
+        try:
+            fc_rows = list(csv.DictReader(open(p, encoding="utf-8-sig", errors="replace")))
+        except Exception as ex:
+            warn("unreadable %s: %s" % (p, ex))
+            fc_rows = []
+        for r in fc_rows:
+            try:
+                a = int((r.get("addr") or "").strip(), 16)
+            except Exception:
+                invalid += 1
+                warn("invalid FC address in %s: %r" % (p, r.get("addr")))
+                continue
+            name = (r.get("name") or "").strip()
+            if not name:
+                continue
+            put(a, name, "FUNCTION_CATEGORIES", 0, priority=5)
+    else:
+        warn("missing " + p)
+
+    return by_addr, order, invalid
 
 
 # --------------------------------------------------------------------------
@@ -385,23 +423,34 @@ def table_category(name):
 # 4. Callgraph
 # --------------------------------------------------------------------------
 def load_edges():
-    p = os.path.join(SYM, "callgraph.csv")
-    if not os.path.exists(p):
-        warn("missing " + p)
-        return []
+    # B5: fail-closed like the other core inputs — a missing callgraph must
+    # abort the build, not ship a 0-edge site.
+    p = need(os.path.join(SYM, "callgraph.csv"), "callgraph")
     out = []
     seen = set()
+    invalid = 0
     for r in csv.DictReader(open(p, encoding="utf-8", errors="replace")):
         try:
             ca, ka = int(r["caller_addr"], 16), int(r["callee_addr"], 16)
         except Exception:
+            invalid += 1
+            warn("invalid edge address in %s: %r -> %r" % (p, r.get("caller_addr"), r.get("callee_addr")))
             continue
-        kind = "b" if r.get("kind", "ref").strip() == "bsr" else "r"
+        raw_kind = (r.get("kind", "ref") or "ref").strip()
+        if raw_kind == "bsr":
+            kind = "b"
+        elif raw_kind == "ref":
+            kind = "r"
+        else:
+            # B8: never coerce an unknown kind silently — warn and skip.
+            invalid += 1
+            warn("unknown edge kind in %s: %r (%s -> %s)" % (p, raw_kind, r.get("caller_addr"), r.get("callee_addr")))
+            continue
         if (ca, ka, kind) in seen:
             continue
         seen.add((ca, ka, kind))
         out.append((ca, ka, kind))
-    return out
+    return out, invalid
 
 
 # --------------------------------------------------------------------------
@@ -802,10 +851,10 @@ def build_dataset():
     need(ROM_CAL, "baseline ROM")
     need(ROMS_META, "firmware-model metadata")
     need(ADDR_MAP_LONG, "per-ROM address map")
-    by_addr, order = load_symbols()
+    by_addr, order, symbols_invalid = load_symbols()
     docs, doc_exact, doc_norm, doc_addr = load_docs()
     subsystems = load_subsystems()
-    edges = load_edges()
+    edges, edges_invalid = load_edges()
     cat_by_name, cat_by_addr = load_categories()
     d = load_rom(ROM_CAL)
     if d is None:
@@ -944,6 +993,7 @@ def build_dataset():
                 "symbols/callgraph.csv", "symbols/cal_tables.csv",
                 "symbols/symbols_60E0FC00.csv", "symbols/symbols_60E0FC00_ghidra.csv",
                 "symbols/symbols_60E1D400_ida.csv", "symbols/symbols_60E1D400_merged.csv",
+                "symbols/FUNCTION_CATEGORIES.csv",
                 "roms/stock/60E1D400.bin", "roms/stock/*.bin",
                 "docs/functions/*.md", "docs/subsystems/*.md",
                 "web/explorer/data/roms_meta.json",
@@ -954,6 +1004,8 @@ def build_dataset():
                 "edges": len(edge_out),
                 "edges_bsr": sum(1 for e in edge_out if e[2] == "b"),
                 "edges_ref": sum(1 for e in edge_out if e[2] == "r"),
+                "symbols_invalid": symbols_invalid,
+                "edges_invalid": edges_invalid,
                 "tables_rows": len(tables),
                 "tables": sum(1 for t in tables if t["role"] == "t"),
                 "tables_axes": sum(1 for t in tables if t["role"] != "t"),
@@ -1018,6 +1070,9 @@ def render_html(data):
         html = f.read()
     html = html.replace("__GENERATOR__", GENERATOR)
     html = html.replace("__BUILD_STATS__", build_stats(data))
+    # B1: the role-filter count is emitted from the build (tables_rows), never
+    # a hardcoded literal that can drift (1210 vs 1209).
+    html = html.replace("__TABLES_COUNT__", str(data["meta"]["counts"]["tables_rows"]))
     return html
 
 
@@ -1031,7 +1086,11 @@ def sha256_file(path):
 
 
 def manifest_inputs():
-    """Required + best-effort input files fingerprinted for build_manifest.json."""
+    """Required + best-effort input files fingerprinted for build_manifest.json.
+    H2: includes FUNCTION_CATEGORIES.csv (names + categories drive the build
+    at load_symbols/load_categories) and every docs/functions + docs/subsystems
+    file (content is embedded in data.json). Sorted per-file SHA-256 so touching
+    one doc changes the manifest."""
     paths = [
         os.path.join(SYM, "callgraph.csv"),
         os.path.join(SYM, "cal_tables.csv"),
@@ -1039,6 +1098,7 @@ def manifest_inputs():
         os.path.join(SYM, "symbols_60E0FC00_ghidra.csv"),
         os.path.join(SYM, "symbols_60E1D400_ida.csv"),
         os.path.join(SYM, "symbols_60E1D400_merged.csv"),
+        os.path.join(SYM, "FUNCTION_CATEGORIES.csv"),
         ROM_CAL,
         ROMS_META,
         ADDR_MAP_LONG,
@@ -1052,6 +1112,18 @@ def manifest_inputs():
                 paths.append(os.path.join(ROM_DIR, f))
     except OSError:
         pass
+    # Per-file hashes for both docs dirs (sorted for determinism).
+    for d in (DOCS_DIR, SUBSYS_DIR):
+        try:
+            files = sorted(os.listdir(d))
+        except OSError:
+            continue
+        for f in files:
+            if not f.endswith(".md"):
+                continue
+            if d == DOCS_DIR and f.lower() == "readme.md":
+                continue
+            paths.append(os.path.join(d, f))
     out = {}
     for p in paths:
         rel = os.path.relpath(p, ROOT)
@@ -1142,7 +1214,12 @@ def serve_site(port):
     import functools
     import http.server
 
-    port = int(port)
+    # B9: clean ERROR + return 1 on non-numeric ports (no traceback).
+    try:
+        port = int(port)
+    except (TypeError, ValueError):
+        print("ERROR: invalid port %r (expected 1-65535)" % (port,), file=sys.stderr)
+        return 1
     if not (0 < port < 65536):
         print("ERROR: invalid port %r" % (port,), file=sys.stderr)
         return 1
@@ -1358,14 +1435,30 @@ footer {
 def copy_emu_files():
     """Copy ecu-emu dist files into dist/emu/. Fail-loud: a missing emu
     source aborts the build instead of shipping a landing page whose
-    emulator card 404s."""
+    emulator card 404s.
+    B12: wipe emu_dst before copy (diff-sync) so stale files from a previous
+    emu build cannot linger; warn on skipped non-files."""
+    import shutil
     emu_dst = os.path.join(DIST, "emu")
     if not os.path.isdir(EMU_DIST_SRC):
         print("ERROR: ecu-emu dist not found at %s — failing the build "
               "instead of shipping a dead emu/ link" % EMU_DIST_SRC, file=sys.stderr)
         return False
+    # Wipe the destination first (fresh dir) to drop stale outputs.
+    if os.path.isdir(emu_dst):
+        for name in sorted(os.listdir(emu_dst)):
+            p = os.path.join(emu_dst, name)
+            try:
+                if os.path.isfile(p) or os.path.islink(p):
+                    os.remove(p)
+                elif os.path.isdir(p):
+                    shutil.rmtree(p)
+                else:
+                    warn("skipping non-file emu output %s" % p)
+            except Exception as ex:
+                warn("cannot clear stale emu output %s: %s" % (p, ex))
     os.makedirs(emu_dst, exist_ok=True)
-    for name in os.listdir(EMU_DIST_SRC):
+    for name in sorted(os.listdir(EMU_DIST_SRC)):
         src = os.path.join(EMU_DIST_SRC, name)
         dst = os.path.join(emu_dst, name)
         if os.path.isfile(src):
@@ -1373,6 +1466,8 @@ def copy_emu_files():
                 data = f.read()
             with open(dst, "wb") as f:
                 f.write(data)
+        else:
+            warn("skipping non-file emu source %s" % src)
     print("-> copied ecu-emu dist -> %s/" % os.path.relpath(emu_dst, DIST))
     return True
 
