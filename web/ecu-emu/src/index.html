@@ -209,7 +209,7 @@
             <div class="esim-label">O2 front (pre-cat)</div>
             <div class="esim-slider-row">
               <input type="range" id="o2f-tab" min="0" max="1" step="0.01" value="0.45" aria-label="O2 front voltage">
-              <span id="o2f-tab-val">0.45V</span>
+              <span id="o2f-tab-val">0.45 V</span>
             </div>
             <div class="o2-read" id="o2f-read">0.45 V · ADC —</div>
           </div>
@@ -217,7 +217,7 @@
             <div class="esim-label">O2 rear (post-cat)</div>
             <div class="esim-slider-row">
               <input type="range" id="o2r-tab" min="0" max="1" step="0.01" value="0.45" aria-label="O2 rear voltage">
-              <span id="o2r-tab-val">0.45V</span>
+              <span id="o2r-tab-val">0.45 V</span>
             </div>
             <div class="o2-read" id="o2r-read">0.45 V · ADC —</div>
           </div>
@@ -242,6 +242,16 @@
   <aside class="panel col-right" id="controls-panel" aria-label="Controls">
     <div class="panel-title">Controls</div>
     <div class="ctl-block">
+      <div class="esim-label">Engine sound</div>
+      <div class="tog-row">
+        <button class="can-btn" id="sound-toggle" aria-pressed="false" title="Mute/unmute the rotary engine sound (Web Audio, starts on click)">SOUND: OFF</button>
+      </div>
+      <div class="esim-label" style="margin-top:6px">Volume (<span id="sound-vol-val">70%</span>)</div>
+      <div class="esim-slider-row">
+        <input type="range" id="sound-vol" min="0" max="100" value="70" step="1" aria-label="Engine sound volume">
+      </div>
+    </div>
+    <div class="ctl-block">
       <div class="esim-label">Throttle</div>
       <div class="esim-slider-row">
         <input type="range" id="esim-throttle" min="0" max="100" value="0" step="1" aria-label="Throttle percent">
@@ -260,13 +270,13 @@
     <div class="ctl-block">
       <div class="esim-label">Fan low ON / OFF (°C)</div>
       <div class="keycode-row">
-        <input type="number" id="cal-fanlo-on" min="40" max="120" step="1" value="95" aria-label="Fan low ON temperature">
-        <input type="number" id="cal-fanlo-off" min="40" max="120" step="1" value="90" aria-label="Fan low OFF temperature">
+        <input type="number" id="cal-fanlo-on" min="40" max="120" step="1" value="97" aria-label="Fan low ON temperature">
+        <input type="number" id="cal-fanlo-off" min="40" max="120" step="1" value="94" aria-label="Fan low OFF temperature">
       </div>
       <div class="esim-label" style="margin-top:6px">Fan high ON / OFF (°C)</div>
       <div class="keycode-row">
-        <input type="number" id="cal-fanhi-on" min="40" max="120" step="1" value="105" aria-label="Fan high ON temperature">
-        <input type="number" id="cal-fanhi-off" min="40" max="120" step="1" value="100" aria-label="Fan high OFF temperature">
+        <input type="number" id="cal-fanhi-on" min="40" max="120" step="1" value="101" aria-label="Fan high ON temperature">
+        <input type="number" id="cal-fanhi-off" min="40" max="120" step="1" value="98" aria-label="Fan high OFF temperature">
       </div>
       <div class="esim-label" style="margin-top:6px">Ambient (°C) / Redline (rpm)</div>
       <div class="keycode-row">
@@ -309,6 +319,7 @@
 <script src="emu_core.js"></script>
 <script src="engine_sim.js"></script>
 <script src="can_live.js"></script>
+<script src="audio.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

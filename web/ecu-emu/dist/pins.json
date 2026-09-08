@@ -118,6 +118,7 @@
     "idle":     {"rpm": 800,  "ect": 80,  "iat": 25, "map": 35,  "tps": 0,  "o2f": 0.45, "o2r": 0.45, "desc": "Idle, warm engine"},
     "cruise":   {"rpm": 3000, "ect": 85,  "iat": 30, "map": 50,  "tps": 25, "o2f": 0.45, "o2r": 0.45, "desc": "Cruise, steady throttle"},
     "wot":      {"rpm": 9000, "ect": 95,  "iat": 35, "map": 95,  "tps": 100,"o2f": 0.45, "o2r": 0.45, "desc": "Wide open throttle, redline (Renesis 9000)"},
+    "overrev":  {"rpm": 11000,"ect": 95,  "iat": 35, "map": 95,  "tps": 100,"o2f": 0.45, "o2r": 0.45, "desc": "Over-rev past redline (needs fuel cut OFF)"},
     "cold":     {"rpm": 1200, "ect": 20,  "iat": 10, "map": 40,  "tps": 0,  "o2f": 0.45, "o2r": 0.45, "desc": "Cold start, fast idle"},
     "decel":    {"rpm": 2000, "ect": 82,  "iat": 28, "map": 20,  "tps": 0,  "o2f": 0.45, "o2r": 0.45, "desc": "Deceleration, fuel cut"}
   }

@@ -45,7 +45,10 @@
  *   emu_get_batt_weak()— 1 when SoC < 20% (crank will not catch: no-start)
  *   emu_get_fan(i)     — fan i (0=low/FAN1, 1=high/FAN2) state 0/1
  *   emu_get_afterrun() — 1 when fans run on with key OFF (hot soak)
- *   emu_get_coolant()  — thermal-model coolant temp C
+  *   emu_get_coolant()  — thermal-model coolant temp C
+  *   emu_set_coolant(v) — seed the thermal integrator (scenarios; keeps AUTO)
+  *   emu_get_cut_stage()— rev-limiter stage 0=none 1=soft(per-rotor) 2=hard
+  *   emu_get_cold_limit() — cold rev limit rpm (3000/4500/0; documented est.)
  *   emu_set_ect_auto() — release the ECT slider override (thermal model owns ECT)
  *   emu_get_ect_auto() — 1 when the thermal model owns ECT (no override)
  *   emu_get_sensor(id) — read back internal sensor 0..6 (rpm/ect/iat/map/tps/o2f/o2r)
@@ -98,10 +101,12 @@ var Module = (function() {
   var DECAY_OFF_RPS = 3000;  // rpm lost per second with key OFF
   var DECAY_ON_RPS = 1500;   // rpm lost per second key ON, engine not turning
 
-  /* --- Wave A2: calibration (live, emulator-level; defaults = stock-ish) --- */
+  /* --- Wave A2: calibration (live, emulator-level; fan defaults = ROM
+   * byte-verified f32 block 0x07793C-0x077950, docs/notes/COOLING_FANS.md:
+   * Fan1 on 97 / off 94 (97-3 hyst), high on 101 / off 98 (101-3 hyst). */
   var _cal = {
-    fanLowOn: 95, fanLowOff: 90,   // fan low hysteresis band (°C)
-    fanHighOn: 105, fanHighOff: 100, // fan high hysteresis band (°C)
+    fanLowOn: 97, fanLowOff: 94,   // fan low hysteresis band (°C, ROM)
+    fanHighOn: 101, fanHighOff: 98, // fan high hysteresis band (°C, ROM)
     ambient: 20,                   // ambient temperature (°C)
     redline: 9000,                 // Renesis redline (fuel-cut threshold)
     fuelCutEn: 1                   // 1 = fuel cut at redline, 0 = disabled
@@ -268,9 +273,12 @@ var Module = (function() {
     return 1 + (rpm / _cal.redline) * 7;
   }
 
-  /* Per-injector duty for one revolution (0 during fuel cut / stall). */
-  function injDuty(rpm) {
-    if (isFuelCut()) return 0;   // at/above redline (when fuel cut enabled)
+  /* Per-injector duty for one revolution. Scalar summary: 0 whenever ANY
+   * cut stage is active (soft or hard) — preserves the long-standing
+   * "CUT reads 0 duty / 0 CAN pulse" contract (core + can E7 + WOT E9).
+   * The soft-stage half-fuel physics lives in the port latch (alternate
+   * rotor pair per revolution) and in emu_get_cut_stage(), not here. */
+  function injDutyRaw(rpm) {
     if (rpm <= 200) return 0;          // below cranking threshold
     if (rpm <= 0) return 0;
     var period_ms = 60000.0 / rpm;     // ms per revolution
@@ -279,10 +287,39 @@ var Module = (function() {
     if (d > 0.85) d = 0.85;
     return d;
   }
+  function injDuty(rpm) {
+    if (cutStage() >= 1) return 0;     // any active cut stage reads 0
+    return injDutyRaw(rpm);
+  }
+
+  /* ROM-staged rev limiter (docs/subsystems/FUEL_INJECTION_SUBSYSTEM.md:5.3;
+   * thresholds are subsystem-doc estimates, labeled as such):
+   *   stage 0 = no cut; stage 1 = SOFT per-rotor cut, redline..redline+500
+   *     (rpm_limiter_fuel_cutoff @0xC59E cuts one rotor at a time);
+   *   stage 2 = HARD full cut above redline+500 (calculateRevLimiterFuelCut
+   *     @0xF192). Zero spark cut anywhere in ROM — physics stays fuel-cut. */
+  function cutStage() {
+    if (!_cal.fuelCutEn) return 0; // calibration can disable the cut
+    if (_rpm >= _cal.redline + 500) return 2;
+    if (_rpm >= _cal.redline) return 1;
+    return 0;
+  }
 
   function isFuelCut() {
-    if (!_cal.fuelCutEn) return false; // calibration can disable the cut
-    return _rpm >= _cal.redline;
+    // E9 note (correct physics, not a bug): the WOT scenario preset sits at
+    // rpm 9000 = redline, so the injector cut is ACTIVE there by design
+    // (Renesis fuel cut at redline). Tests that drive WOT must expect
+    // 0 pulse/duty — use 8900 when a flowing injector is wanted.
+    return cutStage() >= 1; // any active stage (soft or hard)
+  }
+
+  /* Cold rev limit (firmware-published documented estimates, labeled as
+   * such: firmware/c/engine.c cold-start limiter — 3000 rpm below 40 C,
+   * 4500 rpm below 70 C, none above). Returns 0 when no limit applies. */
+  function coldLimit() {
+    if (_ect < 40) return 3000;
+    if (_ect < 70) return 4500;
+    return 0;
   }
 
   /* Continuous 0..1 phase within the current revolution. */
@@ -348,24 +385,42 @@ var Module = (function() {
    *  Wave A2: thermal model + fan control + pump/A/C/fuel/oil
    *  (emulator-level vehicle systems, no ROM mapping)
    * ================================================================ */
-  /* Coolant: heats with engine load (rpm x throttle; thermostat plateau
-   * halves the rise through 85-90 °C), cools by Newton airflow (rpm proxy
-   * for road speed + fan stages). Engine OFF: slow drift to ambient.
+  /* Coolant: heat input is a fuel-energy term proportional to MAP x RPM
+   * (air mass per unit time x fueling ~ combustion energy rejected to the
+   * coolant), with a cheap cold/cat-warmup enrichment multiplier (up to
+   * x1.5 at 20 C, fading to x1.0 by 70 C). Thermostat plateau halves the
+   * rise through 85-90 C — PROVISIONAL, thermostat temp undocumented in
+   * repo. Cooling is Newtonian: base loss + a SMALL rpm-proportional water-
+   * pump term (pump flow scales with rpm; kept small because the old large
+   * rpm-proxy term caused net-falling temp at redline) + staged fan terms
+   * (kW-ish steps when each stage engages). Engine OFF: drift to ambient.
    * With an ECT slider override active the integrator tracks the slider
-   * so releasing back to AUTO resumes seamlessly. */
+   * so releasing back to AUTO resumes seamlessly.
+   * E6 note (dual-integrator convergence, not divergence): the manual _ect
+   * override and the thermal _coolant integrator are deliberately coupled —
+   * while overridden, _coolant follows _ect each step, so the two states
+   * cannot drift apart and AUTO release converges without a jump. */
+  var HEAT_GAIN = 4.0;   // fuel-energy -> C/s scale (idle ~0.14, WOT ~3.9)
+  var HEAT_BASE = 0.05;  // residual heat (friction, hot-soak baseline)
+  var K_BASE = 0.002;    // base Newton loss (radiator natural convection)
+  var K_PUMP = 0.0005;   // water-pump flow proxy (x rpm/redline; small by design)
+  var K_FANLOW = 0.008;  // low-stage fan airflow step
+  var K_FANHIGH = 0.015; // high-stage fan airflow step (additive)
   function stepThermal(ms) {
     var dt = ms / 1000;
     if (!_ectAuto) { _coolant = _ect; return; }
     var heat = 0;
     if (_engState === "RUNNING") {
-      var loadF = (_rpm / _cal.redline) * (0.25 + 0.75 * (_tps / 100));
-      heat = 2.5 * loadF + 0.15;
-      if (_coolant >= 85 && _coolant <= 90) heat *= 0.4; // thermostat plateau
+      var fuelF = (_map * _rpm) / (100 * 9000); // MAP x RPM fuel-energy term
+      if (fuelF < 0) fuelF = 0;
+      var enrich = 1 + Math.max(0, Math.min(0.5, (70 - _coolant) * 0.01));
+      heat = HEAT_GAIN * fuelF * enrich + HEAT_BASE;
+      if (_coolant >= 85 && _coolant <= 90) heat *= 0.4; // thermostat plateau (PROVISIONAL)
     } else if (_engState === "CRANKING") {
       heat = 0.1;
     }
-    var k = 0.002 + 0.004 * (_rpm / _cal.redline) +
-            (_fanLow ? 0.008 : 0) + (_fanHigh ? 0.015 : 0);
+    var k = K_BASE + K_PUMP * (_rpm / _cal.redline) +
+            (_fanLow ? K_FANLOW : 0) + (_fanHigh ? K_FANHIGH : 0);
     _coolant += (heat - k * (_coolant - _cal.ambient)) * dt;
     if (_coolant < -20) _coolant = -20;
     if (_coolant > 125) _coolant = 125;
@@ -473,15 +528,27 @@ var Module = (function() {
     }
 
     // Port 1: INJ1-4 — sequential injection, duty grows with rpm
-    // (low duty at idle, high duty near redline); fuel cut at/above
-    // the 9000 rpm redline forces all injectors off.
-    if (isFuelCut() || rpm <= 200) {
+    // (low duty at idle, high duty near redline); HARD fuel cut at/above
+    // redline+500 forces all injectors off, while the SOFT stage
+    // (redline..redline+500) cuts one rotor per revolution, alternating
+    // the firing pair each rev (ROM per-rotor structure @0xC59E).
+    var stage = cutStage();
+    if (stage >= 2 || rpm <= 200) {
       portLatches[1] = 0x00;
     } else {
-      var duty = injDuty(rpm);
+      /* Soft stage fires one rotor pair per revolution (half fuel); the
+       * raw (uncut) duty gates the firing pair so the alternation is
+       * visible in the Active-pins view. */
+      var duty = (stage === 1) ? injDutyRaw(rpm) : injDuty(rpm);
       var iPhase = revPhase01();
+      var pair = 0;
+      if (stage === 1 && rpm > 0) {
+        var period_ms = 60000.0 / rpm;
+        pair = (Math.floor(_simMs / period_ms) % 2) ? 1 : 0; // alternate rotors
+      }
       var iBits = 0;
       for (var i = 0; i < 4; i++) {
+        if (stage === 1 && (i < 2 ? 0 : 1) !== pair) continue; // cut rotor
         var iOff = (i * 0.25) % 1;
         var iRel = iPhase - iOff;
         iRel -= Math.floor(iRel);
@@ -658,7 +725,7 @@ var Module = (function() {
     _immoStored = "N3J1";
     _keyCode = "N3J1";
     /* Wave A2: vehicle systems boot cold (coolant = ambient), full battery. */
-    _cal = { fanLowOn: 95, fanLowOff: 90, fanHighOn: 105, fanHighOff: 100,
+    _cal = { fanLowOn: 97, fanLowOff: 94, fanHighOn: 101, fanHighOff: 98,
              ambient: 20, redline: 9000, fuelCutEn: 1 };
     _soc = 100;
     _vterm = REST_FULL_V;
@@ -666,7 +733,9 @@ var Module = (function() {
     _charging = false;
     _coolant = _cal.ambient;
     _ect = _coolant;
-    _iat = _cal.ambient; _map = 20; _tps = 0; _o2f = 0.45; _o2r = 0.45;
+    /* Engine-off MAP = barometric (~100 kPa): no vacuum with the engine
+     * stopped. 20 kPa is the decel fuel-cut vacuum while RUNNING. */
+    _iat = _cal.ambient; _map = 100; _tps = 0; _o2f = 0.45; _o2r = 0.45;
     _ectAuto = true;
     _fanLow = false; _fanHigh = false; _afterRun = false;
     _pumpOn = false; _keyOnMs = 0;
@@ -827,7 +896,19 @@ var Module = (function() {
   }
   function emu_get_afterrun() { return _afterRun ? 1 : 0; }
   function emu_get_coolant() { return Math.round(_coolant * 10) / 10; }
+  /* Seed the thermal integrator (scenario presets set the INITIAL coolant
+   * but keep AUTO mode — the model runs from there; only the explicit ECT
+   * slider forces the override via emu_set_sensor(1, ...)). */
+  function emu_set_coolant(v) {
+    v = Number(v);
+    if (!isFinite(v)) return emu_get_coolant();
+    _coolant = Math.max(-20, Math.min(125, v));
+    _ect = _coolant;
+    return emu_get_coolant();
+  }
   function emu_set_ect_auto() { _ectAuto = true; return 1; }
+  function emu_get_cut_stage() { return cutStage(); }
+  function emu_get_cold_limit() { return coldLimit(); }
   function emu_get_ect_auto() { return _ectAuto ? 1 : 0; }
   function emu_get_sensor(id) {
     switch (Number(id)) {
@@ -927,6 +1008,9 @@ var Module = (function() {
     emu_get_fan: emu_get_fan,
     emu_get_afterrun: emu_get_afterrun,
     emu_get_coolant: emu_get_coolant,
+    emu_set_coolant: emu_set_coolant,
+    emu_get_cut_stage: emu_get_cut_stage,
+    emu_get_cold_limit: emu_get_cold_limit,
     emu_set_ect_auto: emu_set_ect_auto,
     emu_get_ect_auto: emu_get_ect_auto,
     emu_get_sensor: emu_get_sensor,
