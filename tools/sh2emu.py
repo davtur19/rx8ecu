@@ -73,11 +73,16 @@ class SH2:
         for i in range(4): self._wb(a + i, b[i])
 
     def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None, mmio=None,
-             max_steps=None):
+             max_steps=None, break_addrs=None):
         """Run the program at `entry`. max_steps=None keeps the historical
         behavior (only the internal 500000-iteration runaway guard);
         max_steps=int raises StepLimitExceeded once the number of executed
-        instructions (delay slot included) exceeds it."""
+        instructions (delay slot included) exceeds it.
+        break_addrs=None (default) keeps the historical behavior (run until
+        SENT); an int or iterable of ints stops BEFORE executing the
+        instruction at any of those addresses and returns r0 (a breakpoint
+        hit is reported as self.pc == one of break_addrs; inspect
+        self._last_steps for the executed-instruction count)."""
         self.ram = dict(ram or {})
         self._mmio = mmio                # additive MMIO mock: {addr: byte} — None = disabled
         self.r = [0] * 16
@@ -118,6 +123,16 @@ class SH2:
         steps = 0
         n = 0                       # executed-instruction counter (delay slot counts too)
         mx = max_steps              # None -> historical behavior only
+        if break_addrs is None:
+            brk = None
+        elif isinstance(break_addrs, int):
+            brk = {break_addrs & M}
+        else:
+            brk = set(a & M for a in break_addrs) or None
+        self._last_steps = 0
+        if brk is not None and pc in brk:
+            self.pc = pc            # entry itself is a breakpoint: hit before executing
+            return r[0] & M
         if not ram:
             while True:
                 if ram:
@@ -125,6 +140,11 @@ class SH2:
                                     # ram-aware fetch below (self-modifying case)
                 if pc == SENT:
                     self.pc = pc
+                    self._last_steps = n
+                    return r[0] & M
+                if brk is not None and pc in brk:
+                    self.pc = pc    # breakpoint hit: stop BEFORE executing
+                    self._last_steps = n
                     return r[0] & M
                 steps += 1
                 if steps > 500000:
@@ -142,6 +162,8 @@ class SH2:
                 if br is None:
                     n += 1
                     if mx is not None and n > mx:
+                        self.pc = pc
+                        self._last_steps = n
                         raise StepLimitExceeded(n, pc)
                     exec_op(op, pc)
                     pc = (self.pc + 2) & M
@@ -149,6 +171,8 @@ class SH2:
                     target, take = br
                     n += 1
                     if mx is not None and n > mx:
+                        self.pc = pc
+                        self._last_steps = n
                         raise StepLimitExceeded(n, pc)
                     a = (pc + 2) & M
                     if a + 1 < romlen:
@@ -159,6 +183,8 @@ class SH2:
                         op2 = (b << 8) | b1
                     n += 1
                     if mx is not None and n > mx:
+                        self.pc = a
+                        self._last_steps = n
                         raise StepLimitExceeded(n, a)
                     exec_op(op2, a)
                     pc = target if take else (self.pc + 4) & M
@@ -167,6 +193,11 @@ class SH2:
         while True:
             if pc == SENT:
                 self.pc = pc
+                self._last_steps = n
+                return r[0] & M
+            if brk is not None and pc in brk:
+                self.pc = pc        # breakpoint hit: stop BEFORE executing
+                self._last_steps = n
                 return r[0] & M
             steps += 1
             if steps > 500000:
@@ -186,6 +217,8 @@ class SH2:
             if br is None:
                 n += 1
                 if mx is not None and n > mx:
+                    self.pc = pc
+                    self._last_steps = n
                     raise StepLimitExceeded(n, pc)
                 exec_op(op, pc)
                 pc = (self.pc + 2) & M
@@ -193,6 +226,8 @@ class SH2:
                 target, take = br
                 n += 1
                 if mx is not None and n > mx:
+                    self.pc = pc
+                    self._last_steps = n
                     raise StepLimitExceeded(n, pc)
                 a = (pc + 2) & M
                 b = ram.get(a)
@@ -204,6 +239,8 @@ class SH2:
                     b1 = rom[a1] if a1 < romlen else 0
                 n += 1
                 if mx is not None and n > mx:
+                    self.pc = a
+                    self._last_steps = n
                     raise StepLimitExceeded(n, a)
                 exec_op((b << 8) | b1, a)
                 pc = target if take else (self.pc + 4) & M
@@ -266,7 +303,7 @@ class SH2:
             if nib == 0xB: r[n] = (-s32(r[m])) & MASK; return      # neg
             if nib == 0x8: r[n] = (((r[m] << 8) & 0xFF00FF00) | ((r[m] >> 8) & 0x00FF00FF)) & MASK; return  # swap.b
             if nib == 0x9: r[n] = ((r[m] << 16) | (r[m] >> 16)) & MASK; return  # swap.w
-            if nib == 0xA: s = -r[m] - self.T; r[n] = s & MASK; self.T = 1 if ((r[m] + self.T) & MASK) else 0; return  # negc
+            if nib == 0xA: rm0 = r[m]; t0 = self.T; s = -rm0 - t0; r[n] = s & MASK; self.T = 1 if ((rm0 + t0) & MASK) else 0; return  # negc (T from ORIGINAL Rm; n==m alias-safe)
         if n0 == 0x8:
             if op & 0xFF00 == 0x8800: self.T = 1 if s32(r[0]) == s8(lo) else 0; return  # cmp/eq #imm,R0
             if op & 0xFF00 == 0x8B00:                              # bf
@@ -433,7 +470,12 @@ class SH2:
                     return
                 if m == 0x4: f[n] = -f[n]; return                   # fneg
                 if m == 0x5: f[n] = abs(f[n]); return               # fabs
-                if m == 0x6: f[n] = ts(f[n] ** 0.5); return         # fsqrt
+                if m == 0x6:                                        # fsqrt (negative -> NaN, SH-2 HW)
+                    if f[n] < 0.0:
+                        f[n] = float('nan')
+                    else:
+                        f[n] = ts(f[n] ** 0.5)
+                    return
                 if m == 0x8: f[n] = 0.0; return                     # fldi0
                 if m == 0x9: f[n] = 1.0; return                     # fldi1
             raise NotImplementedError("FPU 0x%04X @0x%X" % (op, pc))

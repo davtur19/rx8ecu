@@ -87,14 +87,19 @@ def discover_tests():
 
 
 def run_one(test_path, verbose=False):
-    """Run a single test file in a subprocess; return (test_path, rc, wall, out).
+    """Run a single test file in a subprocess; return (orig_path, rc, wall, out).
 
     Huge generated tests are deduped (see _dedup_code_block) into a temporary
     .py next to the original — the test derives ROOT from __file__, so the copy
     must stay in the same directory — and the temp file is removed afterwards.
+    The returned path is always the ORIGINAL suite path (not the temp exec
+    path) so the caller can match results back to discovery order; losing that
+    mapping silently drops deduped suites from the summary (always-PASS bug).
     """
     t0 = time.time()
+    orig_path = test_path
     tmp_path = None
+    exec_path = test_path
     src = None
     try:
         with open(test_path, 'r', encoding='utf-8', errors='replace') as fh:
@@ -108,10 +113,10 @@ def run_one(test_path, verbose=False):
                 dir=os.path.dirname(test_path), prefix='.dedup_', suffix='.py')
             with os.fdopen(fd, 'w', encoding='utf-8') as fh:
                 fh.write(dedup)
-            test_path = tmp_path
+            exec_path = tmp_path
     try:
         p = subprocess.run(
-            [sys.executable, test_path],
+            [sys.executable, exec_path],
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -129,7 +134,7 @@ def run_one(test_path, verbose=False):
             except OSError:
                 pass
     wall = time.time() - t0
-    return (test_path, rc, wall, out)
+    return (orig_path, rc, wall, out)
 
 
 def main():

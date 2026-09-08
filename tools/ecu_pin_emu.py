@@ -58,7 +58,7 @@ import sys
 _TOOL_DIR = os.path.dirname(os.path.abspath(__file__))
 if _TOOL_DIR not in sys.path:
     sys.path.insert(0, _TOOL_DIR)
-from sh2emu import SH2
+from sh2emu import SH2, StepLimitExceeded
 
 MASK32 = 0xFFFFFFFF
 
@@ -84,10 +84,17 @@ SENSOR_VREF = 5.0
 # ADC resolution
 ADC_MAX = 1023  # 10-bit
 
-# Crank trigger: 20-tooth pattern = 2 rotors x (6 teeth + 1 gap)
-CRANK_TEETH_PER_ROTOR = 6
-CRANK_ROTORS = 2
-CRANK_TOTAL_TEETH = CRANK_TEETH_PER_ROTOR * CRANK_ROTORS  # 20 (with gaps)
+# Crank trigger: 20 tooth positions per eccentric-shaft revolution, with a
+# sync gap at the end of each rotor group (documented as the 20-tooth
+# (3x6+1) trigger wheel with sync gap in docs/notes/ECU.md "Engine Control"
+# and in this module's pin map / CrankPulseGen docstring).  N is defined
+# EXPLICITLY as 20 (not derived as 2*6=12): the two 6-tooth rotor groups plus
+# gap/missing-tooth positions make 20 angular positions per revolution.
+CRANK_TOTAL_TEETH = 20
+CRANK_GAP_INDICES = (5, 15)  # tooth_idx values whose period is the 1.5x gap
+assert CRANK_TOTAL_TEETH == 20, "crank pattern must be 20 positions/rev"
+assert all(0 <= g < CRANK_TOTAL_TEETH for g in CRANK_GAP_INDICES), \
+    "gap indices must lie inside the 20-tooth cycle"
 
 # Peripheral register addresses (from platform.h and firmware analysis)
 PORT_BASE = 0xFFFFF720
@@ -139,11 +146,11 @@ def voltage_to_adc10(voltage, vref=SENSOR_VREF):
 # ===========================================================================
 
 class CrankPulseGen:
-    """Generate 20-tooth (3x6+1) pulse train at given RPM.
+    """Generate the 20-tooth (3x6+1, with sync gap) pulse train at given RPM.
 
-    Pattern per rotor: 6 evenly spaced teeth, then a gap (missing tooth)
-    that is 1.5x the normal tooth spacing.  Two rotors give 20 tooth
-    positions including gaps.
+    Pattern: 20 angular positions per eccentric-shaft revolution; the
+    positions in CRANK_GAP_INDICES are 1.5x the normal tooth spacing
+    (missing-tooth sync gaps at the end of each rotor group).
 
     The generator produces timestamps (microseconds) that the ATU
     capture emulation writes into the timer capture register.
@@ -184,8 +191,8 @@ class CrankPulseGen:
         """Return the expected period (us) of the current tooth position."""
         if not self.active:
             return 0
-        # Gap positions: teeth 5 and 15 (end of each 6-tooth rotor group)
-        if self.tooth_idx == 5 or self.tooth_idx == 15:
+        # Gap positions (end of each rotor group): 1.5x normal spacing.
+        if self.tooth_idx in CRANK_GAP_INDICES:
             return self.us_per_gap
         return self.us_per_tooth
 
@@ -284,6 +291,14 @@ class ECUPinEmu:
         self.engine_sync = False
         self.engine_running = False
 
+        # Persistent CPU RAM overlay threaded through every cpu.call():
+        # crank-pulse timestamps and engine-state mirrors written here
+        # survive across step()/run_until() instead of being wiped by a
+        # fresh dict on each call.  _next_pc resumes execution where the
+        # previous slice stopped instead of restarting at the boot entry.
+        self._ram = {}
+        self._next_pc = 0x8B8  # Manual_Reset entry (boot chain start)
+
     # ==================================================================
     #  Sensor / input API
     # ==================================================================
@@ -364,21 +379,24 @@ class ECUPinEmu:
     def get_ram(self, addr):
         """Read a 32-bit word from simulated RAM at addr."""
         addr = addr & MASK32
-        # Check if CPU has ram dict populated
-        if not hasattr(self.cpu, 'ram') or self.cpu.ram is None:
+        # Prefer the live CPU overlay right after a slice; fall back to the
+        # persistent overlay (holds crank/engine mirrors between slices).
+        ram = getattr(self.cpu, 'ram', None) or self._ram
+        if not ram:
             return 0
         v = 0
         for i in range(4):
-            b = self.cpu.ram.get((addr + i) & MASK32)
+            b = ram.get((addr + i) & MASK32)
             v = (v << 8) | (b if b is not None else 0)
         return v
 
     def get_ram_byte(self, addr):
         """Read a single byte from simulated RAM at addr."""
         addr = addr & MASK32
-        if not hasattr(self.cpu, 'ram') or self.cpu.ram is None:
+        ram = getattr(self.cpu, 'ram', None) or self._ram
+        if not ram:
             return 0
-        return self.cpu.ram.get(addr, 0)
+        return ram.get(addr, 0)
 
     def get_adc(self, channel):
         """Read 10-bit ADC value for a channel."""
@@ -403,10 +421,15 @@ class ECUPinEmu:
 
         # --- ADC registers (0xFFFFE500-0xFFFFE51F) ---
         if 0xFFFFE500 <= addr < 0xFFFFE520:
-            # Each channel is 2 bytes (10-bit value, left-justified in 16-bit)
+            # Each channel is 2 bytes (10-bit value, left-justified in 16-bit):
+            # even address -> hi byte (val>>2)&0xFF, odd address -> lo byte
+            # (val<<6)&0xC0.  Matches the SH7055 left-justified ADC layout and
+            # the step()/_build_full_mmio() MMIO dict population below.
             ch = (addr - 0xFFFFE500) // 2
             val = self.adc[ch & 0x1F]
-            return (val << 6) & 0xFF  # upper byte of left-justified 10-bit
+            if (addr & 1) == 0:
+                return (val >> 2) & 0xFF
+            return (val << 6) & 0xC0
 
         # --- WDT registers ---
         if addr == WDT_TCSR_ADDR:
@@ -583,15 +606,36 @@ class ECUPinEmu:
         # We don't have a full RTOS scheduler, so we just let the CPU
         # run for a bounded number of instructions per step.
         # The CPU will hit the SENTinel (0xEEEE0000) or run limit.
+        # The persistent RAM overlay (crank pulses, engine mirrors, prior
+        # firmware writes) is threaded through the call and synced back, so
+        # data survives across steps; execution resumes at the PC where the
+        # previous slice stopped instead of restarting at the boot entry.
+        # StepLimitExceeded is the expected slice end (not an error); any
+        # other exception is logged to stderr so failures are visible.
+        entry = self._next_pc & MASK32
         try:
             self.cpu.call(
-                entry=0x8B8,  # Manual_Reset entry (boot chain start)
+                entry=entry,
                 r4=0, r5=0, r6=0, r7=0,
+                ram=dict(self._ram),
                 mmio=mmio,
                 max_steps=10000,  # bounded per step to avoid runaway
             )
-        except Exception:
-            pass  # step limit or unknown opcode — expected in partial emulate
+        except StepLimitExceeded:
+            pass  # normal end of this time slice
+        except Exception as e:
+            print("ecu_pin_emu.step: CPU error at 0x%08X: %s"
+                  % (getattr(self.cpu, 'pc', entry) & MASK32, e),
+                  file=sys.stderr)
+        finally:
+            try:
+                self._ram = dict(self.cpu.ram)
+            except (AttributeError, TypeError):
+                pass
+            try:
+                self._next_pc = getattr(self.cpu, 'pc', entry) & MASK32
+            except TypeError:
+                pass
 
         # Read back port outputs after CPU execution
         for i in range(min(13, len(self.port_output))):
@@ -604,21 +648,18 @@ class ECUPinEmu:
     def _inject_crank_pulse(self, timestamp_us):
         """Write crank pulse timestamp into ATU capture register."""
         ts32 = int(timestamp_us) & MASK32
-        # The firmware reads timer_capture at 0xFFFFF434 (4 bytes)
-        # This is done by writing to the CPU's mmio space
-        # We'll store it in RAM so the firmware's crank_timing_update
-        # can read it when it runs.
-        if hasattr(self.cpu, 'ram'):
-            self.cpu.ram[0xFFFFF434] = (ts32 >> 24) & 0xFF
-            self.cpu.ram[0xFFFFF435] = (ts32 >> 16) & 0xFF
-            self.cpu.ram[0xFFFFF436] = (ts32 >> 8) & 0xFF
-            self.cpu.ram[0xFFFFF437] = ts32 & 0xFF
+        # The firmware reads timer_capture at 0xFFFFF434 (4 bytes).
+        # Stored in the persistent RAM overlay (threaded through every
+        # cpu.call) so the firmware's crank_timing_update can read it when
+        # it runs, and so it survives across step() slices.
+        self._ram[0xFFFFF434] = (ts32 >> 24) & 0xFF
+        self._ram[0xFFFFF435] = (ts32 >> 16) & 0xFF
+        self._ram[0xFFFFF436] = (ts32 >> 8) & 0xFF
+        self._ram[0xFFFFF437] = ts32 & 0xFF
 
     def _update_engine_ram(self):
         """Update engine state RAM locations from our simulation state."""
-        if not hasattr(self.cpu, 'ram'):
-            return
-        ram = self.cpu.ram
+        ram = self._ram
 
         # Engine running flag
         ram[RAM_ENGINE_RUN] = 1 if self.engine_running else 0
@@ -638,26 +679,47 @@ class ECUPinEmu:
     #  Run until address
     # ==================================================================
 
-    def run_until(self, target_addr, max_steps=500000):
+    def run_until(self, target_addr, max_steps=500000, entry=None):
         """Execute CPU until PC reaches target_addr or max_steps exceeded.
 
-        Returns (final_pc, steps_executed).
+        Implements the PC==target step/breakpoint loop via the SH2
+        break_addrs breakpoint: the CPU stops BEFORE executing the
+        instruction at target_addr.  Returns (final_pc, steps_executed);
+        final_pc == target_addr means the breakpoint was hit.
+
+        entry defaults to the resume PC (where the previous step()/
+        run_until() slice stopped), falling back to the 0x8B8 boot entry
+        on a fresh emulator.  StepLimitExceeded is converted into a
+        (pc, steps) return; any other CPU exception propagates to the
+        caller (no silent swallow).
         """
         target_addr = target_addr & MASK32
+        if entry is None:
+            entry = self._next_pc & MASK32
+        else:
+            entry = entry & MASK32
         # Build MMIO overlay
         mmio = self._build_full_mmio()
 
         try:
-            result = self.cpu.call(
-                entry=0x8B8,
+            self.cpu.call(
+                entry=entry,
                 r4=0, r5=0, r6=0, r7=0,
+                ram=dict(self._ram),
                 mmio=mmio,
                 max_steps=max_steps,
+                break_addrs={target_addr},
             )
-        except Exception as e:
-            result = None
-
-        return (self.cpu.pc if hasattr(self.cpu, 'pc') else 0, result)
+        except StepLimitExceeded as e:
+            self._ram = dict(self.cpu.ram)
+            self._next_pc = e.pc & MASK32
+            return (e.pc & MASK32, e.steps)
+        # Breakpoint hit or normal return (SENT): sync persistent state.
+        self._ram = dict(self.cpu.ram)
+        final_pc = getattr(self.cpu, 'pc', entry) & MASK32
+        self._next_pc = final_pc
+        steps = getattr(self.cpu, '_last_steps', 0)
+        return (final_pc, steps)
 
     def _build_full_mmio(self):
         """Build complete MMIO overlay for the current state."""
