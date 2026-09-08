@@ -560,6 +560,13 @@ var CANLive = (function() {
         '</div>' +
       '</div>';
 
+    var _table = container.querySelector(".can-frame-table");
+    if (_table) {
+      var _cap = document.createElement("caption");
+      _cap.textContent = "Live CAN frames \u2014 time, ID, DLC, data bytes, direction, description";
+      _table.insertBefore(_cap, _table.firstChild);
+    }
+
     // Wire controls
     document.getElementById("can-filter").addEventListener("input", function(e) {
       _filterId = e.target.value.trim();
