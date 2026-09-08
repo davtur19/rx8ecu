@@ -673,3 +673,117 @@ category/signal untouched); BOM + CRLF preserved (6083 CRLF lines, 0 bare LF); 1
 no collisions with existing names; none of the 67 first-pass renames touched; no 60E1D400 rows touched.
 
 END SECOND PASS
+
+THIRD PASS (2026-09-08, IDA session fc00_verify on tmp/ida/60E0FC00_be.elf)
+--------------------------------------------------------------------------------
+Hex-Rays availability: NO — idalib_decompile returns "Hex-Rays decompiler is
+not available" for SH-2E in this IDA build (confirmed on 0x63F48 + batch probe
+of 0x17AB0/0x7724/0x306B4/0x52A12: prototype null, decompile_error set).
+Per task instructions, fell back to a TARGETED disasm+xref pass on ONLY the
+near-miss appendix items from the second pass (no broad re-verification).
+New angles vs pass 2: full-length disasm of mid-size routines (pass 2 truncated
+large ones at 60 insns), callee-body inspection (not just names), RAM
+producer/consumer linkage via data_ref (flag identity through 1.0-confidence
+functions), call-site argument recovery (self-reported UDS SIDs), twin-symmetry
+checks. Rename bar unchanged: >80% with concrete evidence.
+
+RENAMED (13):
+  0x7724  reInitCrankSensor?? -> reinitCrankSensor [0.85]
+      evidence: writes 9F95=0x24, the exact magic value gating 1.0
+      crank_period_ratio_calc_clamped 80F0 (early-return iff 9F95==0x24);
+      also inits 9FB0=-1 consumed by 80F0's float path; body calls
+      crankSensorInit 7C0C + tails to crank_state_flags_clear 7B84 (0.6);
+      5 of 6 callers in crank/rotor-sync cluster (787A x3, 765A, 7ECA).
+  0x17AB0  batteryRelatedFaults?? -> ompStepperFaultEval [0.85]
+      evidence: private chain (sole caller of both callees, sole caller task3
+      1182A): diag_getsr_3920(0x10) -> stepper_flag_set 189E8 -> 
+      stepper_dtc_raise 18AB4 (DTCs 0x4D/0x4E/0x4F via updateFaultStatus 5E644)
+      -> diag_setsr_3934. Operates on OMP stepper RAM: A97C/A97D shared with
+      1.0 omp_stepper_waveform_driver 18552, A961 shared with OMP-region fns
+      17B70/17F86/187DC. 'battery' refuted as primary: B5DC is only a
+      threshold gate inside 189E8 (58060 is itself '?').
+  0x306B4  calcInjectorCrankingTime?? -> calcInjectorCrankingTime [0.85]
+      evidence: overturns pass-2 keep reason — BE5C/BE78 identities now proven
+      via 1.0 injectorPulseTimeArbitrate_crankAddTimer 30344: BE5C is the
+      crank-add timer (seeded from 2D lookup while A428==0, decremented while
+      running) and BE78 is the crank-add pulse term added into pulse outputs
+      BE44/BE48. 306B4 computes BE78=BE88*K7700C*BE9C*BEA0*BEA4*BEA8 (+BE7C
+      twin); BE78 also fadd-accumulated by addInjectorPulse 30B14 (0.85);
+      callers engineControlGetFueling 217B2 (1.0) + setPrevLoops 216D4 (0.85);
+      BE88 shared with de-flood check 3083C (cranking phenomenon).
+  0x52A12  udsResponseRelated?? -> enqueueUDSResponse [0.85]
+      evidence: complete 18-insn wrapper verified: builds (SID:u8, len:u16,
+      len, 0) stack struct -> thunk_to_0x9630 67646 (0.9) -> osTaskScheduler
+      9630 (1.0, type 2 prio 1). Call sites pass SID in r4 (0x11 in service-0x11
+      handler 59744, 0x14 in 53BC8); error sibling udsErrorResponse 52A5A (1.0)
+      shares identical (SID, code) shape at the same sites; 30+ code callers
+      across immo_post_unlock_response_* (1.0 x6) + UDS service handlers.
+  0x53BC8  ClearFaults? -> clearDiagnosticInformation [0.85]
+      evidence: self-reports SID 0x14 (= UDS ClearDiagnosticInformation) at 4
+      sites: udsServiceResponse 66A74 (1.0, r4=0x14), udsErrorResponse with
+      NRCs 0x31/0x12, enqueueUDSResponse 52A12; DTC callees dtc_bulk_store_9630
+      (0.6) + dtc_diag_session_start (0.5); CFDA flag writes.
+  0x59744  UDSService11Function? -> udsService11Handler [0.85]
+      evidence: self-reports SID 0x11 at 4+ sites (NRCs 0x12/0x22/0x33 via
+      udsErrorResponse + enqueue path); calls uds_setup_sid_51 59866 (0.9;
+      0x51 = positive-response SID for 0x11) + delay 59808; neutral 'Handler'
+      (reset action itself not observed).
+  0x13414  idleLeadingTimingCorrection? -> leadingTimingCorrection [0.85]
+      evidence: 'leading' proven — output A708 consumed by 1.0
+      calculateLeadingTimingBaseFinal 12362; RPM-based 2D-lookup (2068) +
+      RPM-window gates + fpu_compare_and_select into A708; called from 1.0
+      engineControlCalculateTiming 141FC. 'idle' dropped: no idle-specific
+      evidence (consumers are generic base-final).
+  0x13544  idleTrailingTimingCorrection? -> trailingTimingCorrection [0.85]
+      evidence: instruction-level twin of 13414 (private RAM A71C/A714, tables
+      686D4/686E8); output A70C consumed by 1.0 calculateTrailingTimingBaseFinal
+      12456. 'idle' dropped, same reason.
+  0x121A4  calculateDSCLeadingTimingDerate? -> calculateDSCLeadingTimingDerate [0.85]
+      evidence: 'DSC' now proven — gates on BC02, read by 1.0 DSC_checkIfMode_x10
+      2BEFA. 'leading' proven — reads A780 (leading accum per 1.0 leading
+      base-final 12362 + 1.0 load-comp 14064), writes A62C (leading channel;
+      uses leading cal ROM 6E098 shared with getInitialLeadingTrailingAdvance).
+      Called from 1.0 engineControlCalculateTiming.
+  0x12294  calculateDSCTrailingTimingDerate? -> calculateDSCTrailingTimingDerate [0.85]
+      evidence: twin of 121A4 on trailing channel (A784/A634, same BC02/CCE4
+      gates); A634 consumed with A62C by detectKnockCondition 33CB2 (0.85).
+  0x10ED2  getEngineCrankingStatusEnum?? -> getEngineCrankingState [0.85]
+      evidence: 10-insn pure getter on A79C (cranking flag: cleared by
+      engineCrankingConditionsInit 1476C 0.85, written from RPM vs ROM by
+      updateEngineCrankingState 1477C 0.85); returns 1/2. Name freed by 1477C's
+      rename to updateEngineCrankingState.
+  0x13686  getKnockControlAllowed?? -> updateKnockControlAllowedFlag [0.85]
+      evidence: setter not getter (writes A738=1/0, same correction as 2DBC4
+      precedent); A738 read by 1.0 calculateKnockConditonActiveTimingDerate
+      138A4; 5-gate interlock incl. knock-enable 78E7E (0.85) + RPM/load/A9FC/
+      A424 windows vs ROM 78548-78554.
+  0x33F20  detectDriverIntentKnockControl? -> updatePedalDebounceCounters [0.85]
+      evidence: full 44-insn body = debounce maintenance, no knock linkage:
+      sole writer of C0C6/C0C8 (both consumed ONLY by 1.0 throttlePedalParameters
+      33DA4); C0C6 = persistence counter on pedal-over-threshold (ADA8 float vs
+      ROM 78F00; ADA8 shared with pedal-percent/torque fns 1C3F0/22454), C0C8 =
+      B586-gated persistence counter, C0AC decay counter; caller
+      aux_driver_inputs_calc 1A728 (0.7). 'KnockControl' dropped as unsupported.
+
+STILL KEPT (125 = 138 - 13):
+  Structural A/B/C/E/H: 32 kept as before.
+  Notable third-pass evidence that TESTED but did not clear the bar:
+  - 0x10EE6 getEngineCrankingStatus?: full 15-insn disasm = bulk-write 1 to
+    [A578+2/+2E/+5A] (stride-0x2C x3). A578 shared with 1.0
+    outputPerRotorIgnitionDwell 10F84 + 0.7 fuel_cut_bits_merge + 0.4
+    ign_dwell_init_per_rotor -> per-rotor dwell/init region narrowed, but
+    cranking link still unproven — KEPT.
+  - 0x2D320-adjacent DSC/torque (2D0CE/2D1C0/2D320/2D3B8), 0x18D3C dscRelatedTiming,
+    0x136D6 knock-sensor-faulted (CC30/CC32 identity), 0x253CC AT-cal (non-AT
+    caller context), 0x30728/0x3083C/0x30904 cranking-fuel siblings, 0x63F0 ISR
+    dispatcher, 0x5C024/0x67590 table-called UDS (zero xrefs reconfirmed for the
+    52A12 caller census, which itself grew: ~100 total refs incl. literal pools,
+    30+ code callers) — all KEPT, reasons per second-pass appendix stand.
+  Counts: renamed 13 / still kept 125 (of which structural 32) / focus keeps 93.
+
+CSV integrity: 6082 data rows unchanged count; 13 rows changed (name +
+confidence cells only; category/signal untouched); BOM + CRLF preserved;
+125 '?' remain; no collisions with existing names; none of the 95 prior
+(pass1+pass2) renames touched; no 60E1D400 rows touched.
+
+END THIRD PASS
