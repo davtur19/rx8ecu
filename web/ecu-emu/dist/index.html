@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RX-8 ECU Pin Emulator</title>
+<title>RX-8 ECU Emulator</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="can_live.css">
 </head>
 <body>
+<!-- SVG icon sprite (hidden, referenced via <use href="#icon-xxx">) -->
+<div id="icon-sprite" style="display:none" aria-hidden="true"></div>
 <header>
   <div class="brand">
     <div class="logo">8</div>
     <div>
-      <h1 class="wordmark">RX-8 <span class="wm-accent">ECU</span> Pin Emulator</h1>
+      <h1 class="wordmark">RX-8 <span class="wm-accent">ECU</span> Emulator</h1>
       <div class="subtitle">SH7055 · N3J1-18-881L · 96-pin connector</div>
     </div>
   </div>
@@ -70,9 +73,34 @@
     <div class="panel-title">Peripheral Registers</div>
     <div class="reg-table" id="reg-table"></div>
   </div>
+
+  <!-- Row 3: Engine Simulator + CAN Monitor -->
+  <div class="panel" id="engine-sim-panel">
+    <div class="panel-title">Engine Simulator</div>
+    <div id="engine-sim-container"></div>
+  </div>
+  <div class="panel" id="can-panel-container" style="grid-column:span 2">
+    <div class="panel-title">Live CAN / OBD Monitor</div>
+    <div id="can-monitor-container"></div>
+  </div>
 </div>
 
 <script src="pins.json" type="application/json" id="pins-data"></script>
+<script>
+/* Inline SVG sprite so <use href="#icon-xxx"> works across all browsers */
+(function(){
+  fetch("icons.svg").then(function(r){return r.text()}).then(function(svg){
+    var d=document.getElementById("icon-sprite");
+    d.innerHTML=svg;
+    /* Remove the display:none from the root <svg> so symbols are in scope */
+    var s=d.querySelector("svg");
+    if(s){s.style.display="none";s.setAttribute("aria-hidden","true");}
+  }).catch(function(){});
+})();
+</script>
+<script src="emu_core.js"></script>
+<script src="engine_sim.js"></script>
+<script src="can_live.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

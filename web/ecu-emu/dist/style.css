@@ -1,4 +1,4 @@
-/* RX-8 ECU Pin Emulator — dark theme (reuses explorer palette) */
+/* RX-8 ECU Emulator — dark theme (reuses explorer palette) */
 :root {
   --bg:#0b0e13; --bg2:#12161d; --bg3:#181d26; --border:#252c38; --border2:#333c4a;
   --text:#e6ebf2; --muted:#8b96a3; --accent:#4d7cff; --accent2:#aab4c4;
@@ -21,7 +21,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:10p
 .subtitle{color:var(--muted);font-size:11px}
 
 /* ---------- main layout ---------- */
-.main{display:grid;grid-template-columns:280px 1fr 320px;grid-template-rows:1fr 200px;height:calc(100vh - 57px);overflow:hidden}
+.main{display:grid;grid-template-columns:280px 1fr 320px;grid-template-rows:1fr 200px 420px;height:calc(100vh - 57px);overflow-y:auto;overflow-x:hidden}
 .panel{border-right:1px solid var(--border);border-bottom:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
 .panel:last-child{border-right:none}
 .panel-title{padding:8px 12px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;flex-shrink:0}
@@ -112,4 +112,69 @@ header{display:flex;justify-content:space-between;align-items:center;padding:10p
   .reg-table{max-height:280px}
   .scenario-list{flex-direction:row;flex-wrap:wrap}
   .scenario-btn{flex:1;min-width:120px}
+}
+
+/* ---------- engine simulator ---------- */
+.engine-sim-panel{
+  padding:10px;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+.esim-section{flex:1;min-width:180px}
+.esim-label{font:600 10px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.esim-slider-row{display:flex;align-items:center;gap:8px}
+.esim-slider-row input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--bg);border-radius:2px;outline:none}
+.esim-slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg2)}
+.esim-slider-row span{font:700 12px var(--mono);color:var(--cyan);min-width:40px;text-align:right}
+.esim-gauges{display:flex;gap:8px;flex-shrink:0}
+.esim-gauges canvas{display:block}
+
+/* --- MIL lamp --- */
+.mil-lamp{
+  display:inline-block;
+  padding:4px 12px;
+  border-radius:4px;
+  font:700 11px var(--mono);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--muted);
+  transition:all .15s;
+}
+.mil-lamp.mil-on{
+  background:rgba(248,81,73,.15);
+  border-color:var(--red);
+  color:var(--red);
+  animation:mil-blink 1s step-end infinite;
+}
+@keyframes mil-blink{50%{opacity:.5}}
+
+.esim-mil-row{margin-bottom:6px}
+
+/* --- DTC list --- */
+.dtc-list{max-height:120px;overflow-y:auto}
+.dtc-none{font:11px var(--mono);color:var(--border2);font-style:italic;padding:4px 0}
+.dtc-item{
+  display:flex;gap:8px;align-items:center;
+  padding:3px 0;
+  border-bottom:1px solid var(--border);
+  font:11px var(--mono);
+}
+.dtc-code{font-weight:700;min-width:56px}
+.dtc-desc{color:var(--muted);font-size:10px}
+.dtc-item.dtc-error .dtc-code{color:var(--red)}
+.dtc-item.dtc-error{border-left:2px solid var(--red);padding-left:6px}
+.dtc-item.dtc-warning .dtc-code{color:var(--yellow)}
+.dtc-item.dtc-warning{border-left:2px solid var(--yellow);padding-left:6px}
+
+/* ---------- bottom row: engine sim + CAN monitor side-by-side ---------- */
+#engine-sim-panel{
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+}
+#can-panel-container{
+  overflow:visible;
 }
