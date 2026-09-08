@@ -158,6 +158,36 @@ SKIP = {
 
 RT = {1: ctypes.c_uint8, 2: ctypes.c_uint16, 4: ctypes.c_uint32}
 
+# Covering tests that validate a Python reference model vs the emulated ROM
+# and never compile or execute the C lift itself (checked 2026-09-08: the
+# only covering test that builds its C file with the host cc and calls it
+# through ctypes is test_2DLookup_type0.py). Their SKIP lines say so
+# explicitly — model covered, C lift compile-only. Full C-behavior gates
+# are future work.
+MODEL_ONLY_TESTS = frozenset([
+    'test_2DLookup_FP_16bit.py', 'test_2DLookup_FP_8bit.py',
+    'test_3dlookup_type8.py', 'test_3DLookup_FP.py',
+    'test_dataLookup.py', 'test_interp_leaves.py',
+    'test_math_primitives.py', 'test_mem_accessors.py',
+    'test_knockSensorADCFault.py', 'test_output_spark2_0x8E20.py',
+    'test_setSR_getSR.py', 'test_getFromE2.py',
+])
+
+
+def _missing_skip_refs(skip=None):
+    """Return sorted names in SKIP whose covering test file is absent.
+
+    Fail-closed helper for the coverage manifest: a dangling reference must
+    never print as a clean SKIP with rc=0. ``skip`` defaults to the module
+    SKIP registry (injectable for regression tests).
+    """
+    skip = SKIP if skip is None else skip
+    missing = []
+    for name, (_addr, _reason, test) in sorted(skip.items()):
+        if not os.path.isfile(os.path.join(RE, 'c', 'tests', test)):
+            missing.append(name)
+    return missing
+
 
 def emu_call(cpu, entry, args, regmap):
     """Call the ROM with args mapped onto the given registers.
@@ -213,8 +243,21 @@ def main():
     # below with a reason + covering test. No silent gaps by construction.
     claims = set(FUNCS) | set(SKIP)
     assert not (set(FUNCS) & set(SKIP)), "overlap between FUNCS and SKIP"
+    missing_refs = set(_missing_skip_refs())
     for name, (addr, reason, test) in sorted(SKIP.items()):
-        print("SKIP  %-28s @%s  (%s; see c/tests/%s)" % (name, addr, reason, test))
+        # Fail-closed: a dangling covering-test reference must not print as a
+        # clean SKIP with rc=0. Assert the file exists; a missing reference is
+        # a hard failure so gaps can never hide as advisories.
+        if name in missing_refs:
+            print("FAIL  %-28s @%s  (dangling covering test c/tests/%s; %s)"
+                  % (name, addr, test, reason))
+            fails += 1
+            continue
+        if test in MODEL_ONLY_TESTS:
+            print("SKIP  %-28s @%s  (%s; model covered in c/tests/%s, C lift compile-only)"
+                  % (name, addr, reason, test))
+        else:
+            print("SKIP  %-28s @%s  (%s; see c/tests/%s)" % (name, addr, reason, test))
     print("COVERAGE  %d hosted + %d skipped = %d claimed lifts" % (len(FUNCS), len(SKIP), len(claims)))
     sys.exit(1 if fails else 0)
 

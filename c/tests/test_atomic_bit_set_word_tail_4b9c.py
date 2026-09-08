@@ -54,10 +54,10 @@ def _wrw(ram, a, n, v):
 CODE = {
     0x4b9c: {"kind": 'reg', "py": 'r[3] = (r[3] | r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x4b9e: {"kind": 'mem', "py": '_wrw(ram, r[4], 2, r[3])', "slot_py": None, "target": None, "cond": None},
-    0x4ba0: {"kind": "ret", "py": None, "slot_py": 'sr = r[2]', "target": None, "cond": None},
+    0x4ba0: {"kind": "ret", "py": None, "slot_py": 'sr = r[2]\nT = sr & 1\nQ = (sr >> 8) & 1\nM = (sr >> 9) & 1', "target": None, "cond": None},
     0x4ba4: {"kind": 'mem', "py": 'r[3] = s8(_rdw(ram, r[4], 1))', "slot_py": None, "target": None, "cond": None},
     0x4ba6: {"kind": 'reg', "py": 'r[6] = r[6] & 0xFFFF', "slot_py": None, "target": None, "cond": None},
-    0x4ba8: {"kind": 'reg', "py": 'T = 1 if (r[6] & r[6]) == 0 else 0', "slot_py": None, "target": None, "cond": None},
+    0x4ba8: {"kind": 'reg', "py": 'T = 1 if (r[6] & r[6]) == 0 else 0\nsr = (sr & ~1) | (T & 1)', "slot_py": None, "target": None, "cond": None},
     0x4baa: {"kind": "branch", "py": None, "slot_py": None, "target": 0x4bb4, "cond": 'notT'},
     0x4bac: {"kind": 'reg', "py": 'r[5] = (~r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},
     0x4bae: {"kind": 'reg', "py": 'r[3] = (r[3] & r[5]) & 0xFFFFFFFF', "slot_py": None, "target": None, "cond": None},

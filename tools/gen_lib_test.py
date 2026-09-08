@@ -198,8 +198,17 @@ def _classify_hwpoll(lines, verdict_line, out):
 
 
 def _run_test(addr, test_path, timeout=120):
-    p = subprocess.run([sys.executable, test_path], capture_output=True,
-                       text=True, timeout=timeout)
+    try:
+        p = subprocess.run([sys.executable, test_path], capture_output=True,
+                           text=True, timeout=timeout)
+    except subprocess.TimeoutExpired as e:
+        # Fail-closed: a hung lib test must not abort the whole sweep with no
+        # CSV. Record it as a FAIL row with whatever output arrived so far.
+        out = ((e.stdout or '') if isinstance(e.stdout, str) else '') + \
+              ((e.stderr or '') if isinstance(e.stderr, str) else '')
+        if not out and e.output:
+            out = e.output if isinstance(e.output, str) else str(e.output)
+        return ('FAIL', 'timeout after %ss' % timeout, out)
     out = (p.stdout or '') + (p.stderr or '')
     lines = [l for l in out.splitlines() if l.strip()]
     verdict_line = ''
