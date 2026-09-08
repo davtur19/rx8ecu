@@ -540,7 +540,7 @@ addr,end,name,source,flag
 0x013B90,0x013BCE,updateKnockMaxRAM,c-lift,
 0x013C2C,0x013CFC,calc_ignition_all_rotors_13C2C,ida-ai,
 0x013D3C,0x013E28,calc_fuel_injection_all_rotors,ida-ai,
-0x013E6C,0x013ED2,sub_13E6C,c-lift,
+0x013E6C,0x013ED2,calc_fuel_pump_control_output,c-lift,
 0x013ED2,0x013EE6,compare_select_two_float_values,ida-ai,
 0x013EE6,0x013F1E,calc_fuel_pressure_load_compensation,ida-ai,
 0x013F58,0x013F68,write_pressure_sensor_bias,ida-ai,

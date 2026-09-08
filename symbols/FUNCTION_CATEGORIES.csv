@@ -1086,6 +1086,7 @@
 60E0FC00,0x10FEA,calculatePerRotorIgnitionDwell,Ignition & Knock,1.000,name
 60E0FC00,0x11054,vehicle_cal_uds_tire_eeprom_chain,Sensors,0.700,assembly
 60E0FC00,0x1107A,resetFunc?,Boot & Init,1.000,name
+60E1D400,0x110A8,coil_output_dispatcher_0x110A8,Ignition & Knock,1.000,name
 60E1D400,0x11140,calc_fuel_cut_flags_merged,Fuel & Lambda,1.000,name
 60E1D400,0x11166,calc_traction_control_mode,Throttle & Torque,1.000,name
 60E1D400,0x1117A,init_rotor_status_flags,Boot & Init,1.000,name
