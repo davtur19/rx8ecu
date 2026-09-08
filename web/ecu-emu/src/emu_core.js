@@ -13,12 +13,16 @@
  * API (exposed on Module.ECUCore after load):
  *   emu_init()           — allocate internal state
  *   emu_set_sensor(id, value) — id: 0=rpm 1=ect 2=iat 3=map 4=tps 5=o2f 6=o2r
+ *   emu_set_mil(on)      — set/clear internal MIL/DTC latch (drives port 5 bit 7)
  *   emu_step_ms(ms)      — advance simulation by ms milliseconds
  *   emu_get_pin(num)     — return pin voltage (0-16) or digital (0/1) for pin 1..96
  *   emu_get_adc(ch)      — return 10-bit ADC value for channel 0..7
  *   emu_get_port(p, b)   — return GPIO port p bit b (0 or 1)
  *   emu_get_reg(addr)    — return 8/16-bit value at peripheral address
  *   emu_get_crank_phase()— return current crank tooth index (0..19)
+ *   emu_get_crank_gap()  — return 1 when the current tooth is a gap (5/15)
+ *   emu_get_crank_capture() — return ATU capture mirror (bit 31 = gap flag)
+ *   emu_get_tooth_period_ms() — return current per-tooth period in ms
  */
 "use strict";
 
@@ -28,7 +32,10 @@ var Module = (function() {
   var _crankAngle = 0;       // degrees
   var _crankTooth = 0;       // 0..19
   var _crankPhase = 0;       // sub-tooth phase for edges
+  var _crankGap = false;     // true when current tooth is a gap (5/15)
   var _msAccum = 0;          // fractional ms accumulator
+  var _mil = false;          // internal MIL/DTC latch (drives port 5 bit 7)
+  var _fuelPrime = true;     // key-on fuel-pump prime latch (set at init)
 
   /* NTC constants (from ecu_pin_emu.py) */
   var NTC_B     = 3435.0;
@@ -40,6 +47,10 @@ var Module = (function() {
   /* ADC */
   var ADC_MAX = 1023;
   var VREF = 5.0;
+
+  /* Battery: single source of truth (V). ADC ch6 sees the /16*5 divider tap. */
+  var BATT_V = 14.0;
+  var BATT_DIV = 5.0 / 16.0;
 
   /* Peripheral base addresses */
   var PORT_BASE = 0xFFFFF720;
@@ -85,29 +96,47 @@ var Module = (function() {
   /* ================================================================
    *  Crank Pulse Generator — 20-tooth trigger wheel
    * ================================================================ */
-  /* Each tooth is 18°.  The NE+ pin toggles: HIGH for 9°, LOW for 9°.
+  /* Each tooth is 18°. One NE period per tooth: HIGH for 9°, LOW for 9°.
    * One full revolution = 360° = 20 teeth.
-   * toothTime_ms = 60000 / (rpm * 20) — time per half-tooth (edge).
-   * Within each 9° segment, NE+ is HIGH for first 4.5° then LOW for 4.5°.
+   * toothPeriod_ms = 60000 / (rpm * 20) — time per full 18° tooth.
+   *   e.g. at 9000 rpm: 60000/(9000*20) = 0.333ms (3000 teeth/s = 3kHz).
+   * Teeth 5 and 15 are gaps (missing teeth, cf. tools/ecu_pin_emu.py
+   * CrankPulseGen: gap = 1.5x normal spacing). The gap tooth period is
+   * 1.5x, NE stays LOW through the gap extension, and _crankGap plus the
+   * capture-register gap flag (bit 31) mark it.
    */
+  function isGapTooth(tooth) {
+    return tooth === 5 || tooth === 15;
+  }
+
+  function toothPeriodFor(rpm, tooth) {
+    var base = 60000.0 / (rpm * 20); // ms per full tooth
+    return isGapTooth(tooth) ? base * 1.5 : base;
+  }
+
   function crankStep(dt_ms) {
     if (_rpm <= 0) return;
-    var toothPeriod_ms = 60000.0 / (_rpm * 20); // ms per half-tooth
     _msAccum += dt_ms;
-    while (_msAccum >= toothPeriod_ms) {
-      _msAccum -= toothPeriod_ms;
-      _crankTooth = (_crankTooth + 1) % 20;
+    for (;;) {
+      var next = (_crankTooth + 1) % 20;
+      var period_ms = toothPeriodFor(_rpm, next);
+      if (_msAccum < period_ms) break;
+      _msAccum -= period_ms;
+      _crankTooth = next;
       _crankAngle = _crankTooth * 18;
-      crankCapture = (_crankTooth << 16) | (_crankTooth & 0xFFFF);
+      _crankGap = isGapTooth(_crankTooth);
+      crankCapture = (_crankTooth * 65536) + _crankTooth +
+                     (_crankGap ? 0x80000000 : 0);
     }
   }
 
-  /* NE+ voltage: HIGH for first half of tooth, LOW for second half */
-  function crankNE电压() {
+  /* NE+ voltage: HIGH for first half of each tooth period, LOW otherwise.
+   * Phase is measured against the base (non-gap) tooth period so the gap
+   * extension reads as an extended LOW (missing pulse). */
+  function crankNEVoltage() {
     if (_rpm <= 0) return 0;
-    /* sub-tooth phase: 0..1 maps to full 9° half-tooth */
-    var toothPeriod_ms = 60000.0 / (_rpm * 20);
-    var phase = toothPeriod_ms > 0 ? (_msAccum / toothPeriod_ms) : 0;
+    var basePeriod_ms = 60000.0 / (_rpm * 20);
+    var phase = basePeriod_ms > 0 ? (_msAccum / basePeriod_ms) : 0;
     return phase < 0.5 ? 4.5 : 0.2;  // HIGH/LOW voltage levels
   }
 
@@ -121,7 +150,7 @@ var Module = (function() {
     var tpsV = mapRange(_tps, 0, 100, 0.5, 4.5);
     var o2fV = Math.max(0, Math.min(1, _o2f));
     var o2rV = Math.max(0, Math.min(1, _o2r));
-    var battV = 14.0 * 5.0 / 16.0;  // scaled
+    var battV = BATT_V * BATT_DIV;  // divider tap; pin sees BATT_V
 
     adcChannels[0] = voltageToADC10(ectV);
     adcChannels[1] = voltageToADC10(iatV);
@@ -146,17 +175,17 @@ var Module = (function() {
     // Port 1: INJ1-4 — enabled when RPM > 200
     portLatches[1] = rpm > 200 ? 0x0F : 0x00;
 
-    // Port 2: OMP — enabled when RPM > 2000
-    portLatches[2] = rpm > 2000 ? 0x01 : 0x00;
+    // Port 2: OMP — metering pump runs whenever the engine turns (idle included)
+    portLatches[2] = rpm > 0 ? 0x01 : 0x00;
 
-    // Port 3: FUEL pump — enabled when RPM > 0
-    portLatches[3] = rpm > 0 ? 0x01 : 0x00;
+    // Port 3: FUEL pump — key-on prime latch: on from emu_init (IG) even at rpm 0
+    portLatches[3] = (rpm > 0 || _fuelPrime) ? 0x01 : 0x00;
 
     // Port 4: FAN1 — ECT > 90, FAN2 — ECT > 100
     portLatches[4] = ect > 100 ? 0x03 : (ect > 90 ? 0x01 : 0x00);
 
-    // Port 5: CHECK engine — off when running normally
-    portLatches[5] = 0x00;
+    // Port 5: CHECK engine (MIL) — bit 7 driven by internal DTC/MIL latch
+    portLatches[5] = _mil ? 0x80 : 0x00;
   }
 
   /* ================================================================
@@ -183,7 +212,7 @@ var Module = (function() {
     }
 
     if (t === "analog") {
-      if (n === "NE+")  return crankNE电压();
+      if (n === "NE+")  return crankNEVoltage();
       if (n === "NE-")  return 0;
       if (n === "G1")   return _rpm > 0 ? 2.5 : 0;
       if (n === "MAP")  return mapRange(_map, 0, 105, 0.5, 4.5);
@@ -192,8 +221,14 @@ var Module = (function() {
       if (n === "O2R")  return Math.max(0, Math.min(1, _o2r));
       if (n === "ECT")  return ntcTempToVoltage(_ect);
       if (n === "IAT")  return ntcTempToVoltage(_iat);
-      if (n === "KNOCK") return 0.1 + Math.random() * 0.3;
-      if (n === "BATT_SENS") return 3.5;
+      if (n === "KNOCK") {
+        // Deterministic knock texture from crank angle (replay-safe):
+        // base + one strong + one weak harmonic, always in 0.05..0.35 V.
+        var a = _crankAngle * Math.PI / 180;
+        var v = 0.2 + 0.1 * Math.sin(a * 3) + 0.05 * Math.sin(a * 7 + 1.3);
+        return Math.max(0.05, Math.min(0.35, v));
+      }
+      if (n === "BATT_SENS") return BATT_V;
       return 0;
     }
 
@@ -209,7 +244,7 @@ var Module = (function() {
     if (t === "digital" && pin.dir === "in") {
       if (n === "VEH_SPD")  return _rpm > 0 ? 1 : 0;
       if (n === "STP")      return 0;
-      if (n === "AC请求")   return 0;
+      if (n === "AC_REQ") return 0;
       return 0;
     }
 
@@ -283,7 +318,10 @@ var Module = (function() {
     crankCapture = 0;
     _crankAngle = 0;
     _crankTooth = 0;
+    _crankGap = false;
     _msAccum = 0;
+    _mil = false;        // MIL off at power-on; set via emu_set_mil
+    _fuelPrime = true;   // key-on prime: fuel relay on from IG, rpm-independent
   }
 
   function emu_set_sensor(id, value) {
@@ -326,6 +364,23 @@ var Module = (function() {
     return _crankTooth;
   }
 
+  function emu_set_mil(on) {
+    _mil = !!on;
+  }
+
+  function emu_get_crank_gap() {
+    return _crankGap ? 1 : 0;
+  }
+
+  function emu_get_crank_capture() {
+    return crankCapture >>> 0; // ATU capture mirror (bit 31 = gap flag)
+  }
+
+  function emu_get_tooth_period_ms() {
+    if (_rpm <= 0) return 0;
+    return 60000.0 / (_rpm * 20); // ms per full 18° tooth
+  }
+
   function emu_set_pins(pinData) {
     pins = pinData;
   }
@@ -336,12 +391,16 @@ var Module = (function() {
   return {
     emu_init: emu_init,
     emu_set_sensor: emu_set_sensor,
+    emu_set_mil: emu_set_mil,
     emu_step_ms: emu_step_ms,
     emu_get_pin: emu_get_pin,
     emu_get_adc: emu_get_adc,
     emu_get_port: emu_get_port,
     emu_get_reg: emu_get_reg,
     emu_get_crank_phase: emu_get_crank_phase,
+    emu_get_crank_gap: emu_get_crank_gap,
+    emu_get_crank_capture: emu_get_crank_capture,
+    emu_get_tooth_period_ms: emu_get_tooth_period_ms,
     emu_set_pins: emu_set_pins
   };
 })();
