@@ -709,3 +709,30 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 
 ### Live QA
 - 26/27 then 27/27 including P5 after the emu core landed (MIL bit-7 path).
+
+### Explorer E1 follow-ups (bcc267b, 1a1c5a5)
+- App correctness + perf: search/lookup/guards/debounce/XSS fixes (bcc267b); 28/28 + 21/21 PASS.
+- Pager pageinfo text wired into symbol/table renders (1a1c5a5).
+
+### Emu hardening (85727cc, 0d00a19)
+- Pin-name XSS pinned closed (poisoned-pin test) + pin-cell keyboard a11y (tabindex/aria-label/keydown); 28/28 (85727cc).
+- CAN frame table caption for screen readers (0d00a19).
+
+### Firmware ROM-check resolution (029a4ae, 61c5780)
+- TGR byte lane: ROM RX handlers use mov.b @(1,r4) — read TGR0 at base+1 (029a4ae).
+- Idle path: ROM loc_78C feeds WDT every loop pass, no SLEEP — wave-2 sleep/throttle reverted (029a4ae).
+- Seed corruption removed: overlapping u16 stores to D210/D212 deleted; ROM uses D210 as byte + 4-byte seed D211-D214 (029a4ae).
+- Mailbox fix: 0x4B0 handler reads 0x4EC90 (was 0x4EC80); 0x430-only dispatch renamed (029a4ae).
+- EEPROM CS hunt verdict NOT-FOUND: no SH-side SPI driver (E4xx = HCAN/ATU, clock helpers init-only, alleged SPI ops RAM-only); bench probe of SOIC8 IC420 required (61c5780).
+
+### Favicon + dist (3b7c3f0, ed73069)
+- Wankel-rotor SVG favicon inline in emu index.html (3b7c3f0).
+- Tracked emu dist rebuilt from src after 6 waves of fixes (ed73069); CI rebuilds dist at deploy (pages.yml), live unaffected.
+
+### RAM/ROM nuggets
+- 0xFFFFF730 = ATU register (ROM word-write 0xF484 @0x50CC), not GPIO — CS bit-guess would corrupt ATU config.
+- D210 = byte session-state; D211-D214 = 4-byte seed; no ROM instruction references 0xFFFFD212.
+- CAN1 RX mailboxes: 0x4EC80 → 0x430, 0x4EC90 → 0x4B0, 0x4ECA0 → 0x4C0.
+
+### Audit verdict
+- DIRTY → minors (ee2bc7e: header doc, init idempotency, scenario blur, O2 scenarios, tbl-viz assert + dist rebuild).
