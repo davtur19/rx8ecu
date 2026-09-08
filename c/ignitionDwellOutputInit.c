@@ -50,6 +50,8 @@
  */
 #include <stdint.h>
 
+#include "map_lookup.h"   /* Map2D for the 0x94C8 dwell lookup binding */
+
 #define ROM_CFG_TBL ((const uint32_t *)0x0000DAB4)   /* 4 channel config words, stride 0x18 */
 
 #define RAM_A0C4_ARR ((volatile uint32_t *)0xFFFFA0C4)  /* per-channel dwell word (4x u32) */
@@ -58,7 +60,10 @@
 /* ---- callees (executed by the harness in a second emulator instance) ---- */
 extern void sensor_adc_convert_chain_0x8FCC(void);              /* 0x8FCC */
 extern void ignition_channel_setup_0xAA74(uint32_t cfg);        /* 0xAA74(cfg, r5=0) */
-extern void get_ignition_dwell_time_0x94C8(void);               /* 0x94C8 (tail-call) */
+extern void get_ignition_dwell_time_0x94C8(const Map2D *desc, const float *rpm,
+                                            const float *battv,
+                                            const uint16_t *offset,
+                                            uint16_t *out);          /* 0x94C8 (tail-call) */
 
 /* 0x008F62 — initialise ignition dwell output for all channels */
 void ignitionDwellOutputInit(void)
@@ -73,5 +78,9 @@ void ignitionDwellOutputInit(void)
         RAM_A0C4_ARR[i] = 0;                 /* dwell output word */
     }
 
-    get_ignition_dwell_time_0x94C8();        /* tail-call (bra 0x94C8) */
+    get_ignition_dwell_time_0x94C8((const Map2D *)(uintptr_t)0x6C1C0,   /* tail-call (bra 0x94C8) */
+                                     (const float *)0xFFFF9F80,          /* RPM */
+                                     (const float *)0xFFFF9F68,          /* battery voltage */
+                                     (const uint16_t *)0xFFFFA0D6,       /* dwell offset */
+                                     (uint16_t *)0xFFFFA0D4);            /* dwell result */
 }

@@ -104,11 +104,13 @@
  * (tools/sh2emu.py) — see c/tests/test_bitfield_extract_merge.py.
  */
 #include <stdint.h>
+#include <string.h>
 
 /* 0x48C8  frexp-style float decomposition: x = sig * 2^e, sig in [1,2) */
 void bitfield_extract_merge(float value, uint32_t *out)
 {
-    uint32_t bits = *(uint32_t *)&value;   /* IEEE-754 bit pattern */
+    uint32_t bits;
+    memcpy(&bits, &value, sizeof bits);   /* IEEE-754 bit pattern (no aliasing UB) */
     uint32_t sign = bits & 0x80000000u;
     uint32_t exp8 = (bits >> 23) & 0xFFu;
     uint32_t mant = bits & 0x007FFFFFu;

@@ -34,6 +34,8 @@
 
 #include <stdint.h>
 
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *) */
+
 /* ================================================================
  * RAM Map
  * ================================================================ */
@@ -46,11 +48,8 @@
 /* IAT processed temperature value */
 #define IAT_TEMPERATURE      (*(volatile float    *)0xFFFFC5F0)   /* deg C */
 
-/* Calibration table address in ROM */
+/* Calibration table address in ROM (descriptor; cast at the call site) */
 #define IAT_CAL_TABLE_ADDR   0x0007A9A8
-
-/* External 2D lookup function */
-extern float TwoDLookup(uint32_t table_addr, float input);
 
 /* IAT threshold comparison constant (first byte at 0x7A9A8) */
 static uint8_t get_iat_threshold(void)
@@ -91,7 +90,7 @@ uint8_t iat_sensor_3C214(void)
     
     /* Convert ADC to temperature via lookup table */
     float voltage = (float)iat_adc * 7.62939e-5f;
-    float temp = TwoDLookup(IAT_CAL_TABLE_ADDR, voltage);
+    float temp = TwoDLookup((const Map1D *)(uintptr_t)IAT_CAL_TABLE_ADDR, voltage);
     IAT_TEMPERATURE = temp;
     
     /* Out-of-range checks using threshold */
@@ -135,5 +134,5 @@ uint8_t iat_sensor_3C214(void)
  */
 float iatVoltageToTemperature(float voltage)
 {
-    return TwoDLookup(IAT_CAL_TABLE_ADDR, voltage);
+    return TwoDLookup((const Map1D *)(uintptr_t)IAT_CAL_TABLE_ADDR, voltage);
 }

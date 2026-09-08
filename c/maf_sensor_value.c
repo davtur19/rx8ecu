@@ -17,17 +17,16 @@
 
 #include <stdint.h>
 
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *) */
+
 #define MAF_ADC_ADDR       (volatile uint16_t*)0xFFFF9EEA
 #define MAF_VALUE_ADDR     (volatile float*)   0xFFFF9F78
 #define MAF_STATUS_ADDR    (volatile uint8_t*) 0xFFFF9F7C
 
 #define MAF_SCALE_FACTOR   7.62939e-5f  /* 5.0V / 65536 */
 
-/* Calibration lookup table address for MAF Scaling */
+/* Calibration lookup table address for MAF Scaling (descriptor; cast at call) */
 #define MAF_CAL_TABLE_ADDR 0x006FBD8
-
-/* External 2D lookup function */
-extern float TwoDLookup(uint32_t table_addr, float input);
 
 void getMAFSensorValue(void)
 {
@@ -37,7 +36,7 @@ void getMAFSensorValue(void)
     float maf_voltage = (float)maf_adc_raw * MAF_SCALE_FACTOR;
 
     /* Apply 2D calibration lookup (voltage → mass air flow in g/s) */
-    float maf_flow = TwoDLookup(MAF_CAL_TABLE_ADDR, maf_voltage);
+    float maf_flow = TwoDLookup((const Map1D *)(uintptr_t)MAF_CAL_TABLE_ADDR, maf_voltage);
 
     *MAF_VALUE_ADDR = maf_flow;
 

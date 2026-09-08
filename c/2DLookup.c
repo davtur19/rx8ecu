@@ -36,6 +36,8 @@
  */
 #include <stdint.h>
 #include <math.h>
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup declaration */
+#include "sh2_fpu.h"      /* ftrc_sat: SH-2E float->int32 saturation */
 
 /*
  * dataLookup  —  RX-8 PCM primitive @ ROM 0x2624 (equinox name; hand Ghidra RE by
@@ -90,15 +92,7 @@ void dataLookup(int n, const float *axis, float x, int *out_i, float *out_t)
     *out_t = t;
 }
 
-typedef struct {
-    uint16_t     count;   /* +0  */
-    uint8_t      type;    /* +2  */
-    uint8_t      _pad;    /* +3  */
-    const float *axis;    /* +4  */
-    const void  *values;  /* +8  */
-    float        scale;   /* +12 */
-    float        offset;  /* +16 */
-} Map1D;
+/* Map1D comes from map_lookup.h (single canonical definition). */
 
 static float map1d_cell(const void *v, uint8_t type, int i)
 {
@@ -167,7 +161,9 @@ uint16_t TwoDLookup_FP_16bit(const Map1D *m, float x)
     v0 = (float)values[i];
     v1 = (float)values[i + 1 < n ? i + 1 : i];
     interp = v0 + t * (v1 - v0);
-    return (uint16_t)(int32_t)interp;   /* ftrc: trunc toward zero, then zero-extend 16 bits */
+    /* ftrc with SH-2E saturation first (NaN/huge interp, e.g. from a
+     * degenerate axis interval, must not hit a bare UB cast), then narrow. */
+    return (uint16_t)ftrc_sat(interp);
 }
 
 /*
@@ -209,5 +205,6 @@ uint8_t TwoDLookup_FP_8bit(const Map1D *m, float x)
     v0 = (float)values[i];
     v1 = (float)values[i + 1 < n ? i + 1 : i];
     interp = fmaf(t, v1 - v0, v0);
-    return (uint8_t)(int32_t)interp;   /* ftrc: trunc toward zero, then zero-extend 8 bits */
+    /* ftrc with SH-2E saturation first (see TwoDLookup_FP_16bit), then narrow. */
+    return (uint8_t)ftrc_sat(interp);
 }

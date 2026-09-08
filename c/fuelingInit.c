@@ -29,7 +29,7 @@ extern void crank_timer_hw_reset(void);
 extern void crank_vars_init(void);
 extern void crank_mode_write(void);
 extern void crank_state_bytes_clear(void);
-extern void crankSensorInit(void);
+extern void crankSensorInit(uint8_t *ctrl_a, uint8_t *ctrl_b, uint8_t *run_flag);
 extern void crank_flags_enable(void);
 extern void crank_counters_reset(void);
 extern void crank_output_update(void) __attribute__((noreturn));
@@ -63,10 +63,11 @@ void fuelingInit(void)
     crank_mode_write();
     crank_state_bytes_clear();
 
-    /* Clear engine-run flag and init crank sensor */
+    /* Clear engine-run flag and init crank sensor (HW binding injected here) */
     *(volatile uint8_t *)0xFFFF9F96 = 0;
     *(volatile uint8_t *)0xFFFF9FCB = 0;
-    crankSensorInit();
+    crankSensorInit((uint8_t *)0xFFFF9FC9, (uint8_t *)0xFFFF9FCA,
+                    (uint8_t *)0xFFFF9F96);
 
     crank_flags_enable();
     crank_counters_reset();

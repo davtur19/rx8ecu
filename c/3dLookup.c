@@ -29,6 +29,7 @@
  */
 #include <stdint.h>
 #include <math.h>
+#include "sh2_fpu.h"      /* ftrc_sat: SH-2E float->int32 saturation */
 
 typedef struct {
     uint16_t     count_x;   /* +0  */
@@ -157,7 +158,9 @@ uint8_t ThreeDLookup_FP_8bit(const Map2D *m, float x, float y)
     row0 = fmaf(tx, c10 - c00, c00);
     row1 = fmaf(tx, c11 - c01, c01);
     interp = fmaf(ty, row1 - row0, row0);
-    return (uint8_t)(int32_t)interp;   /* ftrc: trunc toward zero, then zero-extend 8 bits */
+    /* ftrc with SH-2E saturation first (NaN/huge interp must not hit a bare
+     * UB cast), then narrow to 8 bits (ROM ftrc + extu.b). */
+    return (uint8_t)ftrc_sat(interp);
 }
 
 /*
@@ -190,5 +193,6 @@ uint16_t ThreeDLookup_FP_16bit(const Map2D *m, float x, float y)
     row0 = fmaf(tx, c10 - c00, c00);
     row1 = fmaf(tx, c11 - c01, c01);
     interp = fmaf(ty, row1 - row0, row0);
-    return (uint16_t)(int32_t)interp;   /* ftrc: trunc toward zero, then zero-extend 16 bits */
+    /* ftrc with SH-2E saturation first, then narrow to 16 bits (ROM ftrc + extu.w). */
+    return (uint16_t)ftrc_sat(interp);
 }

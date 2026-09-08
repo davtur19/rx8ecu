@@ -17,6 +17,7 @@
  */
 #include <stdint.h>
 #include <math.h>
+#include "sh2_fpu.h"   /* ftrc_sat: SH-2E float->int32 saturation (NaN -> INT32_MIN) */
 
 /* 0x23DC  fsub fr5,fr4 ; fabs fr4 ; -> fr0            |a - b|                       */
 float subtractAbsolute(float a, float b)
@@ -65,7 +66,11 @@ int isNotZero_wDivideByZeroProtect(float x, float center, float tol)
  *         round((number - offset) / scalar), clamped to [0, 65535]                  */
 uint16_t floatToFP_16bit(float number, float scalar, float offset)
 {
-    int32_t i = (int32_t)(((number - offset) / scalar) + 0.5f);   /* ftrc: trunc toward 0 */
+    /* ftrc with SH-2E saturation BEFORE the float->int32 conversion: a bare
+     * (int32_t) cast is UB for out-of-range/NaN inputs (x86 saturates +overflow
+     * to INT32_MIN, the opposite of the ROM's INT32_MAX). NaN -> INT32_MIN,
+     * clamped to 0 below — matching the ROM's ftrc + clamp sequence. */
+    int32_t i = ftrc_sat(((number - offset) / scalar) + 0.5f);
     if (i > 0xFFFF) i = 0xFFFF;
     if (i < 0)      i = 0;
     return (uint16_t)i;
@@ -75,7 +80,8 @@ uint16_t floatToFP_16bit(float number, float scalar, float offset)
  *         round((signal - offset) / mult), clamped to [0, 255]                      */
 uint8_t floatToInt(float signal, float mult, float offset)
 {
-    int32_t i = (int32_t)(((signal - offset) / mult) + 0.5f);
+    /* Same ftrc saturation as floatToFP_16bit above (NaN -> INT32_MIN -> 0). */
+    int32_t i = ftrc_sat(((signal - offset) / mult) + 0.5f);
     if (i > 0xFF) i = 0xFF;
     if (i < 0)    i = 0;
     return (uint8_t)i;
@@ -148,12 +154,9 @@ int32_t fixedPointScaling(int32_t a, int32_t b, uint16_t frac)
     float t    = 1.0f - (float)frac * (1.0f / 256.0f);
     float diff = (float)b - (float)a;
     float prod = diff * t;
-    int32_t d;
-    if (prod >= 2147483648.0f)        /* ftrc +overflow: saturate */
-        d = INT32_MAX;
-    else if (prod < -2147483648.0f)   /* ftrc -overflow: saturate */
-        d = INT32_MIN;
-    else
-        d = (int32_t)prod;            /* ftrc in range: trunc toward zero */
-    return a + d;
+    /* ftrc_sat covers +overflow -> INT32_MAX, -overflow AND NaN -> INT32_MIN
+     * (the old open-coded branches missed NaN, leaving a bare UB cast). */
+    int32_t d = ftrc_sat(prod);
+    /* The ROM adds with 32-bit wrap; do it unsigned to avoid C signed-overflow UB. */
+    return (int32_t)((uint32_t)a + (uint32_t)d);
 }

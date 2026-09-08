@@ -84,55 +84,55 @@
 #include <stdint.h>
 #include <math.h>
 
-/* ---- 1-D lookup descriptor (20 bytes, big-endian SH-2E; see c/2DLookup.c) ---- */
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *) */
+
+/* ---- injected hardware context (host-testable; no absolute addresses) ----
+ * ECU binding (what the caller passes on real hardware):
+ *   gate_b588  - u8 crank gate @0xFFFFB588 (==1)
+ *   g_aac6     - u8 gateway    @0xFFFFAAC6 (==1)
+ *   temp_a9fc  - f32 temp x input @0xFFFFA9FC
+ *   st_c9ac    - u8 state latch @0xFFFFC9AC (r+w)
+ *   tmp_c9a4   - f32 working advance @0xFFFFC9A4 (r+w)
+ *   fin_c99c   - f32 final advance @0xFFFFC99C (r+w)
+ *   desc       - TwoDLookup desc @0x000699CC (9-pt u8 temp map)
+ *   rom_p79794 - f32 +1.0 @0x00079794 (state==0 min upper)
+ *   rom_p79798 - f32 +1.0 @0x00079798 (filter weight)
+ *   rom_d4327c - f32 1.0e-5 @0x0004327C (filter max delta) */
 typedef struct {
-    uint16_t     count;    /* +0 */
-    uint8_t      type;     /* +2 */
-    uint8_t      _pad;     /* +3 */
-    const float *axis;     /* +4 */
-    const void  *values;   /* +8 */
-    float        scale;    /* +12 */
-    float        offset;   /* +16 */
-} Map1D;
-
-/* ---- RAM globals (mov.w literals sign-extend to 0xFFFFxxxx) ---- */
-#define GATE_B588 (*(volatile uint8_t *)0xFFFFB588)  /* u8 crank gate (==1)     */
-#define G_AAC6    (*(volatile uint8_t *)0xFFFFAAC6)  /* u8 gateway    (==1)     */
-#define TEMP_A9FC (*(volatile float  *)0xFFFFA9FC)   /* f32 temp x input        */
-#define ST_C9AC   (*(volatile uint8_t *)0xFFFFC9AC)  /* u8 state latch  r+w      */
-#define TMP_C9A4  (*(volatile float  *)0xFFFFC9A4)   /* f32 working advance r+w  */
-#define FIN_C99C  (*(volatile float  *)0xFFFFC99C)   /* f32 final advance  r+w   */
-
-/* ---- ROM calibration constants ---- */
-#define ROM_P_79794 (*(const float *)0x00079794)   /* f32 +1.0, state==0 min upper */
-#define ROM_P_79798 (*(const float *)0x00079798)   /* f32 +1.0, filter weight      */
-#define ROM_D_4327C (*(const float *)0x0004327C)   /* f32 1.0e-5, filter max delta */
-
-#define DESC_699CC ((const Map1D *)0x000699CC)     /* 9-pt u8 temp map */
+    const uint8_t *gate_b588;
+    const uint8_t *g_aac6;
+    const float   *temp_a9fc;
+    uint8_t       *st_c9ac;
+    float         *tmp_c9a4;
+    float         *fin_c99c;
+    const Map1D   *desc;
+    const float   *rom_p79794;
+    const float   *rom_p79798;
+    const float   *rom_d4327c;
+} CrankLeadCtx;
 
 /* ---- verified ROM leaves ---- */
-extern float TwoDLookup(const Map1D *m, float x);              /* 0x2068 */
 extern float minValue(float a, float b);                       /* 0x23F4 */
 extern float ratio(float num, float den);                      /* 0x3E0AC */
 extern float filters(float neu, float old, float w, float d);  /* 0x23B0 */
 
-void calculateCrankingTimingLeading_0x43168(void)
+void calculateCrankingTimingLeading_0x43168(const CrankLeadCtx *ctx)
 {
     float twoD;
-    if (G_AAC6 == 1 && GATE_B588 == 1) {          /* cmp/eq #1 x2 ; bf/s x2   */
-        twoD = TwoDLookup(DESC_699CC, TEMP_A9FC); /* jsr 0x2068 @0x43190      */
-        TMP_C9A4 = twoD;
-        if (ST_C9AC == 0) {                       /* tst ; bf/s @0x4319C      */
-            float c = minValue(ROM_P_79794, 1.0f);/* jsr @0x23F4 @0x431AE     */
-            FIN_C99C = ratio(twoD, c);            /* jsr @0x3E0AC @0x431B6    */
+    if (*ctx->g_aac6 == 1 && *ctx->gate_b588 == 1) {   /* cmp/eq #1 x2 ; bf/s x2   */
+        twoD = TwoDLookup(ctx->desc, *ctx->temp_a9fc); /* jsr 0x2068 @0x43190      */
+        *ctx->tmp_c9a4 = twoD;
+        if (*ctx->st_c9ac == 0) {                      /* tst ; bf/s @0x4319C      */
+            float c = minValue(*ctx->rom_p79794, 1.0f);/* jsr @0x23F4 @0x431AE     */
+            *ctx->fin_c99c = ratio(twoD, c);           /* jsr @0x3E0AC @0x431B6    */
         } else {
-            FIN_C99C = filters(twoD, FIN_C99C,
-                               ROM_P_79798, ROM_D_4327C); /* jsr @0x23B0     */
+            *ctx->fin_c99c = filters(twoD, *ctx->fin_c99c,
+                                     *ctx->rom_p79798, *ctx->rom_d4327c); /* jsr @0x23B0 */
         }
-        ST_C9AC = GATE_B588;                      /* mov.b r12,@r2 @0x431DA  */
+        *ctx->st_c9ac = *ctx->gate_b588;               /* mov.b r12,@r2 @0x431DA  */
     } else {
-        TMP_C9A4 = 0.0f;                          /* fldi0 ; fmov.s @r14      */
-        FIN_C99C = 0.0f;                          /* fmov.s fr4,@r13 @0x431D6 */
-        ST_C9AC = GATE_B588;
+        *ctx->tmp_c9a4 = 0.0f;                         /* fldi0 ; fmov.s @r14      */
+        *ctx->fin_c99c = 0.0f;                         /* fmov.s fr4,@r13 @0x431D6 */
+        *ctx->st_c9ac = *ctx->gate_b588;
     }
 }

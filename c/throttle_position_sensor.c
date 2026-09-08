@@ -52,8 +52,8 @@
 
 /* ================================================================ */
 
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *) */
 /* External helpers */
-extern float TwoDLookup(uint32_t table_addr, float input);
 extern float firstOrderFilter(float sig, float sigprev, float ff, float min);
 
 /**
@@ -76,8 +76,7 @@ extern float firstOrderFilter(float sig, float sigprev, float ff, float min);
 uint8_t throttle_position_adc_reader(void)
 {
     uint16_t tps_adc = TPS_MAIN_ADC;
-    uint16_t limit_table;  /* loaded from ROM table descriptor */
-    
+
     /* Load limit value from calibration table at 0x6F9B8
      * (table descriptor: count=6, type=0, axis=limit_voltages, values=limits) */
     uint16_t max_limit = *(volatile uint16_t *)0x0006F9BA;  /* u16 from descriptor+2 */
@@ -113,7 +112,7 @@ float tps_adc_to_angle(uint16_t adc_value)
     /* TPS angle lookup table @ 0x6F9B8
      * Maps voltage to throttle angle (type-0, float output) */
     #define TPS_ANGLE_TABLE   0x0006F9B8
-    return TwoDLookup(TPS_ANGLE_TABLE, voltage);
+    return TwoDLookup((const Map1D *)(uintptr_t)TPS_ANGLE_TABLE, voltage);
 }
 
 /**
