@@ -57,7 +57,7 @@ def sub(seq, regs=None, ram=None, sr=0x000000F0):
     cpu.macl = 0; cpu.mach = 0; cpu.gbr = 0; cpu.sr = sr & MASK
     cpu.vbr = 0; cpu.ssr = 0; cpu.spc = 0
     cpu.fpul = 0; cpu.fpscr = 0
-    cpu._Q = (cpu.sr >> 3) & 1; cpu._M = (cpu.sr >> 2) & 1
+    cpu._sync_TQM_from_sr()   # SR bits 0/8/9 -> T/Q/M (SH-2 manual positions)
     cpu.pc = 0
     steps = 0
     while True:

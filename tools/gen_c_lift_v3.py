@@ -1613,8 +1613,11 @@ def _emu_executes(rom, op):
     Non-branches go through _exec(), which raises NotImplementedError at every
     unhandled path (unknown-opcode fallthrough, unhandled FPU sub-encoding,
     trapa).  The opcode runs on a freshly-initialized CPU with a zeroed integer
-    state; a completed handler (or any incidental non-NotImplemented exception
-    from the zeroed state) means a handler exists -> emu:yes, else emu:no."""
+    state; only a clean return means a handler exists -> emu:yes.  ANY
+    exception (NotImplementedError for unimplemented opcodes, or any other
+    crash on the zeroed probe state) means emu:no — mirroring
+    opcode_audit.EmulatorImplSet (a crash-on-valid-input must never be
+    mislabeled implemented)."""
     key = (len(rom), hash(bytes(rom)), op)
     if key in _EMU_CACHE:
         return _EMU_CACHE[key]
@@ -1625,7 +1628,7 @@ def _emu_executes(rom, op):
         c.fr = [0.0] * 16
         c.pr = 0; c.T = 0; c.macl = 0; c.mach = 0; c.gbr = 0
         c.sr = 0x000000F0
-        c._Q = (c.sr >> 3) & 1; c._M = (c.sr >> 2) & 1
+        c._Q = (c.sr >> 8) & 1; c._M = (c.sr >> 9) & 1
         c.vbr = 0; c.ssr = 0; c.spc = 0; c.fpul = 0; c.fpscr = 0
         c.pc = 0
         if c._delayed(op) is not None:
@@ -1636,7 +1639,10 @@ def _emu_executes(rom, op):
     except NotImplementedError:
         _EMU_CACHE[key] = False
     except Exception:
-        _EMU_CACHE[key] = True
+        # MEDIUM-4 fix: was True ("any non-NotImplemented exception means a
+        # handler exists") — a handler that crashes on valid input is NOT an
+        # implemented opcode.
+        _EMU_CACHE[key] = False
     return _EMU_CACHE[key]
 
 
@@ -1980,10 +1986,16 @@ def walk_v3(rom, addr, end, relax_chain=False):
                     eff, note = 'r%d' % srn, ''
                 t = temp()
                 c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
-                     'sr = %s;' % t,
-                     'r%d = r%d + 4;' % (srn, srn)]
-                py = ['sr = _rdw(ram, r[%d], 4)' % srn,
-                      'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
+                     'sr = %s;' % t]
+                # C1: the SR write re-syncs T/Q/M from bits 0/8/9, exactly as
+                # sh2emu (same statements c_lift_ops._mkLDC appends for ldc
+                # Rn,SR) — without these the mirror keeps a stale T after an
+                # ldc.l (micro/2f: movt reads the pre-ldc T).
+                c.extend(ops._TQM_FROM_SR_C)
+                c.append('r%d = r%d + 4;' % (srn, srn))
+                py = ['sr = _rdw(ram, r[%d], 4)' % srn]
+                py.extend(ops._TQM_FROM_SR_PY)
+                py.append('r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn))
                 mnem = 'ldc.l @r%d+,SR' % srn
             st['written'].add('r%d' % srn)         # auto side-effect kills literal
             st['lits'].pop('r%d' % srn, None)
@@ -2511,8 +2523,9 @@ def build_locals(stmts, info):
             if t == 'pr':
                 lines.append('    uint32_t pr = 0xEEEE0000u;')
             elif t == 'sr':
-                # sh2emu call() default: sr = 0x000000F0 (independent of T —
-                # ldc/stc SR ops only, never auto-synced with T)
+                # sh2emu call() default: sr = 0x000000F0, kept in sync with
+                # T/Q/M exactly like the oracle (T=bit0, Q=bit8, M=bit9: every
+                # T/Q/M write pushes sr, every ldc re-syncs T/Q/M from sr)
                 lines.append('    uint32_t sr = 0x000000F0u;')
             else:
                 lines.append('    uint32_t %s = 0;' % t)
@@ -2719,6 +2732,20 @@ def _norm_py(parts):
     return '\n'.join(out)
 
 
+_FDIV_IEEE_RE = re.compile(r'ts\(fr\[(\d+)\] / fr\[(\d+)\]\)')
+
+
+def _fdiv_ieee(py):
+    """FDIV trace (same rewrite as v8): Python `fr[n] / fr[m]` raises
+    ZeroDivisionError when fr[m]==0 while the real HW/C yield IEEE +/-inf
+    (0/0 -> nan) — and sh2emu models exactly that (never raises).  Rewrite
+    the mirror's fdiv statement to the test template's fdiv() helper, which
+    returns the IEEE result instead of raising."""
+    if py and '/ fr[' in py:
+        return _FDIV_IEEE_RE.sub(r'ts(fdiv(fr[\1], fr[\2]))', py)
+    return py
+
+
 def _code_literal(records):
     """Render the interpreter's CODE = {addr: inst} dict as Python source."""
     lines = []
@@ -2728,7 +2755,7 @@ def _code_literal(records):
             bi = ops.branch_info(rec['op'])
             bkind = bi['kind']
             slot = rec.get('slot')
-            slot_py = _norm_py(slot['py']) if slot and slot.get('py') else None
+            slot_py = _fdiv_ieee(_norm_py(slot['py']) if slot and slot.get('py') else None)
             if bkind == 'rts':
                 lines.append('    %#x: {"kind": "ret", "py": None, '
                              '"slot_py": %r, "target": None, "cond": None},'
@@ -2747,11 +2774,11 @@ def _code_literal(records):
                              '"slot_py": %r, "target": %#x, "cond": %r},'
                              % (pc, slot_py, rec['target'], _BRANCH_COND[bkind]))
         else:
-            py = _norm_py(rec.get('py') or []) or None
+            py = _fdiv_ieee(_norm_py(rec.get('py') or []) or None)
             lines.append('    %#x: {"kind": %r, "py": %r, "slot_py": None, '
                          '"target": None, "cond": None},'
                          % (pc, _MIRROR_KIND[rec['kind']], py))
-    return 'CODE = {\n%s}\n' % '\n'.join(lines)
+    return 'CODE = {\n%s\n}\n' % '\n'.join(lines)
 
 
 def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
@@ -2817,11 +2844,14 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         'skipped (StepLimitExceeded -> skip).\n'
         'Run from repo root: python3 c/tests/test_%s_%x.py\n'
         '"""\n'
-        'import os, random, sys\n\n'
+        'import os, random, sys, math\n\n'
         'ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n'
         'sys.path.insert(0, os.path.join(ROOT, "tools"))\n'
         'from sh2emu import SH2, StepLimitExceeded\n'
-        'from c_lift_ops import s8, s16, s32\n\n'
+        'from c_lift_ops import s8, s16, s32, ts\n\n'
+        'def fdiv(a, b):\n'
+        '    # IEEE FDIV: x/+-0 -> +-inf (0/0 -> nan); Python float div raises\n'
+        '    return a / b if b else (math.inf if a > 0 else (-math.inf if a < 0 else math.nan))\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "60E1D400.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -2864,8 +2894,9 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '    r[4], r[5], r[6], r[7] = r4 & 0xFFFFFFFF, r5 & 0xFFFFFFFF, r6 & 0xFFFFFFFF, r7 & 0xFFFFFFFF\n'
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
-        '          "sr": 0x000000F0,  # sh2emu call() default (independent of T)\n'
-        '          "s8": s8, "s16": s16, "s32": s32, "ram": ram, "sp": r[15],\n'
+        '          "sr": 0x000000F0,  # sh2emu call() default, synced with T/Q/M\n'
+        '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "fdiv": fdiv,\n'
+        '          "ram": ram, "sp": r[15],\n'
         '          "gbr": gbr & 0xFFFFFFFF,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
         '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
@@ -2979,6 +3010,8 @@ def emit_v3_test(addr, name, size, rom, records, info, seed, out_t,
         '    if skipped > 200 or ok == 0:\n'
         '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(1)\n'
+        '    if skipped > 50:\n'
+        '        print("WARN high skip rate %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'
         'if __name__ == "__main__":\n'
         '    main()\n'
@@ -3084,6 +3117,9 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         'from float_compare import same_result_bits, EDGE_NAN_BITS\n'
         'from sh2emu import SH2, StepLimitExceeded\n'
         'from c_lift_ops import s8, s16, s32, ts, bits2f, f2bits\n\n'
+        'def fdiv(a, b):\n'
+        '    # IEEE FDIV: x/+-0 -> +-inf (0/0 -> nan); Python float div raises\n'
+        '    return a / b if b else (math.inf if a > 0 else (-math.inf if a < 0 else math.nan))\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "60E1D400.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -3128,11 +3164,11 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '    r[15] = STACK_TOP & 0xFFFFFFFF\n'
         '    fr = [bits2f(x) for x in fr_in]\n'
         '    ns = {"r": r, "T": 0, "Q": 0, "M": 0, "mach": 0, "macl": 0, "pr": 0xEEEE0000,\n'
-        '          "sr": 0x000000F0,  # sh2emu call() default (independent of T)\n'
+        '          "sr": 0x000000F0,  # sh2emu call() default, synced with T/Q/M\n'
         '          "math": math,  # fsca (0xFFnD) py fragment uses math.sin/cos\n'
         '          "fr": fr, "fpul": 0, "fpscr": 0,\n'
         '          "s8": s8, "s16": s16, "s32": s32, "ts": ts, "bits2f": bits2f,\n'
-        '          "f2bits": f2bits, "ram": ram, "sp": r[15],\n'
+        '          "f2bits": f2bits, "fdiv": fdiv, "ram": ram, "sp": r[15],\n'
         '          "gbr": gbr & 0xFFFFFFFF,\n'
         '          "local": {off: _rdw(ram, STACK_BASE + off, 4) for off in STACK_OFFS},\n'
         '          "_rdw": _rdw, "_wrw": _wrw, "STACK_BASE": STACK_BASE}\n'
@@ -3314,6 +3350,8 @@ def emit_fpu_test(addr, name, size, rom, records, info, seed, out_t,
         '    if skipped > 200 or ok == 0:\n'
         '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(1)\n'
+        '    if skipped > 50:\n'
+        '        print("WARN high skip rate %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'
         'if __name__ == "__main__":\n'
         '    main()\n'
@@ -3526,6 +3564,9 @@ def main():
                     help='output directory for the .c files (default c/)')
     args = ap.parse_args()
 
+    if not os.path.exists(args.rom):
+        print('Error: ROM not found: %s' % args.rom)
+        sys.exit(2)
     rom = open(args.rom, 'rb').read()
     rom_label = os.path.splitext(os.path.basename(args.rom))[0]
     cat_path = os.path.join(ROOT, 'symbols', 'CATALOG_MASTER.csv')

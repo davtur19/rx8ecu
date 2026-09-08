@@ -538,6 +538,41 @@ class ECUPinEmu:
         p5 = self.port_output[5] if len(self.port_output) > 5 else 0
         self.pins["CHECK"] = (p5 >> 7) & 1
 
+    def _seed_ports_to_mmio(self, mmio):
+        """Overlay port latch bytes into the MMIO dict (CRITICAL-2 fix).
+
+        Firmware port writes land in cpu.ram (sh2emu has no write hook), so
+        the MMIO dict must be seeded from the write-through state in _ram
+        (falling back to the port_output[] latch for bytes the firmware
+        never touched) — never from the stale latch alone. Called before
+        every cpu.call() so firmware reads see the current latch.
+        """
+        for i in range(13):
+            base = PORT_BASE + i * 8
+            cur = self.port_output[i] if i < len(self.port_output) else 0
+            mmio[base] = self._ram.get(base, cur & 0xFF) & 0xFF
+            mmio[base + 1] = self._ram.get(base + 1, (cur >> 8) & 0xFF) & 0xFF
+
+    def _fold_ram_ports_to_latch(self, ram=None):
+        """Fold firmware PORT writes into port_output[] (CRITICAL-2 fix).
+
+        After each slice, the PORT_BASE bytes in cpu.ram/_ram (where the
+        firmware's mov.b/mov.w stores actually landed) are folded back into
+        the port_output[] latches, mirrored back into _ram (write-through so
+        MMIO reads and firmware read-modify-write see them), and decoded
+        to pin states.
+        """
+        if ram is None:
+            ram = self._ram
+        for i in range(min(13, len(self.port_output))):
+            base = PORT_BASE + i * 8
+            lo = ram.get(base, self.port_output[i] & 0xFF) & 0xFF
+            hi = ram.get(base + 1, (self.port_output[i] >> 8) & 0xFF) & 0xFF
+            self.port_output[i] = (hi << 8) | lo
+            ram[base] = lo
+            ram[base + 1] = hi
+        self._decode_port_outputs()
+
     # ==================================================================
     #  Simulation step
     # ==================================================================
@@ -602,6 +637,11 @@ class ECUPinEmu:
         mmio[0xFFFFF702] = (timer_val >> 8) & 0xFF
         mmio[0xFFFFF703] = timer_val & 0xFF
 
+        # Port latches: overlay the write-through _ram bytes so firmware
+        # reads see the current latch (CRITICAL-2 fix; previously ports were
+        # absent here, so firmware reads fell through to ROM zeros).
+        self._seed_ports_to_mmio(mmio)
+
         # Try to execute a chunk of firmware
         # We don't have a full RTOS scheduler, so we just let the CPU
         # run for a bounded number of instructions per step.
@@ -637,13 +677,14 @@ class ECUPinEmu:
             except TypeError:
                 pass
 
-        # Read back port outputs after CPU execution
-        for i in range(min(13, len(self.port_output))):
-            addr = PORT_BASE + i * 8
-            lo = mmio.get(addr, self.port_output[i] & 0xFF)
-            hi = mmio.get(addr + 1, (self.port_output[i] >> 8) & 0xFF)
-            self.port_output[i] = ((hi & 0xFF) << 8) | (lo & 0xFF)
-        self._decode_port_outputs()
+        # Read back port outputs after CPU execution: fold the firmware's
+        # PORT_BASE writes (sitting in cpu.ram/_ram) into the latches
+        # (CRITICAL-2 fix; the old mmio.get(addr, old_port_output) fallback
+        # could never observe firmware writes since ports were never in mmio).
+        self._fold_ram_ports_to_latch(self._ram)
+        # Write-through: keep the slice mmio coherent for any post-slice
+        # MMIO readers.
+        self._seed_ports_to_mmio(mmio)
 
     def _inject_crank_pulse(self, timestamp_us):
         """Write crank pulse timestamp into ATU capture register."""
@@ -758,12 +799,10 @@ class ECUPinEmu:
             mmio[0xFFFFF436] = (ts32 >> 8) & 0xFF
             mmio[0xFFFFF437] = ts32 & 0xFF
 
-        # Port output registers (read-back)
-        for i in range(13):
-            base = PORT_BASE + i * 8
-            val = self.port_output[i]
-            mmio[base] = val & 0xFF
-            mmio[base + 1] = (val >> 8) & 0xFF
+        # Port output registers (read-back): seed from the write-through
+        # _ram bytes (firmware writes), falling back to the latch
+        # (CRITICAL-2 fix; the old code seeded the stale latch only).
+        self._seed_ports_to_mmio(mmio)
 
         # RAM flags
         mmio[RAM_ENGINE_RUN] = 1 if self.engine_running else 0

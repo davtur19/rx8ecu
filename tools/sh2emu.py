@@ -20,6 +20,12 @@ import struct
 
 MASK = 0xFFFFFFFF
 
+# SR flag-bit positions (SH-2 hardware manual: T=bit0, S=bit1, I3-I0=bits 4-7,
+# Q=bit8, M=bit9). Used by the SR<->T/Q/M mirror (CRITICAL-1 fix).
+_SR_T_MASK = 0x00000001
+_SR_Q_MASK = 0x00000100
+_SR_M_MASK = 0x00000200
+
 
 class StepLimitExceeded(Exception):
     """Raised by SH2.call when max_steps is set and the executed-instruction
@@ -93,6 +99,64 @@ class SH2:
         self._romlen = len(rom)
         self.SENT = 0xEEEE0000
         self._mmio = None   # optional MMIO mock (see SH2.call) — additive, off by default
+        # T/Q/M backing fields + default SR (the T/Q/M properties below keep
+        # self.sr bits 0/8/9 in sync on every write; see _sync_TQM_from_sr).
+        self._t = 0; self._q = 0; self._m = 0
+        self.sr = 0x000000F0
+
+    # ---- SR <-> T/Q/M mirror (CRITICAL-1 fix: single source of truth) ----
+    # T/Q/M stay exposed as plain-looking attributes, but they are properties:
+    # every T/Q/M write pushes its bit into self.sr, and every SR write
+    # (call init / regs override / ldc Rn,SR / ldc.l @Rn+,SR / rte) calls
+    # _sync_TQM_from_sr(). stc SR therefore always reads live flags.
+    # NOTE: the pre-fix code cached Q/M from SR bits 3,2; real SH-2 hardware
+    # defines Q=bit8, M=bit9, so the mirror uses 8/9. DIV behavior is
+    # unchanged: div0s/div1/div0u operate on the _Q/_M attributes (values
+    # identical — only their SR image moved to the manual-correct bits).
+    @property
+    def T(self):
+        return self._t
+
+    @T.setter
+    def T(self, v):
+        self._t = 1 if v else 0
+        self._sync_sr_from_TQM()
+
+    @property
+    def _Q(self):
+        return self._q
+
+    @_Q.setter
+    def _Q(self, v):
+        self._q = 1 if v else 0
+        self._sync_sr_from_TQM()
+
+    @property
+    def _M(self):
+        return self._m
+
+    @_M.setter
+    def _M(self, v):
+        self._m = 1 if v else 0
+        self._sync_sr_from_TQM()
+
+    def _sync_sr_from_TQM(self):
+        """Push the T/Q/M attributes into SR bits 0/8/9 (called by every
+        T/Q/M write via the property setters)."""
+        sr = self.__dict__.get('sr', 0) & MASK
+        sr &= ~(_SR_T_MASK | _SR_Q_MASK | _SR_M_MASK)
+        sr |= (self.__dict__.get('_t', 0) & 1) | \
+              ((self.__dict__.get('_q', 0) & 1) << 8) | \
+              ((self.__dict__.get('_m', 0) & 1) << 9)
+        self.__dict__['sr'] = sr & MASK
+
+    def _sync_TQM_from_sr(self):
+        """Mirror SR bits 0/8/9 into the T/Q/M attributes. Must be called
+        after every SR write (call init / regs override / ldc / rte)."""
+        sr = self.__dict__.get('sr', 0) & MASK
+        self.__dict__['_t'] = sr & 1
+        self.__dict__['_q'] = (sr >> 8) & 1
+        self.__dict__['_m'] = (sr >> 9) & 1
 
     # ---- memory (ROM base + sparse RAM overlay) ----
     def _rb(self, a):
@@ -150,23 +214,50 @@ class SH2:
         self.r[4], self.r[5], self.r[6], self.r[7] = r4 & MASK, r5 & MASK, r6 & MASK, r7 & MASK
         self.r[15] = 0xFFFFDF00
         self.fr = [0.0] * 16
-        for k, v in (fr or {}).items(): self.fr[k] = ts(v)
+        for k, v in (fr or {}).items():
+            # MEDIUM-9 fix: reject out-of-range/non-int keys instead of
+            # IndexError (16+) or silent negative-index aliasing (-1 -> fr[15]).
+            if isinstance(k, bool) or not isinstance(k, int) or not 0 <= k < 16:
+                raise ValueError("fr key out of range 0..15: %r" % (k,))
+            self.fr[k] = ts(v)
         self.pr = self.SENT; self.T = 0; self.macl = 0; self.mach = 0; self.gbr = 0; self.sr = sr & MASK
         for k, v in (regs or {}).items():      # additive: arbitrary register/SR override
+            # MEDIUM-9 fix: validate keys (range + known names) instead of
+            # silently ignoring mistyped keys ('R4'/'sp'/'t') or wrapping
+            # negative int indices (-1 -> r[15]).
+            if isinstance(k, bool):
+                raise ValueError("regs key must be 0..15 or a known name: %r" % (k,))
             if isinstance(k, int) or (isinstance(k, str) and k.isdigit()):
-                self.r[int(k)] = v & MASK
-            elif k == 'pr': self.pr = v & MASK
-            elif k == 'gbr': self.gbr = v & MASK
-            elif k == 'macl': self.macl = v & MASK
-            elif k == 'mach': self.mach = v & MASK
-            elif k == 'sr': self.sr = v & MASK
-            elif isinstance(k, str) and k[0] == 'r' and k[1:].isdigit():
-                self.r[int(k[1:])] = v & MASK
+                idx = int(k)
+                if not 0 <= idx < 16:
+                    raise ValueError("regs index out of range 0..15: %r" % (k,))
+                self.r[idx] = v & MASK
+                continue
+            if isinstance(k, str) and len(k) > 0:
+                kl = k.lower()
+                if kl == 'sp':                                      # alias for r15
+                    self.r[15] = v & MASK
+                    continue
+                elif kl == 'pr': self.pr = v & MASK; continue
+                elif kl == 'gbr': self.gbr = v & MASK; continue
+                elif kl == 'macl': self.macl = v & MASK; continue
+                elif kl == 'mach': self.mach = v & MASK; continue
+                elif kl == 'sr':
+                    self.sr = v & MASK
+                    self._sync_TQM_from_sr()
+                    continue
+                elif len(kl) > 1 and kl[0] == 'r' and kl[1:].isdigit():
+                    idx = int(kl[1:])
+                    if not 0 <= idx < 16:
+                        raise ValueError("regs index out of range 0..15: %r" % (k,))
+                    self.r[idx] = v & MASK
+                    continue
+            raise ValueError("unknown regs key (would be silently ignored): %r" % (k,))
         self.vbr = 0; self.ssr = 0; self.spc = 0
         self.fpul = 0; self.fpscr = 0
-        # division flags (SR bits 3/2); T bit mirrored in self.T
-        self._Q = (self.sr >> 3) & 1
-        self._M = (self.sr >> 2) & 1
+        # Mirror the initial SR into T/Q/M (covers the sr= init arg and any
+        # regs 'sr' override above; the T/Q/M setters keep sr live after this).
+        self._sync_TQM_from_sr()
         # Hot loop: hoist attribute lookups into locals and inline the 2-byte
         # opcode fetch (avoids rd/_rb/len call overhead per instruction).
         # Two variants: with a RAM overlay every fetch must probe the ram dict;
@@ -325,6 +416,7 @@ class SH2:
             if op == 0x000B: return (self.pr, True)                     # rts
             if op == 0x002B:                                            # rte (delayed): pop PC,SR
                 self.sr = self.rd(self.r[15] + 4, 4)
+                self._sync_TQM_from_sr()                        # SR write -> resync T/Q/M
                 target = self.rd(self.r[15], 4) & MASK
                 self.r[15] = (self.r[15] + 8) & MASK
                 return (target, True)
@@ -514,7 +606,19 @@ class SH2:
             if nib == 0x0: f[n] = ts(f[n] + f[m]); return           # fadd FRm,FRn
             if nib == 0x1: f[n] = ts(f[n] - f[m]); return           # fsub
             if nib == 0x2: f[n] = ts(f[n] * f[m]); return           # fmul
-            if nib == 0x3: f[n] = ts(f[n] / f[m]); return           # fdiv
+            if nib == 0x3:                                        # fdiv FRm,FRn
+                _a = f[n]; _b = f[m]
+                if _b == 0.0:
+                    # MEDIUM-3 fix: HW FPSCR trap-disabled default yields
+                    # +-Inf (x/0) / NaN (0/0, NaN/0) instead of trapping.
+                    # (== catches -0.0 too; copysign recovers its sign.)
+                    if _a != _a or _a == 0.0:                    # NaN or +-0.0
+                        f[n] = float('nan')
+                    else:
+                        f[n] = math.copysign(float('inf'), _a) * math.copysign(1.0, _b)
+                else:
+                    f[n] = ts(_a / _b)
+                return
             if nib == 0x4: self.T = 1 if f[n] == f[m] else 0; return   # fcmp/eq Fm,Fn  (FRn == FRm)
             if nib == 0x5: self.T = 1 if f[n] > f[m] else 0; return    # fcmp/gt Fm,Fn  (FRn > FRm)
             if nib == 0x6: f[n] = self.rdf(r[0] + r[m]); return      # fmov.s @(R0,Rm),FRn
@@ -596,11 +700,11 @@ class SH2:
             # stc.l GBR,@-Rn = 0x4n13
             if op & 0xF0FF == 0x4013: r[n] = (r[n] - 4) & MASK; self.wr(r[n], 4, self.gbr); return
             # ldc Rn,SR = 0x4n0E (register to SR)
-            if op & 0xF0FF == 0x400E: self.sr = r[n]; return
+            if op & 0xF0FF == 0x400E: self.sr = r[n]; self._sync_TQM_from_sr(); return
             # ldc Rn,GBR = 0x4n1E
             if op & 0xF0FF == 0x401E: self.gbr = r[n]; return
             # ldc.l @Rn+,SR = 0x4n07
-            if op & 0xF0FF == 0x4007: self.sr = self.rd(r[n], 4); r[n] = (r[n] + 4) & MASK; return
+            if op & 0xF0FF == 0x4007: self.sr = self.rd(r[n], 4); r[n] = (r[n] + 4) & MASK; self._sync_TQM_from_sr(); return
             # ldc.l @Rn+,GBR = 0x4n17
             if op & 0xF0FF == 0x4017: self.gbr = self.rd(r[n], 4); r[n] = (r[n] + 4) & MASK; return
             # stc.l VBR,@-Rn = 0x4n23
