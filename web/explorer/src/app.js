@@ -1457,7 +1457,7 @@ function makeCanvas(W, H) {
   return [cv, g];
 }
 function drawHeatmap(host, t0) {
-  const cx = t0.cx, cy = t0.cy, grid = t0.grid;
+  const cx = t0.cx, cy = t0.cy || (t0.ay ? t0.ay.length : 0), grid = t0.grid;
   const vals = (grid || []).filter((v) => v !== null && v !== undefined);
   if (!cx || !cy || !vals.length) {
     host.innerHTML = '<div class="muted">no numeric values</div>';
