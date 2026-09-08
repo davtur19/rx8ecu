@@ -1,0 +1,512 @@
+?-verification report: uncertain function names in symbols/FUNCTION_CATEGORIES.csv
+================================================================================
+Scope: all 233 rows whose name contained '?' were verified one by one.
+Result: 67 renamed (confirmed), 166 kept (uncertain name retained).
+Ledger: /tmp/fc00verify/ledger.csv (233 data rows; header + 233).
+Applied: the 67 rename rows were applied to symbols/FUNCTION_CATEGORIES.csv
+  (name + confidence updated; keeps untouched). BOM + CRLF preserved.
+  Explorer rebuild: python3 web/explorer/build_site.py exit 0.
+
+METHOD NOTE
+--------------------------------------------------------------------------------
+Each '?' row was checked against disassembly/decompilation evidence:
+register-level behaviour, cal/ROM references, caller/callee chains, and
+twin/thunk structure. A rename was applied only where the evidence
+positively identifies the role (e.g. register sequence + call-chain fit).
+Where the evidence was partial, ambiguous, or the address is not an
+independent function entry, the '?' name was kept and the reason recorded
+below. Ledger verification: 233 data rows, unique addrs, and exact match
+against the 233 '?' rows in symbols/FUNCTION_CATEGORIES.csv
+(no missing, no extra; confirmed before applying).
+Cleanup: the '(fix: was listed 5EC68)' parenthetical was stripped from the
+0x5EC68 ledger evidence before applying.
+
+PART 1 — RENAMED (67)
+--------------------------------------------------------------------------------
+0x109C  resetOBDCAN? -> resetOBDCAN  [OBD / UDS, conf 0.9]
+    evidence: CAN regs E401/E490/E498/E520/E528/E414/E404 + OBD IDs 7E0/7E8; called from boot 0x1042
+0x1298  callManualReset? -> callManualReset  [Boot & Init, conf 0.85]
+    evidence: jsr secondary_boot_init 0x1038 then trap loop
+0x1364  resetWatchdog? -> resetWatchdog  [Boot & Init, conf 0.85]
+    evidence: WDT_RSTCSR=5A1F then TCSR seq @EC10/EC12; called from boot 0x103C; eq serviceWDT2
+0x46CC  checkFloatValidity? -> checkFloatValidity  [Math / FPU, conf 0.9]
+    evidence: Inf/NaN classify via 7F800000 mask -> code 44C/44D @768C; callers 0x18E20/0x42DE8
+0x5024  writeWatchdog_disable? -> serviceWatchdog  [Peripherals & ISR, conf 0.85]
+    evidence: WDT service: 5A1F->RSTCSR then timeout->TCSR; thunk at 0x5032; called from 0x4CD0
+0x60C8  getSensorStuff?? -> sensorInitChain  [Sensors, conf 0.85]
+    evidence: calls ~30 sensor init fns (MAF 7438/crank 7C0C/misfire AB8A/ADC 6CDC); ends setMainInitDoneBool 9F0C + jmp task_completion_handler
+0x65F6  task1? -> engineTaskRotor0  [RTOS, conf 0.85]
+    evidence: A266(0)+timing/fuel pipeline C338/82D8/9038/11BF6 tail task_completion_handler; eq engineControlDrivers_TASK
+0x661E  task2? -> engineTaskRotor1  [RTOS, conf 0.85]
+    evidence: A266(1)+knock/dwell pipeline C3CE/11C1C/8320/9110 tail task_completion_handler; eq engineControlFunction_TASK
+0x6744  getVehicleStatusInputs? -> getVehicleStatusInputs  [Sensors, conf 0.85]
+    evidence: snapshots periph captures F74E/F72C to 9ED8/9EC8/9EDA/9ECA + 3x polled inputs via 70AC ch0-2; called from sensor chain
+0x9F0C  setMainInitDoneBool?? -> setMainInitDoneFlag  [Boot & Init, conf 0.85]
+    evidence: 3-insn setter [A16C]=r4; called from sensorInitChain tail 0x6296/0x6358 + 0x9E76
+0xA230  setupStructRotorNumber? -> setupStructRotorNumber  [RTOS, conf 0.85]
+    evidence: per-rotor stride-12 store @A170 + 2-write ready flag @A178; 2 bra-thunk entries A0B4/A0DA
+0xAEE8  throttlePedalADCRead? -> throttlePedalADCRead  [Throttle & Torque, conf 0.85]
+    evidence: body of thunk 0xAD2A; ADC capture regs A1FA/A1FC/A202 gated; float convert; called from rotor tasks
+0xCA9C  canControllerInitSomething?? -> canControllerInit  [CAN Bus, conf 0.85]
+    evidence: E401/E601 select then tail 9CE0 bit-set + FA0 poll; callers 0x9766/0x9798 CAN init
+0xCB42  HCANRegisterInit?? -> hcanRegisterInit  [CAN Bus, conf 0.85]
+    evidence: E406-E40E seq via CEFE helper with channel in r4; callers 0x976C/0x979E
+0xD21E  main?? -> callMainInit  [Boot & Init, conf 0.85]
+    evidence: gate on -1 checks + [9F8C]; masks ints; jsr main_init 0x4E0(1
+0xDAE8  canTimerInit?? -> canTimerInit  [CAN Bus, conf 0.85]
+    evidence: dispatched entry from sub_5A3B6 (r4==1 path sets [D120]=1); sets req flag [A411]=1; twin 0xDAF0 services via bsr DA94
+0xE244  calculateEngineOnTime?? -> calculateEngineOnTime  [Utilities, conf 0.9]
+    evidence: sat-add16 @2460 on [A426] while flag [A428]; else 0; caller 0x1AA9C right after getEngineOnTimeForOilMetering
+0x11C72  bulkInits?? -> bulkInits  [Boot & Init, conf 0.85]
+    evidence: straight-line chain 3920/1A478/1410E/39040/21730/29108; no other logic; caller 0x667A
+0x12192  getInitalLeadingTrailingAdvance? -> getInitialLeadingTrailingAdvance  [Ignition & Knock, conf 0.85]
+    evidence: two ROM-float copies 6E098->A63C + 6E0CC->A64C; called from timing-init chain 0x1412A
+0x1476C  engineCrankingConditionsInit?? -> engineCrankingConditionsInit  [Boot & Init, conf 0.85]
+    evidence: 8-insn clear of A79C/A79E/A79D; called from timing-init chain head 0x14112
+0x165C4  updateIdleControl?? -> updateIdleControl  [Idle Control, conf 0.85]
+    evidence: dispatcher chain 3920/14804/1654C/1615C/16704/14824; caller 0x117EA; callees idle family
+0x216D4  setPrevLoops?? -> setPrevLoops  [Rev Limit, conf 0.85]
+    evidence: pure call chain E444/30570/30700/3083C/3089A/30904/306B4; incl setInjectorStuffPrevLoop; caller 0x1115C
+0x247C2  updateFaults??? -> updateFaults  [Faults & DTC, conf 0.85]
+    evidence: flag-gated (B54C/B54D) dispatch to updateFaultStatus core 5E644; stage in fault-eval chain; called from 0x1107A loop
+0x257D6  calculatePredictedEngineSpeed? -> calculatePredictedEngineSpeed  [Sensors, conf 0.9]
+    evidence: 3rd stage after getEngineSpeed+filterEngineSpeed in knock-task chain 0x1A4E6; 1st-order predictor on B594 + clamp[0
+0x25DF4  setImmoLight?? -> setImmoLight  [OBD / UDS, conf 0.85]
+    evidence: atomic bit ops 2054/2064/4BBC; 10 callers all in immo family 0x353xx-0x35Axx
+0x2CE0C  dscDerateInit? -> dscDerateInit  [Boot & Init, conf 0.85]
+    evidence: 12-insn clear of BCB3-BCB7; caller 0x2173A in DSC family; same flags as 2D0CE/2D1C0
+0x30570  setInjectorStuffPrevLoop? -> setInjectorStuffPrevLoop  [Fuel & Lambda, conf 0.85]
+    evidence: 11-insn copy 77018->BE9C + A42C->BEC7/BEC9; called from setPrevLoops 0x216DE
+0x31BA0  turnOnSecondaryAir?? -> turnOnSecondaryAir  [Peripherals & ISR, conf 0.9]
+    evidence: 3rd stage after getSecondaryAirOnTimer+sas_air_inj_on_time_calc in 0x31BF2; atomic set/clear bit2 @F738 via 2054/4BBC/2064
+0x349D8  resetStartupEnrich?? -> resetStartupEnrich  [Boot & Init, conf 0.85]
+    evidence: gated on init flag 9F8C (cf callMainInit gate); clears C124 float; caller 0x21B52
+0x359E4  ImmoGoodStateSet? -> immoGoodStateSet  [OBD / UDS, conf 0.85]
+    evidence: calls setImmoLight(1) + sets C1EC/C29E/C24B; twin of bad-state 0x35A58; caller 0x35682
+0x35A58  ImmoBadStateSet? -> immoBadStateSet  [OBD / UDS, conf 0.85]
+    evidence: calls setImmoLight(0) + sets C1EC=0/C230; 6 callers; twin of good-state 0x359E4
+0x36076  loadDatafromE2intoRAM? -> loadDataFromE2IntoRAM  [Fuel & Lambda, conf 0.85]
+    evidence: wrapper calling E2IntoRAM 0x383F8 with len 0x20; callers 0x35108/0x35154 immo init
+0x36684  checkImmoStatus? -> checkImmoStatus  [OBD / UDS, conf 0.85]
+    evidence: C284 magic 0x5A + C29E/C291 state checks; called from immo dispatcher 0x35114
+0x383F8  E2IntoRAM? -> e2IntoRAM  [Memory & CRC, conf 0.85]
+    evidence: large 0x1CC validated copy via 3920/BED8; called from loadData wrapper 0x3607C + 3 others
+0x38E70  FUNC_valueInits_MAYBE? -> funcValueInits  [Boot & Init, conf 0.85]
+    evidence: pure chain of 7+ value-init calls 52196/5213C/5217A/51880/51898; caller 0x11156
+0x3C992  adcVoltageOutOfRangeCheck? -> adcVoltageOutOfRangeCheck  [Sensors, conf 0.85]
+    evidence: float compare vs ROM cals 796FC/79700 -> flags C5D2/C5D3; callers 0x3C704/0x3C80E
+0x3E29E  validateAddressCopy_8bit_ADDRESS?? -> validateAddressCopy_8bit_ADDRESS  [Memory & CRC, conf 0.9]
+    evidence: 3920-validate + byte/NOT redundant check + 3E5A8/3934; 20+ callers; twin of 16/32/float
+0x3E2DA  validateAddressCopy_16bit_ADDRESS?? -> validateAddressCopy_16bit_ADDRESS  [Memory & CRC, conf 0.9]
+    evidence: 3920-validate + word-pair check + 3E5A8/3934; 20+ callers incl UDS; twin of 8/32/float
+0x3E330  validateAddressCopy_32bit_ADDRESS?? -> validateAddressCopy_32bit_ADDRESS  [Memory & CRC, conf 0.9]
+    evidence: 3920-validate + dword check + 3E5A8/3934; callers incl 0x35190; twin of 8/16/float
+0x3E38A  validateAddressCopy_float_ADDRESS?? -> validateAddressCopy_float_ADDRESS  [Math / FPU, conf 0.9]
+    evidence: 3920-validate + float check + 3E5A8/3934; 20+ callers; twin of 8/16/32
+0x3E5A8  SetMemoryNotValid2?? -> setMemoryNotValid  [Memory & CRC, conf 0.9]
+    evidence: 4-insn setter [C639]=1; called from all 4 validators + 3E6B0/5EBE2
+0x444C4  obdFaultRelated? -> obdFaultRelated  [OBD / UDS, conf 0.85]
+    evidence: CA99-gated dispatch to updateFaultStatus 5E648 + driveCycleDetect 63F80; caller 0x44484
+0x48264  calcSpeedBasedIATCompensation?? -> calcSpeedBasedIATCompensation  [Sensors, conf 0.85]
+    evidence: body of thunk 0x4819A; 3x f_2DLookup 2068 @69DAC/9DC0/9DE8/9DD4 + threshold cmp
+0x4A6EC  vehicleDistanceCalc? -> vehicleDistanceCalc  [Faults & DTC, conf 0.85]
+    evidence: BBE8 speed scaled via 24D0 to CCF4/CCF0/CCEC; called from faultDetermination 0x3950C
+0x4CBCA  driveCycleDetermination?? -> driveCycleDetermination  [Faults & DTC, conf 0.85]
+    evidence: CDCx flag family 0x1AA; called from faultDetermination 0x395AE
+0x529AE  updateRAM?? -> updateRAM  [Memory & CRC, conf 0.85]
+    evidence: 7-insn byte-emit [r4]=r6 + counters; 20+ callers all in OBD packer range 0x52E-0x531
+0x52E7C  OBDHandlerMAYBE?? -> obdHandler  [OBD / UDS, conf 0.85]
+    evidence: stride-12 table walk over 5D214 with count; reached via thunk 52E10; callers 0x52D1C/0x52E70
+0x534B2  getOLStatusforOBD??? -> getOLStatusForOBD  [OBD / UDS, conf 0.85]
+    evidence: OBD PID family 534B2-5368E in PID order + identical caller triplets; AE83/AE82 OL flags
+0x53530  getEngineLoadforOBD??? -> getEngineLoadForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; 2D-scale via 2440 on C0D8/C0DC; identical caller triplet
+0x53590  getCoolantTempforOBD?? -> getCoolantTempForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; 9F70 scaled via 24D0; identical caller triplet
+0x535A6  getSTFTforOBD?? -> getSTFTForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; AE50-based scale via 24D0; identical caller triplet
+0x535CC  getLTFTforOBD??? -> getLTFTForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; B12C-based scale via 24D0; identical caller triplet
+0x535EA  getRPMforOBD?? -> getRPMForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; B594 via 2490 scaler; OBD packer caller pair
+0x53600  getVehicleSpeedForOBD?? -> getVehicleSpeedForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; BBE8 speed via 24D0 scaler; OBD packer caller pair
+0x5368E  getMAFOBD?? -> getMAFForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family member; A41C-gated AA74 via 2490; identical caller triplet
+0x536B6  getThrottlePlatePosForOBD?? -> getThrottlePlatePosForOBD  [OBD / UDS, conf 0.85]
+    evidence: PID family continuation after MAF (PID 0x11 order); ADC0 via 24C0/24D0; identical triplet
+0x53A62  getCommandedLamdaOBD?? -> getCommandedLambdaForOBD  [OBD / UDS, conf 0.85]
+    evidence: AE60 via 2490 scaler; OBD packer callers 0x532EA/0x54FEA (fix Lamda typo)
+0x54146  checkSubFunctionCurrentlyRunning?? -> checkSubFunctionCurrentlyRunning  [OBD / UDS, conf 0.85]
+    evidence: 3-insn getter [CFE3]; 8 callers all in UDS service range 0x55F-0x57F; twin CFE4
+0x541C6  readDiagMod?? -> readDiagMode  [Faults & DTC, conf 0.85]
+    evidence: 3-insn getter [CFE4]; adjacent flag to CFE3; UDS callers (fix Mod truncation)
+0x5E2CE  faultConfirmationSomething? -> faultConfirmationCheck  [Faults & DTC, conf 0.85]
+    evidence: 10-insn bit-test of table 7CBA0 indexed by r4 masked by r5; callers 0x56688/0x5E78C fault core
+0x5E524  checkIfDeviceControl? -> checkIfDeviceControl  [Boot & Init, conf 0.85]
+    evidence: CFE2-gated mask combine 7C2C8->D1C8; callers 0x111EC/0x119D6
+0x5E84C  checkAndSetFault? -> checkAndSetFault  [Faults & DTC, conf 0.85]
+    evidence: indexed flag test via D1D6/7C2CA/7C3F2; called from fault core 0x5E770
+0x5EC68  setFaultEvalState? -> setFaultEvalState  [Faults & DTC, conf 0.85]
+    evidence: CFB9-gated state 1/3 + 9EC8 mask test; caller 0x6533A
+0x63F80  driveCycleDetectMAYBE? -> driveCycleDetect  [Faults & DTC, conf 0.85]
+    evidence: 6 DTC-context callers (threshold evals + status transitions); DTC-table search 66068 + returnEngineSpeed + float windows vs ROM cals 7DB08/7DB0C
+0x652F0  getFaultStatus?? -> getFaultStatus  [Faults & DTC, conf 0.9]
+    evidence: indexed bit-test of table 7CCB8 masked by D740; 20+ callers across DTC/UDS/fault families
+0x6670C  pack_for_OBD_response? -> packForOBDResponse  [OBD / UDS, conf 0.85]
+    evidence: mulu-based packing via D76C; called from setupForUDSResponse 0x66A14 + 5 packer paths (snake->camel)
+0x66A14  setupForUdsResponse? -> setupForUDSResponse  [OBD / UDS, conf 0.9]
+    evidence: loops DC03 table calling packer 6670C; 20+ callers across UDS service range
+
+PART 2 — KEPT (166), by reason taxonomy
+--------------------------------------------------------------------------------
+
+A. thunk/trampoline/alias — not an independent function (13)
+  0x5032  writeWatchdog_disable?
+      reason: bra-thunk to 0x5024; not an independent function
+  0x527E  callsFlash??
+      reason: zeroes E800/E801/EC26 then falls into intc_clear_flag_trampoline; purpose unverified
+  0x8340  injectorPulseSet?
+      reason: 2-insn bra-thunk to 0x8A68; not an independent function
+  0xAD2A  throttlePedalADCRead?
+      reason: bra-thunk to body 0xAEE8; not an independent function
+  0x237EE  updateMemPtr??
+      reason: jmp-trampoline to 0x4772C; not an independent function
+  0x2C37E  getInitalTimingValues??
+      reason: trampoline chunk of timing-init chain 1410E->2C37E->2C3AE (bsr+bra stub); not independent
+  0x2C3AE  crankingTimingInitSomething?
+      reason: chunk reached via 1410E->2C37E trampoline; IDA groups with stub at 0x2C374; boundary unverified
+  0x35194  immoRelatedMaybe??
+      reason: bytes are code but IDA groups inside 35104 immo dispatcher; not an independent entry
+  0x4772C  updateMemPtr??
+      reason: jmp-thunk to uds_protocol_3e1f8 with r4=8780; not an independent function
+  0x4819A  calcSpeedBasedIATCompensation??
+      reason: bra-thunk to body 0x48264; not an independent function
+  0x52E10  OBDHandlerMAYBE??
+      reason: 2-insn bra-thunk to 0x52E7C; not an independent function
+  0x59808  delay?
+      reason: 2 bytes inside function 0x59806; alternate entry called from 0x59744; not independent
+  0x5E648  updateFaultStatusTHUNKNoR6?
+      reason: 8-byte alternate entry falling into 5E72C fault-status body; not independent (name says THUNK)
+
+B. not a function entry — inner block/slot/tail chunk or no prologue (10)
+  0x61A8  main??
+      reason: inner slot of sensorInitChain 0x60C8; not a function entry
+  0x7338  readECMVoltage??
+      reason: inner block of voltage-reader sub_7330 (entry 0x7330: [9F00]->float math->[9F68]); not a function entry
+  0xCA7E  ignitionCoilPulse?
+      reason: inner label inside C8DC (C8DC-CA90 range); not a function entry
+  0xF380  fuelingArrayInit?
+      reason: tail chunk of fueling-init chain sub_216D4 (ends jmp F380); not a function entry
+  0x10D82  setEngineCycle?
+      reason: no prologue (starts mov.b @(4,r14)); inner chunk called from 0x10DF4
+  0x223EC  throttlePlatePosToTorqueOutput?
+      reason: inner label inside 222DC (222DC-22454 range); not a function entry
+  0x2B79A  parseWheelSpeedsAndVehicleSpeed??
+      reason: inner label inside 2B740 (2B740-2B97E range); not a function entry
+  0x333C6  applySpeedLimiter???
+      reason: inner label inside 0x33366 (33366-3342C range); not a function entry
+  0x42B7C  relatedToFuelCut?
+      reason: inner label inside 0x42404 (42404-430FE range); not a function entry
+  0x53FCC  runSubfunction??
+      reason: 2 bytes inside function 0x53FCA (mov #0,r4 entry); not a function entry
+
+C. not code — data word / literal pool (1)
+  0xD20C  handleManualReset?
+      reason: ROM data word (literal pool 0xD12ED32F); not code; adjacent sub_D21E separate
+
+D. specific claim unproven — X specifically / link unproven (53)
+  0x11C4  writeImmoBitZero?
+      reason: zeroes flag_gate DFDFA0; immo link unproven; callers are boot sequence 0x137A-0x1544
+  0x6CDC  readADCs_coolantTempInHere??
+      reason: ADC block copy F840-F84E to 9EE4 table; coolant specifically unproven
+  0x7518  fuelingInit??
+      reason: init chain (76B8/7724/7BDC/7B84) from sensor chain 0x61A4; fueling specifically unproven
+  0x7724  reInitCrankSensor??
+      reason: flag reinit (9F95=0x24 + float zero); crank specifically unproven; 6 code xrefs
+  0x7C0C  crankSensorInit?
+      reason: tiny flag init + tail to 7668; crank specifically unproven
+  0xA936  apvHardwareOutputRelated?
+      reason: large atomic-output routine (2054/2064/4BBC F75E); APV specifically unproven
+  0xAB8A  misfireDetectInit?
+      reason: float table init (A1CC-A208); misfire specifically unproven; caller sensor chain 0x61B0
+  0xC116  enableDisableCruiseControl??
+      reason: state-change detector ([A38C] cmp FF flag); cruise-enable specifically unproven
+  0xE564  speedBasedFuelCutSomething??
+      reason: large float routine size 0x364; speed-fuel-cut specifically unproven
+  0xEE86  getConditionalsForRevLimit??
+      reason: float compares vs ROM cals 6DA3C/6DA40; rev-limit specifically unproven
+  0xFFDA  fuelInjectionTiming?
+      reason: switch on ctx byte + tables F348/77010; timing specifically unproven
+  0x10E14  coilOutputSomething?
+      reason: table loop via 9F88/2158; coil-output specifically unproven; data-xref only
+  0x10F04  setTimingArrayValuesForOutput?
+      reason: struct copy on ctx switch + float 10FC0; timing-output specifically unproven
+  0x118FE  cruiseControl?
+      reason: call chain (1A9EE/2EBEE/398F4/21C66...); cruise specifically unproven
+  0x121A4  calculateDSCLeadingTimingDerate?
+      reason: float derate via 2440 (A780/B594); DSC specifically unproven; twin of 0x12294
+  0x12294  calculateDSCTrailingTimingDerate?
+      reason: float derate via 2440 (A784/B594); DSC specifically unproven; twin of 0x121A4
+  0x13414  idleLeadingTimingCorrection?
+      reason: 2D-lookup via 2068 (A718/B594); idle specifically unproven; twin of 0x13544
+  0x13544  idleTrailingTimingCorrection?
+      reason: 2D-lookup via 2068 (A71C/B594); idle specifically unproven; twin of 0x13414
+  0x17AB0  batteryRelatedFaults??
+      reason: chain 3920/189E8/18AB4/3934; caller 0x118C4; battery specifically unproven
+  0x18D3C  dscRelatedTiming?
+      reason: large float routine 0x1EE via B594/C0D8/BCC0; DSC specifically unproven
+  0x1ADE6  filterMAF??
+      reason: table-indexed filter AA70/AA80/AA98 by AAB8; MAF specifically unproven
+  0x1C948  IATPlausiblityCheck???
+      reason: uses 3E258 validator + AE40/A428; IAT specifically unproven
+  0x1E114  rearO2Correction_MAYBE?
+      reason: uses AE64/AE70 diff via 20C4; rear-O2 specifically unproven
+  0x1E85C  calcColdStartEnrichment??
+      reason: gated on A428; cold-start specifically unproven
+  0x1EB94  fuelTrimRelated?
+      reason: large routine 0x2FC; fuel-trim specifically unproven
+  0x1F360  LTFTForCAN??
+      reason: B15A-indexed via 3E1AA validator; LTFT-for-CAN specifically unproven
+  0x20EEC  MAFStuff_MaybeVE??
+      reason: large float routine 0x18E; MAF/VE specifically unproven
+  0x21AB6  DSCThrottleStuff?
+      reason: chain 3920/4A01C/4A0D8/E4F8/E914; DSC-throttle specifically unproven
+  0x21B6A  OLFueling??
+      reason: chain 3920/20998/2010E/207A8/20B26; OL specifically unproven
+  0x233A4  calculateThrottlePlateRequest??
+      reason: large float routine 0x1F0 via AA2C/B594/B328; request specifically unproven
+  0x284D6  eShaftLearn?
+      reason: large routine 0x178 via BA5F/C6B0; learn specifically unproven
+  0x296CC  scaleCoolantTempForCAN??
+      reason: C5EA-gated scale via 2404/24D0 on AA04; coolant-for-CAN specifically unproven
+  0x2AA02  updateDSCRelatedCANStuff??
+      reason: dispatcher calling 2BA68 validity + 2BB0C torque; DSC specifically unproven
+  0x2ED54  calculateACClutchOn??
+      reason: float vs ROM 76660+ via B594; AC-clutch specifically unproven
+  0x306B4  calcInjectorCrankingTime??
+      reason: A428-gated BE5C/BE88/7700C; cranking specifically unproven beyond gate
+  0x30728  getDiagnosticFuelPulseCranking?
+      reason: large float A9FC/7701C; diag specifically unproven; caller 0x217D4
+  0x3083C  throttleDownDeFloodCheck?
+      reason: A428-gated BE88/77044/AA2C; de-flood specifically unproven
+  0x30C7C  getClosedLoopTarget?
+      reason: large routine via AE83/BED4; target specifically unproven
+  0x317E4  secondaryAirRelated??
+      reason: large routine via A9FC/AD78/6F242; secondary-air specifically unproven
+  0x323DA  getAPVConditions?
+      reason: float B594 vs ROM 779E4/779E8; APV specifically unproven
+  0x325AC  cruiseControllAccelResCheck??
+      reason: via 3E1AA validator on 8694/BFBC; ACC/RES specifically unproven; caller cruise 0x2EB70
+  0x33CB2  detectKnockCondition??
+      reason: via 24C0 scaler + C0A8/C070 + 78E7E flag; knock specifically unproven
+  0x345C4  getThrottlePositionFault??
+      reason: float window ADAC vs ROM 788CC/788D0; fault specifically unproven
+  0x3A384  MPUCall?
+      reason: chain 45256/445F0/4505A/45416; MPU specifically unproven; caller 0x3E5FC
+  0x3E93A  catTempRelated?
+      reason: large float via C0D8/B594/A9FC; cat-temp specifically unproven
+  0x42330  liftoffRelated??
+      reason: 2D-lookup via 2068 on B594/AA2C; liftoff specifically unproven
+  0x4D0D0  filterEvapSomething?
+      reason: CDBC-gated CE01 vs ROM 7B985; evap specifically unproven
+  0x4D53C  initLTFTStuff?
+      reason: B134==0x8000 guard then fmul to CE10; LTFT specifically unproven
+  0x5131E  IATTimerOperation??
+      reason: BBE8 vs ROM 7C050 to CF68/CF64; IAT-timer specifically unproven
+  0x58060  calcBatteryRelatedFaults??
+      reason: B5DC/A41C/CCA4 checks; battery-fault specifically unproven
+  0x5B19C  ssvDiagControl?
+      reason: D12D-gated triplet with 5AAD4/5B848; SSV specifically unproven
+  0x5C5A4  setDiagMode85Bool?
+      reason: 3920-validate + 5C62C + D18C flag; 0x85 specifically unproven; caller 0x1160E
+  0x63F48  coolantTempPlausibilityCheck???
+      reason: calls 5E584/5E58A + 2420 compare; coolant specifically unproven; caller 0x11944
+
+E. name overclaims observed behaviour (1)
+  0x16DC  handleException?
+      reason: clears DFB0-DFB5 status block; does not read reset source; neither handleException nor eq getResetType fits
+
+F. role/purpose unverified or ambiguous (6)
+  0x63F0  interruptSetup???
+      reason: periodic IRQ tick (counter 9F52 + atomic bit-set @F746); not a setup routine; exact role unverified
+  0x85E4  putFuelingStuffInArray?
+      reason: per-index table store via A004 stride; exact purpose unverified (60-insn trunc)
+  0x10EE6  getEngineCrankingStatus?
+      reason: bulk-init loop writing 1 over A578+0x58; not a getter; array identity unverified
+  0x11F54  getKnownBooleanValue??
+      reason: 7-insn flag getter ([8E9C]==1); 20+ callers; exact meaning unverified
+  0x32F8A  speedLimiterSetLimitType??
+      reason: chunk reached via stub 32F2E bra; IDA nearest fn 0x32F2E; boundary unverified
+  0x37C88  setImmoFault?
+      reason: bytes are code but IDA nearest fn 0x37028 dispatcher; fallback disasm unreliable; boundary unverified
+
+G. role/identity/encoding/action unproven — needs deeper evidence (81)
+  0x86AC  fuelinjectorSet0??
+      reason: per-selector store to A0AC table; zero-value/injector identity unproven
+  0x8A68  injectorPulseSet?
+      reason: per-rotor calc via A004/A094 + atomics; output-driven pulse-set unproven
+  0xA266  getRotorNumberForControl?
+      reason: rotor-indexed struct access + round-robin counter; getter direction unproven; callers rotor tasks
+  0xE054  setMsgRXFlag_??
+      reason: 4-insn setter [A408]=1; RX-message identity unproven
+  0xFB90  setFuelCutDriver?
+      reason: loop calling 85E4 over rotors; fuel-cut-driver role unproven
+  0x1020C  setAllInjectorto0?
+      reason: 3x 86AC sel 0/1/2 then tail 74D4; all-zero values unproven (ROM 6D498/6D49C unchecked)
+  0x10ED2  getEngineCrankingStatusEnum??
+      reason: 1/2 enum return on [A79C]; cranking-flag identity unproven
+  0x1107A  resetFunc?
+      reason: bulk call chain (3879C/2EB10/1A34E...); reset purpose unproven; caller sensor chain
+  0x126C0  calculateTrailingOffThrottleRetard?
+      reason: float calc via 2440 (A754/C0D8); off-throttle condition unproven
+  0x127E8  vehicleSpeedAndBrakingFuelCut?
+      reason: uses BBE8 + ROM 72630 + flags A67C/A66C; speed/brake gating unproven
+  0x12CE8  getEngineLimitTimingDerates?
+      reason: 14-insn float muls to A660/A664; limit-derate role unproven
+  0x1326E  finalLeadingTimingStuff?
+      reason: flag-gated copy A62C->A6E4; final-stage role unproven; twin of 0x132CA
+  0x132CA  finalTrailingTimingStuff?
+      reason: flag-gated copy A634->A6E8; final-stage role unproven; twin of 0x1326E
+  0x13686  getKnockControlAllowed??
+      reason: flag 78E7E + A424 vs ROM compares; knock-allow encoding unproven
+  0x136D6  getKnockSensorFaultedStatus?
+      reason: checks CC30/CC32 return 1/0; knock-sensor identity unproven
+  0x13760  calcKnockRAMUpdate?
+      reason: float setup A73A/A748/A730; knock-RAM role unproven (60-insn trunc)
+  0x13C44  getEngineConditionsForKnockControl??
+      reason: float window vs ROM 727D0/727D4; knock-condition role unproven
+  0x13E30  getCoolantBasedTimingDerate??
+      reason: uses 2500 helper + A758; coolant basis unproven
+  0x1477C  getEngineCrankingState??
+      reason: uses cranking flags A79D/A79E + B594; state encoding unproven
+  0x148A4  detectIdleConditions???
+      reason: large float routine 0x266; called from idle dispatcher 0x165F4; condition set unproven
+  0x14B0A  updateIdleTimersMAYBE??
+      reason: uses BD89/B588/AD7C; called from idle dispatcher 0x165FA; timer role unproven
+  0x14C70  idleTableLookupRelated?
+      reason: large routine 0x204 via AA00/BBE8; called from idle 0x16606; exact table unproven
+  0x14FCC  idleController?
+      reason: huge routine 0x648; called from 0x16600; controller role unproven in 60 insns
+  0x167D8  ImmoRelatedFaultSomething?
+      reason: ROM 6E8D8==FF check then [DFA0]=1/0; fault role unproven
+  0x194A0  getConditonalsFuelCutRelated?
+      reason: float compares BBE8/A9FC/B594 vs ROM 6F3FC+; fuel-cut role unproven
+  0x19AB2  decrementTempForCatModel??
+      reason: gated on A428 via 23B0 helper; cat-model role unproven
+  0x1AFCC  getDriverOffThrottleTimer??
+      reason: float window vs ROM 6F7E8/6F7EC; off-throttle-timer role unproven
+  0x1B170  fuelingRealtedInitalVals??
+      reason: gated on A428; AAD0/AAD4 inits; exact values role unproven
+  0x1C3F0  calculateThrottlePedalPercentForSomethingElse?
+      reason: uses 3E1AA validator + 80A4/AD94; pedal-percent output unproven
+  0x1CBEC  getEngineFuelingStatus?
+      reason: large float routine 0x190 via C0D8/B594; fueling-status encoding unproven
+  0x1D694  CLFuelingRealted??
+      reason: large routine 0x1EA; closed-loop role unproven in 60 insns
+  0x1DE3A  closedLoopFuelMassCalc??
+      reason: large routine 0x1E8; fuel-mass-calc role unproven in 60 insns
+  0x1E72C  calculateRearO2SomethingIntegrator??
+      reason: called from 0x1E62E only; rear-O2 integrator role unproven
+  0x1E8CC  calculateEngineControlState???
+      reason: large routine 0x1FE via BCB3/CB40; control-state encoding unproven
+  0x207A8  fuelingStateStuff??
+      reason: float compares vs ROM 7176C+; fueling-state encoding unproven
+  0x20CAC  CLChangeoverEnrichment??
+      reason: small B1A2-gated 2D-lookup via 2068; changeover role unproven
+  0x21762  perRotorFuelCut??
+      reason: rotor-param validated via 3920; fuel-cut action unproven
+  0x21BB2  getFuelingSlowtask?
+      reason: chain 3920/1FB24/1F890/1F8AA/20CAC; slowtask/dispatcher role unproven; misnamed getter
+  0x253CC  getAutoTransCal??
+      reason: 13-insn flag copy [749B0]!=0 -> [B580]; AT-cal identity unproven
+  0x29738  canRX_216_stubs?
+      reason: calls 299D0 then BB0C/BB0E=FFFE init; 0x216 ID unproven
+  0x298A4  can216RXParse?
+      reason: BB0C FFFF-guard + BB5C/BB5E signals; 0x216 ID unproven; caller 0x29784
+  0x2A0C0  calculateDesiredTorque_??
+      reason: 2D-lookup via 2068 on AE40; desired-torque output unproven
+  0x2AA62  checkCANFaults??
+      reason: dispatcher DE46/DE72/DF08/DF6C; CAN-fault role unproven
+  0x2BA68  can212RXSignalValidity??
+      reason: BC26==FF check then BC1C set; 0x212 ID unproven; caller DSC-CAN 0x2AA0E
+  0x2BB0C  calculateEngineMaxTorqueAllowed_??
+      reason: 77A68 + BB5C/BB5E gated float; max-torque output unproven
+  0x2C250  writeOilPressureLight??
+      reason: polls via 70AC ch1 + BC42/BC44 flags; light-vs-gauge distinction unproven
+  0x2C2D0  writeOilPressureGauge??
+      reason: twin of 0x2C250 via 70AC ch2 + BC48/BC4C; gauge-vs-light distinction unproven
+  0x2D0CE  dscPerRotorCut?
+      reason: rotor-param + BCB3-BCB7 flags; cut-vs-arbitrate distinction unproven vs 0x2D1C0
+  0x2D1C0  arbitrateDSCFuelCut?
+      reason: helper called from inside 0x2D0CE (0x2D114/0x2D120); arbitration encoding unproven
+  0x2D320  calculateEngineMaxTorquePcnt??
+      reason: float via 2440 on A780; max-torque-percent output unproven
+  0x2D3B8  calculateEngineTorqueWithTimingLoss??
+      reason: via 2500 on BCB3; timing-loss component unproven
+  0x2DBC4  getCruiseControlAllowedBool??
+      reason: 3-flag AND on BD18/BD19/BD1A; cruise identity of flags unproven
+  0x2DE64  calculateCruiseControlProportionalTorque??
+      reason: huge routine 0x668; proportional-torque role unproven in 60 insns
+  0x2FFD8  fuelingAddOBDControlMode?
+      reason: uses BDF5/BDE4/A42C; OBD-mode role unproven; caller 0x2FE32
+  0x30904  handleDiagInjectorPulseSomething?
+      reason: large routine 0x210 via BEBA/A9FC/CCFA; diag role unproven
+  0x30B14  diagCrankingInjectorPulseAdder?
+      reason: A428 + A42C==1 gate; adder action unproven
+  0x32750  cruiseControlACCELRESAllowed?
+      reason: BFBC/BFC0 diff + BD1D gate; allowed-encoding unproven; caller cruise 0x2EB7C
+  0x33366  speedLimitRelated??
+      reason: uses BFBC/C007/BFF8/C040; exact limiter role unproven
+  0x33460  somethingPIController???
+      reason: large routine 0x1FA; PI-controller role unproven (name itself uncertain)
+  0x336A4  idleControlRealted??
+      reason: large routine 0x1D2 via A7AC/AA00/BBE8; caller idle 0x16648; exact role unproven
+  0x33F20  detectDriverIntentKnockControl?
+      reason: C0AC/C0C6 counters + 78F00; driver-intent-knock role unproven
+  0x345F0  getTotalLoadDeltaEnrich??
+      reason: 2D-lookup via 2068 on C174; load-delta-enrich role unproven
+  0x3477C  getRotor1LoadDeltaEnrich??
+      reason: 2D-lookup via 2068 (C178/C148); rotor-1 split unproven beyond twin 0x3484E
+  0x3484E  getRotor2LoadDeltaEnrich??
+      reason: 2D-lookup via 2068 (C180/C138); rotor-2 split unproven beyond twin 0x3477C
+  0x35A76  immo_related??
+      reason: C224/C28C via 35B58 helper; caller immo 0x35458; exact role unproven
+  0x394FC  faultDetermination?
+      reason: huge dispatcher 0x3F8 (4A6EC/4C292...); determination logic unproven in 60 insns
+  0x39938  faultRelated??
+      reason: huge chain 0x5C8 with value-init callees (52196/52146...); fault role unproven
+  0x4615C  calculateFuelCutLoadBased?
+      reason: large routine 0x2AA; load-based fuel-cut unproven in 60 insns
+  0x48B5E  sourceOf10kReset?
+      reason: calls getFaultStatus 652F0 with 0x1D; 10k-reset source unproven
+  0x49920  fuelCutRelated_Something?
+      reason: A415/CC9D/CC9E flags; exact fuel-cut role unproven (name itself vague)
+  0x4B77E  apvFaultRealted?
+      reason: CD6B/CD72 + C9B4; APV-fault unproven (name has typo, role unclear)
+  0x524C0  getTireSizeChecksumthing?
+      reason: calls 38610 with 0x95; tire-size-checksum unproven (name itself vague)
+  0x528C4  set_CAN_fault???
+      reason: A40A-gated code 1/2 tail-jmp to updateFaultStatus 5E644; CAN identity of flag unproven
+  0x52A12  udsResponseRelated??
+      reason: stack-frame setup; only 18/36 insns shown; exact role unproven
+  0x53BC8  ClearFaults?
+      reason: mode-dispatched routine size 0x96; no xrefs (table-called); clear-faults unproven
+  0x582AC  idleEnumRealted???
+      reason: large routine 0x28C via D066; idle-enum unproven (name has typo)
+  0x59744  UDSService11Function?
+      reason: calls delay 59808 + 52A5A/66A74; no xrefs (table-called); service-0x11 unproven
+  0x5AAD4  obdFuelingAddRequst?
+      reason: D12D-gated triplet with 5B19C/5B848 (tables 5E064/5E0E4/5E154); exact request unproven (name has typo)
+  0x5B848  diagControlMode??
+      reason: D12D-gated triplet with 5AAD4/5B19C; control-mode encoding unproven
+  0x5C024  UDSMode36Function?
+      reason: dispatch via 52A5A/52A12/52A36 with 0x22/0x36; no xrefs (table-called); mode-0x36 unproven
+  0x67590  udsSomething?
+      reason: large routine 0xB6; no xrefs (table-called); UDS role unproven (name itself vague)
+
+H. IDA/listing issue — needs definition (1)
+  0x7C68  geteShaftAngle?
+      reason: IDA mismatch nearest fn 0x77F0; push-prologue bytes but no reliable disasm; needs definition
+
+END
