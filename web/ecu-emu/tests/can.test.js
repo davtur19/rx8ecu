@@ -75,7 +75,11 @@ describe("extreme inputs stay on the wire (review fix)", () => {
 });
 
 describe("live fields track the core/sensors", () => {
-  it("rpm encodes x4 BE in 0x201 and 0x251", () => {
+  // E3 PROVISIONAL (docs/notes/CAN_PROTOCOL.md:207-224,
+  // docs/notes/KNOWLEDGE.md:50, firmware/c/can.c:968-1050): the three u16
+  // words of 0x251 are raw staging words (0xFFFFBBBC/BBE/BC0), not decoded
+  // signals — the rpm-x4 mapping below is best-effort, kept for DLC=8.
+  it("rpm encodes x4 BE in 0x201; 0x251 word0 PROVISIONAL (same bytes)", () => {
     st.rpm = 3000;
     const a = CAN.pack(0x201).data;
     assert.deepStrictEqual(bytes(a.slice(0, 2)), [(12000 >> 8) & 0xff, 12000 & 0xff]);
@@ -89,11 +93,16 @@ describe("live fields track the core/sensors", () => {
     assert.strictEqual(d[2], 128);
     assert.strictEqual(d[3], 128);
   });
-  it("0x420 carries ECT+40 and the oil/battery/MIL lamps", () => {
+  // E4: byte 0 ECT+40 gauge; byte 1 lamp bits UNVERIFIED; bytes 2-6 are
+  // PROVISIONAL ECT-derived placeholders for BB16/BB18/BB1A
+  // (ROM can420TXPack @0x29A0C) — unknown staging semantics.
+  it("0x420 carries ECT+40 and the oil/battery/MIL lamps (lamps UNVERIFIED)", () => {
     st.ect = 80;
     st.mil = true;
     assert.strictEqual(CAN.pack(0x420).data[0], 120);
     assert.ok(CAN.pack(0x420).data[1] & 0x01, "MIL lamp");
+    // PROVISIONAL placeholders track ECT: [0, ectRaw] / ectRaw / [0, ectRaw].
+    assert.deepStrictEqual(bytes(CAN.pack(0x420).data.slice(2, 7)), [0, 120, 120, 0, 120]);
     // oil lamp follows the live core flag: crank the engine
     M.emu_set_key_pos("START");
     M.emu_step_ms(100);
@@ -105,24 +114,40 @@ describe("live fields track the core/sensors", () => {
     const c2 = loadCanLive(M, st).CAN;
     assert.ok(c2.pack(0x420).data[1] & 0x08, "battery lamp when weak");
   });
-  it("0x630/0x620 fan bytes follow the live hysteresis states", () => {
+  // E1/E2 aligned to ROM (E1: can620TX_pack @0x33A68 bytes 0-3=0, live at
+  // 4/6; E2: can630TX_dispatch @0x33974 bytes 1-5=0, live at 0/6/7).
+  // Live fan mappings are PROVISIONAL (RAM semantics 0xFFFFC05C/C05B and
+  // 0xFFFFC04D/4E/4C not decoded).
+  it("0x630/0x620 fan bytes follow the live hysteresis states (aligned layout)", () => {
     M.emu_set_key_pos("ON");
     M.emu_set_sensor(1, 110); // ECT override: both fans on
     M.emu_step_ms(10);
-    assert.strictEqual(CAN.pack(0x630).data[0] & 0x03, 0x03);
-    assert.strictEqual(CAN.pack(0x630).data[6], 1, "fan2 mirror byte");
-    assert.strictEqual(CAN.pack(0x630).data[7], 1, "fan1 mirror byte");
-    assert.strictEqual(CAN.pack(0x620).data[0] & 0x03, 0x03);
-    const bv = Math.round(M.emu_get_batt_v() * 10) & 0xff;
-    assert.strictEqual(CAN.pack(0x630).data[1], bv, "battery x10 byte");
-    assert.strictEqual(CAN.pack(0x620).data[3], Math.round(M.emu_get_soc()) & 0xff, "SoC byte");
+    const f630 = CAN.pack(0x630).data;
+    assert.strictEqual(f630[0] & 0x03, 0x03);
+    assert.deepStrictEqual(bytes(f630.slice(1, 6)), [0, 0, 0, 0, 0], "0x630 bytes 1-5 are zero per ROM");
+    assert.strictEqual(f630[6], 1, "fan2 mirror byte");
+    assert.strictEqual(f630[7], 1, "fan1 mirror byte");
+    const f620 = CAN.pack(0x620).data;
+    assert.deepStrictEqual(bytes(f620.slice(0, 4)), [0, 0, 0, 0], "0x620 bytes 0-3 are zero per ROM");
+    assert.strictEqual(f620[5], 0, "0x620 byte 5 is zero per ROM");
+    assert.strictEqual(f620[4] & 0x03, 0x03, "0x620 byte 4 fan flags (provisional)");
+    assert.strictEqual(f620[6], 0, "0x620 byte 6 AC/after-run bits (key ON, AC off)");
   });
-  it("injection pulse in 0x250 spans 1..8 ms across the rev range", () => {
+  it("injection pulse in 0x250 spans 1..8 ms across the rev range (0 on fuel cut)", () => {
     st.rpm = 0;
     let lo = CAN.pack(0x250).data;
     assert.strictEqual((lo[6] << 8) | lo[7], 1);
-    st.rpm = 9000;
+    st.rpm = 12000;
     let hi = CAN.pack(0x250).data;
+    // No core fuel cut here (core rpm is idle after emu_init), so full width.
+    // (Full scale is the MAX_RPM ceiling: 9000 reads a partial 6 ms.)
     assert.strictEqual((hi[6] << 8) | hi[7], 8);
+    st.rpm = 9000;
+    let mid = CAN.pack(0x250).data;
+    assert.strictEqual((mid[6] << 8) | mid[7], 6);
+    // E7: core fuel cut active (rpm >= redline) reports 0 pulse.
+    M.emu_set_sensor(0, 9000);
+    assert.strictEqual(M.emu_get_fuel_cut(), 1, "core reports fuel cut at redline");
+    assert.strictEqual(((CAN.pack(0x250).data[6] << 8) | CAN.pack(0x250).data[7]), 0, "0 pulse on fuel cut");
   });
 });

@@ -11,7 +11,7 @@ const path = require("node:path");
 const { srcText, loadCore, loadPins } = require("./helpers");
 
 const DIST = path.join(__dirname, "..", "dist");
-const JS_FILES = ["app.js", "engine_sim.js", "can_live.js"];
+const JS_FILES = ["app.js", "engine_sim.js", "can_live.js", "audio.js"];
 const JS = Object.fromEntries(JS_FILES.map((f) => [f, srcText(f)]));
 const HTML = srcText("index.html");
 const CSS = srcText("style.css") + "\n" + srcText("can_live.css");
@@ -146,10 +146,10 @@ describe("calibration key consistency", () => {
     assert.deepStrictEqual(missing, [], "cal keys missing in core: " + missing.join(", "));
     assert.strictEqual(typeof core.emu_set_soc, "function", "soc path exists");
   });
-  it("stock defaults are intact (redline 9000, fans 95/90/105/100)", () => {
+  it("stock defaults are intact (redline 9000, ROM fans 97/94/101/98)", () => {
     const core = loadCore();
     assert.deepStrictEqual(core.emu_cal_get(), {
-      fanLowOn: 95, fanLowOff: 90, fanHighOn: 105, fanHighOff: 100,
+      fanLowOn: 97, fanLowOff: 94, fanHighOn: 101, fanHighOff: 98,
       ambient: 20, redline: 9000, fuelCutEn: 1,
     });
   });
@@ -211,7 +211,7 @@ describe("pins.json schema", () => {
     const sc = loadPins().scenarios;
     assert.ok(sc && sc.idle && sc.wot, "idle/wot scenarios present");
     for (const [k, v] of Object.entries(sc)) {
-      assert.ok(v.rpm >= 0 && v.rpm <= 9000, `${k}.rpm`);
+      assert.ok(v.rpm >= 0 && v.rpm <= 12000, `${k}.rpm`);
       assert.ok(v.ect >= -20 && v.ect <= 120, `${k}.ect`);
       assert.ok(v.tps >= 0 && v.tps <= 100, `${k}.tps`);
     }
@@ -221,7 +221,15 @@ describe("pins.json schema", () => {
 describe("tracked build output", () => {
   it("dist/ copies are byte-identical to src/ (commit them together)", () => {
     const files = ["app.js", "emu_core.js", "engine_sim.js", "can_live.js",
+      "audio.js",
       "index.html", "style.css", "can_live.css", "pins.json", "icons.svg"];
+    // E8 sync guard: the compared list must cover the src/*.js glob so a
+    // brand-new src JS file cannot slip through untracked (dist would look
+    // fresh while missing the new file). Keep the 10-file byte comparisons.
+    const srcJs = fs.readdirSync(path.join(__dirname, "..", "src"))
+      .filter((f) => f.endsWith(".js")).sort();
+    const missing = srcJs.filter((f) => !files.includes(f));
+    assert.deepStrictEqual(missing, [], "src JS files missing from sync list: " + missing.join(", "));
     const stale = files.filter((f) => {
       const a = fs.readFileSync(path.join(__dirname, "..", "src", f));
       const b = fs.existsSync(path.join(DIST, f))

@@ -20,7 +20,10 @@ var EngineSim = (function() {
   var GAUGE_SIZE = 80;            // mini gauge diameter (ECT/MAP)
   var TACHO_SIZE = 220;           // RX-8 style tachometer dial diameter
   var TICK_MS = 33;               // ~30 fps
-  var REDLINE = 9000;
+  var REDLINE = 9000;      // Renesis fuel-cut threshold default (feeds
+                           // isFuelCut in the core via cal; NOT the sim ceiling)
+  var MAX_RPM = 12000;     // sim/UI ceiling (matches the emu_set_sensor
+                           // sanitizer headroom; over-rev range when cut is off)
   var TACHO_REDLINE = 8500;       // redline flash/glow threshold
   var IDLE_RPM = 800;
   var OVERHEAT = 110;             // ECT DTC threshold (°C)
@@ -69,6 +72,29 @@ var EngineSim = (function() {
     return outMin + ((v - inMin) / (inMax - inMin)) * (outMax - outMin);
   }
 
+  /* Display formatting (mirrors app.js fmt): rounded, unit-spaced, never
+   * leaks NaN/Inf/raw floats. Non-finite or >=1e15 renders as "—".
+   * % attaches directly; all other units take a single space. */
+  function fmtNum(v, digits) {
+    var n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    if (n === 0) n = 0; // normalize -0 so "-0 kPa" never appears
+    if (Math.abs(n) >= 1e15) return "—";
+    return n.toFixed(digits);
+  }
+  function fmt(v, digits, unit) {
+    var s = fmtNum(v, digits);
+    if (s === "—") return s;
+    if (!unit) return s;
+    return unit === "%" ? s + "%" : s + " " + unit;
+  }
+  function fmtTemp(v) { return fmt(v, 1, "°C"); }
+  function fmtRPM(v) { return fmt(v, 0, "rpm"); }
+  function fmtKPa(v) { return fmt(v, 0, "kPa"); }
+  function fmtPct0(v) { return fmt(v, 0, "%"); }
+  function fmtHz(v) { return fmt(v, 1, "Hz"); }
+  function fmtMs2(v) { return fmt(v, 2, "ms"); }
+
   /* ====================================================================
    *  Sim throttle/load control (also driven by the RPM sensor slider)
    *
@@ -90,11 +116,11 @@ var EngineSim = (function() {
     var tEl = document.getElementById("esim-throttle");
     var tVal = document.getElementById("esim-throttle-val");
     if (tEl) tEl.value = Math.round(_throttle);
-    if (tVal) tVal.textContent = Math.round(_throttle) + "%";
+    if (tVal) tVal.textContent = fmtPct0(_throttle);
     var lEl = document.getElementById("esim-load");
     var lVal = document.getElementById("esim-load-val");
     if (lEl) lEl.value = Math.round(_load);
-    if (lVal) lVal.textContent = Math.round(_load) + "%";
+    if (lVal) lVal.textContent = fmtPct0(_load);
   }
 
   function setThrottle(v) {
@@ -102,7 +128,7 @@ var EngineSim = (function() {
     var tEl = document.getElementById("esim-throttle");
     var tVal = document.getElementById("esim-throttle-val");
     if (tEl) tEl.value = Math.round(_throttle);
-    if (tVal) tVal.textContent = Math.round(_throttle) + "%";
+    if (tVal) tVal.textContent = fmtPct0(_throttle);
     return _throttle;
   }
 
@@ -113,7 +139,7 @@ var EngineSim = (function() {
     var lEl = document.getElementById("esim-load");
     var lVal = document.getElementById("esim-load-val");
     if (lEl) lEl.value = Math.round(_load);
-    if (lVal) lVal.textContent = Math.round(_load) + "%";
+    if (lVal) lVal.textContent = fmtPct0(_load);
     return _load;
   }
 
@@ -122,7 +148,7 @@ var EngineSim = (function() {
   function setFromRPM(rpm) {
     rpm = Number(rpm);
     if (!Number.isFinite(rpm)) return _throttle;
-    setThrottle((rpm - IDLE_RPM) / (REDLINE - IDLE_RPM) * 100);
+    setThrottle((rpm - IDLE_RPM) / (MAX_RPM - IDLE_RPM) * 100);
     setLoad(0);
     return _throttle;
   }
@@ -201,7 +227,49 @@ var EngineSim = (function() {
     return "RUNNING";
   }
 
-  /* Wave A1 crank-viz controls (also wired to the Crank-tab selector). */
+  /* Cold rev limit (firmware-published documented estimates, labeled as
+   * such — firmware/c/engine.c cold-start limiter: 3000 rpm below 40 C,
+   * 4500 rpm below 70 C, none above). Pure function for headless tests. */
+  function coldLimitFor(ect) {
+    ect = Number(ect);
+    if (!Number.isFinite(ect)) return 0;
+    if (ect < 40) return 3000;
+    if (ect < 70) return 4500;
+    return 0;
+  }
+  function redlineCal() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_cal_get === "function") {
+        var r = Module.emu_cal_get().redline;
+        if (Number.isFinite(r) && r > 0) return r;
+      }
+    } catch (e) {}
+    return REDLINE;
+  }
+  function fuelCutCal() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_cal_get === "function") {
+        return !!Module.emu_cal_get().fuelCutEn;
+      }
+    } catch (e) {}
+    return true;
+  }
+  /* Sim target rpm for a throttle/load state (pure function for headless
+   * tests): neutral-rev map to MAX_RPM, load droop, then the two physics
+   * clamps — cold limit first, then fuel cut (no fuel = no power past the
+   * limit; with the cut OFF the target may reach MAX_RPM, so the checkbox
+   * genuinely controls over-rev). */
+  function computeTarget(throttle, load, redline, fuelCutEn, ect) {
+    var t = Math.round(mapRange(throttle, 0, 100, IDLE_RPM, MAX_RPM));
+    t = Math.round(t * (1 - load * 0.001));
+    var cl = coldLimitFor(ect);
+    if (cl > 0 && t > cl) t = cl;
+    if (fuelCutEn && t > redline) t = redline;
+    return t;
+  }
+  function getMaxRPM() { return MAX_RPM; }
   function setCrankSlow(v) {
     v = Number(v);
     if (v !== 1 && v !== 0.5 && v !== 0.1) return _crankSlow;
@@ -252,7 +320,10 @@ var EngineSim = (function() {
     if (ect <= -20) _dtcs.push({ code: "P0117", desc: DTC_CODES.P0117, sev: "error" });
     if (map > 100) _dtcs.push({ code: "P0108", desc: DTC_CODES.P0108, sev: "warning" });
     if (tps < 1 && rpm > 2000) _dtcs.push({ code: "P0122", desc: DTC_CODES.P0122, sev: "warning" });
-    /* Sustained misfire zone near redline (reachable: slider/sim max 9000). */
+    /* Sustained high-rpm misfire zone — PROVISIONAL emulator-model zone,
+   * not a ROM limiter (P0300 is misfire detection, never a rev limiter;
+   * the ROM limiter is fuel-cut, see the core cutStage). Reachable since
+   * the sim ceiling is MAX_RPM. */
     if (rpm >= 8800) _dtcs.push({ code: "P0300", desc: DTC_CODES.P0300, sev: "error" });
 
     _milOn = _dtcs.some(function(d) { return d.sev === "error"; });
@@ -448,7 +519,8 @@ var EngineSim = (function() {
   }
 
   /* ====================================================================
-   *  RX-8 style tachometer dial (large canvas, 0-9 x1000 rpm)
+   *  RX-8 style tachometer dial (large canvas, 0-12 x1000 rpm scale with
+   *  the fuel-cut redline arc at 8.5-9.0)
    *
    *  Dedicated dial (not drawGauge): numbered 0-9 scale, redline arc
    *  8.5-9.0, smoothed needle, canvas digital readout + #tacho-digital
@@ -458,19 +530,27 @@ var EngineSim = (function() {
     var canvas = document.getElementById(canvasId);
     if (!canvas) return;
     var ctx = canvas.getContext("2d");
-    if (typeof rpm !== "number" || isNaN(rpm)) rpm = getRPM();
+    if (typeof rpm !== "number" || !Number.isFinite(rpm)) rpm = getRPM();
     var actual = rpm;
+    // E5: NaN latch guard — a non-finite actual (or a poisoned _tachoRPM)
+    // used to stick the needle integrator at NaN forever (NaN diff never
+    // settles). Clamp both sides to finite before accumulating.
+    if (!Number.isFinite(actual)) actual = 0;
+    if (!Number.isFinite(_tachoRPM)) _tachoRPM = actual;
 
     // Needle smoothing: ease displayed value toward actual rpm.
     var diff = actual - _tachoRPM;
+    if (!Number.isFinite(diff)) { _tachoRPM = actual; diff = 0; }
     _tachoRPM += diff * 0.25;
     if (Math.abs(diff) < 1) _tachoRPM = actual;
+    if (!Number.isFinite(_tachoRPM)) _tachoRPM = actual;
     var disp = _tachoRPM;
+    if (!Number.isFinite(disp)) disp = actual;
 
     var s = canvas.width || TACHO_SIZE;
     var cx = s / 2, cy = s / 2;
     var r = s * 0.40;
-    var min = 0, max = REDLINE;
+    var min = 0, max = MAX_RPM;
     var startAngle = Math.PI * 0.75;
     var endAngle = Math.PI * 2.25;
     var sweep = endAngle - startAngle;
@@ -539,9 +619,9 @@ var EngineSim = (function() {
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Ticks: minor every 500, major every 1000
+    // Ticks: minor every 500, major every 1000 (scale 0..MAX_RPM)
     var v, a, x1, y1, x2, y2;
-    for (v = 0; v <= 9000; v += 500) {
+    for (v = 0; v <= MAX_RPM; v += 500) {
       a = rpmToAngle(v);
       var major = (v % 1000 === 0);
       var inRed = v >= 8500;
@@ -559,12 +639,12 @@ var EngineSim = (function() {
       ctx.stroke();
     }
 
-    // Numerals 0-9 (x1000)
+    // Numerals 0-12 (x1000)
     ctx.font = "700 12px monospace";
     ctx.fillStyle = "#e6ebf2";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    for (v = 0; v <= 9; v++) {
+    for (v = 0; v <= 12; v++) {
       a = rpmToAngle(v * 1000);
       var nx = cx + Math.cos(a) * (r - 34);
       var ny = cy + Math.sin(a) * (r - 34);
@@ -615,7 +695,7 @@ var EngineSim = (function() {
     } catch (e) {}
     var dig = document.getElementById("tacho-digital");
     if (dig) {
-      dig.textContent = Math.round(actual) + " RPM";
+      dig.textContent = fmtRPM(actual);
       if (isRed) dig.classList.add("tacho-redline");
       else dig.classList.remove("tacho-redline");
     }
@@ -637,11 +717,13 @@ var EngineSim = (function() {
     if (es === "OFF" || es === "ON") {
       /* Key off / key-on-engine-off: no combustion, rpm decays to 0.
        * (Core mirrors this on its own _rpm; the UI mirrors it here so the
-       * two never diverge.) */
+       * two never diverge.) Engine-off MAP = barometric (~100 kPa): with
+       * no pumping there is no manifold vacuum. 20 kPa is the decel
+       * fuel-cut vacuum while RUNNING, never the key-off rest value. */
       var rate = (es === "OFF") ? 0.25 : 0.12;
       st.rpm = Math.round(st.rpm * (1 - rate));
       if (st.rpm < 1) st.rpm = 0;
-      if (es === "OFF") { st.map = 20; st.tps = 0; }
+      if (es === "OFF") { st.map = 100; st.tps = 0; }
       return;
     }
     if (es === "CRANKING") {
@@ -654,10 +736,9 @@ var EngineSim = (function() {
       return;
     }
     // RUNNING (or legacy core without state): throttle + load map as before
-    // Target RPM from throttle + load
-    var targetRPM = Math.round(mapRange(_throttle, 0, 100, 800, REDLINE));
-    // Apply load factor (high load = RPM drops slightly at same throttle)
-    targetRPM = Math.round(targetRPM * (1 - _load * 0.001));
+    // Target RPM from throttle + load (ceiling MAX_RPM; cold + fuel-cut
+    // physics clamps inside computeTarget).
+    var targetRPM = computeTarget(_throttle, _load, redlineCal(), fuelCutCal(), getECT());
 
     // Smooth RPM transition (snap when close so full-throttle reaches the
     // 9000 redline and its fuel cut instead of stalling on rounding).
@@ -753,14 +834,14 @@ var EngineSim = (function() {
     } catch (e) {}
     var ro = document.getElementById("crank-readout");
     if (ro) {
-      ro.textContent = "tooth " + tooth + "/20 · " + Math.round(angleDeg) +
-        "° · " + Math.round(rpm) + " RPM" + (gap ? " · GAP" : "") +
+      ro.textContent = "tooth " + tooth + "/20 · " + fmtNum(angleDeg, 0) +
+        "° · " + fmtRPM(rpm) + (gap ? " · GAP" : "") +
         (_crankPaused ? " · PAUSED" : " · " + _crankSlow + "x");
     }
     var dps = document.getElementById("crank-dps");
-    if (dps) dps.textContent = String(Math.round(getCrankDPS())) + " °/s";
+    if (dps) dps.textContent = fmt(getCrankDPS(), 0, "°/s");
     var per = document.getElementById("crank-period");
-    if (per) per.textContent = corePeriodMs().toFixed(3) + " ms/tooth";
+    if (per) per.textContent = fmt(corePeriodMs(), 3, "ms") + "/tooth";
     var cap = document.getElementById("crank-capture");
     if (cap) {
       try {
@@ -810,7 +891,7 @@ var EngineSim = (function() {
     // Legacy #gauge-rpm mini is still drawn when present (backward compat).
     drawTacho("tacho-canvas", rpm);
     if (document.getElementById("gauge-rpm")) {
-      drawGauge("gauge-rpm", rpm, 0, 9000, "RPM", "", "#39c5cf",
+      drawGauge("gauge-rpm", rpm, 0, MAX_RPM, "RPM", "", "#39c5cf",
         { warn: 8000, crit: 8500 });
     }
     drawGauge("gauge-ect", getECT(), -20, 120, "ECT", "°C", "#7ee787",
@@ -858,8 +939,8 @@ var EngineSim = (function() {
         /* --- RX-8 tachometer dial (own card: no divider clipping) --- */
         '<div class="viz-card tacho-wrap" id="tacho-wrap">' +
           '<div class="esim-label">Tachometer · Renesis</div>' +
-          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="0" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 9000 RPM, redline 8500 to 9000"></canvas>' +
-          '<div id="tacho-digital" class="tacho-digital">0 RPM</div>' +
+          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="0" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 12000 rpm, redline 8500 to 9000"></canvas>' +
+          '<div id="tacho-digital" class="tacho-digital">0 rpm</div>' +
           '<div class="tacho-sub">x1000 r/min · redline 8.5–9.0</div>' +
         '</div>' +
 
@@ -883,7 +964,7 @@ var EngineSim = (function() {
         '<div class="viz-card">' +
           '<div class="esim-label">Crank trigger (20-tooth)</div>' +
           '<canvas id="crank-canvas" width="' + CANVAS_SIZE + '" height="' + CANVAS_SIZE + '" role="img" aria-label="Crank trigger wheel animation, 20 teeth"></canvas>' +
-          '<div id="crank-readout" class="crank-readout" aria-live="off">tooth 0/20 · 0° · 0 RPM</div>' +
+          '<div id="crank-readout" class="crank-readout" aria-live="off">tooth 0/20 · 0° · 0 rpm</div>' +
           '<div class="crank-controls">' +
             '<label for="crank-slow">Speed</label>' +
             '<select id="crank-slow" aria-label="Crank slow-motion factor">' +
@@ -906,9 +987,9 @@ var EngineSim = (function() {
   function updateCaps() {
     try {
       var ce = document.getElementById("cap-ect");
-      if (ce) ce.textContent = "ECT · " + Math.round(getECT()) + " °C";
+      if (ce) ce.textContent = "ECT · " + fmtTemp(getECT());
       var cm = document.getElementById("cap-map");
-      if (cm) cm.textContent = "MAP · " + Math.round(getMAP()) + " kPa";
+      if (cm) cm.textContent = "MAP · " + fmtKPa(getMAP());
     } catch (e) {}
   }
 
@@ -997,6 +1078,8 @@ var EngineSim = (function() {
       window.__o2ManualHold = o2ManualHold;
       window.__iatManualHold = iatManualHold;
       window.__getEngState = engState;
+      window.__esimFmt = fmt;
+      window.__esimFmtNum = fmtNum;
     }
   } catch (e) {}
 
@@ -1005,11 +1088,14 @@ var EngineSim = (function() {
     setThrottle: setThrottle, getThrottle: getThrottle,
     setLoad: setLoad, getLoad: getLoad,
     setFromRPM: setFromRPM,
+    computeTarget: computeTarget, coldLimitFor: coldLimitFor,
+    getMaxRPM: getMaxRPM,
     o2ManualHold: o2ManualHold, iatManualHold: iatManualHold,
     getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle,
     setCrankSlow: setCrankSlow, getCrankSlow: getCrankSlow,
     setCrankPaused: setCrankPaused, getCrankPaused: getCrankPaused,
     stepCrankOnce: stepCrankOnce, getCrankPhase: getCrankPhase,
-    getCrankDPS: getCrankDPS
+    getCrankDPS: getCrankDPS,
+    fmt: fmt, fmtNum: fmtNum
   };
 })();

@@ -20,6 +20,9 @@ var CANLive = (function() {
    * ==================================================================== */
   var MAX_FRAMES = 500;        // max frames in buffer
   var FRAME_INTERVAL_MS = 50;  // main loop tick (20 fps)
+  /* Sim/UI rev ceiling (matches engine_sim MAX_RPM / app MAX_RPM): full
+   * scale for load-derived packers so over-rev still encodes. */
+  var RPM_FULL = 12000;
 
   /* NTC B=3435 for temp→voltage conversion in CAN packers */
   var NTC_B = 3435.0, NTC_R25 = 10000.0, NTC_RS = 10000.0;
@@ -159,7 +162,7 @@ var CANLive = (function() {
    * ROM: can203pack (0x2A274)
    */
   function pack0x203(st) {
-    var torque = Math.round(mapRange(st.rpm, 0, 9000, 0, 200));
+    var torque = Math.round(mapRange(st.rpm, 0, RPM_FULL, 0, 200));
     return [
       torque & 0xFF,
       st.rpm > 200 ? 0x01 : 0x00,
@@ -171,43 +174,49 @@ var CANLive = (function() {
   }
 
   /**
-   * CAN ID 0x420 — Coolant temp gauge + MIL/warning lamps (7 bytes)
-   * ROM: can420TXPack (0x29A0C)
-   *   byte 0: ECT raw − 40 (gauge)
-   *   byte 1: lamp flags
+   * CAN ID 0x420 — Coolant temp gauge + MIL/warning lamps (7 bytes, DLC=7)
+   * ROM: can420TXPack @0x29A0C (firmware/c/can.c:1114-1155).
+   * Firmware layout: byte 0 = *0xFFFFBB14, byte 1 = *0xFFFFBB15,
+   * bytes 2-3 = *0xFFFFBB16 u16 BE, byte 4 = *0xFFFFBB18,
+   * bytes 5-6 = *0xFFFFBB1A u16 BE (ROM:0x29A0C-0x29A3C, MB5).
+   * Byte 0 ECT gauge (ECT+40); byte 1 lamp flags are UNVERIFIED emulator
+   * interpretation (water/oil/batt/MIL bits). Bytes 2-6 staging semantics
+   * (BB16/BB18/BB1A, coolant-derived via set_ram_constant_29A44) are not
+   * decoded, so the ECT-derived placeholders below are PROVISIONAL.
    */
   function pack0x420(st) {
-    var ectRaw = Math.round(st.ect + 40);
-    var lamps = 0;
-    if (st.ect > 105) lamps |= 0x04;  // water temp warning
-    if (st.oilLow)    lamps |= 0x02;  // oil pressure
-    if (st.battLow)   lamps |= 0x08;  // battery
-    if (st.mil)       lamps |= 0x01;  // check engine
+    var ectRaw = Math.round(st.ect + 40) & 0xFF;
+    var lamps = 0;  // UNVERIFIED lamp-bit mapping (emulator interpretation)
+    if (st.ect > 105) lamps |= 0x04;  // water temp warning (unverified)
+    if (st.oilLow)    lamps |= 0x02;  // oil pressure (unverified)
+    if (st.battLow)   lamps |= 0x08;  // battery (unverified)
+    if (st.mil)       lamps |= 0x01;  // check engine (unverified)
+    // PROVISIONAL ECT-derived placeholders for BB16/BB18/BB1A (unknown).
     return [
       ectRaw & 0xFF,
       lamps,
-      0x00, 0x00,
-      0x00,
-      0x00, 0x00
+      0x00, ectRaw,
+      ectRaw,
+      0x00, ectRaw
     ];
   }
 
   /**
-   * CAN ID 0x630 — Cooling fan data (8 bytes)
-   * ROM: can630TX_dispatch (0x33974)
-   * Wave A2: fan bits come from the LIVE core fan states (hysteresis +
-   * after-run), not from raw ECT thresholds. Byte 1 carries battery
-   * terminal voltage x10 (A2 extension, emulator-level).
+   * CAN ID 0x630 — Cooling fan data (8 bytes, DLC=8)
+   * ROM: can630TX_dispatch @0x33974 (firmware/c/can.c:1357-1387).
+   * Firmware layout: byte 0 = *0xFFFFC04D, bytes 1-5 = 0,
+   * byte 6 = *0xFFFFC04E, byte 7 = *0xFFFFC04C (ROM:0x33974-0x33994).
+   * Signal semantics of the three RAM staging bytes are not decoded, so the
+   * live mapping below is PROVISIONAL: byte 0 fan flags, bytes 6/7 fan
+   * mirrors from the live core hysteresis states (not raw ECT thresholds).
    */
   function pack0x630(st) {
     var fan1 = coreFan(0, st.ect > 90);
     var fan2 = coreFan(1, st.ect > 100);
-    var bv10 = Math.round(coreNum("emu_get_batt_v", 12.6) * 10);
     return [
       fan1 | (fan2 << 1),
-      bv10 & 0xFF,
       0x00, 0x00,
-      0x00, 0x00,
+      0x00, 0x00, 0x00,
       fan2,
       fan1
     ];
@@ -230,27 +239,26 @@ var CANLive = (function() {
   }
 
   /**
-   * CAN ID 0x620 — Fan/AC status (7 bytes)
-   * ROM: can620TX_pack (0x33A68)
-   * NOTE: no byte layout is documented in firmware/c/can.c, so this is an
-   * emulator best-effort frame carrying the LIVE A2 values (consistent
-   * with dlc=7): byte 0 fan flags (bit0 low, bit1 high), byte 1 A/C clutch,
-   * byte 2 battery terminal V x10, byte 3 SoC %, byte 4 after-run flag.
+   * CAN ID 0x620 — Fan/AC status (7 bytes, DLC=7)
+   * ROM: can620TX_pack @0x33A68 (firmware/c/can.c:1325-1354).
+   * Firmware layout: bytes 0-3 = 0, byte 4 = *0xFFFFC05C, byte 5 = 0,
+   * byte 6 = *0xFFFFC05B (ROM:0x33A68-0x33A86, MB6).
+   * Signal semantics of the two RAM staging bytes are not decoded, so the
+   * live mapping below is PROVISIONAL: byte 4 carries the live fan flags
+   * (bit0 FAN1/low, bit1 FAN2/high from core hysteresis + after-run) and
+   * byte 6 carries A/C clutch (bit0) + after-run (bit1). Zeros match ROM.
    */
   function pack0x620(st) {
     var fan1 = coreFan(0, st.ect > 90);
     var fan2 = coreFan(1, st.ect > 100);
     var ac = coreFlag("emu_get_ac", false);
-    var bv10 = Math.round(coreNum("emu_get_batt_v", 12.6) * 10);
-    var soc = Math.round(coreNum("emu_get_soc", 100));
     var after = coreFlag("emu_get_afterrun", false);
     return [
+      0x00, 0x00,
+      0x00, 0x00,
       (fan1 | (fan2 << 1)) & 0xFF,
-      ac & 0xFF,
-      bv10 & 0xFF,
-      soc & 0xFF,
-      after & 0xFF,
-      0x00, 0x00
+      0x00,
+      (ac | (after << 1)) & 0xFF
     ];
   }
 
@@ -277,10 +285,15 @@ var CANLive = (function() {
   }
 
   /**
-   * CAN ID 0x251 — Engine data (8 bytes, every 2 cycles)
-   * ROM: can251TX_getAndPack (0x2AAB6) — see firmware/c/can.c.
-   * KEPT: 0x251 is real firmware traffic (CAN_ID_0251, DLC 8, MB11),
-   * also listed in the CANTX_Main dispatch (CAN_PROTOCOL.md).
+   * CAN ID 0x251 — Engine data (8 bytes, every 2 cycles, DLC=8)
+   * ROM: can251TX_getAndPack @0x2AAB6 (firmware/c/can.c:968-1050).
+   * Frame: CAN_ID_0251, MB11, TX buf 0xFFFFBB9C, counter 0xFFFFBBC8 every 2
+   * CANTX_Main calls (docs/notes/CAN_PROTOCOL.md:207-224,
+   * docs/notes/KNOWLEDGE.md:50).
+   * Byte layout (ROM 0x2AAE8-0x2AB20): three u16 BE words from 0xFFFFBBBC /
+   * BBBE / BBC0 + bytes from 0xFFFFBBC2/BBC3. Signal semantics of the three
+   * words are NOT decoded (documented as raw words), so the rpm-x4/ECT/MAP/
+   * TPS mapping below is PROVISIONAL best-effort (keeps DLC=8 + saturation).
    */
   function pack0x251(st) {
     var rpmRaw = rpmRawU16(st.rpm);
@@ -319,10 +332,21 @@ var CANLive = (function() {
   /**
    * CAN ID 0x250 — Injection pulse / IAT (8 bytes)
    * ROM: can250TX_pack (0x4C984)
+   * Fuel cut: reports 0 pulse when the core injector cut is active
+   * (Module.emu_get_fuel_cut() === 1, i.e. rpm >= redline) — no fuel,
+   * no pulse. Falls back to the rpm-derived width when the core predates
+   * the API.
    */
   function pack0x250(st) {
     var iatRaw = Math.round(st.iat + 40);
-    var injPw = Math.round(mapRange(st.rpm, 0, 9000, 1, 8));
+    var cut = false;
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_fuel_cut === "function") {
+        cut = Module.emu_get_fuel_cut() === 1;
+      }
+    } catch (e) {}
+    var injPw = cut ? 0 : Math.round(mapRange(st.rpm, 0, RPM_FULL, 1, 8));
     return [
       0x00, 0x00,
       0x00, iatRaw & 0xFF,

@@ -23,6 +23,9 @@ const SCI_BASE = 0xFFFFF020;
 const BSC_BASE = 0xFFFFEC20;
 const WDT_BASE = 0xFFFFEC10;
 const INTC_ADDR = 0xFFFFF02E;
+/* Sim/UI rev ceiling (over-rev range when the fuel cut is OFF). The fuel-cut
+ * threshold itself stays at the 9000 redline calibration default. */
+const MAX_RPM = 12000;
 
 /* ======================================================================
  *  State
@@ -32,7 +35,11 @@ let PERIPHERALS = [];
 let SCENARIOS = {};
 let selectedPin = null;
 let sensorState = {
-  rpm: 0, ect: 80, iat: 25, map: 20, tps: 0, o2f: 0.45, o2r: 0.45
+  /* Engine-off MAP = barometric (~100 kPa): a stopped engine breathes
+   * ambient pressure (no vacuum). 20 kPa is the decel-fuel-cut vacuum,
+   * never the key-off rest value (see emu_core emu_init + engine_sim
+   * updateFromThrottle OFF branch, fixed together). */
+  rpm: 0, ect: 80, iat: 25, map: 100, tps: 0, o2f: 0.45, o2r: 0.45
 };
 /* Expose to engine_sim.js / can_live.js (they read window.sensorState).
  * `let` at top level does not attach to window, so publish explicitly. */
@@ -46,10 +53,12 @@ let _preStart = "ON"; // key position to return to after momentary START
  * scenario) activates the override so fan crossings can be forced, and the
  * ECT AUTO button releases back to the model. */
 let ectOverride = { active: false };
-/* Wave A2 calibration persistence. */
+/* Wave A2 calibration persistence (fan defaults = ROM byte-verified f32
+ * block 0x07793C-0x077950, docs/notes/COOLING_FANS.md: 97/94 low, 101/98
+ * high). */
 const CAL_KEY = "rx8emu.cal.v2";
-const CAL_DEFAULTS = { fanLowOn: 95, fanLowOff: 90, fanHighOn: 105,
-  fanHighOff: 100, ambient: 20, redline: 9000, fuelCutEn: 1, soc: 100 };
+const CAL_DEFAULTS = { fanLowOn: 97, fanLowOff: 94, fanHighOn: 101,
+  fanHighOff: 98, ambient: 20, redline: 9000, fuelCutEn: 1, soc: 100 };
 
 /* ======================================================================
  *  Helpers
@@ -61,6 +70,54 @@ function voltageToADC10(voltage) {
 
 function mapRange(value, inMin, inMax, outMin, outMax) {
   return outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
+}
+
+/* ======================================================================
+ *  Display formatting — route EVERY dynamic sensor/sim value through here.
+ *
+ *  Contract: rounded, unit-spaced, never leaks raw floats or NaN/Inf.
+ *  Non-finite (NaN/±Inf/undefined) or absurd magnitudes (>=1e15, e.g. 1e21)
+ *  render as "—" (explorer policy) instead of "NaN"/"Infinity"/"1e+21".
+ *  -0 normalizes to 0 so "-0 kPa" never appears.
+ *  Spacing: single space before °C/kPa/V/rpm/ms/Hz/A (e.g. "20 kPa",
+ *  "0.45 V"); % attaches directly ("50%", never "50 %").
+ *  Digits: temps 1, volts 2, RPM/kPa/% integers, duty 1, pulse 2, freq 1,
+ *  amps 1, tooth period 3. Power rails keep 1 decimal (coarse 12 V feed).
+ * ====================================================================== */
+function fmtNum(v, digits) {
+  let n = Number(v);
+  if (!Number.isFinite(n)) return "—";
+  if (Object.is(n, -0)) n = 0;
+  if (Math.abs(n) >= 1e15) return "—";
+  return n.toFixed(digits);
+}
+function fmt(v, digits, unit) {
+  const s = fmtNum(v, digits);
+  if (s === "—") return s;
+  if (!unit) return s;
+  return unit === "%" ? s + "%" : s + " " + unit;
+}
+function fmtTemp(v) { return fmt(v, 1, "°C"); }
+function fmtVolt(v) { return fmt(v, 2, "V"); }
+function fmtRPM(v) { return fmt(v, 0, "rpm"); }
+function fmtKPa(v) { return fmt(v, 0, "kPa"); }
+function fmtPct0(v) { return fmt(v, 0, "%"); }
+function fmtPct1(v) { return fmt(v, 1, "%"); }
+function fmtAmps(v) { return fmt(v, 1, "A"); }
+function fmtHz(v) { return fmt(v, 1, "Hz"); }
+function fmtMs2(v) { return fmt(v, 2, "ms"); }
+/* Per-sensor slider readout (Dashboard val-<key> spans). */
+function fmtSensor(key, v) {
+  switch (key) {
+    case "rpm": return fmtRPM(v);
+    case "ect":
+    case "iat": return fmtTemp(v);
+    case "map": return fmtKPa(v);
+    case "tps": return fmtPct0(v);
+    case "o2f":
+    case "o2r": return fmtVolt(v);
+    default: return fmtNum(v, 2);
+  }
 }
 
 /* ======================================================================
@@ -77,7 +134,7 @@ function clampSensor(v, min, max, fallback) {
 function computePinStates() {
   /* Clamp on the app.js side (emu_core.js is owned by wave3b — do not edit):
    * a NaN or out-of-range sensor must never reach emu_set_sensor. */
-  sensorState.rpm = clampSensor(sensorState.rpm, 0, 9000, 800);
+  sensorState.rpm = clampSensor(sensorState.rpm, 0, MAX_RPM, 800);
   sensorState.ect = clampSensor(sensorState.ect, -20, 120, 80);
   sensorState.iat = clampSensor(sensorState.iat, -20, 60, 25);
   sensorState.map = clampSensor(sensorState.map, 0, 105, 35);
@@ -351,9 +408,13 @@ function stateTextFor(pin, val) {
       { text: "HIGH (1)", color: "var(--green)" } :
       { text: "LOW (0)", color: "var(--muted)" };
   } else if (pin.type === "analog") {
-    return { text: `${val.toFixed(3)}V (ADC: ${voltageToADC10(val)})`, color: "var(--cyan)" };
+    /* Volts → 2 decimals with a spaced unit; non-finite pin voltage
+     * renders as "—" (never "NaN"). ADC count stays an integer. */
+    const vv = Number(val);
+    const adc = Number.isFinite(vv) ? voltageToADC10(vv) : "—";
+    return { text: `${fmtVolt(val)} (ADC: ${adc})`, color: "var(--cyan)" };
   } else if (pin.type === "power") {
-    return { text: `${val.toFixed(1)}V`, color: "var(--yellow)" };
+    return { text: fmt(val, 1, "V"), color: "var(--yellow)" };
   } else if (pin.type === "can") {
     return val > 0 ?
       { text: "Bus active", color: "var(--cyan)" } :
@@ -367,7 +428,7 @@ function showPinInfo(pin) {
   document.getElementById("info-type").textContent = pin.type.toUpperCase();
   document.getElementById("info-dir").textContent = pin.dir === "in" ? "Input" : pin.dir === "out" ? "Output" : pin.dir === "io" ? "Bidirectional" : "N/A";
   document.getElementById("info-goes").textContent = pin.goes_to.replace(/_/g, " ");
-  document.getElementById("info-voltage").textContent = `${pin.voltage[0]}–${pin.voltage[1]}V`;
+  document.getElementById("info-voltage").textContent = `${pin.voltage[0]}–${pin.voltage[1]} V`;
   document.getElementById("info-reg").textContent = regTextFor(pin);
 
   const st = stateTextFor(pin, pin._value || 0);
@@ -493,12 +554,14 @@ function renderStates() {
         barColor = val ? "var(--green)" : "var(--muted)";
       }
     } else if (p.type === "analog") {
-      displayVal = `${val.toFixed(2)}V`;
-      barPct = (val / 5) * 100;
+      displayVal = fmtVolt(val);
+      barPct = (Number(val) / 5) * 100;
+      if (!Number.isFinite(barPct)) barPct = 0;
       barColor = "var(--accent)";
     } else if (p.type === "power") {
-      displayVal = `${val.toFixed(1)}V`;
-      barPct = (val / 16) * 100;
+      displayVal = fmt(val, 1, "V");
+      barPct = (Number(val) / 16) * 100;
+      if (!Number.isFinite(barPct)) barPct = 0;
       barColor = "var(--yellow)";
     } else if (p.type === "can") {
       displayVal = val > 0 ? "Active" : "Idle";
@@ -598,9 +661,17 @@ function applyScenario(key) {
   sensorState.tps = sc.tps;
   if (sc.o2f !== undefined) sensorState.o2f = sc.o2f;
   if (sc.o2r !== undefined) sensorState.o2r = sc.o2r;
-  /* Wave A2: presets force an ECT override (AUTO releases back to the
-   * thermal model); O2/IAT manual holds let the value stick ~5 s. */
-  ectOverride.active = true;
+  /* Wave A2: presets set the INITIAL coolant but keep AUTO mode (the
+   * thermal model runs from there); ONLY the explicit ECT slider forces
+   * the override (released via the ECT AUTO button). O2/IAT manual holds
+   * let those values stick ~5 s. */
+  ectOverride.active = false;
+  try {
+    if (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_set_coolant === "function") {
+      Module.emu_set_coolant(sc.ect);
+    }
+  } catch (e) {}
   manualHold("o2"); manualHold("iat");
   /* Keep the engine sim from pulling rpm away from the scenario value:
    * drive its throttle from the scenario rpm (neutral rev, load cleared). */
@@ -625,7 +696,7 @@ function renderSliders() {
   container.innerHTML = "";
 
   const sliders = [
-    {key:"rpm",  label:"RPM",   min:0, max:9000, step:100, unit:""},
+    {key:"rpm",  label:"RPM",   min:0, max:MAX_RPM, step:100, unit:"rpm"},
     {key:"ect",  label:"ECT",   min:-20,max:120, step:1,   unit:"°C"},
     {key:"iat",  label:"IAT",   min:-20,max:60,  step:1,   unit:"°C"},
     {key:"map",  label:"MAP",   min:0,  max:105, step:1,   unit:"kPa"},
@@ -638,7 +709,7 @@ function renderSliders() {
     const group = document.createElement("div");
     group.className = "slider-group";
     group.innerHTML = `
-      <label for="slider-${s.key}">${s.label} <span id="val-${s.key}">${sensorState[s.key]}${s.unit}</span></label>
+      <label for="slider-${s.key}">${s.label} <span id="val-${s.key}">${fmtSensor(s.key, sensorState[s.key])}</span></label>
       <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${sensorState[s.key]}" id="slider-${s.key}" aria-label="${s.label} sensor">
     `;
     container.appendChild(group);
@@ -648,7 +719,7 @@ function renderSliders() {
       const v = Number(input.value);
       if (!Number.isFinite(v)) return;
       sensorState[s.key] = Math.max(s.min, Math.min(s.max, v));
-      document.getElementById(`val-${s.key}`).textContent = `${sensorState[s.key]}${s.unit}`;
+      document.getElementById(`val-${s.key}`).textContent = fmtSensor(s.key, sensorState[s.key]);
       /* Wave A2: a hand-dragged ECT slider overrides the thermal model
        * (fan crossings can be forced); O2/IAT edits hold ~5 s before
        * engine_sim dynamics resume. */
@@ -692,32 +763,36 @@ function manualHold(which) {
 }
 
 function updateSliders() {
-  const units = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V",o2r:"V"};
   ["rpm","ect","iat","map","tps","o2f","o2r"].forEach(key => {
+    /* Value label always refreshes (non-finite → "—", never stale);
+     * the range thumb only moves on finite input (NaN would be invalid). */
+    const valEl = document.getElementById(`val-${key}`);
+    if (valEl) valEl.textContent = fmtSensor(key, sensorState[key]);
     const slider = document.getElementById(`slider-${key}`);
     if (slider && document.activeElement !== slider) {
       const v = Number(sensorState[key]);
-      if (Number.isFinite(v)) {
-        slider.value = v;
-        const valEl = document.getElementById(`val-${key}`);
-        if (valEl) valEl.textContent = `${sensorState[key]}${units[key]}`;
-      }
+      if (Number.isFinite(v) && Math.abs(v) < 1e15) slider.value = v;
     }
   });
-  /* O2R-tab mirrors */
+  /* O2R-tab mirrors (front tracks o2f/ADC4, rear tracks o2r/ADC5 — distinct
+   * sources by design; both read 0.45 V at rest bias, which is correct and
+   * not a duplicated binding). */
   [["o2f-tab", "o2f", "o2f-tab-val"], ["o2r-tab", "o2r", "o2r-tab-val"]].forEach(([id, key, valId]) => {
     const s = document.getElementById(id);
-    if (s && document.activeElement !== s) s.value = sensorState[key];
+    if (s && document.activeElement !== s) {
+      const vv = Number(sensorState[key]);
+      if (Number.isFinite(vv)) s.value = sensorState[key];
+    }
     const ve = document.getElementById(valId);
-    if (ve) ve.textContent = Number(sensorState[key]).toFixed(2) + "V";
+    if (ve) ve.textContent = fmtVolt(sensorState[key]);
   });
   /* O2 live readouts (voltage + ADC) */
   try {
     if (typeof Module !== "undefined" && Module && typeof Module.emu_get_adc === "function") {
       const f = document.getElementById("o2f-read");
-      if (f) f.textContent = Number(sensorState.o2f).toFixed(2) + " V · ADC " + Module.emu_get_adc(4);
+      if (f) f.textContent = fmtVolt(sensorState.o2f) + " · ADC " + Module.emu_get_adc(4);
       const r = document.getElementById("o2r-read");
-      if (r) r.textContent = Number(sensorState.o2r).toFixed(2) + " V · ADC " + Module.emu_get_adc(5);
+      if (r) r.textContent = fmtVolt(sensorState.o2r) + " · ADC " + Module.emu_get_adc(5);
     }
   } catch (e) {}
 }
@@ -820,10 +895,10 @@ function refreshVehicle() {
   const acReq = coreNum("emu_get_ac_req", 0) === 1;
   const brake = coreNum("emu_get_brake", 0) === 1;
 
-  setText("batt-readout", V.toFixed(2) + " V");
-  setText("batt-soc", soc.toFixed(0) + "% (rest " +
-    coreNum("emu_get_rest_v", 0).toFixed(2) + " V)");
-  setText("batt-load", load.toFixed(1) + " A");
+  setText("batt-readout", fmtVolt(V));
+  setText("batt-soc", fmtPct0(soc) + " (rest " +
+    fmtVolt(coreNum("emu_get_rest_v", 0)) + ")");
+  setText("batt-load", fmtAmps(load));
   setText("batt-state", charging ? "CHARGING" :
     (coreState() === "CRANKING" ? "CRANKING" : "ON BATTERY"));
   const wb = document.getElementById("batt-weak");
@@ -831,9 +906,9 @@ function refreshVehicle() {
   const ab = document.getElementById("afterrun-badge");
   if (ab) ab.style.display = after ? "" : "none";
 
-  setText("veh-coolant", coolant.toFixed(1) + " °C" + (ectOverride.active ? " (override)" : " (model)"));
+  setText("veh-coolant", fmtTemp(coolant) + (ectOverride.active ? " (override)" : " (model)"));
   setText("veh-fans", fan1 ? "HIGH" : (fan0 ? "LOW" : "OFF"));
-  setText("fuel-readout", fuel.toFixed(0) + "%");
+  setText("fuel-readout", fmtPct0(fuel));
   setText("oil-readout", oilLow ? "LOW" : "OK");
   setText("ac-readout", ac ? "ENGAGED" : (acReq ? "REQ (idle)" : "OFF"));
   const acB = document.getElementById("ac-req-btn");
@@ -851,14 +926,14 @@ function refreshVehicle() {
 
   /* ECT mode line + AUTO button. */
   setText("ect-mode", ectOverride.active ?
-    ("ECT: OVERRIDE @ " + Number(sensorState.ect).toFixed(0) + " °C (slider)") :
-    ("ECT: thermal model (AUTO) @ " + coolant.toFixed(1) + " °C"));
+    ("ECT: OVERRIDE @ " + fmtTemp(sensorState.ect) + " (slider)") :
+    ("ECT: thermal model (AUTO) @ " + fmtTemp(coolant)));
   setText("ect-auto-btn", ectOverride.active ? "Release to AUTO" : "ECT: AUTO");
 
   /* Calibration live-values line. */
-  setText("cal-live", "live: coolant " + coolant.toFixed(1) + " °C · fans " +
-    (fan1 ? "HIGH" : (fan0 ? "LOW" : "OFF")) + " · " + V.toFixed(2) + " V · SoC " +
-    soc.toFixed(0) + "%" + (after ? " · AFTER-RUN" : "") + (weak ? " · WEAK BATT" : ""));
+  setText("cal-live", "live: coolant " + fmtTemp(coolant) + " · fans " +
+    (fan1 ? "HIGH" : (fan0 ? "LOW" : "OFF")) + " · " + fmtVolt(V) + " · SoC " +
+    fmtPct0(soc) + (after ? " · AFTER-RUN" : "") + (weak ? " · WEAK BATT" : ""));
 }
 
 function persistCal(obj) {
@@ -891,7 +966,7 @@ function writeCalInputs(c) {
   set("cal-fanhi-on", c.fanHighOn); set("cal-fanhi-off", c.fanHighOff);
   set("cal-ambient", c.ambient); set("cal-redline", c.redline);
   set("cal-soc", c.soc);
-  setText("cal-soc-val", Math.round(c.soc) + "%");
+  setText("cal-soc-val", fmtPct0(c.soc));
   const fc = document.getElementById("cal-fuelcut");
   if (fc) fc.checked = !!c.fuelCutEn;
 }
@@ -1078,7 +1153,7 @@ function wireStaticControls() {
   const socEl = document.getElementById("cal-soc");
   if (socEl) {
     socEl.addEventListener("input", () => {
-      setText("cal-soc-val", Math.round(Number(socEl.value) || 0) + "%");
+      setText("cal-soc-val", fmtPct0(Number(socEl.value) || 0));
       applyCalFromInputs();
     });
   }
@@ -1109,6 +1184,59 @@ function wireStaticControls() {
   if (o2r) o2r.addEventListener("input", () => writeSensor("o2r", o2r.value, 0, 1));
 }
 
+/* ======================================================================
+ *  Engine sound (audio.js, Web Audio API)
+ *
+ *  The AudioContext MUST start on a user gesture (autoplay policy): the
+ *  engine unlocks on the first pointerdown/keydown and resumes when the
+ *  tab becomes visible again. All calls are guarded so the UI works with
+ *  no audio backend (headless/node).
+ * ====================================================================== */
+function wireSound() {
+  let AE = null;
+  try {
+    AE = (typeof AudioEngine !== "undefined") ? AudioEngine : null;
+  } catch (e) { AE = null; }
+  if (!AE) return;
+  const tg = document.getElementById("sound-toggle");
+  if (tg) {
+    const paint = () => {
+      let muted = true;
+      try { muted = AE.isMuted(); } catch (e) {}
+      tg.textContent = muted ? "SOUND: OFF" : "SOUND: ON";
+      tg.classList.toggle("active", !muted);
+      tg.setAttribute("aria-pressed", muted ? "false" : "true");
+    };
+    tg.addEventListener("click", () => {
+      try { AE.unlock(); AE.toggleMute(); } catch (e) {}
+      paint();
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+    paint();
+  }
+  const vo = document.getElementById("sound-vol");
+  if (vo) {
+    try { vo.value = AE.getVolume(); } catch (e) {}
+    const vv = document.getElementById("sound-vol-val");
+    if (vv) { try { vv.textContent = fmtPct0(AE.getVolume()); } catch (e) {} }
+    vo.addEventListener("input", () => {
+      try {
+        AE.setVolume(Number(vo.value));
+        if (vv) vv.textContent = fmtPct0(AE.getVolume());
+      } catch (e) {}
+    });
+  }
+  /* Autoplay policy: unlock on first gesture; resume on visibility. */
+  const unlockOnce = () => { try { AE.unlock(); } catch (e) {} };
+  try {
+    document.addEventListener("pointerdown", unlockOnce, { once: true });
+    document.addEventListener("keydown", unlockOnce, { once: true });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) { try { AE.unlock(); } catch (e) {} }
+    });
+  } catch (e) {}
+}
+
 function boot() {
   if (_booted) return;
   _booted = true;
@@ -1117,6 +1245,7 @@ function boot() {
   Module.emu_set_pins(PINS);
 
   wireStaticControls();
+  wireSound();
   renderPinout();
   renderScenarios();
   renderSliders();
@@ -1331,10 +1460,10 @@ var PinData = (function() {
         pwm: { f: f, duty: cut ? 0 : d, cut: cut },
         note: cut ? "fuel cut active — injectors held off, coils still fire" : "",
         rows: [
-          ["duty", cut ? "0% (CUT)" : (Math.round(d * 1000) / 10) + "%"],
-          ["pulse width", cut ? "0 ms (fuel cut at redline)" : (Math.round(pw * 100) / 100) + " ms"],
-          ["frequency", (Math.round(f * 10) / 10) + " Hz (1 pulse/rev)"],
-          ["rev period", r > 0 ? (Math.round(per * 100) / 100) + " ms @ " + r + " rpm" : "engine stopped"]
+          ["duty", cut ? "0% (CUT)" : fmtPct1(d * 100)],
+          ["pulse width", cut ? "0 ms (fuel cut at redline)" : fmtMs2(pw)],
+          ["frequency", fmtHz(f) + " (1 pulse/rev)"],
+          ["rev period", r > 0 ? fmtMs2(per) + " @ " + fmtRPM(r) : "engine stopped"]
         ] };
     }
 
@@ -1346,9 +1475,9 @@ var PinData = (function() {
         pwm: { f: f2, duty: r2 > 0 ? COIL_DUTY : 0, cut: false }, note: "",
         rows: [
           ["duty", r2 > 0 ? "8% (sequential window)" : "0% (engine stopped)"],
-          ["pulse width", r2 > 0 ? (Math.round(pw2 * 100) / 100) + " ms" : "—"],
-          ["frequency", (Math.round(f2 * 10) / 10) + " Hz (1 fire/rev)"],
-          ["state", r2 > 0 ? ("firing @ " + r2 + " rpm (fires through fuel cut)") : "engine stopped"]
+          ["pulse width", r2 > 0 ? fmtMs2(pw2) : "—"],
+          ["frequency", fmtHz(f2) + " (1 fire/rev)"],
+          ["state", r2 > 0 ? ("firing @ " + fmtRPM(r2) + " (fires through fuel cut)") : "engine stopped"]
         ] };
     }
 
@@ -1360,7 +1489,7 @@ var PinData = (function() {
         note: "digital proxy: the sim has no road-speed model, pulses derive from rpm",
         rows: [
           ["level", pin._value ? "HIGH (pulsing)" : "LOW (stopped)"],
-          ["pulse freq", (Math.round(f3 * 10) / 10) + " Hz (rpm-derived proxy)"]
+          ["pulse freq", fmtHz(f3) + " (rpm-derived proxy)"]
         ] };
     }
 
@@ -1387,17 +1516,17 @@ var PinData = (function() {
     if (isSCI(n)) return "no traffic";
     if (isINJ(n)) {
       if (fuelCutA3()) return "CUT";
-      return (Math.round(injDutyA3() * 1000) / 10) + "% " +
-        (Math.round(rpmA3() / 60 * 10) / 10) + "Hz";
+      return fmtPct1(injDutyA3() * 100) + " " +
+        fmtHz(rpmA3() / 60);
     }
     if (isCOIL(n)) {
       var r2 = rpmA3();
       if (r2 <= 0) return "off";
-      return "8% " + (Math.round(r2 / 60 * 10) / 10) + "Hz";
+      return "8% " + fmtHz(r2 / 60);
     }
     if (n === "VEH_SPD") {
       var r3 = rpmA3();
-      return r3 > 0 ? (Math.round(r3 / 60 * 10) / 10) + "Hz proxy" : "stopped";
+      return r3 > 0 ? fmtHz(r3 / 60) + " proxy" : "stopped";
     }
     return "";
   }
@@ -1480,8 +1609,8 @@ var PinData = (function() {
     ctx.arc(W - 3, yEdge, 2.5, 0, Math.PI * 2);
     ctx.fill();
     drawTag(ctx, W, pwm.duty >= 0.5 ? "HIGH" : "LOW", color);
-    return Math.round(pwm.f * 10) / 10 + " Hz · " +
-      (Math.round(pwm.duty * 1000) / 10) + "% · 4 periods shown";
+    return fmtHz(pwm.f) + " · " +
+      fmtPct1(pwm.duty * 100) + " · 4 periods shown";
   }
 
   function drawCAN(cv) {

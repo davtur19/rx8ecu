@@ -32,10 +32,11 @@ describe("throttle/load clamping", () => {
 });
 
 describe("setFromRPM inverse map (slider stick)", () => {
-  it("idle maps to 0 %, redline to 100 %, midpoint halves", () => {
+  it("idle maps to 0 %, MAX_RPM to 100 %, midpoint halves", () => {
     assert.strictEqual(E.setFromRPM(800), 0);
-    assert.strictEqual(E.setFromRPM(9000), 100);
-    const mid = E.setFromRPM(4900);
+    assert.strictEqual(E.setFromRPM(12000), 100);
+    assert.strictEqual(E.getMaxRPM(), 12000);
+    const mid = E.setFromRPM(6400);
     assert.ok(Math.abs(mid - 50) < 0.01, "mid throttle, got " + mid);
     assert.strictEqual(E.getLoad(), 0, "load cleared for a neutral rev");
   });
