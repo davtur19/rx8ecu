@@ -1111,6 +1111,21 @@ def bits2f(b):
     return struct.unpack('>f', struct.pack('>I', b & MASK))[0]
 
 
+# ---------------------------------------------------------------------------
+# Raw-bits NaN-safe mirror (additive, oracle audit; no existing behavior changed).
+# Mirrors tools/sh2emu.py: ts / f2bits QUIET sNaN on x86 (struct.pack('>f')
+# forces the quiet bit, e.g. 0x7F800001 -> 0x7FC00001); bits2f decode PRESERVES
+# (payload survives in the Python double until re-packed). This module holds no
+# RAM/FR state, so wrf_bits / fr_bits live only in sh2emu (wrf_bits raw store,
+# apply_fr_bits / set_fr_bits / get_fr_bits raw FR path); here ts_bits documents
+# the same raw path for lift/mirror fragments. Oracles compare via
+# c/tests/float_compare.py::same_result_bits.
+# ---------------------------------------------------------------------------
+def ts_bits(bits):
+    """Raw-bits identity (int -> int) mirror of sh2emu.ts_bits (additive)."""
+    return bits & MASK
+
+
 def is_fpu_op(op):
     """SH-2E FPU block (0xF___) or the FPUL/FPSCR system transfers."""
     return (op & 0xF000 == 0xF000 or

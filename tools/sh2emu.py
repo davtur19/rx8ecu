@@ -44,6 +44,49 @@ def f2bits(v): return struct.unpack('>I', struct.pack('>f', ts(v)))[0]
 def bits2f(b): return struct.unpack('>f', struct.pack('>I', b & MASK))[0]
 
 
+# ---------------------------------------------------------------------------
+# Raw-bits NaN-safe path (additive, oracle audit; no existing behavior changed).
+# x86 quieting boundary: struct.pack('>f', ...) on x86 quiets signaling NaN
+# (forces the quiet bit, e.g. 0x7F800001 -> 0x7FC00001) via the host FPU/SSE
+# cvt. Helpers that QUIET sNaN on x86: ts / f2bits / wrf / fr-init (call fr=
+# dict via ts) / fadd / fsub / fmul / fdiv / fmac / flds / fsqrt. Helpers that
+# PRESERVE raw sNaN bits: bits2f decode (float32 bits -> Python float keeps the
+# payload in the double mantissa until re-packed) / fsts (bit-pattern move).
+# Oracles needing exact sNaN payloads must use the raw path below (ts_bits /
+# wrf_bits / fr_bits) and compare with NaN-payload-insensitive
+# c/tests/float_compare.py::same_result_bits.
+# ---------------------------------------------------------------------------
+def ts_bits(bits):
+    """Raw-bits identity (int -> int): documents the NaN-safe path that skips
+    the ts() float32 round-trip (which quiets sNaN on x86). Purely additive."""
+    return bits & MASK
+
+
+def apply_fr_bits(cpu, fr_bits):
+    """Store init dict {reg: bits} raw alongside cpu.fr (additive helper).
+    Each value is decoded with bits2f (preserving, no ts-quieting) and the raw
+    pattern is tracked on cpu.fr_bits_raw for exact readback via fr_bits_of.
+    Does not touch SH2.call; callers invoke after construction / before run."""
+    raw = getattr(cpu, 'fr_bits_raw', None)
+    if raw is None:
+        raw = {}
+        cpu.fr_bits_raw = raw
+    for k, b in (fr_bits or {}).items():
+        b &= MASK
+        cpu.fr[k] = bits2f(b)
+        raw[k] = b
+    return cpu
+
+
+def fr_bits_of(cpu, reg):
+    """Raw-preserving FR readback (additive): tracked raw pattern when set via
+    apply_fr_bits / set_fr_bits, else f2bits(cpu.fr[reg]) (may quiet sNaN)."""
+    raw = getattr(cpu, 'fr_bits_raw', None)
+    if raw is not None and reg in raw:
+        return raw[reg] & MASK
+    return f2bits(cpu.fr[reg])
+
+
 class SH2:
     def __init__(self, rom):
         self.rom = rom
@@ -71,6 +114,24 @@ class SH2:
     def wrf(self, a, v):
         b = struct.pack('>f', ts(v))
         for i in range(4): self._wb(a + i, b[i])
+
+    def wrf_bits(self, a, bits):
+        # Raw-bytes RAM store (additive): writes the 4 big-endian bytes of
+        # `bits` directly, bypassing the wrf() ts-quieting pack path, so sNaN
+        # payloads round-trip exactly. Read back with rd(a, 4).
+        bits &= MASK
+        for i in range(4):
+            self._wb(a + i, (bits >> (8 * (3 - i))) & 0xFF)
+
+    def set_fr_bits(self, fr_bits):
+        # FR raw init (additive): {reg: bits} stored raw alongside self.fr via
+        # bits2f (preserving) + tracked on self.fr_bits_raw for exact readback.
+        # Companion to module-level apply_fr_bits; SH2.call is untouched.
+        return apply_fr_bits(self, fr_bits)
+
+    def get_fr_bits(self, reg):
+        # FR raw readback (additive): tracked raw pattern or f2bits fallback.
+        return fr_bits_of(self, reg)
 
     def call(self, entry, r4=0, r5=0, r6=0, r7=0, ram=None, fr=None, sr=0x000000F0, regs=None, mmio=None,
              max_steps=None, break_addrs=None):
@@ -481,6 +542,11 @@ class SH2:
                     return
                 if m == 0x4: f[n] = -f[n]; return                   # fneg
                 if m == 0x5: f[n] = abs(f[n]); return               # fabs
+                # NOTE (raw-bits, additive; behavior unchanged): wave1 neg->NaN
+                # canonicalizes to the Python default NaN pattern (0x7FC00000
+                # through f2bits on x86); oracles must compare via
+                # c/tests/float_compare.py::same_result_bits (sign-bit-only
+                # when both sides are NaN).
                 if m == 0x6:                                        # fsqrt (negative -> NaN, SH-2 HW)
                     if f[n] < 0.0:
                         f[n] = float('nan')
