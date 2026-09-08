@@ -226,7 +226,23 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
         }
     }
 
-    /* Tester present: always allowed, no dispatch needed */
+    /* Tester present (ROM 0x56F44, 0xA6 bytes): zero persistent RAM writes.
+     * S3 hunt 2026-09-08 (NOT-FOUND, main bank 60E1D400 + fc00 bank): the
+     * handler only reads the word @0xFFFFD3F0 request-staging buffer
+     * (mov.w @r3,r14 @0x56F58) to validate the sub-function; DE5C has
+     * exactly two writers — 566EC session-switch (delay-slot store
+     * @0x5670A) and 696D4 boot-reset (jsr @0x113C6 from the boot-init
+     * chain @0x6208, NOT periodic) — and one reader (udsHandler
+     * @0x697EC/0x69800). DE5C/D20B/D20D literal pools are exhaustive
+     * (3/2/1, byte-verified), D215 has zero xrefs in both banks,
+     * uds_task_entry @0x696DC is pure dispatch (no RAM touch, no
+     * countdown), and the CAN bridge 0x60774/0x6085C only snapshots
+     * word D3F0 for TX. So ROM implements no S3 timeout: a session
+     * persists until switched or reset. The D215 store below stays a
+     * firmware-local keep-alive flag, NOT ROM-backed. Bench probe that
+     * would refute this: non-default session + bus silence > 5 s, then
+     * a gated SID must still answer (predict: yes); an idle-only
+     * 0x7F/0x22 reject would point off-ROM (e.g. K-line kernel). */
     if (sid == UDS_SID_TESTER_PRESENT) {
         *(volatile uint8_t *)UDS_TESTER_PRESENT_ADDR = 1;
         response[0] = UDS_SID_TESTER_PRESENT + UDS_POS_RESPONSE_OFFSET;

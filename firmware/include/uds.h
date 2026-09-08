@@ -78,14 +78,13 @@
 #define UDS_SEED_BYTE3_ADDR     0xFFFFD213   /* Seed byte 3 (security_seed_byte3) */
 /* rom-check (B16-adjacent, D214 resolved): ROM diag_security_5699a stores
  * the access level to [0xFFFFD214] alongside seed bytes D211-D213, so D214
- * keeps its meaning below. NEEDS-ROM-CHECK (narrowed, sharpened): the
- * 0x3E TesterPresent handler is ROM 0x56F44 (dispatch-table record), but
- * its full path (68BC0 table-scan, 56FEA response-build, 68B60/68858 TX
- * ring @D998, 55362/55386 wrappers) performs zero persistent RAM writes
- * (reads D3F0 + sub-function byte only), 0xFFFFD215 has zero ROM xrefs,
- * and DE5C supervision (writers 566EC/696D4, reader 697EC) consumes no
- * D21x flag — so the real TesterPresent RAM address (if any) is still
- * unconfirmed and 0xFFFFD215 below stays a firmware-local guess. */
+ * keeps its meaning below. S3 hunt 2026-09-08 (NOT-FOUND): ROM TesterPresent
+ * 0x56F44 performs zero persistent RAM writes (reads D3F0 staging only),
+ * 0xFFFFD215 has zero ROM xrefs in main + fc00 banks, DE5C writers are
+ * exactly 566EC (session-switch) + 696D4 (boot-reset via @0x113C6, not
+ * periodic) with udsHandler @0x697EC as sole reader, and uds_task_entry
+ * @0x696DC has no countdown — so no ROM S3 timeout exists and 0xFFFFD215
+ * below stays a firmware-local guess, NOT a ROM address. */
 #define UDS_SEED_ID_ADDR        0xFFFFD214   /* Security access ID byte */
 #define UDS_SERIAL_NUM_ADDR     0xFFFFF430   /* ECU serial number (4 bytes) */
 
@@ -147,7 +146,8 @@
  * timer define is deleted rather than relocated. P2/P2* have no ROM
  * backing store (0x586C8 enforces len == 1, see uds.c SID 0x10 note). */
 /* review-fix: was 0xFFFFD214 (seed/level byte, see above). Moved to 0xFFFFD215
- * pending ROM confirmation — NEEDS-ROM-CHECK. */
+ * pending ROM confirmation — S3 hunt 2026-09-08 found no ROM backing
+ * (zero xrefs both banks), so this remains firmware-local only. */
 #define UDS_TESTER_PRESENT_ADDR 0xFFFFD215
 
 #define UDS_POS_RESPONSE_OFFSET 0x40
