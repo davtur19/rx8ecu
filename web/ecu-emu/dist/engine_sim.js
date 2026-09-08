@@ -130,6 +130,65 @@ var EngineSim = (function() {
   function getTachoRPM() { return _tachoRPM; }
   function getTachoAngle() { return _tachoAngle; }
 
+  /* Wave A2 gas dynamics: hand edits hold ~5 s, then IAT relaxes toward
+   * ambient + under-hood heat and O2 switches narrowband around stoich. */
+  var _o2HoldUntil = 0;
+  var _iatHoldUntil = 0;
+  function o2ManualHold() { _o2HoldUntil = Date.now() + 5000; return true; }
+  function iatManualHold() { _iatHoldUntil = Date.now() + 5000; return true; }
+  function clamp01(v) {
+    v = Number(v);
+    if (!Number.isFinite(v)) return 0.45;
+    return Math.max(0.02, Math.min(0.98, v));
+  }
+  function coreAmbient() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_cal_get === "function") {
+        var a = Module.emu_cal_get().ambient;
+        if (Number.isFinite(a)) return a;
+      }
+    } catch (e) {}
+    return 20;
+  }
+  function updateGasDynamics() {
+    if (!window.sensorState) return;
+    var st = window.sensorState;
+    var now = Date.now();
+    var es = engState();
+    /* IAT: drift toward ambient + heat soak unless hand-held. */
+    if (now > _iatHoldUntil) {
+      var amb = coreAmbient();
+      var bay = (es === "RUNNING") ?
+        Math.min(25, Math.max(0, (getECT() - amb) * 0.3)) : 0;
+      var tgt = amb + bay;
+      st.iat = Math.max(-20, Math.min(60, st.iat + (tgt - st.iat) * 0.02));
+    }
+    /* O2: narrowband switching around stoich (rpm-dependent rate, rear
+     * cat-lagged and attenuated); lean on overrun/fuel cut; rest bias
+     * with the engine off. Hand edits hold ~5 s. */
+    if (now <= _o2HoldUntil) return;
+    var rpm = getRPM();
+    var fuelCut = false;
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_fuel_cut === "function") {
+        fuelCut = Module.emu_get_fuel_cut() === 1;
+      }
+    } catch (e) {}
+    if (es === "RUNNING" && rpm > 400 && !fuelCut) {
+      var f = 1 + rpm / 3000;
+      var ph = 2 * Math.PI * f * (now / 1000);
+      st.o2f = clamp01(0.45 + 0.35 * Math.sin(ph));
+      st.o2r = clamp01(0.45 + 0.15 * Math.sin(ph - 0.8));
+    } else if (es === "RUNNING") {
+      st.o2f += (0.12 - st.o2f) * 0.05;
+      st.o2r += (0.20 - st.o2r) * 0.05;
+    } else if (es === "OFF" || es === "ON") {
+      st.o2f += (0.45 - st.o2f) * 0.02;
+      st.o2r += (0.45 - st.o2r) * 0.02;
+    }
+  }
   /* Wave A1: engine state from the core (OFF|ON|CRANKING|RUNNING|STALLED).
    * Falls back to RUNNING when the core predates the API (mixed dist). */
   function engState() {
@@ -728,6 +787,9 @@ var EngineSim = (function() {
   function tick() {
     // Update simulation from user inputs
     updateFromThrottle();
+    // Wave A2: IAT drift + O2 narrowband switching (engine_sim owns these;
+    // ECT thermal model lives in the core)
+    updateGasDynamics();
 
     // Advance crank animation — speed strictly tied to rpm (dps =
     // rpm/60*360*slow); frozen while paused (single-step = one tick).
@@ -932,6 +994,8 @@ var EngineSim = (function() {
       window.__stepCrankOnce = stepCrankOnce;
       window.__getCrankPhase = getCrankPhase;
       window.__getCrankDPS = getCrankDPS;
+      window.__o2ManualHold = o2ManualHold;
+      window.__iatManualHold = iatManualHold;
       window.__getEngState = engState;
     }
   } catch (e) {}
@@ -941,6 +1005,7 @@ var EngineSim = (function() {
     setThrottle: setThrottle, getThrottle: getThrottle,
     setLoad: setLoad, getLoad: getLoad,
     setFromRPM: setFromRPM,
+    o2ManualHold: o2ManualHold, iatManualHold: iatManualHold,
     getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle,
     setCrankSlow: setCrankSlow, getCrankSlow: getCrankSlow,
     setCrankPaused: setCrankPaused, getCrankPaused: getCrankPaused,

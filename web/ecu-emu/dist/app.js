@@ -41,6 +41,15 @@ window.__emuEngineState = "OFF";
 let pinOutputs = {};  // name → live value, populated by computePinStates()
 let _booted = false;  // boot() guard: init's fetch path must not double-boot
 let _preStart = "ON"; // key position to return to after momentary START
+/* Wave A2: ECT slider override. Inactive = the core thermal model owns ECT
+ * (coolant heats/cools with load); dragging the ECT slider (or applying a
+ * scenario) activates the override so fan crossings can be forced, and the
+ * ECT AUTO button releases back to the model. */
+let ectOverride = { active: false };
+/* Wave A2 calibration persistence. */
+const CAL_KEY = "rx8emu.cal.v2";
+const CAL_DEFAULTS = { fanLowOn: 95, fanLowOff: 90, fanHighOn: 105,
+  fanHighOff: 100, ambient: 20, redline: 9000, fuelCutEn: 1, soc: 100 };
 
 /* ======================================================================
  *  Helpers
@@ -76,9 +85,21 @@ function computePinStates() {
   sensorState.o2f = clampSensor(sensorState.o2f, 0, 1, 0.45);
   sensorState.o2r = clampSensor(sensorState.o2r, 0, 1, 0.45);
 
-  /* Push sensors into the core */
+  /* Push sensors into the core. ECT is special: the core thermal model
+   * owns it unless the slider override is active (emu_set_sensor(1,·) in
+   * the core latches the override; emu_set_ect_auto() releases it). */
   Module.emu_set_sensor(0, sensorState.rpm);
-  Module.emu_set_sensor(1, sensorState.ect);
+  if (ectOverride.active) {
+    Module.emu_set_sensor(1, sensorState.ect);
+  } else {
+    try {
+      if (typeof Module.emu_set_ect_auto === "function") Module.emu_set_ect_auto();
+      if (typeof Module.emu_get_sensor === "function") {
+        const ec = Module.emu_get_sensor(1);
+        if (Number.isFinite(ec)) sensorState.ect = Math.round(ec * 10) / 10;
+      }
+    } catch (e) {}
+  }
   Module.emu_set_sensor(2, sensorState.iat);
   Module.emu_set_sensor(3, sensorState.map);
   Module.emu_set_sensor(4, sensorState.tps);
@@ -157,11 +178,23 @@ function holdStart(on) {
 function applyKeyCode() {
   const el = document.getElementById("key-code");
   const code = el ? el.value.trim() : "";
+  setKeyCode(code);
+}
+
+function setKeyCode(code) {
+  code = String(code === undefined || code === null ? "" : code);
   try {
     if (typeof Module !== "undefined" && Module &&
         typeof Module.emu_set_key_code === "function") {
       Module.emu_set_key_code(code);
     }
+  } catch (e) {}
+  /* Calibration panel mirrors the same single key-code store (linked). */
+  try {
+    const kc = document.getElementById("key-code");
+    if (kc && kc.value !== code) kc.value = code;
+    const ck = document.getElementById("cal-keycode");
+    if (ck && ck.value !== code) ck.value = code;
   } catch (e) {}
   refreshBadges();
   refresh();
@@ -495,6 +528,10 @@ function applyScenario(key) {
   sensorState.tps = sc.tps;
   if (sc.o2f !== undefined) sensorState.o2f = sc.o2f;
   if (sc.o2r !== undefined) sensorState.o2r = sc.o2r;
+  /* Wave A2: presets force an ECT override (AUTO releases back to the
+   * thermal model); O2/IAT manual holds let the value stick ~5 s. */
+  ectOverride.active = true;
+  manualHold("o2"); manualHold("iat");
   /* Keep the engine sim from pulling rpm away from the scenario value:
    * drive its throttle from the scenario rpm (neutral rev, load cleared). */
   try {
@@ -542,6 +579,12 @@ function renderSliders() {
       if (!Number.isFinite(v)) return;
       sensorState[s.key] = Math.max(s.min, Math.min(s.max, v));
       document.getElementById(`val-${s.key}`).textContent = `${sensorState[s.key]}${s.unit}`;
+      /* Wave A2: a hand-dragged ECT slider overrides the thermal model
+       * (fan crossings can be forced); O2/IAT edits hold ~5 s before
+       * engine_sim dynamics resume. */
+      if (s.key === "ect") ectOverride.active = true;
+      if (s.key === "o2f" || s.key === "o2r") manualHold("o2");
+      if (s.key === "iat") manualHold("iat");
       /* A hand-dragged RPM slider must stick: the engine-sim tick pulls
        * rpm toward its throttle target, so drive the sim throttle from the
        * slider value (inverse map, load cleared for a neutral rev). */
@@ -562,9 +605,20 @@ function writeSensor(key, v, min, max) {
   v = Number(v);
   if (!Number.isFinite(v)) return;
   sensorState[key] = Math.max(min, Math.min(max, v));
+  if (key === "ect") ectOverride.active = true;
+  if (key === "o2f" || key === "o2r") manualHold("o2");
+  if (key === "iat") manualHold("iat");
   document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
   updateSliders();
   refresh();
+}
+
+/* Tell engine_sim.js that O2/IAT were hand-driven (holds dynamics ~5 s). */
+function manualHold(which) {
+  try {
+    if (which === "o2" && typeof window.__o2ManualHold === "function") window.__o2ManualHold();
+    if (which === "iat" && typeof window.__iatManualHold === "function") window.__iatManualHold();
+  } catch (e) {}
 }
 
 function updateSliders() {
@@ -655,6 +709,161 @@ function buildCrankTeeth() {
 }
 
 /* ======================================================================
+ *  Wave A2: live vehicle panel + calibration menu
+ * ====================================================================== */
+function coreNum(fn, fallback) {
+  try {
+    if (typeof Module !== "undefined" && Module && typeof Module[fn] === "function") {
+      const v = Module[fn]();
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+    }
+  } catch (e) {}
+  return fallback;
+}
+
+function setText(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+function refreshVehicle() {
+  const hasA2 = (typeof Module !== "undefined" && Module &&
+    typeof Module.emu_get_batt_v === "function");
+  if (!hasA2) return;
+  const V = coreNum("emu_get_batt_v", 0);
+  const soc = coreNum("emu_get_soc", 0);
+  const load = coreNum("emu_get_load_a", 0);
+  const charging = coreNum("emu_get_charging", 0) === 1;
+  const weak = coreNum("emu_get_batt_weak", 0) === 1;
+  const after = coreNum("emu_get_afterrun", 0) === 1;
+  const coolant = coreNum("emu_get_coolant", 0);
+  const fan0 = coreNum("emu_get_fan", 0) === 1;
+  const fan1 = (function() {
+    try { return Module.emu_get_fan(1) === 1; } catch (e) { return false; }
+  })();
+  const fuel = coreNum("emu_get_fuel", 0);
+  const oilLow = coreNum("emu_get_oil_low", 0) === 1;
+  const ac = coreNum("emu_get_ac", 0) === 1;
+  const acReq = coreNum("emu_get_ac_req", 0) === 1;
+  const brake = coreNum("emu_get_brake", 0) === 1;
+
+  setText("batt-readout", V.toFixed(2) + " V");
+  setText("batt-soc", soc.toFixed(0) + "% (rest " +
+    coreNum("emu_get_rest_v", 0).toFixed(2) + " V)");
+  setText("batt-load", load.toFixed(1) + " A");
+  setText("batt-state", charging ? "CHARGING" :
+    (coreState() === "CRANKING" ? "CRANKING" : "ON BATTERY"));
+  const wb = document.getElementById("batt-weak");
+  if (wb) wb.style.display = weak ? "" : "none";
+  const ab = document.getElementById("afterrun-badge");
+  if (ab) ab.style.display = after ? "" : "none";
+
+  setText("veh-coolant", coolant.toFixed(1) + " °C" + (ectOverride.active ? " (override)" : " (model)"));
+  setText("veh-fans", fan1 ? "HIGH" : (fan0 ? "LOW" : "OFF"));
+  setText("fuel-readout", fuel.toFixed(0) + "%");
+  setText("oil-readout", oilLow ? "LOW" : "OK");
+  setText("ac-readout", ac ? "ENGAGED" : (acReq ? "REQ (idle)" : "OFF"));
+  const acB = document.getElementById("ac-req-btn");
+  if (acB) {
+    acB.textContent = "A/C REQ: " + (acReq ? "ON" : "OFF");
+    acB.classList.toggle("active", acReq);
+    acB.setAttribute("aria-pressed", acReq ? "true" : "false");
+  }
+  const brB = document.getElementById("brake-btn");
+  if (brB) {
+    brB.textContent = "BRAKE: " + (brake ? "ON" : "OFF");
+    brB.classList.toggle("active", brake);
+    brB.setAttribute("aria-pressed", brake ? "true" : "false");
+  }
+
+  /* ECT mode line + AUTO button. */
+  setText("ect-mode", ectOverride.active ?
+    ("ECT: OVERRIDE @ " + Number(sensorState.ect).toFixed(0) + " °C (slider)") :
+    ("ECT: thermal model (AUTO) @ " + coolant.toFixed(1) + " °C"));
+  setText("ect-auto-btn", ectOverride.active ? "Release to AUTO" : "ECT: AUTO");
+
+  /* Calibration live-values line. */
+  setText("cal-live", "live: coolant " + coolant.toFixed(1) + " °C · fans " +
+    (fan1 ? "HIGH" : (fan0 ? "LOW" : "OFF")) + " · " + V.toFixed(2) + " V · SoC " +
+    soc.toFixed(0) + "%" + (after ? " · AFTER-RUN" : "") + (weak ? " · WEAK BATT" : ""));
+}
+
+function persistCal(obj) {
+  try { localStorage.setItem(CAL_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+
+function readCalInputs() {
+  const num = (id, fb) => {
+    const el = document.getElementById(id);
+    if (!el) return fb;
+    const v = Number(el.value);
+    return Number.isFinite(v) ? v : fb;
+  };
+  const fc = document.getElementById("cal-fuelcut");
+  return {
+    fanLowOn: num("cal-fanlo-on", CAL_DEFAULTS.fanLowOn),
+    fanLowOff: num("cal-fanlo-off", CAL_DEFAULTS.fanLowOff),
+    fanHighOn: num("cal-fanhi-on", CAL_DEFAULTS.fanHighOn),
+    fanHighOff: num("cal-fanhi-off", CAL_DEFAULTS.fanHighOff),
+    ambient: num("cal-ambient", CAL_DEFAULTS.ambient),
+    redline: num("cal-redline", CAL_DEFAULTS.redline),
+    fuelCutEn: fc ? (fc.checked ? 1 : 0) : 1,
+    soc: num("cal-soc", CAL_DEFAULTS.soc)
+  };
+}
+
+function writeCalInputs(c) {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set("cal-fanlo-on", c.fanLowOn); set("cal-fanlo-off", c.fanLowOff);
+  set("cal-fanhi-on", c.fanHighOn); set("cal-fanhi-off", c.fanHighOff);
+  set("cal-ambient", c.ambient); set("cal-redline", c.redline);
+  set("cal-soc", c.soc);
+  setText("cal-soc-val", Math.round(c.soc) + "%");
+  const fc = document.getElementById("cal-fuelcut");
+  if (fc) fc.checked = !!c.fuelCutEn;
+}
+
+/* Push calibration to the running sim immediately + persist. */
+function applyCalFromInputs() {
+  const c = readCalInputs();
+  try {
+    if (typeof Module !== "undefined" && Module) {
+      if (typeof Module.emu_cal_set === "function") {
+        const applied = Module.emu_cal_set(c);
+        /* Echo the clamped core values back so the form never lies. */
+        c.fanLowOn = applied.fanLowOn; c.fanLowOff = applied.fanLowOff;
+        c.fanHighOn = applied.fanHighOn; c.fanHighOff = applied.fanHighOff;
+        c.ambient = applied.ambient; c.redline = applied.redline;
+        c.fuelCutEn = applied.fuelCutEn;
+      }
+      if (typeof Module.emu_set_soc === "function") c.soc = Module.emu_set_soc(c.soc);
+    }
+  } catch (e) {}
+  writeCalInputs(c);
+  persistCal(c);
+  refreshVehicle();
+  return c;
+}
+
+function loadCal() {
+  let c = Object.assign({}, CAL_DEFAULTS);
+  try {
+    const raw = localStorage.getItem(CAL_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved && typeof saved === "object") {
+        Object.keys(CAL_DEFAULTS).forEach(k => {
+          if (saved[k] !== undefined) c[k] = saved[k];
+        });
+      }
+    }
+  } catch (e) {}
+  writeCalInputs(c);
+  /* Push through the same path (clamp + core + persist). */
+  return applyCalFromInputs();
+}
+
+/* ======================================================================
  *  Refresh cycle
  * ====================================================================== */
 function refresh() {
@@ -663,6 +872,7 @@ function refresh() {
   renderRegisters();
   updateSliders();
   refreshBadges();
+  refreshVehicle();
   if (selectedPin) showPinInfo(selectedPin);
 }
 /* Published for the engine-sim tick (throttled live-view sync). */
@@ -740,6 +950,76 @@ function wireStaticControls() {
   if (code) code.addEventListener("keydown", (e) => {
     if (e.key === "Enter") applyKeyCode();
   });
+  /* Wave A2: ECT AUTO release, A/C + brake toggles, refuel */
+  const ectAuto = document.getElementById("ect-auto-btn");
+  if (ectAuto) ectAuto.addEventListener("click", () => {
+    ectOverride.active = false;
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_set_ect_auto === "function") Module.emu_set_ect_auto();
+    } catch (e) {}
+    refresh();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
+  const acB = document.getElementById("ac-req-btn");
+  if (acB) acB.addEventListener("click", () => {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_set_ac_req === "function") {
+        Module.emu_set_ac_req(!Module.emu_get_ac_req());
+      }
+    } catch (e) {}
+    refresh();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
+  const brB = document.getElementById("brake-btn");
+  if (brB) brB.addEventListener("click", () => {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_set_brake === "function") {
+        Module.emu_set_brake(!Module.emu_get_brake());
+      }
+    } catch (e) {}
+    refresh();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
+  const rfB = document.getElementById("refuel-btn");
+  if (rfB) rfB.addEventListener("click", () => {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_set_fuel === "function") Module.emu_set_fuel(100);
+    } catch (e) {}
+    refresh();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
+  /* Wave A2: calibration inputs (numbers commit on change, slider/check live) */
+  ["cal-fanlo-on", "cal-fanlo-off", "cal-fanhi-on", "cal-fanhi-off",
+   "cal-ambient", "cal-redline"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", applyCalFromInputs);
+  });
+  const socEl = document.getElementById("cal-soc");
+  if (socEl) {
+    socEl.addEventListener("input", () => {
+      setText("cal-soc-val", Math.round(Number(socEl.value) || 0) + "%");
+      applyCalFromInputs();
+    });
+  }
+  const fcEl = document.getElementById("cal-fuelcut");
+  if (fcEl) fcEl.addEventListener("change", applyCalFromInputs);
+  const ckEl = document.getElementById("cal-keycode");
+  if (ckEl) {
+    ckEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") setKeyCode(ckEl.value.trim());
+    });
+    ckEl.addEventListener("change", () => setKeyCode(ckEl.value.trim()));
+  }
+  const rsEl = document.getElementById("cal-reset");
+  if (rsEl) rsEl.addEventListener("click", () => {
+    writeCalInputs(Object.assign({}, CAL_DEFAULTS));
+    applyCalFromInputs();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  });
   /* Pinout + live-pin filters */
   const pf = document.getElementById("pinout-search");
   if (pf) pf.addEventListener("input", applyPinoutFilter);
@@ -765,6 +1045,7 @@ function boot() {
   renderSliders();
   buildCrankTeeth();
   setKeyPos("OFF");
+  loadCal(); // Wave A2: stored calibration -> inputs -> running sim
   startSimClock();
   refresh();
 

@@ -12,6 +12,16 @@
 .pin-cell:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--accent-alpha)}
 .pin-cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px;background:var(--accent-alpha)}
 .pin-cell:focus:not(:focus-visible){outline:2px solid var(--accent)}
+/* Wave A2: calibration + vehicle toggles (style.css is owned by another
+ * agent — keep A2 additions here). */
+.tog-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tog-row .can-btn{flex:1;white-space:nowrap}
+.can-btn.active{color:var(--accent)}
+.immo-afterrun{color:var(--cyan);border-color:var(--cyan)}
+.cal-checkrow{margin-top:8px;font:12px var(--mono);color:var(--text)}
+.cal-checkrow input{accent-color:var(--accent)}
+.keycode-row input[type=number]{letter-spacing:0;text-transform:none}
+#cal-live{white-space:pre-line}
 </style>
 </head>
 <body>
@@ -68,9 +78,28 @@
       <div id="immo-badge" class="immo-badge immo-unknown">IMMO: —</div>
     </div>
     <div class="key-block">
-      <div class="esim-label">Battery (Wave A2 placeholder)</div>
-      <div class="batt-row"><span>Battery</span><strong id="batt-readout">14.0 V</strong></div>
-      <div class="key-hint">Fixed placeholder — live voltage sag lands in Wave A2.</div>
+      <div class="esim-label">Battery / Electrical (live)</div>
+      <div class="batt-row"><span>Battery</span><strong id="batt-readout">— V</strong></div>
+      <div class="batt-row"><span>Charge</span><strong id="batt-soc">—</strong></div>
+      <div class="batt-row"><span>Load</span><strong id="batt-load">—</strong></div>
+      <div class="batt-row"><span>Status</span><strong id="batt-state">—</strong></div>
+      <div id="batt-weak" class="immo-badge immo-blocked" style="display:none;margin-top:6px">BATTERY TOO WEAK — will not start</div>
+      <div id="afterrun-badge" class="immo-badge immo-afterrun" style="display:none;margin-top:6px">AFTER-RUN — fans cooling</div>
+      <div class="key-hint">Terminal = rest − I·R (SoC curve 11.8–12.6 V, weak sags harder); alternator regulates 13.5–14.4 V when running.</div>
+    </div>
+    <div class="key-block">
+      <div class="esim-label">Vehicle systems</div>
+      <div class="batt-row"><span>Coolant</span><strong id="veh-coolant">—</strong></div>
+      <div class="batt-row"><span>Fans (low/high)</span><strong id="veh-fans">—</strong></div>
+      <div class="batt-row"><span>Fuel</span><strong id="fuel-readout">—</strong></div>
+      <div class="batt-row"><span>Oil pressure</span><strong id="oil-readout">—</strong></div>
+      <div class="batt-row"><span>A/C clutch</span><strong id="ac-readout">—</strong></div>
+      <div class="tog-row">
+        <button class="can-btn" id="ac-req-btn" aria-pressed="false" title="A/C request switch (AC_REQ pin)">A/C REQ: OFF</button>
+        <button class="can-btn" id="brake-btn" aria-pressed="false" title="Stop-lamp switch (STP pin)">BRAKE: OFF</button>
+        <button class="can-btn" id="refuel-btn" title="Refill the virtual tank to 100%">REFUEL</button>
+      </div>
+      <div class="key-hint">A/C clutch engages on request while running (cut above 118 °C). Fuel drains with load; oil flag is crank / sub-500 rpm.</div>
     </div>
   </aside>
 
@@ -89,6 +118,11 @@
       <section class="tab-page active" id="tab-dashboard" role="tabpanel">
         <div class="panel-title">Sensor Controls</div>
         <div id="sliders"></div>
+        <div class="dash-mil-row">
+          <span class="key-hint" id="ect-mode" style="margin:0">ECT: thermal model (AUTO)</span>
+          <button class="can-btn" id="ect-auto-btn" title="Release the ECT slider override back to the thermal model">ECT: AUTO</button>
+        </div>
+        <div class="key-hint" style="padding:0 12px 8px">Dragging the ECT slider overrides the thermal model so you can force fan crossings; IAT/O2 sliders hold ~5 s, then dynamics resume.</div>
         <div class="dash-mil-row">
           <div class="mil-lamp" id="dash-mil" aria-live="polite">MIL OFF</div>
           <span class="key-hint">Full DTC list lives in the DTC tab.</span>
@@ -201,19 +235,38 @@
     <div class="panel-title" style="border-top:1px solid var(--border)">Scenario Presets</div>
     <div class="scenario-list" id="scenarios"></div>
     <div class="key-hint" style="padding:0 10px 8px">Presets set key=ON + a throttle profile. Hold START to crank.</div>
-    <div class="panel-title" style="border-top:1px solid var(--border)">Calibration (Wave A2 placeholder)</div>
-    <div class="ctl-block ctl-disabled">
-      <div class="esim-label">Fuel trim</div>
-      <div class="esim-slider-row">
-        <input type="range" min="-20" max="20" value="0" step="1" disabled aria-label="Fuel trim (Wave A2)">
-        <span>0%</span>
+    <div class="panel-title" style="border-top:1px solid var(--border)">Calibration (live)</div>
+    <div class="ctl-block">
+      <div class="esim-label">Fan low ON / OFF (°C)</div>
+      <div class="keycode-row">
+        <input type="number" id="cal-fanlo-on" min="40" max="120" step="1" value="95" aria-label="Fan low ON temperature">
+        <input type="number" id="cal-fanlo-off" min="40" max="120" step="1" value="90" aria-label="Fan low OFF temperature">
       </div>
-      <div class="esim-label" style="margin-top:6px">Timing offset</div>
-      <div class="esim-slider-row">
-        <input type="range" min="-10" max="10" value="0" step="1" disabled aria-label="Timing offset (Wave A2)">
-        <span>0°</span>
+      <div class="esim-label" style="margin-top:6px">Fan high ON / OFF (°C)</div>
+      <div class="keycode-row">
+        <input type="number" id="cal-fanhi-on" min="40" max="120" step="1" value="105" aria-label="Fan high ON temperature">
+        <input type="number" id="cal-fanhi-off" min="40" max="120" step="1" value="100" aria-label="Fan high OFF temperature">
       </div>
-      <div class="key-hint">Live calibration lands in Wave A2.</div>
+      <div class="esim-label" style="margin-top:6px">Ambient (°C) / Redline (rpm)</div>
+      <div class="keycode-row">
+        <input type="number" id="cal-ambient" min="-20" max="50" step="1" value="20" aria-label="Ambient temperature">
+        <input type="number" id="cal-redline" min="3000" max="9500" step="100" value="9000" aria-label="Redline rpm">
+      </div>
+      <div class="esim-label" style="margin-top:6px">Battery SoC (<span id="cal-soc-val">100%</span>)</div>
+      <div class="esim-slider-row">
+        <input type="range" id="cal-soc" min="0" max="100" value="100" step="1" aria-label="Battery state of charge">
+      </div>
+      <div class="cal-checkrow">
+        <label><input type="checkbox" id="cal-fuelcut" checked> Fuel cut at redline</label>
+      </div>
+      <div class="esim-label" style="margin-top:6px">Key code (same as Vehicle panel)</div>
+      <div class="keycode-row">
+        <input type="text" id="cal-keycode" value="N3J1" maxlength="16"
+               aria-label="Key code (mirrors Vehicle panel)" spellcheck="false" autocomplete="off">
+      </div>
+      <div class="key-hint" id="cal-live">—</div>
+      <button class="can-btn" id="cal-reset" style="margin-top:6px">Reset defaults</button>
+      <div class="key-hint">Every edit applies immediately and persists (localStorage).</div>
     </div>
   </aside>
 </div>
