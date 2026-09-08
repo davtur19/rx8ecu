@@ -1055,7 +1055,7 @@ def serve_site(port):
 
 def render_landing_page():
     """Landing page for the combined site at the repo root (/).
-    Two cards: ROM Explorer and ECU Pin Emulator, matching the dark theme."""
+    Two cards: ROM Explorer and ECU Emulator, matching the dark theme."""
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1192,7 +1192,7 @@ footer {
         </svg>
       </div>
       <div>
-        <div class="card-title">ECU Pin Emulator</div>
+        <div class="card-title">ECU Emulator</div>
         <div class="card-sub">Interactive 96-pin connector simulator</div>
       </div>
     </div>
