@@ -91,6 +91,7 @@ All TX pack functions follow the same pattern:
 | 0x041 | (direct) | `can41TXPack` (0x39348) | dword_4E9F0 | KCM/Immobiliser response |
 | 0x201 | every 4 cycles | `can_tx_rate_limit_0x201` (0x29FD2) | dword_4E930 | Engine torque |
 | 0x203 | every 4 cycles | `can_tx_rate_limit_0x203` → `can203pack` (0x2A274) | dword_4E970 | Engine status |
+| 0x215 | counter-gated (0x2A242) | — (forwards CAN_TX_BUF_0215, packs no bytes) | MB3 (CAN0 TX cfg 0x4EA60, see CAN_PROTOCOL.md) | Throttle position (byte layout OPEN) |
 | 0x231 | every 4 cycles | `can_tx_rate_limit_0x231` → `canPackandTx231` (0x2D434) | dword_4E990 | Torque request (conditional [0xB5A4]==1) |
 | 0x240 | every 25 cycles | `can_tx_rate_limit_0x240` → `can240TX_pack` (0x4C888) | dword_4EA00 | OBD data |
 | 0x250 | every 25 cycles | `can_tx_rate_limit_0x250` → `can250TX_pack` (0x4C984) | dword_4EA10 | OBD data |
@@ -115,6 +116,7 @@ PFC 0xFFFFE40E/0xFFFFE41A, retries up to 5x, copies data via `can_pack_tx_msg_co
 | 0x4B0 | `loc_2BE18` | `can4B0RX_unpack` (0x2BE6E) | CAN1 | DSC wheel speeds |
 | 0x4B1 | `can4B1RX_event_check` (0x4C78C) | — | CAN1 | DSC request |
 | 0x4C0 | `can4C0RX_short` (0x2C780) | — | CAN1 | Short message |
+| 0x7DF | `can_msg_parse_4657C` → `can_to_uds_bridge` | — | CAN0 | UDS broadcast request (response on 0x7E8; see CAN_PROTOCOL.md) |
 | 0x7E0 | `can_msg_parse_4657C` → `can_to_uds_bridge` | — | CAN0 | UDS request → udsHandler |
 
 ### CAN → UDS Bridge (fully verified path)
@@ -265,7 +267,7 @@ Full report: `tmp/ida/engine_rotary_report.txt`
 
 ## EEPROM — External SPI (session ae00d360)
 
-The ECU uses an **external SPI EEPROM chip** (NOT on-chip SH-2E). SPI interface bit-banged via GPIO through CAN controller register space (`0xFFFFE4xx`).
+The ECU uses an **external SPI EEPROM chip** (NOT on-chip SH-2E). **SH-side SPI driver: NOT-FOUND** — `0xFFFFE4xx` is HCAN/ATU register space (not SPI GPIO); the clock helpers are init-only and the alleged SPI ops are RAM-only. The 93C56 is likely fed by the Denso companion ASIC; SH-side CS pin unknown. Bench probe of SOIC8 IC420 required (see FINDINGS.md 2026-09-08 firmware ROM-check resolution, commit 61c5780; KNOWLEDGE.md EEPROM Shadow).
 
 **Staging buffers:**
 - `0xFFFFC2FE`: 256 bytes EEPROM data staging
@@ -277,7 +279,7 @@ The ECU uses an **external SPI EEPROM chip** (NOT on-chip SH-2E). SPI interface 
 
 **Commit flow:** disable interrupts → copy to staging → store inverted → re-enable → flag commit → dispatcher → priority check → verify.
 
-**Estimated size:** 2-4 KB. Wear leveling via counter 0xFFFFCCF8.
+**Size:** 256 B (ABLIC S-93C56C). Wear leveling via counter 0xFFFFCCF8.
 
 Full report: `tmp/ida/eeprom_analysis_report.txt`
 

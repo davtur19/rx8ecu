@@ -20,8 +20,8 @@ Three memory layers:
 | Session notes (private storage) | Episodic | Current task, last state, next step, Ghidra state, open questions | Every session |
 | `docs/notes/<topic>.md` | Working | Topic notes created on demand (e.g. `ECU.md`, `TOOLS.md`) | When working that topic |
 | `docs/notes/FINDINGS.md` | Archive | Chronological confirmed facts | When researching history |
-| `docs/notes/ROM_CODE_MAP.md` | Reference | Full stock vs mod diff and function map | Deep RE reference |
-| `docs/notes/FULL_ANALYSIS.md` | Reference | Pseudocode / C decompilation | Deep RE reference |
+| `symbols/` + `docs/functions/` | Reference | Function map (CSVs) + per-function writeups | Deep RE reference |
+| `docs/subsystems/*.md` | Reference | Subsystem analysis (pseudocode / C) | Deep RE reference |
 | `docs/notes/CAN_PROTOCOL.md` | Reference | Full CAN ID list and protocol details | CAN work |
 | `PLANS.md` | Planning | Multi-step investigation plans | Long investigations |
 

@@ -233,7 +233,7 @@ Confirmed facts from `analysis/data_regions_60E1D400.{csv,md}` (tool: /tmp/openc
   cannot find missed code. Sweeping all 1,491 runs through capstone found zero code-like sequences: **no undecoded_code_capstone runs
   in-window**; window 100% covered (93.6% instr + 6.4% .word bytes).
 - Per-class (1,491 runs / 4,736 words): literal_pool 883/2,288; padding 366/1,540; unknown_data 221/789; jump_table 18/112; string 3/7;
-  calibration 0/0 (all 1,210 cal_tables.csv addresses are 0x6CF6C..0x7D92C, outside the window).
+  calibration 0/0 (all 1,209 cal_tables.csv addresses are 0x6CF6C..0x7D92C, outside the window).
 - **0x426C/0x4290 are genuine 32-bit dispatch tables** (17/13 words): loaded with the 0x4224 pool (`div_trampoline_A/B` at 0x420C/0x4218 do
   `mov.l @(r0,r3),r3; jmp @r3`). No genuine 16-bit `braf` switch tables in-window; all 4 `braf r0` sites sit inside mis-decoded data.
 - **0x493C is a Renesas-style div-library 16-bit constant table** (0x0013/0xFFFF header + 19x (0x0000,0x0001)) referenced through pools — data,
@@ -686,7 +686,7 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 - Live-view sync (o2r slider, reachable DTCs, NaN guards, 16-bit registers) (ad9c5bf); Wankel-rotor SVG favicon (3b7c3f0).
 
 ### Symbols (6f4d603, 5c61467, 900ff56, 5aae455)
-- Uncertain names: 110/233 renamed across 4 passes (67 + 28 + 13 + 2), 123 kept; CSV integrity held each pass (6082 rows, BOM+CRLF, category/signal untouched, no collisions, no 60E1D400 rows touched).
+- Uncertain names: 110/233 renamed across 4 passes (67 + 28 + 13 + 2), 123 kept; CSV integrity held each pass (6083 rows, BOM+CRLF, category/signal untouched, no collisions, no 60E1D400 rows touched; superseded: 6082 at the time — +1 FUNCTION_CATEGORIES row `coil_output_dispatcher_0x110A8` in 2d8335f).
 - Hex-Rays unavailable for SH-2E in this IDA build (passes 3–4 used disasm+xref+data_ref only).
 - RAM identities banked: AA04 coolant, A0AC injector table, C070 knock byte, BE78/BE5C crank-add pair, CC30–CC33 knock-sensor fault flags, A578 per-rotor dwell objects (2x0x2C), BC02 DSC flag, A738 knock-allow, C0C6/C0C8 pedal debounce counters.
 
@@ -697,7 +697,7 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 - Open NEEDS-ROM-CHECK markers carry ROM addresses (e.g. engine table extent 0xDA05, serial lane choice, eeprom 0xFFFFF730/bit0, main idle path 0x78C, timer channel offsets, CAN polarity/config words, UDS 0xFFFFD210–D214 overlap, 0x210/0xACE).
 
 ### Explorer (98b788b, 951d7bb)
-- Build counts (build_site.py): symbols 6083, edges 6953 (bsr 758 / ref 6195), tables_rows 1210 (tables 548, axes 662), with_values 497, function_docs 189, subsystems 15, models 9.
+- Build counts (build_site.py): symbols 6083, edges 6953 (bsr 758 / ref 6195), tables_rows 1209 (tables 548, axes 661), with_values 497, function_docs 189, subsystems 15, models 9 (superseded: tables_rows 1210 = 548+662 before the cal dedup in 2d8335f).
 - Builder correctness: table_role axis fix (suffix + kind fallback), edge placeholder-before-sort (data.json stays address-sorted for binary search), fail-closed need() on cal_tables/ROM/meta/addr-map plus build_manifest.json (SHA-256 inputs + counts) with freshness check.
 - Template/css: site nav (home/emulator), pager hooks, mobile stacking, focus outlines, unmapped-row styling.
 - Search hardening: case-insensitive hex match, debounced input, escaped name rendering, address lookup.
