@@ -324,8 +324,16 @@ function showPinInfo(pin) {
 
   const val = pin._value || 0;
   if (pin.type === "digital") {
-    document.getElementById("info-state").textContent = val ? "HIGH (1)" : "LOW (0)";
-    document.getElementById("info-state").style.color = val ? "var(--green)" : "var(--muted)";
+    /* Fuel-cut display: injectors read LOW during cut but mean CUT. */
+    const fuelCut = (typeof Module !== "undefined" && Module &&
+      typeof Module.emu_get_fuel_cut === "function") ? Module.emu_get_fuel_cut() : 0;
+    if (fuelCut && pin.name && pin.name.indexOf("INJ") === 0) {
+      document.getElementById("info-state").textContent = "CUT (fuel cut at redline)";
+      document.getElementById("info-state").style.color = "var(--red)";
+    } else {
+      document.getElementById("info-state").textContent = val ? "HIGH (1)" : "LOW (0)";
+      document.getElementById("info-state").style.color = val ? "var(--green)" : "var(--muted)";
+    }
   } else if (pin.type === "analog") {
     document.getElementById("info-state").textContent = `${val.toFixed(3)}V (ADC: ${voltageToADC10(val)})`;
     document.getElementById("info-state").style.color = "var(--cyan)";
@@ -375,11 +383,23 @@ function renderStates() {
     const item = document.createElement("div");
     item.className = "state-item";
 
-    let displayVal, barPct, barColor;
+    let displayVal, barPct, barColor, valColor;
+    valColor = "";
     if (p.type === "digital") {
-      displayVal = val ? "HIGH" : "LOW";
-      barPct = val ? 100 : 0;
-      barColor = val ? "var(--green)" : "var(--muted)";
+      /* Injectors pulse with duty (idle flickers, high rpm mostly HIGH)
+       * and read CUT during redline fuel cut — the visible redline change. */
+      const fuelCut = (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_get_fuel_cut === "function") ? Module.emu_get_fuel_cut() : 0;
+      if (fuelCut && p.name && p.name.indexOf("INJ") === 0) {
+        displayVal = "CUT";
+        barPct = 0;
+        barColor = "var(--red)";
+        valColor = "var(--red)";
+      } else {
+        displayVal = val ? "HIGH" : "LOW";
+        barPct = val ? 100 : 0;
+        barColor = val ? "var(--green)" : "var(--muted)";
+      }
     } else if (p.type === "analog") {
       displayVal = `${val.toFixed(2)}V`;
       barPct = (val / 5) * 100;
@@ -417,6 +437,7 @@ function renderStates() {
     const valDiv = document.createElement("div");
     valDiv.className = "state-value";
     valDiv.textContent = displayVal;
+    if (valColor) valDiv.style.color = valColor;
     item.append(nameDiv, barWrap, valDiv);
     list.appendChild(item);
   });
