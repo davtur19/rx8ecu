@@ -52,6 +52,10 @@ header {
 .wordmark { font: 800 22px var(--mono); letter-spacing: .03em; color: var(--text); margin: 0; }
 .wm-accent { color: var(--accent); }
 .subtitle { color: var(--muted); font-size: 12px; }
+.site-nav { margin-top: 4px; }
+.site-nav a { color: var(--accent); text-decoration: none; }
+.site-nav a:hover { text-decoration: underline; }
+footer .site-nav { margin: 0 0 8px; }
 .header-stats { display: flex; gap: 18px; flex-wrap: wrap; }
 .hstat { text-align: center; }
 .hstat b { display: block; font-size: 18px; color: var(--accent); font-family: var(--mono); }
@@ -70,14 +74,24 @@ header {
 .model-box select:focus { outline: none; border-color: var(--accent); }
 /* Fixed width so switching firmware models (longest option label is
  * "60E15120 · hybrid (tag _N3J1E) (15120)" = 38 chars) never shifts the header:
- * 38ch * ~7.5px + 16px padding + ~22px dropdown arrow ≈ 323px, rounded up. */
-#model-select { width: 330px; height: 30px; line-height: 1.4; white-space: nowrap; }
+ * 38ch * ~7.5px + 16px padding + ~22px dropdown arrow ≈ 323px, rounded up.
+ * Fluid below the cap so a 390px viewport never overflows horizontally. */
+#model-select { width: 100%; max-width: 330px; height: 30px; line-height: 1.4; white-space: nowrap; }
 /* Fixed height (11px × 1.5 line-height = 16.5px/line) sized for the worst case:
  * longest context line + confidence tag row wraps to 3 lines at the desktop
  * box width (~398px) and 4 lines on narrow viewports (≤330px) ⇒ 66px = 4 lines.
  * overflow:hidden clips any extra wrapped line instead of growing the header. */
 .model-context { font-size: 11px; color: var(--muted); line-height: 1.5; word-break: break-word; height: 66px; overflow: hidden; }
 .model-context b { color: var(--text); font-family: var(--mono); }
+
+/* ---------- narrow viewports: stack header, full-width model box ---------- */
+@media (max-width: 480px) {
+  header { flex-direction: column; align-items: stretch; }
+  .brand { flex-wrap: wrap; }
+  .header-stats { gap: 12px; }
+  .model-box { max-width: 100%; }
+  #model-select { max-width: 100%; }
+}
 
 /* ---------- model note / confidence badges ---------- */
 .model-note {
@@ -92,7 +106,8 @@ header {
 .tag.unmapped { color: var(--red); border-color: var(--red); border-style: dashed; }
 .tag.has-val { color: var(--green); border-color: var(--green); }
 .tag.addr-delta { color: var(--accent2); border-color: var(--accent2); font-weight: 700; }
-.row-unmapped { opacity: .55; }
+.row-unmapped { background: rgba(248,81,73,.08); box-shadow: inset 3px 0 0 var(--red); }
+.row-unmapped td:first-child { border-left: none; }
 .addr-base-cell { font-family: var(--mono); color: var(--muted); white-space: nowrap; }
 
 #tabs {
@@ -107,6 +122,22 @@ header {
 #tabs button:hover { color: var(--text); background: var(--bg3); }
 #tabs button.active { color: var(--accent); background: var(--bg); border-color: var(--border); }
 
+/* ---------- keyboard focus (classes/IDs unchanged for app.js) ---------- */
+#tabs button:focus-visible,
+.toolbar button:focus-visible,
+.toolbar input:focus-visible,
+.toolbar select:focus-visible,
+.pager button:focus-visible,
+.model-box select:focus-visible,
+.doc-nav button:focus-visible,
+.suggest div:focus-visible,
+.card-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+.suggest div:focus-visible { background: var(--bg3); }
+
 /* ---------- main / panels ---------- */
 main { padding: 18px 20px 40px; max-width: 1500px; margin: 0 auto; }
 .panel { display: none; }
@@ -117,7 +148,7 @@ main { padding: 18px 20px 40px; max-width: 1500px; margin: 0 auto; }
 
 /* ---------- cards ---------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; overflow-x: auto; }
 .card .num { font-size: 26px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
 .card .lbl { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
