@@ -48,6 +48,7 @@ Offset  Size  Endian Description
 | 0x0041 | MB9     | 8   | TX  | 0x01C518   | KCM keyless/immobiliser response (field-verified — see "Field vs firmware") |
 | 0x0240 | MB10    | 8   | TX  | 0x01CEA4   | Transmission / gear — *byte3 = coolant?* per field: OPEN, needs bench verification |
 | 0x0250 | MB11    | 8   | TX  | 0x01CEB8   | Injection pulse width — *byte3 = IAT* per field: OPEN, needs bench verification |
+| 0x0251 | MB11    | 8   | TX  | 0x01BB9C   | Engine data, every 2 cycles — shares TX buf 0xFFFFBB9C with 0x215 staging (see "CAN ID 0x251") |
 | 0x04B1 | MB12    | 8   | TX? | 0x01CE90   | DSC request (bidirectional?) |
 | 0x07DF | MB13    | 8   | RX  | 0x0DE04    | UDS broadcast request |
 | 0x07E0 | MB14    | 8   | RX  | 0x0DE04    | UDS physical request |
@@ -79,7 +80,7 @@ CANTX_Main:
   [per-cycle] can41TXPack(0x39348)        → CAN ID 0x041 (KCM/immobiliser response - 8 bytes)
   [every 4]   FUN_00029fd2(0x29FD2)       → Sub-dispatches CAN 0x201+0x203 handlers
   [every N]   counter_check_dispatch_2A242 → CAN ID 0x215? (throttle)
-  [per-cycle] can251TX_getAndPack(0x2AAB6) → CAN ID 0x251 (throttle position)
+  [per-cycle] can251TX_getAndPack(0x2AAB6) → CAN ID 0x251 (engine data, every 2 cycles)
   [if flag]   can_tx_periodic_dispatch_2D402 → CAN ID 0x231 (engine data)
   [every 25]  mutex_trylock_4C85A(0x4C85A) → calls can240TX_pack(0x4C888) → CAN 0x240
   [every 25]  message_queue_send_4C956     → calls can250TX_pack(0x4C984) → CAN 0x250
@@ -189,6 +190,7 @@ The UDS response is written to the CAN0 0x7E8 mailbox buffer at offset 0x0DE0C
 | 0x231 | CAN0 MB4 | TX    | Engine state / gear selector — *field data differs* (MT/AT DLC split): OPEN, needs bench verification |
 | 0x240 | CAN0 MB10| TX    | Transmission / gear data — *byte3 = coolant?* per field: OPEN, needs bench verification |
 | 0x250 | CAN0 MB11| TX    | Injection pulse width, fuel — *byte3 = IAT* per field: OPEN, needs bench verification |
+| 0x251 | CAN0 MB11| TX    | Engine data, every 2 cycles (3× u16 BE + status bytes — see "CAN ID 0x251") |
 | 0x420 | CAN0 MB5 | TX    | Coolant temp gauge (byte0 raw−40) + MIL/oil/batt/water warning lamps |
 | 0x430 | CAN1 MB4 | RX    | Instrument cluster presence (immo role unconfirmed) |
 | 0x47  | CAN1 MB7 | RX    | KCM keyless/immobiliser request (key-on chat) |
@@ -201,6 +203,40 @@ The UDS response is written to the CAN0 0x7E8 mailbox buffer at offset 0x0DE0C
 | 0x7DF | CAN0 MB13| RX    | UDS broadcast (OBD-II) |
 | 0x7E0 | CAN0 MB14| RX    | UDS physical request |
 | 0x7E8 | CAN0 MB15| TX    | UDS diagnostic response |
+
+### CAN ID 0x251 — engine data (8 bytes, TX)
+
+Real TX traffic: `can251TX_getAndPack` (`firmware/c/can.c`, ROM `0x2AAB6`).
+Rate limiter: counter at `0xFFFFBBC8`, fires every 2 `CANTX_Main` calls.
+Frame: `CAN_ID_0251`, DLC=8, mailbox MB11 (`0x0B`), TX buf `0xFFFFBB9C`
+(same staging address as the 0x215 buffer — time-multiplexed staging).
+
+Byte layout (ROM `0x2AAE8`–`0x2AB20`, packed from RAM staging areas):
+
+| Byte | Source | Format |
+|------|--------|--------|
+| 0–1 | `0xFFFFBBBC` | u16 BE |
+| 2–3 | `0xFFFFBBBE` | u16 BE |
+| 4–5 | `0xFFFFBBC0` | u16 BE |
+| 6 | `0xFFFFBBC2` | byte |
+| 7 | `0xFFFFBBC3` | status byte from the `math_executor_2AB28` sensor chain (firmware stores default 0 — full chain not yet implemented) |
+
+Signal semantics of the three u16 words are not yet decoded — documented as raw words, not signals.
+
+### CAN ID 0x215 — throttle (DLC=8, byte layout unknown/provisional)
+
+DLC=8 confirmed (mailbox config CAN0 MB3; `counter_check_dispatch_2A242`
+sends `CAN_TX_BUF_0215` with `dlc=8`). No byte layout is documented
+anywhere: `counter_check_dispatch_2A242` (ROM `0x2A242`) only forwards
+`CAN_TX_BUF_0215` behind a counter/threshold gate (counter `0xFFFFD7C4`
+vs threshold `0xFFFFD7C6`) — it packs no bytes itself. Provisional gap
+note: the emulator (`web/ecu-emu/src/can_live.js` `pack0x215`) uses
+TPS×100 u16 BE + TPS raw byte ×2, rest zero, as a DLC=8 best-effort
+frame. Treat as provisional until bench/Ghidra work decodes the real layout.
+
+Note (TX-packer audit): every other firmware TX packer in
+`firmware/c/can.c` (`0x041`/`0x201`/`0x203`/`0x215`/`0x231`/`0x240`/`0x250`/`0x420`/`0x620`/`0x630`/`0x650`/`0x7E8`)
+already has a config-table + known-IDs entry — `0x251` was the only gap.
 
 ## Rotarytronics CAN Patch
 
