@@ -99,7 +99,7 @@ tables of the baseline @0x7C4F4–0x7D92C not mappable: the 32000 span ends firs
 
 ## Validation performed
 
-- **content_match**: 6005/6005 mappings verified byte-identical (16B) by
+- **content_match**: 5999/5999 mappings verified byte-identical (16B) by
   construction of the method.
 - **Known constants**: `Rev Limit`=9000.0, `Cold Rev Limit`=5500.0,
   `Cold Rev Limit Threshold`=20.0 verified byte-exact at the mapped addresses
@@ -120,7 +120,7 @@ tables of the baseline @0x7C4F4–0x7D92C not mappable: the 32000 span ends firs
   confidence stays medium/low. The address can be off by a few bytes in
   layout-transition zones.
 - **32000 (N3M5E)** is the worst case: short cal span (0x71500→0x7DAFF),
-  non-uniform drift, 17 unmapped tables and 775 low-confidence mappings. Redo it
+  non-uniform drift, 16 unmapped tables and 777 low-confidence mappings (low count among the 1193 mapped rows, same definition as the coverage table above; 793 rows carry confidence low in total, including the 16 unmatched rows). Redo it
   with dedicated analysis (descriptors) if editorial use is required.
 - Duplicated axes/tables (same sequences reused by several tables) can produce
   multiple exact matches. The per-curve disambiguation resolves them in most

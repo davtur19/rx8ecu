@@ -7,7 +7,7 @@ Auto-extracted by `tools/mapscan.py` (TwoDLookup/ThreeDLookup descriptor format,
 python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<descAddr>
 ```
 
-**cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence` (cols 4–9 backward-compat; `mapscan.py` reads only `name`/`address`). `kind` (1209 rows): `axis`=661, `table`=443 (334 anonymous + 109 descriptive), `intermediate`=105. `dims`: 1D=1014, 2D=87, blank=109. `scale`/`offset`/`units` **unverified** unless from a verified source; `confidence` high=1072, low=138. 499-descriptor catalog by subsystem: `CALIBRATION_TABLES_CROSS_REFERENCE.md`.
+**cal_tables.csv format:** `src,name,address,kind,dims,scale,offset,units,confidence` (cols 4–9 backward-compat; `mapscan.py` reads only `name`/`address`). `kind` (1209 rows): `axis`=661, `table`=443 (334 anonymous + 109 descriptive), `intermediate`=105. `dims`: 1D=1013, 2D=87, blank=109. `scale`/`offset`/`units` **unverified** unless from a verified source; `confidence` high=828, medium=256, low=125. 499-descriptor catalog by subsystem: `CALIBRATION_TABLES_CROSS_REFERENCE.md`.
 
 ## Descriptor table (J-line variant: 499 descriptors; 119 2D, 380 1D)
 
