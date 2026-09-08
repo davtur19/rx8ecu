@@ -37,6 +37,7 @@ let sensorState = {
  * `let` at top level does not attach to window, so publish explicitly. */
 window.sensorState = sensorState;
 let pinOutputs = {};  // name → live value, populated by computePinStates()
+let _booted = false;  // boot() guard: init's fetch path must not double-boot
 
 /* ======================================================================
  *  Helpers
@@ -53,7 +54,23 @@ function mapRange(value, inMin, inMax, outMin, outMax) {
 /* ======================================================================
  *  Pin computation — delegates to emu_core.js
  * ====================================================================== */
+function clampSensor(v, min, max, fallback) {
+  v = Number(v);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(min, Math.min(max, v));
+}
+
 function computePinStates() {
+  /* Clamp on the app.js side (emu_core.js is owned by wave3b — do not edit):
+   * a NaN or out-of-range sensor must never reach emu_set_sensor. */
+  sensorState.rpm = clampSensor(sensorState.rpm, 0, 9000, 800);
+  sensorState.ect = clampSensor(sensorState.ect, -20, 120, 80);
+  sensorState.iat = clampSensor(sensorState.iat, -20, 60, 25);
+  sensorState.map = clampSensor(sensorState.map, 0, 105, 35);
+  sensorState.tps = clampSensor(sensorState.tps, 0, 100, 0);
+  sensorState.o2f = clampSensor(sensorState.o2f, 0, 1, 0.45);
+  sensorState.o2r = clampSensor(sensorState.o2r, 0, 1, 0.45);
+
   /* Push sensors into the core */
   Module.emu_set_sensor(0, sensorState.rpm);
   Module.emu_set_sensor(1, sensorState.ect);
@@ -195,9 +212,15 @@ function drawOverviewSchematic(svg) {
     });
   });
 
-  // RPM indicator
-  addSVG(svg, "text", {x:400, y:480, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":12},
+  // RPM indicator (id'd so the refresh path can update it live)
+  addSVG(svg, "text", {id:"overview-live", x:400, y:480, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":12},
     `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`);
+}
+
+/* Light live update of the overview schematic text (cheap: one text node). */
+function updateOverview() {
+  const el = document.getElementById("overview-live");
+  if (el) el.textContent = `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`;
 }
 
 function drawComponent(svg, x, y, goesTo, pin) {
@@ -395,6 +418,8 @@ function applyScenario(key) {
   sensorState.iat = sc.iat;
   sensorState.map = sc.map;
   sensorState.tps = sc.tps;
+  if (sc.o2f !== undefined) sensorState.o2f = sc.o2f;
+  if (sc.o2r !== undefined) sensorState.o2r = sc.o2r;
   /* Keep the engine sim from pulling rpm away from the scenario value:
    * drive its throttle from the scenario rpm (neutral rev, load cleared). */
   try {
@@ -423,20 +448,23 @@ function renderSliders() {
     {key:"map",  label:"MAP",   min:0,  max:105, step:1,   unit:"kPa"},
     {key:"tps",  label:"TPS",   min:0,  max:100, step:1,   unit:"%"},
     {key:"o2f",  label:"O2-F",  min:0,  max:1,   step:0.01,unit:"V"},
+    {key:"o2r",  label:"O2-R",  min:0,  max:1,   step:0.01,unit:"V"},
   ];
 
   sliders.forEach(s => {
     const group = document.createElement("div");
     group.className = "slider-group";
     group.innerHTML = `
-      <label>${s.label} <span id="val-${s.key}">${sensorState[s.key]}${s.unit}</span></label>
-      <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${sensorState[s.key]}" id="slider-${s.key}">
+      <label for="slider-${s.key}">${s.label} <span id="val-${s.key}">${sensorState[s.key]}${s.unit}</span></label>
+      <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${sensorState[s.key]}" id="slider-${s.key}" aria-label="${s.label} sensor">
     `;
     container.appendChild(group);
 
     const input = group.querySelector("input");
     input.addEventListener("input", () => {
-      sensorState[s.key] = parseFloat(input.value);
+      const v = Number(input.value);
+      if (!Number.isFinite(v)) return;
+      sensorState[s.key] = Math.max(s.min, Math.min(s.max, v));
       document.getElementById(`val-${s.key}`).textContent = `${sensorState[s.key]}${s.unit}`;
       /* A hand-dragged RPM slider must stick: the engine-sim tick pulls
        * rpm toward its throttle target, so drive the sim throttle from the
@@ -447,20 +475,25 @@ function renderSliders() {
           else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sensorState[s.key]);
         } catch (e) {}
       }
+      /* A manual slider move leaves the scenario it came from: clear highlight. */
+      document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
       refresh();
     });
   });
 }
 
 function updateSliders() {
-  ["rpm","ect","iat","map","tps","o2f"].forEach(key => {
+  ["rpm","ect","iat","map","tps","o2f","o2r"].forEach(key => {
     const slider = document.getElementById(`slider-${key}`);
-    if (slider) {
-      slider.value = sensorState[key];
-      const unit = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V"}[key];
-      const valEl = document.getElementById(`val-${key}`);
-      if (valEl) valEl.textContent = `${sensorState[key]}${unit}`;
-    }
+    if (!slider) return;
+    /* Don't fight an active drag: skip the focused slider. */
+    if (document.activeElement === slider) return;
+    const v = Number(sensorState[key]);
+    if (!Number.isFinite(v)) return;
+    slider.value = v;
+    const unit = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V",o2r:"V"}[key];
+    const valEl = document.getElementById(`val-${key}`);
+    if (valEl) valEl.textContent = `${sensorState[key]}${unit}`;
   });
 }
 
@@ -478,11 +511,11 @@ function renderRegisters() {
     rows.push({periph:"ADC", addr:addr, name:`CH${ch}`, value:val, fmt: `0x${(val << 6).toString(16).toUpperCase().padStart(4,"0")}`});
   }
 
-  // Port latches (0-5)
+  // Port latches, full 16 bits (port 5 bit 7 = MIL/CHECK_ENG)
   for (let p = 0; p < 6; p++) {
     const addr = PORT_BASE + p * 8;
-    const val = Module.emu_get_port(p, 0) | (Module.emu_get_port(p, 1) << 1) |
-               (Module.emu_get_port(p, 2) << 2) | (Module.emu_get_port(p, 3) << 3);
+    let val = 0;
+    for (let b = 0; b < 16; b++) val |= (Module.emu_get_port(p, b) << b);
     rows.push({periph:"PORT", addr:addr, name:`P${p}`, value:val, fmt:`0x${val.toString(16).toUpperCase().padStart(4,"0")}`});
   }
 
@@ -512,34 +545,39 @@ function refresh() {
   renderStates();
   renderRegisters();
   if (selectedPin) showPinInfo(selectedPin);
+  else updateOverview();
 }
+/* Published for the engine-sim tick (throttled live-view sync). */
+window.refresh = refresh;
+window.updateSliders = updateSliders;
 
 /* ======================================================================
  *  Init
  * ====================================================================== */
 function init() {
-  // Load pin data from embedded JSON
-  const dataEl = document.getElementById("pins-data");
-  let data;
-  try {
-    data = JSON.parse(dataEl.textContent);
-  } catch(e) {
-    // Fallback: try fetch
-    fetch("pins.json").then(r => r.json()).then(d => {
-      PINS = d.pins;
-      PERIPHERALS = d.peripherals || [];
-      SCENARIOS = d.scenarios || {};
-      boot();
-    });
-    return;
-  }
-  PINS = data.pins;
-  PERIPHERALS = data.peripherals || [];
-  SCENARIOS = data.scenarios || {};
-  boot();
+  /* pins.json is fetched exclusively: a <script src="pins.json"> tag leaves
+   * textContent empty in spec-compliant browsers, so never rely on it. */
+  fetch("pins.json").then(function(r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(d) {
+    PINS = d.pins;
+    PERIPHERALS = d.peripherals || [];
+    SCENARIOS = d.scenarios || {};
+    boot();
+  }).catch(function(err) {
+    const host = document.getElementById("states-list") || document.body;
+    const msg = document.createElement("div");
+    msg.className = "emu-load-error";
+    msg.setAttribute("role", "alert");
+    msg.textContent = "Failed to load pins.json: " + (err && err.message ? err.message : String(err));
+    host.appendChild(msg);
+  });
 }
 
 function boot() {
+  if (_booted) return;
+  _booted = true;
   // Initialize the emulator core with pin data
   Module.emu_init();
   Module.emu_set_pins(PINS);

@@ -86,7 +86,8 @@
   </div>
 </div>
 
-<script src="pins.json" type="application/json" id="pins-data"></script>
+<!-- pins.json is loaded via fetch() in app.js init(); a <script> tag with a
+     JSON src leaves textContent empty in spec-compliant browsers. -->
 <script>
 /* Inline SVG sprite so <use href="#icon-xxx"> works across all browsers */
 (function(){

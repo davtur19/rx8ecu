@@ -24,13 +24,14 @@ var EngineSim = (function() {
   var TACHO_REDLINE = 8500;       // redline flash/glow threshold
   var IDLE_RPM = 800;
   var OVERHEAT = 110;             // ECT DTC threshold (°C)
+  /* P0123 (TPS high) intentionally absent: no reachable high-circuit
+   * condition exists (TPS is clamped 0-100 on every write path). */
   var DTC_CODES = {
     P0300: "Random/Multiple misfire",
     P0117: "ECT circuit low",
     P0118: "ECT circuit high",
     P0108: "MAP circuit high",
     P0122: "TPS circuit low",
-    P0123: "TPS circuit high",
   };
 
   /* State */
@@ -42,6 +43,7 @@ var EngineSim = (function() {
   var _dtcs = [];          // active DTCs
   var _milOn = false;
   var _cruiseOn = false;
+  var _syncCount = 0;    // throttled live-view sync counter (every 5th tick)
   var _tachoRPM = 800;   // smoothed needle value (eases toward actual rpm)
   var _tachoAngle = 0;   // last needle angle in radians (exposed for tests)
 
@@ -72,9 +74,10 @@ var EngineSim = (function() {
    *  target equals the slider value and the drag sticks. The esim
    *  throttle/load sliders remain the primary sim control afterwards.
    * ==================================================================== */
-  function clampThrottle(v) {
+  /* Non-finite input keeps the previous value (never propagate NaN). */
+  function clampThrottle(v, fallback) {
     v = Number(v);
-    if (isNaN(v)) return 0;
+    if (!Number.isFinite(v)) return fallback;
     return Math.max(0, Math.min(100, v));
   }
 
@@ -90,7 +93,7 @@ var EngineSim = (function() {
   }
 
   function setThrottle(v) {
-    _throttle = clampThrottle(v);
+    _throttle = clampThrottle(v, _throttle);
     var tEl = document.getElementById("esim-throttle");
     var tVal = document.getElementById("esim-throttle-val");
     if (tEl) tEl.value = Math.round(_throttle);
@@ -101,7 +104,7 @@ var EngineSim = (function() {
   function getThrottle() { return _throttle; }
 
   function setLoad(v) {
-    _load = clampThrottle(v);
+    _load = clampThrottle(v, _load);
     var lEl = document.getElementById("esim-load");
     var lVal = document.getElementById("esim-load-val");
     if (lEl) lEl.value = Math.round(_load);
@@ -113,7 +116,7 @@ var EngineSim = (function() {
 
   function setFromRPM(rpm) {
     rpm = Number(rpm);
-    if (isNaN(rpm)) return _throttle;
+    if (!Number.isFinite(rpm)) return _throttle;
     setThrottle((rpm - IDLE_RPM) / (REDLINE - IDLE_RPM) * 100);
     setLoad(0);
     return _throttle;
@@ -133,10 +136,11 @@ var EngineSim = (function() {
     var rpm = getRPM();
 
     if (ect > OVERHEAT) _dtcs.push({ code: "P0118", desc: DTC_CODES.P0118, sev: "error" });
-    if (ect < -30) _dtcs.push({ code: "P0117", desc: DTC_CODES.P0117, sev: "error" });
+    if (ect <= -20) _dtcs.push({ code: "P0117", desc: DTC_CODES.P0117, sev: "error" });
     if (map > 100) _dtcs.push({ code: "P0108", desc: DTC_CODES.P0108, sev: "warning" });
     if (tps < 1 && rpm > 2000) _dtcs.push({ code: "P0122", desc: DTC_CODES.P0122, sev: "warning" });
-    if (rpm > REDLINE + 200) _dtcs.push({ code: "P0300", desc: DTC_CODES.P0300, sev: "error" });
+    /* Sustained misfire zone near redline (reachable: slider/sim max 9000). */
+    if (rpm >= 8800) _dtcs.push({ code: "P0300", desc: DTC_CODES.P0300, sev: "error" });
 
     _milOn = _dtcs.some(function(d) { return d.sev === "error"; });
   }
@@ -260,7 +264,7 @@ var EngineSim = (function() {
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Threshold arc (red zone)
+    // Threshold arc: warn→crit caution band + crit→max hot zone
     if (thresholds && thresholds.warn !== undefined) {
       var warnAngle = startAngle + sweep * ((thresholds.warn - min) / (max - min));
       var critAngle = thresholds.crit !== undefined ?
@@ -270,6 +274,13 @@ var EngineSim = (function() {
       ctx.strokeStyle = "rgba(248, 81, 73, 0.3)";
       ctx.lineWidth = 5;
       ctx.stroke();
+      if (thresholds.crit !== undefined && Math.max(warnAngle, critAngle) < endAngle) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, Math.max(warnAngle, critAngle), endAngle);
+        ctx.strokeStyle = "rgba(248, 81, 73, 0.85)";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+      }
     }
 
     // Value arc
@@ -587,6 +598,26 @@ var EngineSim = (function() {
     checkDTCs();
     renderDTCs();
     updateMIL();
+
+    /* Drive the core MIL latch (port 5 bit 7, wave3b emu_set_mil API)
+     * from the sim MIL state so the app.js 16-bit register view shows it. */
+    try {
+      if (typeof Module !== "undefined" && Module && typeof Module.emu_set_mil === "function") {
+        Module.emu_set_mil(_milOn);
+      }
+    } catch (e) {}
+
+    /* Throttled live-view sync (~6Hz): push sim-driven sensorState into the
+     * app.js pin/register/schematic views + slider thumbs. Tacho/crank
+     * drawing above is untouched. refresh() (emu step + pin/register
+     * re-render of ~100 small nodes) is cheap enough at this rate. */
+    _syncCount++;
+    if (_syncCount % 5 === 0) {
+      try {
+        if (typeof window.refresh === "function") window.refresh();
+        if (typeof window.updateSliders === "function") window.updateSliders();
+      } catch (e) {}
+    }
   }
 
   /* ====================================================================
@@ -602,7 +633,7 @@ var EngineSim = (function() {
         /* --- RX-8 tachometer dial --- */
         '<div class="tacho-wrap" id="tacho-wrap">' +
           '<div class="esim-label">TACHOMETER · RENESIS</div>' +
-          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="800" data-angle="0" data-redline="0"></canvas>' +
+          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="800" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 9000 RPM, redline 8500 to 9000"></canvas>' +
           '<div id="tacho-digital" class="tacho-digital">800 RPM</div>' +
           '<div class="tacho-sub">x1000 r/min · redline 8.5–9.0</div>' +
         '</div>' +
@@ -610,7 +641,7 @@ var EngineSim = (function() {
         /* --- Crank wheel --- */
         '<div class="esim-section">' +
           '<div class="esim-label">CRANK TRIGGER (20-TOOTH)</div>' +
-          '<canvas id="crank-canvas" width="' + CANVAS_SIZE + '" height="' + CANVAS_SIZE + '"></canvas>' +
+          '<canvas id="crank-canvas" width="' + CANVAS_SIZE + '" height="' + CANVAS_SIZE + '" role="img" aria-label="Crank trigger wheel animation, 20 teeth"></canvas>' +
         '</div>' +
 
         /* --- Mini gauges (ECT/MAP) --- */
@@ -636,10 +667,10 @@ var EngineSim = (function() {
         /* --- MIL + DTCs --- */
         '<div class="esim-section">' +
           '<div class="esim-mil-row">' +
-            '<div id="engine-mil" class="mil-lamp">MIL OFF</div>' +
+            '<div id="engine-mil" class="mil-lamp" aria-live="polite">MIL OFF</div>' +
           '</div>' +
           '<div class="esim-label">DTCs</div>' +
-          '<div id="engine-dtc-list" class="dtc-list"><div class="dtc-none">No DTCs</div></div>' +
+          '<div id="engine-dtc-list" class="dtc-list" aria-live="polite"><div class="dtc-none">No DTCs</div></div>' +
         '</div>' +
 
       '</div>';
@@ -664,7 +695,7 @@ var EngineSim = (function() {
     var throttleEl = document.getElementById("esim-throttle");
     if (throttleEl) {
       throttleEl.addEventListener("input", function() {
-        setThrottle(parseInt(this.value, 10));
+        setThrottle(Number(this.value));
       });
     }
 
@@ -672,7 +703,7 @@ var EngineSim = (function() {
     var loadEl = document.getElementById("esim-load");
     if (loadEl) {
       loadEl.addEventListener("input", function() {
-        setLoad(parseInt(this.value, 10));
+        setLoad(Number(this.value));
       });
     }
 
