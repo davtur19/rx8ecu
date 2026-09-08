@@ -895,10 +895,15 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
         if op & 0xF0FF in (0x4003, 0x4007, 0x4013, 0x4017):
             # stc.l SR (0x4003) / ldc.l SR (0x4007) / stc.l GBR (0x4013) /
             # ldc.l GBR (0x4017) via @-Rn / @Rn+.  Mirror sh2emu._exec
-            # (0x4003/0x4007/0x4013/0x4017): SR and GBR are independent state
-            # seeded in the mirror ('gbr' is seeded 0, like sr 0xF0), so a
-            # running lift stays == sh2emu (which also seeds gbr=0) even though
-            # nothing else in the body writes GBR.
+            # (0x4003/0x4007/0x4013/0x4017): GBR is independent state seeded
+            # in the mirror ('gbr' is seeded 0, like sr 0xF0), so a running
+            # lift stays == sh2emu (which also seeds gbr=0) even though
+            # nothing else in the body writes GBR.  SR instead is kept in
+            # sync with T/Q/M exactly like the oracle (T=bit0, Q=bit8,
+            # M=bit9): an ldc.l SR re-syncs T/Q/M from the loaded word
+            # (same statements c_lift_ops._mkLDC appends for ldc Rn,SR),
+            # while stc.l needs nothing extra (the sr image is already live:
+            # every T/Q/M write pushes bits 0/8/9).
             srn = (op >> 8) & 0xF
             _sr_store = (op & 0xF) == 0x3   # low nibble 3 = stc.l (@-), 7 = ldc.l (@+)
             _sr_reg = 'sr' if (op & 0xF0FF) in (0x4003, 0x4007) else 'gbr'
@@ -945,17 +950,24 @@ def build_cfg(rom, addr, end, lifted=None, catalog=None, data_extra=None,
                     eff, note = 'r%d' % srn, ''
                 t = temp()
                 c = ['uint32_t %s = *(volatile uint32_t*)%s;%s' % (t, eff, note),
-                     '%s = %s;' % (_sr_reg, t),
-                     'r%d = r%d + 4;' % (srn, srn)]
+                     '%s = %s;' % (_sr_reg, t)]
+                if _sr_reg == 'sr':
+                    # C1: ldc.l SR re-syncs T/Q/M from sr bits 0/8/9 (sh2emu).
+                    c.extend(ops._TQM_FROM_SR_C)
+                c.append('r%d = r%d + 4;' % (srn, srn))
                 if srn == 15 and bkind != 'literal':
                     # r15 pop via ldc.l: mirror against the runtime `sp` alias
                     # (see the stc.l push above — r[15] only would drop the
                     # pop from stack accounting).
-                    py = ['%s = _rdw(ram, sp, 4)' % _sr_reg,
-                          'sp = (sp + 4) & 0xFFFFFFFF']
+                    py = ['%s = _rdw(ram, sp, 4)' % _sr_reg]
+                    if _sr_reg == 'sr':
+                        py.extend(ops._TQM_FROM_SR_PY)
+                    py.append('sp = (sp + 4) & 0xFFFFFFFF')
                 else:
-                    py = ['%s = _rdw(ram, r[%d], 4)' % (_sr_reg, srn),
-                          'r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn)]
+                    py = ['%s = _rdw(ram, r[%d], 4)' % (_sr_reg, srn)]
+                    if _sr_reg == 'sr':
+                        py.extend(ops._TQM_FROM_SR_PY)
+                    py.append('r[%d] = (r[%d] + 4) & 0xFFFFFFFF' % (srn, srn))
                 mnem = 'ldc.l @r%d+,%s' % (srn, _sr_reg.upper())
             st['written'].add('r%d' % srn)
             st['lits'].pop('r%d' % srn, None)
@@ -2340,6 +2352,96 @@ def _synth_nop_body(addr, end_s, rom):
     return res
 
 
+# Hoisted verdict tail shipped inside every v8-generated differential test
+# (spliced into the template below via %s, so every runtime % is %% -escaped
+# here).  H2: a non-returning function must NOT pass on the direct --run
+# path — LOOP/HALT with 0 agreeing cases is a FAIL (rc=1).  The LOOP/HALT
+# labels are kept (with the FAIL line) so the gen_lib_test sweep keeps
+# re-grading FAIL + SKIPREASONS agreement into UNVERIFIED-HWPOLL.
+# Self-contained: runs in a namespace with ok/skipped/N/SKIPREASONS/
+# SELF_LOOP/OOB_TGTS/CODE/ENTRY/sys (see tools/tests/test_v8_verdict.py,
+# which execs this exact source).
+_V8_VERDICT_TAIL = (
+    'ok = N - skipped\n'
+    'print("SKIPREASONS", SKIPREASONS)\n'
+    'has_ret = False\n'
+    'seen = set(); stack = [ENTRY]\n'
+    'while stack:\n'
+    '    pc = stack.pop()\n'
+    '    if pc in seen:\n'
+    '        continue\n'
+    '    seen.add(pc)\n'
+    '    inst = CODE.get(pc)\n'
+    '    if inst is None:\n'
+    '        continue\n'
+    '    k = inst["kind"]\n'
+    '    if k == "ret":\n'
+    '        has_ret = True; break\n'
+    '    if k == "branch":\n'
+    '        if inst["target"] is not None:\n'
+    '            stack.append(inst["target"])\n'
+    '        stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+    '    elif k == "call":\n'
+    '        if inst["cond"] in ("T", "notT"):\n'
+    '            stack.append(inst["target"])\n'
+    '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+    '        else:\n'
+    '            stack.append(inst["ret_pc"])\n'
+    '    elif k == "call_runtime":\n'
+    '        stack.append(inst["ret_pc"])\n'
+    '    elif k == "runtime_dispatch":\n'
+    '        if inst["is_call"]:\n'
+    '            stack.append(inst["ret_pc"])\n'
+    '        stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+    '    elif k == "jt":\n'
+    '        stack.extend(c for c in inst["cases"] if c is not None)\n'
+    '        stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+    '    elif k == "dynbranch":\n'
+    '        stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
+    '    else:\n'
+    '        stack.append(pc + 2)\n'
+    'LOOP_AGREE = ("step-limit-both", "emu-step-limit",\n'
+    '            "mirror-step-emu-exc", "selfloop-prf-deg")\n'
+    'if ok == 0 and has_ret and skipped and SKIPREASONS and \\\n'
+    '        all(k in LOOP_AGREE for k in SKIPREASONS):\n'
+    '    # every case skipped on agreed unverifiable termination AND a ret\n'
+    '    # is reachable (busy-wait with an exit, HW-poll the mirror RETs\n'
+    '    # past, identical abnormal termination): the LOOP label is kept\n'
+    '    # for the sweep re-grade, but the direct verdict is FAIL (H2: 0\n'
+    '    # agreeing cases is not a pass).  Requires has_ret so a function\n'
+    '    # with no reachable ret classifies HALT below, not LOOP.\n'
+    '    print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    sys.exit(1)\n'
+    'if ok == 0 and not has_ret:\n'
+    '    # no ret reachable at all: HALT label kept, verdict FAIL (H2).\n'
+    '    print("HALT (correct) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    sys.exit(1)\n'
+    'if skipped and OOB_TGTS:\n'
+    '    from collections import Counter as _C\n'
+    '    print("OOBTGTS", dict(_C(OOB_TGTS)))\n'
+    'if ok == 0 and SELF_LOOP[0]:\n'
+    '    # every case skipped on a real infinite self-loop (bra <self>)\n'
+    '    # hit identically by mirror and sh2emu: LOOP label kept, FAIL (H2).\n'
+    '    print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    sys.exit(1)\n'
+    'if skipped > 200 or ok == 0:\n'
+    '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    '    sys.exit(1)\n'
+    'if skipped > 50:\n'
+    '    print("WARN high skip rate %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+    'print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
+)
+# 4-space-indented splice of the tail for the generated-test template body
+# (inside main()).  The tail has no blank lines by construction; the guard
+# keeps the join blank-safe anyway.
+_V8_VERDICT_SRC = ''.join(
+    ('    ' + ln if ln.strip() else ln)
+    for ln in _V8_VERDICT_TAIL.splitlines(keepends=True))
+
+
 def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
                 rom_label=None, force_end=None):
     """Emit c/lib/caller_<hex>.c (ST ABI) + c/lib/test_caller_<hex>.py for a
@@ -3257,7 +3359,8 @@ def _walk_callee(rom, t, catalog, bounds, depth=0, seen=None):
             # to a self-loop `bra <self>` so the mirror spins identically to
             # the emu's death at pc=0 (0x10D82's canon span jsr's 0x10DE2):
             # branch target==pc -> SELF_LOOP -> MAXSTEPS -> SKIP ->
-            # mirror-step-emu-exc -> LOOP_AGREE -> LOOP (unverifiable) rc=0.
+            # mirror-step-emu-exc -> LOOP_AGREE -> LOOP (unverifiable) FAIL (H2:
+            # 0 agreeing is not a pass; the sweep re-grades FAIL + agreement).
             # (The former immediate `ret` made the mirror RET early while
             # sh2emu died at pc=0 -> MISMATCH.)
             _EMIT_PRF_DEG['hit'] = True
@@ -3552,16 +3655,19 @@ def _fmt_reason(reason):
 
 
 def _write_stub_lib(addr, reason, rom_label=None):
-    """Coverage-first: write a minimal compilable c/lib/f_<hex>.c when the
-    walk/CFG lift fails (midfunc_nop, jump_table_unresolved, callee-lib, ...).
-    Signature matches the other generated libs (void f_<hex>(ST *s)) so callers
-    referencing f_<hex>(s) still compile; body is an empty void return.
-    Returns the path written."""
+    """Coverage-first: write a minimal compilable f_<hex>.c scratch stub when
+    the walk/CFG lift fails (midfunc_nop, jump_table_unresolved, callee-lib,
+    ...).  Stubs land in tmp/stubs/ (scratch) — never in c/lib/ — so batch
+    coverage runs cannot pollute the checked-in library.  Signature matches
+    the other generated libs (void f_<hex>(ST *s)) so a caller referencing
+    f_<hex>(s) still compiles against the scratch copy; body is an empty
+    void return.  Returns the path written."""
     rom_label = rom_label or os.path.splitext(os.path.basename(
         DEFAULT_ROM))[0]
     reason_s = _fmt_reason(reason).replace('*/', '* /').replace('\n', ' ')
-    banner = ('/* ROM: %s | Address: 0x%X | Size: 0 | STATUS: STUB\n'
+    banner = ('/* ROM: %s | Address: 0x%X | Size: 0 | STATUS: STUB (scratch)\n'
               ' * Auto-generated by tools/gen_c_lift_v8.py — coverage stub.\n'
+              ' * Scratch only (tmp/stubs/): never checked into c/lib/.\n'
               ' * Reason: %s\n'
               ' * Body intentionally empty: the lift failed but callers\n'
               ' * reference this function. */\n') % (rom_label, addr, reason_s)
@@ -3571,9 +3677,9 @@ def _write_stub_lib(addr, reason, rom_label=None):
               '    /* stub: %s */\n'
               '    return;\n'
               '}\n') % (addr, reason_s)
-    lib_dir = os.path.join(ROOT, 'c', 'lib')
-    os.makedirs(lib_dir, exist_ok=True)
-    path = os.path.join(lib_dir, 'f_%X.c' % addr)
+    stub_dir = os.path.join(ROOT, 'tmp', 'stubs')
+    os.makedirs(stub_dir, exist_ok=True)
+    path = os.path.join(stub_dir, 'f_%X.c' % addr)
     with open(path, 'w') as f:
         f.write(c_text)
     return path
@@ -3839,16 +3945,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         'import math\n'
         'def fdiv(a, b):\n'
         '    # IEEE FDIV: x/+-0 -> +-inf (0/0 -> nan); Python float div raises\n'
-        '    return a / b if b else (math.inf if a > 0 else (-math.inf if a < 0 else math.nan))\n'
-        'class _SH2(SH2):\n'
-        '    def _exec(self, op, pc):\n'
-        '        try:\n'
-        '            return super()._exec(op, pc)\n'
-        '        except ZeroDivisionError:\n'
-        '            # FDIV with a zero divisor: real HW/C yield IEEE +/-inf\n'
-        '            # (0/0 -> nan); sh2emu raises.  Retry as IEEE so mirror\n'
-        '            # and emu agree (n=dest (op>>8)&0xF, m=src (op>>4)&0xF).\n'
-        '            self.fr[(op >> 8) & 0xF] = fdiv(self.fr[(op >> 8) & 0xF], self.fr[(op >> 4) & 0xF])\n\n'
+        '    return a / b if b else (math.inf if a > 0 else (-math.inf if a < 0 else math.nan))\n\n'
         'ROM = os.path.join(ROOT, "roms", "stock", "%s.bin")\n'
         'ROM_BYTES = open(ROM, "rb").read()\n'
         'ENTRY = 0x%X\n'
@@ -4044,7 +4141,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    return cpu.r[0] & 0xFFFFFFFF, [x & 0xFFFFFFFF for x in cpu.r], dict(cpu.ram), cpu.pr & 0xFFFFFFFF\n\n'
         'def main():\n'
         '    rnd = random.Random(SEED)\n'
-        '    cpu = _SH2(ROM_BYTES)\n'
+        '    cpu = SH2(ROM_BYTES)\n'
         '    skipped = 0\n'
         '    SKIPREASONS = {}\n'
         '    def _sk(w):\n'
@@ -4109,76 +4206,8 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '            if exp_ram.get(ad, 0) != got_ram.get(ad, 0):\n'
         '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
         '                sys.exit(1)\n'
-        '    ok = N - skipped\n'
-        '    print("SKIPREASONS", SKIPREASONS)\n'
-        '    has_ret = False\n'
-        '    seen = set(); stack = [ENTRY]\n'
-        '    while stack:\n'
-        '        pc = stack.pop()\n'
-        '        if pc in seen:\n'
-        '            continue\n'
-        '        seen.add(pc)\n'
-        '        inst = CODE.get(pc)\n'
-        '        if inst is None:\n'
-        '            continue\n'
-        '        k = inst["kind"]\n'
-        '        if k == "ret":\n'
-        '            has_ret = True; break\n'
-        '        if k == "branch":\n'
-        '            if inst["target"] is not None:\n'
-        '                stack.append(inst["target"])\n'
-        '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
-        '        elif k == "call":\n'
-        '            if inst["cond"] in ("T", "notT"):\n'
-        '                stack.append(inst["target"])\n'
-        '                stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
-        '            else:\n'
-        '                stack.append(inst["ret_pc"])\n'
-'        elif k == "call_runtime":\n'
-         '            stack.append(inst["ret_pc"])\n'
-         '        elif k == "runtime_dispatch":\n'
-         '            if inst["is_call"]:\n'
-         '                stack.append(inst["ret_pc"])\n'
-         '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
-        '        elif k == "jt":\n'
-        '            stack.extend(c for c in inst["cases"] if c is not None)\n'
-        '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
-        '        elif k == "dynbranch":\n'
-        '            stack.append(pc + (4 if inst["slot_py"] is not None else 2))\n'
-        '        else:\n'
-        '            stack.append(pc + 2)\n'
-         '    LOOP_AGREE = ("step-limit-both", "emu-step-limit",\n'
-         '                "mirror-step-emu-exc", "selfloop-prf-deg")\n'
-         '    if ok == 0 and skipped and SKIPREASONS and \\\n'
-         '            all(k in LOOP_AGREE for k in SKIPREASONS):\n'
-         '        # every case skipped because mirror AND sh2emu agree on an\n'
-         '        # unverifiable busy-wait / long loop or identical abnormal\n'
-         '        # termination: step-limit-both (mirror and emu both hit\n'
-         '        # MAXSTEPS), emu-step-limit (emu loops past MAXSTEPS on a\n'
-         '        # HW-poll while the mirror RETs — sweep path re-grades to\n'
-         '        # UNVERIFIED-HWPOLL), mirror-step-emu-exc (mirror SKIPs and\n'
-         '        # the emu dies identically — 0x5B0/0x6C8 mirror-step-emu-exc\n'
-         '        # rows).  Agreement, not a bug — PASS-like LOOP verdict on\n'
-         '        # the direct --run path too.  Fires BEFORE the has_ret HALT\n'
-         '        # check so genuine loops classify LOOP, not HALT.\n'
-         '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-         '        sys.exit(0)\n'
-         '    if ok == 0 and not has_ret:\n'
-         '        print("HALT (correct) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-         '        sys.exit(0)\n'
-        '    if skipped and OOB_TGTS:\n'
-        '        from collections import Counter as _C\n'
-        '        print("OOBTGTS", dict(_C(OOB_TGTS)))\n'
-'    if ok == 0 and SELF_LOOP[0]:\n'
-         '        # every case skipped on a real infinite self-loop (bra <self>)\n'
-         '        # hit identically by mirror and sh2emu: unverifiable, but the\n'
-         '        # mirrored behavior matches the ROM — PASS-like LOOP verdict.\n'
-         '        print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-         '        sys.exit(0)\n'
-         '    if skipped > 200 or ok == 0:\n'
-        '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
-        '        sys.exit(1)\n'
-        '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'
+        + _V8_VERDICT_SRC +
+        '\n'
         'if __name__ == "__main__":\n'
         '    main()\n'
     ) % (fn, addr, end - addr, cases, os.path.basename(out_t), rom_label,
@@ -4390,12 +4419,16 @@ def main():
     ap.add_argument('--cases', type=int, default=500)
     ap.add_argument('--stub-on-fail', action='store_true',
                     help='coverage-first: on emit failure write a compilable '
-                         'c/lib/f_<hex>.c stub and count STUB instead of '
-                         'failing/skipping (no test generated for stubs)')
+                         'tmp/stubs/f_<hex>.c scratch stub and count STUB '
+                         'instead of failing/skipping (no test generated '
+                         'for stubs; c/lib/ is never written)')
     ap.add_argument('--rom', default=DEFAULT_ROM)
     ap.add_argument('--outdir', default=None,
                     help='output dir (default tmp/v8)')
     args = ap.parse_args()
+    if not os.path.exists(args.rom):
+        print('Error: ROM not found: %s' % args.rom)
+        sys.exit(2)
     rom = open(args.rom, 'rb').read()
     rom_label = os.path.splitext(os.path.basename(args.rom))[0]
     if args.metrics:

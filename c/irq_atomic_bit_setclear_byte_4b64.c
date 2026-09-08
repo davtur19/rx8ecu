@@ -10,6 +10,8 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t T = 0;
+    uint32_t Q = 0;
+    uint32_t M = 0;
     uint32_t sr = 0x000000F0u;
     /* 0x004B64: op 0x9346 */
     r3 = (uint32_t)(int32_t)(int16_t)0xE0u;
@@ -17,6 +19,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     r2 = sr;
     /* 0x004B68: op 0x430E */
     sr = r3;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     /* 0x004B6A: op 0x666D */
     r6 = r6 & 0xFFFFu;
     /* 0x004B6C: mov.b @r4,r3 */
@@ -24,6 +29,7 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     r3 = t2;
     /* 0x004B6E: op 0x2668 */
     T = ((r6 & r6) == 0u) ? 1u : 0u;
+    sr = (sr & ~1u) | (T & 1u);
     /* 0x004B70: bf 0x004B7C */
     if (!T) goto L_4B7C;
     /* 0x004B72: op 0x6557 */
@@ -35,6 +41,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     /* 0x004B78: rts */
     /* 0x004B7A: op 0x420E */
     sr = r2;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     L_4B7C: ;
     /* 0x004B7C: op 0x235B */
@@ -44,6 +53,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     /* 0x004B80: rts */
     /* 0x004B82: op 0x420E */
     sr = r2;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     /* 0x004B84: op 0x9336 */
     r3 = (uint32_t)(int32_t)(int16_t)0xE0u;
@@ -51,6 +63,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     r2 = sr;
     /* 0x004B88: op 0x430E */
     sr = r3;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     /* 0x004B8A: op 0x666D */
     r6 = r6 & 0xFFFFu;
     /* 0x004B8C: mov.w @r4,r3 */
@@ -58,6 +73,7 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     r3 = t4;
     /* 0x004B8E: op 0x2668 */
     T = ((r6 & r6) == 0u) ? 1u : 0u;
+    sr = (sr & ~1u) | (T & 1u);
     /* 0x004B90: bf 0x004B9C */
     if (!T) goto L_4B9C;
     /* 0x004B92: op 0x6557 */
@@ -69,6 +85,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     /* 0x004B98: rts */
     /* 0x004B9A: op 0x420E */
     sr = r2;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     L_4B9C: ;
     /* 0x004B9C: op 0x235B */
@@ -78,6 +97,9 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     /* 0x004BA0: rts */
     /* 0x004BA2: op 0x420E */
     sr = r2;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     /* 0x004BA4: mov.b @r4,r3 */
     uint32_t t6 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)r4;
@@ -86,6 +108,7 @@ uint32_t irq_atomic_bit_setclear_byte_4b64(uint32_t r4, uint32_t r5, uint32_t r6
     r6 = r6 & 0xFFFFu;
     /* 0x004BA8: op 0x2668 */
     T = ((r6 & r6) == 0u) ? 1u : 0u;
+    sr = (sr & ~1u) | (T & 1u);
     /* 0x004BAA: bf 0x004BB4 */
     if (!T) goto L_4BB4;
     /* 0x004BAC: op 0x6557 */
