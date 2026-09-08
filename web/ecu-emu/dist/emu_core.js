@@ -212,7 +212,8 @@ var Module = (function() {
   }
 
   function crankStep(dt_ms) {
-    if (_rpm <= 0) return;
+    if (!(_rpm > 0)) return; // NaN/zero/negative guard: NaN must never enter
+                             // the advance loop (its comparisons never exit)
     _msAccum += dt_ms;
     for (;;) {
       var next = (_crankTooth + 1) % 20;
@@ -231,7 +232,7 @@ var Module = (function() {
    * Phase is measured against the base (non-gap) tooth period so the gap
    * extension reads as an extended LOW (missing pulse). */
   function crankNEVoltage() {
-    if (_rpm <= 0) return 0;
+    if (!(_rpm > 0)) return 0; // same NaN guard as crankStep (NaN used to read 4.5 V)
     var basePeriod_ms = 60000.0 / (_rpm * 20);
     var phase = basePeriod_ms > 0 ? (_msAccum / basePeriod_ms) : 0;
     return phase < 0.5 ? 4.5 : 0.2;  // HIGH/LOW voltage levels
@@ -676,21 +677,33 @@ var Module = (function() {
   }
 
   function emu_set_sensor(id, value) {
+    /* Fail-closed input sanitizer (review fix): the UI clamps before
+     * calling, but the core API is also driven directly (Node harness).
+     * A non-finite rpm used to poison _rpm with NaN and hang crankStep()
+     * forever (NaN comparisons never exit its advance loop). Non-finite
+     * input now keeps the previous value; finite values are clamped to
+     * physical ranges wider than any UI path, so legit use is untouched. */
+    var v = Number(value);
+    if (!isFinite(v)) return;
     switch (id) {
-      case 0: _rpm = value; break;
+      case 0: _rpm = Math.max(0, Math.min(12000, v)); break;
       /* ECT write = manual override: the thermal integrator tracks the
        * slider until emu_set_ect_auto() releases it back to the model. */
-      case 1: _ect = value; _ectAuto = false; break;
-      case 2: _iat = value; break;
-      case 3: _map = value; break;
-      case 4: _tps = value; break;
-      case 5: _o2f = value; break;
-      case 6: _o2r = value; break;
+      case 1: _ect = Math.max(-40, Math.min(130, v)); _ectAuto = false; break;
+      case 2: _iat = Math.max(-40, Math.min(70, v)); break;
+      case 3: _map = Math.max(0, Math.min(120, v)); break;
+      case 4: _tps = Math.max(0, Math.min(100, v)); break;
+      case 5: _o2f = Math.max(0, Math.min(1, v)); break;
+      case 6: _o2r = Math.max(0, Math.min(1, v)); break;
     }
   }
 
   function emu_step_ms(ms) {
     if (typeof ms !== "number" || !(ms > 0)) ms = 0;
+    /* Bound crank iterations (review fix): one giant step while RUNNING at
+     * high rpm meant billions of tooth advances (hung the caller). Callers
+     * needing more sim time loop; the UI steps 10 ms anyway. */
+    if (ms > 1000) ms = 1000;
     _simMs += ms;
     stepEngineState(ms);
     stepThermal(ms);

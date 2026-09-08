@@ -744,8 +744,11 @@ function renderRegisters() {
     rows.push({periph:"PORT", addr:addr, name:`P${p}`, value:val, fmt:`0x${val.toString(16).toUpperCase().padStart(4,"0")}`});
   }
 
-  // ATU timer
-  rows.push({periph:"ATU", addr:0xFFFFF434, name:"CAPT", value:Module.emu_get_reg(0xFFFFF434), fmt:"0x00000000"});
+  // ATU timer (review fix: the hex column used to be a hardcoded
+  // "0x00000000" and never showed the live capture value incl. gap bit)
+  const atuCapt = Module.emu_get_reg(0xFFFFF434);
+  rows.push({periph:"ATU", addr:0xFFFFF434, name:"CAPT", value:atuCapt,
+    fmt:"0x"+(atuCapt >>> 0).toString(16).toUpperCase().padStart(8,"0")});
 
   // CAN0/1 status
   rows.push({periph:"CAN0", addr:CAN0_BASE, name:"CTL", value:Module.emu_get_reg(CAN0_BASE), fmt:Module.emu_get_reg(CAN0_BASE)?"0x01":"0x00"});

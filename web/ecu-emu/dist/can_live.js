@@ -284,8 +284,12 @@ var CANLive = (function() {
    */
   function pack0x251(st) {
     var rpmRaw = rpmRawU16(st.rpm);
-    var ectRaw = Math.round(mapRange(st.ect, -40, 215, 0, 255));
-    var mapRaw = Math.round(mapRange(st.map, 0, 105, 0, 255));
+    /* Review fix: ect/map bytes were unmasked — extreme inputs produced
+     * out-of-range values (e.g. 1040) on the wire. Saturate to a byte. */
+    var ectRaw = Math.max(0, Math.min(255,
+      Math.round(mapRange(st.ect, -40, 215, 0, 255))));
+    var mapRaw = Math.max(0, Math.min(255,
+      Math.round(mapRange(st.map, 0, 105, 0, 255))));
     var tpsRaw = tpsByte(st.tps, 255);
     return [
       (rpmRaw >> 8) & 0xFF,
