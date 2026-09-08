@@ -506,7 +506,7 @@
 60E1D400,0x768C,crank_mode_switch,Sensors,1.000,name
 60E0FC00,0x76B8,fueling_hw_port_regs_init,Fuel & Lambda,1.000,name
 60E1D400,0x76DC,crank_timer_hw_reset,Boot & Init,1.000,name
-60E0FC00,0x7724,reInitCrankSensor??,Sensors,1.000,name
+60E0FC00,0x7724,reinitCrankSensor,Sensors,0.85,name
 60E1D400,0x7748,crank_vars_init,Boot & Init,1.000,name
 60E0FC00,0x7778,setInterruptTimer,Peripherals & ISR,1.000,name
 60E1D400,0x779C,setInterruptTimer,Peripherals & ISR,1.000,name
@@ -1077,7 +1077,7 @@
 60E1D400,0x10DC8,status_flags_byte_pack,Ignition & Knock,1.000,name
 60E0FC00,0x10E14,coilOutputSomething?,Oil Metering,1.000,name
 60E0FC00,0x10EAC,fuel_cut_bits_merge,Fuel & Lambda,0.700,assembly
-60E0FC00,0x10ED2,getEngineCrankingStatusEnum??,Ignition & Knock,1.000,graph
+60E0FC00,0x10ED2,getEngineCrankingState,Ignition & Knock,0.85,graph
 60E0FC00,0x10EE6,getEngineCrankingStatus?,Ignition & Knock,1.000,graph
 60E0FC00,0x10F04,setTimingArrayValuesForOutput?,Ignition & Knock,1.000,name
 60E0FC00,0x10F72,returnOne,Ignition & Knock,1.000,graph
@@ -1147,11 +1147,11 @@
 60E0FC00,0x1202A,calculateTrailingTimingBase,Ignition & Knock,1.000,name
 60E0FC00,0x12180,getIgnitionTimingInit,Ignition & Knock,1.000,name
 60E0FC00,0x12192,getInitialLeadingTrailingAdvance,Ignition & Knock,0.85,name
-60E0FC00,0x121A4,calculateDSCLeadingTimingDerate?,Ignition & Knock,1.000,name
+60E0FC00,0x121A4,calculateDSCLeadingTimingDerate,Ignition & Knock,0.85,name
 60E1D400,0x121CC,diag_check_121cc,Faults & DTC,1.000,name
 60E1D400,0x121F0,calc_spark_advance,Ignition & Knock,1.000,name
 60E0FC00,0x12236,modifyTiming,Ignition & Knock,1.000,name
-60E0FC00,0x12294,calculateDSCTrailingTimingDerate?,Ignition & Knock,1.000,name
+60E0FC00,0x12294,calculateDSCTrailingTimingDerate,Ignition & Knock,0.85,name
 60E0FC00,0x12326,modifyTrailingTiming,Ignition & Knock,1.000,name
 60E0FC00,0x12342,calculateLeadingTimingDerateCompensated,Ignition & Knock,1.000,name
 60E0FC00,0x12352,calculateTrailingTimingDerateCompensated,Ignition & Knock,1.000,name
@@ -1200,15 +1200,15 @@
 60E1D400,0x1332C,calc_maf_sensor_flow,Sensors,1.000,name
 60E0FC00,0x13368,cal_change_detect_a704_a705,Ignition & Knock,0.700,assembly
 60E1D400,0x133F8,calc_vehicle_speed_filter,Sensors,1.000,name
-60E0FC00,0x13414,idleLeadingTimingCorrection?,Ignition & Knock,1.000,name
+60E0FC00,0x13414,leadingTimingCorrection,Ignition & Knock,0.85,name
 60E1D400,0x1345C,calc_throttle_position_filter,Throttle & Torque,1.000,name
-60E0FC00,0x13544,idleTrailingTimingCorrection?,Ignition & Knock,1.000,name
+60E0FC00,0x13544,trailingTimingCorrection,Ignition & Knock,0.85,name
 60E1D400,0x135E4,copy_controller_state_to_a716_a717,Memory & CRC,1.000,name
 60E1D400,0x135F6,calc_fuel_pump_duty_trim,Fuel & Lambda,1.000,name
 60E1D400,0x13652,calc_evap_purge_duty,Fuel & Lambda,1.000,name
 60E0FC00,0x13674,updateKnockRamTHUNK,Ignition & Knock,1.000,name
 60E0FC00,0x1367E,csum_float_pair_store_8038,Memory & CRC,0.700,assembly
-60E0FC00,0x13686,getKnockControlAllowed??,Ignition & Knock,1.000,name
+60E0FC00,0x13686,updateKnockControlAllowedFlag,Ignition & Knock,0.85,name
 60E0FC00,0x136D6,getKnockSensorFaultedStatus?,Faults & DTC,1.000,name
 60E1D400,0x136F0,calc_fuel_trim_correction_map,Fuel & Lambda,1.000,name
 60E0FC00,0x136FE,getKnockControlActive,Ignition & Knock,1.000,name
@@ -1390,7 +1390,7 @@
 60E0FC00,0x17A38,omp_knock_periodic_dispatch,Oil Metering,1.000,name
 60E1D400,0x17A68,rotor_position_feedback_control,Sensors,1.000,name
 60E0FC00,0x17A98,engine_control_task2_irq_guard,RTOS,1.000,name
-60E0FC00,0x17AB0,batteryRelatedFaults??,Faults & DTC,1.000,name
+60E0FC00,0x17AB0,ompStepperFaultEval,Faults & DTC,0.85,name
 60E0FC00,0x17ACE,sr_wrap_fault_flag_check,Sensors,0.700,assembly
 60E0FC00,0x17AE6,fault_ram_clear_chain,Ignition & Knock,0.600,assembly
 60E0FC00,0x17AFA,fault_ram_read_chain,Memory & CRC,0.600,assembly
@@ -2621,7 +2621,7 @@
 60E0FC00,0x30570,setInjectorStuffPrevLoop,Fuel & Lambda,0.85,name
 60E0FC00,0x30586,warm_restart_copy_cal_float_be9c,Boot & Init,1.000,name
 60E0FC00,0x3059E,rtos_fault_monitor_schedule_task,RTOS,0.600,assembly
-60E0FC00,0x306B4,calcInjectorCrankingTime??,Fuel & Lambda,1.000,name
+60E0FC00,0x306B4,calcInjectorCrankingTime,Fuel & Lambda,0.85,name
 60E1D400,0x306F4,diag_getacswitchstatus_306f4,Faults & DTC,1.000,name
 60E0FC00,0x30700,getCrankingInjectorPulseTime,Fuel & Lambda,1.000,name
 60E0FC00,0x30728,getDiagnosticFuelPulseCranking?,Faults & DTC,1.000,name
@@ -2794,7 +2794,7 @@
 60E1D400,0x33DC4,extensive_fpu_div_multi_calc_33DC4,Math / FPU,1.000,name
 60E1D400,0x33EBC,fpu_register_copy_simple_33EBC,Math / FPU,1.000,name
 60E1D400,0x33EC6,table_based_fpu_selector_33EC6,Math / FPU,1.000,name
-60E0FC00,0x33F20,detectDriverIntentKnockControl?,Ignition & Knock,1.000,name
+60E0FC00,0x33F20,updatePedalDebounceCounters,Ignition & Knock,0.85,name
 60E0FC00,0x33FA4,calculateKnockConditionA,Ignition & Knock,1.000,name
 60E1D400,0x33FC0,extensive_fpu_threshold_calc_33FC0,Math / FPU,1.000,name
 60E0FC00,0x34110,throttle_timeout_counters_update,Throttle & Torque,1.000,name
@@ -4391,7 +4391,7 @@
 60E0FC00,0x529AE,updateRAM,Memory & CRC,0.85,name
 60E0FC00,0x529BC,obd_buf_write_be16_inc,OBD / UDS,0.900,assembly
 60E0FC00,0x529D8,obd_buf_write_be32_inc,OBD / UDS,0.900,assembly
-60E0FC00,0x52A12,udsResponseRelated??,OBD / UDS,1.000,name
+60E0FC00,0x52A12,enqueueUDSResponse,OBD / UDS,0.85,name
 60E0FC00,0x52A36,obd_svc_struct_enqueue_flag1,OBD / UDS,0.500,assembly
 60E0FC00,0x52A5A,udsErrorResponse,OBD / UDS,1.000,name
 60E0FC00,0x52A80,obd_table_lookup_copy_5d5e4,OBD / UDS,0.700,assembly
@@ -4485,7 +4485,7 @@
 60E0FC00,0x53B54,obd_word_aa3a_scale_to_pct_b,OBD / UDS,1.000,name
 60E0FC00,0x53B80,percent_value_scale_byte,Math / FPU,1.000,name
 60E1D400,0x53BA0,sensor_validate_53ba0,Sensors,1.000,name
-60E0FC00,0x53BC8,ClearFaults?,Faults & DTC,1.000,name
+60E0FC00,0x53BC8,clearDiagnosticInformation,Faults & DTC,0.85,name
 60E1D400,0x53BEA,isr_checker_53bea,Peripherals & ISR,1.000,name
 60E0FC00,0x53C5E,obd_dtc_word_tx_54,OBD / UDS,0.500,assembly
 60E0FC00,0x53C92,diag_fault_record_by_condition_cfd9,Faults & DTC,1.000,name
@@ -5081,7 +5081,7 @@
 60E1D400,0x596B4,idle_steering_596b4,Idle Control,1.000,name
 60E1D400,0x5970C,wheel_speed_0x5970C,Sensors,1.000,name
 60E0FC00,0x5973E,noop_return_zero_stub_b,Utilities,1.000,name
-60E0FC00,0x59744,UDSService11Function?,OBD / UDS,1.000,name
+60E0FC00,0x59744,udsService11Handler,OBD / UDS,0.85,name
 60E1D400,0x597DA,vehicle_speed_0x597DA,Sensors,1.000,name
 60E1D400,0x597FC,acceleration_calc_0x597FC,Throttle & Torque,1.000,name
 60E0FC00,0x59806,uds_state_jump_dispatch,OBD / UDS,0.700,assembly
