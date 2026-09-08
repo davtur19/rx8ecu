@@ -14,10 +14,12 @@ sh2emu.py doesn't implement.
 
 Run from repo root:  python3 c/tests/test_math_primitives.py [N]
 """
-import math, os, sys, random
+import math, os, sys, random, struct
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sh2emu import SH2, ts, f2bits, s32, MASK
+from float_compare import same_result_bits, EDGE_NAN_BITS
 
 # Determinism (wave2b): fixed seed (subtractAbsolute @0x23DC, first function
 # in this TU). Two runs must diff clean:
@@ -121,11 +123,11 @@ def main():
         if not cond: fails[name] = fails.get(name, 0) + 1
     for _ in range(N):
         a, c, d = rf(), rf(), rf()
-        cpu.call(0x23DC, fr={4: a, 5: c}); chk('subtractAbsolute', b(cpu.fr[0]) == b(subtractAbsolute(a, c)))
-        cpu.call(0x23E4, fr={4: a, 5: c}); chk('saturateLow', b(cpu.fr[0]) == b(saturateLow(a, c)))
-        cpu.call(0x23F4, fr={4: a, 5: c}); chk('minValue',    b(cpu.fr[0]) == b(minValue(a, c)))
+        cpu.call(0x23DC, fr={4: a, 5: c}); chk('subtractAbsolute', same_result_bits(b(cpu.fr[0]), b(subtractAbsolute(a, c))))
+        cpu.call(0x23E4, fr={4: a, 5: c}); chk('saturateLow', same_result_bits(b(cpu.fr[0]), b(saturateLow(a, c))))
+        cpu.call(0x23F4, fr={4: a, 5: c}); chk('minValue',    same_result_bits(b(cpu.fr[0]), b(minValue(a, c))))
         lo, hi = min(c, d), max(c, d)
-        cpu.call(0x2404, fr={4: a, 5: lo, 6: hi}); chk('saturate', b(cpu.fr[0]) == b(saturate(a, lo, hi)))
+        cpu.call(0x2404, fr={4: a, 5: lo, 6: hi}); chk('saturate', same_result_bits(b(cpu.fr[0]), b(saturate(a, lo, hi))))
         xi = random.randint(0, 255)
         chk('encode', (cpu.call(0x2420, r4=xi) & 0xFFFF) == encode(xi))
         tol = ts(abs(d) % 50)
@@ -134,9 +136,9 @@ def main():
         chk('floatToFP_16bit', (cpu.call(0x2490, fr={4: a, 5: sca, 6: d}) & 0xFFFFFFFF) == (floatToFP_16bit(a, sca, d) & 0xFFFFFFFF))
         chk('floatToInt',      (cpu.call(0x24D0, fr={4: a, 5: sca, 6: d}) & 0xFFFFFFFF) == (floatToInt(a, sca, d) & 0xFFFFFFFF))
         raw = random.randint(0, 0xFFFF)
-        cpu.call(0x24C0, r4=raw, fr={4: a, 5: c}); chk('fixedPointToFloat_16bit', b(cpu.fr[0]) == b(fixedPointToFloat_16bit(a, c, raw)))
+        cpu.call(0x24C0, r4=raw, fr={4: a, 5: c}); chk('fixedPointToFloat_16bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_16bit(a, c, raw))))
         raw8 = random.randint(0, 0xFF)
-        cpu.call(0x2500, r4=raw8, fr={4: a, 5: c}); chk('fixedPointToFloat_8bit', b(cpu.fr[0]) == b(fixedPointToFloat_8bit(a, c, raw8)))
+        cpu.call(0x2500, r4=raw8, fr={4: a, 5: c}); chk('fixedPointToFloat_8bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_8bit(a, c, raw8))))
 
         hi, lo = random.randint(0, 255), random.randint(0, 255)
         r0 = cpu.call(0x2044, r4=IR_ADDR, ram={IR_ADDR: hi, IR_ADDR + 1: lo})
@@ -159,15 +161,27 @@ def main():
     # point (lo=0.0/hi=1.0 window for saturate; sca=1.0/off=0.0 for _tofp).
     for e in EDGE_FLOATS:
         a = ts(e)
-        cpu.call(0x23DC, fr={4: a, 5: ts(1.0)}); chk('subtractAbsolute', b(cpu.fr[0]) == b(subtractAbsolute(a, ts(1.0))))
-        cpu.call(0x23E4, fr={4: a, 5: ts(1.0)}); chk('saturateLow', b(cpu.fr[0]) == b(saturateLow(a, ts(1.0))))
-        cpu.call(0x23F4, fr={4: a, 5: ts(1.0)}); chk('minValue',    b(cpu.fr[0]) == b(minValue(a, ts(1.0))))
-        cpu.call(0x2404, fr={4: a, 5: ts(0.0), 6: ts(1.0)}); chk('saturate', b(cpu.fr[0]) == b(saturate(a, ts(0.0), ts(1.0))))
+        cpu.call(0x23DC, fr={4: a, 5: ts(1.0)}); chk('subtractAbsolute', same_result_bits(b(cpu.fr[0]), b(subtractAbsolute(a, ts(1.0)))))
+        cpu.call(0x23E4, fr={4: a, 5: ts(1.0)}); chk('saturateLow', same_result_bits(b(cpu.fr[0]), b(saturateLow(a, ts(1.0)))))
+        cpu.call(0x23F4, fr={4: a, 5: ts(1.0)}); chk('minValue',    same_result_bits(b(cpu.fr[0]), b(minValue(a, ts(1.0)))))
+        cpu.call(0x2404, fr={4: a, 5: ts(0.0), 6: ts(1.0)}); chk('saturate', same_result_bits(b(cpu.fr[0]), b(saturate(a, ts(0.0), ts(1.0)))))
         chk('isNotZero_wDivideByZeroProtect', (cpu.call(0x2440, fr={4: a, 5: ts(1.0), 6: ts(0.1)}) & 0xFF) == isNotZero(a, ts(1.0), ts(0.1)))
         chk('floatToFP_16bit', (cpu.call(0x2490, fr={4: a, 5: ts(1.0), 6: ts(0.0)}) & 0xFFFFFFFF) == (floatToFP_16bit(a, ts(1.0), ts(0.0)) & 0xFFFFFFFF))
         chk('floatToInt',      (cpu.call(0x24D0, fr={4: a, 5: ts(1.0), 6: ts(0.0)}) & 0xFFFFFFFF) == (floatToInt(a, ts(1.0), ts(0.0)) & 0xFFFFFFFF))
-        cpu.call(0x24C0, r4=0x1234, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_16bit', b(cpu.fr[0]) == b(fixedPointToFloat_16bit(a, ts(1.0), 0x1234)))
-        cpu.call(0x2500, r4=0x34, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_8bit', b(cpu.fr[0]) == b(fixedPointToFloat_8bit(a, ts(1.0), 0x34)))
+        cpu.call(0x24C0, r4=0x1234, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_16bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_16bit(a, ts(1.0), 0x1234))))
+        cpu.call(0x2500, r4=0x34, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_8bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_8bit(a, ts(1.0), 0x34))))
+    # NaN-payload edge inputs decoded from raw bits (EDGE_NAN_BITS): the host
+    # fr[] round-trip may quiet sNaN payloads (0x7F800001 -> 0x7FC00001 on x86)
+    # before the emulator sees them — the oracle compares below are
+    # payload-insensitive (sign only), same pattern as test_dataLookup.py.
+    for nan_bits in EDGE_NAN_BITS:
+        a = ts(struct.unpack('>f', struct.pack('>I', nan_bits))[0])
+        cpu.call(0x23DC, fr={4: a, 5: ts(1.0)}); chk('subtractAbsolute', same_result_bits(b(cpu.fr[0]), b(subtractAbsolute(a, ts(1.0)))))
+        cpu.call(0x23E4, fr={4: a, 5: ts(1.0)}); chk('saturateLow', same_result_bits(b(cpu.fr[0]), b(saturateLow(a, ts(1.0)))))
+        cpu.call(0x23F4, fr={4: a, 5: ts(1.0)}); chk('minValue',    same_result_bits(b(cpu.fr[0]), b(minValue(a, ts(1.0)))))
+        cpu.call(0x2404, fr={4: a, 5: ts(0.0), 6: ts(1.0)}); chk('saturate', same_result_bits(b(cpu.fr[0]), b(saturate(a, ts(0.0), ts(1.0)))))
+        cpu.call(0x24C0, r4=0x1234, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_16bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_16bit(a, ts(1.0), 0x1234))))
+        cpu.call(0x2500, r4=0x34, fr={4: a, 5: ts(1.0)}); chk('fixedPointToFloat_8bit', same_result_bits(b(cpu.fr[0]), b(fixedPointToFloat_8bit(a, ts(1.0), 0x34))))
     names = ['subtractAbsolute', 'saturateLow', 'minValue', 'saturate', 'encode',
              'isNotZero_wDivideByZeroProtect', 'floatToFP_16bit', 'floatToInt',
              'fixedPointToFloat_16bit', 'fixedPointToFloat_8bit',
