@@ -43,7 +43,7 @@ import argparse, re, subprocess, sys, types
 try:
     import capstone as C
 except ImportError:
-    sys.exit("need capstone: pip install capstone --break-system-packages")
+    raise ImportError("need capstone: pip install capstone --break-system-packages")
 
 import disasm_sh2e as SH2E
 
@@ -121,7 +121,7 @@ def rebuild(rom, asm_out, bin_out, code_lo, code_hi, max_iter=16):
                 if 0 <= k < len(meta) and meta[k] is not None:
                     errs.add(meta[k])
             if not errs:
-                sys.exit("as failed (unmapped):\n" + r.stderr[:600])
+                raise RuntimeError("as failed (unmapped):\n" + r.stderr[:600])
             force |= errs
             continue
         subprocess.run(['sh-elf-ld', '-Ttext=0x0', '-e', '0x0',
@@ -131,15 +131,15 @@ def rebuild(rom, asm_out, bin_out, code_lo, code_hi, max_iter=16):
         got = open(bin_out, 'rb').read()
         if got == d:
             n = sum(1 for a in range(code_lo, code_hi, 2)
-                    if dis[a] is not None and a not in force)
+                    if dis.get(a) is not None and a not in force)
             return True, n, (code_hi - code_lo) // 2, len(force)
         newf = {(k & ~1) for k in range(min(len(got), N))
                 if got[k] != d[k] and code_lo <= (k & ~1) < code_hi}
         if not (newf - force):
             bad = [hex(k) for k in range(min(len(got), N)) if got[k] != d[k]][:8]
-            sys.exit("stall: diffs outside code region: " + ', '.join(bad))
+            raise RuntimeError("stall: diffs outside code region: " + ', '.join(bad))
         force |= newf
-    sys.exit("did not converge")
+    raise RuntimeError("did not converge")
 
 
 def main():
@@ -154,7 +154,11 @@ def main():
     import os
     for p in (a.asm, a.out):
         os.makedirs(os.path.dirname(p) or '.', exist_ok=True)
-    ok, n, tot, raw = rebuild(a.rom, a.asm, a.out, a.code_lo, a.code_hi)
+    try:
+        ok, n, tot, raw = rebuild(a.rom, a.asm, a.out, a.code_lo, a.code_hi)
+    except RuntimeError as e:
+        print("rom_rebuild: %s" % e, file=sys.stderr)
+        sys.exit(1)
     if ok:
         print("BYTE-EXACT: %s == %s" % (a.out, a.rom))
         print("code region 0x%x..0x%x lifted to instructions: %d/%d words (%.1f%%), raw fallbacks: %d"

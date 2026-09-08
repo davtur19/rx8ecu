@@ -23,6 +23,7 @@ Exit status is non-zero if any suite fails.
 """
 
 import argparse
+import atexit
 import os
 import re
 import subprocess
@@ -32,6 +33,36 @@ import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Per-suite wall-clock budget (seconds): a hung suite FAILs instead of
+# wedging the whole run forever.
+_TIMEOUT_S = 600
+
+# Temp-file registry for the dedup copies: run_one() already unlinks its
+# temp in a finally, but a kill/exception between mkstemp and unlink would
+# leak a `.dedup_*.py` next to the suite.  Registered paths are removed at
+# interpreter exit (and unregistered on the normal path).
+_TEMP_FILES = set()
+
+
+def _register_temp(path):
+    _TEMP_FILES.add(path)
+
+
+def _unregister_temp(path):
+    _TEMP_FILES.discard(path)
+
+
+def _cleanup_temps():
+    for path in sorted(_TEMP_FILES):
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    _TEMP_FILES.clear()
+
+
+atexit.register(_cleanup_temps)
 
 # Generated v8 lift tests inline the whole callee span once per call site, so a
 # single test file can hold hundreds of thousands of lines while the final
@@ -113,6 +144,7 @@ def run_one(test_path, verbose=False):
                 dir=os.path.dirname(test_path), prefix='.dedup_', suffix='.py')
             with os.fdopen(fd, 'w', encoding='utf-8') as fh:
                 fh.write(dedup)
+            _register_temp(tmp_path)
             exec_path = tmp_path
     try:
         p = subprocess.run(
@@ -121,14 +153,20 @@ def run_one(test_path, verbose=False):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            timeout=_TIMEOUT_S,
         )
         rc = p.returncode
         out = p.stdout or ''
+    except subprocess.TimeoutExpired:
+        rc = 1
+        out = ('TIMEOUT after %ds: %s\n'
+               % (_TIMEOUT_S, os.path.relpath(orig_path, ROOT)))
     except Exception as e:  # subprocess-level failure (should not happen)
         rc = 2
         out = '%s\n' % e
     finally:
         if tmp_path is not None:
+            _unregister_temp(tmp_path)
             try:
                 os.unlink(tmp_path)
             except OSError:
@@ -161,7 +199,8 @@ def main():
         return 2
 
     jobs = 1 if args.serial else (args.jobs or max(1, (os.cpu_count() or 1) - 1))
-    jobs = max(1, jobs)
+    if not args.serial and args.jobs is not None and args.jobs < 1:
+        ap.error('--jobs must be >= 1 (got %d)' % args.jobs)
 
     print('run_tests_parallel: %d suites, %d workers' % (len(tests), jobs))
     print('-' * 78)

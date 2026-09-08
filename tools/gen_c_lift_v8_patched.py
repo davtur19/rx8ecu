@@ -124,22 +124,76 @@ def _load_lifted():
     return lifted
 
 
+def _rom_key(rom):
+    """Sound cache key for a ROM image: (length, content hash).  id(rom) is
+    unsound here — CPython reuses ids of garbage-collected objects, so a new
+    ROM could hit a stale entry cached for a dead one.  The content hash
+    makes the key a pure function of the bytes the cached value derives
+    from (same bytes -> same key even across distinct objects)."""
+    return (len(rom), hash(bytes(rom)))
+
+
 def _memo_sanitized_end(ca, ce, rom):
     """Cached sanitize_span end for the (ca, ce) catalog pair.  sanitize_span is
     a pure function of the ROM bytes, so the result is stable per process; the
     cache makes the mid-function nesting guard O(1) per candidate instead of
     re-scanning every outer span on every scan_v8 call."""
-    key = (id(rom), ca, ce)
+    key = _rom_key(rom) + (ca, ce)
     es = _SPAN_END_MEMO.get(key)
     if es is None:
         _s, es, _r = v3.sanitize_span(ca, ce, rom)
-        if len(_SPAN_END_MEMO) > 20000:
-            _SPAN_END_MEMO.clear()
+        if len(_SPAN_END_MEMO) >= 20000:
+            # Deterministic FIFO eviction (dicts are insertion-ordered):
+            # drop the single oldest entry instead of clear()ing the whole
+            # cache, so repeated scans see stable hit behavior rather than
+            # a periodic all-miss cliff.
+            _SPAN_END_MEMO.pop(next(iter(_SPAN_END_MEMO)))
         _SPAN_END_MEMO[key] = es
     return es
 
 
 _SPAN_END_MEMO = {}
+
+
+def _gate_and_publish(c_text, out_path, err_len=200):
+    """Atomic compile gate: write `c_text` to a mkstemp temp source in
+    out_path's directory, compile-gate it (cc -O2 -c) to a mkstemp object
+    file, and os.replace() it onto out_path ONLY on gate PASS.
+
+    On gate FAIL the temp source is removed and any pre-existing out_path
+    is left untouched — never truncated, never deleted (the old
+    `open(out, 'w')` + `os.remove(out)` sequence destroyed a good lift).
+    mkstemp (not /tmp PID names) avoids object-file races between
+    concurrent processes.  Returns (True, None) on PASS,
+    (False, stderr_tail) on FAIL."""
+    outdir = os.path.dirname(out_path) or '.'
+    os.makedirs(outdir, exist_ok=True)
+    tmp_c = None
+    fd, tmp_c = tempfile.mkstemp(dir=outdir, prefix='.gate_', suffix='.c')
+    try:
+        with os.fdopen(fd, 'w') as f:
+            f.write(c_text)
+        os.chmod(tmp_c, 0o644)
+        fd_o, tmp_o = tempfile.mkstemp(prefix='gate_', suffix='.o')
+        os.close(fd_o)
+        try:
+            gate = subprocess.run(['cc', '-O2', '-c', tmp_c, '-o', tmp_o],
+                                  capture_output=True, text=True)
+        finally:
+            try:
+                os.remove(tmp_o)
+            except OSError:
+                pass
+        if gate.returncode != 0:
+            return False, (gate.stderr or '')[:err_len]
+        os.replace(tmp_c, out_path)
+        return True, None
+    finally:
+        try:
+            if tmp_c is not None and os.path.exists(tmp_c):
+                os.remove(tmp_c)
+        except OSError:
+            pass
 
 
 def _rt_mem_mnem(op, sh):
@@ -1522,16 +1576,9 @@ def emit_caller(addr, rom, outdir, catalog, bounds, seed=42, cases=500,
         (fwd + '\n' if fwd else '') + body
     os.makedirs(outdir, exist_ok=True)
     out_c = os.path.join(outdir, '%s.c' % fn)
-    with open(out_c, 'w') as f:
-        f.write(c_text)
-    tmp_obj = os.path.join(tempfile.gettempdir(), 'gen_c_lift_v8_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(out_c)
-        return out_c, None, False, gate.stderr[:200]
+    ok, err = _gate_and_publish(c_text, out_c, err_len=200)
+    if not ok:
+        return out_c, None, False, err
 
     # ---- test ----
     out_t = os.path.join(outdir, 'test_caller_%X.py' % addr)
@@ -1786,16 +1833,9 @@ def _emit_callee_cfg(t, rom, catalog, bounds, rom_label=None):
     c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + \
         (fwd + '\n' if fwd else '') + body
     path = os.path.join(ROOT, 'c', 'lib', 'f_%X.c' % t)
-    with open(path, 'w') as f:
-        f.write(c_text)
-    tmp_obj = os.path.join(tempfile.gettempdir(), 'gen_c_lift_v8_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', path, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(path)
-        return None, ('callee-cfg-compile', t, gate.stderr[:200])
+    ok, err = _gate_and_publish(c_text, path, err_len=200)
+    if not ok:
+        return None, ('callee-cfg-compile', t, err)
     return path, None
 
 

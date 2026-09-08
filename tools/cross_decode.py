@@ -116,19 +116,25 @@ def find_objdump(args):
         if 'sh' not in (arch.stdout + arch.stderr).lower() and 'llvm' not in c.lower():
             continue
         # find best -m flag: sh2e > sh2 > sh
-        probe = os.path.join(tempfile.gettempdir(), 'xd_probe.bin')
-        open(probe, 'wb').write(b'\xff\xfb')
-        if 'llvm-objdump' in c:
-            os.unlink(probe)
-            continue  # llvm-objdump SH support is generally absent; leave last-resort message
-        for flag in ('sh2e', 'sh2', 'sh'):
-            r = subprocess.run([c, '-D', '-b', 'binary', '-m', flag, '-EB',
-                                '--start-address=0', '--stop-address=2', probe],
-                               capture_output=True, text=True, timeout=15)
-            if r.returncode == 0:
+        # mkstemp probe (not a fixed /tmp name): no cross-run collision, no
+        # leak — removed in the finally even if a probe run raises.
+        fd, probe = tempfile.mkstemp(prefix='xd_probe_', suffix='.bin')
+        try:
+            with os.fdopen(fd, 'wb') as fh:
+                fh.write(b'\xff\xfb')
+            if 'llvm-objdump' in c:
+                continue  # llvm-objdump SH support is generally absent; leave last-resort message
+            for flag in ('sh2e', 'sh2', 'sh'):
+                r = subprocess.run([c, '-D', '-b', 'binary', '-m', flag, '-EB',
+                                    '--start-address=0', '--stop-address=2', probe],
+                                   capture_output=True, text=True, timeout=15)
+                if r.returncode == 0:
+                    return c, flag, v.stdout.splitlines()[0].strip()
+        finally:
+            try:
                 os.unlink(probe)
-                return c, flag, v.stdout.splitlines()[0].strip()
-        os.unlink(probe)
+            except OSError:
+                pass
         # GNU objdump supports -m sh with arch variants; sh2e is the closest to SH-2E
         return c, 'sh2e', v.stdout.splitlines()[0].strip()
     return None, None, None

@@ -73,11 +73,12 @@ Status (v3, 2026-08-04): P3=0 (6 LIVE branch targets declared DECLARED_TRAP,
 """
 import argparse
 import hashlib
+import os
 import re
 import struct
 import subprocess
 import sys
-import os
+import tempfile
 
 try:
     import capstone
@@ -127,7 +128,7 @@ def load_declared(path):
     data_regions = []
     if not os.path.exists(path):
         return traps, data_regions
-    with open(path) as f:
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
         for line in f:
             if not line.strip():
                 continue
@@ -206,7 +207,7 @@ def build_partition(asm_path):
     bytere = re.compile(r'\.byte\s+0x([0-9a-fA-F]+)')
 
     addr = 0
-    with open(asm_path) as f:
+    with open(asm_path, 'r', encoding='utf-8', errors='replace') as f:
         for line in f:
             s = line.strip()
             if not s or s == '.text':
@@ -279,7 +280,7 @@ def extract_abs(op_str):
 def read_verified(path):
     out = set()
     try:
-        with open(path) as f:
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
             for line in f:
                 line = line.split(';')[0].strip()
                 for tok in line.split():
@@ -295,7 +296,7 @@ def read_region_csv(path, dec):
     rows = []
     if not os.path.exists(path):
         return rows
-    with open(path) as f:
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
         next(f, None)  # header
         for line in f:
             if not line.strip():
@@ -338,8 +339,8 @@ def main():
     results = {}
 
     # ---------------- P1 ROUND-TRIP ----------------
-    tmp = '/tmp/formal_rt'
-    os.makedirs(tmp, exist_ok=True)
+    # mkdtemp, not a fixed /tmp name: concurrent runs must not share it.
+    tmp = tempfile.mkdtemp(prefix='formal_rt_')
     rt_bin = os.path.join(tmp, 'rt.bin')
     rt_asm = os.path.join(tmp, 'rt.s')
     try:
@@ -523,7 +524,7 @@ def main():
     # uncovered-CSV data categories that represent declared data (pool/table/
     # string/padding/config/jump) — NOT the raw 'unknown_data'/'single_unref'.
     if os.path.exists(UNCOV_CSV):
-        with open(UNCOV_CSV) as f:
+        with open(UNCOV_CSV, 'r', encoding='utf-8', errors='replace') as f:
             next(f, None)
             for line in f:
                 c = line.split(',')
@@ -543,7 +544,8 @@ def main():
     data_viol = [w for w in sorted(data_words)
                  if not (w in pcrel_ref or w in ptr_vals or w in decl_regions)]
     if os.environ.get('VERIFY_DUMP_P4'):
-        with open('/tmp/unref_%s.txt' % romid, 'w') as _f:
+        with open(os.path.join(tempfile.gettempdir(), 'unref_%s.txt' % romid),
+                  'w', encoding='utf-8') as _f:
             for w in data_viol:
                 _f.write('0x%X\n' % w)
 
@@ -596,7 +598,7 @@ def main():
     # missing code -- a live branch into it is a trap dispatch to filler.
     p5_cat = {}
     if os.path.exists(UNCOV_CSV):
-        with open(UNCOV_CSV) as f:
+        with open(UNCOV_CSV, 'r', encoding='utf-8', errors='replace') as f:
             next(f, None)
             for line in f:
                 c = line.split(',')

@@ -130,6 +130,47 @@ def _render_st(records, labels, fn, addr, size, banner_extra=''):
     return '\n'.join(body)
 
 
+def _gate_and_publish(c_text, out_path, err_len=300):
+    """Atomic compile gate: write `c_text` to a mkstemp temp source in
+    out_path's directory, compile-gate it (cc -O2 -c) to a mkstemp object
+    file, and os.replace() it onto out_path ONLY on gate PASS.
+
+    On gate FAIL the temp source is removed and any pre-existing out_path
+    is left untouched — never truncated, never deleted (the old
+    `open(out, 'w')` + `os.remove(out)` sequence destroyed a good lift).
+    mkstemp (not /tmp PID names) avoids object-file races between
+    concurrent processes.  Returns (True, None) on PASS,
+    (False, stderr_tail) on FAIL."""
+    outdir = os.path.dirname(out_path) or '.'
+    os.makedirs(outdir, exist_ok=True)
+    tmp_c = None
+    fd, tmp_c = tempfile.mkstemp(dir=outdir, prefix='.gate_', suffix='.c')
+    try:
+        with os.fdopen(fd, 'w') as f:
+            f.write(c_text)
+        os.chmod(tmp_c, 0o644)
+        fd_o, tmp_o = tempfile.mkstemp(prefix='gate_', suffix='.o')
+        os.close(fd_o)
+        try:
+            gate = subprocess.run(['cc', '-O2', '-c', tmp_c, '-o', tmp_o],
+                                  capture_output=True, text=True)
+        finally:
+            try:
+                os.remove(tmp_o)
+            except OSError:
+                pass
+        if gate.returncode != 0:
+            return False, (gate.stderr or '')[:err_len]
+        os.replace(tmp_c, out_path)
+        return True, None
+    finally:
+        try:
+            if tmp_c is not None and os.path.exists(tmp_c):
+                os.remove(tmp_c)
+        except OSError:
+            pass
+
+
 def emit_callee(addr, size, rom, out_c, rom_label=None, force_name=None):
     """Re-emit a (call-free) span as c/lib/f_<hex>.c (ST ABI).
     Compile-gates with cc -O2 -c; deletes on failure."""
@@ -145,17 +186,9 @@ def emit_callee(addr, size, rom, out_c, rom_label=None, force_name=None):
               ' * leaf callee library (c/lib/f_<hex>.c). Never replaces c/*.c. */\n'
               ) % (rom_label or gcl.ROM_LABEL, addr, size)
     c_text = (banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + body + '\n')
-    with open(out_c, 'w') as f:
-        f.write(c_text)
-    tmp_obj = os.path.join(tempfile.gettempdir(),
-                           'gen_c_lift_v7_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(out_c)
-        return False, gate.stderr[:300]
+    ok, err = _gate_and_publish(c_text, out_c)
+    if not ok:
+        return False, err
     return True, None
 
 
@@ -197,17 +230,9 @@ def emit_compose(addr, rom, outdir, cat, end_bounds, rom_label=None,
     c_text = banner + '#include <stdint.h>\n' + ST_STRUCT + '\n' + body + '\n'
     os.makedirs(outdir, exist_ok=True)
     out_c = os.path.join(outdir, '%s.c' % fn)
-    with open(out_c, 'w') as f:
-        f.write(c_text)
-    tmp_obj = os.path.join(tempfile.gettempdir(),
-                           'gen_c_lift_v7_%d.o' % os.getpid())
-    gate = subprocess.run(['cc', '-O2', '-c', out_c, '-o', tmp_obj],
-                          capture_output=True, text=True)
-    if os.path.exists(tmp_obj):
-        os.remove(tmp_obj)
-    if gate.returncode != 0:
-        os.remove(out_c)
-        return out_c, gate.stderr[:200], False
+    ok, err = _gate_and_publish(c_text, out_c, err_len=200)
+    if not ok:
+        return out_c, err, False
     return out_c, None, True
 
 

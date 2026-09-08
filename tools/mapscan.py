@@ -20,14 +20,24 @@ CELL = {0: ('f', 4), 4: ('B', 1), 8: ('H', 2), 12: ('b', 1), 16: ('h', 2)}
 
 def scan(d, lo=0x1000, hi=0x7E000):
     N = len(d)
-    def u16(o): return int.from_bytes(d[o:o + 2], 'big')
-    def u32(o): return int.from_bytes(d[o:o + 4], 'big')
+    mv = memoryview(bytes(d))
+    def u16(o):
+        if o + 2 > N or o < 0:
+            return None
+        return struct.unpack_from('>H', mv, o)[0]
+    def u32(o):
+        if o + 4 > N or o < 0:
+            return None
+        return struct.unpack_from('>I', mv, o)[0]
     def f32(o):
-        try: return struct.unpack('>f', d[o:o + 4])[0]
-        except Exception: return None
-    def vptr(p): return lo <= p < hi and p % 2 == 0
+        if o + 4 > N or o < 0:
+            return None
+        try: return struct.unpack_from('>f', mv, o)[0]
+        except struct.error: return None
+    def vptr(p): return p is not None and lo <= p < hi and p % 2 == 0
     def axis(p, n):
         if not (lo <= p < hi and p % 4 == 0): return None
+        if p + n * 4 > N: return None
         out, prev = [], None
         for i in range(n):
             v = f32(p + i * 4)
@@ -38,19 +48,24 @@ def scan(d, lo=0x1000, hi=0x7E000):
     def okf(x): return x is not None and math.isfinite(x) and abs(x) < 1e6
 
     maps = []
-    for o in range(lo, hi, 2):
-        t = d[o + 16] if o + 16 < N else 255           # Map2D type slot
-        if 2 <= u16(o) <= 64 and 2 <= u16(o + 2) <= 64 and t in CELL:
-            cx, cy = u16(o), u16(o + 2); axp, ayp, vp = u32(o + 4), u32(o + 8), u32(o + 12)
+    hi_eff = min(hi, N)
+    for o in range(lo, hi_eff, 2):
+        cx, cy = u16(o), u16(o + 2)
+        # 2D descriptor needs the full 28-byte header in-bounds.
+        if o + 28 <= N and cx is not None and cy is not None \
+                and 2 <= cx <= 64 and 2 <= cy <= 64 and d[o + 16] in CELL:
+            t = d[o + 16]
+            axp, ayp, vp = u32(o + 4), u32(o + 8), u32(o + 12)
             if vptr(axp) and vptr(ayp) and vptr(vp) and len({axp, ayp, vp}) == 3:
                 ax, ay = axis(axp, cx), axis(ayp, cy)
                 sc, of = f32(o + 20), f32(o + 24)
                 if ax and ay and okf(sc) and okf(of) and sc != 0:
                     maps.append(dict(kind='2D', o=o, cx=cx, cy=cy, type=t, vp=vp, axp=axp, ayp=ayp,
                                      sc=sc, of=of, ax=ax, ay=ay)); continue
-        t = d[o + 2] if o + 2 < N else 255             # Map1D type slot
-        if 2 <= u16(o) <= 64 and t in CELL:
-            c = u16(o); axp, vp = u32(o + 4), u32(o + 8)
+        # 1D descriptor needs the full 20-byte header in-bounds.
+        if o + 20 <= N and cx is not None and d[o + 2] in CELL:
+            t = d[o + 2]
+            c = cx; axp, vp = u32(o + 4), u32(o + 8)
             if vptr(axp) and vptr(vp) and axp != vp:
                 ax = axis(axp, c); sc, of = f32(o + 12), f32(o + 16)
                 if ax and okf(sc) and okf(of) and sc != 0:
@@ -61,9 +76,10 @@ def scan(d, lo=0x1000, hi=0x7E000):
 def load_defs(p):
     m = {}
     try:
-        for r in csv.DictReader(open(p)):
-            try: m[int(r['address'], 16)] = r['name']
-            except Exception: pass
+        with open(p, 'r', encoding='utf-8', errors='replace') as fh:
+            for r in csv.DictReader(fh):
+                try: m[int(r['address'], 16)] = r['name']
+                except (ValueError, TypeError, KeyError): pass
     except FileNotFoundError:
         pass
     return m
@@ -79,7 +95,8 @@ def main():
     ap.add_argument('rom'); ap.add_argument('--defs', default='symbols/cal_tables.csv')
     ap.add_argument('--dump', type=lambda x: int(x, 0))
     a = ap.parse_args()
-    d = open(a.rom, 'rb').read()
+    with open(a.rom, 'rb') as fh:
+        d = fh.read()
     defs = load_defs(a.defs)
     maps = scan(d)
     named = sum(1 for m in maps if m['vp'] in defs or m['axp'] in defs)

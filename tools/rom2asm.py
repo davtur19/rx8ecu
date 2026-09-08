@@ -37,7 +37,7 @@ Examples
   python rom2asm.py roms/stock/60E1D400.bin 0x2460 0x2478 --verify
   python rom2asm.py roms/stock/60E1D400.bin 0x23b0 0x2478 -o out.s
 """
-import argparse, re, subprocess, sys
+import argparse, os, re, subprocess, sys, tempfile
 
 try:
     import capstone as C
@@ -127,7 +127,7 @@ def verify(d, start, end, asm_path):
           asm_path + '.elf', asm_path + '.bin'], 'objcopy'),
     ]
     for cmd, tag in steps:
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if r.returncode:
             return False, '%s error: %s' % (tag, r.stderr.strip()[:400])
     got = open(asm_path + '.bin', 'rb').read()
@@ -154,16 +154,31 @@ def main():
     a = ap.parse_args()
     d = open(a.rom, 'rb').read()
     asm, data, ext = export(d, a.start, a.end)
-    path = a.out or '/tmp/_rom2asm.s'
-    open(path, 'w').write(asm)
-    if not a.out and not a.verify:
-        sys.stdout.write(asm)
-    sys.stderr.write('range 0x%x..0x%x  pools=%d externals=%d\n'
-                     % (a.start, a.end, len(data), len(ext)))
-    if a.verify:
-        ok, msg = verify(d, a.start, a.end, path)
-        print(('[OK] ' if ok else '[FAIL] ') + msg)
-        sys.exit(0 if ok else 1)
+    if a.out:
+        path = a.out
+        tmp_path = None
+    else:
+        # mkstemp, not a fixed /tmp name: concurrent runs must not share it.
+        fd, tmp_path = tempfile.mkstemp(prefix='rom2asm_', suffix='.s')
+        os.close(fd)
+        path = tmp_path
+    try:
+        open(path, 'w').write(asm)
+        if not a.out and not a.verify:
+            sys.stdout.write(asm)
+        sys.stderr.write('range 0x%x..0x%x  pools=%d externals=%d\n'
+                         % (a.start, a.end, len(data), len(ext)))
+        if a.verify:
+            ok, msg = verify(d, a.start, a.end, path)
+            print(('[OK] ' if ok else '[FAIL] ') + msg)
+            sys.exit(0 if ok else 1)
+    finally:
+        if tmp_path is not None:
+            try:
+                for suf in ('', '.o', '.elf', '.bin'):
+                    os.remove(tmp_path + suf)
+            except OSError:
+                pass
 
 
 if __name__ == '__main__':

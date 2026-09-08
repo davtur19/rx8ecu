@@ -115,6 +115,9 @@ class SH2:
         ram = self.ram
         rom = self.rom
         romlen = self._romlen
+        mmio = self._mmio          # None = disabled; when set, instruction
+                                   # fetch must consult it (code overlaid via
+                                   # MMIO) so the fast path below is skipped
         SENT = self.SENT
         M = MASK
         delayed = self._delayed
@@ -133,7 +136,7 @@ class SH2:
         if brk is not None and pc in brk:
             self.pc = pc            # entry itself is a breakpoint: hit before executing
             return r[0] & M
-        if not ram:
+        if not ram and mmio is None:
             while True:
                 if ram:
                     break           # a memory write happened: fall back to the
@@ -204,13 +207,17 @@ class SH2:
                 self.pc = pc
                 raise RuntimeError("runaway at 0x%X" % pc)
             a = pc
-            b = ram.get(a)
+            b = mmio.get(a) if mmio is not None else None
             if b is None:
-                b = rom[a] if a < romlen else 0
+                b = ram.get(a)
+                if b is None:
+                    b = rom[a] if a < romlen else 0
             a1 = (a + 1) & M
-            b1 = ram.get(a1)
+            b1 = mmio.get(a1) if mmio is not None else None
             if b1 is None:
-                b1 = rom[a1] if a1 < romlen else 0
+                b1 = ram.get(a1)
+                if b1 is None:
+                    b1 = rom[a1] if a1 < romlen else 0
             op = (b << 8) | b1
             self.pc = pc
             br = delayed(op)
@@ -230,13 +237,17 @@ class SH2:
                     self._last_steps = n
                     raise StepLimitExceeded(n, pc)
                 a = (pc + 2) & M
-                b = ram.get(a)
+                b = mmio.get(a) if mmio is not None else None
                 if b is None:
-                    b = rom[a] if a < romlen else 0
+                    b = ram.get(a)
+                    if b is None:
+                        b = rom[a] if a < romlen else 0
                 a1 = (a + 1) & M
-                b1 = ram.get(a1)
+                b1 = mmio.get(a1) if mmio is not None else None
                 if b1 is None:
-                    b1 = rom[a1] if a1 < romlen else 0
+                    b1 = ram.get(a1)
+                    if b1 is None:
+                        b1 = rom[a1] if a1 < romlen else 0
                 n += 1
                 if mx is not None and n > mx:
                     self.pc = a
