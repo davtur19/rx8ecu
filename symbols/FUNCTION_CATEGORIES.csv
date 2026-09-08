@@ -957,10 +957,10 @@
 60E1D400,0xE312,ignition_trim_table_lookup,Fuel & Lambda,1.000,name
 60E1D400,0xE37C,coil_pwm_init,Oil Metering,1.000,name
 60E1D400,0xE38C,ignition_advance_limiter,Ignition & Knock,1.000,name
-60E0FC00,0xE444,UnknownFueling1,Fuel & Lambda,1.000,name
+60E0FC00,0xE444,fuelPulseTermTrampoline,Fuel & Lambda,0.85,name
 60E1D400,0xE448,flag_set_coil_event,Oil Metering,1.000,name
 60E1D400,0xE450,coil_charge_enabled_query,Oil Metering,1.000,name
-60E0FC00,0xE458,UnknownFueling1,Fuel & Lambda,1.000,name
+60E0FC00,0xE458,calcHighRpmInjectorPulseTerm,Fuel & Lambda,0.85,name
 60E1D400,0xE470,calculateEngineRunningTimer2,Peripherals & ISR,1.000,name
 60E1D400,0xE492,getEngineOnTimeForOilMetering,Oil Metering,1.000,name
 60E1D400,0xE4B4,idle_target_increase_step,Idle Control,1.000,name
@@ -1150,14 +1150,14 @@
 60E0FC00,0x12192,getInitialLeadingTrailingAdvance,Ignition & Knock,0.85,name
 60E0FC00,0x121A4,calculateDSCLeadingTimingDerate,Ignition & Knock,0.85,name
 60E1D400,0x121CC,diag_check_121cc,Faults & DTC,1.000,name
-60E1D400,0x121F0,calc_spark_advance,Ignition & Knock,1.000,name
+60E1D400,0x121F0,calc_spark_advance_rotor_A,Ignition & Knock,0.85,name
 60E0FC00,0x12236,modifyTiming,Ignition & Knock,1.000,name
 60E0FC00,0x12294,calculateDSCTrailingTimingDerate,Ignition & Knock,0.85,name
 60E0FC00,0x12326,modifyTrailingTiming,Ignition & Knock,1.000,name
 60E0FC00,0x12342,calculateLeadingTimingDerateCompensated,Ignition & Knock,1.000,name
 60E0FC00,0x12352,calculateTrailingTimingDerateCompensated,Ignition & Knock,1.000,name
 60E0FC00,0x12362,calculateLeadingTimingBaseFinal,Ignition & Knock,1.000,name
-60E1D400,0x1237C,calc_spark_advance,Ignition & Knock,1.000,name
+60E1D400,0x1237C,calc_spark_advance_rotor_B,Ignition & Knock,0.85,name
 60E0FC00,0x12456,calculateTrailingTimingBaseFinal,Ignition & Knock,1.000,name
 60E1D400,0x12508,read_intake_pressure_target_const_12508,Sensors,1.000,name
 60E1D400,0x1251A,read_intake_pressure_target_alt_1251A,Sensors,1.000,name
