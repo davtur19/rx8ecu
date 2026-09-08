@@ -31,7 +31,7 @@ Non-standard. Wrong → silent failure or NRC.
 | RMBA format | `23 [4B addr BE][2B len BE]` | no format byte (non-standard) |
 | RMBA format — OPEN | `23 00 [3B addr][2B len]` (ConnorRigby dumper) vs `23 [4B addr][2B len]` above (matches RX8Man) — equivalent for addr < 0x01000000; whether the ECU accepts both is **unverified (bench open item)** — see `docs/hardware/RX8_OBD_UDS_Protocol.txt` and `community_tools/ConnorRigby_rx8-ecu-dump_AUDIT.md` | assume one is wrong |
 | Pending response | `7F 23 78` before each RMBA = **normal** | not an error |
-| Keepalive interval | every 10 s | S3server timeout ~30 s |
+| Keepalive interval (tester-side) | every 10 s | standard S3server ~30 s |
 
 J2534: OBDX Pro VX. DLL is **32-bit only** → must use `py -3.11-32`.  
 DLL path: `C:\Program Files (x86)\OBDX Pro\J2534\OBDX Pro VX\OBDXVX_J2534.dll`  
