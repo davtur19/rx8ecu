@@ -19,7 +19,10 @@
 #   make verify     cmp build/out.bin against the ROM (byte-exact check)
 #   make verify-all rebuild + byte-exact check for ALL 9 public stock ROMs (./tools/verify_all.sh)
 #   make src        annotated source (60E1D400, equinox+IDA names) -> src/
-#   make c-test     behavior-equivalence tests (host compiler)
+#   make c-test     behavior-equivalence tests (host compiler; alias of c-test-c)
+#   make c-test-c   behavior-equivalence tests (host compiler, 26 C suites)
+#   make c-test-py  differential Python subset for the default gate (5 suites)
+#   make c-test-py-full  full non-caller differential battery (~1757 suites, parallel)
 #   make c-emu      emulator cross-checks (c/tests/verify_emu.py)
 #   make ROM=roms/stock/<id>.bin verify   # any image in the dataset
 #   make clean
@@ -28,7 +31,8 @@
 #   make all        catalog + classify + test (full catalog pipeline)
 #   make catalog    regen symbols/CATALOG_MASTER.csv + CATALOG_STATUS.md + NAMES_STATUS.md
 #   make classify   regen symbols/FUNCTION_CATEGORIES.csv (hybrid classifier)
-#   make test       Python regression suites (repo pattern: plain python3, see below)
+#   make test       default gate: c-test-c (26 C) + c-test-py subset (5 py suites)
+#   make test-fast  full parallel battery (auto-discovery, incl. generated caller suites)
 #
 # NOTE: the pre-release Makefile had a private personal-ROM target for the
 # owner's own ECU. That ROM is kept private now, so those targets
@@ -64,7 +68,20 @@ endif
 # would self-reference and expand empty.
 export PATH := $(if $(TC),$(TC):$(ENV_PATH),$(ENV_PATH))
 
-.PHONY: build all verify verify-all cert src c-test c-emu test test-fast catalog classify clean
+.PHONY: build all verify verify-all cert src c-test c-test-c c-test-py c-test-py-full c-emu test test-fast catalog classify clean
+
+# Host-C compile settings (wave2b). CC is overridable (CC=clang make c-test-c);
+# never hardcoded in recipes — always $(CC).
+CC ?= cc
+C_TEST_FLAGS := -O2 -Wall -Wextra -std=c11
+# NOTE (wave2b): -Werror is deliberately NOT in C_TEST_FLAGS. At least
+# c/req_queue_69602.c + c/tests/test_req_queue_69602.c emit
+# -Wint-to-pointer-cast (absolute-address MMIO) and
+# c/tests/test_osTaskScheduler.c emits -Wuninitialized under
+# -Wall -Wextra (verified 2026-09-08: `cc -O2 -Wall -Wextra -Werror`
+# fails both suites). Sibling agent (wave2a, owns c/*.c + c/*.h) must
+# silence those before -Werror can gate. Re-probe with:
+#   cc -O2 -Wall -Wextra -Werror -std=c11 c/req_queue_69602.c c/tests/test_req_queue_69602.c -o /tmp/t -lm
 
 # Default target: rebuild the stock ROM (documented `make` behavior).
 build: $(BUILD)/out.bin
@@ -111,41 +128,86 @@ src: symbols/symbols_60E1D400_merged.csv symbols/cal_tables.csv $(TOOLS)/organiz
 # separate lifts: frexp @0x48C8 (bitfield_extract_merge), sqrt @0x4740
 # (div_4740), ldexp @0x481C (ldexp_481C).  The generic loop compiles c/<name>.c
 # alone, so this binary needs the helper sources listed explicitly.
-c-test:
-	@for t in c/tests/test_*.c; do \
+#
+# c-test-c compiles each suite with $(CC) $(C_TEST_FLAGS) -lm into a mktemp
+# sandbox (trap-cleaned; no /tmp litter on pass or fail) and runs it.
+# Coverage: every c/tests/test_*.c (26 suites). Prints what it covers.
+c-test-c:
+	@echo "c-test-c: 26 host-compiled C behavior-equivalence suites (c/tests/test_*.c)"
+	@tmpd=$$(mktemp -d) && trap 'rm -rf "$$tmpd"' EXIT INT TERM && \
+	for t in c/tests/test_*.c; do \
 	  b=$$(basename $$t .c); s=$${b#test_}; echo "== $$s =="; \
 	  x=""; \
 	  if [ "$$s" = "checkFloatValidity" ]; then \
 	    x="c/bitfield_extract_merge.c c/div_4740.c c/ldexp_481C.c"; \
 	  fi; \
-	  cc -O2 c/$$s.c $$x $$t -o /tmp/$$b && /tmp/$$b || exit 1; \
-	done
+	  $(CC) $(C_TEST_FLAGS) c/$$s.c $$x $$t -o "$$tmpd/$$b" -lm && "$$tmpd/$$b" || exit 1; \
+	done && echo "c-test-c: all 26 C suites passed"
 
-# verify each C lift against the emulated ROM (tools/sh2emu.py)
+# c-test: historical alias of c-test-c (CI verify job calls `make c-test`).
+c-test: c-test-c
+
+# verify each C lift against the emulated ROM (tools/sh2emu.py).
+# Coverage: 9 hosted + 44 skipped = 53 claimed lifts (the runner itself
+# prints the honest COVERAGE line; SKIPs name their covering suite).
 c-emu:
+	@echo "c-emu: C lifts vs emulated ROM (c/tests/verify_emu.py; COVERAGE 9 hosted + 44 skipped)"
 	python3 c/tests/verify_emu.py
 
-# Python regression suites: disassembler decode families (incl. the GNU-as bulk
-# round-trip), emulator decode families, and the track-A C<->emulator
-# cross-check.  Failure of any suite aborts with non-zero status.
+# Python differential suites.
+# c-test-py is the STATED default-gate subset (fast enough for `make test`):
+#   tools/tests/test_decode_families.py  (disassembler decode families)
+#   tools/tests/test_emulator_families.py (emulator decode families)
+#   c/tests/verify_emu.py                (C<->emulated-ROM cross-check; prints COVERAGE 9+44)
+#   c/tests/test_math_primitives.py      (scalar float/int leaf differential)
+#   c/tests/test_mem_accessors.py        (redundant-RAM accessor differential)
+# Failure of any suite aborts with non-zero status.
 #
 # NOTE: test_decode_families.py needs sh-elf-as on PATH for the bulk round-trip;
 # `make test` gets it from tools/toolchain/usr/bin (PATH setup above).  If you
 # run the suites by hand with system python, install capstone (for disasm_sh2e)
 # and put the sh-elf binutils on PATH, e.g.:
 #   PATH=tools/toolchain/usr/bin:$$PATH python3 tools/tests/test_decode_families.py
-test:
+c-test-py:
+	@echo "c-test-py: 5-suite default-gate subset (decode + emulator families + verify_emu + math_primitives + mem_accessors)"
 	@for t in \
 	  tools/tests/test_decode_families.py \
 	  tools/tests/test_emulator_families.py \
-	  c/tests/verify_emu.py; do \
+	  c/tests/verify_emu.py \
+	  c/tests/test_math_primitives.py \
+	  c/tests/test_mem_accessors.py; do \
 	  echo "== $$t =="; python3 $$t || exit 1; \
 	done
-	@echo "test: all suites passed"
+	@echo "c-test-py: subset passed (decode + emulator + verify_emu[COVERAGE 9+44] + math_primitives + mem_accessors)"
 
-# Parallel runner for the full Python regression suite (all c/tests/test_*.py
-# + tools/tests/test_*.py + the C<->emulator cross-check).  Same coverage as
-# the serial loops, just concurrent.  Use -j to tune workers.
+# c-test-py-full: the FULL non-caller differential battery — every
+# c/tests/test_*.py EXCEPT generated test_caller_*.py (603 files, ~182 MB of
+# callee-inlined snapshots owned by the caller generator; never run here)
+# plus tools/tests/test_*.py plus verify_emu. Opt-in parallel gate.
+# Runtime (dev box, 8 cores, xargs -P 7): ~30-40 min wall. The battery is
+# heavy-tailed (output_spark2 ~60 s, verify_emu ~45 s, spark fault-mask ~25 s;
+# 20-suite sample avg 3.1 s/suite serial); re-measure with
+# `time make c-test-py-full`. For the everything-including-callers battery
+# use `make test-fast` (CI tests job, 90-min budget).
+c-test-py-full:
+	@echo "c-test-py-full: full non-caller differential battery (excludes generated test_caller_*.py)"
+	@export TMPD=$$(mktemp -d) && trap 'rm -rf "$$TMPD"' EXIT INT TERM && \
+	ls c/tests/test_*.py tools/tests/test_*.py c/tests/verify_emu.py 2>/dev/null | grep -v test_caller_ | sort -u > "$$TMPD/list" && \
+	echo "c-test-py-full: $$(wc -l < "$$TMPD/list") suites" && \
+	xargs -P 7 -a "$$TMPD/list" -I{} sh -c 'python3 "$$1" >"$$TMPD/OUT_$$(echo "$$1" | tr / _).log" 2>&1 || echo "$$1" >>"$$TMPD/fails"' _ {} ; \
+	if [ -s "$$TMPD/fails" ]; then echo "FAILURES:"; cat "$$TMPD/fails"; echo "c-test-py-full: FAILED"; exit 1; else echo "c-test-py-full: all non-caller suites passed"; fi
+
+# Default gate: honest split — C behavior-equivalence (26 suites) plus the
+# stated 5-suite Python subset. Full batteries are opt-in: `make c-test-py-full`
+# (non-caller differential) and `make test-fast` (everything, parallel).
+test: c-test-c c-test-py
+	@echo "test: default gate passed (c-test-c 26 C + c-test-py 5-suite subset); full: make c-test-py-full / make test-fast"
+
+# Parallel runner for the full Python regression suite (auto-discovered: all
+# c/tests/test_*.py INCLUDING generated test_caller_*.py + tools/tests/test_*.py
+# + the C<->emulator cross-check).  Same coverage as the serial loops, just
+# concurrent.  Use -j to tune workers.  For the non-caller battery use
+# `make c-test-py-full`.  Prints its own suite count + summary.
 test-fast:
 	python3 tools/run_tests_parallel.py c/tests/verify_emu.py
 
