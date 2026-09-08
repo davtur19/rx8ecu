@@ -557,7 +557,6 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Air Bleed Control (Map) 2,0x07b55a,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Air Bleed Control (Map) Y Axis,0x07b43c,axis,1D,,,,high,axis_propagation2
 60E1D400,Air Bleed Control (Map),0x07b464,table,1D,,,,high,consumer_noc_mapscan
-60E1D400,Air Bleed Control (Map) Y Axis,0x07b43c,axis,1D,,,,high,axis_propagation2
 60E1D400,Idle Correction Interpolation (Map),0x07b4a0,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Idle Correction Interpolation (Map) Y Axis,0x07b470,axis,1D,,,,high,axis_propagation2
 60E1D400,Ignition Knock - RPM Knock Retard,0x07b4d8,table,1D,,,,high,consumer_cknock_control_calc_44824_mapscan
