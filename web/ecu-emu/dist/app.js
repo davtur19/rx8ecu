@@ -33,6 +33,9 @@ let selectedPin = null;
 let sensorState = {
   rpm: 800, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45
 };
+/* Expose to engine_sim.js / can_live.js (they read window.sensorState).
+ * `let` at top level does not attach to window, so publish explicitly. */
+window.sensorState = sensorState;
 let pinOutputs = {};  // name → live value, populated by computePinStates()
 
 /* ======================================================================
