@@ -32,13 +32,13 @@
 void req_queue_store_69602(uint32_t r4, uint32_t r5)
 {
     uint32_t b = r4 & 0xFF;
-    uint32_t v = ((uint32_t)r5 * 0x0FA0u) + *(volatile uint32_t *)REQ_BASE;
-    *(volatile uint32_t *)(REQ_VALUES + b * 4) = v;
-    *(volatile uint8_t *)(REQ_FLAGS + b) = 1;
+    uint32_t v = ((uint32_t)r5 * 0x0FA0u) + *(volatile uint32_t *)(uintptr_t)REQ_BASE;
+    *(volatile uint32_t *)(uintptr_t)(REQ_VALUES + b * 4) = v;
+    *(volatile uint8_t *)(uintptr_t)(REQ_FLAGS + b) = 1;
 }
 
 /* 0x69694 — clear one entry's flag */
 void req_queue_clear_69694(uint32_t r4)
 {
-    *(volatile uint8_t *)(REQ_FLAGS + (r4 & 0xFF)) = 0;
+    *(volatile uint8_t *)(uintptr_t)(REQ_FLAGS + (r4 & 0xFF)) = 0;
 }
