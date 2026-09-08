@@ -538,8 +538,13 @@ if __name__ == '__main__':
     import os
 
     if len(sys.argv) > 1:
-        addr = int(sys.argv[1], 0)
-        length = int(sys.argv[2], 0) if len(sys.argv) > 2 else 64
+        try:
+            addr = int(sys.argv[1], 0)
+            length = int(sys.argv[2], 0) if len(sys.argv) > 2 else 64
+        except ValueError:
+            print("Usage: disasm_sh2e.py <hex_addr> [length=64] [rom_name=60E0FC00.bin]")
+            print("Example: disasm_sh2e.py 0x23B0 44 60E0FC00.bin")
+            sys.exit(2)
         rom_name = sys.argv[3] if len(sys.argv) > 3 else '60E0FC00.bin'
     else:
         print("Usage: disasm_sh2e.py <hex_addr> [length=64] [rom_name=60E0FC00.bin]")

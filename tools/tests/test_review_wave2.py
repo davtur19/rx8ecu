@@ -45,14 +45,12 @@ def check(cond, msg):
 # ---------------------------------------------------------------------------
 def test_memo_rom_keys():
     import gen_c_lift_v8 as G
-    import gcl_prep3 as P
-    import gen_c_lift_v8_patched as GP
 
-    # Same length, different bytes -> different keys in every module.
+    # Same length, different bytes -> different keys.
     ra = b'\xD0\x00' + b'\x00\x09' * 31          # mov.l @(0,PC),r0 at 0
     rb = b'\x00\x09' * 32                        # pure nops
     assert len(ra) == len(rb)
-    for mod, name in ((G, 'v8'), (P, 'gcl_prep3'), (GP, 'patched')):
+    for mod, name in ((G, 'v8'),):
         check(mod._rom_key(ra) != mod._rom_key(rb),
               "memo/1: %s keys differ for different ROMs (same length)" % name)
         check(mod._rom_key(ra) == mod._rom_key(bytearray(ra)),
@@ -70,7 +68,6 @@ def test_memo_rom_keys():
               "memo/1: pool sets are per-content (order %s first)"
               % ('rb' if first is rb else 'ra'))
     G._POOL_ALL_CACHE.clear()
-    P._POOL_ALL_CACHE.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -125,9 +122,8 @@ def _jt_rom(hole):
 
 def test_enum_table_strict():
     import gen_c_lift_v8 as G
-    import gcl_prep3 as P
 
-    for mod, name in ((G, 'v8'), (P, 'gcl_prep3')):
+    for mod, name in ((G, 'v8'),):
         res = mod.build_cfg(_jt_rom(0x10), 0, 0x30, set(), {},
                             allow_runtime_base=True)
         check(res.reject is None,

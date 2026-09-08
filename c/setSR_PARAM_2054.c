@@ -7,6 +7,8 @@ uint32_t setSR_PARAM_2054(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
     /* params (possibly) */
     uint32_t r0 = 0;
     uint32_t T = 0;
+    uint32_t Q = 0;
+    uint32_t M = 0;
     uint32_t sr = 0x000000F0u;
     /* 0x002054: op 0x0002 */
     r0 = sr;
@@ -14,6 +16,7 @@ uint32_t setSR_PARAM_2054(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
     r0 &= 0xF0u;
     /* 0x002058: op 0x3502 */
     T = (r5 >= r0) ? 1u : 0u;
+    sr = (sr & ~1u) | (T & 1u);
     /* 0x00205A: bt.s 0x002060 */
     /* 0x00205C: mov.l r0,@r4 */
     *(volatile uint32_t*)r4 = r0;
@@ -24,6 +27,9 @@ uint32_t setSR_PARAM_2054(uint32_t r4, uint32_t r5, uint32_t r6, uint32_t r7)
     /* 0x002060: rts */
     /* 0x002062: op 0x450E */
     sr = r5;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     return r0; /* fallthrough */
 }

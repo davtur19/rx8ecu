@@ -11,7 +11,7 @@ Each translate() returns a dict:
 
     { 'c':    [C statements, rendered into the lift body],
       'py':   [Python statements, rendered into the test's ref() model],
-      'uses': set of variable names (r0..r15, T, mach, macl, Q, M, pr),
+      'uses': set of variable names (r0..r15, T, Q, M, mach, macl, sr, pr),
       'kind': 'st' | 'branch' | 'ret',
       'cond_c':  C condition string for branch kind,
       'cond_py': Python condition string for branch kind,
@@ -150,6 +150,56 @@ def _mk(c, py, uses):
     return {'c': [c], 'py': [py], 'uses': set(uses)}
 
 
+# ---- SR <-> T/Q/M mirror (oracle sh2emu keeps these in sync on every write:
+# T=SR bit0, Q=bit8, M=bit9) ----
+# Every T/Q/M write pushes its bits into the sr image; every SR write (ldc)
+# re-syncs T/Q/M from sr.  _mkT/_mkTQM/_mkLDC append the same statements the
+# emulator's property setters perform, in both the generated C and the py
+# mirror, so lifts agree with the oracle bit-exactly.
+_SR_T_SYNC_C = 'sr = (sr & ~1u) | (T & 1u);'
+_SR_T_SYNC_PY = 'sr = (sr & ~1) | (T & 1)'
+_SR_TQM_SYNC_C = ('sr = (sr & ~0x301u) | (T & 1u) | ((Q & 1u) << 8)'
+                  ' | ((M & 1u) << 9);')
+_SR_TQM_SYNC_PY = ('sr = (sr & ~0x301) | (T & 1) | ((Q & 1) << 8)'
+                   ' | ((M & 1) << 9)')
+_TQM_FROM_SR_C = ['T = sr & 1u;', 'Q = (sr >> 8) & 1u;', 'M = (sr >> 9) & 1u;']
+_TQM_FROM_SR_PY = ['T = sr & 1', 'Q = (sr >> 8) & 1', 'M = (sr >> 9) & 1']
+
+
+def _mkT(c, py, uses):
+    """_mk for T-only writers: also push T into the sr image (bit 0)."""
+    d = _mk(c, py, uses)
+    d['c'].append(_SR_T_SYNC_C)
+    d['py'].append(_SR_T_SYNC_PY)
+    d['uses'].add('sr')
+    return d
+
+
+def _mkTQM(c, py, uses):
+    """_mk for T/Q/M writers (div0s/div0u/div1): full sr image update."""
+    d = _mk(c, py, uses)
+    d['c'].append(_SR_TQM_SYNC_C)
+    d['py'].append(_SR_TQM_SYNC_PY)
+    d['uses'].add('sr')
+    return d
+
+
+def _mkLDC(c, py, uses):
+    """_mk for ldc Rn,SR: the SR write re-syncs T/Q/M from sr bits 0/8/9."""
+    d = _mk(c, py, uses)
+    d['c'].extend(_TQM_FROM_SR_C)
+    d['py'].extend(_TQM_FROM_SR_PY)
+    d['uses'] |= {'T', 'Q', 'M'}
+    return d
+
+
+def _pureT(c, py, uses, mnem):
+    """decode_fpu's pure() for T-writing FPU ops (fcmp/eq, fcmp/gt): same
+    dict shape (kind 'fpu' + ann) plus the T->sr image push."""
+    return {'kind': 'fpu', 'c': [c, _SR_T_SYNC_C], 'py': [py, _SR_T_SYNC_PY],
+            'uses': set(uses) | {'sr'}, 'ann': mnem}
+
+
 def translate(op, pc, rom, ann=''):
     """Return the semantic dict for opcode `op` at address `pc`, or None if the
     opcode is not in the pure-integer mapping (memory ops, FPU, calls...)."""
@@ -190,7 +240,7 @@ def translate(op, pc, rom, ann=''):
         if nib == 0xA:   # negc Rm,Rn  (mirror sh2emu: T = borrow from ORIGINAL Rm;
             # both the C and the py mirror snapshot Rm (_m0) BEFORE the write so
             # the n==m alias (negc r5,r5) tests the original value, as HW does)
-            return _mk('{ uint32_t _m0 = r%d; uint32_t _t0 = T; r%d = (uint32_t)(0u - _m0 - _t0); T = ((_m0 + _t0) & 0xFFFFFFFFu) ? 1u : 0u; }' % (m, n),
+            return _mkT('{ uint32_t _m0 = r%d; uint32_t _t0 = T; r%d = (uint32_t)(0u - _m0 - _t0); T = ((_m0 + _t0) & 0xFFFFFFFFu) ? 1u : 0u; }' % (m, n),
                        '_m0 = r[%d]\n            _t0 = T\n            s = -_m0 - _t0\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if (_m0 + _t0) & 0xFFFFFFFF else 0' % (m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
 
@@ -201,37 +251,37 @@ def translate(op, pc, rom, ann=''):
         if nib == 0x8:
             return _mk('r%d = r%d - r%d;' % (n, n, m), 'r[%d] = (r[%d] - r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0x0:
-            return _mk('T = (r%d == r%d) ? 1u : 0u;' % (n, m), 'T = 1 if r[%d] == r[%d] else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
+            return _mkT('T = (r%d == r%d) ? 1u : 0u;' % (n, m), 'T = 1 if r[%d] == r[%d] else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x2:
-            return _mk('T = (r%d >= r%d) ? 1u : 0u;' % (n, m),
+            return _mkT('T = (r%d >= r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if (r[%d] & 0xFFFFFFFF) >= (r[%d] & 0xFFFFFFFF) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x3:
-            return _mk('T = ((int32_t)r%d >= (int32_t)r%d) ? 1u : 0u;' % (n, m),
+            return _mkT('T = ((int32_t)r%d >= (int32_t)r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if s32(r[%d]) >= s32(r[%d]) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x6:
-            return _mk('T = (r%d > r%d) ? 1u : 0u;' % (n, m),
+            return _mkT('T = (r%d > r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if (r[%d] & 0xFFFFFFFF) > (r[%d] & 0xFFFFFFFF) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x7:
-            return _mk('T = ((int32_t)r%d > (int32_t)r%d) ? 1u : 0u;' % (n, m),
+            return _mkT('T = ((int32_t)r%d > (int32_t)r%d) ? 1u : 0u;' % (n, m),
                        'T = 1 if s32(r[%d]) > s32(r[%d]) else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0xE:   # addc
-            return _mk('{ uint64_t _s = (uint64_t)r%d + r%d + T; T = (uint32_t)(_s >> 32); r%d = (uint32_t)_s; }' % (n, m, n),
+            return _mkT('{ uint64_t _s = (uint64_t)r%d + r%d + T; T = (uint32_t)(_s >> 32); r%d = (uint32_t)_s; }' % (n, m, n),
                        's = r[%d] + r[%d] + T\n            r[%d] = s & 0xFFFFFFFF\n            T = (s >> 32) & 1' % (n, m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0xA:   # subc
-            return _mk('{ int64_t _s = (int64_t)r%d - r%d - T; T = (_s < 0) ? 1u : 0u; r%d = (uint32_t)_s; }' % (n, m, n),
+            return _mkT('{ int64_t _s = (int64_t)r%d - r%d - T; T = (_s < 0) ? 1u : 0u; r%d = (uint32_t)_s; }' % (n, m, n),
                        's = r[%d] - r[%d] - T\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if s < 0 else 0' % (n, m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0xB:   # subv (saturating? no: T=overflow, r=wrapped)
-            return _mk('{ int64_t _s = (int64_t)(int32_t)r%d - (int64_t)(int32_t)r%d; r%d = (uint32_t)_s; T = (_s > 0x7FFFFFFFLL || _s < -0x80000000LL) ? 1u : 0u; }' % (n, m, n),
+            return _mkT('{ int64_t _s = (int64_t)(int32_t)r%d - (int64_t)(int32_t)r%d; r%d = (uint32_t)_s; T = (_s > 0x7FFFFFFFLL || _s < -0x80000000LL) ? 1u : 0u; }' % (n, m, n),
                        's = s32(r[%d]) - s32(r[%d])\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if s > 0x7FFFFFFF or s < -0x80000000 else 0' % (n, m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0xF:   # addv
-            return _mk('{ int64_t _s = (int64_t)(int32_t)r%d + (int64_t)(int32_t)r%d; r%d = (uint32_t)_s; T = (_s > 0x7FFFFFFFLL || _s < -0x80000000LL) ? 1u : 0u; }' % (n, m, n),
+            return _mkT('{ int64_t _s = (int64_t)(int32_t)r%d + (int64_t)(int32_t)r%d; r%d = (uint32_t)_s; T = (_s > 0x7FFFFFFFLL || _s < -0x80000000LL) ? 1u : 0u; }' % (n, m, n),
                        's = s32(r[%d]) + s32(r[%d])\n            r[%d] = s & 0xFFFFFFFF\n            T = 1 if s > 0x7FFFFFFF or s < -0x80000000 else 0' % (n, m, n),
                        ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x4:   # div1 Rm,Rn  (mirror sh2emu._exec)
-            return _mk(
+            return _mkTQM(
                 '{ uint32_t _t0 = (r%d >> 31) & 1u;'
                 ' r%d = (r%d << 1) | (T & 1u);'
                 ' uint32_t _t1 = (Q ^ M) & 1u;'
@@ -269,7 +319,7 @@ def translate(op, pc, rom, ann=''):
     # ---- tst / and / xor / or / cmp/str / div0s / mulu.w / muls.w (n0==2) ----
     if n0 == 0x2:
         if nib == 0x8:
-            return _mk('T = ((r%d & r%d) == 0u) ? 1u : 0u;' % (n, m), 'T = 1 if (r[%d] & r[%d]) == 0 else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
+            return _mkT('T = ((r%d & r%d) == 0u) ? 1u : 0u;' % (n, m), 'T = 1 if (r[%d] & r[%d]) == 0 else 0' % (n, m), ['T', 'r%d' % n, 'r%d' % m])
         if nib == 0x9:
             return _mk('r%d &= r%d;' % (n, m), 'r[%d] = (r[%d] & r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xA:
@@ -277,11 +327,11 @@ def translate(op, pc, rom, ann=''):
         if nib == 0xB:
             return _mk('r%d |= r%d;' % (n, m), 'r[%d] = (r[%d] | r[%d]) & 0xFFFFFFFF' % (n, n, m), ['r%d' % n, 'r%d' % m])
         if nib == 0xC:   # cmp/str
-            return _mk('{ uint32_t _x = r%d ^ r%d; uint32_t _y = (_x - 0x01010101u) & ~_x; T = (_y & 0x80808080u) ? 1u : 0u; }' % (m, n),
+            return _mkT('{ uint32_t _x = r%d ^ r%d; uint32_t _y = (_x - 0x01010101u) & ~_x; T = (_y & 0x80808080u) ? 1u : 0u; }' % (m, n),
                        'x = r[%d] ^ r[%d]\n            y = ((x - 0x01010101) & (~x) & 0xFFFFFFFF)\n            T = 1 if (y & 0x80808080) else 0' % (m, n),
                        ['T', 'r%d' % m, 'r%d' % n])
         if nib == 0x7:   # div0s Rm,Rn
-            return _mk('Q = (r%d >> 31) & 1u; M = (r%d >> 31) & 1u; T = Q ^ M;' % (n, m),
+            return _mkTQM('Q = (r%d >> 31) & 1u; M = (r%d >> 31) & 1u; T = Q ^ M;' % (n, m),
                        'Q = (r[%d] >> 31) & 1\n            M = (r[%d] >> 31) & 1\n            T = Q ^ M' % (n, m),
                        ['Q', 'M', 'T', 'r%d' % n, 'r%d' % m])
         if nib == 0xD:   # xtrct Rm,Rn  (mirror sh2emu: (Rm<<16)|(Rn>>16))
@@ -323,7 +373,7 @@ def translate(op, pc, rom, ann=''):
 
     # ---- immediate logical ops on r0 ----
     if op & 0xFF00 == 0xC800:
-        return _mk('T = ((r0 & 0x%02Xu) == 0u) ? 1u : 0u;' % l, 'T = 1 if (r[0] & 0x%02X) == 0 else 0' % l, ['T', 'r0'])
+        return _mkT('T = ((r0 & 0x%02Xu) == 0u) ? 1u : 0u;' % l, 'T = 1 if (r[0] & 0x%02X) == 0 else 0' % l, ['T', 'r0'])
     if op & 0xFF00 == 0xC900:
         return _mk('r0 &= 0x%02Xu;' % l, 'r[0] = (r[0] & 0x%02X) & 0xFFFFFFFF' % l, ['r0'])
     if op & 0xFF00 == 0xCA00:
@@ -331,16 +381,16 @@ def translate(op, pc, rom, ann=''):
     if op & 0xFF00 == 0xCB00:
         return _mk('r0 |= 0x%02Xu;' % l, 'r[0] = (r[0] | 0x%02X) & 0xFFFFFFFF' % l, ['r0'])
     if op & 0xFF00 == 0x8800:   # cmp/eq #imm,R0 (signed imm)
-        return _mk('T = ((int32_t)r0 == (int32_t)(int8_t)0x%02X) ? 1u : 0u;' % l,
+        return _mkT('T = ((int32_t)r0 == (int32_t)(int8_t)0x%02X) ? 1u : 0u;' % l,
                    'T = 1 if s32(r[0]) == s8(0x%02X) else 0' % l, ['T', 'r0'])
 
     # ---- shifts / rotates / T-flag tests (n0==4, small set) ----
     f = op & 0xF0FF
     if n0 == 0x4:
-        if f == 0x4000: return _mk('T = (r%d >> 31) & 1u; r%d = (r%d << 1);' % (n, n, n),
+        if f == 0x4000: return _mkT('T = (r%d >> 31) & 1u; r%d = (r%d << 1);' % (n, n, n),
                                    'T = (r[%d] >> 31) & 1\n            r[%d] = (r[%d] << 1) & 0xFFFFFFFF' % (n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4001: return _mk('T = r%d & 1u; r%d = (r%d >> 1);' % (n, n, n),
+        if f == 0x4001: return _mkT('T = r%d & 1u; r%d = (r%d >> 1);' % (n, n, n),
                                    'T = r[%d] & 1\n            r[%d] = (r[%d] >> 1) & 0xFFFFFFFF' % (n, n, n),
                                    ['T', 'r%d' % n])
         if f == 0x4008: return _mk('r%d = (r%d << 2);' % (n, n), 'r[%d] = (r[%d] << 2) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
@@ -349,27 +399,27 @@ def translate(op, pc, rom, ann=''):
         if f == 0x4019: return _mk('r%d = (r%d >> 8);' % (n, n), 'r[%d] = (r[%d] >> 8) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
         if f == 0x4028: return _mk('r%d = (r%d << 16);' % (n, n), 'r[%d] = (r[%d] << 16) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
         if f == 0x4029: return _mk('r%d = (r%d >> 16);' % (n, n), 'r[%d] = (r[%d] >> 16) & 0xFFFFFFFF' % (n, n), ['r%d' % n])
-        if f == 0x4021: return _mk('T = r%d & 1u; r%d = (r%d >> 1) | (r%d & 0x80000000u);' % (n, n, n, n),
+        if f == 0x4021: return _mkT('T = r%d & 1u; r%d = (r%d >> 1) | (r%d & 0x80000000u);' % (n, n, n, n),
                                    'T = r[%d] & 1\n            r[%d] = ((r[%d] >> 1) | (r[%d] & 0x80000000)) & 0xFFFFFFFF' % (n, n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4020: return _mk('T = (r%d >> 31) & 1u; r%d = (r%d << 1);' % (n, n, n),
+        if f == 0x4020: return _mkT('T = (r%d >> 31) & 1u; r%d = (r%d << 1);' % (n, n, n),
                                    'T = (r[%d] >> 31) & 1\n            r[%d] = (r[%d] << 1) & 0xFFFFFFFF' % (n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4004: return _mk('T = (r%d >> 31) & 1u; r%d = (r%d << 1) | (r%d >> 31);' % (n, n, n, n),
+        if f == 0x4004: return _mkT('T = (r%d >> 31) & 1u; r%d = (r%d << 1) | (r%d >> 31);' % (n, n, n, n),
                                    'T = (r[%d] >> 31) & 1\n            r[%d] = ((r[%d] << 1) | (r[%d] >> 31)) & 0xFFFFFFFF' % (n, n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4005: return _mk('T = r%d & 1u; r%d = (r%d >> 1) | ((r%d & 1u) << 31);' % (n, n, n, n),
+        if f == 0x4005: return _mkT('T = r%d & 1u; r%d = (r%d >> 1) | ((r%d & 1u) << 31);' % (n, n, n, n),
                                    'T = r[%d] & 1\n            r[%d] = ((r[%d] >> 1) | ((r[%d] & 1) << 31)) & 0xFFFFFFFF' % (n, n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4024: return _mk('{ uint32_t _t = (r%d >> 31) & 1u; r%d = (r%d << 1) | T; T = _t; }' % (n, n, n),
+        if f == 0x4024: return _mkT('{ uint32_t _t = (r%d >> 31) & 1u; r%d = (r%d << 1) | T; T = _t; }' % (n, n, n),
                                    't = (r[%d] >> 31) & 1\n            r[%d] = ((r[%d] << 1) | T) & 0xFFFFFFFF\n            T = t' % (n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4025: return _mk('{ uint32_t _t = r%d & 1u; r%d = (r%d >> 1) | (T << 31); T = _t; }' % (n, n, n),
+        if f == 0x4025: return _mkT('{ uint32_t _t = r%d & 1u; r%d = (r%d >> 1) | (T << 31); T = _t; }' % (n, n, n),
                                    't = r[%d] & 1\n            r[%d] = ((r[%d] >> 1) | (T << 31)) & 0xFFFFFFFF\n            T = t' % (n, n, n),
                                    ['T', 'r%d' % n])
-        if f == 0x4011: return _mk('T = ((int32_t)r%d >= 0) ? 1u : 0u;' % n, 'T = 1 if s32(r[%d]) >= 0 else 0' % n, ['T', 'r%d' % n])
-        if f == 0x4015: return _mk('T = ((int32_t)r%d > 0) ? 1u : 0u;' % n, 'T = 1 if s32(r[%d]) > 0 else 0' % n, ['T', 'r%d' % n])
-        if f == 0x4010: return _mk('r%d = r%d - 1u; T = (r%d == 0u) ? 1u : 0u;' % (n, n, n),
+        if f == 0x4011: return _mkT('T = ((int32_t)r%d >= 0) ? 1u : 0u;' % n, 'T = 1 if s32(r[%d]) >= 0 else 0' % n, ['T', 'r%d' % n])
+        if f == 0x4015: return _mkT('T = ((int32_t)r%d > 0) ? 1u : 0u;' % n, 'T = 1 if s32(r[%d]) > 0 else 0' % n, ['T', 'r%d' % n])
+        if f == 0x4010: return _mkT('r%d = r%d - 1u; T = (r%d == 0u) ? 1u : 0u;' % (n, n, n),
                                    'r[%d] = (r[%d] - 1) & 0xFFFFFFFF\n            T = 1 if r[%d] == 0 else 0' % (n, n, n),
                                    ['T', 'r%d' % n])
         # lds Rn,mach/macl/pr = 0x4n0A/0x4n1A/0x4n2A (mirror sh2emu n0==0x4).
@@ -385,9 +435,9 @@ def translate(op, pc, rom, ann=''):
 
     # ---- misc system ops ----
     if op == 0x0009: return _mk('', '', [])                       # nop
-    if op == 0x0019: return _mk('Q = 0u; M = 0u; T = 0u;', 'Q = 0; M = 0; T = 0', ['Q', 'M', 'T'])  # div0u
-    if op == 0x0008: return _mk('T = 0u;', 'T = 0', ['T'])       # clrt
-    if op == 0x0018: return _mk('T = 1u;', 'T = 1', ['T'])       # sett
+    if op == 0x0019: return _mkTQM('Q = 0u; M = 0u; T = 0u;', 'Q = 0; M = 0; T = 0', ['Q', 'M', 'T'])  # div0u
+    if op == 0x0008: return _mkT('T = 0u;', 'T = 0', ['T'])       # clrt
+    if op == 0x0018: return _mkT('T = 1u;', 'T = 1', ['T'])       # sett
     if op == 0x0028: return _mk('mach = 0u; macl = 0u;', 'mach = 0; macl = 0', ['mach', 'macl'])  # clrmac
     if op & 0xF0FF == 0x0029: return _mk('r%d = T;' % n, 'r[%d] = T;' % n, ['r%d' % n, 'T'])      # movt
     if op == 0x001B: return _mk('', '', [])                       # sleep -> no-op (as sh2emu)
@@ -402,15 +452,17 @@ def translate(op, pc, rom, ann=''):
         if op & 0xF0FF == 0x002A: return _mk('r%d = pr;' % n, 'r[%d] = pr' % n, ['r%d' % n, 'pr'])
 
     # ---- SR system-register ops (additive, real): sh2emu executes these
-    # (stc SR,Rn 0x0n02 / ldc Rn,SR 0x4n0E — see sh2emu._exec).  `sr` is an
-    # independent uint32 state, init 0x000000F0 (sh2emu call() default), and is
-    # NOT synced with T: ldc sets sr verbatim, stc reads it verbatim, exactly
-    # like the oracle.  The generator declares sr (uint32_t, default 0x000000F0)
+    # (stc SR,Rn 0x0n02 / ldc Rn,SR 0x4n0E — see sh2emu._exec).  `sr` is a
+    # uint32 state, init 0x000000F0 (sh2emu call() default), kept in sync
+    # with T/Q/M exactly like the oracle: every T/Q/M write pushes SR bits
+    # 0/8/9 (see _mkT/_mkTQM), every ldc re-syncs T/Q/M from sr (see
+    # _mkLDC), and stc reads the live image.  The generator declares sr
+    # (uint32_t, default 0x000000F0, plus Q/M when an ldc resync needs them)
     # only when the body references it, and the test mirror seeds sr likewise.
     if op & 0xF0FF == 0x0002 and (op >> 12) == 0:      # stc SR,Rn
         return _mk('r%d = sr;' % n, 'r[%d] = sr' % n, ['r%d' % n, 'sr'])
     if op & 0xF0FF == 0x400E:                          # ldc Rn,SR
-        return _mk('sr = r%d;' % n, 'sr = r[%d]' % n, ['r%d' % n, 'sr'])
+        return _mkLDC('sr = r%d;' % n, 'sr = r[%d]' % n, ['r%d' % n, 'sr'])
     if op & 0xF0FF == 0x402E:                          # ldc Rn,VBR (mirror sh2emu 0x4n2E)
         # `vbr` is modeled like `sr`: an independent uint32 state (sh2emu seeds
         # it 0 at call()).  NOTE: gen_c_lift_v3.build_locals currently declares
@@ -947,9 +999,11 @@ def decode_gbr_bit(op, pc, rom, ctx=None):
         addr_py = '0x%08X' % gbr
     if family == 'tst':
         c = ['T = ((*(volatile uint8_t*)%s & 0x%02Xu) == 0u) ? 1u : 0u;%s'
-             % (addr_c, lo, note)]
-        py = ['T = 1 if (_rdw(ram, %s, 1) & 0x%02X) == 0 else 0' % (addr_py, lo)]
-        uses = {'T'}
+             % (addr_c, lo, note),
+             _SR_T_SYNC_C]
+        py = ['T = 1 if (_rdw(ram, %s, 1) & 0x%02X) == 0 else 0' % (addr_py, lo),
+              _SR_T_SYNC_PY]
+        uses = {'T', 'sr'}
     else:
         c = ['*(volatile uint8_t*)%s %s= 0x%02Xu;%s'
              % (addr_c, {'and': '&', 'xor': '^', 'or': '|'}[family], lo, note)]
@@ -1209,13 +1263,13 @@ def decode_fpu(op, pc, rom, ctx=None):
                         ['fr%d' % n, 'fr%d' % m], 'fdiv %s,%s' % (frm, frn))
         # ---- compare (T-flag only, as sh2emu) ----
         if nib == 0x4:
-            return pure('{ union { uint32_t u; float f; } _a, _b;'
+            return _pureT('{ union { uint32_t u; float f; } _a, _b;'
                         ' _a.u = %s; _b.u = %s;'
                         ' T = (_a.f == _b.f) ? 1u : 0u; }' % (frn, frm),
                         'T = 1 if fr[%d] == fr[%d] else 0' % (n, m),
                         ['T', 'fr%d' % n, 'fr%d' % m], 'fcmp/eq %s,%s' % (frm, frn))
         if nib == 0x5:
-            return pure('{ union { uint32_t u; float f; } _a, _b;'
+            return _pureT('{ union { uint32_t u; float f; } _a, _b;'
                         ' _a.u = %s; _b.u = %s;'
                         ' T = (_a.f > _b.f) ? 1u : 0u; }' % (frn, frm),
                         'T = 1 if fr[%d] > fr[%d] else 0' % (n, m),

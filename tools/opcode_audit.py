@@ -12,7 +12,9 @@ How the "implemented" set is derived (authoritative, not regex):
   the SH2 class in tools/sh2emu.py dispatches in _delayed() (branches) and
   _exec() (everything else). For every 16-bit opcode we instantiate the real
   class, reset register state, and call _delayed/_exec: any opcode that returns
-  (or executes) without raising NotImplementedError is "implemented". This is
+  (or executes) without raising any exception is "implemented" (any exception
+  in the probe — NotImplementedError for unimplemented opcodes, or any other
+  error from the zero-state probe — counts as not-implemented). This is
   exact — it probes the same code the tests run, including the intentionally
   unimplemented `trapa`.
 

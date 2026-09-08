@@ -9,6 +9,8 @@ uint32_t atomic_bit_set_word_tail_4b9c(uint32_t r4, uint32_t r5, uint32_t r6, ui
     uint32_t r2 = 0;
     uint32_t r3 = 0;
     uint32_t T = 0;
+    uint32_t Q = 0;
+    uint32_t M = 0;
     uint32_t sr = 0x000000F0u;
     /* 0x004B9C: op 0x235B */
     r3 |= r5;
@@ -17,6 +19,9 @@ uint32_t atomic_bit_set_word_tail_4b9c(uint32_t r4, uint32_t r5, uint32_t r6, ui
     /* 0x004BA0: rts */
     /* 0x004BA2: op 0x420E */
     sr = r2;
+    T = sr & 1u;
+    Q = (sr >> 8) & 1u;
+    M = (sr >> 9) & 1u;
     return r0;
     /* 0x004BA4: mov.b @r4,r3 */
     uint32_t t2 = (uint32_t)(int32_t)(int8_t)*(volatile uint8_t*)r4;
@@ -25,6 +30,7 @@ uint32_t atomic_bit_set_word_tail_4b9c(uint32_t r4, uint32_t r5, uint32_t r6, ui
     r6 = r6 & 0xFFFFu;
     /* 0x004BA8: op 0x2668 */
     T = ((r6 & r6) == 0u) ? 1u : 0u;
+    sr = (sr & ~1u) | (T & 1u);
     /* 0x004BAA: bf 0x004BB4 */
     if (!T) goto L_4BB4;
     /* 0x004BAC: op 0x6557 */
