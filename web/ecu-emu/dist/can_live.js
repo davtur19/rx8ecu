@@ -292,6 +292,22 @@ var CANLive = (function() {
     ];
   }
 
+  /* Key-OFF ambient traffic: RX only, no ECU transmission. */
+  function generateRxOnly() {
+    var src = window.sensorState;
+    function num(v, d) { return (typeof v === "number" && isFinite(v)) ? v : d; }
+    var st = { rpm: 0, ect: num(src.ect, 80), iat: num(src.iat, 25),
+      map: num(src.map, 20), tps: 0, o2f: 0.45, o2r: 0.45,
+      vss: 0, oilLow: false, battLow: false, mil: false };
+    var r = Math.random();
+    var id, data, desc;
+    if (r < 0.4) { id = 0x212; data = packRX0x212(st); desc = CAN_DESC[0x212]; }
+    else if (r < 0.7) { id = 0x4B0; data = packRX0x4B0(st); desc = CAN_DESC[0x4B0]; }
+    else { id = 0x430; data = packRX0x430(st); desc = CAN_DESC[0x430]; }
+    return { ts: Date.now(), id: id, dlc: data.length, data: data,
+      dir: "RX", desc: desc || "", uds: false };
+  }
+
   /* ====================================================================
    *  RX frames (simulated bus traffic — ABS/DSC, immo, cluster)
    * ==================================================================== */
@@ -314,11 +330,26 @@ var CANLive = (function() {
     return [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
   }
 
+  /* Wave A1: engine state published by app.js refresh() (OFF|ON|CRANKING|
+   * RUNNING|STALLED). With the key OFF the ECU is dark: TX stops, only
+   * ambient RX traffic (cluster/ABS) remains on the bus. */
+  function engineOff() {
+    try {
+      if (typeof window !== "undefined" && window.__emuEngineState === "OFF") return true;
+      if (window.sensorState && Number(window.sensorState.rpm) > 0) return false;
+      if (typeof window !== "undefined" && window.__emuEngineState) {
+        return window.__emuEngineState === "OFF";
+      }
+    } catch (e) {}
+    return false;
+  }
+
   /* ====================================================================
    *  Frame generation — CANTX_Main dispatch emulation
    * ==================================================================== */
   function generateFrame() {
     if (!window.sensorState) return null;
+    if (engineOff()) return generateRxOnly();
     // Local derived snapshot — never writes back to the shared
     // window.sensorState object. EngineSim exposes no MIL accessor,
     // so MIL is read read-only from sensorState (never written).

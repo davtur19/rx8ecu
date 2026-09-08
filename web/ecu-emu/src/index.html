@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RX-8 ECU Emulator</title>
+<title>RX-8 ECU Emulator v2</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230b0e13'/%3E%3Cpath d='M12 3.2 Q18.93 8.01 19.62 16.42 Q12 19.98 4.38 16.42 Q5.07 8.01 12 3.2 Z' fill='none' stroke='%2339c5cf' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="can_live.css">
@@ -21,9 +21,13 @@
   <div class="brand">
     <div class="logo">8</div>
     <div>
-      <h1 class="wordmark">RX-8 <span class="wm-accent">ECU</span> Emulator</h1>
+      <h1 class="wordmark">RX-8 <span class="wm-accent">ECU</span> Emulator <span class="wm-v2">v2</span></h1>
       <div class="subtitle">SH7055 · N3J1-18-881L · 96-pin connector</div>
     </div>
+  </div>
+  <div class="hdr-badges">
+    <div id="hdr-engine" class="hdr-badge eng-off" title="Engine state">ENGINE: OFF</div>
+    <div id="hdr-immo" class="hdr-badge immo-unknown" title="Immobilizer status">IMMO: —</div>
   </div>
   <div style="display:flex;gap:12px;align-items:center">
     <div class="legend">
@@ -37,59 +41,181 @@
   </div>
 </header>
 
-<div class="main">
-  <!-- Left: connector pinout -->
-  <div class="panel" id="pinout-panel">
-    <div class="panel-title">Connector Pinout (2×48)</div>
-    <div class="connector" id="connector-a">
-      <div class="conn-header">Row A (1–48)</div>
+<div class="v2-layout">
+  <!-- LEFT: vehicle / key panel -->
+  <aside class="panel col-left" id="key-panel" aria-label="Vehicle and key">
+    <div class="panel-title">Vehicle / Key</div>
+    <div class="key-block">
+      <div class="esim-label">Key switch</div>
+      <div class="key-row" role="group" aria-label="Key position">
+        <button class="key-btn active" id="key-off" data-keypos="OFF">OFF</button>
+        <button class="key-btn" id="key-acc" data-keypos="ACC">ACC</button>
+        <button class="key-btn" id="key-on" data-keypos="ON">ON</button>
+      </div>
+      <button class="start-btn" id="key-start" title="Hold to crank (momentary START)">HOLD TO START</button>
+      <div class="esim-label" style="margin-top:10px">Key code</div>
+      <div class="keycode-row">
+        <input type="text" id="key-code" value="N3J1" maxlength="16"
+               aria-label="Key code" spellcheck="false" autocomplete="off">
+        <button class="can-btn" id="key-apply">Apply</button>
+      </div>
+      <div class="key-hint">Default N3J1 = correct key (emulator-level, not a ROM mapping). Wrong code → cranks but never starts.</div>
     </div>
-    <div class="connector" id="connector-b">
-      <div class="conn-header">Row B (49–96)</div>
+    <div class="key-block">
+      <div class="esim-label">Engine state</div>
+      <div id="engine-state-badge" class="engine-badge st-off">OFF</div>
+      <div class="esim-label" style="margin-top:10px">Immobilizer</div>
+      <div id="immo-badge" class="immo-badge immo-unknown">IMMO: —</div>
     </div>
-  </div>
-
-  <!-- Center: schematic -->
-  <div class="panel schematic" id="schematic-panel">
-    <div class="panel-title" style="position:absolute;top:0;left:0;right:0">Schematic</div>
-    <svg id="schematic-svg" viewBox="0 0 800 500"></svg>
-    <div class="info-overlay" id="schematic-info" style="display:none">
-      <div class="pin-title" id="info-title"></div>
-      <dl class="pin-detail">
-        <dt>Type</dt><dd id="info-type"></dd>
-        <dt>Direction</dt><dd id="info-dir"></dd>
-        <dt>Connects to</dt><dd id="info-goes"></dd>
-        <dt>Voltage range</dt><dd id="info-voltage"></dd>
-        <dt>State</dt><dd id="info-state"></dd>
-      </dl>
+    <div class="key-block">
+      <div class="esim-label">Battery (Wave A2 placeholder)</div>
+      <div class="batt-row"><span>Battery</span><strong id="batt-readout">14.0 V</strong></div>
+      <div class="key-hint">Fixed placeholder — live voltage sag lands in Wave A2.</div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Right: live states + controls -->
-  <div class="panel" id="states-panel">
-    <div class="panel-title">Live Pin States</div>
-    <div class="scenario-list" id="scenarios"></div>
-    <div class="panel-title" style="border-top:1px solid var(--border)">Sensor Controls</div>
-    <div id="sliders"></div>
-    <div class="panel-title" style="border-top:1px solid var(--border)">Active Pins</div>
-    <div class="states-list" id="states-list"></div>
-  </div>
-
-  <!-- Bottom: register view -->
-  <div class="panel" id="reg-panel">
-    <div class="panel-title">Peripheral Registers</div>
-    <div class="reg-table" id="reg-table"></div>
-  </div>
-
-  <!-- Row 3: Engine Simulator + CAN Monitor -->
-  <div class="panel" id="engine-sim-panel">
-    <div class="panel-title">Engine Simulator</div>
+  <!-- CENTER: viz + tabs -->
+  <main class="col-center" id="center-col">
     <div id="engine-sim-container"></div>
-  </div>
-  <div class="panel" id="can-panel-container" style="grid-column:span 2">
-    <div class="panel-title">Live CAN / OBD Monitor</div>
-    <div id="can-monitor-container"></div>
-  </div>
+    <nav class="tabs" role="tablist" aria-label="Emulator views">
+      <button class="tab-btn active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
+      <button class="tab-btn" data-tab="pins" role="tab" aria-selected="false">Pins</button>
+      <button class="tab-btn" data-tab="can" role="tab" aria-selected="false">CAN</button>
+      <button class="tab-btn" data-tab="dtc" role="tab" aria-selected="false">DTC</button>
+      <button class="tab-btn" data-tab="o2r" role="tab" aria-selected="false">O2R</button>
+      <button class="tab-btn" data-tab="crank" role="tab" aria-selected="false">Crank</button>
+    </nav>
+    <div class="tab-pages">
+      <section class="tab-page active" id="tab-dashboard" role="tabpanel">
+        <div class="panel-title">Sensor Controls</div>
+        <div id="sliders"></div>
+        <div class="dash-mil-row">
+          <div class="mil-lamp" id="dash-mil" aria-live="polite">MIL OFF</div>
+          <span class="key-hint">Full DTC list lives in the DTC tab.</span>
+        </div>
+      </section>
+      <section class="tab-page" id="tab-pins" role="tabpanel">
+        <div class="pins-grid">
+          <div class="pins-browser">
+            <div class="panel-title">Connector Pinout (2×48, all 96 pins)</div>
+            <div class="pinout-tools">
+              <input type="text" id="pinout-search" placeholder="Filter pins…" aria-label="Filter pins">
+              <span id="pinout-count" class="key-hint"></span>
+            </div>
+            <div class="pinout-scroll">
+              <div class="connector" id="connector-a">
+                <div class="conn-header">Row A (1–48)</div>
+              </div>
+              <div class="connector" id="connector-b">
+                <div class="conn-header">Row B (49–96)</div>
+              </div>
+            </div>
+          </div>
+          <div class="pins-side">
+            <div class="panel-title">Pin Inspector</div>
+            <div class="inspector" id="pin-inspector">
+              <div class="pin-title" id="info-title">No pin selected</div>
+              <div class="key-hint">Click a pin in the browser (or a live-pin row) to inspect it.</div>
+              <dl class="pin-detail" id="info-detail" style="display:none">
+                <dt>Type</dt><dd id="info-type"></dd>
+                <dt>Direction</dt><dd id="info-dir"></dd>
+                <dt>Connects to</dt><dd id="info-goes"></dd>
+                <dt>Voltage range</dt><dd id="info-voltage"></dd>
+                <dt>State</dt><dd id="info-state"></dd>
+                <dt>Register</dt><dd id="info-reg"></dd>
+              </dl>
+            </div>
+            <div class="panel-title" style="border-top:1px solid var(--border)">Live Pin States</div>
+            <div class="pinout-tools">
+              <input type="text" id="pinlive-search" placeholder="Filter live pins…" aria-label="Filter live pins">
+            </div>
+            <div class="states-list" id="states-list"></div>
+          </div>
+        </div>
+        <div class="panel-title">Peripheral Registers</div>
+        <div class="reg-table" id="reg-table"></div>
+      </section>
+      <section class="tab-page" id="tab-can" role="tabpanel">
+        <div class="panel-title">Live CAN / OBD Monitor</div>
+        <div id="can-monitor-container"></div>
+      </section>
+      <section class="tab-page" id="tab-dtc" role="tabpanel">
+        <div class="panel-title">Diagnostics</div>
+        <div class="dtc-wrap">
+          <div class="mil-lamp" id="dtc-mil" aria-live="polite">MIL OFF</div>
+          <div class="esim-label" style="margin-top:8px">Active DTCs</div>
+          <div id="engine-dtc-list" class="dtc-list" aria-live="polite"><div class="dtc-none">No DTCs</div></div>
+        </div>
+      </section>
+      <section class="tab-page" id="tab-o2r" role="tabpanel">
+        <div class="panel-title">O2 Sensors (narrowband)</div>
+        <div class="o2-grid">
+          <div class="o2-card">
+            <div class="esim-label">O2 front (pre-cat)</div>
+            <div class="esim-slider-row">
+              <input type="range" id="o2f-tab" min="0" max="1" step="0.01" value="0.45" aria-label="O2 front voltage">
+              <span id="o2f-tab-val">0.45V</span>
+            </div>
+            <div class="o2-read" id="o2f-read">0.45 V · ADC —</div>
+          </div>
+          <div class="o2-card">
+            <div class="esim-label">O2 rear (post-cat)</div>
+            <div class="esim-slider-row">
+              <input type="range" id="o2r-tab" min="0" max="1" step="0.01" value="0.45" aria-label="O2 rear voltage">
+              <span id="o2r-tab-val">0.45V</span>
+            </div>
+            <div class="o2-read" id="o2r-read">0.45 V · ADC —</div>
+          </div>
+        </div>
+        <div class="key-hint" style="padding:0 12px 12px">Narrowband switch ≈ 0.45 V. Values also track the Dashboard O2-F/O2-R sliders.</div>
+      </section>
+      <section class="tab-page" id="tab-crank" role="tabpanel">
+        <div class="panel-title">Crank Trigger Detail</div>
+        <div class="crank-detail">
+          <div class="crank-stat"><span>Speed</span><strong id="crank-dps">0 °/s</strong></div>
+          <div class="crank-stat"><span>Tooth period</span><strong id="crank-period">—</strong></div>
+          <div class="crank-stat"><span>ATU capture</span><strong id="crank-capture">—</strong></div>
+          <div class="esim-label" style="margin-top:8px">Tooth wheel (live = highlighted, red = gap)</div>
+          <table class="crank-teeth" id="crank-teeth" aria-label="Crank tooth states"><tbody><tr></tr></tbody></table>
+          <div class="key-hint">20-tooth wheel, gaps at teeth 5 and 15. Animation speed = rpm-derived (see Speed selector by the wheel).</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- RIGHT: controls -->
+  <aside class="panel col-right" id="controls-panel" aria-label="Controls">
+    <div class="panel-title">Controls</div>
+    <div class="ctl-block">
+      <div class="esim-label">Throttle</div>
+      <div class="esim-slider-row">
+        <input type="range" id="esim-throttle" min="0" max="100" value="0" step="1" aria-label="Throttle percent">
+        <span id="esim-throttle-val">0%</span>
+      </div>
+      <div class="esim-label" style="margin-top:6px">Load</div>
+      <div class="esim-slider-row">
+        <input type="range" id="esim-load" min="0" max="100" value="20" step="1" aria-label="Engine load percent">
+        <span id="esim-load-val">20%</span>
+      </div>
+    </div>
+    <div class="panel-title" style="border-top:1px solid var(--border)">Scenario Presets</div>
+    <div class="scenario-list" id="scenarios"></div>
+    <div class="key-hint" style="padding:0 10px 8px">Presets set key=ON + a throttle profile. Hold START to crank.</div>
+    <div class="panel-title" style="border-top:1px solid var(--border)">Calibration (Wave A2 placeholder)</div>
+    <div class="ctl-block ctl-disabled">
+      <div class="esim-label">Fuel trim</div>
+      <div class="esim-slider-row">
+        <input type="range" min="-20" max="20" value="0" step="1" disabled aria-label="Fuel trim (Wave A2)">
+        <span>0%</span>
+      </div>
+      <div class="esim-label" style="margin-top:6px">Timing offset</div>
+      <div class="esim-slider-row">
+        <input type="range" min="-10" max="10" value="0" step="1" disabled aria-label="Timing offset (Wave A2)">
+        <span>0°</span>
+      </div>
+      <div class="key-hint">Live calibration lands in Wave A2.</div>
+    </div>
+  </aside>
 </div>
 
 <!-- pins.json is loaded via fetch() in app.js init(); a <script> tag with a

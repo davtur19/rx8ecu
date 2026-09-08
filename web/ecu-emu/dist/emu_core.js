@@ -25,6 +25,16 @@
  *   emu_get_tooth_period_ms() — return current per-tooth period in ms
  *   emu_get_fuel_cut()   — return 1 when injector fuel cut is active (rpm >= 9000)
  *   emu_get_inj_duty()   — return current injector duty 0..1 (0 during fuel cut)
+ *   --- Wave A1: key / immobilizer / engine state (emulator-level, no ROM mapping)
+ *   emu_set_key_pos(p)   — OFF|ACC|ON|START (START = momentary crank)
+ *   emu_get_key_pos()    — current key position string
+ *   emu_set_key_code(s)  — entered key code (UI text input, default "N3J1")
+ *   emu_get_key_code()   — entered key code
+ *   emu_set_immo_code(s) — stored (correct) code, default "N3J1"
+ *   emu_get_immo()       — 1 when entered === stored, else 0 (blocked)
+ *   emu_get_engine_state() — OFF|ON|CRANKING|RUNNING|STALLED
+ *   emu_get_rpm()        — core rpm (rounded)
+ *   emu_get_crank_angle()— crank angle degrees (0..342)
  *
  * Injector/ignition model: injectors fire sequentially (one 1..8ms pulse
  * per injector per revolution, duty = pw / rev-period, clamped 2..85%);
@@ -46,6 +56,23 @@ var Module = (function() {
   var _mil = false;          // internal MIL/DTC latch (drives port 5 bit 7)
   var _fuelPrime = true;     // key-on fuel-pump prime latch (set at init)
   var _simMs = 0;            // absolute sim time in ms (drives inj/coil phasing)
+
+  /* --- Key switch / immobilizer / engine state (Wave A1, emulator-level) ---
+   * Emulator-level only: NOT a ROM mapping. The stored code is an arbitrary
+   * default ("N3J1", the ECU part prefix); the UI text input sets the entered
+   * key code. immo OK <=> entered === stored.
+   * States: OFF -> ON (key ON) -> CRANKING (START held) -> RUNNING;
+   * RUNNING -> OFF (key OFF); RUNNING -> STALLED (rpm hits 0 while key ON);
+   * CRANKING released early (key back to ON) -> ON (rpm decays). */
+  var _keyPos = "OFF";       // OFF|ACC|ON|START
+  var _immoStored = "N3J1";  // correct code (settable, emulator-level)
+  var _keyCode = "N3J1";     // entered key code (UI text input)
+  var _engState = "OFF";     // OFF|ON|CRANKING|RUNNING|STALLED
+  var _crankMs = 0;          // time held in CRANKING (ms)
+  var CRANK_RPM = 300;       // starter cranking speed
+  var CRANK_TIME_MS = 800;   // crank time before RUNNING (immo OK + fuel)
+  var DECAY_OFF_RPS = 3000;  // rpm lost per second with key OFF
+  var DECAY_ON_RPS = 1500;   // rpm lost per second key ON, engine not turning
 
   /* Redline fuel cut: injectors off at/above 9000 rpm (Renesis redline). */
   var REDLINE_RPM = 9000;
@@ -211,12 +238,60 @@ var Module = (function() {
   }
 
   /* ================================================================
+   *  Key / immobilizer / engine state machine (Wave A1)
+   * ================================================================ */
+  function immoOk() {
+    return String(_keyCode) === String(_immoStored);
+  }
+
+  /* Core owns _rpm while not RUNNING (crank target, OFF/ON decay) so the
+   * Node harness is deterministic; in RUNNING the UI sim owns rpm via
+   * emu_set_sensor(0, ...) and the core leaves it alone. */
+  function stepEngineState(ms) {
+    var dt = ms / 1000;
+    if (_keyPos === "OFF") {
+      _engState = "OFF";
+      _crankMs = 0;
+      _rpm = Math.max(0, _rpm - DECAY_OFF_RPS * dt);
+      if (_rpm < 1) _rpm = 0;
+      return;
+    }
+    if (_keyPos === "START") {
+      if (_engState === "RUNNING") return; // starter overrun: stay running
+      _engState = "CRANKING";
+      _crankMs += ms;
+      _rpm += (CRANK_RPM - _rpm) * Math.min(1, ms / 150);
+      if (immoOk() && _crankMs >= CRANK_TIME_MS) {
+        _engState = "RUNNING";
+        _crankMs = 0;
+        if (_rpm < 800) _rpm = 800; // catch to idle
+      }
+      return; // immo-blocked: crank forever, never RUNNING
+    }
+    // ACC / ON: START released or key-on-engine-off
+    if (_engState === "CRANKING") { _engState = "ON"; _crankMs = 0; }
+    if (_engState === "OFF") _engState = "ON";
+    if (_engState === "RUNNING") {
+      if (_rpm <= 0) _engState = "STALLED";
+    } else if (_engState !== "STALLED") {
+      _rpm = Math.max(0, _rpm - DECAY_ON_RPS * dt);
+      if (_rpm < 1) _rpm = 0;
+    }
+  }
+
+  /* ================================================================
    *  GPIO decode (port latches from RPM/ECT/TPS)
    * ================================================================ */
   function updatePorts() {
     var rpm = _rpm;
     var ect = _ect;
     var tps = _tps;
+
+    // Key OFF: everything dark (fuel prime latch does not survive key-off).
+    if (_keyPos === "OFF") {
+      for (var z = 0; z < 13; z++) portLatches[z] = 0x00;
+      return;
+    }
 
     // Port 0: COIL1-4 — sequential firing, one narrow window per coil
     // per revolution (offset from the injectors). Frequency scales with
@@ -285,7 +360,7 @@ var Module = (function() {
 
     if (t === "power") {
       if (n.indexOf("BAT") === 0) return 14.0;
-      if (n.indexOf("IG") === 0) return _rpm > 0 ? 14.0 : 0;
+      if (n.indexOf("IG") === 0) return _keyPos !== "OFF" ? 14.0 : 0;
       return 14.0;
     }
 
@@ -320,6 +395,7 @@ var Module = (function() {
     }
 
     if (t === "digital" && pin.dir === "in") {
+      if (n === "IG1_FB")     return _keyPos !== "OFF" ? 1 : 0;
       if (n === "VEH_SPD")  return _rpm > 0 ? 1 : 0;
       if (n === "STP")      return 0;
       if (n === "AC_REQ") return 0;
@@ -401,6 +477,12 @@ var Module = (function() {
     _mil = false;        // MIL off at power-on; set via emu_set_mil
     _fuelPrime = true;   // key-on prime: fuel relay on from IG, rpm-independent
     _simMs = 0;          // reset phasing clock (inj/coil duty restarts in phase)
+    _rpm = 0;            // Wave A1: boot with key OFF, engine stopped
+    _keyPos = "OFF";
+    _engState = "OFF";
+    _crankMs = 0;
+    _immoStored = "N3J1";
+    _keyCode = "N3J1";
   }
 
   function emu_set_sensor(id, value) {
@@ -418,6 +500,7 @@ var Module = (function() {
   function emu_step_ms(ms) {
     if (typeof ms !== "number" || !(ms > 0)) ms = 0;
     _simMs += ms;
+    stepEngineState(ms);
     crankStep(ms);
     updateADC();
     updatePorts();
@@ -474,6 +557,48 @@ var Module = (function() {
     pins = pinData;
   }
 
+  /* --- Wave A1: key / immobilizer / engine-state API --- */
+  function emu_set_key_pos(pos) {
+    pos = String(pos).toUpperCase();
+    if (pos !== "OFF" && pos !== "ACC" && pos !== "ON" && pos !== "START") return _keyPos;
+    _keyPos = pos;
+    return _keyPos;
+  }
+
+  function emu_get_key_pos() {
+    return _keyPos;
+  }
+
+  function emu_set_key_code(code) {
+    _keyCode = String(code === undefined || code === null ? "" : code);
+    return _keyCode;
+  }
+
+  function emu_get_key_code() {
+    return _keyCode;
+  }
+
+  function emu_set_immo_code(code) {
+    _immoStored = String(code === undefined || code === null ? "" : code);
+    return _immoStored;
+  }
+
+  function emu_get_immo() {
+    return immoOk() ? 1 : 0;
+  }
+
+  function emu_get_engine_state() {
+    return _engState;
+  }
+
+  function emu_get_rpm() {
+    return Math.round(_rpm);
+  }
+
+  function emu_get_crank_angle() {
+    return _crankAngle;
+  }
+
   /* ================================================================
    *  Module export
    * ================================================================ */
@@ -492,7 +617,16 @@ var Module = (function() {
     emu_get_tooth_period_ms: emu_get_tooth_period_ms,
     emu_get_fuel_cut: emu_get_fuel_cut,
     emu_get_inj_duty: emu_get_inj_duty,
-    emu_set_pins: emu_set_pins
+    emu_set_pins: emu_set_pins,
+    emu_set_key_pos: emu_set_key_pos,
+    emu_get_key_pos: emu_get_key_pos,
+    emu_set_key_code: emu_set_key_code,
+    emu_get_key_code: emu_get_key_code,
+    emu_set_immo_code: emu_set_immo_code,
+    emu_get_immo: emu_get_immo,
+    emu_get_engine_state: emu_get_engine_state,
+    emu_get_rpm: emu_get_rpm,
+    emu_get_crank_angle: emu_get_crank_angle
   };
 })();
 
