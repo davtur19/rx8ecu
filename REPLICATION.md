@@ -111,9 +111,9 @@ for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 112 per-function
 python3 tools/denso_ck.py roms/stock/60E1D400.bin
 ```
 
-Expected: `OK — checksum corretto` (Denso additive checksum descriptor @`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
+Expected: `OK: checksum valid` (Denso additive checksum descriptor @`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
 
-Modified (tuned) images NOT shipped (kept private); those legitimately bypass the Denso checksum → `denso_ck.py` reports `ERRATO` and exits 1.
+Modified (tuned) images NOT shipped (kept private); those legitimately bypass the Denso checksum → `denso_ck.py` reports `FAIL: checksum mismatch` and exits 1.
 
 ## What the rebuilt ROM is (and the ~6.4% `.word` regions)
 
