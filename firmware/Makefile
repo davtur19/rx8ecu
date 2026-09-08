@@ -22,15 +22,21 @@ CC_TO_USE = $(if $(wildcard $(CC)),$(CC),$(HOST_CC))
 
 # --- Compiler Flags ---
 # SH-2E specific flags (if using cross-compiler)
-SH_FLAGS  = -m2 -mb -Os -ffreestanding -nostdlib -nostartfiles \
+# review-fix w2: added -std=c11 (was: no -std, toolchain default).
+SH_FLAGS  = -std=c11 -m2 -mb -Os -ffreestanding -nostdlib -nostartfiles \
             -Iinclude -Wall -Wextra -Werror
 
 # Host build flags (for syntax checking)
-HOST_FLAGS = -Os -ffreestanding -nostdlib -nostartfiles \
+# review-fix w2: added -std=c11; -fsyntax-only already implies "no output",
+# so callers must NOT also pass -c (removed from the check loop below).
+HOST_FLAGS = -std=c11 -Os -ffreestanding -nostdlib -nostartfiles \
              -Iinclude -Wall -Wextra -Werror -fsyntax-only
 
 # Use appropriate flags
 CFLAGS    = $(if $(filter $(CC_TO_USE),$(HOST_CC)),$(HOST_FLAGS),$(SH_FLAGS))
+# -fsyntax-only (host path) already implies "no output": pass -c only on the
+# cross path, where a real object compile is intended.
+CHECK_CFLAG = $(if $(filter $(CC_TO_USE),$(HOST_CC)),,-c)
 
 # --- Source Files ---
 SRC_DIR   = c
@@ -68,16 +74,23 @@ check:
 	@echo "=== Checking firmware sources ==="
 	@for f in $(ALL_SRC); do \
 		echo "  CC $$f"; \
-		$(CC_TO_USE) $(CFLAGS) -c $$f -o /dev/null || exit 1; \
+		$(CC_TO_USE) $(CFLAGS) $(CHECK_CFLAG) $$f -o /dev/null || exit 1; \
 	done
 	@echo "=== All sources compile OK ==="
 
 # Cross-compile to binary (only if cross-compiler available)
 # review-fix: fail loudly when the cross toolchain is missing instead of
 # silently skipping the build (a "successful" no-op binary build).
+# review-fix w2: no linker.ld is shipped in firmware/ (verified: no such
+# file in the repo), so the old `-T linker.ld` reference could never
+# resolve — fail loudly with that diagnosis instead of a cryptic ld error.
 firmware.bin: $(ALL_SRC)
 	@if [ ! -f "$(CC)" ]; then \
 		echo "ERROR: cross-compiler not found at $(CC); refusing to fake firmware.bin"; \
+		exit 1; \
+	fi
+	@if [ ! -f "linker.ld" ]; then \
+		echo "ERROR: linker.ld not found in firmware/; no linker script is shipped — refusing to fake firmware.bin"; \
 		exit 1; \
 	fi
 	@echo "=== Building firmware binary ==="

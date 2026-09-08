@@ -55,6 +55,14 @@ typedef struct {
  * single volatile accesses are atomic on SH-2 (8-bit). */
 static volatile serial_channel_state_t serial_channels[3];
 
+/* Owned per-channel TX staging buffers.
+ * review-fix w2: serial_data_write used to alias the CALLER's buffer
+ * (`ch->tx_buf = buf`) — the caller could reuse/free it while the ATU
+ * ISR was still transmitting. Copy into owned storage instead (len is
+ * uint8_t, so 256 bytes always fits). */
+#define SERIAL_TX_OWNED_SIZE 256
+static uint8_t serial_tx_owned[3][SERIAL_TX_OWNED_SIZE];
+
 /* ====================================================================== */
 /*  Status and Error Flags                                                */
 /* ====================================================================== */
@@ -114,6 +122,9 @@ void serial_init(void)
         serial_channels[i].tx_idx = 0;
         serial_channels[i].rx_len = 0;
         serial_channels[i].tx_len = 0;
+        /* review-fix w2: point TX at the owned buffer from init so the
+         * channel never holds a stray caller pointer. */
+        serial_channels[i].tx_buf = serial_tx_owned[i];
     }
 
     /* Configure ATU timer for serial timing */
@@ -206,8 +217,11 @@ int serial_data_write(uint8_t channel, const uint8_t *buf, uint8_t len)
     /* Check if channel is busy */
     if (ch->status & SERIAL_STATUS_TX_BUSY) return -1;
 
-    /* Copy to TX buffer */
-    ch->tx_buf = (volatile uint8_t *)buf;
+    /* Copy to the owned TX buffer (never alias the caller buffer). */
+    for (uint16_t i = 0; i < len; i++) {
+        serial_tx_owned[channel][i] = buf[i];
+    }
+    ch->tx_buf = serial_tx_owned[channel];
     ch->tx_len = len;
     ch->tx_idx = 0;
     ch->status |= SERIAL_STATUS_TX_BUSY;
@@ -239,7 +253,13 @@ void serial_start_tx(uint8_t channel)
      * The ATU interrupt handler will send subsequent bytes.
      * For host verification, we simulate synchronous transmission. */
 
-    /* Simulate TX completion (for testing) */
+    /* Simulate TX completion (for testing).
+     * review-fix w2 (follow-up documented, ISR side out of scope): real
+     * completion is ISR-driven — the ATU TX-compare ISR must pump
+     * tx_buf[tx_idx++] per interrupt and clear TX_BUSY on the last byte.
+     * Today serial_atu_irq_handler's channel-1 TX branch only clears the
+     * status flag without pumping bytes, so host-side completion stays
+     * synchronous until that ISR path is implemented. */
     ch->tx_idx = ch->tx_len;
     ch->status &= ~SERIAL_STATUS_TX_BUSY;
     ch->status &= ~SERIAL_STATUS_TX_READY;
@@ -281,8 +301,14 @@ void serial_rx_handler_ch0(void)
 {
     volatile serial_channel_state_t *ch = &serial_channels[0];
 
-    /* Read received byte from ATU capture register */
-    uint8_t data = (uint8_t)atu_reg_read(ATU_TGR0_OFFSET);
+    /* Read received byte from ATU capture register.
+     * review-fix w2: was `(uint8_t)atu_reg_read(...)` — a 16-bit read
+     * truncated to the LOW byte. TGRs are 16-bit timer registers and the
+     * SH-2 is big-endian, so an 8-bit access at the same (even) address
+     * observes the HIGH byte instead. Use the 8-bit helper and document
+     * the lane choice: NEEDS-ROM-CHECK — ROM must confirm whether the RX
+     * byte is the high or low byte of TGR0. */
+    uint8_t data = atu_reg_read8(ATU_TGR0_OFFSET);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {
@@ -304,8 +330,10 @@ void serial_rx_handler_ch1(void)
 {
     volatile serial_channel_state_t *ch = &serial_channels[1];
 
-    /* Read received byte from ATU capture register */
-    uint8_t data = (uint8_t)atu_reg_read(ATU_TGR1_OFFSET);
+    /* Read received byte from ATU capture register.
+     * review-fix w2: 8-bit access (see ch0 note); NEEDS-ROM-CHECK for the
+     * high-vs-low byte-lane choice on big-endian SH-2 TGR1. */
+    uint8_t data = atu_reg_read8(ATU_TGR1_OFFSET);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {
@@ -327,8 +355,10 @@ void serial_rx_handler_ch2(void)
 {
     volatile serial_channel_state_t *ch = &serial_channels[2];
 
-    /* Read received byte from ATU capture register */
-    uint8_t data = (uint8_t)atu_reg_read(ATU_TGR2_OFFSET);
+    /* Read received byte from ATU capture register.
+     * review-fix w2: 8-bit access (see ch0 note); NEEDS-ROM-CHECK for the
+     * high-vs-low byte-lane choice on big-endian SH-2 TGR2. */
+    uint8_t data = atu_reg_read8(ATU_TGR2_OFFSET);
 
     /* Store in RX buffer if space available */
     if (ch->rx_buf != NULL && ch->rx_idx < ch->rx_len) {

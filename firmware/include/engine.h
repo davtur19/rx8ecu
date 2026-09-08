@@ -186,7 +186,32 @@
  *   9. complex_fpu_compare_calc_31650
  *   10. transmission_load_control_1DDB0
  *   11. secondaryAirRequestStuff
- *   ... (remaining 17 calls marked TODO)
+ *   ... (remaining calls: see main_fuel_control_pipeline in engine.c)
+ *
+ * review-fix w2 (DOCUMENTED-gap — stub inventory, measured 2026-09-08):
+ * of the 21 prototypes listed below, 19 are empty `(void)0;` stubs and 2
+ * are partial (calcCLorOLControl: reads O2/ECT but stores no output;
+ * cold_start_rpm_limiter: limit logic only). Across the full 27-call
+ * pipeline, calls 4/6/8 (separate decls above) have substantive bodies.
+ * Shared stub contract (satisfied trivially today): void log(void) —
+ * called in fixed pipeline order, communicating via RAM only. What each
+ * stub still needs is its per-ROM-address RAM I/O contract:
+ *   call 2 setClosedLoopBool 0x1FD74, 3 calcOpenLoopFuelingTarget 0x1FD8E,
+ *   5 fpu_threshold_accumulate_divide 0x33C84,
+ *   7 adaptive_ignition_table 0x213D0,
+ *   9 complex_fpu_compare_calc 0x31650,
+ *   10 transmission_load_control 0x1DDB0, 11 secondaryAirRequestStuff
+ *   0x1D2B0, 12 fuel_trim_update_control 0x1E5F8,
+ *   14 getRearO2FilteredValue 0x1E794, 15 wankel_rotary_control 0x1E820,
+ *   16 sensor_validation_monitor 0x1F078, 17 getMAFOpertionRange 0x1F786,
+ *   18 adaptive_control_logic 0x1F38C, 19 fuel_trim_correction 0x1F844,
+ *   20 coolant_temp_boundary_check 0x1F99A, 22 engine_load_control 0x1FA24,
+ *   24 oil_temp_burn_control 0x1FC32,
+ *   25 knock_sensor_voltage_limit_check 0x19984,
+ *   26 idle_speed_range_validator 0x19DDE.
+ * Implement a stub ONLY after an IDA read of its ROM address yields the
+ * input RAM / output RAM / threshold-table triple. Do not invent transfer
+ * functions.
  */
 
 #define FUEL_PIPELINE_CALLS       28    /* Total pipeline calls */

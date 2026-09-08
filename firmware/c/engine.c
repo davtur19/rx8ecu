@@ -206,6 +206,15 @@ void crank_position_state_machine(void)
     if (*sync_flag_1 == 1) {
         /* Sync acquired: update rotor position tracking */
         uint8_t rot = *sync_counter;
+        /* review-fix w2: clamp before indexing the ROM table at 0xDA05.
+         * rot*2 must stay in-bounds; the entry clamp above covers the
+         * fall-through value, but *sync_counter is re-read here after
+         * state transitions. NEEDS-ROM-CHECK: the true table extent at
+         * ROM 0xDA05 is unverified — 0x24 is the state-machine bound,
+         * not a confirmed table size. */
+        if (rot > 0x24) {
+            rot = 0x24;
+        }
         uint8_t tbl = ((volatile uint8_t *)0xDA05)[rot * 2];
         if (tbl & 0x80) {
             /* High bit set: compute time delta for RPM */
@@ -305,6 +314,12 @@ void crank_timing_update(void)
     /* 6-7. Check sync and compute timing delta if applicable */
     if (*sync_flag_1 == 1) {
         uint8_t rot = *sync_counter;
+        /* review-fix w2: clamp before indexing the ROM table at 0xDA05
+         * (this path never passes through the state-machine entry clamp).
+         * NEEDS-ROM-CHECK: true table extent at ROM 0xDA05 unverified. */
+        if (rot > 0x24) {
+            rot = 0x24;
+        }
         uint8_t tbl_entry = ((volatile uint8_t *)0xDA05)[rot * 2];
         if (tbl_entry & 0x80) {
             uint32_t last = *last_ts_r;
@@ -434,6 +449,14 @@ void outputPerRotorIgnitionDwell(uint8_t rotor_idx)
 
     /* ROM:0x1126E: Load float, divide by constant, convert to integer */
     /* dwell_time_us = (uint16_t)(*dwell_source / DWELL_BASE_DIVISOR); */
+    /* review-fix w2 (DOCUMENTED-gap): float-divide + float->u16 conversion
+     * semantics are best-effort — ROM 0x11218-0x1126E must confirm the
+     * divisor constant (0x112DC), the rounding mode (truncate vs round),
+     * and the negative/overflow behavior (a negative float-to-u16 convert
+     * is UB in C; the MIN/MAX clamp below only constrains in-range
+     * results). Contract: input = dwell-source float at 0xFFFFBC84/88,
+     * output = dwell_time_us clamped to [DWELL_MIN_US, DWELL_MAX_US].
+     * Needs IDA read of 0x1126E before touching the conversion. */
     float raw = *dwell_source;
     float divided = raw / (float)DWELL_BASE_DIVISOR;
     dwell_time_us = (uint16_t)divided;
@@ -1054,7 +1077,10 @@ void main_engine_cycle_10ms(void)
 {
     /* Step 1: Save diagnostic status register */
     /* ROM:0x17F20-0x17F28: diag_getsr_3920 with r4=0x10 */
-    disable_interrupts();
+    /* review-fix w2: was `disable_interrupts();` (token discarded) +
+     * `restore_interrupts(0)` below — the saved SR never round-tripped.
+     * Save/restore the token per the eeprom_commit_to_ram pattern. */
+    uint32_t saved_sr = disable_interrupts();
 
     /* Step 2: Increment 80ms counter */
     /* ROM:0x17F2A-0x17F30: Read, increment, write counter */
@@ -1099,7 +1125,7 @@ void main_engine_cycle_10ms(void)
 
     /* Step 5: Restore diagnostic status register */
     /* ROM:0x17F74-0x17F7A: diag_setsr_3934 */
-    restore_interrupts(0);
+    restore_interrupts(saved_sr);
 }
 
 /* ====================================================================== */
@@ -1150,7 +1176,8 @@ void main_fuel_control_pipeline(void)
 
     /* Step 1: Save diagnostic status */
     /* ROM:0x22098-0x2209C: diag_getsr_3920 with r4=0x10 */
-    disable_interrupts();
+    /* review-fix w2: save the token (see main_engine_cycle_10ms note). */
+    uint32_t saved_sr = disable_interrupts();
 
     /* Pipeline calls (verified from IDA disassembly) */
 
@@ -1237,7 +1264,7 @@ void main_fuel_control_pipeline(void)
 
     /* Restore diagnostic status */
     /* ROM:0x22140-0x22146: diag_setsr_3934 (tail call) */
-    restore_interrupts(0);
+    restore_interrupts(saved_sr);
 }
 
 /* ====================================================================== */
@@ -1381,7 +1408,15 @@ void torque_calc_with_damping(void)
         /* torque = sqrt(RPM * MAP_factor * load_factor) */
         float t1 = *a8f8 * *a8fc;
         float t2 = t1 * *a904;
-        /* Approximate sqrt */
+        /* Approximate sqrt.
+         * review-fix w2 (DOCUMENTED-gap): ROM applies fpu_sqrt_float
+         * (0x23F4) to this product; the single Newton step below (seeded
+         * at t2/2, one iteration, t2 >= 0 guarded by the torque > 0 test)
+         * is a best-effort stand-in whose accuracy/convergence is
+         * unverified — bench-compare against the HW sqrt before trusting
+         * torque magnitudes. Contract: input t2 >= 0, output ~= sqrt(t2).
+         * Do not add iterations without measuring; match ROM bit-exactly
+         * only after IDA confirms 0x23F4 is a plain sqrt. */
         torque = t2;
         if (torque > 0.0f) {
             /* Simple Newton's method sqrt approximation */

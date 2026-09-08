@@ -127,6 +127,18 @@ void main_task_dispatcher(void);
 void task_scheduler_dispatch(void);
 
 /**
+ * diag_transfer_210 — Diagnostic transfer pump (NOT YET IMPLEMENTED).
+ * ROM address: 0x210
+ *
+ * review-fix w2 (DOCUMENTED-gap): contract per IDA_ANALYSIS.md — check
+ * PFC 0xFFFFE40E/0xFFFFE41A bit 0x100, then call helper 0xACE(entry, 8,
+ * 0, 0xFFFFE4B0). No definition is provided (the 0xACE callee has no C
+ * counterpart), so task_scheduler_dispatch deliberately does not call it
+ * yet. NEEDS-ROM-CHECK: IDA read of 0x210 + C implementation of 0xACE.
+ */
+void diag_transfer_210(void);
+
+/**
  * task_queue_pending_count — Compute pending queue entries.
  * ROM address: 0x3E0
  * @return Number of pending entries: (write_idx - read_idx) mod 100

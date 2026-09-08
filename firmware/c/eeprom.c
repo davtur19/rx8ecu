@@ -38,9 +38,20 @@
 /* ====================================================================== */
 
 /* The chip select (CS) pin is controlled via a GPIO bit.
- * On the RX-8 ECU, CS is typically on a port pin in the 0xFFFFF7xx range.
- * The exact pin assignment depends on the specific hardware revision.
- * TODO: Identify the exact CS pin from additional analysis. */
+ * review-fix w2 (NEEDS-ROM-CHECK, guess kept): the 0xFFFFF730/bit0 address
+ * below is still a GUESS — no CS pin is documented anywhere. Search trail
+ * (2026-09-08): the docs-notes markdown files mention the part (ABLIC
+ * S-93C56C, 256 B,
+ * 3-wire Microwire, DUMP_ALL.md/HARDWARE.md/KNOWLEDGE.md) and "SPI
+ * bit-bang (GPIO)" (IDA_ANALYSIS.md:604,761) but name no CS address; the
+ * only 0xFFFF73xx doc hits are 0xFFFF7304 (diagnostic-code writes,
+ * FINDINGS.md:61) and this file. Suspicious in-code signal: 0xFFFFF730 is
+ * PFC_PMR2_BASE (platform.h), a port-FUNCTION select register that
+ * gpio_init() itself writes (0xEFFF then 0x9000 for CAN pins) — RMW-ing a
+ * CS bit there would corrupt the CAN pin mux, so the real CS is more
+ * likely a PDR data-register bit. ROM (SPI bit-bang routines 0x9C0/0x9DE
+ * callers + EEPROM ops) or bench probing must confirm before trusting
+ * these helpers on hardware. */
 #define SPI_CS_PORT     (*(volatile uint16_t *)0xFFFFF730)
 #define SPI_CS_BIT      0x0001  /* Bit 0 = chip select (active LOW) */
 
