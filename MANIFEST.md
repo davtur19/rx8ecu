@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **10731 entries, 293.2M.** Regenerated 2026-08-02 for the
+in the working repository. **10731 entries, 293.4M.** Regenerated 2026-08-02 for the
 9-ROM public tree; see roms/ROMS.md).
 
 ## Summary
@@ -19,13 +19,13 @@ in the working repository. **10731 entries, 293.2M.** Regenerated 2026-08-02 for
 | tools/tests/ | 5 | 79.1K |
 | docs/ | 228 | 1.2M |
 | hardware/ | 1 | 2.0K |
-| web/ | 30 | 1.1M |
+| web/ | 30 | 1.3M |
 | analysis/ | 40 | 9.4M |
 | .github/ | 4 | 16.5K |
 | reconstructed/experiments/match/ | 74 | 212.8K |
 | reconstructed/samples/ | 464 | 3.3M |
 | tmp/ | 36 | 909.8K |
-| **Total** | **10731** | 293.2M |
+| **Total** | **10731** | 293.4M |
 
 ## External dependencies
 
@@ -10167,7 +10167,7 @@ or the toolchain install (git-ignored; re-create with
 | `docs/notes/FORMAL_CERT_60E1D400.md` | `887ec09432d4c0965681cba0a716b2146695b1865b011040eecb39c06f2126c8` | 8.2K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `c8165c6f60867ef7745f102df4b9e8abc52d1a21b2e272a4996902aabdf87903` | 7.4K | Project knowledge / session notes |
 | `docs/notes/IDA_ANALYSIS.md` | `0a949c38355aacf4c0fd89c8da0f85ccfc0b9fead3eebde3289f49dee506ccb3` | 34.2K | Project knowledge / session notes |
-| `docs/notes/KNOWLEDGE.md` | `4e74434895037fe136cef2863ff69f1dac188bd4846f827f8b31437a99251453` | 4.0K | Project knowledge / session notes |
+| `docs/notes/KNOWLEDGE.md` | `9ab606b7aa1e66c44eea73615a5459d01aae3382b24f499f5408e8a256ff9028` | 4.5K | Project knowledge / session notes |
 | `docs/notes/LAUNCH_CONTROL_CHECKSUM_GUARD.md` | `6ade491dcecace2cfbdea2424d5d9ddfbe9bde32eaeb5024ee7fca3a9eb1944c` | 7.1K | Project knowledge / session notes |
 | `docs/notes/RESUME.md` | `64d7ba1b56c7f0072ce54dc069aeef0320e50b423aa30505bafa37df8bad7041` | 726B | Project knowledge / session notes |
 | `docs/notes/RUNTIME_CERT_PLAN.md` | `700e31a0334605db5b96dbbcb5898d8718fc2a6a0f60aa8ab9bfce1637fe271f` | 5.6K | Project knowledge / session notes |
@@ -10202,24 +10202,24 @@ or the toolchain install (git-ignored; re-create with
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
 | `web/ecu-emu/Makefile` | `7736bcf95d97c3d2aa379da2cc3fed167f1cdfa14c8d7fa8d4ad01fa3b01ab4c` | 1009B | Tracked file |
-| `web/ecu-emu/dist/app.js` | `a84fb9549153e64e371b3475cca906517f3d2fbb2ea099dfce68e36e4038f4d2` | 26.2K | Tracked file |
+| `web/ecu-emu/dist/app.js` | `047804e8bbb1b21c3a1938e9e3c7ab2a4b0236ad34ebee4c9047ba7da5fbd1b0` | 60.7K | Tracked file |
 | `web/ecu-emu/dist/can_live.css` | `219bb96658cc42f77791d715e004761a6733f54493323dd1df074b58f0c10599` | 3.4K | Tracked file |
-| `web/ecu-emu/dist/can_live.js` | `75fadc8395bfdf6c1e44a59d6e2be6f9ee5c6fad99be4b30706688bcdd659744` | 19.7K | Tracked file |
-| `web/ecu-emu/dist/emu_core.js` | `90335da39725a5e5c34500a13f5df72b14a02b2c5cb538d227cf2217639b7eba` | 13.2K | Tracked file |
-| `web/ecu-emu/dist/engine_sim.js` | `8c69c8775c270675c3d77c0de87d82fc989b4300b15f957b5b595a0356639f68` | 25.3K | Tracked file |
+| `web/ecu-emu/dist/can_live.js` | `d346af7b455e4894e48d886c8447b14d27f658ea8d5f9b3720c0ef45db899525` | 25.5K | Tracked file |
+| `web/ecu-emu/dist/emu_core.js` | `010a63f1c23450fda269fdc073bc9f842cbf52ec1864791036591177e8478e5f` | 35.5K | Tracked file |
+| `web/ecu-emu/dist/engine_sim.js` | `2a8e2f5cf2b82a5c761f33bdd503c4a613dec3b93ae77541faa628d7ef0a6f14` | 36.5K | Tracked file |
 | `web/ecu-emu/dist/icons.svg` | `358b02c562008eef9fdfa542f9fad9d3cd6e7abc2ee12ff4c3ed9759978d0d47` | 10.6K | Tracked file |
-| `web/ecu-emu/dist/index.html` | `1ec20e5615c8defd60e87237e6ecc7041c28d63db52751aa150d5aca7107d321` | 4.9K | Tracked file |
+| `web/ecu-emu/dist/index.html` | `185cdd6b32db704d5f32cffa3b49fa57ffde2e99e38a12e30a2b265d0fee0acb` | 18.0K | Tracked file |
 | `web/ecu-emu/dist/pins.json` | `4bcf5ccf231f6d0ce0585c8a2e4037fae3a9b9f61484a6b6108058ab707f66a7` | 16.4K | Tracked file |
-| `web/ecu-emu/dist/style.css` | `ce3d0bf620ee45b7d24a1879ba01053d80c35bd985e7b3e32a60b6d51ea33617` | 10.7K | Tracked file |
-| `web/ecu-emu/src/app.js` | `a84fb9549153e64e371b3475cca906517f3d2fbb2ea099dfce68e36e4038f4d2` | 26.2K | Tracked file |
+| `web/ecu-emu/dist/style.css` | `210befb983954ce11b020836d1f57aef0bbfcd6b815834ae182830109627eccd` | 16.6K | Tracked file |
+| `web/ecu-emu/src/app.js` | `047804e8bbb1b21c3a1938e9e3c7ab2a4b0236ad34ebee4c9047ba7da5fbd1b0` | 60.7K | Tracked file |
 | `web/ecu-emu/src/can_live.css` | `219bb96658cc42f77791d715e004761a6733f54493323dd1df074b58f0c10599` | 3.4K | Tracked file |
-| `web/ecu-emu/src/can_live.js` | `75fadc8395bfdf6c1e44a59d6e2be6f9ee5c6fad99be4b30706688bcdd659744` | 19.7K | Tracked file |
-| `web/ecu-emu/src/emu_core.js` | `90335da39725a5e5c34500a13f5df72b14a02b2c5cb538d227cf2217639b7eba` | 13.2K | Tracked file |
-| `web/ecu-emu/src/engine_sim.js` | `8c69c8775c270675c3d77c0de87d82fc989b4300b15f957b5b595a0356639f68` | 25.3K | Tracked file |
+| `web/ecu-emu/src/can_live.js` | `d346af7b455e4894e48d886c8447b14d27f658ea8d5f9b3720c0ef45db899525` | 25.5K | Tracked file |
+| `web/ecu-emu/src/emu_core.js` | `010a63f1c23450fda269fdc073bc9f842cbf52ec1864791036591177e8478e5f` | 35.5K | Tracked file |
+| `web/ecu-emu/src/engine_sim.js` | `2a8e2f5cf2b82a5c761f33bdd503c4a613dec3b93ae77541faa628d7ef0a6f14` | 36.5K | Tracked file |
 | `web/ecu-emu/src/icons.svg` | `358b02c562008eef9fdfa542f9fad9d3cd6e7abc2ee12ff4c3ed9759978d0d47` | 10.6K | Tracked file |
-| `web/ecu-emu/src/index.html` | `1ec20e5615c8defd60e87237e6ecc7041c28d63db52751aa150d5aca7107d321` | 4.9K | Tracked file |
+| `web/ecu-emu/src/index.html` | `185cdd6b32db704d5f32cffa3b49fa57ffde2e99e38a12e30a2b265d0fee0acb` | 18.0K | Tracked file |
 | `web/ecu-emu/src/pins.json` | `4bcf5ccf231f6d0ce0585c8a2e4037fae3a9b9f61484a6b6108058ab707f66a7` | 16.4K | Tracked file |
-| `web/ecu-emu/src/style.css` | `ce3d0bf620ee45b7d24a1879ba01053d80c35bd985e7b3e32a60b6d51ea33617` | 10.7K | Tracked file |
+| `web/ecu-emu/src/style.css` | `210befb983954ce11b020836d1f57aef0bbfcd6b815834ae182830109627eccd` | 16.6K | Tracked file |
 | `web/explorer/.gitignore` | `9e38f3635d6b89b9d202765b2624d45192da67b8c0c593bfb75c405b070e6a9b` | 66B | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/Makefile` | `e6aef72e09b05b18e5af42221caf1f806e6f292bfa8c3abf0c365628e097d6c5` | 2.6K | Web explorer (static firmware browser; see web/explorer/README.md) |
 | `web/explorer/README.md` | `e01c7d2595379d153df4d21d2d911254730a9f953102e964467e239c869ac3e0` | 7.4K | Web explorer (static firmware browser; see web/explorer/README.md) |
