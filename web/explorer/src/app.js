@@ -1246,7 +1246,7 @@ function TblDetail(rid) {
     if (t0) {
       html += `<div>Kind</div><div>${t0.kind === "2D" ? "2D map (ThreeDLookup)" : "1D map (TwoDLookup)"}</div>
         <div>Size</div><div>${t0.kind === "2D" ? t0.cx + " × " + t0.cy : t0.cx + " values"}</div>
-        <div>Cell type</div><div>${t0.type}</div>`;
+        <div>Cell type</div><div>${esc(t0.type)}</div>`;
       if (t0.scale !== undefined && t0.type !== "f32")
         html += `<div>Scale / Offset</div><div>${fmtNum(t0.scale, 4)} / ${fmtNum(t0.offset, 4)}</div>`;
       html += `<div>Descriptor</div><div>${hex(t0.desc)}</div>`;
@@ -1514,7 +1514,7 @@ function drawHeatmap(host, t0) {
   grad.style.background = `linear-gradient(90deg, ${INFERNO.map((c) => `rgb(${c})`).join(",")})`;
   lg.innerHTML = `<span>${fmtNum(min, 3)}</span>`;
   lg.appendChild(grad);
-  lg.insertAdjacentHTML("beforeend", `<span>${fmtNum(max, 3)}</span><span class="muted">(${t0.type}${t0.scale ? " · phys = raw×" + fmtNum(t0.scale, 4) : ""})</span>`);
+  lg.insertAdjacentHTML("beforeend", `<span>${fmtNum(max, 3)}</span><span class="muted">(${esc(t0.type)}${t0.scale ? " · phys = raw×" + fmtNum(t0.scale, 4) : ""})</span>`);
   host.appendChild(lg);
   // tooltip
   const tip = document.createElement("div");
@@ -1568,7 +1568,7 @@ function draw1D(host, t0) {
     g.fillText(fmtNum(ax[i], 2), m.l + i * iw + iw / 2, H - m.b + 8);
   const lg = document.createElement("div");
   lg.className = "heat-legend";
-  lg.innerHTML = `<span>min ${fmtNum(min, 3)}</span><span class="muted">·</span><span>max ${fmtNum(max, 3)}</span><span class="muted">(${t0.type}${t0.scale ? " · phys = raw×" + fmtNum(t0.scale, 4) : ""})</span>`;
+  lg.innerHTML = `<span>min ${fmtNum(min, 3)}</span><span class="muted">·</span><span>max ${fmtNum(max, 3)}</span><span class="muted">(${esc(t0.type)}${t0.scale ? " · phys = raw×" + fmtNum(t0.scale, 4) : ""})</span>`;
   host.appendChild(lg);
 }
 function drawAxis(host, ax, name) {

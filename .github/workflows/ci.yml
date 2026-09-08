@@ -97,7 +97,7 @@ jobs:
 
       - name: Sanity-check toolchain and capstone
         run: |
-          test -x tools/toolchain/usr/bin/sh-elf-as
+          test -x tools/toolchain/usr/bin/sh-elf-as || { echo "ERROR: tools/toolchain/usr/bin/sh-elf-as not found or not executable"; exit 1; }
           tools/toolchain/usr/bin/sh-elf-as --version | head -1
           python3 -c 'import capstone; print("capstone", capstone.__version__)'
 
@@ -174,7 +174,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Emulator suite (make -C web/ecu-emu test, 75 tests)
+      - name: Emulator suite (make -C web/ecu-emu test, 120 tests)
         run: make -C web/ecu-emu test
 
       - name: Firmware host check (make -C firmware check)
