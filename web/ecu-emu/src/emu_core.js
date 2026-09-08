@@ -258,7 +258,7 @@ var Module = (function() {
    *  Peripheral register read
    * ================================================================ */
   function getRegValue(addr) {
-    addr = addr & 0xFFFFFFFF;
+    addr = addr >>> 0;
 
     // ADC registers: 0xFFFFE500..0xFFFFE5FF
     if (addr >= ADC_BASE && addr < ADC_BASE + 0x100) {
