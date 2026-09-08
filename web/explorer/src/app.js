@@ -629,6 +629,7 @@ const SymBrowser = {
     $("sym-tbody").innerHTML = slice.map(({ s, i }) => renderSymRow(s, i)).join("") ||
       `<tr><td colspan="7" class="muted">No matches</td></tr>`;
     $("sym-count").textContent = `${fmtNum(n)} of ${fmtNum(DATA.symbols.length)} · page ${this.page + 1}/${pages}`;
+    var el = document.getElementById("sym-pageinfo"); if (el) el.textContent = `Page ${this.page + 1}/${pages} · ${n} rows`;
     $("sym-prev").disabled = this.page <= 0;
     $("sym-next").disabled = this.page >= pages - 1;
   },
@@ -1204,6 +1205,7 @@ function TblRender() {
   $("tbl-count").textContent = `${fmtNum(n)} entries · page ${Tbl.page + 1}/${pages}` +
     (CUR_MODEL !== DATA.defaultModel && (!MODEL_LOAD[CUR_MODEL] || MODEL_LOAD[CUR_MODEL].state === "loading")
       ? " · loading model values…" : "");
+  var el = document.getElementById("tbl-pageinfo"); if (el) el.textContent = `Page ${Tbl.page + 1}/${pages} · ${n} rows`;
   $("tbl-prev").disabled = Tbl.page <= 0;
   $("tbl-next").disabled = Tbl.page >= pages - 1;
 }
