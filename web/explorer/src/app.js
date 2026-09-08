@@ -1263,13 +1263,13 @@ function TblDetail(rid) {
     html += `<div class="viz-wrap" id="tbl-viz-2"></div>`;
   }
   $("tbl-detail").innerHTML = html;
-  const viz = $("tbl-viz");
+  const viz = document.getElementById("tbl-viz");
   if (viz) {
     if (t0 && t0.grid) drawHeatmap(viz, t0);
     else if (t0 && t0.vals) draw1D(viz, t0);
     else if (mv && mv.ax) drawAxis(viz, mv.ax, t.n);
   }
-  const viz2 = $("tbl-viz-2");
+  const viz2 = document.getElementById("tbl-viz-2");
   if (viz2 && t0 && t0.ax) {
     if (!t0.grid && !t0.vals) { viz2.innerHTML = ""; }
     else {
