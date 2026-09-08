@@ -37,6 +37,7 @@ let sensorState = {
  * `let` at top level does not attach to window, so publish explicitly. */
 window.sensorState = sensorState;
 let pinOutputs = {};  // name → live value, populated by computePinStates()
+let _booted = false;  // boot() guard: init's fetch path must not double-boot
 
 /* ======================================================================
  *  Helpers
@@ -53,7 +54,23 @@ function mapRange(value, inMin, inMax, outMin, outMax) {
 /* ======================================================================
  *  Pin computation — delegates to emu_core.js
  * ====================================================================== */
+function clampSensor(v, min, max, fallback) {
+  v = Number(v);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(min, Math.min(max, v));
+}
+
 function computePinStates() {
+  /* Clamp on the app.js side (emu_core.js is owned by wave3b — do not edit):
+   * a NaN or out-of-range sensor must never reach emu_set_sensor. */
+  sensorState.rpm = clampSensor(sensorState.rpm, 0, 9000, 800);
+  sensorState.ect = clampSensor(sensorState.ect, -20, 120, 80);
+  sensorState.iat = clampSensor(sensorState.iat, -20, 60, 25);
+  sensorState.map = clampSensor(sensorState.map, 0, 105, 35);
+  sensorState.tps = clampSensor(sensorState.tps, 0, 100, 0);
+  sensorState.o2f = clampSensor(sensorState.o2f, 0, 1, 0.45);
+  sensorState.o2r = clampSensor(sensorState.o2r, 0, 1, 0.45);
+
   /* Push sensors into the core */
   Module.emu_set_sensor(0, sensorState.rpm);
   Module.emu_set_sensor(1, sensorState.ect);
@@ -90,13 +107,30 @@ function renderPinout() {
     cell.className = "pin-cell";
     cell.dataset.type = p.type;
     cell.dataset.num = p.num;
-    cell.innerHTML = `
-      <div class="pin-indicator"></div>
-      <span class="pin-num">${p.num}</span>
-      <span class="pin-name">${p.name}</span>
-    `;
-    cell.addEventListener("click", () => selectPin(p));
+    /* XSS-hardened: pin names come from pins.json — render via textContent. */
+    const indicator = document.createElement("div");
+    indicator.className = "pin-indicator";
+    const numEl = document.createElement("span");
+    numEl.className = "pin-num";
+    numEl.textContent = String(p.num);
+    const nameEl = document.createElement("span");
+    nameEl.className = "pin-name";
+    nameEl.textContent = p.name;
+    cell.append(indicator, numEl, nameEl);
+    /* Keyboard a11y: pin cells act as buttons. */
+    cell.setAttribute("role", "button");
+    cell.setAttribute("tabindex", "0");
+    cell.setAttribute("aria-label", `Pin ${p.num}: ${p.name}`);
+    const activate = () => selectPin(p);
+    cell.addEventListener("click", activate);
+    cell.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        activate();
+      }
+    });
     cell.addEventListener("mouseenter", () => showPinInfo(p));
+    cell.addEventListener("focus", () => showPinInfo(p));
 
     if (p.num <= 48) {
       connA.appendChild(cell);
@@ -195,9 +229,15 @@ function drawOverviewSchematic(svg) {
     });
   });
 
-  // RPM indicator
-  addSVG(svg, "text", {x:400, y:480, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":12},
+  // RPM indicator (id'd so the refresh path can update it live)
+  addSVG(svg, "text", {id:"overview-live", x:400, y:480, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":12},
     `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`);
+}
+
+/* Light live update of the overview schematic text (cheap: one text node). */
+function updateOverview() {
+  const el = document.getElementById("overview-live");
+  if (el) el.textContent = `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`;
 }
 
 function drawComponent(svg, x, y, goesTo, pin) {
@@ -362,11 +402,22 @@ function renderStates() {
       barColor = "var(--muted)";
     }
 
-    item.innerHTML = `
-      <div class="state-name" style="color:${getTypeColor(p.type)}">${p.name}</div>
-      <div class="state-bar"><div class="state-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
-      <div class="state-value">${displayVal}</div>
-    `;
+    /* XSS-hardened: pin names come from pins.json — render via textContent. */
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "state-name";
+    nameDiv.style.color = getTypeColor(p.type);
+    nameDiv.textContent = p.name;
+    const barWrap = document.createElement("div");
+    barWrap.className = "state-bar";
+    const barFill = document.createElement("div");
+    barFill.className = "state-bar-fill";
+    barFill.style.width = `${barPct}%`;
+    barFill.style.background = barColor;
+    barWrap.appendChild(barFill);
+    const valDiv = document.createElement("div");
+    valDiv.className = "state-value";
+    valDiv.textContent = displayVal;
+    item.append(nameDiv, barWrap, valDiv);
     list.appendChild(item);
   });
 }
@@ -381,7 +432,14 @@ function renderScenarios() {
   Object.entries(SCENARIOS).forEach(([key, sc]) => {
     const btn = document.createElement("button");
     btn.className = "scenario-btn";
-    btn.innerHTML = `<div class="sc-name">${key.toUpperCase()}</div><div class="sc-desc">${sc.desc}</div>`;
+    /* XSS-hardened: scenario keys/descriptions come from pins.json. */
+    const scName = document.createElement("div");
+    scName.className = "sc-name";
+    scName.textContent = key.toUpperCase();
+    const scDesc = document.createElement("div");
+    scDesc.className = "sc-desc";
+    scDesc.textContent = sc.desc;
+    btn.append(scName, scDesc);
     btn.addEventListener("click", () => applyScenario(key));
     container.appendChild(btn);
   });
@@ -395,6 +453,14 @@ function applyScenario(key) {
   sensorState.iat = sc.iat;
   sensorState.map = sc.map;
   sensorState.tps = sc.tps;
+  if (sc.o2f !== undefined) sensorState.o2f = sc.o2f;
+  if (sc.o2r !== undefined) sensorState.o2r = sc.o2r;
+  /* Keep the engine sim from pulling rpm away from the scenario value:
+   * drive its throttle from the scenario rpm (neutral rev, load cleared). */
+  try {
+    if (typeof window.__setSimFromRPM === "function") window.__setSimFromRPM(sc.rpm);
+    else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sc.rpm);
+  } catch (e) {}
   updateSliders();
   refresh();
   // Highlight active scenario
@@ -411,41 +477,58 @@ function renderSliders() {
   container.innerHTML = "";
 
   const sliders = [
-    {key:"rpm",  label:"RPM",   min:0, max:8000, step:100, unit:""},
+    {key:"rpm",  label:"RPM",   min:0, max:9000, step:100, unit:""},
     {key:"ect",  label:"ECT",   min:-20,max:120, step:1,   unit:"°C"},
     {key:"iat",  label:"IAT",   min:-20,max:60,  step:1,   unit:"°C"},
     {key:"map",  label:"MAP",   min:0,  max:105, step:1,   unit:"kPa"},
     {key:"tps",  label:"TPS",   min:0,  max:100, step:1,   unit:"%"},
     {key:"o2f",  label:"O2-F",  min:0,  max:1,   step:0.01,unit:"V"},
+    {key:"o2r",  label:"O2-R",  min:0,  max:1,   step:0.01,unit:"V"},
   ];
 
   sliders.forEach(s => {
     const group = document.createElement("div");
     group.className = "slider-group";
     group.innerHTML = `
-      <label>${s.label} <span id="val-${s.key}">${sensorState[s.key]}${s.unit}</span></label>
-      <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${sensorState[s.key]}" id="slider-${s.key}">
+      <label for="slider-${s.key}">${s.label} <span id="val-${s.key}">${sensorState[s.key]}${s.unit}</span></label>
+      <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${sensorState[s.key]}" id="slider-${s.key}" aria-label="${s.label} sensor">
     `;
     container.appendChild(group);
 
     const input = group.querySelector("input");
     input.addEventListener("input", () => {
-      sensorState[s.key] = parseFloat(input.value);
+      const v = Number(input.value);
+      if (!Number.isFinite(v)) return;
+      sensorState[s.key] = Math.max(s.min, Math.min(s.max, v));
       document.getElementById(`val-${s.key}`).textContent = `${sensorState[s.key]}${s.unit}`;
+      /* A hand-dragged RPM slider must stick: the engine-sim tick pulls
+       * rpm toward its throttle target, so drive the sim throttle from the
+       * slider value (inverse map, load cleared for a neutral rev). */
+      if (s.key === "rpm") {
+        try {
+          if (typeof window.__setSimFromRPM === "function") window.__setSimFromRPM(sensorState[s.key]);
+          else if (typeof EngineSim !== "undefined" && EngineSim.setFromRPM) EngineSim.setFromRPM(sensorState[s.key]);
+        } catch (e) {}
+      }
+      /* A manual slider move leaves the scenario it came from: clear highlight. */
+      document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
       refresh();
     });
   });
 }
 
 function updateSliders() {
-  ["rpm","ect","iat","map","tps","o2f"].forEach(key => {
+  ["rpm","ect","iat","map","tps","o2f","o2r"].forEach(key => {
     const slider = document.getElementById(`slider-${key}`);
-    if (slider) {
-      slider.value = sensorState[key];
-      const unit = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V"}[key];
-      const valEl = document.getElementById(`val-${key}`);
-      if (valEl) valEl.textContent = `${sensorState[key]}${unit}`;
-    }
+    if (!slider) return;
+    /* Don't fight an active drag: skip the focused slider. */
+    if (document.activeElement === slider) return;
+    const v = Number(sensorState[key]);
+    if (!Number.isFinite(v)) return;
+    slider.value = v;
+    const unit = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V",o2r:"V"}[key];
+    const valEl = document.getElementById(`val-${key}`);
+    if (valEl) valEl.textContent = `${sensorState[key]}${unit}`;
   });
 }
 
@@ -463,11 +546,11 @@ function renderRegisters() {
     rows.push({periph:"ADC", addr:addr, name:`CH${ch}`, value:val, fmt: `0x${(val << 6).toString(16).toUpperCase().padStart(4,"0")}`});
   }
 
-  // Port latches (0-5)
+  // Port latches, full 16 bits (port 5 bit 7 = MIL/CHECK_ENG)
   for (let p = 0; p < 6; p++) {
     const addr = PORT_BASE + p * 8;
-    const val = Module.emu_get_port(p, 0) | (Module.emu_get_port(p, 1) << 1) |
-               (Module.emu_get_port(p, 2) << 2) | (Module.emu_get_port(p, 3) << 3);
+    let val = 0;
+    for (let b = 0; b < 16; b++) val |= (Module.emu_get_port(p, b) << b);
     rows.push({periph:"PORT", addr:addr, name:`P${p}`, value:val, fmt:`0x${val.toString(16).toUpperCase().padStart(4,"0")}`});
   }
 
@@ -497,34 +580,39 @@ function refresh() {
   renderStates();
   renderRegisters();
   if (selectedPin) showPinInfo(selectedPin);
+  else updateOverview();
 }
+/* Published for the engine-sim tick (throttled live-view sync). */
+window.refresh = refresh;
+window.updateSliders = updateSliders;
 
 /* ======================================================================
  *  Init
  * ====================================================================== */
 function init() {
-  // Load pin data from embedded JSON
-  const dataEl = document.getElementById("pins-data");
-  let data;
-  try {
-    data = JSON.parse(dataEl.textContent);
-  } catch(e) {
-    // Fallback: try fetch
-    fetch("pins.json").then(r => r.json()).then(d => {
-      PINS = d.pins;
-      PERIPHERALS = d.peripherals || [];
-      SCENARIOS = d.scenarios || {};
-      boot();
-    });
-    return;
-  }
-  PINS = data.pins;
-  PERIPHERALS = data.peripherals || [];
-  SCENARIOS = data.scenarios || {};
-  boot();
+  /* pins.json is fetched exclusively: a <script src="pins.json"> tag leaves
+   * textContent empty in spec-compliant browsers, so never rely on it. */
+  fetch("pins.json").then(function(r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(d) {
+    PINS = d.pins;
+    PERIPHERALS = d.peripherals || [];
+    SCENARIOS = d.scenarios || {};
+    boot();
+  }).catch(function(err) {
+    const host = document.getElementById("states-list") || document.body;
+    const msg = document.createElement("div");
+    msg.className = "emu-load-error";
+    msg.setAttribute("role", "alert");
+    msg.textContent = "Failed to load pins.json: " + (err && err.message ? err.message : String(err));
+    host.appendChild(msg);
+  });
 }
 
 function boot() {
+  if (_booted) return;
+  _booted = true;
   // Initialize the emulator core with pin data
   Module.emu_init();
   Module.emu_set_pins(PINS);
