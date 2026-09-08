@@ -1664,19 +1664,17 @@ void can4B0RX_unpack(void)
 {
     uint8_t buf[8];
 
-    /* ROM:0x2BE6E: placeCANRX(0x4ECA0) — read CAN1 HW mailbox.
+    /* ROM:0x2BE18: placeCANRX(0x4EC90) — read CAN1 HW mailbox.
      * review-fix: honor the result; on failure bump timeout and return.
-     * review-fix w2 (B17 verdict: NEEDS-ROM-CHECK — shared-vs-typo
-     * unresolved, behavior kept): can4C0RX_short below reads the SAME
-     * config entry 0x4ECA0, and can430_4C0RX_dispatch claims 0x4C0 via
-     * 0x4EC80. Mailbox-table evidence (CAN_PROTOCOL.md: CAN1 RX config
-     * 0x4EC60 = 6x16B; doc maps 0x4B0→MB5, 0x4C0→MB6, 0x47→MB7 while
-     * can47RX_Main(MB7) uses 0x4ECB0) fits NEITHER a clean stride NOR two
-     * IDs sharing one entry: either 0x4B0/0x4C0 share an acceptance-mask
-     * mailbox (one entry, two IDs — possible, masks can cover both), or
-     * one of the two 0x4ECA0 literals is a typo for the 0x4C0 entry.
-     * ROM 0x2BE6E vs 0x2C780 must arbitrate; do not "fix" by splitting. */
-    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
+     * rom-check (B17 resolved — separate entries, no sharing): the mailbox
+     * config table uses a 0x10 stride, one entry per ID —
+     * 0x4EC80 = (0x430, ..., buf FFFFC060),
+     * 0x4EC90 = (0x4B0, ..., buf FFFFBC08),
+     * 0x4ECA0 = (0x4C0, ..., buf FFFFBC64).
+     * ROM reads 0x4EC90 here (mov.l #dword_4EC90 @0x2BE22), 0x4ECA0 in
+     * can4C0RX_short (@0x2C782), and 0x4EC80 in can430RX_dispatch
+     * (@0x33BA2). The old shared-0x4ECA0 reading was wrong. */
+    if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4EC90, buf) != 0) {
         can4b0_rx_timeout++;
         return;
     }
@@ -1780,12 +1778,9 @@ void can4C0RX_short(void)
 
     /* ROM:0x2C780: placeCANRX(0x4ECA0) — read CAN1 HW mailbox. DLC=1.
      * review-fix: honor the result; on failure bump timeout and return.
-     * review-fix w2 (B17 verdict: NEEDS-ROM-CHECK — see the full analysis
-     * at can4B0RX_unpack above): this 0x4C0 short-message handler shares
-     * config entry 0x4ECA0 with the 0x4B0 wheel-speed handler, while
-     * can430_4C0RX_dispatch (0x4EC80) ALSO claims 0x4C0 — so 0x4C0 is
-     * currently handled twice via two different entries. Shared-mask
-     * mailbox vs typo: ROM 0x2C780 vs 0x2BE6E/0x33BA0 must arbitrate. */
+     * rom-check (B17 resolved): 0x4ECA0 is confirmed as the 0x4C0 entry
+     * (mov.l #dword_4ECA0 @0x2C782; entry contents 0x4C0/buf FFFFBC64).
+     * 0x4C0 is handled here only — the 0x430 handler uses 0x4EC80. */
     if (can_rx_read_mailbox((const uint8_t *)(uintptr_t)0x4ECA0, buf) != 0) {
         can4c0_rx_timeout++;
         return;
@@ -1804,15 +1799,20 @@ void can4C0RX_short(void)
 }
 
 /**
- * can430_4C0RX_dispatch — Process CAN ID 0x0430/0x04C0 cluster data.
+ * can430RX_dispatch — Process CAN ID 0x0430 cluster data.
  * ROM address: 0x33BA0
  *
  * Uses placeCANRX with config entry at 0x4EC80 (CAN1).
  * On success: mem_flag_e2e0 (timestamp), then copies 8 RX bytes
  * from [0xFFFFC060-C067] → [0xFFFFC06B-C071] (main staging).
  * Also copies to [0xFFFFC068-C06A] (secondary staging).
+ *
+ * rom-check (B17 resolved): despite the old name, ROM handles 0x430
+ * ONLY here — the body touches 0x430 buffers exclusively (C060→C06B,
+ * C06B→C068) and entry 0x4EC80 holds ID 0x430. 0x4C0 is handled solely
+ * by can4C0RX_short via 0x4ECA0; no double-handling. Renamed accordingly.
  */
-void can430_4C0RX_dispatch(void)
+void can430RX_dispatch(void)
 {
     uint8_t buf[8];
 
@@ -2058,7 +2058,7 @@ void can_to_uds_bridge(uint8_t sid, uint8_t req)
  *   1. CAN212RX_Main()           — CAN ID 0x212 (ABS/DSC/brake lamps)
  *   2. can_lookup_table_indexed() — Unknown table lookup
  *   3. if [0xB5A4]==0: table_lookup_dispatch_29E9C()
- *   4. can430_4C0RX_dispatch()   — CAN ID 0x430/0x4C0
+ *   4. can430RX_dispatch()         — CAN ID 0x430
  *   5. can4B0RX_unpack()         — CAN ID 0x4B0 (wheel speeds)
  *   6. can4B1RX_event_check()    — CAN ID 0x4B1 (DSC request)
  *   7. can4C0RX_short()          — CAN ID 0x4C0 (short msg)
@@ -2102,7 +2102,7 @@ void secondary_system_controller(void)
         /* Placeholder: no-op */
     }
 
-    can430_4C0RX_dispatch();
+    can430RX_dispatch();
     can4B0RX_unpack();
     can4B1RX_event_check();
     can4C0RX_short();

@@ -182,6 +182,10 @@ void task_scheduler_dispatch(void)
  * Executes the SH-2 `sleep` instruction: the CPU halts until an
  * interrupt (task enqueue, timer tick, serial RX) wakes it. On the host
  * syntax-check build the asm string is opaque and never assembled.
+ *
+ * rom-check: the ROM dispatcher (0x6C8-0x794) never sleeps — this helper
+ * is currently unused; keep for future low-power modes, do NOT call it
+ * from the main idle path.
  */
 static inline void cpu_idle_sleep(void)
 {
@@ -237,20 +241,15 @@ void main_task_dispatcher(void)
         int pending = task_queue_pending_count();
 
         if (pending == 0) {
-            /* Idle path: no tasks pending — sleep until the next
-             * interrupt instead of spinning.
-             * review-fix w2: the old code fed the watchdog on EVERY
-             * idle spin, so a stuck scheduler (never dispatching) would
-             * still look alive to the WDT. Feed only after forward
-             * progress (Step 7 below); in idle, sleep and feed at most
-             * once per 256 spins as a last-resort keepalive.
-             * NEEDS-ROM-CHECK: ROM idle path 0x78C must confirm the
-             * real sleep/wake + feed policy. */
-            static uint8_t idle_spins = 0;
-            cpu_idle_sleep();
-            if (++idle_spins == 0) {
-                watchdogTimerRead();
-            }
+            /* Idle path: no tasks pending.
+             * rom-check (resolved): ROM loc_78C is just `jsr
+             * watchdogTimerRead; bra main-loop` — no SLEEP opcode
+             * anywhere in the dispatcher (0x6C8-0x794), and EVERY path
+             * (idle-empty, post-dispatch, dispatch-table no-match)
+             * converges on the WDT call once per loop iteration. Match
+             * the ROM: spin without sleeping and feed the watchdog on
+             * every idle pass. */
+            watchdogTimerRead();
             continue;
         }
 

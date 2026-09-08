@@ -38,20 +38,19 @@
 /* ====================================================================== */
 
 /* The chip select (CS) pin is controlled via a GPIO bit.
- * review-fix w2 (NEEDS-ROM-CHECK, guess kept): the 0xFFFFF730/bit0 address
- * below is still a GUESS — no CS pin is documented anywhere. Search trail
- * (2026-09-08): the docs-notes markdown files mention the part (ABLIC
- * S-93C56C, 256 B,
- * 3-wire Microwire, DUMP_ALL.md/HARDWARE.md/KNOWLEDGE.md) and "SPI
- * bit-bang (GPIO)" (IDA_ANALYSIS.md:604,761) but name no CS address; the
- * only 0xFFFF73xx doc hits are 0xFFFF7304 (diagnostic-code writes,
- * FINDINGS.md:61) and this file. Suspicious in-code signal: 0xFFFFF730 is
- * PFC_PMR2_BASE (platform.h), a port-FUNCTION select register that
- * gpio_init() itself writes (0xEFFF then 0x9000 for CAN pins) — RMW-ing a
- * CS bit there would corrupt the CAN pin mux, so the real CS is more
- * likely a PDR data-register bit. ROM (SPI bit-bang routines 0x9C0/0x9DE
- * callers + EEPROM ops) or bench probing must confirm before trusting
- * these helpers on hardware. */
+ * NEEDS-ROM-CHECK (unresolved, guess kept as placeholder — do NOT trust on
+ * hardware): the 0xFFFFF730/bit0 address below is still a GUESS. ROM check
+ * trail (IDA session f3480f35, 2026-09-08):
+ *   - 0xFFFFF730 is an ATU register, not GPIO: ROM atu_channel_i_config_B
+ *     @0x50CC does a full 16-bit write (0xF484 -> @0xFFFFF730; same in _C),
+ *     so RMW-ing a CS bit there would corrupt the ATU channel config.
+ *   - No SPI/EEPROM code touches 0xFFFFF730 (text search: only DIV-unit
+ *     0xFFFF7304 hits — a different peripheral — plus the ATU writes).
+ *   - ROM SPI init (hw_init_1 @0x170) and the clock helpers (0x9C0/0x9DE)
+ *     use only 0xFFFFE4xx (E401 clk/status, E402-E42C config, E4B0/B8).
+ * Real CS still unidentified — hunt the single-bit toggle in the E4xx
+ * Microwire data path (E406/E408/E40A per the header map) or bench-probe
+ * before trusting these helpers on hardware. */
 #define SPI_CS_PORT     (*(volatile uint16_t *)0xFFFFF730)
 #define SPI_CS_BIT      0x0001  /* Bit 0 = chip select (active LOW) */
 

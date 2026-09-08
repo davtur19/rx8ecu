@@ -401,32 +401,30 @@ int obd_sid10_sessionControl(uint8_t sub_func, const uint8_t *data,
     /* Apply timing parameters from request data.
      * data[0..1] = P2 server max (big-endian, ms)
      * data[2..4] = P2* server max (big-endian, ms)
-     * ROM handler at 0x586C8 writes timing values to 0xD210/0xD212.
      * review-fix: P2 was read from data[1..2] (off by one vs the layout
      * above) and P2* was built from only 2 bytes (data[3..4] << 16/8,
      * dropping the low byte). Fixed to data[0..1] / data[2..4], requiring 2
      * bytes for P2 and 5 bytes for P2*.
      *
-     * review-fix w2 (B16 verdict: overlap CONFIRMED, union-vs-wrong-address
-     * NEEDS-ROM-CHECK — behavior kept): these two u16 writes overlap the
-     * security-seed RAM. UDS_SESSION_TIMER_ADDR (0xFFFFD210, u16) covers
-     * bytes D210+D211, and D211 IS UDS_SEED_BYTE1_ADDR; the P2* write to
-     * 0xFFFFD212 (u16) covers D212+D213 = SEED_BYTE2 + SEED_BYTE3
-     * (4-byte seed D211-D214 per UDS_SECURITY_MAPPING.md/IDA_ANALYSIS.md).
-     * No doc covers P2/P2* timing addresses, so both readings are possible:
-     * (a) lifecycle union — timing params are only written on a session
-     * transition while the seed is only live during an 0x27 exchange, so
-     * the overlap never corrupts live state; or (b) wrong address — the
-     * ROM 0x586C8 destination is elsewhere. ROM 0x586C8 must arbitrate
-     * before this overlap is "cleaned up" (do NOT relocate blindly). */
+     * rom-check (B16 resolved — overlap was firmware-introduced, stores
+     * removed): ROM SessionControl (0x586C8) performs NO timing-parameter
+     * RAM writes (session dispatch via callees only). ROM touches D210
+     * solely as a BYTE session-state slot (uds_security_unlock_state_set
+     * @0x56728-0x5676E: mov.b 0/1/2 -> [0xFFFFD210], with a u16 companion
+     * at D20E), the 4-byte seed lives at D211-D214 (diag_security_5699a
+     * @0x5699a), and NO ROM instruction references 0xFFFFD212 at all —
+     * so the old u16 stores to D210/D212 corrupted seed bytes D211/D213
+     * with zero ROM basis. P2/P2* are parsed and length-checked but NOT
+     * stored: their ROM backing store is unconfirmed, and storing them
+     * must wait for a ROM address (do NOT relocate blindly). */
     if (data_len >= 2) {
         uint16_t p2_max = ((uint16_t)data[0] << 8) | data[1];
-        *(volatile uint16_t *)0xFFFFD210 = p2_max;
+        (void)p2_max;
         if (data_len >= 5) {
             uint32_t p2_star_max = ((uint32_t)data[2] << 16) |
                                    ((uint32_t)data[3] << 8) |
                                    (uint32_t)data[4];
-            *(volatile uint16_t *)0xFFFFD212 = (uint16_t)(p2_star_max / 10);
+            (void)p2_star_max;
         }
     }
 
