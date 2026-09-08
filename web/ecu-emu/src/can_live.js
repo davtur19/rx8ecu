@@ -686,6 +686,39 @@ var CANLive = (function() {
     if (_timer) { clearInterval(_timer); _timer = null; }
   }
 
+  /* Wave A3 frame tap: frames added since `idx` (for the per-pin live
+   * data + waveform raster). Returns { frames, next }. No DOM touched. */
+  function since(idx) {
+    if (typeof idx !== "number" || !(idx >= 0)) idx = 0;
+    if (idx > _frames.length) idx = _frames.length;
+    return { frames: _frames.slice(idx), next: _frames.length };
+  }
+
+  /* Wave A3: most recent frame overall (copy) or null when empty. */
+  function last() {
+    if (_frames.length === 0) return null;
+    var f = _frames[_frames.length - 1];
+    return { ts: f.ts, id: f.id, dlc: f.dlc, data: f.data.slice(0),
+      dir: f.dir, desc: f.desc, uds: f.uds };
+  }
+
+  /* Wave A3: most recent frame with a given CAN id (copy) or null. */
+  function lastId(id) {
+    for (var i = _frames.length - 1; i >= 0; i--) {
+      if (_frames[i].id === id) {
+        var f = _frames[i];
+        return { ts: f.ts, id: f.id, dlc: f.dlc, data: f.data.slice(0),
+          dir: f.dir, desc: f.desc, uds: f.uds };
+      }
+    }
+    return null;
+  }
+
+  /* Wave A3: live TX/RX counters (copy). */
+  function counts() {
+    return { tx: _stats.tx, rx: _stats.rx };
+  }
+
   /* Wave A2 headless test hook: pack one frame for `id` from the current
    * live state (core fans/battery + window.sensorState). Returns
    * { id, dlc, data } or null for unknown ids. No DOM touched. */
@@ -712,5 +745,6 @@ var CANLive = (function() {
     return { id: id, dlc: table[id], data: data };
   }
 
-  return { init: init, stop: stop, pack: pack };
+  return { init: init, stop: stop, pack: pack,
+    since: since, last: last, lastId: lastId, counts: counts };
 })();

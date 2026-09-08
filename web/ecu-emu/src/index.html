@@ -22,6 +22,20 @@
 .cal-checkrow input{accent-color:var(--accent)}
 .keycode-row input[type=number]{letter-spacing:0;text-transform:none}
 #cal-live{white-space:pre-line}
+/* Wave A3: per-pin live digital data + waveform (style.css is owned by
+ * another agent — keep A3 additions here). */
+#tab-pins .state-item{grid-template-columns:70px 1fr 108px}
+.state-sub{font:9px var(--mono);color:var(--muted);line-height:1.3;word-break:break-all}
+.livedata{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.livedata-row{display:flex;justify-content:space-between;gap:8px;font:11px var(--mono);padding:2px 0;border-bottom:1px solid var(--border)}
+.livedata-row:last-child{border-bottom:none}
+.livedata-k{color:var(--muted);font-size:10px;text-transform:uppercase;flex-shrink:0}
+.livedata-v{color:var(--text);text-align:right;word-break:break-all}
+#livedata-note{font:10px var(--mono);color:var(--yellow);margin-top:6px;line-height:1.5}
+#pin-wave{display:block;width:100%;height:64px;margin-top:8px;background:#0b0e13;border:1px solid var(--border);border-radius:4px}
+#wave-cap{font:10px var(--mono);color:var(--muted);margin-top:4px}
+.can-act{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border2);vertical-align:baseline}
+.can-act.on{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
 </style>
 </head>
 <body>
@@ -158,6 +172,13 @@
                 <dt>State</dt><dd id="info-state"></dd>
                 <dt>Register</dt><dd id="info-reg"></dd>
               </dl>
+              <div class="livedata" id="pin-livedata" style="display:none">
+                <div class="esim-label">Live data — actual bits on this pin</div>
+                <div id="livedata-body"></div>
+                <div id="livedata-note" style="display:none"></div>
+                <canvas id="pin-wave" width="260" height="64" role="img" aria-label="Digital waveform, last 2 seconds"></canvas>
+                <div id="wave-cap" aria-live="off"></div>
+              </div>
             </div>
             <div class="panel-title" style="border-top:1px solid var(--border)">Live Pin States</div>
             <div class="pinout-tools">
