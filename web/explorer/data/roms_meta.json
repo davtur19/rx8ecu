@@ -17,14 +17,14 @@
   "denso_copyright_offset": "0x2023",
   "family_shift_vs_baseline": 0,
   "table_map": {
-   "mapped": 1210,
+   "mapped": 1209,
    "unmatched": 0,
    "methods": {
-    "same_addr": 1209,
+    "same_addr": 1208,
     "hole": 1
    },
    "confidence": {
-    "high": 1209,
+    "high": 1208,
     "low": 1
    }
   }

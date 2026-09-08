@@ -624,7 +624,8 @@ const SymBrowser = {
   render() {
     const n = this.rows.length;
     const pages = Math.max(1, Math.ceil(n / this.perPage));
-    if (this.page >= pages) this.page = pages - 1;
+    // B10: clamp both directions — prev on page 0 must not go negative.
+    this.page = Math.max(0, Math.min(this.page, pages - 1));
     const slice = this.rows.slice(this.page * this.perPage, (this.page + 1) * this.perPage);
     $("sym-tbody").innerHTML = slice.map(({ s, i }) => renderSymRow(s, i)).join("") ||
       `<tr><td colspan="7" class="muted">No matches</td></tr>`;
@@ -644,7 +645,7 @@ function wireSymbols() {
   $("sym-search").addEventListener("input", debounce(() => SymBrowser.apply(), 200));
   ["sym-cat", "sym-rom", "sym-doc"].forEach((id) =>
     $(id).addEventListener("input", () => SymBrowser.apply()));
-  $("sym-prev").addEventListener("click", () => { SymBrowser.page--; SymBrowser.render(); });
+  $("sym-prev").addEventListener("click", () => { SymBrowser.page = Math.max(0, SymBrowser.page - 1); SymBrowser.render(); });
   $("sym-next").addEventListener("click", () => { SymBrowser.page++; SymBrowser.render(); });
   $("sym-tbody").addEventListener("click", (ev) => {
     const tr = ev.target.closest("tr[data-i]");
@@ -1063,7 +1064,7 @@ function wireCallgraph() {
   inp.addEventListener("input", () => {
     const q = inp.value.trim().toLowerCase();
     sug.classList.remove("hidden");
-    if (!q) { items = []; sug.innerHTML = ""; return; }
+    if (!q) { items = []; sel = -1; sug.innerHTML = ""; return; }
     const qHex = parseHex(q);
     items = [];
     for (let i = 0; i < DATA.symbols.length && items.length < 14; i++) {
@@ -1072,7 +1073,9 @@ function wireCallgraph() {
         items.push(i);
       }
     }
-    sel = -1;
+    // B2: init sel to the painted highlight (k===0) so Enter picks the top
+    // suggestion without requiring an ArrowDown first.
+    sel = items.length ? 0 : -1;
     sug.innerHTML = items.map((i, k) =>
       `<div data-k="${k}" class="${k === 0 ? "sel" : ""}"><span class="s-addr">${hex(DATA.symbols[i].a)}</span>${esc(DATA.symbols[i].n)}</div>`).join("") ||
       `<div class="muted">no results</div>`;
@@ -1176,7 +1179,8 @@ function TblApply() {
 function TblRender() {
   const n = Tbl.rows.length;
   const pages = Math.max(1, Math.ceil(n / Tbl.perPage));
-  if (Tbl.page >= pages) Tbl.page = pages - 1;
+  // B10: clamp both directions — prev on page 0 must not go negative.
+  Tbl.page = Math.max(0, Math.min(Tbl.page, pages - 1));
   const slice = Tbl.rows.slice(Tbl.page * Tbl.perPage, (Tbl.page + 1) * Tbl.perPage);
   $("tbl-tbody").innerHTML = slice.map(({ t, i }) => {
     const roleLabel = { t: "table", x: "X axis", y: "Y axis" }[t.role];
@@ -1251,7 +1255,7 @@ function TblDetail(rid) {
         html += `<div>Extracted values</div><div>no (no map descriptor in ${esc(m.file)})</div>`;
         if (mv.scalar !== null && mv.scalar !== undefined)
           html += `<div>Estimated f32 scalar</div><div>${fmtNum(mv.scalar, 4)}</div>`;
-        if (mv.raw) html += `<div>Raw bytes</div><div>${mv.raw}</div>`;
+        if (mv.raw) html += `<div>Raw bytes</div><div>${esc(mv.raw)}</div>`;
       } else if (CUR_MODEL === DATA.defaultModel) {
         html += `<div>Extracted values</div><div>no (no map descriptor in ${esc(m.file)})</div>`;
       } else {
@@ -1284,7 +1288,7 @@ function wireTables() {
   $("tbl-search").addEventListener("input", debounce(() => TblApply(), 200));
   ["tbl-cat", "tbl-type", "tbl-role"].forEach((id) =>
     $(id).addEventListener("input", () => TblApply()));
-  $("tbl-prev").addEventListener("click", () => { Tbl.page--; TblRender(); });
+  $("tbl-prev").addEventListener("click", () => { Tbl.page = Math.max(0, Tbl.page - 1); TblRender(); });
   $("tbl-next").addEventListener("click", () => { Tbl.page++; TblRender(); });
   $("tbl-tbody").addEventListener("click", (ev) => {
     const tr = ev.target.closest("tr[data-rid]");
@@ -1633,8 +1637,8 @@ function wireLookup() {
       const rid = DATA.tables.indexOf(t);
       const mm = modelMap(rid);
       const mctx = mm
-        ? ` · model ${modelLabel(CUR_MODEL)}: <span class="addr">${hex(mm.a)}</span> ${methodBadge(mm.m)} ${confBadge(mm.c)}`
-        : ` · not mapped in ${modelLabel(CUR_MODEL)}`;
+        ? ` · model ${esc(modelLabel(CUR_MODEL))}: <span class="addr">${hex(mm.a)}</span> ${methodBadge(mm.m)} ${confBadge(mm.c)}`
+        : ` · not mapped in ${esc(modelLabel(CUR_MODEL))}`;
       return `<p><span class="match-good">Exact table:</span> <b class="name">${esc(t.n)}</b> baseline ${hex(t.a)}${matchedViaModel ? " (this address is the one mapped in the current model)" : ""} · role ${t.role} · ${esc(t.c)}${mctx}</p>`;
     };
     if (exact.length) {
