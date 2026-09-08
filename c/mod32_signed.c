@@ -33,11 +33,19 @@
 int32_t mod32_signed(int32_t divisor, int32_t dividend)
 {
     if (divisor == 0) {
-        /* Host test: skip hardware write to avoid segfault.
+        /* Documented ROM behavior: stores error code 0x44E at 0xFFFF7304
+         * and returns 0. Host test: skip hardware write to avoid segfault.
          * Emulator tests validate the actual ROM behavior. */
         /* *(volatile uint32_t *)DIVERR_ADDR = DIVERR_CODE; */
         return 0;
     }
+    /* div32-style guard: INT32_MIN % -1 is UB in C (SIGFPE on x86) because
+     * the quotient +2^31 is unrepresentable. The SH-2E wraps and the emulated
+     * ROM @0x4144 returns 0 for this pair (verified: cpu.call(0x4144,
+     * r0=-1, r1=INT32_MIN) -> r0=0), which is also the mathematical remainder
+     * (INT32_MIN = -1 * 2^31 + 0). NOTE: unlike the div32_signed twin, whose
+     * guard yields INT32_MIN (the wrapped QUOTIENT), the remainder here is 0. */
+    if (divisor == -1 && dividend == INT32_MIN) return 0;
     /* C99 remainder truncates toward zero, matching SH-2E.              */
     return dividend % divisor;
 }

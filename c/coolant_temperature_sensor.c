@@ -37,6 +37,8 @@
 
 #include <stdint.h>
 
+#include "map_lookup.h"   /* canonical Map1D + TwoDLookup (const Map1D *) */
+
 /* ================================================================
  * RAM Map
  * ================================================================ */
@@ -50,9 +52,6 @@
 /* ================================================================
  * Calibration table descriptors (in ROM)
  * ================================================================ */
-
-/* External 2D lookup function */
-extern float TwoDLookup(uint32_t table_addr, float input);
 
 /* ================================================================
  * Constants from ROM literal pools
@@ -145,7 +144,7 @@ float coolantVoltageToTemperature(float voltage)
     /* Address: near 0x6CF4C region (exact descriptor addr TBD) */
     #define CLT_TABLE_ADDR    0x0006CF50
     
-    float temp = TwoDLookup((uint32_t)CLT_TABLE_ADDR, voltage);
+    float temp = TwoDLookup((const Map1D *)(uintptr_t)CLT_TABLE_ADDR, voltage);
     
     /* Clamp to valid physical range (-40°C to +150°C) */
     if (temp < -40.0f) temp = -40.0f;
