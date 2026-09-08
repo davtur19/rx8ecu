@@ -91,11 +91,22 @@
  *   word = handler_addr | (type << 24) | (priority << 28)
  *
  * To extract:
- *   handler = word & 0x00FFFFFF   (masked by 0xF0000000? No: 0x0FFFFFFF)
+ *   handler = word & 0x00FFFFFF
  *   type    = (word >> 24) & 0x07
  *   priority = (word >> 28) & 0x03
+ *
+ * review-fix N2: HANDLER_MASK was 0x0FFFFFFF, which includes the type bits
+ * 24-26 and priority bit 28 — the first typed enqueue (type>=1 or
+ * priority>=1... any nonzero type/prio bits) would call a type-polluted
+ * address. Handler ROM addresses fit in 24 bits (512 KB flash @ 0x000000),
+ * so mask to 0x00FFFFFF. Verified: the only mask users are the inline
+ * accessors below (rtos_dispatch_get_handler / rtos_build_dispatch,
+ * consumed by rtos_dispatch + rtos_scheduler in firmware/c/rtos.c), and
+ * the RTOS queue has no external producers today (only the scheduler's
+ * own lower-priority re-enqueue) — nothing depends on bits 24-28
+ * surviving in the handler address.
  */
-#define RTOS_DISP_HANDLER_MASK   0x0FFFFFFF
+#define RTOS_DISP_HANDLER_MASK   0x00FFFFFF
 #define RTOS_DISP_TYPE_SHIFT     24
 #define RTOS_DISP_TYPE_MASK      0x07
 #define RTOS_DISP_PRIO_SHIFT     28

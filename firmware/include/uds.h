@@ -36,6 +36,7 @@
 
 #define UDS_SID_DIAG_SESSION    0x10
 #define UDS_SID_ECU_RESET       0x11
+#define UDS_SID_READ_DTC_STATUS 0x12    /* readDTCByStatus (ROM:0x5BAD0) */
 #define UDS_SID_CLEAR_DTC       0x14
 #define UDS_SID_READ_DTC_INFO   0x18
 #define UDS_SID_READ_DATA_ID    0x22
@@ -55,7 +56,10 @@
 #define UDS_SID_OBD_SVC6        0x06
 #define UDS_SID_OBD_SVC7        0x07
 #define UDS_SID_OBD_SVC9        0x09
-#define UDS_SID_OBD_SVCA        0x0A
+/* No 0x0A define: the ROM dispatch table at 0x5F57C (28 entries + 0xFF
+ * sentinel, fully verified in docs/subsystems/CAN_UDS_SUBSYSTEM.md:199-230)
+ * contains no 0x0A entry, so Service 0x0A is unreachable on target. There is
+ * deliberately no dispatch arm for it in uds_handler either. */
 
 /* ====================================================================== */
 /*  Session / Security                                                     */
@@ -123,6 +127,7 @@
 #define UDS_NRC_SERVICE_NOT_SUPPORTED      0x11
 #define UDS_NRC_SUB_NOT_SUPPORTED          0x12
 #define UDS_NRC_INCORRECT_MSG_LEN          0x13
+#define UDS_NRC_RESPONSE_TOO_LONG          0x14    /* responseTooLong (output bound) */
 #define UDS_NRC_CONDITIONS_NOT_CORRECT     0x22
 #define UDS_NRC_REQUEST_OUT_OF_RANGE       0x31
 #define UDS_NRC_SECURITY_ACCESS_DENIED     0x33
@@ -170,8 +175,24 @@ void uds_init(void);
 /**
  * uds_handler — Main UDS request handler.
  * ROM address: 0x697E8
+ *
+ * Response capacity contract: the caller must provide a response buffer of
+ * at least UDS_MAX_RESPONSE_SIZE bytes. Handlers that would exceed it
+ * (e.g. SID 0x22 multi-DID reads) return NRC 0x14 (responseTooLong) instead
+ * of writing past the end.
  */
 int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response);
+
+/* Maximum response payload any SID handler may produce.
+ *
+ * H5 contract note: 256 B is a sensible bound for the host reconstruction
+ * and for handlers that stage multi-DID responses (cf. sid22_need in uds.c).
+ * On target, however, the operative bound until ISO-TP exists is the 8-byte
+ * single CAN frame: the on-target bridge (can_to_uds_bridge, ROM 0x60774 —
+ * currently a stub with no ISO-TP transport) moves one 8 B single frame per
+ * request/response, so any response longer than 8 B cannot cross the real
+ * bus until a transport-protocol layer is implemented. */
+#define UDS_MAX_RESPONSE_SIZE   256
 
 uint32_t uds_dispatch_lookup(uint8_t sid);
 int uds_session_gate(uint8_t sid);
@@ -205,7 +226,8 @@ int obd_service_4(uint8_t *response);
 int obd_service_6(uint8_t *response);
 int obd_service_7(uint8_t *response);
 int obd_service_9(uint8_t sub_func, uint8_t *response);
-int obd_service_A(uint8_t *response);
+/* No obd_service_A prototype: Service 0x0A is not in the ROM dispatch table
+ * (see above) — the implementation was removed alongside the dispatch arm. */
 
 /* ====================================================================== */
 /*  Inline RAM Accessors                                                   */

@@ -63,6 +63,17 @@ static volatile serial_channel_state_t serial_channels[3];
 #define SERIAL_TX_OWNED_SIZE 256
 static uint8_t serial_tx_owned[3][SERIAL_TX_OWNED_SIZE];
 
+/* Owned per-channel RX staging buffers.
+ * review-fix M4: no code anywhere in firmware/ ever assigned rx_buf (zero
+ * assignments — no setter API existed), so serial_data_read always hit the
+ * NULL guard (-1) and the RX handlers' guarded stores never fired: RX was
+ * structurally absent. Mirror the serial_tx_owned pattern: each channel
+ * owns its RX storage from init. rx_len is uint8_t, so the capacity is
+ * capped at 255 (buffer has room for 256). */
+#define SERIAL_RX_OWNED_SIZE 256
+#define SERIAL_RX_CAPACITY   255
+static uint8_t serial_rx_owned[3][SERIAL_RX_OWNED_SIZE];
+
 /* ====================================================================== */
 /*  Status and Error Flags                                                */
 /* ====================================================================== */
@@ -120,7 +131,11 @@ void serial_init(void)
         serial_channels[i].error = 0;
         serial_channels[i].rx_idx = 0;
         serial_channels[i].tx_idx = 0;
-        serial_channels[i].rx_len = 0;
+        /* review-fix M4: point RX at the owned buffer from init (was: left
+         * NULL forever — RX structurally absent) and give it a nonzero
+         * capacity so the guarded handler stores can fire. */
+        serial_channels[i].rx_buf = serial_rx_owned[i];
+        serial_channels[i].rx_len = SERIAL_RX_CAPACITY;
         serial_channels[i].tx_len = 0;
         /* review-fix w2: point TX at the owned buffer from init so the
          * channel never holds a stray caller pointer. */
@@ -177,7 +192,12 @@ int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len)
     if (serial_channels[channel].status == SERIAL_STATUS_IDLE) return 0;
 
     volatile serial_channel_state_t *ch = &serial_channels[channel];
-    uint8_t len = ch->rx_len;
+    /* review-fix M4: was `len = ch->rx_len` (capacity/expected length) —
+     * deliver the bytes actually received (rx_idx). rx_len is the owned
+     * capacity and is preserved across reads (the old code reset it to 0,
+     * which re-broke the handler store guard and re-armed the spurious
+     * READY after the first read). */
+    uint8_t len = ch->rx_idx;
     if (len > max_len) len = max_len;
 
     /* Copy from RX buffer */
@@ -186,9 +206,8 @@ int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len)
     }
 
     /* Clear RX ready flag */
-    ch->status &= ~SERIAL_STATUS_RX_READY;
+    ch->status &= (uint8_t)~SERIAL_STATUS_RX_READY;
     ch->rx_idx = 0;
-    ch->rx_len = 0;
 
     return len;
 }
@@ -315,8 +334,11 @@ void serial_rx_handler_ch0(void)
         ch->rx_buf[ch->rx_idx++] = data;
     }
 
-    /* Check for end of message (if known) */
-    if (ch->rx_idx >= ch->rx_len) {
+    /* review-fix M4: was `if (rx_idx >= rx_len)` with rx_len==0 at init —
+     * 0>=0 set RX_READY with zero bytes (spurious READY on empty). rx_len
+     * is now the owned capacity, not a message length, so READY means
+     * "data available": gate on rx_idx>0. */
+    if (ch->rx_idx > 0) {
         ch->status |= SERIAL_STATUS_RX_READY;
     }
 }
@@ -340,8 +362,8 @@ void serial_rx_handler_ch1(void)
         ch->rx_buf[ch->rx_idx++] = data;
     }
 
-    /* Check for end of message */
-    if (ch->rx_idx >= ch->rx_len) {
+    /* review-fix M4: READY means data available (see ch0 note). */
+    if (ch->rx_idx > 0) {
         ch->status |= SERIAL_STATUS_RX_READY;
     }
 }
@@ -365,8 +387,8 @@ void serial_rx_handler_ch2(void)
         ch->rx_buf[ch->rx_idx++] = data;
     }
 
-    /* Check for end of message */
-    if (ch->rx_idx >= ch->rx_len) {
+    /* review-fix M4: READY means data available (see ch0 note). */
+    if (ch->rx_idx > 0) {
         ch->status |= SERIAL_STATUS_RX_READY;
     }
 }

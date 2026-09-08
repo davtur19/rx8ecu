@@ -43,6 +43,12 @@
 
 #define TRIGGER_TEETH_PER_ROTOR  6     /* Teeth per rotor face */
 #define TRIGGER_GAP_POSITION     5     /* Gap after tooth 5 */
+/* review-fix C3-followup: kept at 20 as the rotor-map modulus (local
+ * count % 20 in rotor_position_synchronization), but note 3*6+1=19, so the
+ * "3x6+1 (20-tooth)" label is arithmetically incoherent. Counter SHAPE is
+ * saturate-at-0xFF (no wrap) per docs/notes/IDA_ANALYSIS.md:449-460
+ * (tooth counter 0xFFFF9FC2); the 10/10 A/B split stays NEEDS-ROM-CHECK
+ * (ROM 0xAF10). */
 #define TRIGGER_TOTAL_TEETH      20    /* 3x6+1 total */
 
 /* Eccentric shaft position states (crank_position_state_machine 0x789E) */

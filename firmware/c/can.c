@@ -216,7 +216,21 @@ uint16_t can_get_mailbox_config(uint8_t mailbox_idx)
 }
 
 /* --- diag_getsr_3920 (ROM:0x3920) --- */
-/* Save SR and set interrupt level. Used before critical CAN operations. */
+/* Save SR and set interrupt level. Used before critical CAN operations.
+ *
+ * TODO M5 (interrupt guards deferred, documented 2026-09-08): this stub is
+ * a no-op that compiles to nothing ON TARGET TOO (like platform.h
+ * disable_interrupts/restore_interrupts) — no SH-2 `stc sr` / `ldc sr`
+ * sequence is emitted, so every critical section below is UNGUARDED on
+ * hardware. SH-2 asm (`stc sr,r0` ...) was deliberately NOT shipped: the
+ * exact syntax cannot be verified here (no cross-compiler on this host)
+ * and untested asm in interrupt paths is worse than an honest no-op.
+ * Needed: cross-toolchain verification of the stc/ldc sequence, then gate
+ * it behind the cross-compiler build (host build must stay green).
+ * Unguarded critical sections relying on this stub: can_pack_tx_msg_write_
+ * verify, can_pack_tx_msg_copy, can_init_mailbox_irq_mask,
+ * can_set_mailbox_mode_dlc, can_set_mailbox_ptr_control,
+ * can_set_mailbox_id_mode, can_tx_send_frame, placeCANRX. */
 uint32_t diag_getsr_3920(uint8_t level)
 {
     /* On real SH-2E:
@@ -511,10 +525,18 @@ void can_enable_mailbox_int(uint8_t controller, uint8_t mailbox)
     /* ROM:0xCC7C: call loc_9E14 with (reg_base - 1, mailbox)
      * loc_9E14 is the HCAN interrupt enable function that sets
      * the interrupt enable bit for the specified mailbox.
-     * On host simulation, we write the enable bit directly. */
-    volatile uint8_t *int_enable_reg = (volatile uint8_t *)(uintptr_t)(reg_base - 1);
-    uint8_t current = *int_enable_reg;
-    current |= (uint8_t)(1U << (mailbox & 0x07));
+     * review-fix M8: was an 8-bit RMW with `1U << (mailbox & 0x07)` —
+     * mailboxes 8-15 aliased onto bits 0-7 (TX uses MB 0x08-0x0B, so
+     * enabling MB10/11 set MB2/MB3's bits). The enable register is
+     * 16-bit: can_get_mailbox_config (:206-216) returns a 16-entry
+     * 0x0001-0x8000 mask table, and can_init_mailbox_irq_mask writes the
+     * 16-bit value 0xFF12 to the interrupt-enable register (:560).
+     * Use a 16-bit RMW with `1U << (mailbox & 0x0F)`. Note reg_base-1 is
+     * 0xFFFFE400/0xFFFFE600 (16-bit aligned), so the 16-bit access is
+     * aligned on SH-2. No split per-bank enables found in the notes. */
+    volatile uint16_t *int_enable_reg = (volatile uint16_t *)(uintptr_t)(reg_base - 1);
+    uint16_t current = *int_enable_reg;
+    current |= (uint16_t)(1U << (mailbox & 0x0F));
     *int_enable_reg = current;
 }
 
@@ -711,8 +733,9 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
     /* Step 1: Disable interrupts */
     saved_sr = diag_getsr_3920(0x90);
 
-    /* Step 2: Resolve mailbox register address */
-    mbox_reg = can_get_mailbox_offset_high(frame->mailbox_idx, HCAN_MBOX_OFFSET);
+    /* Step 2: Resolve mailbox register address (absolute register address;
+     * HCAN_MBOX_OFFSET is the 16-bit register *content*, not an address). */
+    mbox_reg = can_get_mailbox_offset_high(frame->mailbox_idx, HCAN_MBOX_REG_ADDR);
 
     /* Step 3: Read mailbox status */
     mbox_status = *mbox_reg;
@@ -730,9 +753,9 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
     if (!(mbox_config & mbox_status)) {
         /* Mailbox is free — proceed with TX */
 
-        /* Write config word to mailbox ready register */
+        /* Write config word to mailbox ready register (absolute address). */
         volatile uint16_t *ready_reg = can_get_mailbox_offset_high(
-            frame->mailbox_idx, HCAN_MBOX_READY);
+            frame->mailbox_idx, HCAN_MBOX_READY_ADDR);
 
         /* Get config and write it */
         mbox_config = can_get_mailbox_config(frame->mailbox_idx);
@@ -751,7 +774,7 @@ int can_tx_send_frame(const struct can_tx_frame *frame)
          * 0x9AE4 must confirm the trigger register and sequence. The
          * redundant recompute of mbox_config is removed (value unchanged). */
         volatile uint16_t *trig_reg = can_get_mailbox_offset_high(
-            frame->mailbox_idx, HCAN_MBOX_OFFSET);
+            frame->mailbox_idx, HCAN_MBOX_REG_ADDR);
         *trig_reg = mbox_config;
 
         result = 0;  /* success */
@@ -1367,6 +1390,10 @@ void can630TX_dispatch(void)
 /*  CAN TX Dispatcher (ROM:0xDDF0)                                         */
 /* ====================================================================== */
 
+/* Forward declaration: ROM-faithful 0x215 dispatcher (defined below,
+ * after the RX section). Called from CANTX_Main step 3. */
+static void counter_check_dispatch_2A242(void);
+
 /**
  * CANTX_Main — Main CAN TX dispatcher (periodic).
  *
@@ -1426,19 +1453,16 @@ void CANTX_Main(void)
     can_tx_rate_limit_0x201();
 
     /* 3. CAN ID 0x215: throttle position (counter-based dispatch)
-     * ROM:0x2A242: counter_check_dispatch_2A242
-     * Counter at 0xFFFFBB98, fires every 4 calls.
-     * Calls rtos_sequential_2A2A8 → can203pack */
-    {
-        static volatile uint16_t *cnt = (volatile uint16_t *)(uintptr_t)0xFFFFBB98;
-        *cnt += 1;
-        if (*cnt >= 4) {
-            /* ROM:0x2A2A8: rtos_sequential_2A2A8 — RTOS sequential dispatch
-             * NOTE(ROM:0x2A2A8): RTOS call stub. On real ECU: rtos_event_send. */
-            can203pack();  /* ROM:0x2A242 falls through to can203pack */
-            *cnt = 0;
-        }
-    }
+     * ROM:0x2A242: counter_check_dispatch_2A242 — counter at 0xFFFFD7C4
+     * vs threshold at 0xFFFFD7C6; forwards CAN_TX_BUF_0215 (packs no bytes
+     * itself) via MB3. Spec: KNOWLEDGE-adjacent CAN_PROTOCOL.md "CAN ID
+     * 0x215", ECU.md:94, FINDINGS.md:683.
+     * review-fix L7: the old inline block here (counter 0xFFFFBB98,
+     * every-4, calling can203pack()) sent 0x203 data and left 0x215 never
+     * on the wire, contradicting the ROM-faithful static function below
+     * (D7C4/D7C6, real 0x215 frame, MB3) which had zero callers. Deleted
+     * the inline block; the schedule point now calls the static function. */
+    counter_check_dispatch_2A242();
 
     /* 4. CAN ID 0x251: engine data (every 2 cycles) */
     can251TX_getAndPack();
@@ -1510,8 +1534,9 @@ int placeCANRX(const uint8_t *config)
     dlc = can_parse_mailbox_dlc(config);
     buf_ptr = can_parse_mailbox_buf_ptr(config);
 
-    /* Get mailbox status register (0xFFFFE40E) */
-    mbox_status_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_REG_MBOX_STATUS);
+    /* Get mailbox status register (absolute 0xFFFFE40E; the PFC offset
+     * 0x000C is relative to the HCAN base, not a dereferenceable address). */
+    mbox_status_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_MBOX_STATUS_ADDR);
 
     /* Check if data is available */
     status = *mbox_status_reg;
@@ -1525,8 +1550,8 @@ int placeCANRX(const uint8_t *config)
     /* Disable interrupts for critical section */
     saved_sr = diag_getsr_3920(0x90);
 
-    /* Get data register (0xFFFFE41A) */
-    mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_REG_MBOX_DATA_READY);
+    /* Get data register (absolute 0xFFFFE41A). */
+    mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_MBOX_DATA_RDY_ADDR);
 
     /* Write config to data register */
     config_word = can_get_mailbox_config(mailbox_idx);
@@ -1539,7 +1564,7 @@ int placeCANRX(const uint8_t *config)
     /* Retry loop (up to 5 retries per ROM analysis) */
     for (retry = 0; retry < 5; retry++) {
         /* Re-read status */
-        mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_REG_MBOX_DATA_READY);
+        mbox_data_reg = can_get_mailbox_offset_high(mailbox_idx, HCAN_MBOX_DATA_RDY_ADDR);
         config_word = can_get_mailbox_config(mailbox_idx);
         *mbox_data_reg = config_word;
 
