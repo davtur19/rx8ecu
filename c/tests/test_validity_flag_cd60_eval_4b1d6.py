@@ -187,7 +187,7 @@ def main():
         d = rnd.randint(0, 0xFFFFFFFF)
         gbr = rnd.randint(0, 0xFFFFFFFF)
         fr_in = [((caso * 0x9E3779B1 + i * 0x1000003) & 0xFFFFFFFF) for i in range(16)]
-        fr_in = [((x & 0x7F7FFFFF) | 0x3F800000) for x in fr_in]  # finite, positive, no NaN/Inf
+        fr_in = [((x & 0x007FFFFF) | ((((x >> 23) & 0x7F) or 0x40) << 23)) for x in fr_in]  # true-finite (+) normal: fold exp-bit7, 0->0x40
         try:
             m = spec_mirror(a, b, c_, d, dict(ram), fr_in, gbr)
         except ValueError:
