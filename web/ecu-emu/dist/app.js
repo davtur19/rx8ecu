@@ -1,8 +1,9 @@
 /**
- * app.js — RX-8 ECU Emulator webui
+ * app.js — RX-8 ECU Emulator webui v2
  *
  * Pure JS, zero deps. Reads pins.json (fetched via fetch("pins.json")), renders
- * interactive connector pinout, schematic view, live pin states with
+ * the 3-column layout (key panel | viz + tabs | controls), interactive
+ * connector pinout with search, text pin inspector, live pin states with
  * sensor sliders, and peripheral register table.
  *
  * Emulator logic lives in emu_core.js — this file is UI only.
@@ -31,13 +32,15 @@ let PERIPHERALS = [];
 let SCENARIOS = {};
 let selectedPin = null;
 let sensorState = {
-  rpm: 800, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45
+  rpm: 0, ect: 80, iat: 25, map: 20, tps: 0, o2f: 0.45, o2r: 0.45
 };
 /* Expose to engine_sim.js / can_live.js (they read window.sensorState).
  * `let` at top level does not attach to window, so publish explicitly. */
 window.sensorState = sensorState;
+window.__emuEngineState = "OFF";
 let pinOutputs = {};  // name → live value, populated by computePinStates()
 let _booted = false;  // boot() guard: init's fetch path must not double-boot
+let _preStart = "ON"; // key position to return to after momentary START
 
 /* ======================================================================
  *  Helpers
@@ -54,6 +57,8 @@ function mapRange(value, inMin, inMax, outMin, outMax) {
 /* ======================================================================
  *  Pin computation — delegates to emu_core.js
  * ====================================================================== */
+const SIM_STEP_MS = 10;   // ms of sim time per step
+let _simTimer = null;     // real-time sim clock (step only, no DOM render)
 function clampSensor(v, min, max, fallback) {
   v = Number(v);
   if (!Number.isFinite(v)) return fallback;
@@ -80,8 +85,8 @@ function computePinStates() {
   Module.emu_set_sensor(5, sensorState.o2f);
   Module.emu_set_sensor(6, sensorState.o2r);
 
-  /* Advance 10ms per frame */
-  Module.emu_step_ms(10);
+  /* Advance SIM_STEP_MS per call — see startSimClock for pacing. */
+  Module.emu_step_ms(SIM_STEP_MS);
 
   /* Read pin voltages from core */
   pinOutputs = {};
@@ -92,8 +97,153 @@ function computePinStates() {
 }
 
 /* ======================================================================
- *  Rendering: Connector pinout
+ *  Key switch + immobilizer + engine-state badges (Wave A1)
  * ====================================================================== */
+function coreState() {
+  try {
+    if (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_get_engine_state === "function") {
+      return Module.emu_get_engine_state();
+    }
+  } catch (e) {}
+  return "OFF";
+}
+
+function coreImmoOk() {
+  try {
+    if (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_get_immo === "function") {
+      return Module.emu_get_immo() === 1;
+    }
+  } catch (e) {}
+  return true;
+}
+
+function setKeyPos(pos) {
+  try {
+    if (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_set_key_pos === "function") {
+      Module.emu_set_key_pos(pos);
+    }
+  } catch (e) {}
+  document.querySelectorAll(".key-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.keypos === pos);
+  });
+  try {
+    window.__emuKeyPos = pos;
+  } catch (e) {}
+  refreshBadges();
+  return pos;
+}
+
+function holdStart(on) {
+  const btn = document.getElementById("key-start");
+  if (on) {
+    try {
+      _preStart = (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_get_key_pos === "function") ?
+        Module.emu_get_key_pos() : "ON";
+    } catch (e) { _preStart = "ON"; }
+    if (_preStart === "START") _preStart = "ON";
+    setKeyPos("START");
+    if (btn) btn.classList.add("cranking");
+  } else {
+    setKeyPos((_preStart === "OFF" || _preStart === "ACC") ? _preStart : "ON");
+    if (btn) btn.classList.remove("cranking");
+  }
+  refresh();
+}
+
+function applyKeyCode() {
+  const el = document.getElementById("key-code");
+  const code = el ? el.value.trim() : "";
+  try {
+    if (typeof Module !== "undefined" && Module &&
+        typeof Module.emu_set_key_code === "function") {
+      Module.emu_set_key_code(code);
+    }
+  } catch (e) {}
+  refreshBadges();
+  refresh();
+}
+
+function refreshBadges() {
+  const st = coreState();
+  window.__emuEngineState = st;
+  const immoOk = coreImmoOk();
+
+  const eb = document.getElementById("engine-state-badge");
+  if (eb) {
+    eb.textContent = st;
+    eb.className = "engine-badge st-" + st.toLowerCase();
+  }
+  const he = document.getElementById("hdr-engine");
+  if (he) {
+    he.textContent = "ENGINE: " + st;
+    he.className = "hdr-badge" +
+      (st === "RUNNING" ? " eng-running" : st === "CRANKING" ? " eng-cranking" : "");
+  }
+  const ib = document.getElementById("immo-badge");
+  if (ib) {
+    const keyPos = (function() {
+      try {
+        return (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_key_pos === "function") ?
+          Module.emu_get_key_pos() : "?";
+      } catch (e) { return "?"; }
+    })();
+    const blocked = !immoOk && (st === "CRANKING" || keyPos === "START" || keyPos === "ON");
+    ib.textContent = immoOk ? "IMMO OK" : "IMMO BLOCKED";
+    ib.className = "immo-badge " + (immoOk ? "immo-ok" : "immo-blocked");
+    void blocked;
+  }
+  const hi = document.getElementById("hdr-immo");
+  if (hi) {
+    hi.textContent = immoOk ? "IMMO: OK" : "IMMO: BLOCKED";
+    hi.className = "hdr-badge " + (immoOk ? "immo-ok" : "immo-blocked");
+  }
+}
+
+/* ======================================================================
+ *  Tabs
+ * ====================================================================== */
+function switchTab(name) {
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    const on = b.dataset.tab === name;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  document.querySelectorAll(".tab-page").forEach(p => {
+    p.classList.toggle("active", p.id === "tab-" + name);
+  });
+}
+
+/* ======================================================================
+ *  Rendering: Connector pinout (all 96 pins, searchable, scrollable)
+ * ====================================================================== */
+function pinMatches(p, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  return String(p.num).indexOf(q) >= 0 ||
+    (p.name && p.name.toLowerCase().indexOf(q) >= 0) ||
+    (p.goes_to && p.goes_to.toLowerCase().indexOf(q) >= 0);
+}
+
+function applyPinoutFilter() {
+  const el = document.getElementById("pinout-search");
+  const q = el ? el.value.trim() : "";
+  let shown = 0;
+  document.querySelectorAll("#tab-pins .pin-cell").forEach(cell => {
+    const num = Number(cell.dataset.num);
+    const p = PINS.find(x => x.num === num);
+    const ok = p ? pinMatches(p, q) : true;
+    cell.classList.toggle("hidden", !ok);
+    if (ok) shown++;
+  });
+  const cnt = document.getElementById("pinout-count");
+  if (cnt) cnt.textContent = shown + " / " + PINS.length + " pins";
+}
+
 function renderPinout() {
   const connA = document.getElementById("connector-a");
   const connB = document.getElementById("connector-b");
@@ -138,217 +288,62 @@ function renderPinout() {
       connB.appendChild(cell);
     }
   });
+  applyPinoutFilter();
 }
 
 /* ======================================================================
- *  Rendering: Schematic SVG
+ *  Rendering: Pin inspector (Wave A1 replaces the unreadable schematic
+ *  miniature with a readable text inspector — defect 6)
  * ====================================================================== */
-function renderSchematic(pin) {
-  const svg = document.getElementById("schematic-svg");
-  svg.innerHTML = "";
-
-  if (!pin) {
-    drawOverviewSchematic(svg);
-    return;
-  }
-
-  const type = pin.type;
-  const goesTo = pin.goes_to;
-
-  // Background
-  addSVG(svg, "rect", {x:0, y:0, width:800, height:500, fill:"#0b0e13"});
-
-  // ECU box
-  addSVG(svg, "rect", {x:300, y:80, width:200, height:340, rx:8, fill:"#12161d", stroke:"#252c38", "stroke-width":2});
-  addSVG(svg, "text", {x:400, y:105, "text-anchor":"middle", fill:"#4d7cff", "font-family":"monospace", "font-size":14, "font-weight":"bold"}, "ECU (SH7055)");
-  addSVG(svg, "text", {x:400, y:122, "text-anchor":"middle", fill:"#8b96a3", "font-family":"monospace", "font-size":10}, "N3J1-18-881L");
-
-  // Pin dot on ECU
-  const pinY = 160 + (pin.num % 48) * 5.5;
-  const isOut = pin.dir === "out" || pin.dir === "io";
-  const dotX = isOut ? 500 : 300;
-  addSVG(svg, "circle", {cx:dotX, cy:pinY, r:5, fill:getTypeColor(pin.type)});
-  addSVG(svg, "text", {x:dotX + (isOut ? 10 : -10), y:pinY + 4, "text-anchor": isOut ? "start" : "end", fill:"#e6ebf2", "font-family":"monospace", "font-size":10}, pin.name);
-
-  // External component
-  const compX = isOut ? 620 : 180;
-  drawComponent(svg, compX, pinY, goesTo, pin);
-
-  // Connection line
-  addSVG(svg, "line", {x1:dotX + (isOut?5:-5), y1:pinY, x2:compX + (isOut?-30:30), y2:pinY, stroke:getTypeColor(pin.type), "stroke-width":2, "stroke-dasharray": type === "can" ? "6,3" : "none"});
-
-  // Voltage annotation
-  const vStr = `${pin.voltage[0]}-${pin.voltage[1]}V`;
-  addSVG(svg, "text", {x:400, y:pinY - 12, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":9}, vStr);
-
-  // Peripheral register
+function regTextFor(pin) {
   if (pin.adc_ch !== undefined) {
-    addSVG(svg, "text", {x:400, y:440, "text-anchor":"middle", fill:"#7ee787", "font-family":"monospace", "font-size":10},
-      `ADC ch${pin.adc_ch} @ 0x${(ADC_BASE + pin.adc_ch * 2).toString(16).toUpperCase()}`);
+    return `ADC ch${pin.adc_ch} @ 0x${(ADC_BASE + pin.adc_ch * 2).toString(16).toUpperCase()}`;
   } else if (pin.port !== undefined) {
-    addSVG(svg, "text", {x:400, y:440, "text-anchor":"middle", fill:"#7ee787", "font-family":"monospace", "font-size":10},
-      `PORT${pin.port} bit${pin.bit} @ 0x${(PORT_BASE + pin.port * 8).toString(16).toUpperCase()}`);
+    return `PORT${pin.port} bit${pin.bit} @ 0x${(PORT_BASE + pin.port * 8).toString(16).toUpperCase()}`;
   } else if (pin.can) {
-    addSVG(svg, "text", {x:400, y:440, "text-anchor":"middle", fill:"#7ee787", "font-family":"monospace", "font-size":10},
-      `${pin.can} @ 0x${(pin.can === "CAN0_H" ? CAN0_BASE : CAN1_BASE).toString(16).toUpperCase()}`);
+    return `${pin.can} @ 0x${(pin.can === "CAN0_H" || pin.can === "CAN0_L" ? CAN0_BASE : CAN1_BASE).toString(16).toUpperCase()}`;
   }
+  return "—";
 }
 
-function drawOverviewSchematic(svg) {
-  addSVG(svg, "rect", {x:0, y:0, width:800, height:500, fill:"#0b0e13"});
-
-  // ECU box
-  addSVG(svg, "rect", {x:300, y:50, width:200, height:400, rx:10, fill:"#12161d", stroke:"#4d7cff", "stroke-width":2});
-  addSVG(svg, "text", {x:400, y:80, "text-anchor":"middle", fill:"#4d7cff", "font-family":"monospace", "font-size":16, "font-weight":"bold"}, "ECU");
-  addSVG(svg, "text", {x:400, y:98, "text-anchor":"middle", fill:"#8b96a3", "font-family":"monospace", "font-size":10}, "SH7055 · 512KB ROM");
-
-  // Subsystem boxes around ECU
-  const subsystems = [
-    {x:50, y:60, label:"Battery +12V", color:"#e3b341", pins:["BAT1","BAT2"]},
-    {x:50, y:130, label:"Sensors", color:"#4d7cff", pins:["ECT","MAP","TPS","IAT","O2F","NE+"]},
-    {x:50, y:240, label:"CAN Bus", color:"#39c5cf", pins:["CANH","CANL"]},
-    {x:600, y:60, label:"Ignition", color:"#7ee787", pins:["COIL1","COIL2","COIL3","COIL4"]},
-    {x:600, y:160, label:"Fuel", color:"#7ee787", pins:["INJ1","INJ2","INJ3","INJ4","FUEL_RLY"]},
-    {x:600, y:260, label:"Actuators", color:"#7ee787", pins:["OMP","FAN1","FAN2","VVT_A"]},
-    {x:600, y:350, label:"MIL/Lamps", color:"#e3b341", pins:["CHECK_ENG"]},
-  ];
-
-  subsystems.forEach(s => {
-    addSVG(svg, "rect", {x:s.x, y:s.y, width:140, height:55, rx:6, fill:"#181d26", stroke:s.color, "stroke-width":1});
-    addSVG(svg, "text", {x:s.x+70, y:s.y+22, "text-anchor":"middle", fill:s.color, "font-family":"monospace", "font-size":10, "font-weight":"bold"}, s.label);
-    addSVG(svg, "text", {x:s.x+70, y:s.y+40, "text-anchor":"middle", fill:"#8b96a3", "font-family":"monospace", "font-size":8}, s.pins.join(", "));
-
-    // Line to ECU
-    const leftSide = s.x < 300;
-    addSVG(svg, "line", {
-      x1: leftSide ? s.x + 140 : s.x,
-      y1: s.y + 27,
-      x2: leftSide ? 300 : 500,
-      y2: 100 + (s.y / 400) * 300,
-      stroke: s.color, "stroke-width": 1, opacity: 0.5
-    });
-  });
-
-  // RPM indicator (id'd so the refresh path can update it live)
-  addSVG(svg, "text", {id:"overview-live", x:400, y:480, "text-anchor":"middle", fill:"#39c5cf", "font-family":"monospace", "font-size":12},
-    `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`);
-}
-
-/* Light live update of the overview schematic text (cheap: one text node). */
-function updateOverview() {
-  const el = document.getElementById("overview-live");
-  if (el) el.textContent = `RPM: ${sensorState.rpm}  ECT: ${sensorState.ect}°C  MAP: ${sensorState.map} kPa`;
-}
-
-function drawComponent(svg, x, y, goesTo, pin) {
-  const color = getTypeColor(pin.type);
-  const iconMap = {
-    battery:"icon-battery", chassis:"icon-ground", ign_switch:"icon-ign-switch",
-    coil_1:"icon-coil", coil_2:"icon-coil", coil_3:"icon-coil", coil_4:"icon-coil",
-    injector_1:"icon-injector", injector_2:"icon-injector", injector_3:"icon-injector", injector_4:"icon-injector",
-    map_sensor:"icon-map", tps_sensor:"icon-tps",
-    o2_front:"icon-o2", o2_rear:"icon-o2",
-    ect_sensor:"icon-thermistor", iat_sensor:"icon-thermistor",
-    omp_pump:"icon-omp", fuel_pump:"icon-fuel-pump",
-    fan_1:"icon-fan", fan_2:"icon-fan",
-    mil_lamp:"icon-mil",
-    can_bus:"icon-can", mscan_bus:"icon-can", obd_scanner:"icon-sci",
-    crank_sensor:"icon-crank", cam_sensor:"icon-cam",
-    knock_sensor:"icon-knock", vvt_solenoid:"icon-vvt",
-    ac_clutch:"icon-ac", speed_sensor:"icon-speed",
-    stop_lamp:"icon-stop-lamp", bsc_bus:"icon-bsc",
-    nc:"icon-ecu"
-  };
-  const labels = {
-    battery:"+12V", chassis:"GND", coil_1:"COIL L-A", coil_2:"COIL T-A",
-    coil_3:"COIL L-B", coil_4:"COIL T-B", injector_1:"INJ A1", injector_2:"INJ A2",
-    injector_3:"INJ B1", injector_4:"INJ B2", map_sensor:"MAP", tps_sensor:"TPS",
-    o2_front:"O2-front", o2_rear:"O2-rear", ect_sensor:"ECT", iat_sensor:"IAT",
-    omp_pump:"OMP", fuel_pump:"FUEL", fan_1:"FAN-1", fan_2:"FAN-2",
-    mil_lamp:"MIL", can_bus:"HS-CAN", mscan_bus:"MS-CAN", obd_scanner:"OBD",
-    crank_sensor:"NE", cam_sensor:"G1", knock_sensor:"KNOCK",
-    vvt_solenoid:"VVT", ac_clutch:"A/C", speed_sensor:"VSS",
-    stop_lamp:"STOP", ign_switch:"IGN", bsc_bus:"BSC", nc:"NC"
-  };
-  const label = labels[goesTo] || goesTo;
-  const iconId = iconMap[goesTo] || "icon-ecu";
-
-  // Card background
-  addSVG(svg, "rect", {x:x-35, y:y-22, width:70, height:44, rx:5, fill:"#181d26", stroke:color, "stroke-width":1, class:"component-card"});
-
-  // Icon
-  const icon = addSVG(svg, "use", {href:`#${iconId}`, x:x-25, y:y-16, width:18, height:18});
-  icon.setAttribute("color", color);
-
-  // Label
-  addSVG(svg, "text", {x:x, y:y+6, "text-anchor":"middle", fill:color, "font-family":"monospace", "font-size":8, "font-weight":"bold"}, label);
-
-  // Live value below
-  const val = pinOutputs[pin.name];
-  let valStr = "";
-  if (pin.type === "digital") valStr = val ? "HIGH" : "LOW";
-  else if (pin.type === "analog") valStr = `${val.toFixed(2)}V`;
-  else if (pin.type === "power") valStr = `${val.toFixed(1)}V`;
-  else if (pin.type === "can") valStr = val > 0 ? "Active" : "Idle";
-  else if (pin.type === "sci") valStr = val > 0 ? "Idle" : "Off";
-  if (valStr) addSVG(svg, "text", {x:x, y:y+18, "text-anchor":"middle", fill:"#8b96a3", "font-family":"monospace", "font-size":7}, valStr);
-}
-
-function addSVG(parent, tag, attrs, text) {
-  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  if (text !== undefined) el.textContent = text;
-  parent.appendChild(el);
-  return el;
-}
-
-function getTypeColor(type) {
-  const colors = {
-    power:"#e3b341", gnd:"#8b96a3", analog:"#4d7cff", digital:"#7ee787",
-    can:"#39c5cf", sci:"#bc8cff", nc:"#333c4a"
-  };
-  return colors[type] || "#8b96a3";
-}
-
-/* ======================================================================
- *  Rendering: Pin info overlay
- * ====================================================================== */
-function showPinInfo(pin) {
-  const overlay = document.getElementById("schematic-info");
-  overlay.style.display = "block";
-  document.getElementById("info-title").textContent = `Pin ${pin.num}: ${pin.name}`;
-  document.getElementById("info-type").textContent = pin.type.toUpperCase();
-  document.getElementById("info-dir").textContent = pin.dir === "in" ? "Input" : pin.dir === "out" ? "Output" : pin.dir === "io" ? "Bidirectional" : "N/A";
-  document.getElementById("info-goes").textContent = pin.goes_to.replace(/_/g, " ");
-  document.getElementById("info-voltage").textContent = `${pin.voltage[0]}–${pin.voltage[1]}V`;
-
-  const val = pin._value || 0;
+function stateTextFor(pin, val) {
   if (pin.type === "digital") {
     /* Fuel-cut display: injectors read LOW during cut but mean CUT. */
     const fuelCut = (typeof Module !== "undefined" && Module &&
       typeof Module.emu_get_fuel_cut === "function") ? Module.emu_get_fuel_cut() : 0;
     if (fuelCut && pin.name && pin.name.indexOf("INJ") === 0) {
-      document.getElementById("info-state").textContent = "CUT (fuel cut at redline)";
-      document.getElementById("info-state").style.color = "var(--red)";
-    } else {
-      document.getElementById("info-state").textContent = val ? "HIGH (1)" : "LOW (0)";
-      document.getElementById("info-state").style.color = val ? "var(--green)" : "var(--muted)";
+      return { text: "CUT (fuel cut at redline)", color: "var(--red)" };
     }
+    return val ?
+      { text: "HIGH (1)", color: "var(--green)" } :
+      { text: "LOW (0)", color: "var(--muted)" };
   } else if (pin.type === "analog") {
-    document.getElementById("info-state").textContent = `${val.toFixed(3)}V (ADC: ${voltageToADC10(val)})`;
-    document.getElementById("info-state").style.color = "var(--cyan)";
+    return { text: `${val.toFixed(3)}V (ADC: ${voltageToADC10(val)})`, color: "var(--cyan)" };
   } else if (pin.type === "power") {
-    document.getElementById("info-state").textContent = `${val.toFixed(1)}V`;
-    document.getElementById("info-state").style.color = "var(--yellow)";
+    return { text: `${val.toFixed(1)}V`, color: "var(--yellow)" };
   } else if (pin.type === "can") {
-    document.getElementById("info-state").textContent = val > 0 ? "Bus active" : "Bus idle";
-    document.getElementById("info-state").style.color = "var(--cyan)";
-  } else {
-    document.getElementById("info-state").textContent = "—";
-    document.getElementById("info-state").style.color = "var(--muted)";
+    return val > 0 ?
+      { text: "Bus active", color: "var(--cyan)" } :
+      { text: "Bus idle", color: "var(--muted)" };
   }
+  return { text: "—", color: "var(--muted)" };
+}
 
-  renderSchematic(pin);
+function showPinInfo(pin) {
+  document.getElementById("info-title").textContent = `Pin ${pin.num}: ${pin.name}`;
+  document.getElementById("info-type").textContent = pin.type.toUpperCase();
+  document.getElementById("info-dir").textContent = pin.dir === "in" ? "Input" : pin.dir === "out" ? "Output" : pin.dir === "io" ? "Bidirectional" : "N/A";
+  document.getElementById("info-goes").textContent = pin.goes_to.replace(/_/g, " ");
+  document.getElementById("info-voltage").textContent = `${pin.voltage[0]}–${pin.voltage[1]}V`;
+  document.getElementById("info-reg").textContent = regTextFor(pin);
+
+  const st = stateTextFor(pin, pin._value || 0);
+  const sel = document.getElementById("info-state");
+  sel.textContent = st.text;
+  sel.style.color = st.color;
+  document.getElementById("info-detail").style.display = "grid";
+  const hint = document.querySelector("#pin-inspector .key-hint");
+  if (hint) hint.style.display = "none";
 }
 
 function selectPin(pin) {
@@ -357,19 +352,20 @@ function selectPin(pin) {
 
   if (selectedPin && selectedPin.num === pin.num) {
     selectedPin = null;
-    document.getElementById("schematic-info").style.display = "none";
-    renderSchematic(null);
+    document.getElementById("info-title").textContent = "No pin selected";
+    document.getElementById("info-detail").style.display = "none";
+    const hint = document.querySelector("#pin-inspector .key-hint");
+    if (hint) hint.style.display = "";
     return;
   }
 
   selectedPin = pin;
-  const cell = document.querySelector(`.pin-cell[data-num="${pin.num}"]`);
-  if (cell) cell.classList.add("selected");
+  document.querySelectorAll(`.pin-cell[data-num="${pin.num}"]`).forEach(cell => cell.classList.add("selected"));
   showPinInfo(pin);
 }
 
 /* ======================================================================
- *  Rendering: Live pin states (right panel)
+ *  Rendering: Live pin states (dynamic HIGH/LOW/CUT list — defect 4)
  * ====================================================================== */
 function renderStates() {
   const list = document.getElementById("states-list");
@@ -377,11 +373,18 @@ function renderStates() {
 
   // Only show non-NC, non-GND pins
   const activePins = PINS.filter(p => p.type !== "nc" && p.type !== "gnd");
+  const qEl = document.getElementById("pinlive-search");
+  const q = qEl ? qEl.value.trim() : "";
 
   activePins.forEach(p => {
+    if (!pinMatches(p, q)) return;
     const val = p._value || 0;
     const item = document.createElement("div");
     item.className = "state-item";
+    item.dataset.num = p.num;
+    item.setAttribute("role", "button");
+    item.setAttribute("tabindex", "0");
+    item.setAttribute("aria-label", `Inspect pin ${p.num} ${p.name}`);
 
     let displayVal, barPct, barColor, valColor;
     valColor = "";
@@ -439,12 +442,25 @@ function renderStates() {
     valDiv.textContent = displayVal;
     if (valColor) valDiv.style.color = valColor;
     item.append(nameDiv, barWrap, valDiv);
+    const pick = () => selectPin(p);
+    item.addEventListener("click", pick);
+    item.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+    });
     list.appendChild(item);
   });
 }
 
+function getTypeColor(type) {
+  const colors = {
+    power:"#e3b341", gnd:"#8b96a3", analog:"#4d7cff", digital:"#7ee787",
+    can:"#39c5cf", sci:"#bc8cff", nc:"#333c4a"
+  };
+  return colors[type] || "#8b96a3";
+}
+
 /* ======================================================================
- *  Rendering: Scenarios
+ *  Rendering: Scenario presets (key=ON + throttle profile — Wave A1)
  * ====================================================================== */
 function renderScenarios() {
   const container = document.getElementById("scenarios");
@@ -469,6 +485,9 @@ function renderScenarios() {
 function applyScenario(key) {
   const sc = SCENARIOS[key];
   if (!sc) return;
+  /* Wave A1: presets set key=ON + throttle profile. They never crank —
+   * HOLD TO START is the only start mechanism. */
+  if (coreState() === "OFF") setKeyPos("ON");
   sensorState.rpm = sc.rpm;
   sensorState.ect = sc.ect;
   sensorState.iat = sc.iat;
@@ -492,7 +511,7 @@ function applyScenario(key) {
 }
 
 /* ======================================================================
- *  Rendering: Sensor sliders
+ *  Rendering: Sensor sliders (Dashboard) + O2R tab
  * ====================================================================== */
 function renderSliders() {
   const container = document.getElementById("sliders");
@@ -539,23 +558,48 @@ function renderSliders() {
   });
 }
 
+function writeSensor(key, v, min, max) {
+  v = Number(v);
+  if (!Number.isFinite(v)) return;
+  sensorState[key] = Math.max(min, Math.min(max, v));
+  document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
+  updateSliders();
+  refresh();
+}
+
 function updateSliders() {
+  const units = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V",o2r:"V"};
   ["rpm","ect","iat","map","tps","o2f","o2r"].forEach(key => {
     const slider = document.getElementById(`slider-${key}`);
-    if (!slider) return;
-    /* Don't fight an active drag: skip the focused slider. */
-    if (document.activeElement === slider) return;
-    const v = Number(sensorState[key]);
-    if (!Number.isFinite(v)) return;
-    slider.value = v;
-    const unit = {rpm:"",ect:"°C",iat:"°C",map:"kPa",tps:"%",o2f:"V",o2r:"V"}[key];
-    const valEl = document.getElementById(`val-${key}`);
-    if (valEl) valEl.textContent = `${sensorState[key]}${unit}`;
+    if (slider && document.activeElement !== slider) {
+      const v = Number(sensorState[key]);
+      if (Number.isFinite(v)) {
+        slider.value = v;
+        const valEl = document.getElementById(`val-${key}`);
+        if (valEl) valEl.textContent = `${sensorState[key]}${units[key]}`;
+      }
+    }
   });
+  /* O2R-tab mirrors */
+  [["o2f-tab", "o2f", "o2f-tab-val"], ["o2r-tab", "o2r", "o2r-tab-val"]].forEach(([id, key, valId]) => {
+    const s = document.getElementById(id);
+    if (s && document.activeElement !== s) s.value = sensorState[key];
+    const ve = document.getElementById(valId);
+    if (ve) ve.textContent = Number(sensorState[key]).toFixed(2) + "V";
+  });
+  /* O2 live readouts (voltage + ADC) */
+  try {
+    if (typeof Module !== "undefined" && Module && typeof Module.emu_get_adc === "function") {
+      const f = document.getElementById("o2f-read");
+      if (f) f.textContent = Number(sensorState.o2f).toFixed(2) + " V · ADC " + Module.emu_get_adc(4);
+      const r = document.getElementById("o2r-read");
+      if (r) r.textContent = Number(sensorState.o2r).toFixed(2) + " V · ADC " + Module.emu_get_adc(5);
+    }
+  } catch (e) {}
 }
 
 /* ======================================================================
- *  Rendering: Register view (bottom) — reads from emu_core
+ *  Rendering: Register view — reads from emu_core
  * ====================================================================== */
 function renderRegisters() {
   const container = document.getElementById("reg-table");
@@ -595,14 +639,31 @@ function renderRegisters() {
 }
 
 /* ======================================================================
+ *  Crank tooth table (Crank tab detail)
+ * ====================================================================== */
+function buildCrankTeeth() {
+  const tbl = document.getElementById("crank-teeth");
+  if (!tbl) return;
+  const tr = tbl.querySelector("tr");
+  tr.innerHTML = "";
+  for (let i = 0; i < 20; i++) {
+    const td = document.createElement("td");
+    td.textContent = (i === 5 || i === 15) ? "×" : String(i);
+    td.title = (i === 5 || i === 15) ? "Gap tooth " + i : "Tooth " + i;
+    tr.appendChild(td);
+  }
+}
+
+/* ======================================================================
  *  Refresh cycle
  * ====================================================================== */
 function refresh() {
   computePinStates();
   renderStates();
   renderRegisters();
+  updateSliders();
+  refreshBadges();
   if (selectedPin) showPinInfo(selectedPin);
-  else updateOverview();
 }
 /* Published for the engine-sim tick (throttled live-view sync). */
 window.refresh = refresh;
@@ -632,21 +693,80 @@ function init() {
   });
 }
 
+/* Real-time sim clock: step the core (no DOM work) so sim time tracks
+ * wall time. Rendering stays on the existing paths (engine-tick sync,
+ * slider/scenario/key input). Without this the core would advance only
+ * SIM_STEP_MS per render (~6Hz), making hold-to-START take ~13 s. */
+function startSimClock() {
+  if (_simTimer) clearInterval(_simTimer);
+  _simTimer = setInterval(() => {
+    try { computePinStates(); } catch (e) {}
+  }, SIM_STEP_MS);
+}
+
+function wireStaticControls() {
+  /* Tabs */
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      switchTab(b.dataset.tab);
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+  });
+  /* Key position buttons */
+  document.querySelectorAll(".key-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      setKeyPos(b.dataset.keypos);
+      refresh();
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+  });
+  /* Momentary START: press-and-hold (mouse + touch + keyboard) */
+  const start = document.getElementById("key-start");
+  if (start) {
+    start.addEventListener("pointerdown", (e) => { e.preventDefault(); holdStart(true); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(ev =>
+      start.addEventListener(ev, () => holdStart(false)));
+    start.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); holdStart(true); }
+    });
+    start.addEventListener("keyup", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); holdStart(false); }
+    });
+  }
+  /* Key code */
+  const apply = document.getElementById("key-apply");
+  if (apply) apply.addEventListener("click", applyKeyCode);
+  const code = document.getElementById("key-code");
+  if (code) code.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") applyKeyCode();
+  });
+  /* Pinout + live-pin filters */
+  const pf = document.getElementById("pinout-search");
+  if (pf) pf.addEventListener("input", applyPinoutFilter);
+  const lf = document.getElementById("pinlive-search");
+  if (lf) lf.addEventListener("input", renderStates);
+  /* O2R tab sliders */
+  const o2f = document.getElementById("o2f-tab");
+  if (o2f) o2f.addEventListener("input", () => writeSensor("o2f", o2f.value, 0, 1));
+  const o2r = document.getElementById("o2r-tab");
+  if (o2r) o2r.addEventListener("input", () => writeSensor("o2r", o2r.value, 0, 1));
+}
+
 function boot() {
   if (_booted) return;
   _booted = true;
-  // Initialize the emulator core with pin data
+  // Initialize the emulator core with pin data (boots key-OFF, engine OFF)
   Module.emu_init();
   Module.emu_set_pins(PINS);
 
+  wireStaticControls();
   renderPinout();
-  renderSchematic(null);
   renderScenarios();
   renderSliders();
+  buildCrankTeeth();
+  setKeyPos("OFF");
+  startSimClock();
   refresh();
-
-  // Apply idle scenario by default
-  applyScenario("idle");
 
   // Initialize engine simulator and CAN monitor
   if (typeof EngineSim !== "undefined") {

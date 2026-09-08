@@ -44,8 +44,13 @@ var EngineSim = (function() {
   var _milOn = false;
   var _cruiseOn = false;
   var _syncCount = 0;    // throttled live-view sync counter (every 5th tick)
-  var _tachoRPM = 800;   // smoothed needle value (eases toward actual rpm)
+  var _tachoRPM = 0;     // smoothed needle value (eases toward actual rpm)
   var _tachoAngle = 0;   // last needle angle in radians (exposed for tests)
+  /* Wave A1 crank-viz controls: slow-motion factor + pause. Speed is always
+   * derived from rpm (dps = rpm/60*360*slow); pause freezes the wheel. */
+  var _crankSlow = 1;      // 1 | 0.5 | 0.1
+  var _crankPaused = false;
+  var _crankStep = false;  // single-step request while paused
 
   /* Canvas contexts */
   var _crankCtx = null;
@@ -125,6 +130,55 @@ var EngineSim = (function() {
   function getTachoRPM() { return _tachoRPM; }
   function getTachoAngle() { return _tachoAngle; }
 
+  /* Wave A1: engine state from the core (OFF|ON|CRANKING|RUNNING|STALLED).
+   * Falls back to RUNNING when the core predates the API (mixed dist). */
+  function engState() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_engine_state === "function") {
+        return Module.emu_get_engine_state();
+      }
+    } catch (e) {}
+    return "RUNNING";
+  }
+
+  /* Wave A1 crank-viz controls (also wired to the Crank-tab selector). */
+  function setCrankSlow(v) {
+    v = Number(v);
+    if (v !== 1 && v !== 0.5 && v !== 0.1) return _crankSlow;
+    _crankSlow = v;
+    syncCrankUI();
+    return _crankSlow;
+  }
+  function getCrankSlow() { return _crankSlow; }
+  function setCrankPaused(p) {
+    _crankPaused = !!p;
+    syncCrankUI();
+    return _crankPaused;
+  }
+  function getCrankPaused() { return _crankPaused; }
+  function stepCrankOnce() { _crankStep = true; return true; }
+  function getCrankPhase() { return _crankPhase; }
+  /* Instantaneous wheel speed in degrees/sec — strictly rpm-derived
+   * (0 when paused or rpm 0). Headless test hook: speed MUST differ
+   * between idle rpm and high rpm at the same slow-mo factor. */
+  function getCrankDPS() {
+    if (_crankPaused) return 0;
+    return (getRPM() / 60) * 360 * _crankSlow;
+  }
+
+  function syncCrankUI() {
+    try {
+      var sel = document.getElementById("crank-slow");
+      if (sel) sel.value = String(_crankSlow);
+      var pb = document.getElementById("crank-pause-btn");
+      if (pb) {
+        pb.textContent = _crankPaused ? "Resume" : "Pause";
+        pb.classList.toggle("active", _crankPaused);
+      }
+    } catch (e) {}
+  }
+
   /* ====================================================================
    *  DTC Logic
    * ==================================================================== */
@@ -148,6 +202,20 @@ var EngineSim = (function() {
   /* ====================================================================
    *  Crank wheel rendering (canvas)
    * ==================================================================== */
+  /* Current core tooth (0..19) when the core is present, else the
+   * phase-derived tooth. The highlighted tooth is the live one. */
+  function coreTooth() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_crank_phase === "function") {
+        var t = Module.emu_get_crank_phase();
+        if (t >= 0 && t < CRANK_TEETH) return t;
+      }
+    } catch (e) {}
+    return Math.floor(((_crankPhase % (Math.PI * 2)) + Math.PI * 2) %
+      (Math.PI * 2) / (Math.PI * 2) * CRANK_TEETH) % CRANK_TEETH;
+  }
+
   function drawCrankWheel() {
     var ctx = _crankCtx;
     if (!ctx) return;
@@ -168,19 +236,22 @@ var EngineSim = (function() {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Teeth
+    // Teeth (rotating with _crankPhase; live tooth highlighted)
+    var liveTooth = coreTooth();
     for (var i = 0; i < CRANK_TEETH; i++) {
       var angle = _crankPhase + (i / CRANK_TEETH) * Math.PI * 2;
       var gapAngle = (1 / CRANK_TEETH) * Math.PI * 2;
       var toothWidth = gapAngle * 0.6;
+      var isGap = (i === 5 || i === 15);
+      var isLive = (i === liveTooth);
 
       // Gap positions: teeth 5 and 15 (end of each 6-tooth rotor group)
-      if (i === 5 || i === 15) {
-        // Missing tooth — draw gap indicator
+      if (isGap) {
+        // Missing tooth — draw gap indicator (brighter when live)
         ctx.beginPath();
         ctx.arc(cx, cy, outerR + toothH * 0.3, angle - gapAngle * 0.3, angle + gapAngle * 0.3);
-        ctx.strokeStyle = "rgba(248, 81, 73, 0.3)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isLive ? "rgba(248, 81, 73, 0.95)" : "rgba(248, 81, 73, 0.3)";
+        ctx.lineWidth = isLive ? 4 : 2;
         ctx.stroke();
         continue;
       }
@@ -201,10 +272,17 @@ var EngineSim = (function() {
       ctx.lineTo(x2, y2);
       ctx.closePath();
 
-      // Color: rotor A (teeth 0-9) cyan, rotor B (10-19) accent
+      // Color: rotor A (teeth 0-9) cyan, rotor B (10-19) accent;
+      // live tooth drawn bright with a white edge.
       var color = i < 10 ? "rgba(57, 197, 207, 0.7)" : "rgba(77, 124, 255, 0.7)";
+      if (isLive) color = i < 10 ? "#39c5cf" : "#8fa8ff";
       ctx.fillStyle = color;
       ctx.fill();
+      if (isLive) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
     }
 
     // Rotor reference mark (rotor A = top, rotor B = bottom)
@@ -224,19 +302,9 @@ var EngineSim = (function() {
     ctx.arc(cx, cy, 3, 0, Math.PI * 2);
     ctx.fillStyle = "#e3b341";
     ctx.fill();
-
-    // RPM label
-    ctx.font = "600 11px monospace";
-    ctx.fillStyle = "#8b96a3";
-    ctx.textAlign = "center";
-    ctx.fillText(getRPM() + " RPM", cx, cy + outerR + toothH + 18);
-
-    // Rotor labels
-    ctx.font = "600 9px monospace";
-    ctx.fillStyle = "#39c5cf";
-    ctx.fillText("ROTOR A", cx, cy + outerR + toothH + 30);
-    ctx.fillStyle = "#4d7cff";
-    ctx.fillText("ROTOR B", cx, cy + outerR + toothH + 42);
+    /* NOTE (Wave A1 defect fix): RPM/rotor captions used to be drawn past
+     * the canvas bottom edge (y > height) and were clipped. Readouts now
+     * live in the HTML #crank-readout below the canvas (see updateCrankUI). */
   }
 
   /* ====================================================================
@@ -315,11 +383,9 @@ var EngineSim = (function() {
     ctx.textAlign = "center";
     var displayVal = Math.round(value);
     ctx.fillText(displayVal, cx, cy + 4);
-
-    // Label
-    ctx.font = "600 8px monospace";
-    ctx.fillStyle = "#8b96a3";
-    ctx.fillText(label + " " + unit, cx, cy + r + 14);
+    /* NOTE (Wave A1 defect-1 fix): the ECT/MAP caption used to be drawn at
+     * cy+r+14, past the 80px canvas edge, and was cut off. Captions now
+     * live in HTML .gauge-cap elements below each canvas. */
   }
 
   /* ====================================================================
@@ -507,15 +573,38 @@ var EngineSim = (function() {
   function updateFromThrottle() {
     if (!window.sensorState) return;
     var st = window.sensorState;
+    var es = engState();
 
+    if (es === "OFF" || es === "ON") {
+      /* Key off / key-on-engine-off: no combustion, rpm decays to 0.
+       * (Core mirrors this on its own _rpm; the UI mirrors it here so the
+       * two never diverge.) */
+      var rate = (es === "OFF") ? 0.25 : 0.12;
+      st.rpm = Math.round(st.rpm * (1 - rate));
+      if (st.rpm < 1) st.rpm = 0;
+      if (es === "OFF") { st.map = 20; st.tps = 0; }
+      return;
+    }
+    if (es === "CRANKING") {
+      /* Starter turns the engine at ~300 rpm regardless of throttle. */
+      st.rpm = Math.round(st.rpm + (300 - st.rpm) * 0.2);
+      return;
+    }
+    if (es === "STALLED") {
+      st.rpm = 0;
+      return;
+    }
+    // RUNNING (or legacy core without state): throttle + load map as before
     // Target RPM from throttle + load
     var targetRPM = Math.round(mapRange(_throttle, 0, 100, 800, REDLINE));
     // Apply load factor (high load = RPM drops slightly at same throttle)
     targetRPM = Math.round(targetRPM * (1 - _load * 0.001));
 
-    // Smooth RPM transition
+    // Smooth RPM transition (snap when close so full-throttle reaches the
+    // 9000 redline and its fuel cut instead of stalling on rounding).
     var diff = targetRPM - st.rpm;
-    st.rpm = Math.round(st.rpm + diff * 0.15);
+    if (Math.abs(diff) <= 5) st.rpm = targetRPM;
+    else st.rpm = Math.round(st.rpm + diff * 0.15);
 
     // MAP from throttle + load (kPa)
     st.map = Math.round(mapRange(_throttle * _load / 100, 0, 100, 25, 95));
@@ -550,18 +639,87 @@ var EngineSim = (function() {
   }
 
   /* ====================================================================
-   *  MIL lamp
+   *  MIL lamp (all .mil-lamp elements: Dashboard badge + DTC tab)
    * ==================================================================== */
   function updateMIL() {
-    var el = document.getElementById("engine-mil");
-    if (!el) return;
-    if (_milOn) {
-      el.classList.add("mil-on");
-      el.textContent = "MIL ON";
-    } else {
-      el.classList.remove("mil-on");
-      el.textContent = "MIL OFF";
+    var els = document.querySelectorAll(".mil-lamp");
+    if (!els || els.length === 0) return;
+    for (var k = 0; k < els.length; k++) {
+      var el = els[k];
+      if (_milOn) {
+        el.classList.add("mil-on");
+        el.textContent = "MIL ON";
+      } else {
+        el.classList.remove("mil-on");
+        el.textContent = "MIL OFF";
+      }
     }
+  }
+
+  /* ====================================================================
+   *  Crank readout + tooth table (Wave A1)
+   * ==================================================================== */
+  function coreGap() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_crank_gap === "function") {
+        return Module.emu_get_crank_gap() ? 1 : 0;
+      }
+    } catch (e) {}
+    var t = coreTooth();
+    return (t === 5 || t === 15) ? 1 : 0;
+  }
+
+  function corePeriodMs() {
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_tooth_period_ms === "function") {
+        return Module.emu_get_tooth_period_ms();
+      }
+    } catch (e) {}
+    var rpm = getRPM();
+    return rpm > 0 ? 60000.0 / (rpm * 20) : 0;
+  }
+
+  function updateCrankUI() {
+    var rpm = getRPM();
+    var tooth = coreTooth();
+    var gap = coreGap();
+    var angleDeg = tooth * 18;
+    try {
+      if (typeof Module !== "undefined" && Module &&
+          typeof Module.emu_get_crank_angle === "function") {
+        angleDeg = Module.emu_get_crank_angle();
+      }
+    } catch (e) {}
+    var ro = document.getElementById("crank-readout");
+    if (ro) {
+      ro.textContent = "tooth " + tooth + "/20 · " + Math.round(angleDeg) +
+        "° · " + Math.round(rpm) + " RPM" + (gap ? " · GAP" : "") +
+        (_crankPaused ? " · PAUSED" : " · " + _crankSlow + "x");
+    }
+    var dps = document.getElementById("crank-dps");
+    if (dps) dps.textContent = String(Math.round(getCrankDPS())) + " °/s";
+    var per = document.getElementById("crank-period");
+    if (per) per.textContent = corePeriodMs().toFixed(3) + " ms/tooth";
+    var cap = document.getElementById("crank-capture");
+    if (cap) {
+      try {
+        if (typeof Module !== "undefined" && Module &&
+            typeof Module.emu_get_crank_capture === "function") {
+          var c = Module.emu_get_crank_capture() >>> 0;
+          cap.textContent = "0x" + ("00000000" + c.toString(16).toUpperCase()).slice(-8);
+        } else { cap.textContent = "—"; }
+      } catch (e) { cap.textContent = "—"; }
+    }
+    /* Tooth table highlight (Crank tab): 20 cells, live + gaps marked. */
+    try {
+      var cells = document.querySelectorAll("#crank-teeth td");
+      for (var i = 0; i < cells.length && i < CRANK_TEETH; i++) {
+        cells[i].classList.toggle("tooth-live", i === tooth);
+        cells[i].classList.toggle("tooth-gap", (i === 5 || i === 15));
+      }
+    } catch (e) {}
   }
 
   /* ====================================================================
@@ -571,16 +729,20 @@ var EngineSim = (function() {
     // Update simulation from user inputs
     updateFromThrottle();
 
-    // Advance crank animation
+    // Advance crank animation — speed strictly tied to rpm (dps =
+    // rpm/60*360*slow); frozen while paused (single-step = one tick).
     var rpm = getRPM();
-    if (rpm > 0) {
-      var degPerMs = (rpm / 60) * 360 / 1000;
+    var stepOnce = _crankStep;
+    _crankStep = false;
+    if ((!_crankPaused || stepOnce) && rpm > 0) {
+      var degPerMs = (rpm / 60) * 360 / 1000 * _crankSlow;
       _crankPhase += (degPerMs * TICK_MS) * Math.PI / 180;
       _crankPhase %= Math.PI * 2;
     }
 
     // Redraw crank wheel
     drawCrankWheel();
+    updateCrankUI();
 
     // Update gauges: RX-8 tachometer dial + mini ECT/MAP (untouched).
     // Legacy #gauge-rpm mini is still drawn when present (backward compat).
@@ -593,6 +755,7 @@ var EngineSim = (function() {
       { warn: 100, crit: 110 });
     drawGauge("gauge-map", getMAP(), 0, 105, "MAP", "kPa", "#4d7cff",
       { warn: 90, crit: 100 });
+    updateCaps();
 
     // Check DTCs and update MIL
     checkDTCs();
@@ -630,50 +793,61 @@ var EngineSim = (function() {
     container.innerHTML =
       '<div class="engine-sim-panel">' +
 
-        /* --- RX-8 tachometer dial --- */
-        '<div class="tacho-wrap" id="tacho-wrap">' +
-          '<div class="esim-label">TACHOMETER · RENESIS</div>' +
-          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="800" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 9000 RPM, redline 8500 to 9000"></canvas>' +
-          '<div id="tacho-digital" class="tacho-digital">800 RPM</div>' +
+        /* --- RX-8 tachometer dial (own card: no divider clipping) --- */
+        '<div class="viz-card tacho-wrap" id="tacho-wrap">' +
+          '<div class="esim-label">Tachometer · Renesis</div>' +
+          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="0" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 9000 RPM, redline 8500 to 9000"></canvas>' +
+          '<div id="tacho-digital" class="tacho-digital">0 RPM</div>' +
           '<div class="tacho-sub">x1000 r/min · redline 8.5–9.0</div>' +
         '</div>' +
 
-        /* --- Crank wheel --- */
-        '<div class="esim-section">' +
-          '<div class="esim-label">CRANK TRIGGER (20-TOOTH)</div>' +
+        /* --- Mini gauges with HTML captions (defect-1 fix: captions are
+         * DOM text below the canvas, never clipped) --- */
+        '<div class="viz-card">' +
+          '<div class="esim-label">Coolant / Manifold</div>' +
+          '<div class="esim-gauges">' +
+            '<div class="gauge-cell">' +
+              '<canvas id="gauge-ect" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '" role="img" aria-label="Coolant temperature gauge"></canvas>' +
+              '<div class="gauge-cap" id="cap-ect">ECT · °C</div>' +
+            '</div>' +
+            '<div class="gauge-cell">' +
+              '<canvas id="gauge-map" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '" role="img" aria-label="Manifold pressure gauge"></canvas>' +
+              '<div class="gauge-cap" id="cap-map">MAP · kPa</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        /* --- Crank wheel (canvas) + HTML readout + speed controls --- */
+        '<div class="viz-card">' +
+          '<div class="esim-label">Crank trigger (20-tooth)</div>' +
           '<canvas id="crank-canvas" width="' + CANVAS_SIZE + '" height="' + CANVAS_SIZE + '" role="img" aria-label="Crank trigger wheel animation, 20 teeth"></canvas>' +
-        '</div>' +
-
-        /* --- Mini gauges (ECT/MAP) --- */
-        '<div class="esim-gauges">' +
-          '<canvas id="gauge-ect" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '"></canvas>' +
-          '<canvas id="gauge-map" width="' + GAUGE_SIZE + '" height="' + GAUGE_SIZE + '"></canvas>' +
-        '</div>' +
-
-        /* --- Controls --- */
-        '<div class="esim-section">' +
-          '<div class="esim-label">THROTTLE</div>' +
-          '<div class="esim-slider-row">' +
-            '<input type="range" id="esim-throttle" min="0" max="100" value="0" step="1">' +
-            '<span id="esim-throttle-val">0%</span>' +
+          '<div id="crank-readout" class="crank-readout" aria-live="off">tooth 0/20 · 0° · 0 RPM</div>' +
+          '<div class="crank-controls">' +
+            '<label for="crank-slow">Speed</label>' +
+            '<select id="crank-slow" aria-label="Crank slow-motion factor">' +
+              '<option value="1" selected>1x</option>' +
+              '<option value="0.5">0.5x</option>' +
+              '<option value="0.1">0.1x</option>' +
+            '</select>' +
+            '<button class="can-btn" id="crank-pause-btn">Pause</button>' +
+            '<button class="can-btn" id="crank-step-btn" title="Advance one tick while paused">Step</button>' +
           '</div>' +
-          '<div class="esim-label" style="margin-top:6px">LOAD</div>' +
-          '<div class="esim-slider-row">' +
-            '<input type="range" id="esim-load" min="0" max="100" value="20" step="1">' +
-            '<span id="esim-load-val">20%</span>' +
-          '</div>' +
-        '</div>' +
-
-        /* --- MIL + DTCs --- */
-        '<div class="esim-section">' +
-          '<div class="esim-mil-row">' +
-            '<div id="engine-mil" class="mil-lamp" aria-live="polite">MIL OFF</div>' +
-          '</div>' +
-          '<div class="esim-label">DTCs</div>' +
-          '<div id="engine-dtc-list" class="dtc-list" aria-live="polite"><div class="dtc-none">No DTCs</div></div>' +
         '</div>' +
 
       '</div>';
+
+    /* Gauge captions carry live values (updated in tick via updateCaps). */
+    syncCrankUI();
+  }
+
+  /* Live gauge captions below the mini dials (defect-1 fix). */
+  function updateCaps() {
+    try {
+      var ce = document.getElementById("cap-ect");
+      if (ce) ce.textContent = "ECT · " + Math.round(getECT()) + " °C";
+      var cm = document.getElementById("cap-map");
+      if (cm) cm.textContent = "MAP · " + Math.round(getMAP()) + " kPa";
+    } catch (e) {}
   }
 
   /* ====================================================================
@@ -683,16 +857,17 @@ var EngineSim = (function() {
     if(_timer)clearInterval(_timer);
     buildPanel(containerId);
     syncSimUI();
+    syncCrankUI();
 
-    // Seed the tachometer needle at the current rpm (avoids sweep from 800
-    // when the page boots into a non-idle scenario).
+    // Seed the tachometer needle at the current rpm (Wave A1 boots key-OFF
+    // at 0 rpm, so no sweep on load).
     try { _tachoRPM = getRPM(); } catch (e) {}
 
     // Get canvas contexts
     var crankCanvas = document.getElementById("crank-canvas");
     if (crankCanvas) _crankCtx = crankCanvas.getContext("2d");
 
-    // Wire throttle slider
+    // Wire throttle slider (lives in the right column in the v2 layout)
     var throttleEl = document.getElementById("esim-throttle");
     if (throttleEl) {
       throttleEl.addEventListener("input", function() {
@@ -705,6 +880,28 @@ var EngineSim = (function() {
     if (loadEl) {
       loadEl.addEventListener("input", function() {
         setLoad(Number(this.value));
+      });
+    }
+
+    // Wire crank slow-motion selector + pause/step
+    var slowEl = document.getElementById("crank-slow");
+    if (slowEl) {
+      slowEl.addEventListener("change", function() {
+        setCrankSlow(this.value);
+      });
+    }
+    var pauseEl = document.getElementById("crank-pause-btn");
+    if (pauseEl) {
+      pauseEl.addEventListener("click", function() {
+        setCrankPaused(!_crankPaused);
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      });
+    }
+    var stepEl = document.getElementById("crank-step-btn");
+    if (stepEl) {
+      stepEl.addEventListener("click", function() {
+        stepCrankOnce();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
     }
 
@@ -728,6 +925,14 @@ var EngineSim = (function() {
       window.__setSimFromRPM = setFromRPM;
       window.__getTachoRPM = getTachoRPM;
       window.__getTachoAngle = getTachoAngle;
+      window.__setCrankSlow = setCrankSlow;
+      window.__getCrankSlow = getCrankSlow;
+      window.__setCrankPaused = setCrankPaused;
+      window.__getCrankPaused = getCrankPaused;
+      window.__stepCrankOnce = stepCrankOnce;
+      window.__getCrankPhase = getCrankPhase;
+      window.__getCrankDPS = getCrankDPS;
+      window.__getEngState = engState;
     }
   } catch (e) {}
 
@@ -736,6 +941,10 @@ var EngineSim = (function() {
     setThrottle: setThrottle, getThrottle: getThrottle,
     setLoad: setLoad, getLoad: getLoad,
     setFromRPM: setFromRPM,
-    getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle
+    getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle,
+    setCrankSlow: setCrankSlow, getCrankSlow: getCrankSlow,
+    setCrankPaused: setCrankPaused, getCrankPaused: getCrankPaused,
+    stepCrankOnce: stepCrankOnce, getCrankPhase: getCrankPhase,
+    getCrankDPS: getCrankDPS
   };
 })();
