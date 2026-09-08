@@ -807,7 +807,7 @@ def main():
 Scenarios:
   --scenario "RPM=800 ECT=80 MAP=35kPa"      Idle, warm engine
   --scenario "RPM=3000 ECT=85 MAP=50kPa"     Cruise
-  --scenario "RPM=7000 ECT=95 MAP=95kPa"     WOT, redline
+  --scenario "RPM=9000 ECT=95 MAP=95kPa"     WOT, redline (Renesis 9000)
 
 Pin output names:
   COIL1-4  Ignition coils (leading/trailing, rotor A/B)
