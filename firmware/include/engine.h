@@ -145,8 +145,8 @@
 
 /*
  * main_engine_cycle_10ms (0x17F1C) runs every 10ms.
- * Counter 0xFFFFA964 increments each call (0-7 cycle).
- * Subset tasks run at 80ms intervals (counter < 8, i.e., 7 out of 8 calls).
+ * Counter 0xFFFFA964 increments each call and the 80ms subset runs once the
+ * counter reaches CYCLE_80MS_DIVIDER (8), then resets (1 of 8 calls).
  *
  * 80ms tasks:
  *   - idle_speed_control_18054
@@ -203,8 +203,9 @@
  *
  * Detects the gap after tooth 5 in the 3x6+1 pattern.
  * Called on each crank sensor interrupt.
+ * @param rotor_offset  Input rotor offset from caller (0 or 6, R4 on SH-2).
  */
-void crank_gap_detect(void);
+void crank_gap_detect(uint8_t rotor_offset);
 
 /**
  * crank_position_state_machine — Main eccentric shaft position FSM.

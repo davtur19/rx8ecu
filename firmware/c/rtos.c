@@ -33,11 +33,17 @@
 /*  Internal State                                                         */
 /* ====================================================================== */
 
+/* review-fix: volatile — current_priority and scheduler_running are shared
+ * between main-loop scheduling and ISR-context enqueue/dispatch paths
+ * (rtos_task_enqueue may run in an ISR while the scheduler runs in main).
+ * Guard strategy: scheduler_running is a re-entrancy latch checked/set on a
+ * single volatile access; priority save/swap in rtos_scheduler/rtos_yield
+ * runs with the queue drained under cooperative (non-preemptive) dispatch. */
 /* Current priority level (used by priority-based preemption check) */
-static uint8_t current_priority = RTOS_PRIORITY_S3;
+static volatile uint8_t current_priority = RTOS_PRIORITY_S3;
 
 /* Scheduler state */
-static uint8_t scheduler_running = 0;
+static volatile uint8_t scheduler_running = 0;
 
 /* ====================================================================== */
 /*  Initialization                                                         */
@@ -296,10 +302,14 @@ void rtos_context_save(uint32_t *sp, uint8_t task_type)
 {
     uint32_t stack = *sp;
 
-    /* Determine frame size based on task type */
-    uint8_t frame_size = (task_type == RTOS_TYPE_TIMER)
-                         ? RTOS_CTX_FRAME_SIZE_FP
-                         : RTOS_CTX_FRAME_SIZE;
+    /* Determine frame size based on task type.
+     * review-fix: always allocate the full 68-byte (0x44) FP frame, even for
+     * basic tasks. The old code allocated 0x34 (52) bytes for basic tasks but
+     * cast the region to the 68-byte rtos_saved_context_t, so any present or
+     * future unconditional touch of fr12-fr15 would write past the frame
+     * (stack smash). The FP field writes below stay type-guarded; only the
+     * allocation is unified, keeping save/restore symmetric. */
+    uint8_t frame_size = RTOS_CTX_FRAME_SIZE_FP;
 
     /* Allocate stack frame */
     stack -= frame_size;
@@ -425,12 +435,12 @@ void rtos_context_restore(uint32_t *sp, uint8_t task_type)
     (void)ctx->pr;    /* ROM: lds.l @r15+, pr   */
     (void)ctx->sr;    /* ROM: ldc.l @r15+, sr   */
 
-    /* Deallocate frame */
-    uint8_t frame_size = (task_type == RTOS_TYPE_TIMER)
-                         ? RTOS_CTX_FRAME_SIZE_FP
-                         : RTOS_CTX_FRAME_SIZE;
+    /* Deallocate frame (matches the always-0x44 allocation in
+     * rtos_context_save — see review-fix note there). */
+    *sp = stack + RTOS_CTX_FRAME_SIZE_FP;
 
-    *sp = stack + frame_size;
+    (void)task_type;  /* Frame size is now type-independent; type still gates
+                       * which FP fields are touched above. */
 }
 
 /* ====================================================================== */
@@ -564,42 +574,51 @@ void rtos_scheduler(void)
 
     scheduler_running = 1;
 
-    while (!rtos_queue_is_empty()) {
-        uint32_t dispatch, arg;
+    /* review-fix: skip_count was a block-static that was never reset on
+     * dispatch or scheduler entry, so deferrals accumulated across unrelated
+     * scheduler calls and could eventually trip the full-queue break
+     * spuriously. It is now function-scoped, zeroed on entry, and reset on
+     * every dispatch. */
+    {
+        uint8_t skip_count = 0;
 
-        if (rtos_task_dequeue(&dispatch, &arg) != 0) {
-            break;  /* Queue empty (race condition) */
-        }
+        while (!rtos_queue_is_empty()) {
+            uint32_t dispatch, arg;
 
-        uint8_t priority = rtos_dispatch_get_priority(dispatch);
+            if (rtos_task_dequeue(&dispatch, &arg) != 0) {
+                break;  /* Queue empty (race condition) */
+            }
 
-        /* Priority-based dispatch decision
-         * ROM: compare priority against current at loc_3C2A */
-        if (priority <= current_priority) {
-            /* This task is equal or higher priority than current */
-            uint8_t old_priority = current_priority;
-            current_priority = priority;
+            uint8_t priority = rtos_dispatch_get_priority(dispatch);
 
-            /* ROM: task_full_context_save (0x3BF4) would be called here
-             * to save the current task's registers before switching.
-             * In our cooperative model, we dispatch directly since
-             * the context switch is handled by the calling convention. */
-            rtos_dispatch(dispatch, arg);
+            /* Priority-based dispatch decision
+             * ROM: compare priority against current at loc_3C2A */
+            if (priority <= current_priority) {
+                /* This task is equal or higher priority than current */
+                uint8_t old_priority = current_priority;
+                current_priority = priority;
 
-            current_priority = old_priority;
-        } else {
-            /* Lower priority — re-enqueue for later
-             * ROM: re-enqueue path at 0x3C2A */
-            rtos_task_enqueue(dispatch, arg);
+                /* ROM: task_full_context_save (0x3BF4) would be called here
+                 * to save the current task's registers before switching.
+                 * In our cooperative model, we dispatch directly since
+                 * the context switch is handled by the calling convention. */
+                rtos_dispatch(dispatch, arg);
 
-            /* If we've cycled through the whole queue without dispatching,
-             * break to avoid infinite loop
-             * ROM: skip counter at loc_3C2A → 0x3C34 check */
-            static uint8_t skip_count = 0;
-            skip_count++;
-            if (skip_count >= RTOS_QUEUE_MAX_SLOTS) {
-                skip_count = 0;
-                break;
+                skip_count = 0;  /* review-fix: reset on every dispatch */
+                current_priority = old_priority;
+            } else {
+                /* Lower priority — re-enqueue for later
+                 * ROM: re-enqueue path at 0x3C2A */
+                rtos_task_enqueue(dispatch, arg);
+
+                /* If we've cycled through the whole queue without dispatching,
+                 * break to avoid infinite loop
+                 * ROM: skip counter at loc_3C2A → 0x3C34 check */
+                skip_count++;
+                if (skip_count >= RTOS_QUEUE_MAX_SLOTS) {
+                    skip_count = 0;
+                    break;
+                }
             }
         }
     }

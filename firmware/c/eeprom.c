@@ -264,17 +264,32 @@ void eeprom_write_byte(uint8_t addr, uint8_t data)
 /**
  * eeprom_read_sector — Read a sector (page) from EEPROM.
  *
+ * review-fix: len was uint8_t, so len == 256 wrapped to 0 (and any len > 255
+ * was truncated). Now size_t with NULL/range checks, clamped to EEPROM_SIZE.
+ *
  * @param addr  Start address (sector-aligned)
  * @param buf   Destination buffer
  * @param len   Number of bytes to read
  */
-void eeprom_read_sector(uint8_t addr, uint8_t *buf, uint8_t len)
+void eeprom_read_sector(uint8_t addr, uint8_t *buf, size_t len)
 {
+    size_t i;
+
+    if (buf == NULL || len == 0) {
+        return;
+    }
+    if (len > EEPROM_SIZE) {
+        len = EEPROM_SIZE;
+    }
+    if ((size_t)addr + len > EEPROM_SIZE) {
+        len = EEPROM_SIZE - (size_t)addr;
+    }
+
     spi_cs_low();
     spi_write_byte(SPI_CMD_READ);
     spi_write_byte(addr);
 
-    for (uint8_t i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         buf[i] = spi_read_byte();
     }
 
@@ -284,12 +299,27 @@ void eeprom_read_sector(uint8_t addr, uint8_t *buf, uint8_t len)
 /**
  * eeprom_write_sector — Write a sector (page) to EEPROM.
  *
+ * review-fix: len was uint8_t (wrap at 256). Now size_t with NULL/range
+ * checks, clamped to EEPROM_SIZE.
+ *
  * @param addr  Start address (page-aligned)
  * @param buf   Source buffer
  * @param len   Number of bytes to write
  */
-void eeprom_write_sector(uint8_t addr, const uint8_t *buf, uint8_t len)
+void eeprom_write_sector(uint8_t addr, const uint8_t *buf, size_t len)
 {
+    size_t i;
+
+    if (buf == NULL || len == 0) {
+        return;
+    }
+    if (len > EEPROM_SIZE) {
+        len = EEPROM_SIZE;
+    }
+    if ((size_t)addr + len > EEPROM_SIZE) {
+        len = EEPROM_SIZE - (size_t)addr;
+    }
+
     /* Write Enable */
     spi_cs_low();
     spi_write_byte(SPI_CMD_WREN);
@@ -300,7 +330,7 @@ void eeprom_write_sector(uint8_t addr, const uint8_t *buf, uint8_t len)
     spi_write_byte(SPI_CMD_WRITE);
     spi_write_byte(addr);
 
-    for (uint8_t i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         spi_write_byte(buf[i]);
     }
 
@@ -405,19 +435,31 @@ int is_eeprom_valid(void)
  * Also stores an inverted copy at 0xFFFFC3FE for verification.
  * Disables interrupts during copy for atomicity.
  *
+ * review-fix: len was uint8_t (len == 256 wrapped to 0, silently copying
+ * nothing). Now size_t with NULL check, clamped to EEPROM_STAGING_SIZE.
+ *
  * @param src   Source data
  * @param len   Length to copy (max 256)
  */
-void eeprom_commit_to_ram(const uint8_t *src, uint8_t len)
+void eeprom_commit_to_ram(const uint8_t *src, size_t len)
 {
     volatile uint8_t *staging = (volatile uint8_t *)EEPROM_STAGING_BASE;
     volatile uint8_t *verify  = (volatile uint8_t *)EEPROM_VERIFY_BASE;
+    uint32_t saved_sr;
+    size_t i;
+
+    if (src == NULL || len == 0) {
+        return;
+    }
+    if (len > EEPROM_STAGING_SIZE) {
+        len = EEPROM_STAGING_SIZE;
+    }
 
     /* Disable interrupts for atomic copy */
-    uint32_t saved_sr = disable_interrupts();
+    saved_sr = disable_interrupts();
 
     /* Copy data to staging area */
-    for (uint8_t i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         staging[i] = src[i];
         verify[i]  = src[i] ^ 0xFF;  /* Inverted copy for verification */
     }

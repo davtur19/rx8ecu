@@ -27,19 +27,24 @@ static inline uint8_t extu_b(uint8_t val)
 /*  Internal State                                                        */
 /* ====================================================================== */
 
+/* review-fix: volatile — trigger decode / dwell / injection / OMP state is
+ * shared between the crank ISR (crank_timing_update) and the main-loop
+ * engine cycle. Guard strategy: single volatile accesses are atomic on
+ * SH-2 (8/16-bit); multi-step sequences run either in the ISR or under
+ * disable_interrupts()/restore_interrupts() in main-loop code. */
 /* Trigger decode state (eccentric shaft position) */
-static uint8_t crank_tooth_count = 0;
-static uint8_t crank_rotor_position = 0;  /* 0-5 teeth per rotor */
-static uint8_t crank_rotor_id = 0;        /* 0=rotor A, 1=rotor B */
+static volatile uint8_t crank_tooth_count = 0;
+static volatile uint8_t crank_rotor_position = 0;  /* 0-5 teeth per rotor */
+static volatile uint8_t crank_rotor_id = 0;        /* 0=rotor A, 1=rotor B */
 
 /* Ignition dwell state */
-static uint16_t dwell_time_us = 0;
+static volatile uint16_t dwell_time_us = 0;
 
 /* Injection state */
-static uint8_t injector_enable_flags = 0;
+static volatile uint8_t injector_enable_flags = 0;
 
 /* OMP state */
-static uint8_t omp_state = OMP_STATE_OFF;
+static volatile uint8_t omp_state = OMP_STATE_OFF;
 
 /* Trigger sync RAM mirrors (from ROM analysis) */
 static volatile uint8_t *const sync_state    = (volatile uint8_t *)0xFFFF9FC0;
@@ -69,10 +74,10 @@ static volatile uint32_t *const delta_ts_r   = (volatile uint32_t *)0xFFFF9FA8;
  * Detects the gap after tooth 5 in the 3x6+1 pattern.
  * The gap is identified by comparing tooth interval against expected.
  * When interval > threshold: gap detected, returns rotor offset.
- * R4 = input rotor offset (0 or 0xFF).
+ * @param rotor_offset  Input rotor offset from caller (0 or 6, R4 on SH-2).
  * Returns: rotor face offset (0 or 6) on success, 0xFF on no gap.
  */
-void crank_gap_detect(void)
+void crank_gap_detect(uint8_t rotor_offset)
 {
     /* ROM:0x7E60-0x7ED6: Gap detection algorithm
      * - Read input capture timestamp interval
@@ -80,7 +85,9 @@ void crank_gap_detect(void)
      * - If interval > 1.5x expected: gap detected
      * - Return rotor face offset for next rotor
      */
-    uint8_t input_val = 0; /* r4 parameter (passed in register) */
+    /* review-fix: was `uint8_t input_val = 0;` (hardcoded) — take the
+     * caller-supplied rotor offset instead. */
+    uint8_t input_val = rotor_offset; /* r4 parameter (passed in register) */
     uint8_t result = 0xFF; /* default: no gap */
 
     if (input_val == 0) {
@@ -131,6 +138,10 @@ void crank_position_state_machine(void)
 
     /* Validate state bounds */
     if (state > 0x24) {
+        /* review-fix: write the clamped value back to *sync_counter. The old
+         * code fixed only the local copy, leaving the RAM state out of range
+         * for other readers and future calls. */
+        *sync_counter = 0;
         state = 0;
     }
 
@@ -227,6 +238,17 @@ void rotor_position_synchronization(void)
     /* Map 20-tooth pattern to rotor positions
      * Teeth 0-9: Rotor A (faces 0-5 + gap)
      * Teeth 10-19: Rotor B (faces 0-5 + gap)
+     *
+     * review-fix (NEEDS-ROM-CHECK): the 10/10 split is kept but its ROM
+     * basis is ambiguous — ROM cross-check unavailable (no IDA session).
+     * Conflicting in-code signals, all preserved:
+     *   - header: 3x6+1 pattern, TRIGGER_TEETH_PER_ROTOR=6, TOTAL_TEETH=20;
+     *     face index uses count % 6 below (consistent with 6 teeth/rotor).
+     *   - crank_timing_update passes rotor_offset 0 or 6 (offset 6 suggests
+     *     rotor B starts at tooth 6, not 10).
+     *   - FULL_SYNC checks crank_tooth_count == 0x1C (28) or 0x0A (10),
+     *     i.e. the counter ranges beyond 20 in some paths.
+     * ROM 0xAF10 must arbitrate the true A/B boundary before changing this.
      */
     if (count < 10) {
         crank_rotor_id = 0;  /* Rotor A */
@@ -335,7 +357,7 @@ void crank_sync_acquire(uint8_t rotor_offset)
             volatile uint32_t *ratio_ptr = (volatile uint32_t *)0xFFFF9FBC;
             if (*ratio_ptr > *rpm_ptr) {
                 /* RPM above limit: try gap detection */
-                crank_gap_detect();
+                crank_gap_detect(rotor_offset);
                 uint8_t gap_r = *gap_detect_r;
                 if (gap_r == 0xFF) {
                     /* Gap detected: store tooth result */
@@ -351,7 +373,7 @@ void crank_sync_acquire(uint8_t rotor_offset)
         /* Engine running: different path */
         uint8_t state = *tooth_pos;
         if (state == 1) {
-            crank_gap_detect();
+            crank_gap_detect(rotor_offset);
         }
         uint8_t gap_r = *gap_detect_r;
         if (gap_r == 0xFF) {
@@ -863,28 +885,39 @@ void idle_speed_range_validator(void)
  * ROM:0xF11A — Pipeline call 27
  *
  * Limits RPM during cold start for engine protection.
+ *
+ * review-fix (NEEDS-ROM-CHECK): the old code clamped the MEASURED rpm RAM
+ * word (*rpm_ptr = 3000.0f), corrupting the sensor reading consumed by every
+ * other pipeline stage (idle control, torque, CAN packers). The limiter now
+ * publishes the active limit and an exceeded flag instead and never touches
+ * the measurement. The ROM output address/flag for the limit is undocumented
+ * in-repo — ROM 0xF11A must confirm where the limit is consumed.
  */
+float g_cold_start_rpm_limit = 0.0f;      /* Active RPM limit, 0 = inactive */
+uint8_t g_cold_start_limiter_active = 0;  /* 1 = measured RPM exceeds limit */
+
 void cold_start_rpm_limiter(void)
 {
     /* ROM:0xF11A: Cold start RPM limiter
      * - Read coolant temperature
      * - Determine RPM limit based on temp
-     * - Clamp RPM to cold-start limit
+     * - Publish the limit (do NOT modify the measured RPM)
      */
     volatile float *ect_ptr = (volatile float *)0xFFFFA8A4;
     volatile float *rpm_ptr = (volatile float *)0xFFFFB5B8;
 
+    float limit = 0.0f;
     if (*ect_ptr < 40.0f) {
         /* Cold engine: limit RPM to 3000 */
-        if (*rpm_ptr > 3000.0f) {
-            *rpm_ptr = 3000.0f;
-        }
+        limit = 3000.0f;
     } else if (*ect_ptr < 70.0f) {
         /* Warming up: limit RPM to 4500 */
-        if (*rpm_ptr > 4500.0f) {
-            *rpm_ptr = 4500.0f;
-        }
+        limit = 4500.0f;
     }
+
+    g_cold_start_rpm_limit = limit;
+    g_cold_start_limiter_active =
+        (uint8_t)((limit > 0.0f && *rpm_ptr > limit) ? 1 : 0);
 }
 
 /* ====================================================================== */
@@ -938,6 +971,17 @@ void omp_control_task(void)
             break;
 
         case OMP_STATE_ACTIVE:
+            /* review-fix (NEEDS-ROM-CHECK): ACTIVE previously had no exit to
+             * OFF, so once activated the OMP could never shut down except on
+             * hardware fault. ROM exit conditions are undocumented in-repo
+             * (ROM 0x1825E must confirm), so the best-effort exit mirrors the
+             * OFF->ACTIVE entry condition above: when the entry conditions
+             * drop, return to OFF and clear the control output. */
+            if (state_a968 == 0 || state_a969 == 0) {
+                omp_state = OMP_STATE_OFF;
+                OMP_CONTROL_OUTPUT = 0;
+                break;
+            }
             /* ACTIVE state: calculate OMP duty based on RPM/load */
             {
                 /* Read RPM for OMP duty calculation */
@@ -988,12 +1032,13 @@ void omp_control_task(void)
  * ROM:0x17F1C (size 0x60)
  *
  * Called every 10ms. Runs OMP every 10ms.
- * Runs subset tasks every 80ms (counter 0-7, runs on 0-6).
+ * Runs subset tasks once every 80ms (every 8th call, when the counter
+ * reaches CYCLE_80MS_DIVIDER).
  *
  * Flow (from disassembly):
  *   1. diag_getsr_3920 — Save diagnostic status (r4=0x10)
  *   2. Increment 80ms counter (0xFFFFA964)
- *   3. If counter < 8 (7 out of 8 calls):
+ *   3. If counter >= 8 (once every 8 calls):
  *      - idle_speed_control_18054
  *      - fuel_pump_control_0x17510
  *      - exhaust_port_control
@@ -1001,9 +1046,9 @@ void omp_control_task(void)
  *      - torque_calc_with_damping
  *      - sub_17014
  *      - ctrl_continuation_17b24
- *   4. Reset counter to 0 when >= 8
- *   5. omp_control_task_1825E (every 10ms)
- *   6. diag_setsr_3934 — Restore diagnostic status
+ *      - Reset counter to 0
+ *   4. omp_control_task_1825E (every 10ms)
+ *   5. diag_setsr_3934 — Restore diagnostic status
  */
 void main_engine_cycle_10ms(void)
 {
@@ -1016,9 +1061,13 @@ void main_engine_cycle_10ms(void)
     CYCLE_COUNTER_80MS++;
     uint8_t counter = CYCLE_COUNTER_80MS;
 
-    /* Step 3: Run 80ms subset tasks (7 out of 8 calls) */
-    /* ROM:0x17F32-0x17F6A: Compare counter < 8, branch if less */
-    if (counter < CYCLE_80MS_DIVIDER) {
+    /* Step 3: Run 80ms subset tasks once every 8 calls (80 ms) */
+    /* ROM:0x17F32-0x17F6A: Compare counter against divider, branch when reached.
+     * review-fix: was `if (counter < CYCLE_80MS_DIVIDER) { run; reset; }`,
+     * which ran the subset on 7 of 8 calls (i.e. every 10 ms) and re-armed
+     * immediately. Correct 80 ms behavior: run once the counter reaches the
+     * divider, then reset. */
+    if (counter >= CYCLE_80MS_DIVIDER) {
         /* ROM:0x17F3E: idle_speed_control_18054 */
         idle_speed_control();
 
@@ -1348,10 +1397,14 @@ void torque_calc_with_damping(void)
         volatile uint16_t *damp_const = (volatile uint16_t *)0x78E58;
         *a944_ptr = (float)*damp_const;
     } else if (prev > 0.0f) {
-        /* Decrement damping counter */
-        volatile uint16_t *val = (volatile uint16_t *)a944_ptr;
-        if (*val > 0) {
-            (*val)--;
+        /* Decrement damping counter.
+         * review-fix: was punned through the float pointer
+         * (`(volatile uint16_t *)a944_ptr`, strict-aliasing violation that
+         * also decrements only the low half of the float bits). Use a
+         * separate integer-typed view of the same counter address. */
+        volatile uint16_t *damp_cnt = (volatile uint16_t *)0xFFFFA944;
+        if (*damp_cnt > 0) {
+            (*damp_cnt)--;
         }
     }
 

@@ -46,8 +46,14 @@ typedef struct {
     uint8_t            error;        /* Error flags */
 } serial_channel_state_t;
 
-/* Channel state array */
-static serial_channel_state_t serial_channels[3];
+/* Channel state array.
+ * review-fix: volatile — entries are written by the ATU ISR
+ * (serial_atu_irq_handler and the RX handlers) and read/updated by main-loop
+ * code (serial_data_read/write, serial_data_write_handler). Guard strategy:
+ * ISR only sets RX flags/bytes while main-loop consumes under
+ * serial_enable/disable_interrupts (intc_reg_write) critical sections;
+ * single volatile accesses are atomic on SH-2 (8-bit). */
+static volatile serial_channel_state_t serial_channels[3];
 
 /* ====================================================================== */
 /*  Status and Error Flags                                                */
@@ -159,7 +165,7 @@ int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len)
     if (serial_channels[channel].rx_buf == NULL) return -1;
     if (serial_channels[channel].status == SERIAL_STATUS_IDLE) return 0;
 
-    serial_channel_state_t *ch = &serial_channels[channel];
+    volatile serial_channel_state_t *ch = &serial_channels[channel];
     uint8_t len = ch->rx_len;
     if (len > max_len) len = max_len;
 
@@ -195,7 +201,7 @@ int serial_data_write(uint8_t channel, const uint8_t *buf, uint8_t len)
 {
     if (channel >= 3) return -1;
 
-    serial_channel_state_t *ch = &serial_channels[channel];
+    volatile serial_channel_state_t *ch = &serial_channels[channel];
 
     /* Check if channel is busy */
     if (ch->status & SERIAL_STATUS_TX_BUSY) return -1;
@@ -225,7 +231,7 @@ void serial_start_tx(uint8_t channel)
 {
     if (channel >= 3) return;
 
-    serial_channel_state_t *ch = &serial_channels[channel];
+    volatile serial_channel_state_t *ch = &serial_channels[channel];
 
     if (!(ch->status & SERIAL_STATUS_TX_READY)) return;
 
@@ -253,7 +259,7 @@ void serial_data_write_handler(void)
 {
     /* Check if there's data to send */
     for (int i = 0; i < 3; i++) {
-        serial_channel_state_t *ch = &serial_channels[i];
+        volatile serial_channel_state_t *ch = &serial_channels[i];
 
         if (ch->status & SERIAL_STATUS_TX_READY) {
             serial_start_tx(i);
@@ -273,7 +279,7 @@ void serial_data_write_handler(void)
  */
 void serial_rx_handler_ch0(void)
 {
-    serial_channel_state_t *ch = &serial_channels[0];
+    volatile serial_channel_state_t *ch = &serial_channels[0];
 
     /* Read received byte from ATU capture register */
     uint8_t data = (uint8_t)atu_reg_read(ATU_TGR0_OFFSET);
@@ -296,7 +302,7 @@ void serial_rx_handler_ch0(void)
  */
 void serial_rx_handler_ch1(void)
 {
-    serial_channel_state_t *ch = &serial_channels[1];
+    volatile serial_channel_state_t *ch = &serial_channels[1];
 
     /* Read received byte from ATU capture register */
     uint8_t data = (uint8_t)atu_reg_read(ATU_TGR1_OFFSET);
@@ -319,7 +325,7 @@ void serial_rx_handler_ch1(void)
  */
 void serial_rx_handler_ch2(void)
 {
-    serial_channel_state_t *ch = &serial_channels[2];
+    volatile serial_channel_state_t *ch = &serial_channels[2];
 
     /* Read received byte from ATU capture register */
     uint8_t data = (uint8_t)atu_reg_read(ATU_TGR2_OFFSET);
@@ -353,18 +359,27 @@ void serial_atu_irq_handler(void)
     /* Channel 0: RX capture */
     if (isr & 0x0001) {
         serial_rx_handler_ch0();
-        atu_reg_write(ATU_TISRA_OFFSET, ~0x0001);  /* Clear flag */
+        /* review-fix: flag-only clear via read-modify-write. The old full-
+         * mask write (~0x0001 = 0xFFFE) rewrites every other flag bit too,
+         * wiping flags set by other channels. RMW is safe under both
+         * write-0-to-clear and direct-write status semantics. */
+        atu_reg_write(ATU_TISRA_OFFSET,
+                      (uint16_t)(atu_reg_read(ATU_TISRA_OFFSET) & (uint16_t)~0x0001u));
     }
 
     /* Channel 1: TX compare */
     if (isr & 0x0002) {
         /* TX complete — load next byte or clear busy flag */
-        atu_reg_write(ATU_TISRA_OFFSET, ~0x0002);
+        /* review-fix: flag-only clear (see above). */
+        atu_reg_write(ATU_TISRA_OFFSET,
+                      (uint16_t)(atu_reg_read(ATU_TISRA_OFFSET) & (uint16_t)~0x0002u));
     }
 
     /* Channel 2: RX capture */
     if (isr & 0x0004) {
         serial_rx_handler_ch2();
-        atu_reg_write(ATU_TISRA_OFFSET, ~0x0004);
+        /* review-fix: flag-only clear (see above). */
+        atu_reg_write(ATU_TISRA_OFFSET,
+                      (uint16_t)(atu_reg_read(ATU_TISRA_OFFSET) & (uint16_t)~0x0004u));
     }
 }

@@ -101,8 +101,12 @@ struct can_mailbox_config {
 
 #define CAN_GATE_BOOT_COUNTER    (*(volatile uint8_t *)0xFFFFA40F)  /* must be <100 */
 #define CAN_GATE_A40A            (*(volatile uint8_t *)0xFFFFA40A)  /* must be 0 */
-#define CAN_GATE_INIT_CAN0       (*(volatile uint8_t *)0xFFFFA410)  /* CAN0 init done */
-#define CAN_GATE_INIT_CAN1       (*(volatile uint8_t *)0xFFFFA411)  /* CAN1 init done */
+/* review-fix: init-gate semantic is 0 = initialized/ready (cleared by
+ * can_setup), non-zero = not ready. CANTX_Main and
+ * secondary_system_controller block while non-zero; can_setup used to set
+ * CAN0=1 ("ready"), which gated TX off forever. */
+#define CAN_GATE_INIT_CAN0       (*(volatile uint8_t *)0xFFFFA410)  /* 0 = CAN0 ready */
+#define CAN_GATE_INIT_CAN1       (*(volatile uint8_t *)0xFFFFA411)  /* 0 = CAN1 ready */
 #define CAN_GATE_SYS_ENABLE      (*(volatile uint8_t *)0xFFFFAAE0)  /* must be 1 */
 #define CAN_GATE_INHIBIT         (*(volatile uint8_t *)0xFFFFB5E8)  /* must be !=1 */
 #define CAN_GATE_TX_FLAG         (*(volatile uint8_t *)0xFFFFC241)  /* cleared at end TX */

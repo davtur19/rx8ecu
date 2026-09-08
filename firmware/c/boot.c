@@ -120,9 +120,24 @@ void Manual_Reset(void)
  * sit inside FPU opcode encodings, and "EC80" text hits are ROM addresses
  * such as loc_EC80 @ 0xEC80 — not 0xFFFFEC80 SFR accesses). The original
  * 0xFFFFEC80 was a guess, not an IDA alias artifact of a real EC80 write.
- * TODO: model the 0x8DE-0x8F4 tail of this IDA function:
- *   [0xFFFFF70A] = 0x3C04, [0xFFFFED18] = 0, then poll [0xFFFFED18] & 0x8000.
+ * NOTE (EC80 vs EC20 recheck): the EC80->EC20 fix is correct — the only
+ * SFR literal loaded here is the word 0xEC20 at ROM 0x99E (u16be = 60448).
+ * No instruction in bsc_init references 0xFFFFEC80, and a whole-image
+ * search finds no mov.w/mov.l literal pool loading 0xEC80 as an SFR
+ * address (raw "EC 80" byte hits at 0x274BF/0x2E537/0x2E543/0x2E54F/0x33C56
+ * sit inside FPU opcode encodings, and "EC80" text hits are ROM addresses
+ * such as loc_EC80 @ 0xEC80 — not 0xFFFFEC80 SFR accesses). The original
+ * 0xFFFFEC80 was a guess, not an IDA alias artifact of a real EC80 write.
+ *
+ * Tail (0x8DE-0x8F4) of this IDA function: [0xFFFFF70A] = 0x3C04,
+ * [0xFFFFED18] = 0, then poll [0xFFFFED18] & 0x8000 (implemented below).
  */
+
+/* review-fix: bound for the bsc_init tail poll loop. The ROM spins on bit 15
+ * of 0xFFFFED18; an unbounded spin hangs host verification, so the loop is
+ * bounded. The bound has no ROM meaning — boot proceeds after timeout. */
+#define BSC_TAIL_POLL_TIMEOUT 1000000UL
+
 void bsc_init(void)
 {
     /* BSC base register: 0xFFFFEC20 (SH-2E Bus State Controller) */
@@ -135,6 +150,18 @@ void bsc_init(void)
     bsc[1] = 0xFFFF;  /* Wait state 0 (low 16 bits of literal at ROM 0x9B0) */
     bsc[2] = 0xFFFF;  /* Wait state 1 (same literal) */
     bsc[3] = 0x0000;  /* Wait state 2 */
+
+    /* review-fix: implement the 0x8DE-0x8F4 tail described above. Volatile
+     * 16-bit accesses; bounded poll on bit 15 of 0xFFFFED18. */
+    volatile uint16_t *bsc_tail_a = (volatile uint16_t *)0xFFFFF70A;
+    volatile uint16_t *bsc_tail_b = (volatile uint16_t *)0xFFFFED18;
+    *bsc_tail_a = 0x3C04;
+    *bsc_tail_b = 0x0000;
+    {
+        uint32_t bsc_tail_poll = BSC_TAIL_POLL_TIMEOUT;
+        while ((*bsc_tail_b & 0x8000) == 0 && --bsc_tail_poll != 0) {
+        }
+    }
 }
 
 /* ====================================================================== */

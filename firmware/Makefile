@@ -60,7 +60,11 @@ ALL_OBJ   = $(ALL_SRC:.c=.o)
 all: check
 
 # Syntax/compile check (host or cross)
+# NOTE: when the cross-compiler is missing this falls back to the host CC
+# for syntax checking only — firmware.bin/verify below still refuse to run
+# without the cross toolchain (they must not pretend to build/verify).
 check:
+	@if [ ! -f "$(CC)" ]; then echo "NOTE: cross-compiler missing — syntax check with $(HOST_CC)"; fi
 	@echo "=== Checking firmware sources ==="
 	@for f in $(ALL_SRC); do \
 		echo "  CC $$f"; \
@@ -69,19 +73,33 @@ check:
 	@echo "=== All sources compile OK ==="
 
 # Cross-compile to binary (only if cross-compiler available)
+# review-fix: fail loudly when the cross toolchain is missing instead of
+# silently skipping the build (a "successful" no-op binary build).
 firmware.bin: $(ALL_SRC)
 	@if [ ! -f "$(CC)" ]; then \
-		echo "Cross-compiler not found, skipping binary build"; \
-		exit 0; \
+		echo "ERROR: cross-compiler not found at $(CC); refusing to fake firmware.bin"; \
+		exit 1; \
 	fi
 	@echo "=== Building firmware binary ==="
 	$(CC) $(SH_FLAGS) $(ALL_SRC) -T linker.ld -o firmware.elf
 	$(OBJCOPY) -O binary firmware.elf $@
 
 # Verify against stock ROM (placeholder)
-verify: firmware.bin
-	@echo "=== Verifying firmware ==="
-	@echo "Firmware build complete"
+# review-fix: the old verify target only echoed "Firmware build complete" and
+# therefore pretended to verify. It now fails loudly without the cross
+# toolchain and otherwise performs a real check: every translation unit must
+# compile under the cross-compiler with -Wall -Wextra -Werror (SH_FLAGS).
+verify: $(ALL_SRC)
+	@if [ ! -f "$(CC)" ]; then \
+		echo "ERROR: cross-compiler not found at $(CC); refusing to pretend-verify"; \
+		exit 1; \
+	fi
+	@echo "=== Verifying firmware (cross-compile, -Wall -Wextra -Werror) ==="
+	@for f in $(ALL_SRC); do \
+		echo "  CC $$f"; \
+		$(CC) $(SH_FLAGS) -c $$f -o /dev/null || exit 1; \
+	done
+	@echo "=== Firmware verification passed ==="
 
 # --- Clean ---
 clean:

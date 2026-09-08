@@ -18,6 +18,7 @@
 #ifndef EEPROM_H
 #define EEPROM_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "platform.h"
 
@@ -120,18 +121,18 @@ void eeprom_write_byte(uint8_t addr, uint8_t data);
 /**
  * eeprom_read_sector — Read a sector (page) from EEPROM.
  * @param addr   Start address (sector-aligned)
- * @param buf    Destination buffer
- * @param len    Number of bytes to read
+ * @param buf    Destination buffer (must be non-NULL)
+ * @param len    Number of bytes to read (clamped to EEPROM bounds)
  */
-void eeprom_read_sector(uint8_t addr, uint8_t *buf, uint8_t len);
+void eeprom_read_sector(uint8_t addr, uint8_t *buf, size_t len);
 
 /**
  * eeprom_write_sector — Write a sector (page) to EEPROM.
  * @param addr   Start address (sector-aligned)
- * @param buf    Source buffer
- * @param len    Number of bytes to write
+ * @param buf    Source buffer (must be non-NULL)
+ * @param len    Number of bytes to write (clamped to EEPROM bounds)
  */
-void eeprom_write_sector(uint8_t addr, const uint8_t *buf, uint8_t len);
+void eeprom_write_sector(uint8_t addr, const uint8_t *buf, size_t len);
 
 /**
  * eeprom_erase_sector — Erase a sector (64 bytes) of EEPROM.
@@ -170,11 +171,11 @@ int is_eeprom_valid(void);
 
 /**
  * eeprom_commit_to_ram — Copy data to EEPROM staging area in RAM.
- * @param src   Source data
- * @param len   Length to copy (max 256)
+ * @param src   Source data (must be non-NULL)
+ * @param len   Length to copy (clamped to EEPROM_STAGING_SIZE)
  *
  * Copies to 0xFFFFC2FE, stores inverted copy at 0xFFFFC3FE for verification.
  */
-void eeprom_commit_to_ram(const uint8_t *src, uint8_t len);
+void eeprom_commit_to_ram(const uint8_t *src, size_t len);
 
 #endif /* EEPROM_H */

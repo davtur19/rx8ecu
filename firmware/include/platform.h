@@ -384,6 +384,20 @@ static inline void intc_reg_write(uint16_t value) {
     INTC_REGISTER = value;
 }
 
+/* review-fix: timer/serial INTC priority registers written by
+ * hardware_init_serial_timers (ROM:0xB6BC; addresses from timer.h).
+ * NEEDS-ROM-CHECK: ROM must confirm both these target registers and the
+ * values written (the old code wrote 0x0008/0x000A/0x000E as values to the
+ * single INTC_REGISTER above, so only the last write ever stuck). */
+#define INTC_TMR_IPR0_ADDR  0xFFFFF008
+#define INTC_TMR_IPR1_ADDR  0xFFFFF00A
+#define INTC_TMR_IPR2_ADDR  0xFFFFF00E
+
+/* Write a value to a specific INTC register address */
+static inline void intc_reg_write_at(uint32_t addr, uint16_t value) {
+    *(volatile uint16_t *)(uintptr_t)addr = value;
+}
+
 /* ====================================================================== */
 /*  NULL Definition (freestanding)                                        */
 /* ====================================================================== */
