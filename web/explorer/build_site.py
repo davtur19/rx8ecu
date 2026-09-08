@@ -39,7 +39,8 @@ Writes the complete static site into dist/:
     models/<key>.json — per-model value files (one per non-default ROM), fetched
                    on demand by the UI when the user switches the firmware model
     .nojekyll    — tells GitHub Pages not to run Jekyll over the output
-    README.md    — auto-generated summary of this build
+    build_manifest.json — input SHA-256 hashes + output counts (freshness check)
+    README.md    — auto-generated summary of this build (documents the check)
 
 Firmware-model selector: the UI lets the user pick one of the 9 stock ROMs. The
 table addresses then come from data/table_addr_map_long.csv (per-ROM map, never
@@ -101,6 +102,19 @@ WARN = []
 def warn(msg):
     WARN.append(msg)
     print("WARN:", msg)
+
+
+class BuildError(Exception):
+    """Fatal build error: missing/unreadable required input. Aborts the
+    build with a non-zero exit instead of shipping a silently incomplete
+    dist/ (fail-closed)."""
+
+
+def need(path, label):
+    """Returns path if it exists, else raises BuildError (fail-closed)."""
+    if not os.path.exists(path):
+        raise BuildError("missing required input %s (%s)" % (label, path))
+    return path
 
 
 # --------------------------------------------------------------------------
@@ -383,9 +397,9 @@ def load_edges():
         except Exception:
             continue
         kind = "b" if r.get("kind", "ref").strip() == "bsr" else "r"
-        if (ca, ka) in seen:
+        if (ca, ka, kind) in seen:
             continue
-        seen.add((ca, ka))
+        seen.add((ca, ka, kind))
         out.append((ca, ka, kind))
     return out
 
@@ -558,6 +572,24 @@ def heuristic_scalar(d, addr):
     return r4(v)
 
 
+def table_role(name, kind=""):
+    """Row role for the tables view: 'x'/'y' for axis rows, 't' otherwise.
+
+    Axis rows are the kind=axis entries whose names end with ' X Axis' /
+    ' Y Axis' (all 662 do; no table/intermediate row carries the suffix).
+    The previous `name == "X"` test never matched, so every axis was
+    misclassified as a table (counts.tables_axes == 0 and the X/Y role
+    filter in the UI was always empty). The kind column is kept as a
+    fallback so a suffix-less axis row still counts as an axis."""
+    if name.endswith(" X Axis"):
+        return "x"
+    if name.endswith(" Y Axis"):
+        return "y"
+    if kind == "axis":
+        return "y"
+    return "t"
+
+
 def load_tables(d, by_vp, by_axp, by_ayp, rows=None):
     if rows is None:
         p = os.path.join(SYM, "cal_tables.csv")
@@ -575,7 +607,7 @@ def load_tables(d, by_vp, by_axp, by_ayp, rows=None):
         except Exception:
             warn("invalid address: %s" % r.get("address"))
             continue
-        role = "x" if name == "X" else ("y" if name == "Y" else "t")
+        role = table_role(name, r.get("kind", ""))
         ent = {"n": name, "a": addr, "c": table_category(name), "role": role, "g": gid}
         if role == "t":
             cur = ent
@@ -700,7 +732,7 @@ def extract_model_values(d, by_vp, by_axp, by_ayp, rows, dmap):
             continue
         item = mapped_item_for_row(dmap, base, seen)
         target = item[0] if item else None
-        role = "x" if name == "X" else ("y" if name == "Y" else "t")
+        role = table_role(name, r.get("kind", ""))
         ent = None
         if role == "t":
             v = extract_table(d, by_vp, by_axp, by_ayp, target) if target is not None else None
@@ -749,7 +781,7 @@ def build_addr_map_arrays(mapby, models, rows):
                 continue
             item = mapped_item_for_row(dmap, base, seen)
             if item and item[0] is not None:
-                arr.append(["0x%x" % item[0],
+                arr.append(["%x" % item[0],
                             METHOD_SHORT.get(item[1], item[1]),
                             CONF_SHORT.get(item[2], item[2])])
             else:
@@ -762,12 +794,21 @@ def build_addr_map_arrays(mapby, models, rows):
 # 6. Assemble the dataset
 # --------------------------------------------------------------------------
 def build_dataset():
+    # Fail-closed: the core inputs must exist. A missing calibration CSV,
+    # baseline ROM, model metadata or address map aborts the build (non-zero
+    # exit) instead of producing a silently degraded site.
+    need(os.path.join(SYM, "cal_tables.csv"), "calibration tables")
+    need(ROM_CAL, "baseline ROM")
+    need(ROMS_META, "firmware-model metadata")
+    need(ADDR_MAP_LONG, "per-ROM address map")
     by_addr, order = load_symbols()
     docs, doc_exact, doc_norm, doc_addr = load_docs()
     subsystems = load_subsystems()
     edges = load_edges()
     cat_by_name, cat_by_addr = load_categories()
     d = load_rom(ROM_CAL)
+    if d is None:
+        raise BuildError("unreadable baseline ROM (%s)" % ROM_CAL)
     by_vp, by_axp, by_ayp = build_descriptor_index(d) if d else ({}, {}, {})
     rows = list(csv.DictReader(open(os.path.join(SYM, "cal_tables.csv"),
                                     encoding="utf-8", errors="replace")))
@@ -793,6 +834,8 @@ def build_dataset():
                 continue
             path = os.path.join(ROM_DIR, m.get("file", ""))
             dm = load_rom(path)
+            if dm is None:
+                raise BuildError("missing/unreadable model ROM %s (%s)" % (key, path))
             by_vpm, by_axpm, by_aypm = build_descriptor_index(dm) if dm else ({}, {}, {})
             model_values[key] = extract_model_values(
                 dm, by_vpm, by_axpm, by_aypm, rows, addr_map_for_model(mapby, key))
@@ -839,30 +882,32 @@ def build_dataset():
         })
         if di is not None:
             symbols[-1]["di"] = di
-    symbols.sort(key=lambda s: s["a"])
 
     # --- edge index ---
+    # Placeholders are inserted BEFORE the final sort: data.json symbols must
+    # stay sorted by address because the frontend binary-searches on start
+    # address (symContainingAddress). Sorting first and appending after left
+    # every placeholder out of order.
     idx = {}
     for i, s in enumerate(symbols):
         idx.setdefault(s["a"], i)
-    edge_out = []
     for ca, ka, kind in edges:
-        si = idx.get(ca)
-        di = idx.get(ka)
-        if si is None:
+        if ca not in idx:
             # placeholder symbol (only if the addr is not present)
-            si = len(symbols)
+            idx[ca] = len(symbols)
             symbols.append({"a": ca, "e": ca, "n": "FUN_%06x" % ca, "s": "callgraph", "r": 0,
                             "d": 0, "c": sym_category("FUN"), "cs": "", "ct": ""})
-            idx[ca] = si
-        if di is None:
-            di = len(symbols)
+        if ka not in idx:
+            idx[ka] = len(symbols)
             symbols.append({"a": ka, "e": ka, "n": "FUN_%06x" % ka, "s": "callgraph", "r": 0,
                             "d": 0, "c": sym_category("FUN"), "cs": "", "ct": ""})
-            idx[ka] = di
-        edge_out.append([si, di, kind])
+    symbols.sort(key=lambda s: s["a"])
+    idx = {}
+    for i, s in enumerate(symbols):
+        idx.setdefault(s["a"], i)
+    edge_out = [[idx[ca], idx[ka], kind] for ca, ka, kind in edges]
 
-    with_val = sum(1 for t in tables if t.get("t") and t["t"].get("vals") or (t.get("t") and t["t"].get("grid")))
+    with_val = sum(1 for t in tables if (t.get("t") and t["t"].get("vals")) or (t.get("t") and t["t"].get("grid")))
     with_any_val = sum(1 for t in tables if t.get("t") or t.get("ax") or t.get("scalar") is not None)
 
     data = {
@@ -975,6 +1020,56 @@ def render_html(data):
     return html
 
 
+def sha256_file(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def manifest_inputs():
+    """Required + best-effort input files fingerprinted for build_manifest.json."""
+    paths = [
+        os.path.join(SYM, "callgraph.csv"),
+        os.path.join(SYM, "cal_tables.csv"),
+        os.path.join(SYM, "symbols_60E0FC00.csv"),
+        os.path.join(SYM, "symbols_60E0FC00_ghidra.csv"),
+        os.path.join(SYM, "symbols_60E1D400_ida.csv"),
+        os.path.join(SYM, "symbols_60E1D400_merged.csv"),
+        ROM_CAL,
+        ROMS_META,
+        ADDR_MAP_LONG,
+        TEMPLATE,
+        SRC_APP,
+        SRC_CSS,
+    ]
+    try:
+        for f in sorted(os.listdir(ROM_DIR)):
+            if f.endswith(".bin"):
+                paths.append(os.path.join(ROM_DIR, f))
+    except OSError:
+        pass
+    out = {}
+    for p in paths:
+        rel = os.path.relpath(p, ROOT)
+        out[rel] = sha256_file(p) if os.path.isfile(p) else "missing"
+    return out
+
+
+def build_manifest(data):
+    """Freshness record: input hashes + output counts. A dist/ is fresh iff
+    every recorded hash still matches the working tree (see the README
+    'Freshness check' section); any mismatch means rebuild."""
+    return {
+        "generator": GENERATOR,
+        "default_model": DEFAULT_MODEL,
+        "inputs": manifest_inputs(),
+        "counts": data["meta"]["counts"],
+    }
+
+
 def render_dist_readme(data):
     c = data["meta"]["counts"]
     lines = [
@@ -1009,6 +1104,17 @@ def render_dist_readme(data):
         "| Function docs (matched to symbols) | %s (%s) |" % (fmt_count(c["docs_total"]), fmt_count(c["docs_attached"])),
         "| Subsystem docs | %s |" % fmt_count(c["subsystems"]),
         "| Firmware models | %s (value files: %s) |" % (fmt_count(c["models"]), fmt_count(c["model_value_files"])),
+        "",
+        "## Freshness check",
+        "",
+        "`build_manifest.json` (next to `data.json`) records the SHA-256 of every",
+        "input file plus the output counts. The checked-in `dist/` output is fresh",
+        "iff every recorded hash still matches the working tree; any mismatch (or a",
+        "missing `build_manifest.json`) means the site is stale — rerun:",
+        "",
+        "```bash",
+        "python3 web/explorer/build_site.py",
+        "```",
         "",
         "Values are extracted from `%s`; symbols + callgraph use the `60E0FC00` context." % ROM_CAL_REL,
         "",
@@ -1249,10 +1355,13 @@ footer {
 
 
 def copy_emu_files():
-    """Copy ecu-emu dist files into dist/emu/ if the source exists."""
+    """Copy ecu-emu dist files into dist/emu/. Fail-loud: a missing emu
+    source aborts the build instead of shipping a landing page whose
+    emulator card 404s."""
     emu_dst = os.path.join(DIST, "emu")
     if not os.path.isdir(EMU_DIST_SRC):
-        print("WARN: ecu-emu dist not found at %s — skipping emu/ copy" % EMU_DIST_SRC)
+        print("ERROR: ecu-emu dist not found at %s — failing the build "
+              "instead of shipping a dead emu/ link" % EMU_DIST_SRC, file=sys.stderr)
         return False
     os.makedirs(emu_dst, exist_ok=True)
     for name in os.listdir(EMU_DIST_SRC):
@@ -1282,7 +1391,11 @@ def main(argv):
     print("=== %s ===" % GENERATOR)
     os.makedirs(EXPLORER_DIST, exist_ok=True)
 
-    data = build_dataset()
+    try:
+        data = build_dataset()
+    except BuildError as ex:
+        print("ERROR: %s" % ex, file=sys.stderr)
+        return 1
     model_values = data.pop("model_values", {})
     payload = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
 
@@ -1315,16 +1428,19 @@ def main(argv):
         write_text(os.path.join(MODELS_DIR, key + ".json"),
                    json.dumps(mfile, separators=(",", ":"), ensure_ascii=False))
 
-    # 5) .nojekyll + auto-generated README
-    write_text(os.path.join(EXPLORER_DIST, ".nojekyll"), "")
+    # 5) .nojekyll (explicit empty bytes, no platform newline) + manifest + README
+    write_bytes(os.path.join(EXPLORER_DIST, ".nojekyll"), b"")
+    write_text(os.path.join(EXPLORER_DIST, "build_manifest.json"),
+               json.dumps(build_manifest(data), indent=1, sort_keys=True) + "\n")
     write_text(os.path.join(EXPLORER_DIST, "README.md"), render_dist_readme(data))
 
     # 6) Landing page at dist/ root + .nojekyll for GitHub Pages
     write_text(os.path.join(DIST, "index.html"), render_landing_page(data))
-    open(os.path.join(DIST, ".nojekyll"), "w").close()
+    write_bytes(os.path.join(DIST, ".nojekyll"), b"")
 
-    # 7) Copy ecu-emu dist into dist/emu/
-    copy_emu_files()
+    # 7) Copy ecu-emu dist into dist/emu/ (fail-loud: no silent 404 card)
+    if not copy_emu_files():
+        return 1
 
     # report
     c = data["meta"]["counts"]
