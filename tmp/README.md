@@ -16,3 +16,21 @@ reusable outside the current workflow.
 | `tmp/ida/uds_obd_analysis.md` | **keep in tmp** | UDS/OBD analysis complementary to `docs/notes/IDA_ANALYSIS.md` and `docs/notes/CAN_PROTOCOL.md`. |
 | `tmp/ida/chunks/` | **keep in tmp** | Symbol import chunks (codearr_*/def_*/ren_*). Needed to reproduce or extend the import. |
 | `tmp/ida/reimport_report.txt` + `name_verify_report.txt` + `manual_names.txt` | **keep in tmp** | Verified reports for symbol import and manual name verification; referenced in `docs/notes/IDA_ANALYSIS.md`. |
+
+## Force-tracked snapshots (`git ls-files tmp/` → 36 files)
+
+`tmp/` is ignored (`.gitignore:16`), but 36 files are force-tracked (`git add -f`)
+as review snapshots, not transient work:
+
+| Group | Files | Why tracked |
+|---|---|---|
+| `tmp/README.md` | this file | Promotion policy for `tmp/`. |
+| `tmp/ida/deep_review_*_1.3.txt` (3) | `deep_review_code_1.3.txt`, `deep_review_docs_1.3.txt`, `deep_review_hygiene_1.3.txt` | Versioned deep-review snapshots. |
+| `tmp/ida/firmware_*_report.txt` + `tmp/ida/emu_*_report.txt` (9) | `firmware_can/dtc/engine/engine_completion/impl/rtos/uds`, `emu_can_uds`, `emu_engine_dtc_rtos` | Firmware/EMU subsystem analysis snapshots. |
+| `tmp/ida/review_*_report.txt` + `fix_todos_report.txt` + `verify_uncertain_report.txt` (5) | `review_build/docs/firmware`, `fix_todos`, `verify_uncertain` | Review/hygiene verification snapshots. |
+| `tmp/ida/ecu_*_report.txt` + `tmp/ida/site_*_report.txt` (5) | `ecu_boot_debug/pin_emu/webui`, `site_menu/visual` | ECU emulator, web UI, and site review snapshots. |
+| `tmp/ida/screenshots/*.png` (13) | `emu*.png` (7), `explorer*.png` (5), `landing*.png` (2) | UI screenshots backing the web UI / site reports. |
+
+> **Warning: do NOT `git rm` these files in a "cleanup".** They are
+> intentionally force-tracked despite the `tmp/` ignore rule. Removing them
+> deletes published review evidence with no regenerable source.
