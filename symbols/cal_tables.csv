@@ -128,11 +128,11 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Ignition 12 Y Axis,0x06f804,axis,1D,,,,medium,axis_propagation4
 60E1D400,Ignition 13,0x06f810,table,,,,,low,rx8_defs_60E1D400
 60E1D400,Ignition 13 Y Axis,0x06f80c,axis,1D,,,,medium,axis_propagation4
-60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold7 ,0x06f878,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold7,0x06f878,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold7  Y Axis,0x06f848,axis,1D,,,,high,axis_propagation
-60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold8 ,0x06fab0,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold8,0x06fab0,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold8  Y Axis,0x06fa9c,axis,1D,,,,high,axis_propagation
-60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold9 ,0x06fee4,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold9,0x06fee4,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Off Throttle Fuel Cut - Fuel Resume - In Neutral Threshold9  Y Axis,0x06feb8,axis,1D,,,,high,axis_propagation
 60E1D400,MAF Filter Frequency,0x070084,table,1D,,,,high,docs_crossref
 60E1D400,MAF Filter Frequency Y Axis,0x07005c,axis,1D,,,,high,axis_propagation
@@ -206,7 +206,7 @@ src,name,address,kind,dims,scale,offset,units,confidence,source
 60E1D400,Fuelling 7 Y Axis,0x071e44,axis,1D,,,,medium,axis_propagation4
 60E1D400,Closed Loop Fuelling Threshold (Unknown A),0x071ed0,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Closed Loop Fuelling Threshold (Unknown A) Y Axis,0x071ea0,axis,1D,,,,high,axis_propagation
-60E1D400,Closed Loop Fuelling Threshold (Throttle Position) ,0x071f28,table,1D,,,,high,rx8_defs_60E1D400
+60E1D400,Closed Loop Fuelling Threshold (Throttle Position),0x071f28,table,1D,,,,high,rx8_defs_60E1D400
 60E1D400,Closed Loop Fuelling Threshold (Throttle Position)  Y Axis,0x071edc,axis,1D,,,,high,axis_propagation
 60E1D400,Rotary Combustion Efficiency (Map),0x071f84,table,1D,,,,high,consumer_noc_mapscan
 60E1D400,Rotary Combustion Efficiency (Map) Y Axis,0x071f3c,axis,1D,,,,high,axis_propagation2

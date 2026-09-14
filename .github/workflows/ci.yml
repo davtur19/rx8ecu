@@ -174,7 +174,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Emulator suite (make -C web/ecu-emu test, 120 tests)
+      - name: Emulator suite (make -C web/ecu-emu test, 126 tests)
         run: make -C web/ecu-emu test
 
       - name: Firmware host check (make -C firmware check)
