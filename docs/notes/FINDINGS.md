@@ -736,3 +736,10 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 
 ### Audit verdict
 - DIRTY → minors (ee2bc7e: header doc, init idempotency, scenario blur, O2 scenarios, tbl-viz assert + dist rebuild).
+
+## 2026-09-14 — batch E: T-bit models, H2 error split, drawPWM clamp, L4 mask (4237d84)
+- T-bit compare side effects modeled in TEST MODELS ONLY (emulator/firmware untouched, both tests green): getSR model mirrors `cmp/hi` 0x3926 before `bf` 0x3928 — T updates even on the no-raise path, masked in comparison (c/tests/test_setSR_getSR.py:137-145); 3AD8 model sets SR.T from `cmp/hs` 0x3ADE unsigned compare (c/tests/test_task_context_switch_3AD8.py:18,135-137).
+- H2 error-convention split documented BOTH sides (doc-only, no behavior change): sid12 = negative-NRC (handler returns -nrc, dispatch builds response; firmware/c/uds.c:394-399, firmware/include/dtc.h:303-304); sid22 = self-built passthrough (handler builds own negative response via sid22_need, dispatch passes length through; firmware/c/uds.c:324-330,954-955, firmware/include/dtc.h:305-308).
+- drawPWM renderer clamps duty 0..1: `Math.max(0, Math.min(1, pwm.duty))` (web/ecu-emu/src/app.js:1587, mirrored web/ecu-emu/dist/app.js:1587).
+- L4 dormant fix: CAN_DIR_BIT 0x0100→0x80 (bit 7 of byte 4; 0x0100 was always 0 on uint8_t entry[4]) (firmware/include/can.h:62, consumed firmware/c/can.c:89).
+- Batch E landed as commit 4237d84 (6 files: c/tests/test_setSR_getSR.py, c/tests/test_task_context_switch_3AD8.py, firmware/c/uds.c, firmware/include/can.h, web/ecu-emu/src/app.js, web/ecu-emu/dist/app.js).
