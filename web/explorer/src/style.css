@@ -261,6 +261,26 @@ main { padding: 18px 20px 40px; max-width: 1500px; margin: 0 auto; }
 .axis-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .axis-list span { font: 11.5px var(--mono); background: var(--bg3); border-radius: 4px; padding: 2px 6px; color: var(--muted); }
 
+/* ---------- heatmap scroll cue ---------- */
+.heat-cue {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px; padding: 5px 12px;
+  background: var(--bg3); color: var(--muted);
+  border: 1px solid var(--border2); border-radius: 999px;
+  font-size: 12px; cursor: pointer;
+}
+.heat-cue:hover { color: var(--accent); border-color: var(--accent); }
+.heat-cue .chev { display: inline-block; animation: cueBob 1.6s ease-in-out infinite; }
+@keyframes cueBob { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) { .heat-cue .chev { animation: none; } }
+/* Floating variant: fixed to the viewport bottom so it is visible even when
+ * the heatmap canvas is below the fold. Shown only while a 2D heatmap is
+ * present but unseen (see wireHeatCue in app.js); hidden otherwise. */
+.heat-cue-floating {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+  box-shadow: 0 4px 12px var(--shadow); opacity: .96; z-index: 5;
+}
+
 /* ---------- lookup ---------- */
 #lk-result .card { margin-top: 12px; }
 .match-good { color: var(--green); }
