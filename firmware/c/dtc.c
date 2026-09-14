@@ -650,10 +650,19 @@ int dtc_debounce_counter(uint16_t dtc_code)
  * Lower severity byte = higher priority.
  * Status byte check: bit 7 (confirmed) + bit 6 (failed).
  *
- * FLAGGED (out of scope, do not "fix" here): the ranking compares raw
- * status-bit patterns as severity levels without consulting the 0x5F7F8
- * severity table — kept as-is in this task. The `i < 20` bound is a ROM
- * quirk (IDA_ANALYSIS.md:750, "iterates 20 slots") and is CORRECT.
+ * FLAGGED (out of scope, do not "fix" here): the ranking uses the RAM
+ * +0x07 severity byte without consulting the ROM 0x5F7F8 type/severity
+ * table — kept as-is in this task. NOT consulted because the table
+ * CONTENTS are undocumented: docs/notes/IDA_ANALYSIS.md:723 gives layout
+ * only (pairs (DTC_code, severity), stride 2 bytes, 28 types, sev 1=low
+ * / 2=high, terminator 0xFF) with no per-code entry values, and
+ * firmware/include holds only the base address (DTC_TYPE_TABLE_ROM
+ * 0x5F7F8, dtc.h:119) with no entry data. A future ROM read must dump
+ * the 28x2 bytes at 0x5F7F8 (+ terminator) listing each internal code
+ * (0x02-0x4C) -> severity (1/2), so the consult (slot code -> table
+ * severity -> worst pick) can be implemented. The `i < 20` bound is a
+ * ROM quirk (IDA_ANALYSIS.md:750, "iterates 20 slots") and is CORRECT —
+ * do not widen to 21.
  *
  * @param status_mask  Status mask for filtering
  * @param out_code     Output: worst DTC code
@@ -877,6 +886,15 @@ int obd_sid18_readDTCInfo(uint8_t sub_func, uint8_t status_mask,
  *
  * ROM address: 0x5BAD0
  * Size: ~80 bytes
+ *
+ * Handler/dispatch convention split (doc-only, no behavior change):
+ *   sid12 = negative-NRC convention — returns response length on success
+ *     or a NEGATIVE NRC (-nrc) on failure; the uds_handler dispatch
+ *     (uds.c:391-399) adapts via uds_negative_response(sid, -rc12).
+ *   sid22 = self-built passthrough — obd_sid22_readDataByIdentifier
+ *     (uds.c:950) builds its own negative response with
+ *     uds_negative_response(...) and returns its length, so its dispatch
+ *     arm (uds.c:324-327) returns the handler value directly.
  *
  * Sub-function 2: Report DTCs by status mask
  *   → Validates sub-function >= 2

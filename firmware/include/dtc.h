@@ -300,6 +300,13 @@ int obd_sid18_readDTCInfo(uint8_t sub_func, uint8_t status_mask,
  * Sub-function 2: Report DTCs by status mask
  * Sub-function 4: Report ALL DTCs (extended)
  *
+ * Handler/dispatch convention split (doc-only): sid12 = negative-NRC
+ * convention (returns length or -nrc; dispatch uds.c:391-399 builds the
+ * negative response via -rc12); sid22 = self-built passthrough
+ * (obd_sid22_readDataByIdentifier, uds.c:950, builds its own negative
+ * response, dispatch uds.c:324-327 passes through). No behavior change;
+ * uds.c arms are frozen in this task.
+ *
  * @param sub_func  Sub-function byte
  * @param status_mask  Status mask for filtering
  * @param out_buf   Output buffer for response
@@ -429,9 +436,14 @@ static inline uint8_t dtc_read_severity(uint8_t slot)
  *     PENDING here and the composite reader observes them. The reader is
  *     kept as-is (Wave A behavior); the N3 fix closed the gap from the
  *     writer side by persisting the ROM +0x06 status byte on SET.
- * NOTE (out of scope, flagged): dtc_find_worst_priority ranks these
- * status-bit patterns as severity levels without consulting the 0x5F7F8
- * severity table — left unchanged in this task. */
+ * NOTE (out of scope, flagged): dtc_find_worst_priority ranks via the RAM
+ * +0x07 severity byte without consulting the ROM 0x5F7F8 type/severity
+ * table — left unchanged in this task. Missing data: only the table
+ * layout is documented (IDA_ANALYSIS.md:723: 28 (code, severity) pairs,
+ * stride 2, sev 1=low/2=high, terminator 0xFF); no per-code entry values
+ * exist in docs or firmware/include (only base DTC_TYPE_TABLE_ROM
+ * 0x5F7F8 here). A future ROM read must dump the 28x2 entry bytes so the
+ * consult can be implemented. The `i < 20` ROM-quirk bound stays. */
 static inline uint8_t dtc_read_status(uint8_t slot)
 {
     uint32_t base = DTC_PRIMARY_TABLE_BASE + (slot * DTC_PRIMARY_ENTRY_SIZE);

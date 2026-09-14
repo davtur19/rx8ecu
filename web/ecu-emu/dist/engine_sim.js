@@ -24,7 +24,9 @@ var EngineSim = (function() {
                            // isFuelCut in the core via cal; NOT the sim ceiling)
   var MAX_RPM = 12000;     // sim/UI ceiling (matches the emu_set_sensor
                            // sanitizer headroom; over-rev range when cut is off)
-  var TACHO_REDLINE = 8500;       // redline flash/glow threshold
+  var TACHO_REDLINE = 8500;       // pre-redline flash/glow threshold
+                            // (approach warning; the dial arc marks
+                            // the 9.0-9.5 soft fuel-cut stage)
   var IDLE_RPM = 800;
   var OVERHEAT = 110;             // ECT DTC threshold (°C)
   /* P0123 (TPS high) intentionally absent: no reachable high-circuit
@@ -507,11 +509,15 @@ var EngineSim = (function() {
     ctx.fillStyle = color;
     ctx.fill();
 
-    // Value text
+    // Value text (finite guard, mirrors drawTacho/fmt: non-finite renders
+    // "—", never the literal "NaN"; the arc/needle math above already
+    // clamps finite values into the sweep, and canvas arc() ignores
+    // non-finite angles per spec, so only the caption needed hardening).
     ctx.font = "700 13px monospace";
     ctx.fillStyle = "#e6ebf2";
     ctx.textAlign = "center";
-    var displayVal = Math.round(value);
+    var numVal = Number(value);
+    var displayVal = Number.isFinite(numVal) ? Math.round(numVal) : "—";
     ctx.fillText(displayVal, cx, cy + 4);
     /* NOTE (Wave A1 defect-1 fix): the ECT/MAP caption used to be drawn at
      * cy+r+14, past the 80px canvas edge, and was cut off. Captions now
@@ -520,10 +526,13 @@ var EngineSim = (function() {
 
   /* ====================================================================
    *  RX-8 style tachometer dial (large canvas, 0-12 x1000 rpm scale with
-   *  the fuel-cut redline arc at 8.5-9.0)
+   *  the soft-cut redline arc at 9.0-9.5)
    *
-   *  Dedicated dial (not drawGauge): numbered 0-9 scale, redline arc
-   *  8.5-9.0, smoothed needle, canvas digital readout + #tacho-digital
+   *  Dedicated dial (not drawGauge): numbered 0-12 scale, 9.0-9.5 red arc
+   *  = the core SOFT fuel-cut stage (redline..redline+500, stock 9000 ->
+   *  9500 hard cut; see emu_core.js cutStage). The 8500 flash/glow is a
+   *  pre-redline approach warning, NOT the arc start.
+   *  Smoothed needle, canvas digital readout + #tacho-digital
    *  mirror, red flash/glow above 8500 rpm. Dark-theme palette.
    * ==================================================================== */
   function drawTacho(canvasId, rpm) {
@@ -598,9 +607,12 @@ var EngineSim = (function() {
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Redline arc 8.5-9.0
-    var rlStart = rpmToAngle(8500);
-    var rlEnd = rpmToAngle(9000);
+    // Redline arc 9.0-9.5 = the core SOFT fuel-cut stage
+    // (redline..redline+500; stock redline 9000 -> 9500 hard cut).
+    // Previously drawn at 8.5-9.0 while MAX_RPM=12000, which misleadingly
+    // ended the red zone at the cut onset and left the soft zone unmarked.
+    var rlStart = rpmToAngle(9000);
+    var rlEnd = rpmToAngle(9500);
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, r, rlStart, rlEnd);
@@ -619,12 +631,14 @@ var EngineSim = (function() {
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Ticks: minor every 500, major every 1000 (scale 0..MAX_RPM)
+    // Ticks: minor every 500, major every 1000 (scale 0..MAX_RPM).
+    // Red ticks/numerals mark the arc zone (>= 9000, soft-cut onset),
+    // while the 8500 dial glow stays an approach warning below it.
     var v, a, x1, y1, x2, y2;
     for (v = 0; v <= MAX_RPM; v += 500) {
       a = rpmToAngle(v);
       var major = (v % 1000 === 0);
-      var inRed = v >= 8500;
+      var inRed = v >= 9000;
       var outer = r - 10;
       var inner = major ? r - 24 : r - 17;
       x1 = cx + Math.cos(a) * inner;
@@ -648,7 +662,7 @@ var EngineSim = (function() {
       a = rpmToAngle(v * 1000);
       var nx = cx + Math.cos(a) * (r - 34);
       var ny = cy + Math.sin(a) * (r - 34);
-      ctx.fillStyle = (v * 1000 >= 8500) ? "#f85149" : "#e6ebf2";
+      ctx.fillStyle = (v * 1000 >= 9000) ? "#f85149" : "#e6ebf2";
       ctx.fillText(String(v), nx, ny);
     }
 
@@ -939,9 +953,9 @@ var EngineSim = (function() {
         /* --- RX-8 tachometer dial (own card: no divider clipping) --- */
         '<div class="viz-card tacho-wrap" id="tacho-wrap">' +
           '<div class="esim-label">Tachometer · Renesis</div>' +
-          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="0" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 12000 rpm, redline 8500 to 9000"></canvas>' +
+          '<canvas id="tacho-canvas" width="' + TACHO_SIZE + '" height="' + TACHO_SIZE + '" data-rpm="0" data-angle="0" data-redline="0" role="img" aria-label="Tachometer, 0 to 12000 rpm, redline 9000 to 9500"></canvas>' +
           '<div id="tacho-digital" class="tacho-digital">0 rpm</div>' +
-          '<div class="tacho-sub">x1000 r/min · redline 8.5–9.0</div>' +
+          '<div class="tacho-sub">x1000 r/min · redline 9.0–9.5</div>' +
         '</div>' +
 
         /* --- Mini gauges with HTML captions (defect-1 fix: captions are
@@ -1059,6 +1073,15 @@ var EngineSim = (function() {
   }
 
   /* Test/sim-link hooks (available at script load, before init). */
+  function tachoAngleFor(v) {
+    var startAngle = Math.PI * 0.75;
+    var sweep = Math.PI * 2.25 - startAngle;
+    var n = Number(v);
+    var f = Number.isFinite(n) ? (n - 0) / (MAX_RPM - 0) : 0;
+    if (f < 0) f = 0;
+    if (f > 1) f = 1;
+    return startAngle + sweep * f;
+  }
   try {
     if (typeof window !== "undefined") {
       window.__setSimThrottle = setThrottle;
@@ -1096,6 +1119,8 @@ var EngineSim = (function() {
     setCrankPaused: setCrankPaused, getCrankPaused: getCrankPaused,
     stepCrankOnce: stepCrankOnce, getCrankPhase: getCrankPhase,
     getCrankDPS: getCrankDPS,
+    tachoAngleFor: tachoAngleFor,
+    drawGauge: drawGauge, drawTacho: drawTacho,
     fmt: fmt, fmtNum: fmtNum
   };
 })();

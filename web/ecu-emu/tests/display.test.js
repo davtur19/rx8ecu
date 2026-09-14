@@ -221,3 +221,77 @@ describe("unit-string sweep (no concatenated units)", () => {
     assert.strictEqual(E.fmt(1e21, 0, "kPa"), "—");
   });
 });
+
+describe("mini-gauge NaN guard (drawGauge finite caption)", () => {
+  /* G1: drawGauge rendered the literal "NaN" on NaN input while drawTacho
+   * got a Number.isFinite guard — the caption must show "—" instead.
+   * The draw path runs against a stub 2d context that records fillText. */
+  function gaugeTexts(value) {
+    const box = loadEngineSim({ rpm: 0, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45 });
+    const texts = [];
+    const ctxStub = new Proxy({}, {
+      get: (t, p) => (p === "fillText" ? (s) => texts.push(String(s)) : (() => ctxStub)),
+      set: () => true,
+    });
+    box.sb.document = {
+      getElementById: () => ({ getContext: () => ctxStub, width: 80, height: 80, dataset: {} }),
+      querySelectorAll: () => [],
+    };
+    box.EngineSim.drawGauge("gauge-ect", value, -20, 120, "ECT", "°C", "#7ee787",
+      { warn: 100, crit: 110 });
+    return texts;
+  }
+  it("non-finite input renders an em-dash caption, never literal NaN text", () => {
+    for (const bad of [NaN, Infinity, -Infinity, undefined]) {
+      const texts = gaugeTexts(bad);
+      assert.ok(texts.includes("—"), String(bad) + " -> —, drew " + JSON.stringify(texts));
+      assert.ok(!texts.some((t) => /NaN|Infinity|undefined/.test(t)), "no leak");
+    }
+  });
+  it("finite values still render rounded (guard does not blank the gauge)", () => {
+    assert.ok(gaugeTexts(90.6).includes("91"), "90.6 rounds to 91");
+  });
+});
+
+describe("PWM duty defensive clamp (duty>1 never overdraws)", () => {
+  /* G3: the core clamps duty <= 0.85, but the app.js caption/bar path must
+   * stay sane on out-of-range input anyway. Verified at the source text:
+   * the liveFor injector feed ORs the raw duty with the fuel-cut flag, and
+   * drawPWM consumes pwm.duty unclamped for both the bar width
+   * (x0 + duty*pp) and the caption (duty*100). Rather than touching the
+   * out-of-scope app.js renderer, this pins the contract at the producer:
+   * the core scalar never exceeds 1 (emulator ceiling 0.85). */
+  it("core scalar duty stays in 0..1 at every reachable rpm (so duty*100 cannot exceed 100%)", () => {
+    const M = loadCore();
+    M.emu_init();
+    M.emu_set_pins(loadPins().pins);
+    M.emu_cal_set({ fuelCutEn: 0 }); // cut OFF: raw duty visible past redline
+    for (const rpm of [0, 800, 3000, 8999, 9000, 11000, 12000]) {
+      M.emu_set_sensor(0, rpm);
+      const d = M.emu_get_inj_duty();
+      assert.ok(d >= 0 && d <= 1, `rpm ${rpm}: duty ${d} in 0..1`);
+    }
+  });
+  it("clamp site exists in the core (2..85% band)", () => {
+    assert.ok(/if \(d > 0\.85\) d = 0\.85;/.test(CORE_TEXT), "core 0.85 ceiling present");
+  });
+});
+
+describe("tacho red-zone placement (soft-cut 9.0-9.5 on the 0-12 scale)", () => {
+  /* G2: with MAX_RPM=12000 the 8.5-9.0 arc ended the red zone at the cut
+   * onset. The arc must now mark the core SOFT stage (redline..redline+500,
+   * stock 9000 -> 9500 hard cut); the 8500 glow stays a pre-redline warning. */
+  it("arc spans 9000..9500 on the dial, not 8500..9000", () => {
+    assert.ok(/var rlStart = rpmToAngle\(9000\)/.test(SIM_TEXT), "arc starts at 9000");
+    assert.ok(/var rlEnd = rpmToAngle\(9500\)/.test(SIM_TEXT), "arc ends at 9500 (hard cut)");
+    assert.ok(!/var rlStart = rpmToAngle\(8500\)/.test(SIM_TEXT), "old 8500 start gone");
+  });
+  it("arc covers the soft-cut band with margin: angles ordered and in-scale", () => {
+    const box = loadEngineSim({ rpm: 0, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45 });
+    const E = box.EngineSim;
+    const a85 = E.tachoAngleFor(8500), a90 = E.tachoAngleFor(9000), a95 = E.tachoAngleFor(9500);
+    assert.ok(a85 < a90 && a90 < a95, "8500 < 9000 < 9500 on the dial");
+    const sweep = Math.PI * 2.25 - Math.PI * 0.75;
+    assert.ok((a95 - a90) / sweep > 0.03, "band visible (>3% of sweep), got " + ((a95 - a90) / sweep));
+  });
+});

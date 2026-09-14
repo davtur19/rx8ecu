@@ -1255,6 +1255,7 @@ function TblDetail(rid) {
       address (${hex(t.a)}, <code>60E1D400</code>).</div>`;
     html += `<div class="viz-wrap" id="tbl-viz"></div>`;
     $("tbl-detail").innerHTML = html;
+    wireHeatCue();
     return;
   }
   if (t.role !== "t") {
@@ -1290,7 +1291,7 @@ function TblDetail(rid) {
   $("tbl-detail").innerHTML = html;
   const viz = document.getElementById("tbl-viz");
   if (viz) {
-    if (t0 && t0.grid) drawHeatmap(viz, t0);
+    if (t0 && t0.grid) { drawHeatmap(viz, t0); viz.dataset.viz = "heat"; }
     else if (t0 && t0.vals) draw1D(viz, t0);
     else if (mv && mv.ax) drawAxis(viz, mv.ax, t.n);
   }
@@ -1304,6 +1305,7 @@ function TblDetail(rid) {
     }
   }
   try { history.pushState(null, "", "#tbl-0x" + hex6(t.a)); } catch (e) { /* file:// ok */ }
+  wireHeatCue();
 }
 function wireTables() {
   $("tbl-search").addEventListener("input", debounce(() => TblApply(), 200));
@@ -1322,6 +1324,7 @@ function wireTables() {
   for (const t of DATA.tables) cats[t.c] = 1;
   $("tbl-cat").innerHTML = `<option value="">All categories</option>` +
     Object.keys(cats).sort().map((c) => `<option>${esc(c)}</option>`).join("");
+  ensureHeatCue();
   TblApply();
 }
 
@@ -1620,6 +1623,67 @@ function drawAxis(host, ax, name) {
   });
   host.insertAdjacentHTML("beforeend",
     `<div class="heat-legend"><span>f32 axis · ${fmtNum(ax.length)} points · ${fmtNum(min, 3)} → ${fmtNum(max, 3)}</span></div>`);
+}
+
+/* ============================ HEATMAP SCROLL CUE ============================ */
+/* The heatmap canvas sits below the fold in the table detail pane. This cue
+ * ("scroll for heatmap") shows only while a heatmap is present but not yet in
+ * view; it hides per-selection once the heatmap has been scrolled into view
+ * (IntersectionObserver, no dependencies). Clicking the cue scrolls to it.
+ * No data/builder/count behavior is touched. */
+let heatCueSeen = false; // per-selection: heatmap has been viewed once
+let heatCueObs = null;   // IntersectionObserver on the current viz host
+function heatCueUpdate() {
+  const cue = document.getElementById("tbl-heat-cue");
+  if (!cue) return;
+  const panel = document.getElementById("panel-tables");
+  const viz = document.getElementById("tbl-viz");
+  const panelOn = !!panel && panel.classList.contains("active");
+  const hasHeat = !!(viz && viz.dataset.viz === "heat");
+  if (!panelOn || !hasHeat || heatCueSeen) { cue.classList.add("hidden"); return; }
+  const r = viz.getBoundingClientRect();
+  const inView = r.top < window.innerHeight && r.bottom > 0;
+  cue.classList.toggle("hidden", inView);
+}
+function wireHeatCue() {
+  heatCueSeen = false;
+  if (heatCueObs) { heatCueObs.disconnect(); heatCueObs = null; }
+  const cue = document.getElementById("tbl-heat-cue");
+  const viz = document.getElementById("tbl-viz");
+  if (!cue || !viz || viz.dataset.viz !== "heat") {
+    if (cue) cue.classList.add("hidden");
+    return;
+  }
+  if ("IntersectionObserver" in window) {
+    heatCueObs = new IntersectionObserver((ents) => {
+      for (const e of ents) {
+        if (e.isIntersecting) {
+          heatCueSeen = true;
+          cue.classList.add("hidden");
+        } else if (!heatCueSeen) {
+          heatCueUpdate();
+        }
+      }
+    }, { threshold: 0.15 });
+    heatCueObs.observe(viz);
+  }
+  heatCueUpdate();
+}
+function ensureHeatCue() {
+  const cue = document.getElementById("tbl-heat-cue");
+  if (!cue || cue.dataset.wired) return;
+  cue.dataset.wired = "1";
+  cue.addEventListener("click", () => {
+    const viz = document.getElementById("tbl-viz");
+    if (!viz) return;
+    let smooth = true;
+    try { smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { /* default smooth */ }
+    viz.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+  });
+  window.addEventListener("scroll", () => heatCueUpdate(), { passive: true });
+  window.addEventListener("resize", () => heatCueUpdate());
+  document.querySelectorAll("#tabs button").forEach((b) =>
+    b.addEventListener("click", () => heatCueUpdate()));
 }
 
 /* ============================ LOOKUP ============================ */
