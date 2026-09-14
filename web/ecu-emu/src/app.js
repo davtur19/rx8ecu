@@ -1584,6 +1584,7 @@ var PinData = (function() {
   }
 
   function drawPWM(cv, pwm, color) {
+    var duty = Math.max(0, Math.min(1, pwm.duty));
     if (pwm.cut) {
       drawFlatTrace(cv, 0, "#f85149", "CUT");
       return "held LOW — fuel cut";
@@ -1601,7 +1602,7 @@ var PinData = (function() {
     var yEdge = yFor(0, H);
     for (var p = 0; p < N; p++) {
       var x0 = p * pp;
-      var x1 = x0 + pwm.duty * pp;
+      var x1 = x0 + duty * pp;
       ctx.lineTo(x0, yFor(0, H));
       ctx.lineTo(x0, yFor(1, H));
       ctx.lineTo(x1, yFor(1, H));
@@ -1614,9 +1615,9 @@ var PinData = (function() {
     ctx.beginPath();
     ctx.arc(W - 3, yEdge, 2.5, 0, Math.PI * 2);
     ctx.fill();
-    drawTag(ctx, W, pwm.duty >= 0.5 ? "HIGH" : "LOW", color);
+    drawTag(ctx, W, duty >= 0.5 ? "HIGH" : "LOW", color);
     return fmtHz(pwm.f) + " · " +
-      fmtPct1(pwm.duty * 100) + " · 4 periods shown";
+      fmtPct1(duty * 100) + " · 4 periods shown";
   }
 
   function drawCAN(cv) {

@@ -132,11 +132,12 @@ def ref(ram, task_id, sr):
     m = dict(ram)
     count = s8b(rb(m, TASK_COUNT_PTR))      # emulator: sign-extended load
     sid = s8b(task_id)                      # exts.b r4,r4
+    t = 1 if (sid & MASK) >= (count & MASK) else 0  # ROM 0x3ADE cmp/hs r0,r4 sets SR.T
     if sid >= count:                        # cmp/hs : T=(r4>=count), bf skip
-        return 0, SP_IN, sr, m, SENT        # invalid: return 0, nothing else
+        return 0, SP_IN, (sr & ~1) | t, m, SENT  # invalid: return 0, nothing else
     # valid path
     sp = (SP_IN - 4) & MASK
-    wr(m, sp, 4, sr)                        # stc.l SR,@-r15  -> 0xFFFFDEFC
+    wr(m, sp, 4, (sr & ~1) | t)             # stc.l SR,@-r15  -> 0xFFFFDEFC
     sp = (sp - 4) & MASK
     wr(m, sp, 4, SENT)                      # sts.l pr,@-r15  -> 0xFFFFDEF8
     wr(m, SAVED_SP_SLOT, 4, sp)             # [0xFFFF72D8] = 0xFFFFDEF8
