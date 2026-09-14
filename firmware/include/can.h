@@ -59,7 +59,7 @@ struct can_mailbox_config {
 
 /* Mailbox slot encoding */
 #define CAN_SLOT_MASK    0x00FF
-#define CAN_DIR_BIT      0x0100   /* bit 7 of byte 4 (in u16 = bit 8) */
+#define CAN_DIR_BIT      0x80     /* bit 7 of byte 4; was 0x0100 (always 0 on uint8_t entry[4]) */
 
 /* ====================================================================== */
 /*  CAN Mailbox Config Table Addresses                                     */

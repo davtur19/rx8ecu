@@ -322,6 +322,9 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
             return obd_sidB1_ecuReset(request[1], response);
 
         case UDS_SID_READ_DATA_ID:
+            /* sid22 = self-built passthrough: the handler builds its own
+             * negative response (incl. sid22_need) and returns the
+             * already-built response length, so pass the value through. */
             return obd_sid22_readDataByIdentifier(request + 1,
                                                  (uint8_t)(req_len - 1),
                                                  response);
@@ -388,6 +391,8 @@ int uds_handler(const uint8_t *request, uint8_t req_len, uint8_t *response)
                                              response);
             }
             {
+                /* sid12 = negative-NRC convention: the handler returns a
+                 * NEGATIVE NRC (-nrc) on failure, so negate + build here. */
                 int rc12 = obd_sid12_readDTCByStatus(request[1], request[2],
                                                     response);
                 if (rc12 < 0) {
@@ -945,7 +950,9 @@ static int sid22_need(uint16_t idx, uint16_t need, uint8_t *response)
  * @param data      DID list (2 bytes each)
  * @param data_len  Data length
  * @param response  Response buffer
- * @return Response length, or negative NRC
+ * @return Already-built response length (negative responses are built
+ *   in-handler via uds_negative_response/sid22_need, unlike sid12's
+ *   negative-NRC return adapted by the dispatch arm)
  */
 int obd_sid22_readDataByIdentifier(const uint8_t *data, uint8_t data_len,
                                    uint8_t *response)

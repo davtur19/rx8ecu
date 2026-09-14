@@ -140,7 +140,8 @@ def test_getSR(cpu, N):
             if cpu.sr != requested:
                 return "getSR sr_raised", (cur_ipl, requested, cpu.sr)
         else:
-            if cpu.sr != (cur_ipl | 0x00000003):
+            # ROM cmp/hi at 0x3926 runs before bf at 0x3928, so T is updated even on no-raise; mask T.
+            if (cpu.sr & ~1) != ((cur_ipl | 0x00000003) & ~1):
                 return "getSR sr_unchanged", (cur_ipl, requested, cpu.sr)
 
     return None
