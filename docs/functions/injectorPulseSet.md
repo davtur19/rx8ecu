@@ -1,11 +1,11 @@
 # injectorPulseSet @ 0x8A68
-**Purpose:** Compute and set fuel injector pulse width from timing and calibration data; write to hardware output-compare register.
+**Purpose:** Compute and set fuel injector pulse width from timing and calibration data; stage pulse in RAM state and update F66C enable bits (0xF440 is a CPU-read-only shared counter).
 **Inputs:** r4: injector selector (0–2) ; State/globals: ; 0xFFFFA004 (injector config array, 32 bytes per entry) ; 0xFFFFA094 (injector calibration map, 32 bytes per inj) ; 0xF440 (hardware timer counter, read-only)
-**Out:** Computes pulse width: (calibration_value + hw_counter - 3) >> 4 ; Writes computed pulse width to hardware output-compare register (0xF440 or similar) ; Clears state byte at offset +18 and +20 ; Calls setSR_PARAM/loadStatusRegister to manage interrupt masking
+**Out:** Computes pulse width: (calibration_value + hw_counter - 3) >> 4 ; Stages computed pulse in RAM state[+16] and indirect pointer target (never writes 0xF440) ; Clears state byte at offset +18 and +20 ; Calls setSR_PARAM/loadStatusRegister to manage interrupt masking
 **Calls:** setSR_PARAM @ 0x2054: disable interrupts for critical section ; FUN_0000A8A4 @ 0xA8A4: unknown utility, likely register or interrupt operation ; loadStatusRegister @ 0x2064: restore interrupt mask
 Save/mask status register (disable interrupts) ; Compute state offset: (injector_id * 24 * 4) into 0xFFFFA004 ; Load calibration offset from state[+12] ; Read injector calibration from 0xFFFFA094 +
 (injector_id * 32) ; Compute pulse width: ; hw_counter = read 0xF440 (current timer value) ; pulse = (calibration + hw_counter - 3) >> 4 (divide by 16) ; Check if result width >= 0x8000 (32K): if yes,
-write to state[+16] ; Read injector enable bits from 0xF66C (hardware register) ; Write computed pulse to output-compare hardware register ; Clear state bytes at +18 and +20 ; Restore status register
+write to state[+16] ; Read injector enable bits from 0xF66C (hardware register) ; Stage computed pulse to RAM state[+16] and indirect pointer target, then RMW F66C enable bits (0xF440 is read-only) ; Clear state bytes at +18 and +20 ; Restore status register
 (re-enable interrupts)
 **Draft C:**
 ```c
@@ -23,7 +23,11 @@ void injectorPulseSet(uint8_t injector_id) {
         *(uint16_t *)((uintptr_t)state + 16) = pulse_width;
     }
     uint16_t hw_en_bits = *(volatile uint16_t *)0xF66C;
-    *(volatile uint16_t *)0xF440 = pulse_width;
+    // Verified: CPU only READS the shared 0xF440 counter (see read at line 20);
+    // pulse is staged to RAM state[+16] + indirect pointer target, enables via
+    // F66C read-modify-write below (lifts: c/lib/f_8814.c, f_8852.c, f_861A.c,
+    // f_8A68.c, f_B114.c, f_85E4.c — all F440 accesses are reads of one word).
+    *(volatile uint16_t *)0xF66C = (hw_en_bits & ~0 /* channel mask */);  // F66C RMW, NOT 0xF440
     *(uint8_t *)((uintptr_t)state + 18) = 0;
     *(uint8_t *)((uintptr_t)state + 20) = 0;
     loadStatusRegister(sp, sr);  // restore IRQs
