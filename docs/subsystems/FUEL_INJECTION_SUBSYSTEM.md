@@ -511,7 +511,7 @@ Writes latency to paired primary/shadow regs at base `0xFFFFA094`: channel i →
 ## 11. Test Strategy
 
 - **Unit tests**: reconstruct each C function and verify against emulator `sh2emu.py` (`c/tests/`; covers 2D/3D table lookups, math primitives, memory accessors, emulator harness). New: `test_fuel_injector_pulse_calc.py`, `test_fuel_pump_duty_trim.py`.
-- **Integration**: drive `engineControlCalculateTiming` (0x14584) with sensor inputs (RPM 0xFFFFB5B8, O2 0xFFFFB5C4, TPS 0xFFFFCA2C, CLT 0xFFFFA9FC) and verify injector outputs (0xF440+2i ×6) and adaptive trim bounds.
+- **Integration**: drive `engineControlCalculateTiming` (0x14584) with sensor inputs (RPM 0xFFFFB5B8, O2 0xFFFFB5C4, TPS 0xFFFFCA2C, CLT 0xFFFFA9FC) and verify injector outputs (single shared 0xF440 counter read; per-channel enables via shared 0xF66C RMW mask; 3-ch primary/shadow identical copies at 0xFFFFA094/0xFFFFA0AC — lifts `c/lib/f_8A68.c`, `f_86F8.c`, `f_86AC.c`) and adaptive trim bounds.
 - **Calibration verification**: cross-reference `symbols/cal_tables.csv` (RX8Defs XML naming), mapscan (`python tools/mapscan.py roms/stock/60E1D400.bin --dump 0x<addr>`), and ROM bytes. Addresses differ between ROM variants.
 
 ## 12. Open Questions
