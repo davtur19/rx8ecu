@@ -31,6 +31,25 @@ function validateData(j) {
   if (!Array.isArray(j.tables)) throw new Error("bad schema: tables");
 }
 
+/* Lazily loads data.js (~2.3MB file:// fallback) only when the data.json
+ * fetch fails, so HTTP loads parse a single copy. Resolves with
+ * window.EXPLORER_DATA; rejects when the script cannot be loaded. */
+function loadFallbackScript() {
+  if (window.EXPLORER_DATA && window.EXPLORER_DATA.meta) {
+    return Promise.resolve(window.EXPLORER_DATA);
+  }
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "data.js";
+    s.onload = () => {
+      if (window.EXPLORER_DATA && window.EXPLORER_DATA.meta) resolve(window.EXPLORER_DATA);
+      else reject(new Error("data.js fallback has no EXPLORER_DATA"));
+    };
+    s.onerror = () => reject(new Error("data.js fallback failed to load"));
+    document.head.appendChild(s);
+  });
+}
+
 async function loadData() {
   try {
     const r = await fetch("data.json");
@@ -45,8 +64,8 @@ async function loadData() {
     CUR_MODEL = DATA.defaultModel;
     return;
   } catch (e) {
-    if (window.EXPLORER_DATA && window.EXPLORER_DATA.meta) {
-      const j = window.EXPLORER_DATA;
+    try {
+      const j = await loadFallbackScript();
       validateData(j);
       DATA.meta = j.meta; DATA.symbols = j.symbols; DATA.edges = j.edges; DATA.tables = j.tables;
       DATA.docs = j.docs || []; DATA.subsystems = j.subsystems || [];
@@ -56,6 +75,8 @@ async function loadData() {
       CUR_MODEL = DATA.defaultModel;
       console.info("explorer: loaded data.js (file:// fallback)");
       return;
+    } catch (e2) {
+      void e2;
     }
     throw e;
   }

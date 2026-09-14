@@ -635,6 +635,12 @@ function renderScenarios() {
   Object.entries(SCENARIOS).forEach(([key, sc]) => {
     const btn = document.createElement("button");
     btn.className = "scenario-btn";
+    if (key === "wot") {
+      /* WOT preset sits at rpm 9000 = redline, so injectors read CUT by
+       * design (emu_core.js E9 note) — tooltip so it isn't read as a bug. */
+      btn.title = "WOT sits at redline → CUT by design";
+      btn.setAttribute("aria-label", "WOT sits at redline → CUT by design");
+    }
     /* XSS-hardened: scenario keys/descriptions come from pins.json. */
     const scName = document.createElement("div");
     scName.className = "sc-name";
