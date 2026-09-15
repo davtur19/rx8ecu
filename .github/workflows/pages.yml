@@ -6,6 +6,16 @@
 # (upload-pages-artifact + deploy-pages).
 #
 # The landing page at dist/index.html links to explorer/ and emu/ subdirs.
+#
+# Action-pinning note (2026-09-15): the 4 `uses:` below float on major tags
+# (actions/checkout@v4, actions/setup-python@v5,
+# actions/upload-pages-artifact@v3, actions/deploy-pages@v4). Full
+# SHA-pinning was deferred: no network-verified SHAs were available in this
+# environment (no `gh`/API access, and SHAs must never be invented — a wrong
+# SHA breaks CI worse than a floating tag). Revisit: resolve each tag via
+# `gh api repos/<owner>/<repo>/commits/<tag>` and pin as `<ref> # <tag>`.
+# Until then, .github/dependabot.yml (github-actions, weekly) keeps these
+# tags auto-updated.
 
 name: Pages
 

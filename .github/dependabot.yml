@@ -1,0 +1,14 @@
+# Dependabot for GitHub Actions — weekly tag bumps.
+#
+# Rationale (2026-09-15): workflow actions are intentionally left on floating
+# major tags (full SHA-pinning deferred for lack of network-verified SHAs).
+# This config keeps those tags auto-updated instead, limiting the window in
+# which a compromised or stale tag can linger.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"

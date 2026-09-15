@@ -28,6 +28,15 @@
 #     tools/toolchain/usr/bin — the repo's documented, rootless method:
 #     apt-get download + dpkg-deb -x on Debian/Ubuntu; git-ignored, so CI
 #     installs it fresh and caches the result).
+#
+# Action-pinning note (2026-09-15): the 14 `uses:` below float on major tags
+# (actions/checkout@v4, actions/setup-python@v5, actions/cache@v4,
+# dorny/paths-filter@v3). Full SHA-pinning was deferred: no network-verified
+# SHAs were available in this environment (no `gh`/API access, and SHAs must
+# never be invented — a wrong SHA breaks CI worse than a floating tag).
+# Revisit: resolve each tag via `gh api repos/<owner>/<repo>/commits/<tag>`
+# and pin as `<ref> # <tag>`. Until then, .github/dependabot.yml
+# (github-actions, weekly) keeps these tags auto-updated.
 
 name: CI
 
