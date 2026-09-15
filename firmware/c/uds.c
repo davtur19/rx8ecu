@@ -1316,15 +1316,18 @@ int obd_sid34_requestDownload(const uint8_t *data, uint8_t data_len,
                                      response);
     }
 
-    /* Validate request length: format(1) + addr(3) + size(4) = 8 bytes
-     * ROM:0x5E21A-0x5E228: checks data_len+1 == 8 (including sub-function).
+    /* Validate request length: exactly format(1) + addr(3) + size(3) = 7 bytes
+     * here (data_len+1 == 8 with the SID, ROM:0x5E21A-0x5E228).
      * C2: the code's own ROM contract (data_len+1 == 8) demands exactly
      * 3 address bytes + 3 size bytes — the ECU has no 1/2/4-byte
      * addr/size encoding, and accepting them only masked the old
      * left-aligned store truncation. Reject anything but 3+3 with NRC 0x13.
-     * Our data[] starts after sub_func, so a legal request is exactly
-     * format(1) + addr(3) + size(3) = 7 bytes. */
-    if (data_len < 7) {
+     * Trailing bytes are rejected with NRC 0x13 per UDS
+     * (incorrectMessageLengthOrInvalidFormat covers wrong length): the
+     * request length must equal 1 + addr_bytes + size_bytes, so overlong
+     * frames are not silently truncated. Minimal guard here only covers
+     * reading data[0]; the exact check follows the 3+3 gate below. */
+    if (data_len < 1) {
         return uds_negative_response(UDS_SID_REQ_DOWNLOAD,
                                      UDS_NRC_INCORRECT_MSG_LEN,
                                      response);
@@ -1347,9 +1350,10 @@ int obd_sid34_requestDownload(const uint8_t *data, uint8_t data_len,
                                      response);
     }
 
-    /* Check we have enough data for address + size */
+    /* Check exact length: trailing bytes are rejected per UDS NRC 0x13
+     * (incorrectMessageLengthOrInvalidFormat), not silently ignored. */
     uint8_t needed = 1 + addr_bytes + size_bytes;  /* format + addr + size */
-    if (data_len < needed) {
+    if (data_len != needed) {
         return uds_negative_response(UDS_SID_REQ_DOWNLOAD,
                                      UDS_NRC_INCORRECT_MSG_LEN,
                                      response);
