@@ -46,13 +46,31 @@ TESTS = test_c1_addr_width \
 
 BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
+# Link-pilot harnesses: compile-link-run against the REAL firmware headers
+# (not models). Sources live in link/, binaries are link_<name>.
+LINK_TESTS = link_n2_rtos_mask
+LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
+CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
+
 # Firmware source locations (tripwire target, not linked).
 FW_C := $(abspath ../c)
 FW_INC := $(abspath ../include)
 
-.PHONY: all check gate demo-buggy clean
+.PHONY: all check gate demo-buggy clean link-all link-check
 
 all: $(BINS)
+
+$(OUTDIR)/link_%: link/link_%.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $< -o $@ -lm
+
+link-all: $(LINK_BINS)
+
+link-check: gate link-all
+	@for t in $(LINK_TESTS); do \
+		echo "== $$t (link) =="; \
+		$(OUTDIR)/$$t || exit 1; \
+	done
+	@echo "firmware/tests: all $(words $(LINK_TESTS)) link harnesses passed"
 
 $(OUTDIR):
 	mkdir -p $(OUTDIR)
