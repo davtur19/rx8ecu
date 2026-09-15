@@ -340,7 +340,8 @@ def gen_state(rng):
 
 
 def main():
-    N = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
+    # SPARK_N env override: lets CI shard seeds / lower N per shard; default unchanged
+    N = int(os.environ.get("SPARK_N", sys.argv[1] if len(sys.argv) > 1 else 100000))
     rom = open(ROM, 'rb').read()
 
     cpu = SH2(rom)

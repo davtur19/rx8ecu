@@ -33,6 +33,7 @@ Key semantic facts (see the lift header):
 
 Run: python3 c/tests/test_spark_advance_calc_0x16BE8.py [N]
      (N = random inputs per seed; default 100000 -> 500000 across 5 seeds)
+     (default N=100000 x 5 seeds; heavy, see SPARK_N)
 """
 import os, random, struct, sys
 
@@ -174,7 +175,8 @@ def gen_state(rng):
 
 
 def main():
-    N = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
+    # SPARK_N env override: lets CI shard seeds / lower N per shard; default unchanged
+    N = int(os.environ.get("SPARK_N", sys.argv[1] if len(sys.argv) > 1 else 100000))
     rom = open(ROM, 'rb').read()
 
     cpu = SH2(rom)
