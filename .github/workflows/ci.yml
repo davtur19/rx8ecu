@@ -164,6 +164,13 @@ jobs:
           export PATH="$PWD/tools/toolchain/usr/bin:$PATH"
           python3 tools/run_tests_parallel.py -j 4
 
+      # c/tests/verify_emu.py is named verify_*.py, not test_*.py, so the
+      # parallel runner's auto-discovery (test_*.py only) skips it unless
+      # passed as an explicit extra (cf. `make test-fast`). Run it here
+      # explicitly with the same canonical invocation as the verify job.
+      - name: make c-emu (C lifts vs emulated ROM, explicit)
+        run: make c-emu
+
   # ---------------------------------------------------------------------------
   # suites: durable emulator suite + firmware host check + explorer build+check
   #
