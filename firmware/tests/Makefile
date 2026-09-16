@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -62,6 +62,12 @@ all: $(BINS)
 
 $(OUTDIR)/link_%: link/link_%.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $< -o $@ -lm
+
+# h1 links the REAL can.c TU (H1-fixed pure mailbox getters). can.c has two
+# pre-existing unused statics (can_parse_mailbox_id/dir); relax only that
+# warning into non-error for this TU link (firmware sources untouched).
+$(OUTDIR)/link_h1_mbox: link/link_h1_mbox.c $(FW_C)/can.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
