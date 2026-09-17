@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -67,6 +67,13 @@ $(OUTDIR)/link_%: link/link_%.c | $(OUTDIR)
 # pre-existing unused statics (can_parse_mailbox_id/dir); relax only that
 # warning into non-error for this TU link (firmware sources untouched).
 $(OUTDIR)/link_h1_mbox: link/link_h1_mbox.c $(FW_C)/can.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+
+# m2 links the REAL dtc.c TU (M2 MMIO pilot). dtc.c has zero undefined
+# externs (nm -u clean) so no stubs; it maps the 0xFFFF8xxx RAM page with
+# mmap(MAP_FIXED) at run time — every load/store executes for real.
+# Same unused-static relaxation as h1 (firmware sources untouched).
+$(OUTDIR)/link_m2_checksum: link/link_m2_checksum.c $(FW_C)/dtc.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
