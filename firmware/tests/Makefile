@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -75,6 +75,14 @@ $(OUTDIR)/link_h1_mbox: link/link_h1_mbox.c $(FW_C)/can.c | $(OUTDIR)
 # Same unused-static relaxation as h1 (firmware sources untouched).
 $(OUTDIR)/link_m2_checksum: link/link_m2_checksum.c $(FW_C)/dtc.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+
+# h5 links the REAL uds.c TU (H5 constant-DID pilot). uds.c references
+# three DTC SID handlers the h5 paths never call (obd_sid12/14/18, used by
+# uds_handler dispatch arms only); the harness provides trivial stubs for
+# those three linker-demanded symbols and asserts they stay uncalled, so
+# zero MMIO executes (no sensor 0xFFFFCAxx deref, no uds_init call).
+$(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
