@@ -1,13 +1,22 @@
-# Dependabot for GitHub Actions — weekly tag bumps.
+# Dependabot — weekly bumps for GitHub Actions tags and the CI pip pin.
 #
 # Rationale (2026-09-15): workflow actions are intentionally left on floating
 # major tags (full SHA-pinning deferred for lack of network-verified SHAs).
 # This config keeps those tags auto-updated instead, limiting the window in
 # which a compromised or stale tag can linger.
+#
+# pip (review P3-2, 2026-09-22): .github/requirements.txt pins
+# capstone==5.0.9 for the CI jobs — same weekly cadence and commit prefix.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: pip
+    directory: /.github
     schedule:
       interval: weekly
     commit-message:
