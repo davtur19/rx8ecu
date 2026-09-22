@@ -87,7 +87,9 @@ describe("mute/volume toggle logic", () => {
     assert.strictEqual(A.setVolume(50), 50);
     assert.strictEqual(A.setVolume(250), 100);
     assert.strictEqual(A.setVolume(-5), 0);
-    assert.strictEqual(A.setVolume(NaN), 0, "NaN keeps the previous value");
+    // Non-zero first: NaN must keep the previous value (0→0 would be vacuous).
+    assert.strictEqual(A.setVolume(40), 40);
+    assert.strictEqual(A.setVolume(NaN), 40, "NaN keeps the previous value");
   });
 });
 

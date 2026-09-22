@@ -98,9 +98,15 @@ describe("live fields track the core/sensors", () => {
   // (ROM can420TXPack @0x29A0C) — unknown staging semantics.
   it("0x420 carries ECT+40 and the oil/battery/MIL lamps (lamps UNVERIFIED)", () => {
     st.ect = 80;
-    st.mil = true;
     assert.strictEqual(CAN.pack(0x420).data[0], 120);
-    assert.ok(CAN.pack(0x420).data[1] & 0x01, "MIL lamp");
+    // MIL follows the core latch (emu_set_mil → emu_get_mil), not
+    // sensorState — drive the real production path so a broken bridge
+    // fails this suite (review P1: st.mil fake masked a dead CAN bit).
+    assert.strictEqual(CAN.pack(0x420).data[1] & 0x01, 0, "MIL off at boot");
+    M.emu_set_mil(true);
+    assert.ok(CAN.pack(0x420).data[1] & 0x01, "MIL lamp after emu_set_mil");
+    M.emu_set_mil(false);
+    assert.strictEqual(CAN.pack(0x420).data[1] & 0x01, 0, "MIL clears on unset");
     // PROVISIONAL placeholders track ECT: [0, ectRaw] / ectRaw / [0, ectRaw].
     assert.deepStrictEqual(bytes(CAN.pack(0x420).data.slice(2, 7)), [0, 120, 120, 0, 120]);
     // oil lamp follows the live core flag: crank the engine

@@ -48,6 +48,23 @@ describe("setFromRPM inverse map (slider stick)", () => {
   });
 });
 
+describe("tacho red arc tracks redline cal (soft stage)", () => {
+  it("defaults to stock 9000..9500; custom redline moves both ends", () => {
+    const box = loadEngineSim({ rpm: 0, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45 });
+    const e = box.EngineSim;
+    const stock = e.tachoRedArcRPM();
+    assert.strictEqual(stock.start, 9000);
+    assert.strictEqual(stock.end, 9500);
+    // Inject a cal stub (sandbox free-variable Module, set after load).
+    box.sb.Module = { emu_cal_get: () => ({ redline: 7000, fuelCutEn: 1 }) };
+    const arc = e.tachoRedArcRPM();
+    assert.strictEqual(arc.start, 7000, "arc start follows redline cal");
+    assert.strictEqual(arc.end, 7500, "arc end = redline+500 (soft stage)");
+    assert.notStrictEqual(e.tachoAngleFor(arc.start), e.tachoAngleFor(9000),
+      "custom arc start is not the stock 9000 angle");
+  });
+});
+
 describe("crank-viz controls", () => {
   it("setCrankSlow accepts only 1/0.5/0.1", () => {
     assert.strictEqual(E.setCrankSlow(0.5), 0.5);

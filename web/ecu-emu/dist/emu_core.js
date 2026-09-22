@@ -810,6 +810,12 @@ var Module = (function() {
     _mil = !!on;
   }
 
+  /* Read the core MIL latch (single source of truth for the CAN 0x420
+   * lamp; independent of key position / port refresh). */
+  function emu_get_mil() {
+    return _mil ? 1 : 0;
+  }
+
   function emu_get_crank_gap() {
     return _crankGap ? 1 : 0;
   }
@@ -977,6 +983,7 @@ var Module = (function() {
     emu_init: emu_init,
     emu_set_sensor: emu_set_sensor,
     emu_set_mil: emu_set_mil,
+    emu_get_mil: emu_get_mil,
     emu_step_ms: emu_step_ms,
     emu_get_pin: emu_get_pin,
     emu_get_adc: emu_get_adc,

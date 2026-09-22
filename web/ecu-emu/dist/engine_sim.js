@@ -103,8 +103,9 @@ var EngineSim = (function() {
    *  The 33ms tick pulls sensorState.rpm toward the throttle target, so a
    *  hand-dragged #slider-rpm value would otherwise be overwritten.
    *  app.js calls setFromRPM() on RPM-slider input: throttle is set to the
-   *  inverse-mapped value and load is cleared (neutral rev) so the sim
-   *  target equals the slider value and the drag sticks. The esim
+   *  inverse-mapped value and load is cleared (neutral rev). Within range
+   *  the sim target tracks the slider; out-of-range values snap
+   *  (below-idle to idle, above-redline to redline). The esim
    *  throttle/load sliders remain the primary sim control afterwards.
    * ==================================================================== */
   /* Non-finite input keeps the previous value (never propagate NaN). */
@@ -257,6 +258,13 @@ var EngineSim = (function() {
       }
     } catch (e) {}
     return true;
+  }
+  /* Tacho red arc span = the core SOFT fuel-cut stage
+   * (redline..redline+500; stock 9000 -> 9500). Pure headless helper so
+   * tests can assert the dial tracks the redline cal, not literals. */
+  function tachoRedArcRPM() {
+    var rl = redlineCal();
+    return { start: rl, end: rl + 500 };
   }
   /* Sim target rpm for a throttle/load state (pure function for headless
    * tests): neutral-rev map to MAX_RPM, load droop, then the two physics
@@ -607,12 +615,13 @@ var EngineSim = (function() {
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Redline arc 9.0-9.5 = the core SOFT fuel-cut stage
+    // Redline arc = the core SOFT fuel-cut stage
     // (redline..redline+500; stock redline 9000 -> 9500 hard cut).
     // Previously drawn at 8.5-9.0 while MAX_RPM=12000, which misleadingly
     // ended the red zone at the cut onset and left the soft zone unmarked.
-    var rlStart = rpmToAngle(9000);
-    var rlEnd = rpmToAngle(9500);
+    var arcRPM = tachoRedArcRPM();
+    var rlStart = rpmToAngle(arcRPM.start);
+    var rlEnd = rpmToAngle(arcRPM.end);
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, r, rlStart, rlEnd);
@@ -1113,6 +1122,7 @@ var EngineSim = (function() {
     setFromRPM: setFromRPM,
     computeTarget: computeTarget, coldLimitFor: coldLimitFor,
     getMaxRPM: getMaxRPM,
+    tachoRedArcRPM: tachoRedArcRPM,
     o2ManualHold: o2ManualHold, iatManualHold: iatManualHold,
     getTachoRPM: getTachoRPM, getTachoAngle: getTachoAngle,
     setCrankSlow: setCrankSlow, getCrankSlow: getCrankSlow,

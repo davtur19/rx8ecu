@@ -428,8 +428,8 @@ var CANLive = (function() {
     if (!window.sensorState) return null;
     if (engineOff()) return generateRxOnly();
     // Local derived snapshot — never writes back to the shared
-    // window.sensorState object. EngineSim exposes no MIL accessor,
-    // so MIL is read read-only from sensorState (never written).
+    // window.sensorState object. MIL follows the core latch
+    // (emu_set_mil → emu_get_mil), with sensorState as fallback.
     var src = window.sensorState;
     function num(v, d) { return (typeof v === "number" && isFinite(v)) ? v : d; }
     var st = {
@@ -444,7 +444,7 @@ var CANLive = (function() {
       /* Wave A2: oil/battery lamps follow the live core flags. */
       oilLow: coreFlag("emu_get_oil_low", src.oilLow === true) === 1,
       battLow: coreFlag("emu_get_batt_weak", src.battLow === true) === 1,
-      mil: src.mil === true
+      mil: coreFlag("emu_get_mil", src.mil === true) === 1
     };
 
     var id, dlc, data, dir, desc, isUds = false;
@@ -760,7 +760,7 @@ var CANLive = (function() {
       o2f: num(src.o2f, 0.45), o2r: num(src.o2r, 0.45), vss: num(src.vss, 0),
       oilLow: coreFlag("emu_get_oil_low", false) === 1,
       battLow: coreFlag("emu_get_batt_weak", false) === 1,
-      mil: src.mil === true
+      mil: coreFlag("emu_get_mil", src.mil === true) === 1
     };
     var table = { 0x201: 8, 0x203: 7, 0x420: 7, 0x630: 8, 0x620: 7,
       0x215: 8, 0x251: 8, 0x240: 8, 0x250: 8, 0x231: 5, 0x650: 1, 0x041: 8 };
