@@ -56,34 +56,40 @@ CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 # Firmware source locations (tripwire target, not linked).
 FW_C := $(abspath ../c)
 FW_INC := $(abspath ../include)
+# Header prerequisites shared by EVERY link rule (the link_% pattern rule
+# and all explicit rules, incl. rtos): a firmware/include/*.h edit must
+# mark every link binary out of date (make -q -W <hdr> reports non-zero).
+# Headers are prerequisites only, never compile inputs — recipes take the
+# .c inputs via $(filter %.c,$^) / $<.
+FW_HDRS := $(wildcard $(FW_INC)/*.h)
 
 .PHONY: all check gate demo-buggy clean link-all link-check
 
 all: $(BINS)
 
-$(OUTDIR)/link_%: link/link_%.c | $(OUTDIR)
+$(OUTDIR)/link_%: link/link_%.c $(FW_HDRS) | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $< -o $@ -lm
 
 # h1 links the REAL can.c TU (H1-fixed pure mailbox getters). can.c has two
 # pre-existing unused statics (can_parse_mailbox_id/dir); relax only that
 # warning into non-error for this TU link (firmware sources untouched).
-$(OUTDIR)/link_h1_mbox: link/link_h1_mbox.c $(FW_C)/can.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+$(OUTDIR)/link_h1_mbox: link/link_h1_mbox.c $(FW_C)/can.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $(filter %.c,$^) -o $@ -lm
 
 # m2 links the REAL dtc.c TU (M2 MMIO pilot). dtc.c has zero undefined
 # externs (nm -u clean) so no stubs; it maps the 0xFFFF8xxx RAM page with
 # mmap(MAP_FIXED) at run time — every load/store executes for real.
 # Same unused-static relaxation as h1 (firmware sources untouched).
-$(OUTDIR)/link_m2_checksum: link/link_m2_checksum.c $(FW_C)/dtc.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+$(OUTDIR)/link_m2_checksum: link/link_m2_checksum.c $(FW_C)/dtc.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $(filter %.c,$^) -o $@ -lm
 
 # h5 links the REAL uds.c TU (H5 constant-DID pilot). uds.c references
 # three DTC SID handlers the h5 paths never call (obd_sid12/14/18, used by
 # uds_handler dispatch arms only); the harness provides trivial stubs for
 # those three linker-demanded symbols and asserts they stay uncalled, so
 # zero MMIO executes (no sensor 0xFFFFCAxx deref, no uds_init call).
-$(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+$(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
 
 # h4 links the REAL engine.c TU (H4 dwell clamp pilot, class M). engine.c
 # has zero undefined externs (nm -u clean) so no stubs; the harness maps
@@ -91,16 +97,16 @@ $(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c | $(OUTDIR)
 # float loads execute for real. -DFW_HOST_TEST compiles in the host-only
 # getDwellTimeUs_forHostTest accessor (engine.c/.h) — production builds
 # never define it, so the normal firmware is unaffected.
-$(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $^ -o $@ -lm
+$(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $(filter %.c,$^) -o $@ -lm
 
 # h2 links the REAL dtc.c TU + the REAL dtc_read_status inline (H2
 # SEVERITY|FLAGS3 composite pilot, class M). Same TU, page, and
 # unused-static relaxation as m2 (firmware sources untouched); the test
 # additionally drives the real sid18/sid12/worst-priority readers and the
 # dtc_state_machine SET writer over the mmap-backed primary table.
-$(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+$(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $(filter %.c,$^) -o $@ -lm
 
 # m8 links the REAL can.c TU (M8 16-bit mailbox-int-enable RMW pilot,
 # class M). Same TU and unused-static relaxation as h1 (firmware sources
@@ -108,8 +114,8 @@ $(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c | $(OUTDIR
 # at 0xFFFFE000 so the real 16-bit RMW on 0xFFFFE400 (CAN0) / 0xFFFFE600
 # (CAN1) executes for real — every enable, mask-wrap, preserve, and
 # bank-isolation vector runs against mapped memory, not a model.
-$(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+$(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $(filter %.c,$^) -o $@ -lm
 
 # m7/c2 links the REAL uds.c TU (M7 TesterPresent gate + C2 sid34/36/37
 # download chain pilot). uds.c compiles clean under -Werror, and the
@@ -120,8 +126,8 @@ $(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c | $(OU
 # harness mmap-maps the 0xFFFFD RAM page (session/security/TP/DL image)
 # and a 0x00070000 flash sandbox (sid36 payload target, inside the C2
 # 3+3 flash window) with MAP_FIXED — every store executes for real.
-$(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+$(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
 
 # l10 links the REAL dtc.c TU (L10 injector fault-flag store on the
 # fuel-cut early-return path, class M). Same TU and unused-static
@@ -130,8 +136,8 @@ $(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c | $(OUTD
 # 0xFFFFC99C..0xFFFFC9BF) and 0xFFFFD000 (fuel-cut flag 0xFFFFD201) —
 # so every load/store, including the L10 store inside the fuel-cut early
 # return, executes for real against mapped memory, not a model.
-$(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+$(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $(filter %.c,$^) -o $@ -lm
 
 # m4 links the REAL serial.c TU + the REAL timer.c TU (M4 owned-RX fix
 # pilot, class M). serial.c's only undefined externs (nm -u) are
@@ -146,8 +152,8 @@ $(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c | 
 # serial_init's real timer MMIO, the intc_reg_write enable/disable
 # values, the RX low-lane TGR captures, and the TISRA flag-only RMW
 # clears all execute against mapped memory, not a model.
-$(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/timer.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+$(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/timer.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
 
 # p12 links the REAL rtos.c TU (link pilot 12 — first time the .c BODY is
 # linked; n2 only linked the rtos.h header inlines). nm -u rtos.o is EMPTY
@@ -164,8 +170,8 @@ $(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/t
 # 0x400000) — a PIE address would be truncated by the mask. No ROM read:
 # objdump immediates of rtos.o are only 0xFFFFD4E0/0xFFFFD800/
 # 0xFFFFDFB4/0xFFFFDFB6 (0x6873C dispatch table is comment-only).
-$(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos.c | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -no-pie $^ -o $@ -lm
+$(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -no-pie $(filter %.c,$^) -o $@ -lm
 
 link-all: $(LINK_BINS)
 

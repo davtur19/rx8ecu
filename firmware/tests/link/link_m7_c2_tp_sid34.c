@@ -67,8 +67,11 @@
  *       state≠ACTIVE → 0x22; default session → 0x22;
  *   (h) sid37: remaining≠0 → 0x71 with state unchanged; happy →
  *       [77 00] clearing STATE 1→0, SEQ 2→0, checksum 0x338→0,
- *       FORMAT 0x33→0, MEM/SIZE nonzero→0; state≠ACTIVE → 0x22;
- *       default session → 0x22;
+ *       FORMAT 0x33→0, MEM_HI/MEM_MID/MEM_LO nonzero→0; SIZE B3..B0
+ *       clear stores are 0→0 only (the remaining==0 gate reads exactly
+ *       those four bytes, so a nonzero→0 SIZE transition is unreachable
+ *       on the happy path — asserted stay-0 instead); state≠ACTIVE →
+ *       0x22; default session → 0x22;
  *   (i) the three DTC stubs stay uncalled at the end (whole run).
  *
  * Build (see firmware/tests/Makefile link-check):
@@ -521,15 +524,19 @@ int main(void)
               "sid37 remaining: state = 0x%02X want 1 (cleared on reject)",
               (unsigned)*m7c2_u8(UDS_DL_STATE_ADDR));
 
-        /* happy: remaining 0 (B0 back to 0), state 1, seq 2, checksum
-         * 0x338, format 0x33, MEM/SIZE nonzero — every clear is a
-         * primed-nonzero → 0 transition. */
+        /* happy: remaining 0 (SIZE B3..B0 all 0 — the firmware gate
+         * reads exactly those bytes, so they CANNOT be primed nonzero
+         * here and their clear stores are 0→0; asserted stay-0 below),
+         * state 1, seq 2, checksum 0x338, format 0x33, and MEM_HI /
+         * MEM_MID / MEM_LO primed nonzero — each of those clears is a
+         * killable primed-nonzero → 0 transition. */
         *m7c2_u8(UDS_DL_SIZE_B0_ADDR) = 0x00u;
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0x01u;
         *m7c2_u8(UDS_DL_BLOCK_SEQ_ADDR) = 0x02u;
         *m7c2_u32(UDS_DL_CHECKSUM_ADDR) = 0x338u;
         *m7c2_u8(UDS_DL_FORMAT_ADDR) = 0x33u;
         *m7c2_u8(UDS_DL_MEM_HI_ADDR) = 0x07u;
+        *m7c2_u8(UDS_DL_MEM_MID_ADDR) = 0xEEu;
         *m7c2_u8(UDS_DL_MEM_LO_ADDR) = 0x04u;
         rc = obd_sid37_requestTransferExit(resp);
         CHECK(rc == 2 && resp[0] == 0x77 && resp[1] == 0x00,
@@ -550,9 +557,25 @@ int main(void)
         CHECK(*m7c2_u8(UDS_DL_MEM_HI_ADDR) == 0x00u,
               "sid37 MEM_HI = 0x%02X want 0 (was 7)",
               (unsigned)*m7c2_u8(UDS_DL_MEM_HI_ADDR));
+        CHECK(*m7c2_u8(UDS_DL_MEM_MID_ADDR) == 0x00u,
+              "sid37 MEM_MID = 0x%02X want 0 (was prime 0xEE)",
+              (unsigned)*m7c2_u8(UDS_DL_MEM_MID_ADDR));
         CHECK(*m7c2_u8(UDS_DL_MEM_LO_ADDR) == 0x00u,
               "sid37 MEM_LO = 0x%02X want 0 (was 4)",
               (unsigned)*m7c2_u8(UDS_DL_MEM_LO_ADDR));
+        /* SIZE clear stores: the remaining==0 gate forces SIZE to all 0
+         * BEFORE the happy path, so nonzero→0 is unreachable here —
+         * assert the bytes stay 0 after the clear stores (a write of a
+         * nonzero residue, e.g. a left-shifted leftover, is red). */
+        CHECK(*m7c2_u8(UDS_DL_SIZE_B3_ADDR) == 0x00u &&
+              *m7c2_u8(UDS_DL_SIZE_B2_ADDR) == 0x00u &&
+              *m7c2_u8(UDS_DL_SIZE_B1_ADDR) == 0x00u &&
+              *m7c2_u8(UDS_DL_SIZE_B0_ADDR) == 0x00u,
+              "sid37 SIZE B3..B0 = %02X %02X %02X %02X want 0 0 0 0",
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B3_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B2_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B1_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B0_ADDR));
 
         /* state ≠ ACTIVE → 0x22, prime survives. */
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0xEEu;

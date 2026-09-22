@@ -8,11 +8,15 @@
  * Mechanism proof: links the real serial.c, so a firmware revert of the
  * M4 fix (dropping the serial_init rx_buf/rx_len arming, delivering
  * rx_len instead of rx_idx, zeroing capacity on read, or breaking the
- * RX_READY gate) fails this binary at run time; a signature change fails
- * at compile time (four local externs serial.h lacks + real serial.h/
- * timer.h decls for the rest). The ATU interrupt-status
- * RMW clear and the intc_reg_write enable/disable values are also driven
- * for real against the mapped page.
+ * RX_READY gate) fails this binary at run time. Detection for the four
+ * local-extern symbols (serial.h carries NO prototypes for serial_init /
+ * serial_data_read / serial_data_write / serial_atu_irq_handler): a
+ * RENAME in serial.c fails at link (undefined symbol); a parameter-type
+ * change of those four alone still links and is NOT detected here —
+ * residual, no shared decl exists. Symbols with serial.h/timer.h
+ * declarations are compiled against the header. The ATU
+ * interrupt-status RMW clear and the intc_reg_write enable/disable
+ * values are also driven for real against the mapped page.
  *
  * Target / TU choice (confirmed from source, not assumed):
  *   - `nm -u serial.o` = exactly {atu_timer_init, atu_capture_compare_init}.
@@ -145,6 +149,13 @@ _Static_assert(M4_IN_PAGE(M4_ATU_TGR1_ADDR, 2u), "TGR1 outside page");
 _Static_assert(M4_IN_PAGE(M4_ATU_TGR2_ADDR, 2u), "TGR2 outside page");
 _Static_assert(M4_IN_PAGE(M4_ATU_TISRA_ADDR, 2u), "TISRA outside page");
 _Static_assert(M4_IN_PAGE(ATU_BASE, 0xC0u), "ATU block outside page");
+/* Self-referential local pins: M4_INTC_ADDR / M4_STATUS_READY /
+ * M4_RX_CAPACITY are #defined as these same literals in THIS file, so
+ * the asserts below cannot observe a firmware change — they pin the
+ * harness map only. The local pins mirror the firmware literals
+ * (platform.h comment / serial.c SERIAL_STATUS_* / SERIAL_RX_CAPACITY)
+ * and the runtime value CHECKs (primed 0xEEEE → exact expected) carry
+ * the revert-detection load. */
 _Static_assert(M4_INTC_ADDR == 0xFFFFF02Eu, "INTC address revert");
 _Static_assert(M4_STATUS_READY == 0x04u, "RX_READY bit revert");
 _Static_assert(M4_RX_CAPACITY == 255u, "M4 capacity revert");
@@ -152,9 +163,13 @@ _Static_assert(M4_RX_CAPACITY == 255u, "M4 capacity revert");
 /* serial.h does NOT declare these four (verified by grep — only the
  * handlers/enable/start_tx live there): serial_init, serial_data_read,
  * serial_data_write, serial_atu_irq_handler are defined in serial.c with
- * no header prototype. Local externs pin the signatures the harness
- * calls; a rename/signature change in serial.c still fails at link (and
- * under -Werror the definitions themselves must stay warning-clean). */
+ * no header prototype. These local externs pin the signatures the
+ * harness CALLS, but they are independent of serial.c's definitions: a
+ * RENAME in serial.c fails at link (undefined symbol), while a
+ * parameter-type change of these four still links and is not detected
+ * here (no shared header proto — residual; under -Werror the serial.c
+ * definitions themselves must stay warning-clean against serial.h where
+ * a header proto exists). */
 void serial_init(void);
 int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len);
 int serial_data_write(uint8_t channel, const uint8_t *buf, uint8_t len);
