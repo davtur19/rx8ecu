@@ -280,11 +280,21 @@ describe("PWM duty defensive clamp (duty>1 never overdraws)", () => {
 describe("tacho red-zone placement (soft-cut 9.0-9.5 on the 0-12 scale)", () => {
   /* G2: with MAX_RPM=12000 the 8.5-9.0 arc ended the red zone at the cut
    * onset. The arc must now mark the core SOFT stage (redline..redline+500,
-   * stock 9000 -> 9500 hard cut); the 8500 glow stays a pre-redline warning. */
-  it("arc spans 9000..9500 on the dial, not 8500..9000", () => {
-    assert.ok(/var rlStart = rpmToAngle\(9000\)/.test(SIM_TEXT), "arc starts at 9000");
-    assert.ok(/var rlEnd = rpmToAngle\(9500\)/.test(SIM_TEXT), "arc ends at 9500 (hard cut)");
-    assert.ok(!/var rlStart = rpmToAngle\(8500\)/.test(SIM_TEXT), "old 8500 start gone");
+   * stock 9000 -> 9500 hard cut); the 8500 glow stays a pre-redline warning.
+   * Source-guard (8f6bc50): the draw site must consume the cal-driven
+   * tachoRedArcRPM() helper — a draw-site-only revert to rpmToAngle(9000)
+   * literals (keeping the helper around) must fail, so assert the helper
+   * form positively AND forbid every rpmToAngle(<hardcoded rpm>) literal. */
+  it("draw site is cal-driven (tachoRedArcRPM), no 9000/9500/8500 literals", () => {
+    assert.ok(/var arcRPM = tachoRedArcRPM\(\)/.test(SIM_TEXT),
+      "draw site calls tachoRedArcRPM()");
+    assert.ok(/var rlStart = rpmToAngle\(arcRPM\.start\)/.test(SIM_TEXT),
+      "arc start derives from the helper result");
+    assert.ok(/var rlEnd = rpmToAngle\(arcRPM\.end\)/.test(SIM_TEXT),
+      "arc end derives from the helper result");
+    assert.ok(!/rpmToAngle\(9000\)/.test(SIM_TEXT), "no literal rpmToAngle(9000) anywhere");
+    assert.ok(!/rpmToAngle\(9500\)/.test(SIM_TEXT), "no literal rpmToAngle(9500) anywhere");
+    assert.ok(!/rpmToAngle\(8500\)/.test(SIM_TEXT), "old literal rpmToAngle(8500) gone");
   });
   it("arc covers the soft-cut band with margin: angles ordered and in-scale", () => {
     const box = loadEngineSim({ rpm: 0, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45 });
