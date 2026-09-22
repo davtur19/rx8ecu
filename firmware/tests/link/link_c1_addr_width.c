@@ -4,12 +4,17 @@
  * DTC_PRIMARY_TABLE_BASE macros (platform.h + rtos.h + dtc.h), not model
  * replicas.
  *
- * Mechanism proof: includes the real firmware headers via -I$(FW_INC), so
- * a firmware revert of any base/stride macro (or a uint16_t narrowing of
- * the address expression) fails this binary at compile or run time.
- * Asserts constants/addresses only — NEVER calls the dereferencing
- * inlines (rtos_queue_get_*, dtc_read_status-family deref 0xFFFFxxxx and
- * would fault on the host). Zero stubs, no MMIO derefs.
+ * Mechanism proof: includes the real firmware headers via -I$(FW_INC).
+ * A firmware revert of any base/stride macro fails this binary at
+ * compile time (the value pins at the _Static_assert block below) or at
+ * run time (the runtime value CHECKs). This harness compiles NO firmware
+ * bodies, so a uint16_t narrowing of an address local inside main.c /
+ * dtc.c is NOT visible here — that narrowing is caught by the Makefile
+ * gate grep (`uint32_t addr = ...` present, `uint16_t addr = ...`
+ * absent), not by this binary. Asserts constants/addresses only — NEVER
+ * calls the dereferencing inlines (rtos_queue_get_*, dtc_read_status-
+ * family deref 0xFFFFxxxx and would fault on the host). Zero stubs, no
+ * MMIO derefs.
  *
  * Proves:
  *   (a) TASK_QUEUE_BASE-family + RTOS_QUEUE_BASE values agree
@@ -17,8 +22,10 @@
  *   (b) DTC primary slot arithmetic for slots 0/20/7 stays 32-bit
  *       (uint32_t round-trip: addr == BASE + slot*stride + off, high
  *       page 0xFFFF preserved);
- *   (c) address expressions are >= 4 bytes wide (_Static_assert, mirroring
- *       the model harness test_c1_addr_width.c contract).
+ *   (c) the harness's own address macros are >= 4 bytes wide — a
+ *       self-pin of the local macro shape only (the casts are written
+ *       in this file); firmware-body narrowing stays with the gate
+ *       grep, mirroring the model harness test_c1_addr_width.c contract.
  *
  * Build (see firmware/tests/Makefile link-check):
  *   gcc -std=c11 -Wall -Wextra -Werror -O2 -I../include \
@@ -49,7 +56,12 @@ _Static_assert(DTC_PRIMARY_TABLE_BASE == 0xFFFF8928, "DTC_PRIMARY_TABLE_BASE rev
 _Static_assert(DTC_PRIMARY_ENTRY_SIZE == 0x34, "DTC_PRIMARY_ENTRY_SIZE revert");
 _Static_assert(DTC_PRIMARY_MAX_SLOTS == 21, "DTC_PRIMARY_MAX_SLOTS revert");
 
-/* Compile-time contract: address expressions must stay >= 32 bits wide. */
+/* Width asserts below are self-referential: LINK_C1_*_ADDR cast to
+ * uint32_t in THIS file, so sizeof >= 4 is always true — they pin the
+ * harness macro shape only and cannot see a firmware-body narrowing
+ * (this TU compiles no firmware sources). The Makefile gate grep on
+ * `uint32_t addr = ...` / `uint16_t addr = ...` carries that load;
+ * keep these as local shape pins, not firmware contracts. */
 _Static_assert(sizeof(LINK_C1_TASK_ADDR(0, 0)) >= 4, "task queue addr expr truncated");
 _Static_assert(sizeof(LINK_C1_RTOS_ADDR(0, 0)) >= 4, "rtos queue addr expr truncated");
 _Static_assert(sizeof(LINK_C1_DTC_ADDR(0, 0)) >= 4, "dtc primary addr expr truncated");

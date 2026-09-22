@@ -111,6 +111,12 @@ _Static_assert(L10_IN_C(L10_COND_2) && L10_IN_C(L10_COND_1) &&
                L10_IN_C(L10_RESULT_A) && L10_IN_C(L10_SEC_CHECK),
                "injector cluster outside mapped C page");
 _Static_assert(L10_IN_D(L10_FUEL_CUT), "fuel-cut flag outside mapped D page");
+/* Self-referential local pins: L10_FAULT / L10_FUEL_CUT are #defined
+ * as these same literals in THIS file, so the two asserts below cannot
+ * observe a firmware revert — they pin the harness map only (the local
+ * pins mirror the dtc.c body literals). The runtime prime→store→read
+ * CHECKs on the mapped pages (and the Makefile gate grep) carry the
+ * revert-detection load. */
 _Static_assert(L10_FAULT == 0xFFFFC9A2u, "L10 fault-flag address revert");
 _Static_assert(L10_FUEL_CUT == 0xFFFFD201u, "fuel-cut address revert");
 

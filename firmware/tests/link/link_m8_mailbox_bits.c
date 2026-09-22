@@ -81,6 +81,12 @@ _Static_assert(HCAN_MBOX_DATA_RDY_ADDR == 0xFFFFE41A, "HCAN_MBOX_DATA_RDY_ADDR r
 #define M8_CAN0_INT_ENABLE 0xFFFFE400u  /* controller 0, 16-bit RMW */
 #define M8_CAN1_INT_ENABLE 0xFFFFE600u  /* controller 1, 16-bit RMW */
 
+/* Self-referential local pins: M8_CAN0/CAN1_INT_ENABLE and M8_PAGE_*
+ * are all #defines in THIS file, so these page-coverage asserts hold
+ * regardless of what the firmware does — they pin the harness map only
+ * (local pins mirror the can.c body literals). The runtime CHECKs on
+ * the mapped 0xFFFFE400/0xFFFFE600 words carry the revert-detection
+ * load (a firmware-side move lands off-page and fails loudly). */
 _Static_assert(M8_CAN0_INT_ENABLE >= M8_PAGE_BASE &&
                M8_CAN0_INT_ENABLE + 2u <= M8_PAGE_BASE + M8_PAGE_LEN,
                "CAN0 enable reg outside mapped page");
