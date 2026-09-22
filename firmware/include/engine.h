@@ -287,6 +287,17 @@ void crank_sync_acquire(uint8_t rotor_offset);
  */
 void outputPerRotorIgnitionDwell(uint8_t rotor_idx);
 
+#ifdef FW_HOST_TEST
+/**
+ * getDwellTimeUs_forHostTest — read back the file-static dwell_time_us.
+ *
+ * Host link-pilot accessor only (firmware/tests/link/link_h4_dwell.c).
+ * Production builds never define FW_HOST_TEST, so this prototype and the
+ * matching engine.c definition are compiled out — zero behavior change.
+ */
+uint16_t getDwellTimeUs_forHostTest(void);
+#endif /* FW_HOST_TEST */
+
 /**
  * calc_base_ignition_timing — Calculate base ignition timing.
  * ROM address: 0x11A9C
