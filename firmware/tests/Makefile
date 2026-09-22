@@ -8,9 +8,10 @@
 #   make            # build all harnesses into $(OUTDIR) (default /tmp/fwtest)
 #   make check      # gate (source-grep tripwire) + build + run all (must pass)
 #   make gate       # source-grep tripwire only: fixed patterns present in the
-#                   # real firmware sources, buggy idioms absent. The harnesses
-#                   # are pure models (don't link firmware sources), so this
-#                   # gate is what catches a firmware revert.
+#                   # real firmware sources, buggy idioms absent. The test_*
+#                   # harnesses are pure models; the link_* harnesses do link
+#                   # real firmware sources, but the tripwire is what catches
+#                   # a firmware revert on the model-only paths.
 #   make demo-buggy # build with -DTEST_BUGGY and run: each must FAIL,
 #                   # demonstrating the harness reproduces the pre-fix bug
 #   make clean
@@ -48,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -109,6 +110,18 @@ $(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c | $(OUTDIR
 # bank-isolation vector runs against mapped memory, not a model.
 $(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+
+# m7/c2 links the REAL uds.c TU (M7 TesterPresent gate + C2 sid34/36/37
+# download chain pilot). uds.c compiles clean under -Werror, and the
+# harness supplies the same three DTC stubs as h5 (obd_sid12/14/18 —
+# linker-demanded only, asserted uncalled). Only SID 0x3E goes through
+# uds_handler (returns before the ROM dispatch lookup); sid34/36/37 are
+# entered as direct externs (h5 style), so zero ROM bytes are read. The
+# harness mmap-maps the 0xFFFFD RAM page (session/security/TP/DL image)
+# and a 0x00070000 flash sandbox (sid36 payload target, inside the C2
+# 3+3 flash window) with MAP_FIXED — every store executes for real.
+$(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
