@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -92,6 +92,14 @@ $(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c | $(OUTDIR)
 # never define it, so the normal firmware is unaffected.
 $(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $^ -o $@ -lm
+
+# h2 links the REAL dtc.c TU + the REAL dtc_read_status inline (H2
+# SEVERITY|FLAGS3 composite pilot, class M). Same TU, page, and
+# unused-static relaxation as m2 (firmware sources untouched); the test
+# additionally drives the real sid18/sid12/worst-priority readers and the
+# dtc_state_machine SET writer over the mmap-backed primary table.
+$(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
