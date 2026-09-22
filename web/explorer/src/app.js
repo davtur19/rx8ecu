@@ -88,6 +88,9 @@ const hex6 = (a) => a.toString(16).toUpperCase().padStart(6, "0");
 const fmtNum = (v, d) => {
   if (v === null || v === undefined) return "—";
   if (typeof v !== "number") return String(v);
+  // Non-finite numbers (NaN, ±Infinity) render as "—" (emu display
+  // convention); finite values keep the integer/decimal formatting below.
+  if (!Number.isFinite(v)) return "—";
   if (d === undefined) d = 3;
   if (v === Math.floor(v) && Math.abs(v) < 1e15) return String(v);
   return v.toFixed(d);
@@ -998,7 +1001,14 @@ function fitView() {
 function wireCallgraph() {
   const cv = $("cg-canvas");
   let pan = null;
-  cv.addEventListener("mousedown", (ev) => {
+  // Pointer events (not mouse-only): identical pan/drag/hover behavior for
+  // the mouse, plus touch/pen. Pointer capture keeps drags alive when the
+  // pointer leaves the canvas; style.css sets touch-action:none on the canvas
+  // so touch drags pan the graph instead of scroll-jacking the page. Extra
+  // fingers are ignored (no pinch-zoom); wheel keeps handling zoom.
+  cv.addEventListener("pointerdown", (ev) => {
+    if (!ev.isPrimary) return;
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* best effort */ }
     const rect = cv.getBoundingClientRect();
     const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
     const i = cgNodeAt(mx, my);
@@ -1011,7 +1021,7 @@ function wireCallgraph() {
     }
   });
   let cgMouse = null, cgMouseQueued = false;
-  cv.addEventListener("mousemove", (ev) => {
+  cv.addEventListener("pointermove", (ev) => {
     const rect = cv.getBoundingClientRect();
     cgMouse = { x: ev.clientX, y: ev.clientY, mx: ev.clientX - rect.left, my: ev.clientY - rect.top };
     if (cgMouseQueued) return;
@@ -1042,13 +1052,15 @@ function wireCallgraph() {
       } else tip.classList.add("hidden");
     });
   });
-  cv.addEventListener("mouseleave", () => {
+  cv.addEventListener("pointerleave", () => {
     const tip = document.getElementById("cg-tip");
     if (tip) tip.classList.add("hidden");
   });
-  window.addEventListener("mouseup", () => {
+  const endInteract = () => {
     pan = null; CG.dragging = null; cv.classList.remove("dragging");
-  });
+  };
+  window.addEventListener("pointerup", endInteract);
+  window.addEventListener("pointercancel", endInteract);
   cv.addEventListener("click", (ev) => {
     const rect = cv.getBoundingClientRect();
     const i = cgNodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
@@ -1110,7 +1122,7 @@ function wireCallgraph() {
   function highlight() {
     sug.querySelectorAll("div[data-k]").forEach((d) => d.classList.toggle("sel", +d.dataset.k === sel));
   }
-  sug.addEventListener("mousedown", (ev) => {
+  sug.addEventListener("pointerdown", (ev) => {
     const d = ev.target.closest("div[data-k]");
     if (d) { pick(+d.dataset.k); }
   });
@@ -1166,11 +1178,13 @@ function TblApply() {
   const q = $("tbl-search").value.trim().toLowerCase();
   const cat = $("tbl-cat").value, typ = $("tbl-type").value, role = $("tbl-role").value;
   const qHex = parseHex(q);
-  // While per-model values are still loading, the type filter cannot be
-  // evaluated (modelVal returns null -> "noval" for every row): skip it so
-  // the list is not emptied, and flag the loading state in the count line.
+  // While per-model values are still loading — or the load FAILED (values
+  // unavailable, state "failed") — the type filter cannot be evaluated
+  // (modelVal returns null -> "noval" for every row): skip it so the list is
+  // not emptied by an active type filter; the count line still flags loading.
+  const mLoad = MODEL_LOAD[CUR_MODEL];
   const typePending = !!typ && CUR_MODEL !== DATA.defaultModel &&
-    (!MODEL_LOAD[CUR_MODEL] || MODEL_LOAD[CUR_MODEL].state === "loading");
+    (!mLoad || mLoad.state === "loading" || mLoad.state === "failed");
   Tbl.rows = DATA.tables.map((t, i) => ({ t, i })).filter(({ t, i }) => {
     if (role === "t" && t.role !== "t") return false;
     if (role === "x" && t.role !== "x") return false;
