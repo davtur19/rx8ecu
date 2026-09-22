@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -148,6 +148,24 @@ $(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c | 
 # clears all execute against mapped memory, not a model.
 $(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/timer.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+
+# p12 links the REAL rtos.c TU (link pilot 12 — first time the .c BODY is
+# linked; n2 only linked the rtos.h header inlines). nm -u rtos.o is EMPTY
+# (zero undefined externs) so no stubs; the TU compiles clean under -Werror
+# (no unused-static relaxation needed). The harness mmap-maps ONE 4 KiB
+# page at 0xFFFFD000 with MAP_FIXED — covering the task queue
+# 0xFFFFD4E0..0xFFFFD7FF and the uint16 queue indexes 0xFFFFDFB4/0xFFFFDFB6
+# (the same D page proven by m7/c2 and l10) — so the rtos_init 0xFF slot
+# fill, every index/queue load/store, the enqueue/dequeue big-endian byte
+# stores, and the dispatch/scheduler/context paths all execute for real
+# against mapped memory. -no-pie: rtos_dispatch casts the 24-bit
+# RTOS_DISP_HANDLER_MASK handler field to a function pointer, so harness
+# handler addresses must live in the low 16 MiB (non-PIE .text at
+# 0x400000) — a PIE address would be truncated by the mask. No ROM read:
+# objdump immediates of rtos.o are only 0xFFFFD4E0/0xFFFFD800/
+# 0xFFFFDFB4/0xFFFFDFB6 (0x6873C dispatch table is comment-only).
+$(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -no-pie $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
