@@ -1022,6 +1022,7 @@ function wireCallgraph() {
   });
   let cgMouse = null, cgMouseQueued = false;
   cv.addEventListener("pointermove", (ev) => {
+    if (!ev.isPrimary) return;
     const rect = cv.getBoundingClientRect();
     cgMouse = { x: ev.clientX, y: ev.clientY, mx: ev.clientX - rect.left, my: ev.clientY - rect.top };
     if (cgMouseQueued) return;
@@ -1241,9 +1242,11 @@ function TblRender() {
       <td>${mapCell}</td>
       <td>${valCell}</td></tr>`;
   }).join("") || `<tr><td colspan="8" class="muted">No matches</td></tr>`;
+  const _nonDef = CUR_MODEL !== DATA.defaultModel;
+  const _ml = _nonDef ? MODEL_LOAD[CUR_MODEL] : null;
   $("tbl-count").textContent = `${fmtNum(n)} entries · page ${Tbl.page + 1}/${pages}` +
-    (CUR_MODEL !== DATA.defaultModel && (!MODEL_LOAD[CUR_MODEL] || MODEL_LOAD[CUR_MODEL].state === "loading")
-      ? " · loading model values…" : "");
+    (_ml && _ml.state === "failed" ? " · values unavailable (model failed — retry)"
+      : _nonDef && (!_ml || _ml.state === "loading") ? " · loading model values…" : "");
   var el = document.getElementById("tbl-pageinfo"); if (el) el.textContent = `Page ${Tbl.page + 1}/${pages} · ${n} rows`;
   $("tbl-prev").disabled = Tbl.page <= 0;
   $("tbl-next").disabled = Tbl.page >= pages - 1;
@@ -1559,7 +1562,8 @@ function drawHeatmap(host, t0) {
   tip.className = "tip hidden"; tip.style.cssText = "position:absolute;pointer-events:none;background:#1c2129;border:1px solid #3d444d;padding:4px 8px;border-radius:5px;font:12px monospace;z-index:10;";
   host.style.position = "relative";
   host.appendChild(tip);
-  cv.addEventListener("mousemove", (ev) => {
+  cv.addEventListener("pointermove", (ev) => {
+    if (!ev.isPrimary) return;
     const r = cv.getBoundingClientRect();
     const sx = (ev.clientX - r.left) / r.width * W, sy = (ev.clientY - r.top) / r.height * H;
     const i = Math.floor((sx - m.l) / cell), j = Math.floor((sy - m.t) / cell);
@@ -1572,7 +1576,7 @@ function drawHeatmap(host, t0) {
       tip.classList.remove("hidden");
     } else tip.classList.add("hidden");
   });
-  cv.addEventListener("mouseleave", () => tip.classList.add("hidden"));
+  cv.addEventListener("pointerleave", () => tip.classList.add("hidden"));
 }
 function draw1D(host, t0) {
   const vals = t0.vals || [], ax = t0.ax || [];
