@@ -44,12 +44,17 @@ on:
   push:
     branches: [main, master]
     # Skip CI for docs-only pushes (verification battery is unaffected).
+    # P3-3 (review 2026-09-22): ignore ONLY docs/**. The previous blanket
+    # '**/*.md' also skipped symbols/CATALOG_STATUS.md and
+    # symbols/NAMES_STATUS.md — catalog-status changes must re-trigger the
+    # catalog determinism gate, so markdown under symbols/ has to run CI.
     paths-ignore:
       - 'docs/**'
-      - '**/*.md'
-      - '.github/workflows/README.md'
   pull_request:
     branches: [main, master]
+  # P3-5: allow manual re-runs from the Actions UI/API (no path filtering
+  # applies — runs the full battery on demand).
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -126,6 +131,13 @@ jobs:
     name: Tests (Python suites)
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      # P3-1: make the suites' documented SPARK_N shard hook live in CI.
+      # 100000 is each suite's built-in default (SPARK_N env override, see
+      # c/tests/test_spark_*.py), so test strength is unchanged — but the
+      # variable is now explicitly set, so a future default change cannot
+      # silently alter what CI actually runs.
+      SPARK_N: "100000"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -159,10 +171,18 @@ jobs:
       # Canonical entry point: same code as `make test-fast`. It replaces the
       # old three steps (decode families, emulator families, serial for-loop
       # over c/tests/test_*.py) with one auto-discovering invocation.
-      - name: Python suites (parallel runner, auto-discovery)
+      #
+      # P1-1: c/tests/smoke_dtc_functions.py is smoke_*.py, NOT test_*.py,
+      # so auto-discovery skips it — pass it as an explicit extra. The
+      # runner's CLI (extras nargs='*') appends named files to the
+      # discovered set (same mechanism `make test-fast` uses for
+      # verify_emu), so folding it into this step runs smoke_dtc exactly
+      # once; a separate runner step would re-run the whole discovered
+      # battery a second time.
+      - name: Python suites (parallel runner, auto-discovery + smoke_dtc)
         run: |
           export PATH="$PWD/tools/toolchain/usr/bin:$PATH"
-          python3 tools/run_tests_parallel.py -j 4
+          python3 tools/run_tests_parallel.py -j 4 c/tests/smoke_dtc_functions.py
 
       # c/tests/verify_emu.py is named verify_*.py, not test_*.py, so the
       # parallel runner's auto-discovery (test_*.py only) skips it unless
@@ -199,8 +219,20 @@ jobs:
       - name: Firmware regression harnesses + tripwire (make -C firmware/tests check)
         run: make -C firmware/tests check
 
-      - name: Explorer build + check (build_site.py + make check)
+      # P1-2: `check` runs only the 22 model harnesses; the real-TU link
+      # pilots (link/*.c linked against actual firmware sources — dtc.c,
+      # uds.c, can.c, serial.c+timer.c, rtos.c, ...) live in the separate
+      # `link-check` target. Link regressions (missing symbol, MMIO map,
+      # section layout) must fail CI too.
+      - name: Firmware link pilots (make -C firmware/tests link-check)
+        run: make -C firmware/tests link-check
+
+      # P3-6: build the ecu-emu dist FIRST (same order as pages.yml) —
+      # build_site.py/check must see a fresh emu bundle, not a stale or
+      # missing dist from a previous step.
+      - name: Emu dist + explorer build + check (ecu-emu build + build_site.py + make check)
         run: |
+          make -C web/ecu-emu build
           python3 web/explorer/build_site.py
           make -C web/explorer check
 
@@ -223,6 +255,15 @@ jobs:
     name: Catalog (determinism gate)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # P1-3: dorny/paths-filter@v3 needs `pull-requests: read` on
+    # pull_request events (workflow-level is contents:read only). Kept
+    # JOB-level, not workflow-level, so only the two jobs that actually use
+    # paths-filter gain the permission. Job-level permissions fully replace
+    # the workflow-level set for that job, hence `contents: read` is
+    # restated here.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -278,6 +319,12 @@ jobs:
     name: Formal cert (9 ROMs)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # P1-3: same job-level pull-requests:read rationale as the catalog job
+    # (dorny/paths-filter on pull_request; contents:read restated because
+    # job-level permissions replace the workflow-level set).
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -299,6 +346,11 @@ jobs:
               - 'src/**'
               - 'tools/verify_formal.py'
               - 'analysis/coverage/**'
+              # P2-2: `make cert` reads roms/stock/*.bin (CERT_ROMS list in
+              # the root Makefile) — ROM image or Makefile changes must
+              # re-run formal cert too.
+              - 'roms/stock/**'
+              - 'Makefile'
 
       - name: Formal cert — all 9 ROMs (make cert)
         if: steps.changes.outputs.formal == 'true'

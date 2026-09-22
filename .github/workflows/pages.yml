@@ -16,11 +16,27 @@
 # `gh api repos/<owner>/<repo>/commits/<tag>` and pin as `<ref> # <tag>`.
 # Until then, .github/dependabot.yml (github-actions, weekly) keeps these
 # tags auto-updated.
+#
+# Deploy gate (review P2-1, 2026-09-22): deploys are driven by workflow_run
+# on a SUCCESSFUL "CI" completion instead of every push, so a red CI never
+# publishes. Tradeoff: the site lags CI completion by the CI wall-clock, and
+# if the CI workflow is ever renamed, the `workflows: [CI]` filter here must
+# be renamed with it. Security (GitHub's recommended workflow_run pattern):
+#   - this file always executes from the default branch (not the triggering
+#     run's context), and
+#   - `branches:` plus the build job's `event == 'push'` condition restrict
+#     triggers to CI runs for pushes on main/master — pull_request runs
+#     (fork-controlled checkouts) never deploy, and
+#   - build checks out workflow_run.head_sha: the exact commit CI validated.
+# Residual: workflow_dispatch still allows a manual deploy without a green
+# CI (kept intentionally as the break-glass path).
 
 name: Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main, master]
   workflow_dispatch:
 
@@ -44,9 +60,20 @@ jobs:
     name: Build site (build_site.py + ecu-emu)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # P2-1: publish only after CI succeeded (workflow_run push event), or on
+    # an explicit manual dispatch (break-glass, see header). If this job is
+    # skipped, the dependent deploy job is skipped too.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # workflow_run: check out the exact SHA the completed CI run
+          # validated; manual dispatch: current default-branch tip.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
