@@ -4,7 +4,8 @@
 
 const { describe, it, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
-const { loadCore, loadPins, loadCanLive } = require("./helpers");
+const vm = require("node:vm");
+const { loadCore, loadPins, loadCanLive, srcText } = require("./helpers");
 
 const IDS = [0x201, 0x203, 0x420, 0x630, 0x620, 0x215, 0x251, 0x240, 0x250, 0x231, 0x650, 0x041];
 
@@ -155,5 +156,37 @@ describe("live fields track the core/sensors", () => {
     M.emu_set_sensor(0, 9000);
     assert.strictEqual(M.emu_get_fuel_cut(), 1, "core reports fuel cut at redline");
     assert.strictEqual(((CAN.pack(0x250).data[6] << 8) | CAN.pack(0x250).data[7]), 0, "0 pulse on fuel cut");
+  });
+});
+
+describe("generateFrame MIL path (live dispatch, headless)", () => {
+  /* pack(0x420) and generateFrame() are two distinct call sites that both
+   * read coreFlag("emu_get_mil"). The pack() path is covered above; this
+   * drives generateFrame() itself (DOM-free: window.sensorState + Module
+   * only), so a generateFrame-only break of the MIL bridge fails here. */
+  it("0x420 frames from generateFrame carry the core MIL latch", () => {
+    // Deterministic branch: rand in [0.50, 0.60) always selects 0x420.
+    // Math is the sandbox realm's own Math — the stub cannot leak.
+    vm.runInContext("Math.random = function() { return 0.55; };", box.sb);
+    box.window.sensorState.rpm = 3000; // engine ON: engineOff() must be false
+    let f = CAN.generateFrame();
+    assert.ok(f, "generateFrame returns a frame");
+    assert.strictEqual(f.id, 0x420, "forced 0x420 branch");
+    assert.strictEqual(f.data.length, f.dlc, "data length matches DLC");
+    assert.strictEqual(f.data[1] & 0x01, 0, "MIL off at boot");
+    M.emu_set_mil(true);
+    f = CAN.generateFrame();
+    assert.strictEqual(f.id, 0x420);
+    assert.ok(f.data[1] & 0x01, "MIL bit follows emu_get_mil via generateFrame");
+    M.emu_set_mil(false);
+    f = CAN.generateFrame();
+    assert.strictEqual(f.id, 0x420);
+    assert.strictEqual(f.data[1] & 0x01, 0, "MIL clears on unset");
+  });
+  it("both call sites read coreFlag(\"emu_get_mil\") (source guard)", () => {
+    const text = srcText("can_live.js");
+    const sites = text.match(/mil: coreFlag\("emu_get_mil"/g) || [];
+    assert.strictEqual(sites.length, 2,
+      "expected mil: coreFlag emu_get_mil in generateFrame() and pack()");
   });
 });

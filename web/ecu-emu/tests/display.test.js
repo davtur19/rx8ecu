@@ -304,4 +304,50 @@ describe("tacho red-zone placement (soft-cut 9.0-9.5 on the 0-12 scale)", () => 
     const sweep = Math.PI * 2.25 - Math.PI * 0.75;
     assert.ok((a95 - a90) / sweep > 0.03, "band visible (>3% of sweep), got " + ((a95 - a90) / sweep));
   });
+  it("tick/numeral red coloring is cal-driven (no hardcoded 9000 literal)", () => {
+    assert.ok(/var inRed = v >= arcRPM\.start/.test(SIM_TEXT),
+      "tick color follows tachoRedArcRPM().start (redline cal)");
+    assert.ok(/\(v \* 1000 >= arcRPM\.start\)/.test(SIM_TEXT),
+      "numeral color follows tachoRedArcRPM().start");
+    assert.ok(!/v >= 9000/.test(SIM_TEXT), "no hardcoded v >= 9000 tick literal");
+    assert.ok(!/v \* 1000 >= 9000/.test(SIM_TEXT), "no hardcoded numeral 9000 literal");
+  });
+  /* Draw harness: run drawTacho against a stub 2d ctx and record every
+   * arc(...) call, so the fuelCutEn gate on the red band is observable. */
+  function tachoArcs(cal) {
+    const box = loadEngineSim({ rpm: 3000, ect: 80, iat: 25, map: 35, tps: 0, o2f: 0.45, o2r: 0.45 });
+    box.sb.Module = { emu_cal_get: () => cal };
+    const arcs = [];
+    const ctxStub = new Proxy({}, {
+      get: (t, p) => {
+        if (p === "arc") return (...args) => { arcs.push(Array.from(args)); };
+        return () => ctxStub;
+      },
+      set: () => true,
+    });
+    box.sb.document = {
+      getElementById: (id) => (id === "tacho-canvas"
+        ? { getContext: () => ctxStub, width: 220, height: 220, dataset: {} }
+        : null),
+      querySelectorAll: () => [],
+    };
+    box.EngineSim.drawTacho("tacho-canvas", 3000);
+    return { arcs, E: box.EngineSim };
+  }
+  const hasSoftArc = (arcs, E, start, end) =>
+    arcs.some((a) => a.length === 5 &&
+      Math.abs(a[3] - E.tachoAngleFor(start)) < 1e-9 &&
+      Math.abs(a[4] - E.tachoAngleFor(end)) < 1e-9);
+  it("fuelCutEn=1 draws the red arc at redline..redline+500 (cal-driven)", () => {
+    const on = tachoArcs({ redline: 9000, fuelCutEn: 1 });
+    assert.ok(hasSoftArc(on.arcs, on.E, 9000, 9500), "stock band 9000..9500 drawn");
+    const custom = tachoArcs({ redline: 7000, fuelCutEn: 1 });
+    assert.ok(hasSoftArc(custom.arcs, custom.E, 7000, 7500), "custom band 7000..7500 drawn");
+    assert.ok(!hasSoftArc(custom.arcs, custom.E, 9000, 9500), "stock band gone with custom redline");
+  });
+  it("fuelCutEn=0 hides the red arc (no soft-cut stage exists)", () => {
+    const off = tachoArcs({ redline: 9000, fuelCutEn: 0 });
+    assert.ok(!hasSoftArc(off.arcs, off.E, 9000, 9500),
+      "cut disabled -> red arc not drawn");
+  });
 });
