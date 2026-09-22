@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -132,6 +132,22 @@ $(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c | $(OUTD
 # return, executes for real against mapped memory, not a model.
 $(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+
+# m4 links the REAL serial.c TU + the REAL timer.c TU (M4 owned-RX fix
+# pilot, class M). serial.c's only undefined externs (nm -u) are
+# atu_timer_init / atu_capture_compare_init, both provided in-repo by
+# timer.c (nm -u clean, MMIO-only, no ROM) and both called only from
+# serial_init — and serial_init is where the M4 arming lives, so init
+# MUST run (uncalled-stub style does not apply; real timer.c beats empty
+# stubs). Both TUs compile clean under -Werror (no unused-static
+# relaxation). The harness mmap-maps ONE 4 KiB page at 0xFFFFF000 with
+# MAP_FIXED — covering INTC 0xFFFFF02E and the whole ATU block
+# 0xFFFFF700..0xFFFFF7B0 (TSTR/TCR/TIOR/TIER/TGR byte lanes/TISRA) — so
+# serial_init's real timer MMIO, the intc_reg_write enable/disable
+# values, the RX low-lane TGR captures, and the TISRA flag-only RMW
+# clears all execute against mapped memory, not a model.
+$(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/timer.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
