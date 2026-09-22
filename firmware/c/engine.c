@@ -515,6 +515,20 @@ void outputPerRotorIgnitionDwell(uint8_t rotor_idx)
     dwell_time_us = (uint16_t)divided;
 }
 
+#ifdef FW_HOST_TEST
+/**
+ * getDwellTimeUs_forHostTest — read back the file-static dwell_time_us.
+ *
+ * Host link-pilot accessor only (link_h4_dwell): production builds never
+ * define FW_HOST_TEST, so this definition is compiled out and the normal
+ * build is byte-for-byte unaffected. No logic change — pure readback.
+ */
+uint16_t getDwellTimeUs_forHostTest(void)
+{
+    return dwell_time_us;
+}
+#endif /* FW_HOST_TEST */
+
 /**
  * calc_base_ignition_timing — Calculate base ignition timing.
  * ROM:0x11A9C

@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -83,6 +83,15 @@ $(OUTDIR)/link_m2_checksum: link/link_m2_checksum.c $(FW_C)/dtc.c | $(OUTDIR)
 # zero MMIO executes (no sensor 0xFFFFCAxx deref, no uds_init call).
 $(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+
+# h4 links the REAL engine.c TU (H4 dwell clamp pilot, class M). engine.c
+# has zero undefined externs (nm -u clean) so no stubs; the harness maps
+# the 0xFFFFB000 RAM page with mmap(MAP_FIXED) so the real 0xFFFFBC84/88
+# float loads execute for real. -DFW_HOST_TEST compiles in the host-only
+# getDwellTimeUs_forHostTest accessor (engine.c/.h) — production builds
+# never define it, so the normal firmware is unaffected.
+$(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
