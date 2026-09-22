@@ -774,5 +774,10 @@ var CANLive = (function() {
   }
 
   return { init: init, stop: stop, pack: pack,
+    /* Headless test hook: generateFrame() itself touches no DOM (only
+     * window.sensorState + Module via coreFlag), so tests can drive the
+     * live dispatch path — including its coreFlag("emu_get_mil") read —
+     * without a browser. */
+    generateFrame: generateFrame,
     since: since, last: last, lastId: lastId, counts: counts };
 })();

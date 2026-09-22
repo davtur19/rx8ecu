@@ -62,15 +62,16 @@ function makeWindow(sensorState, extra) {
   return Object.assign({ sensorState: sensorState || {} }, extra || {});
 }
 
-/* Run can_live.js in a sandbox; returns { CAN, window } so tests can also
- * simulate an absent sensorState (pack() must return null, not throw). */
+/* Run can_live.js in a sandbox; returns { CAN, window, sb } so tests can
+ * also simulate an absent sensorState (pack() must return null, not throw)
+ * and tune context globals (e.g. Math.random for generateFrame branches). */
 function loadCanLive(core, sensorState) {
   const window = makeWindow(sensorState);
   const sb = { window, Module: core, console };
   sb.window.window = sb.window;
   vm.createContext(sb);
   vm.runInContext(srcText("can_live.js"), sb, { filename: "can_live.js" });
-  return { CAN: sb.CANLive, window };
+  return { CAN: sb.CANLive, window, sb };
 }
 
 /* Run engine_sim.js in a sandbox; returns the EngineSim namespace. */

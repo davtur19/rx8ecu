@@ -620,17 +620,22 @@ var EngineSim = (function() {
     // Previously drawn at 8.5-9.0 while MAX_RPM=12000, which misleadingly
     // ended the red zone at the cut onset and left the soft zone unmarked.
     var arcRPM = tachoRedArcRPM();
-    var rlStart = rpmToAngle(arcRPM.start);
-    var rlEnd = rpmToAngle(arcRPM.end);
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, rlStart, rlEnd);
-    ctx.strokeStyle = "#f85149";
-    ctx.lineWidth = 8;
-    ctx.lineCap = "butt";
-    if (isRed) { ctx.shadowColor = "#f85149"; ctx.shadowBlur = 12; }
-    ctx.stroke();
-    ctx.restore();
+    // fuelCutCal() is a BOOLEAN (fuelCutEn cal, not an RPM): with the cut
+    // disabled there is no soft-cut stage to mark, so the red band is
+    // hidden — the redline tick/numeral emphasis below still applies.
+    if (fuelCutCal()) {
+      var rlStart = rpmToAngle(arcRPM.start);
+      var rlEnd = rpmToAngle(arcRPM.end);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, rlStart, rlEnd);
+      ctx.strokeStyle = "#f85149";
+      ctx.lineWidth = 8;
+      ctx.lineCap = "butt";
+      if (isRed) { ctx.shadowColor = "#f85149"; ctx.shadowBlur = 12; }
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // Value arc
     ctx.beginPath();
@@ -641,13 +646,15 @@ var EngineSim = (function() {
     ctx.stroke();
 
     // Ticks: minor every 500, major every 1000 (scale 0..MAX_RPM).
-    // Red ticks/numerals mark the arc zone (>= 9000, soft-cut onset),
-    // while the 8500 dial glow stays an approach warning below it.
+    // Red ticks/numerals mark the arc zone (>= the redline cal — the same
+    // tachoRedArcRPM().start the arc uses, so a custom redline recolors
+    // them consistently), while the 8500 dial glow stays an approach
+    // warning below it.
     var v, a, x1, y1, x2, y2;
     for (v = 0; v <= MAX_RPM; v += 500) {
       a = rpmToAngle(v);
       var major = (v % 1000 === 0);
-      var inRed = v >= 9000;
+      var inRed = v >= arcRPM.start;
       var outer = r - 10;
       var inner = major ? r - 24 : r - 17;
       x1 = cx + Math.cos(a) * inner;
@@ -671,7 +678,7 @@ var EngineSim = (function() {
       a = rpmToAngle(v * 1000);
       var nx = cx + Math.cos(a) * (r - 34);
       var ny = cy + Math.sin(a) * (r - 34);
-      ctx.fillStyle = (v * 1000 >= 9000) ? "#f85149" : "#e6ebf2";
+      ctx.fillStyle = (v * 1000 >= arcRPM.start) ? "#f85149" : "#e6ebf2";
       ctx.fillText(String(v), nx, ny);
     }
 
