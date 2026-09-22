@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -122,6 +122,16 @@ $(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c | $(OU
 # 3+3 flash window) with MAP_FIXED — every store executes for real.
 $(OUTDIR)/link_m7_c2_tp_sid34: link/link_m7_c2_tp_sid34.c $(FW_C)/uds.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $^ -o $@ -lm
+
+# l10 links the REAL dtc.c TU (L10 injector fault-flag store on the
+# fuel-cut early-return path, class M). Same TU and unused-static
+# relaxation as m2/h2 (nm -u clean, zero stubs); the harness mmap-maps TWO
+# 4 KiB pages with MAP_FIXED — 0xFFFFC000 (injector cluster
+# 0xFFFFC99C..0xFFFFC9BF) and 0xFFFFD000 (fuel-cut flag 0xFFFFD201) —
+# so every load/store, including the L10 store inside the fuel-cut early
+# return, executes for real against mapped memory, not a model.
+$(OUTDIR)/link_l10_injector_flag: link/link_l10_injector_flag.c $(FW_C)/dtc.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
 
