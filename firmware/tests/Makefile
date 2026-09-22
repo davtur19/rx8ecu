@@ -48,7 +48,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -99,6 +99,15 @@ $(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c | $(OUTDIR)
 # additionally drives the real sid18/sid12/worst-priority readers and the
 # dtc_state_machine SET writer over the mmap-backed primary table.
 $(OUTDIR)/link_h2_dtc_status: link/link_h2_dtc_status.c $(FW_C)/dtc.c | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
+
+# m8 links the REAL can.c TU (M8 16-bit mailbox-int-enable RMW pilot,
+# class M). Same TU and unused-static relaxation as h1 (firmware sources
+# untouched); the harness maps the 0xFFFFExxx page with mmap(MAP_FIXED)
+# at 0xFFFFE000 so the real 16-bit RMW on 0xFFFFE400 (CAN0) / 0xFFFFE600
+# (CAN1) executes for real — every enable, mask-wrap, preserve, and
+# bank-isolation vector runs against mapped memory, not a model.
+$(OUTDIR)/link_m8_mailbox_bits: link/link_m8_mailbox_bits.c $(FW_C)/can.c | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -Wno-error=unused-function $^ -o $@ -lm
 
 link-all: $(LINK_BINS)
