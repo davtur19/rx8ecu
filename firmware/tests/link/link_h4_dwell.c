@@ -120,6 +120,26 @@ static void h4_check_rotor(uint8_t rotor_idx, float raw, uint16_t want,
           what, (unsigned)want, (unsigned)h4_expect_u16(raw));
 }
 
+/* (f) invalid-index inhibit, NON-VACUOUS form: prime dwell_time_us with a
+ * known nonzero value (valid rotor 0, mid-range lead source 2500000 ->
+ * 2500) and assert the prime itself BEFORE probing the invalid rotor.
+ * Without the prime, the preceding NaN test leaves dwell_time_us == 0, so
+ * a mutant that deletes the invalid-index zero-store (early return only)
+ * would still read 0 and pass. With the prime, that mutant leaves 2500
+ * and fails the == 0 assert. Requires the caller to have set the lead
+ * dwell source to 2500000.0f beforehand. */
+static void h4_check_invalid(uint8_t rotor_idx)
+{
+    outputPerRotorIgnitionDwell(0);
+    CHECK(getDwellTimeUs_forHostTest() == 2500,
+          "prime rotor 0 -> %u want 2500",
+          (unsigned)getDwellTimeUs_forHostTest());
+    outputPerRotorIgnitionDwell(rotor_idx);
+    CHECK(getDwellTimeUs_forHostTest() == 0,
+          "rotor %u -> %u want 0", (unsigned)rotor_idx,
+          (unsigned)getDwellTimeUs_forHostTest());
+}
+
 int main(void)
 {
     void *p = mmap((void *)(uintptr_t)H4_PAGE_BASE, H4_PAGE_LEN,
@@ -158,19 +178,18 @@ int main(void)
     *h4_f32(H4_DWELL_LEAD) = 100000000.0f;
     h4_check_rotor(0, 100000000.0f, DWELL_MAX_US, "huge clamp");
 
-    /* (e) NaN source -> dwell 0 (H4 inhibit policy, not MIN). */
+    /* (e) NaN source -> dwell 0 (H4 inhibit policy, not MIN).
+     * Note: x86 (uint16_t)NaN -> 0, so the explicit `divided != divided`
+     * branch is covered by the Makefile gate grep, not by this runtime. */
     *h4_f32(H4_DWELL_LEAD) = NAN;
     h4_check_rotor(0, NAN, 0, "NaN inhibit");
 
-    /* (f) invalid rotor index -> dwell 0 (early return, no MMIO). */
+    /* (f) invalid rotor index -> dwell 0 (early return, no MMIO).
+     * h4_check_invalid primes a nonzero dwell before each probe (F1). */
     *h4_f32(H4_DWELL_LEAD) = 2500000.0f;
     *h4_f32(H4_DWELL_TRAIL) = 2500000.0f;
-    outputPerRotorIgnitionDwell(4);
-    CHECK(getDwellTimeUs_forHostTest() == 0,
-          "rotor 4 -> %u want 0", (unsigned)getDwellTimeUs_forHostTest());
-    outputPerRotorIgnitionDwell(255);
-    CHECK(getDwellTimeUs_forHostTest() == 0,
-          "rotor 255 -> %u want 0", (unsigned)getDwellTimeUs_forHostTest());
+    h4_check_invalid(4);
+    h4_check_invalid(255);
 
     munmap(p, H4_PAGE_LEN);
 
