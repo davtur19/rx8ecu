@@ -295,6 +295,63 @@ def test_denso_ck_safety():
 
 
 # ---------------------------------------------------------------------------
+# 5b. denso_ck coverage limits + --expect-sha256 gate (review P1-3)
+# ---------------------------------------------------------------------------
+def test_denso_coverage_and_sha():
+    import io
+    import contextlib
+    import hashlib
+    with tempfile.TemporaryDirectory() as td:
+        # NEG1: byte flip INSIDE the verified range -> checksum FAIL, rc=1.
+        p1 = os.path.join(td, 'inrange.bin')
+        rom1, _c = _mk_valid_rom()          # verified range [0x1000, 0x2000)
+        rom1[0x1500] ^= 0xFF
+        open(p1, 'wb').write(bytes(rom1))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc1 = denso_ck.main([p1])
+        out1 = buf.getvalue()
+        check(rc1 == 1 and 'FAIL' in out1,
+              "denso_ck/5b: in-range byte flip -> rc=1 FAIL")
+
+        # NEG2: byte flip OUTSIDE the verified range -> rc=0 (the algorithm
+        # cannot see it) BUT the output must disclose the uncovered segments.
+        p2 = os.path.join(td, 'outrange.bin')
+        rom2, _c2 = _mk_valid_rom()
+        rom2[0x7F000] ^= 0xFF                # outside [0x1000,0x2000), < 0x7FB80
+        open(p2, 'wb').write(bytes(rom2))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc2 = denso_ck.main([p2])
+        out2 = buf.getvalue()
+        check(rc2 == 0 and 'OK' in out2 and 'WARNING' in out2
+              and '[0x00000-0x01000)' in out2
+              and '[0x02000-0x80000)' in out2,
+              "denso_ck/5b: out-of-range flip -> rc=0 with range WARNING")
+
+        # --expect-sha256 gate (whole-file integrity for imports).
+        p3 = os.path.join(td, 'sha.bin')
+        open(p3, 'wb').write(bytes(rom2))
+        good = hashlib.sha256(bytes(rom2)).hexdigest()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc3 = denso_ck.main([p3, '--expect-sha256', good])
+        check(rc3 == 0 and 'matches --expect-sha256' in buf.getvalue(),
+              "denso_ck/5b: matching --expect-sha256 -> rc=0")
+        bad_sha = '0' * 64 if good != '0' * 64 else '1' * 64
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc4 = denso_ck.main([p3, '--expect-sha256', bad_sha])
+        check(rc4 == 1 and 'sha256 mismatch' in buf.getvalue(),
+              "denso_ck/5b: mismatching --expect-sha256 -> rc=1 FAIL")
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rc5 = denso_ck.main([p3, '--expect-sha256', 'nothex'])
+        check(rc5 == 2 and 'Traceback' not in err.getvalue(),
+              "denso_ck/5b: malformed --expect-sha256 -> rc=2 clean")
+
+
+# ---------------------------------------------------------------------------
 # 6. sh2emu fsqrt(-1.0) -> NaN, no exception
 # ---------------------------------------------------------------------------
 def test_fsqrt_negative_nan():
@@ -637,6 +694,7 @@ def main():
     test_adc_bytes()
     test_step_ram_persists_and_pc_advances()
     test_denso_ck_safety()
+    test_denso_coverage_and_sha()
     test_fsqrt_negative_nan()
     test_negc_alias()
     test_crank_n20_periods()

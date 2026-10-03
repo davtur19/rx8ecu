@@ -268,6 +268,22 @@ def test_denso_tokens():
         out = buf.getvalue()
         check(rc == 0 and out.splitlines()[-1].startswith('OK'),
               "denso/8: valid ROM ends with a stable OK token")
+        # P1-3 range disclosure: WARNING names the verified range AND the
+        # uncovered segments, is printed BEFORE the OK line (OK stays the
+        # final token), and the OK line itself states the verified range.
+        lines = out.splitlines()
+        warn_idx = next((i for i, l in enumerate(lines)
+                         if l.startswith('WARNING')), -1)
+        ok_idx = next((i for i, l in enumerate(lines)
+                       if l.startswith('OK')), -1)
+        check(warn_idx >= 0
+              and 'covers only 0x01000-0x02000' in lines[warn_idx]
+              and '[0x00000-0x01000)' in lines[warn_idx]
+              and '[0x02000-0x80000)' in lines[warn_idx],
+              "denso/8: WARNING names verified range and uncovered segments")
+        check(ok_idx == len(lines) - 1 and 0 <= warn_idx < ok_idx
+              and 'verified range 0x01000-0x02000' in lines[ok_idx],
+              "denso/8: OK line states verified range and stays last")
         badp = os.path.join(td, 'bad.bin')
         open(badp, 'wb').write(bytes(_mk_rom(bad_store=0)))
         buf = io.StringIO()
@@ -276,6 +292,8 @@ def test_denso_tokens():
         out = buf.getvalue()
         check(rc != 0 and 'FAIL' in out,
               "denso/8: bad ROM reports a stable FAIL token")
+        check('WARNING' in out,
+              "denso/8: range WARNING also printed on the FAIL path")
         try:
             (out).encode('ascii')
             check(True, "denso/8: verify output is pure ASCII")
