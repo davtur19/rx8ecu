@@ -15,10 +15,15 @@ Provenance: the community stock ROMs come from
 (`Stock_ROMs/`). The six images originally in this repo were verified
 **byte-for-byte identical** to that source; three more (`60E15120`, `60E1C500`,
 `60E32000`) were added from it to widen the dataset. The newest,
-`60E32000_N3N5EB`, was taken from upstream commit
+`60E32000_N3N5EB`, was **added upstream by content commit**
+[`47be913`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/47be913a80feed6cbd16e996860aa3a9b43faf49)
+("Added 60E32000_N3N5EB.bin", 2026-09-19), which **reached upstream `master`
+via the merge**
 [`fe4fa71`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/fe4fa71725a99422d80279cb1fa30aca6b53aa00)
-(pushed 2026-09-25); upstream states **no license** for the repository (all
-rights reserved — see [CREDITS.md](../CREDITS.md)).
+(2026-09-25; `47be913` is its second parent, the first parent `46e9b4d`
+predates the file) — our copy comes from the `fe4fa71` tree. Upstream states
+**no license** for the repository (all rights reserved — see
+[CREDITS.md](../CREDITS.md)).
 
 > **What is (and is not) shipped.** This repo ships **10 public stock ROMs**
 > (the table below). No tuned-ROM rows are added here, and any IDA `.i64`/Ghidra
@@ -39,17 +44,32 @@ rights reserved — see [CREDITS.md](../CREDITS.md)).
 | 60E1B900 | SW-N3ZDEH000.HEX | N3ZDEBWW.T50 | MazdA | 0x5DBA4 | OK | `b0dc94f96e` | community ref |
 | 60E1C500 | SW-N3J6EN000.HEX | N3J6EBMW.T50 | MazdA | 0x5E730 | OK | `b3b6e1e416` | community ref (file tagged `_N3J6EB`) |
 | 60E32000 | SW-N3M5EK000.HEX | N3M5E_SW.T01 | MazdA | 0x65134 | OK | `d5406459cc` | community ref (file tagged `_N3M5E`); **structurally distinct** — key ~0x65000 vs ~0x5Exxx elsewhere, task suffix `.T01` not `.T50` (likely a later/different-market build) |
-| 60E32000 | SW-N3N5EB000.HEX | N3N5E_2W.T01 | MazdA | 0x64C84 | OK | `6c043bd4c9` | community ref (file tagged `_N3N5EB`); **sibling of `60E32000_N3M5E`** — same cal ID but a genuinely distinct SW build (N3N5EB vs N3M5EK: 415,621/524,288 bytes differ, ~79%); same `.T01` task-suffix style as its sibling |
+| 60E32000 | SW-N3N5EB000.HEX | N3N5E_2W.T01 | MazdA | 0x64C84 | OK | `6c043bd4c9` | community ref (file tagged `_N3N5EB`); **sibling of `60E32000_N3M5E`** — same cal ID but a genuinely distinct SW build (N3N5EB vs N3M5EK: 415,621/524,288 bytes differ, ~79%); same `.T01` task-suffix style as its sibling. **Attribution**: upstream `equinox311/RX8Defs` attributes N3N5EB → **JDM, 2006, 6-Port, AT** (`rx8_defs.xml` second romid; the fields were filled in 2026-09-29 by single-author commit `ff5ab4f` — upstream-stated, single-source, **not independently confirmed**). Local markers: `PF_J60E_06MY_55` @`0x710C0` (present only in the two `60E32000` images) and header date bytes `06 07 07` @`0x2020` (possible BCD 2006-07-07 — **hypothesis**, not confirmed) |
 
 Full sha256 for every shipped image: see
 [VERIFICATION.md](../VERIFICATION.md).
 
-**Defs coverage gaps** (per `symbols/cal_tables.csv`):
-`60E0E500` and `60E32000` lack **public address-level defs** (RomRaider/EcuFlash
-table maps). `60E0E500` is likely address-compatible with its sibling `60E0E600`
-(same family — verify with a diff); `60E32000` has Ghidra labels (cjv0513) but no
-table defs, and **two shipped images now share this cal ID**
-(`60E32000_N3M5E` and `60E32000_N3N5EB`) — neither has published table defs.
+**Defs coverage gaps** (sources: `symbols/cal_tables.csv` +
+`equinox311/RX8Defs`):
+`60E0E500` still lacks **public address-level defs** (RomRaider/EcuFlash table
+maps); it is likely address-compatible with its sibling `60E0E600` (same
+family — verify with a diff), and `equinox311/RX8Defs` contains no entry for it
+at all. For `60E32000` the picture changed on **2026-09-29**: upstream
+[equinox311/RX8Defs](https://github.com/equinox311/RX8Defs) (HEAD `e1fe0a5`)
+publishes a RomRaider entry (`RomRaider/rx8_defs.xml` block ~lines 28034–28348,
+`<xmlid>60E32000</xmlid>` + second romid `<xmlid>N3N5EB</xmlid>`) with **266
+addressed tables = 264 DTC enable/disable + 2 Immobilizer switches**
+(`0x371D8` / `0x37624`), **byte-verified against our `60E32000_N3N5EB` image**
+(its immo off-state @`0x371D8` = `B5 6E 00 09 60 D0 60 0C 88 00 8D 11 00 09
+88 01` matches the def; the `N3M5E` image does **not** match). That entry is
+DTC+immo only — **still no tuning-map defs and no ECUFlash def** for this cal
+ID; the fork source `Rx8Man/RX8Defs` has neither cal (stale since 2023-12) and
+open unmerged PR `Rx8Man/RX8Defs#1` (2026-09-20) claims 676 tables. Two shipped
+images share this cal ID (`60E32000_N3M5E` and `60E32000_N3N5EB`); upstream
+covers only `N3N5EB`. `60E32000` additionally has community Ghidra labels
+(cjv0513) — code labels, not calibration table defs. Note
+`symbols/cal_tables.csv` holds **only `60E1D400` rows**, so it cannot evidence
+defs for any other cal ID.
 All other shipped ROMs have published defs.
 
 Observations:
