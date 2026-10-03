@@ -882,12 +882,21 @@ def adopt_master_splits(out):
 
 
 def write_master(out, categories=None):
-    """Write symbols/CATALOG_MASTER.csv. Returns the category-join count."""
+    """Write symbols/CATALOG_MASTER.csv.
+
+    Returns ``(category-join count, rows written)``. The second element is the
+    list of FINAL merged row dicts, i.e. the exact rows the file carries after
+    the curated src_name/end/category overlay (load_curated_fallback). Status
+    aggregation must count THESE rows: aggregating the pre-overlay pipeline
+    records would print cells that describe state the written file never had
+    (FC00: 1771/1733 pre-overlay vs 3216/288 in the file).
+    """
     if categories is None:
         categories = load_category_map()
     curated = load_curated_fallback()
     matched = 0
     preserved_cat = preserved_src = preserved_end = 0
+    written = []
     with open(MASTER_CSV, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=[
             "bank", "addr", "end", "src_name", "source", "flag", "lift_name",
@@ -930,10 +939,11 @@ def write_master(out, categories=None):
                     row["end"] = cur["end"]
                     preserved_end += 1
             w.writerow(row)
+            written.append(row)
     print(f"CATALOG_MASTER category join: {matched} righe matchate")
     print(f"  curated fallback preserved: category={preserved_cat} "
           f"src_name={preserved_src} end={preserved_end}")
-    return matched
+    return matched, written
 
 
 def aggregate(records):
@@ -1060,7 +1070,10 @@ def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per
     def eff(r):
         return r["lift_name"] if r["lift_name"] else r["src_name"]
 
-    # named/anon counts BEFORE the lift merge (pure src_name), per bank
+    # named/anon counts BEFORE the lift merge (pure src_name), per bank.
+    # Computed on the WRITTEN rows (file truth): the curated overlay may have
+    # restored a src_name the pipeline cannot reproduce, and the printed
+    # "delta nominate" must stay consistent with the CSV the file carries.
     before = {}
     for r in out_rows:
         b = r["bank"]
@@ -1201,13 +1214,15 @@ def main():
     # ---- re-adopt curated span-split rows (canonical bank) ----------------
     n_split = adopt_master_splits(out)
 
-    matched = write_master(out, load_category_map())
+    # Aggregate the WRITTEN rows (post curated overlay), not the pipeline
+    # records: the status docs must describe the file this same call writes.
+    matched, written = write_master(out, load_category_map())
 
-    agg = aggregate(out)
+    agg = aggregate(written)
     write_status(agg, input_count, raw_per_bank, orphan_records,
                  noise_counts, matched)
 
-    append_names_status(agg, input_count, lift_index, orphans, out, raw_per_bank)
+    append_names_status(agg, input_count, lift_index, orphans, written, raw_per_bank)
     append_names_status_v2b(orphan_records)
 
     # ---- reporting ---------------------------------------------------------
