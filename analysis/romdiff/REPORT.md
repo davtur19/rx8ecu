@@ -1,6 +1,8 @@
 # RX-8 PCM Cross-ROM Diff Analysis
 
-10 stock ROMs, 512 KB (0x80000) each, Renesas SH-2E / SH7055, big-endian. Baseline: **60E1D400** (SW-N3J1EM000, the documented RE baseline).
+9 stock ROMs, 512 KB (0x80000) each, Renesas SH-2E / SH7055, big-endian. Baseline: **60E1D400** (SW-N3J1EM000, the documented RE baseline).
+
+> **Scope:** this diff run predates the 10th stock image `60E32000_N3N5EB` (imported 2026-10-03), which is **not yet included** in this report — every matrix, count and conclusion below covers the 9 ROMs analyzed at run time (36 pairs).
 
 ## Method
 

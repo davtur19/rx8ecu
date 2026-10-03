@@ -14,6 +14,8 @@ Python 3.8 or newer is required. No third-party packages are needed.
 ## Inputs (read-only)
 
 - `roms/stock/*.bin` — 9 stock 512 KB SH-2E ROMs
+  (the run predates the 10th image `60E32000_N3N5EB`, imported 2026-10-03; the
+  generator's literal counts are still 9 — see REPORT.md scope note)
 - `symbols/cal_tables.csv` — 1210 calibration-table addresses (60E1D400 layout)
 
 ## Outputs
