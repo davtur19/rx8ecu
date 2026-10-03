@@ -61,7 +61,7 @@ It links the authoritative lift names (`c/*.c`, `c/tests/test_*.py`) to the CSVs
 | 60E0E500 | symbols_60E0E500.csv<br/>symbols_60E0E500_connor.csv | 7312 | 7305 | 416 | 6889 | 189 | 56 | derivata over-segmentata | +139 |
 | 60E0E700 | symbols_60E0E700.csv<br/>symbols_60E0E700_connor.csv | 7313 | 7306 | 435 | 6871 | 200 | 58 | derivata over-segmentata | +158 |
 | 60E0FB00 | symbols_60E0FB00.csv<br/>symbols_60E0FB00_connor.csv | 7203 | 7197 | 832 | 6365 | 805 | 64 | derivata over-segmentata | +532 |
-| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9014 | 3503 | 1770 | 1733 | 845 | 61 | canonico affidabile (equiname) | +248 |
+| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9014 | 3504 | 1771 | 1733 | 845 | 61 | canonico affidabile (equiname) | +248 |
 | 60E15120 | symbols_60E15120.csv<br/>symbols_60E15120_connor.csv | 7480 | 7473 | 388 | 7085 | 179 | 54 | derivata over-segmentata | +133 |
 | 60E1B900 | symbols_60E1B900.csv<br/>symbols_60E1B900_connor.csv | 7185 | 7173 | 457 | 6716 | 215 | 68 | derivata over-segmentata | +162 |
 | 60E1C500 | symbols_60E1C500.csv<br/>symbols_60E1C500_connor.csv | 7327 | 7315 | 459 | 6856 | 234 | 78 | derivata over-segmentata | +184 |
