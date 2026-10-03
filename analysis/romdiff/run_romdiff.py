@@ -2,10 +2,11 @@
 """
 run_romdiff.py -- cross-ROM byte-level diff analysis for the RX-8 PCM firmware.
 
-Reads the 9 stock 512KB SH-2E ROMs in roms/stock/ and produces, under
-analysis/romdiff/:
+Reads every stock 512KB SH-2E ROM in roms/stock/ (N images, pairs = N*(N-1)/2;
+all counts in the outputs are derived from the directory listing, not hardcoded)
+and produces, under analysis/romdiff/:
 
-  diff_matrix.csv                     all-pairs raw byte similarity (36 pairs)
+  diff_matrix.csv                     all-pairs raw byte similarity (N*(N-1)/2 pairs)
   diff_matrix_blocks.csv              all-pairs shift-tolerant 16B-block content similarity
   diff_ranges.csv                     merged differing byte ranges per pair, classified
   cal_table_diffs_baseline.csv        per-known-table value deltas (baseline vs each ROM)
@@ -194,6 +195,11 @@ def main():
 
     pairs = list(itertools.combinations(rom_files, 2))
 
+    # header-region (<0x2000) byte-diff count vs baseline, for the report
+    hdr_counts = {short[o]: sum(1 for x, y in zip(roms[BASELINE][:0x2000],
+                                                  roms[o][:0x2000]) if x != y)
+                  for o in rom_files if o != BASELINE}
+
     # ---------------- 1. raw byte diff matrix
     raw_rows = []
     for a, b in pairs:
@@ -285,10 +291,11 @@ def main():
     write_clusters(raw_rows, blk_rows, rom_files)
 
     # ---------------- 6. report
-    write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, short)
+    write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files,
+                 short, cal_addrs, hdr_counts)
 
     # ---------------- 7. readme
-    write_readme()
+    write_readme(len(rom_files), len(cal_addrs))
     # stdout summary
     print('RAW %diff matrix:')
     for a, b, t, d, p in raw_rows:
@@ -362,9 +369,12 @@ def short_name(n):
     return n.replace('.bin', '')
 
 
-def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, short):
+def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files,
+                 short, cal_addrs, hdr_counts):
     base_s = short[BASELINE]
     code_end, gaps, cal_lo = layout[BASELINE]
+    n_roms = len(rom_files)
+    npairs = n_roms * (n_roms - 1) // 2
 
     # per-pair known-table stats (vs baseline)
     from collections import defaultdict
@@ -384,12 +394,12 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A = lines.append
     A('# RX-8 PCM Cross-ROM Diff Analysis')
     A('')
-    A('9 stock ROMs, 512 KB (0x80000) each, Renesas SH-2E / SH7055, big-endian. '
+    A(f'{n_roms} stock ROMs, 512 KB (0x80000) each, Renesas SH-2E / SH7055, big-endian. '
       'Baseline: **60E1D400** (SW-N3J1EM000, the documented RE baseline).')
     A('')
     A('## Method')
     A('')
-    A('- **Raw byte diff** at identical file offsets (36 pairs).')
+    A(f'- **Raw byte diff** at identical file offsets ({npairs} pairs).')
     A('- **Block-content similarity**: 16-byte windows of A (stride 16) searched in '
       'the set of *all* 16-byte windows of B (stride 1). Tolerant to code/table '
       'relocation; this is the metric used to group variants.')
@@ -400,9 +410,10 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A(f'  - `padding` 0x{code_end:05X}-0x{cal_lo-1:05X}  baseline 0xFF filler gap(s)')
     A(f'  - `cal_data` 0x{cal_lo:05X}-0x{CAL_HI:05X}  calibration tables region')
     A(f'  - `tail`    0x{CAL_HI:05X}-0x7FFFF  checksum descriptor @0x7FB80 + trailing')
-    A('- Known-table hits use `symbols/cal_tables.csv` (1209 addrs, 60E1D400 '
-      'layout). Valid only for J-line builds; other families relocate the table block.')
-    A('- All 9 ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), '
+    A(f'- Known-table hits use `symbols/cal_tables.csv` ({len(cal_addrs)} addrs, '
+      '60E1D400 layout). Valid only for J-line builds; other families relocate the '
+      'table block.')
+    A(f'- All {n_roms} ROMs share an identical 0x0-0x40 vector table (reset vector 0x8B8), '
       'so headers are aligned; divergence accumulates through the body.')
     A('')
     A('## 1. Similarity matrices')
@@ -457,8 +468,9 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A('')
     A('## 4. Diff ranges vs baseline (classified)')
     A('')
-    A('Cumulative over the 8 baseline comparisons; **raw diff at identical offsets** '
-      '(so the `code` volume is mostly relocation smear, see other_ff_fraction).')
+    A(f'Cumulative over the {n_roms-1} baseline comparisons; **raw diff at identical '
+      'offsets** (so the `code` volume is mostly relocation smear, see '
+      'other_ff_fraction).')
     A('')
     reg_stats = {}
     for r in range_rows:
@@ -479,11 +491,18 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A('')
     A('### Boot region (0x40-0x1FFF) is shared across families')
     A('')
-    A('Header-region byte diffs vs baseline: 60E1C500 = 0, 60E1B900 = 3, '
-      '60E32000 = 3, but 60E0E500 = 3888, 60E0E700 = 3887, 60E0FB00/60E0FC00 = 3887, '
-      '60E15120 = 3887. I.e. the boot/vector-handler block below the checksum start '
-      'is byte-identical among {60E1D400, 60E1C500, 60E1B900, 60E32000} and differs '
-      'as one block in the other five.')
+    hdr_items = sorted(hdr_counts.items(), key=lambda kv: (kv[1], kv[0]))
+    near = [k for k, v in hdr_items if v < 100]
+    blk = [k for k, v in hdr_items if v >= 100]
+    counts_str = ', '.join(f'{k} = {v}' for k, v in hdr_items)
+    near_hi = max((hdr_counts[k] for k in near), default=0)
+    blk_lo = min((hdr_counts[k] for k in blk), default=0)
+    blk_hi = max((hdr_counts[k] for k in blk), default=0)
+    A(f'Header-region byte diffs vs baseline: {counts_str}. I.e. the '
+      'boot/vector-handler block below the checksum start is near-identical '
+      f'(0-{near_hi} bytes) among {{60E1D400 baseline}} + {", ".join(near)}, and '
+      f'differs as one block ({blk_lo}-{blk_hi} bytes) in the other {len(blk)}: '
+      f'{", ".join(blk)}.')
     A('')
     A('## 5. Calibration-table differences')
     A('')
@@ -506,16 +525,32 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A('')
     A('## 6. Conclusions')
     A('')
-    A('- **60E0FB00 vs 60E0FC00 are near-duplicate images** (raw 0.008% = 43 bytes; '
-      'content 99.95%, code 100.00%, cal 99.76%). The 43 bytes split as: cal-ID '
+
+    def pair_val(rows, x, y, idx):
+        # fail-closed: raises StopIteration if the narrative names a pair the
+        # data no longer contains (forces the text to be revisited)
+        return next(r[idx] for r in rows if {short[r[0]], short[r[1]]} == {x, y})
+
+    dup_p = pair_val(raw_rows, '60E0FB00', '60E0FC00', 4)
+    dup_d = pair_val(raw_rows, '60E0FB00', '60E0FC00', 3)
+    out32_content = pair_val(blk_rows, '60E32000_N3M5E', '60E32000_N3N5EB', 2)
+    out32_raw = pair_val(raw_rows, '60E32000_N3M5E', '60E32000_N3N5EB', 4)
+
+    A(f'- **60E0FB00 vs 60E0FC00 are near-duplicate images** (raw {dup_p:.3f}% = '
+      f'{dup_d} bytes; content 99.95%, code 100.00%, cal 99.76%). The {dup_d} bytes '
+      'split as: cal-ID '
       'char (0x2005 `B`→`C`), two ASCII string bytes (0x6D316, 0x6D34B, 0x6D35D), a '
       '2-byte boot field (0xFFC), a ~24-byte data block at 0x728D5 (ramp/serial-like '
       'values, not a plain string), a ~10-byte calibration-constant block at '
       '0x77B47-0x77CC7 (e.g. 0x00000007 vs 0x01250125; 0x07 vs 0x62 triples), and '
       'checksum fields (0x7FB01-0x7FB04, descriptor diff @0x7FB88, tail CRC '
       '@0x7FFF4).')
-    A('- **No other pair is a near-duplicate.** The 8 remaining builds are distinct '
-      'firmwares sharing 50-92% of their 16-byte content.')
+    other_whole = [w for a, b, w, cs, cal in blk_rows
+                   if {short[a], short[b]} != {'60E0FB00', '60E0FC00'}]
+    lo_w, hi_w = min(other_whole), max(other_whole)
+    A(f'- **No other pair is a near-duplicate.** Across the other {npairs-1} pairs, '
+      f'16-byte content similarity spans {lo_w:.0f}-{hi_w:.0f}%; the {n_roms-2} builds '
+      'outside the FB00/FC00 near-duplicate pair are all distinct firmwares.')
     A('- **5 variant families (content-distance based):**')
     A('  1. **Z-line US 6-port MT** = 60E0FB00 + 60E0FC00 + 60E1B900 '
       '(pairwise content >=91%; calibration blocks ~99.7% identical).')
@@ -526,17 +561,24 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
     A('  4. **60E15120 (internal SW-N3ZHEB000, tag _N3J1E)** — hybrid: cal content '
       '91.1% vs baseline (near-J-line calibration) but code closer to Z-line '
       '(61-70%).')
-    A('  5. **60E32000 (N3M5E)** — structural outlier (later/different market build): '
-      'no large 0xFF gap, code dense to ~0x7144C, cal block ~0x715C0 (5-50KB later '
-      'than everyone else); lowest content similarity overall (50-60%).')
+    A(f'  5. **60E32000 pair** = 60E32000_N3M5E + 60E32000_N3N5EB — structural '
+      'outliers (later/different market builds): no large 0xFF gap, code dense to '
+      '~0x7144C / ~0x70F38, cal block ~0x71500 / ~0x71000 (17-22 KB later than every '
+      f'other family); lowest content similarity to the rest of the field (50-70%). '
+      f'The two 60E32000 images merge only at the <=35% threshold (mutual content '
+      f'{out32_content:.2f}%, raw same-offset diff {out32_raw:.3f}%) — related market '
+      'builds, but not near-duplicates.')
     A('- **Where the bytes differ (vs baseline):** dominated by the `code` band in '
       'raw terms, but most of that is relocation (other_ff_fraction near 1.0), not '
       'logic edits. The *true* tuning differences live in the `cal_data` band '
       '(0x6CE00-0x7DAFF): per-address table values differ nearly everywhere, and the '
       'table block itself is relocated per family (cal_lo 0x6C000-0x6D300, N3M5E '
       '~0x715C0).')
-    A('- **Calibration vs code:** code-region content similarity (49-100%) is '
-      'usually higher than cal-region similarity (42-100%) for a given pair — i.e. '
+    code_cs = [cs for a, b, w, cs, cal in blk_rows]
+    cal_cs = [cal for a, b, w, cs, cal in blk_rows]
+    A(f'- **Calibration vs code:** code-region content similarity '
+      f'({min(code_cs):.0f}-{max(code_cs):.0f}%) is usually higher than cal-region '
+      f'similarity ({min(cal_cs):.0f}-{max(cal_cs):.0f}%) for a given pair — i.e. '
       'the code reading the tables is more conserved than the tables themselves.')
     A('')
     A('## 7. Open questions')
@@ -557,9 +599,9 @@ def write_report(raw_rows, blk_rows, range_rows, cal_rows, layout, rom_files, sh
         f.write('\n'.join(lines) + '\n')
 
 
-def write_readme():
+def write_readme(n_roms, n_cal_addrs):
     with open(os.path.join(OUT_DIR, 'README.md'), 'w') as f:
-        f.write('''# romdiff — cross-ROM diff analysis
+        f.write(f'''# romdiff — cross-ROM diff analysis
 
 Generated by `run_romdiff.py` (no repo files modified; read-only inputs).
 
@@ -574,8 +616,8 @@ Python 3.8+, no third-party packages.
 
 ## Inputs (read-only)
 
-- `roms/stock/*.bin` — 9 stock 512 KB SH-2E ROMs
-- `symbols/cal_tables.csv` — 1209 calibration-table addresses (60E1D400 layout)
+- `roms/stock/*.bin` — {n_roms} stock 512 KB SH-2E ROMs → {n_roms*(n_roms-1)//2} pairs (N*(N-1)/2)
+- `symbols/cal_tables.csv` — {n_cal_addrs} calibration-table addresses (60E1D400 layout)
 
 ## Outputs
 
