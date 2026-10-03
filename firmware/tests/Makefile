@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch link_m6_crank link_eeprom
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch link_m6_crank link_eeprom link_main link_boot
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -202,6 +202,44 @@ $(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos
 # broken timeout bound fails the harness instead of hanging the gate.
 $(OUTDIR)/link_eeprom: link/link_eeprom.c $(FW_C)/eeprom.c $(FW_HDRS) | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
+
+# main links the REAL main.c TU + serial.c + eeprom.c + timer.c (link
+# pilot 15 — the RTOS queue scheduler / dispatcher TU, zero coverage).
+# Zero stubs: nm -u main.o = eeprom_read_validate + 4 serial_* ;
+# nm -u serial.o = 2 atu_* (timer.c); eeprom.o/timer.o nm -u EMPTY —
+# the whole undefined-symbol chain is closed by in-repo TUs. All four
+# TUs compile clean under -Werror (no relaxations, m4 precedent). The
+# harness mmap-maps TWO 4 KiB pages with MAP_FIXED — 0xFFFFD000 (task
+# queue 0xFFFFD4E0..0xFFFFD7FF, indices 0xFFFFDFB4/B6, busy 0xFFFFDFBA,
+# EEPROM validate buffer 0xFFFFDFE4..DFEC) and 0xFFFFE000 (WDT_TCSR
+# 0xFFFFEC10) — so init fill, index arithmetic, the busy-path payload
+# copy, and the watchdog feed store all execute for real against mapped
+# memory, not a model. main_task_dispatcher/fatal_error_infinite_loop
+# are linked but never entered (h5-style documented gaps in the header).
+$(OUTDIR)/link_main: link/link_main.c $(FW_C)/main.c $(FW_C)/serial.c $(FW_C)/eeprom.c $(FW_C)/timer.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
+
+# boot links the REAL boot.c TU + eeprom.c + timer.c (link pilot 16 —
+# the boot chain, zero coverage). NAMED build conditional (the GO for
+# this pilot): boot.c does NOT compile under stock -Werror — exactly 12
+# -Warray-bounds errors, ALL inside reset_handler (macro-expansion sites
+# boot.c:277..340; re-verified at pilot time), so this rule alone adds
+# -Wno-error=array-bounds (precedent: the -Wno-error=unused-function
+# relaxations above; with the flag boot.c has 0 errors + exactly those
+# 12 warnings). nm -u boot.o = atu_configure_io_channel +
+# spi_clk_high_wait/low_wait — provided by timer.c/eeprom.c: zero stubs.
+# -no-pie: S8 vector_trampoline_set_sp casts a uint32 callee pointer
+# (rtos precedent); the harness runtime-CHECKs the truncation. The
+# harness mmap-maps THREE 4 KiB pages MAP_FIXED|MAP_SHARED — 0xFFFFD000
+# (EEPROM/serial buffers, queue indices), 0xFFFFE000 (WDT/BSC/SPI +
+# tail poll 0xFFFFED18), 0xFFFFF000 (BSC tail 0xFFFFF70A, PFC
+# 0xFFFFF720..778, ATU TIOR0 0xFFFFF740) — shared so the S9 fork probe
+# can observe Manual_Reset's phase 1-2 writes; page 0 stays unmapable
+# (mmap_min_addr), so reset_handler is documented never-entered and the
+# probe asserts its 0x58C fault address. A 3 s SIGALRM watchdog
+# (_exit(1), link_eeprom precedent) fails the run on any removed bound.
+$(OUTDIR)/link_boot: link/link_boot.c $(FW_C)/boot.c $(FW_C)/eeprom.c $(FW_C)/timer.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -Wno-error=array-bounds -no-pie $(filter %.c,$^) -o $@ -lm
 
 link-all: $(LINK_BINS)
 
