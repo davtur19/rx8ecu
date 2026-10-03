@@ -90,8 +90,11 @@ void serial_queue_message(uint8_t cmd, uint8_t payload_size, const uint8_t *sour
 /*  Channel API (shared contract with the serial.c definitions)           */
 /* ====================================================================== */
 
-/* These four are the only serial.c entry points the host link harness
- * (link_m4_serial_rx) and any other TU CALL directly; declaring them
+/* These four were the only serial.c entry points with NO serial.h
+ * prototype before the fix (verified by comm'ing serial.c's non-static
+ * definitions against the previous header); the host link harness
+ * (link_m4_serial_rx) calls each of them directly, and every serial.c
+ * entry point now resolves via this header. Declaring them
  * here makes serial.c itself compile against the same prototypes
  * (serial.c includes this header), so a parameter-type drift in a
  * definition becomes a `conflicting types` compile error instead of a
