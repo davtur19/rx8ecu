@@ -40,7 +40,24 @@
  *   - No constructor/init-time MMIO: dtc.c file-scope statics are plain
  *     zero-init (dtc_slot_count, dtc_backup_count).
  *
- * Proves (every assert killable; zero-expects are primed first):
+ * Proves (killability audited against a /tmp single-edit mutant battery
+ * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
+ * least one demonstrated firmware mutant — m7-style honesty, NO kill
+ * claimed beyond the demonstrated set. Representative mapping: (a) and
+ * (e), plus the composite reads inside (b)/(d)/(f), die to the dtc.h
+ * inline TYPE-read mutant (14 red asserts); each of (b)'s three writer
+ * asserts dies to its own dropped-store mutant (TYPE / SEVERITY /
+ * FLAGS3); (c)'s count asserts die to the sid18 mask-inversion mutant
+ * and bad-sub to the sub-widen — the inline TYPE-read mutant
+ * coincidentally PRESERVES the 0x80/0x20 counts (s4's poisoned 0xFF TYPE
+ * counts under every mask while s3/s6 drop out), so (c) is attributed to
+ * the inversion, not to it; (d) dies to the sid12 sub-gate revert, the
+ * sub-4 reject and the inline mutant's record statuses; (f) dies to the
+ * pending-clear drop, the clear-ALL revert (s3-survives), and the whole-
+ * record wipe (which also reds the count-stays-2 and occupied-4
+ * expects). The dtc.h contract _Static_asserts are compile-time kills by
+ * constant revert, one demonstrated (DTC_PRIMARY_ENTRY_SIZE 0x34->0x30
+ * fires at build). Zero-expects are primed first — F1 lesson):
  *   (a) dtc_read_status == SEVERITY|FLAGS3 with TYPE byte poisoned 0x00
  *       (composite 0x90) and with TYPE byte poisoned 0xFF (composite 0 —
  *       a TYPE reader returns 0xFF here, so the zero-assert is not

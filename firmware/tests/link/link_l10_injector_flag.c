@@ -47,8 +47,19 @@
  * are local constants + page-coverage _Static_asserts, m8-style; the
  * extern signature itself is the dtc.h compile-time contract.
  *
- * Proves (every assert killable; every zero-expect is primed nonzero
- * first — F1 lesson):
+ * Proves (killability audited against a /tmp single-edit mutant battery
+ * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
+ * least one demonstrated firmware mutant — (a)/(b)/(h)/(i) die to the
+ * fuel-cut store drop and the fuel-cut-gate revert, (c) to the status_a
+ * comparison revert, (d) to the sec_check comparison revert, (e) to the
+ * status_b revert, (f) to the cond_1 revert, (g) to the cond_2 revert,
+ * (j) to the tail-return constant — m7-style honesty, NO kill claimed
+ * beyond the demonstrated set. Every zero-expect is primed nonzero first
+ * — F1 lesson. One documented exception, NOT a claimed kill: the two
+ * self-referential address _Static_asserts below pin the harness map
+ * only (see the note there) — the runtime prime→store→read CHECKs carry
+ * the revert-detection load; the dtc.h extern signature is the
+ * compile-time contract):
  *   (a) fuel-cut + latched fault (status_a=1): return 0, results zeroed
  *       (primed 0xEE), fault flag STORED 1 (primed 0);
  *   (b) fuel-cut + stale fault flag 1, no fault condition: fault flag

@@ -55,15 +55,32 @@
  * declared in serial.h (shared with serial.c) — the harness carries NO
  * local externs; every called symbol comes from serial.h/timer.h.
  *
- * Proves (every assert killable; every zero-expect is primed nonzero
- * first — F1 lesson):
+ * Proves (killability audited against a /tmp single-edit mutant battery
+ * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
+ * least one demonstrated firmware mutant — demonstrated killers are named
+ * per claim, m7-style honesty, NO kill claimed beyond the demonstrated
+ * set. Memory targets are primed 0xEEEE (M4_PRIME) so every exact/zero
+ * expect on the mapped page dies to a dropped-init/store mutant; the
+ * return-state 0 expects in (b)/(e)/post-drain are not primable and die
+ * to behavioral mutants instead — dropped arming (fresh read -> -1) and
+ * dropped drain (second read -> byte). Contract _Static_asserts over real
+ * platform.h/serial.h constants are compile-time kills by constant
+ * revert, one demonstrated (SERIAL_CHANNELS 3->4 fires at build); the
+ * THREE self-referential local pins below (INTC address / RX_READY /
+ * capacity) pin the harness map only — documented, NOT claimed kills —
+ * the runtime value CHECKs carry their revert detection. Zero-expects
+ * are primed nonzero first — F1 lesson):
  *   (a) serial_init arms M4: real atu_timer_init + atu_capture_compare_
  *       init MMIO values land (TSTR 0, TCR* =DIV4, TIOR0 =4, TIOR1 =1,
  *       TIOR2 =0, TIER0/1 =1, TIER2 =0 — each primed 0xEEEE), INTC
  *       0xFFFFF02E primed 0xEEEE -> 0x001E;
  *   (b) fresh channel after init: serial_data_read returns 0, not -1
  *       (kills NULL rx_buf / dropped init arming);
- *   (c) channel >= 3 rejects with -1 (read and write);
+ *   (c) channel >= 3 rejects with -1 (read and write): runtime-killed by
+ *       widening both bounds guards to 4 (the write check reds, then the
+ *       OOB channel SIGSEGVs; the read leg alone coincidentally still
+ *       returns -1 via the NULL rx_buf guard) and build-killed by the
+ *       SERIAL_CHANNELS pin;
  *   (d) ch0 one-byte RX through the real handler: byte from the TGR0+1
  *       lane delivered, n==1 not min(255,max) (kills len=rx_len);
  *   (e) after read: second read returns 0 (READY/index drained);
@@ -84,9 +101,15 @@
  *   (l) IRQ path ch2: TISRA primed 0x00D4 -> 0x00D0, ch2 byte captured;
  *   (m) serial_enable/disable_interrupts: INTC primed 0xEEEE -> 0x001E /
  *       0x0000 exactly (value asserts, not just “was written”);
- *   (n) TX smoke: serial_data_write returns len, second write while idle
- *       works, serial_start_tx on a no-TX_READY channel is a no-op —
- *       full-TU link proof, not model-only.
+ *   (n) TX smoke: serial_data_write returns len and the post-completion
+ *       re-write works (both red under the write-returns-0 mutant). The
+ *       remaining legs — start_tx on a no-TX_READY channel is a no-op,
+ *       empty write_handler touches nothing observably — are idempotent
+ *       boundary properties: no single-edit mutant makes them observable
+ *       (sync completion only clears already-clear flags, and ch1's TX
+ *       state is zero), so they are documented link-level no-crash
+ *       invariants, NOT claimed kills — full-TU link proof, not model-
+ *       only.
  *
  * Build (see firmware/tests/Makefile link-check):
  *   gcc -std=c11 -Wall -Wextra -Werror -O2 \
