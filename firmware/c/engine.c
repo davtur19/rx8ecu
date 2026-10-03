@@ -446,6 +446,40 @@ void crank_sync_acquire(uint8_t rotor_offset)
     }
 }
 
+#ifdef FW_HOST_TEST
+/* Host link-pilot fixtures (link/link_m6_crank.c) for the file-static
+ * trigger decode state above. Production builds never define FW_HOST_TEST,
+ * so this block is compiled out and the normal build is byte-for-byte
+ * unaffected — same mechanism as getDwellTimeUs_forHostTest. Pure
+ * read/write of statics, no logic. */
+
+/**
+ * setCrankToothCount_forHostTest — fixture setter for crank_tooth_count.
+ *
+ * The ISR counter saturates at 0xFF and never rewinds, and the harness S1
+ * scenario consumes 0->0x1C before scenario S6 needs counts 9/10/15/255,
+ * so the rotor-map scenario cannot be driven by crank_timing_update()
+ * calls alone.
+ */
+void setCrankToothCount_forHostTest(uint8_t count)
+{
+    crank_tooth_count = count;
+}
+
+/**
+ * getCrankRotor_forHostTest — read back crank_tooth_count /
+ * crank_rotor_id / crank_rotor_position (rotor_position_synchronization
+ * touches only these file statics — no MMIO involved).
+ */
+void getCrankRotor_forHostTest(uint8_t *tooth_count, uint8_t *rotor_id,
+                               uint8_t *rotor_pos)
+{
+    *tooth_count = crank_tooth_count;
+    *rotor_id = crank_rotor_id;
+    *rotor_pos = crank_rotor_position;
+}
+#endif /* FW_HOST_TEST */
+
 /* ====================================================================== */
 /*  Ignition System                                                        */
 /* ====================================================================== */

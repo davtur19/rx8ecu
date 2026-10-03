@@ -296,6 +296,21 @@ void outputPerRotorIgnitionDwell(uint8_t rotor_idx);
  * matching engine.c definition are compiled out — zero behavior change.
  */
 uint16_t getDwellTimeUs_forHostTest(void);
+
+/**
+ * setCrankToothCount_forHostTest / getCrankRotor_forHostTest — fixture
+ * access for the file-static trigger decode state (crank_tooth_count,
+ * crank_rotor_id, crank_rotor_position).
+ *
+ * Host link-pilot accessors only (firmware/tests/link/link_m6_crank.c).
+ * Production builds never define FW_HOST_TEST, so these prototypes and
+ * the matching engine.c definitions are compiled out — zero behavior
+ * change. See engine.c for why the fixture needs a setter (the ISR
+ * counter saturates at 0xFF and never rewinds).
+ */
+void setCrankToothCount_forHostTest(uint8_t count);
+void getCrankRotor_forHostTest(uint8_t *tooth_count, uint8_t *rotor_id,
+                               uint8_t *rotor_pos);
 #endif /* FW_HOST_TEST */
 
 /**

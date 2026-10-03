@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch link_m6_crank
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -98,6 +98,22 @@ $(OUTDIR)/link_h5_sid22: link/link_h5_sid22.c $(FW_C)/uds.c $(FW_HDRS) | $(OUTDI
 # getDwellTimeUs_forHostTest accessor (engine.c/.h) — production builds
 # never define it, so the normal firmware is unaffected.
 $(OUTDIR)/link_h4_dwell: link/link_h4_dwell.c $(FW_C)/engine.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $(filter %.c,$^) -o $@ -lm
+
+# m6/crank links the REAL engine.c TU (link pilot 13 — crank path: M6 gap
+# sentinel, C3 saturating ISR tooth counter, M1 FSM clamp, S5 FSM
+# transitions, rotor map). Same TU and -DFW_HOST_TEST host fixtures as h4
+# (setCrankToothCount_forHostTest / getCrankRotor_forHostTest — the S6
+# rotor-map scenario needs the file statics; production builds never
+# define FW_HOST_TEST). nm -u engine.c is EMPTY -> zero stubs. The harness
+# mmap-maps FOUR 4 KiB pages with MAP_FIXED — 0xFFFF9000 (sync mirrors
+# 0xFFFF9F95..0xFFFF9FCF), 0xFFFFF000 (timer capture 0xFFFFF434), 0x6C000
+# (gap-ratio limit 0x6CF5C stand-in) and 0x75000 (PARTIAL_SYNC limit
+# 0x75184 stand-in) — so every load/store executes for real. Page 0xD000
+# (ROM rotor table 0xDA05) is host-blocked by mmap_min_addr=65536: the
+# harness keeps sync_flag_1==0 everywhere so the 0xDA05 tail never runs —
+# a DOCUMENTED coverage gap, not a silent one.
+$(OUTDIR)/link_m6_crank: link/link_m6_crank.c $(FW_C)/engine.c $(FW_HDRS) | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -DFW_HOST_TEST $(filter %.c,$^) -o $@ -lm
 
 # h2 links the REAL dtc.c TU + the REAL dtc_read_status inline (H2
