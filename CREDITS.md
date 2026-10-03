@@ -12,9 +12,12 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
   - **Community stock-ROM collection** — the 10 public ROM images in `roms/stock/`
     came from that repository's `Stock_ROMs/`. They are verified **byte-for-byte
     identical** to it (see `roms/ROMS.md` for the provenance statement). The
-    newest, `roms/stock/60E32000_N3N5EB.bin`, comes from upstream commit
+    newest, `roms/stock/60E32000_N3N5EB.bin`, has upstream **content commit**
+    [`47be913`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/47be913a80feed6cbd16e996860aa3a9b43faf49)
+    (2026-09-19, "Added 60E32000_N3N5EB.bin") which reached upstream `master`
+    through the merge
     [`fe4fa71`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/fe4fa71725a99422d80279cb1fa30aca6b53aa00)
-    (pushed 2026-09-25).
+    (2026-09-25); our copy was taken from the `fe4fa71` tree.
   - **931 hand-annotated function names** — equinox's hand-done Ghidra work on the
     US 6-port `60E0FC00` ROM (revised 1000+ times): 3,459 functions. Of these,
     931 carry real hand-written names. They are exported to
@@ -36,13 +39,24 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
   Therefore we captured it offline for reference:
   <https://www.rx8club.com/series-i-engine-tuning-forum-63/open-source-s1-rx-8-ecu-reverse-engineering-data-logging-tuning-users-guide-276137/>
 
-- License: **verified 2026-08-01 with the GitHub API** — all three upstream
-  repositories (`equinox311/Mazda_RX8_PCM_ReverseEngineering`,
+- License: **verified 2026-08-01, re-verified 2026-10-03 with the GitHub
+  API** — all three upstream repositories
+  (`equinox311/Mazda_RX8_PCM_ReverseEngineering`,
   `equinox311/RX8Defs` — a fork of `Rx8Man/RX8Defs` — and `Rx8Man/Rx8Man`)
   return `license: null`, that is **no license = all rights reserved**. Treat the
   upstream content per its own terms; this project's derivative work carries
   its own AGPL license but the upstream material itself is not licensed for
   reuse.
+
+- **RX8Defs definition data quoted in `roms/ROMS.md`** — the `60E32000` /
+  `N3N5EB` RomRaider entry (266 addressed tables: 264 DTC enable/disable + 2
+  Immobilizer switches at `0x371D8` / `0x37624`, added 2026-09-29, submodel
+  "6 Port" / JDM / 2006 / AT), its block location and table counts, and the
+  absence of entries for `60E0E500`, are **upstream facts read from
+  `equinox311/RX8Defs`** (HEAD `e1fe0a5`). Because that repository reports
+  `license: null` (all rights reserved), those addresses and counts remain
+  upstream's property: **this project's AGPL license does not relicense them**;
+  they are quoted here as attribution and verification notes only.
 
 ## RX8Man / equinox311 (rx8defs)
 
