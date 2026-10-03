@@ -8,15 +8,16 @@
  * Mechanism proof: links the real serial.c, so a firmware revert of the
  * M4 fix (dropping the serial_init rx_buf/rx_len arming, delivering
  * rx_len instead of rx_idx, zeroing capacity on read, or breaking the
- * RX_READY gate) fails this binary at run time. Detection for the four
- * local-extern symbols (serial.h carries NO prototypes for serial_init /
- * serial_data_read / serial_data_write / serial_atu_irq_handler): a
- * RENAME in serial.c fails at link (undefined symbol); a parameter-type
- * change of those four alone still links and is NOT detected here —
- * residual, no shared decl exists. Symbols with serial.h/timer.h
- * declarations are compiled against the header. The ATU
- * interrupt-status RMW clear and the intc_reg_write enable/disable
- * values are also driven for real against the mapped page.
+ * RX_READY gate) fails this binary at run time. Detection for ALL four
+ * called serial.c entries (serial_init / serial_data_read /
+ * serial_data_write / serial_atu_irq_handler): their prototypes live in
+ * serial.h — the SAME header serial.c includes — so a RENAME fails at
+ * link (undefined symbol) and a parameter-type change fails at compile
+ * with `conflicting types` (serial.c is built against the header under
+ * -Werror, and the harness calls through the header prototypes, no
+ * local externs). The ATU interrupt-status RMW clear and the
+ * intc_reg_write enable/disable values are also driven for real against
+ * the mapped page.
  *
  * Target / TU choice (confirmed from source, not assumed):
  *   - `nm -u serial.o` = exactly {atu_timer_init, atu_capture_compare_init}.
@@ -49,10 +50,10 @@
  * Contract pins: ATU_BASE / ATU_TGR*_OFFSET / ATU_TISRA_OFFSET come from
  * the real platform.h (_Static_asserts below); INTC 0xFFFFF02E and the
  * SERIAL_STATUS_* / capacity values live as literals in the serial.c body
- * (no header macros), pinned local-constant style, m8/l10. serial.h does
- * not declare serial_init / serial_data_read / serial_data_write /
- * serial_atu_irq_handler — the harness carries those four local externs
- * (grep-verified); every other called symbol comes from serial.h/timer.h.
+ * (no header macros), pinned local-constant style, m8/l10. serial_init /
+ * serial_data_read / serial_data_write / serial_atu_irq_handler are
+ * declared in serial.h (shared with serial.c) — the harness carries NO
+ * local externs; every called symbol comes from serial.h/timer.h.
  *
  * Proves (every assert killable; every zero-expect is primed nonzero
  * first — F1 lesson):
@@ -160,20 +161,12 @@ _Static_assert(M4_INTC_ADDR == 0xFFFFF02Eu, "INTC address revert");
 _Static_assert(M4_STATUS_READY == 0x04u, "RX_READY bit revert");
 _Static_assert(M4_RX_CAPACITY == 255u, "M4 capacity revert");
 
-/* serial.h does NOT declare these four (verified by grep — only the
- * handlers/enable/start_tx live there): serial_init, serial_data_read,
- * serial_data_write, serial_atu_irq_handler are defined in serial.c with
- * no header prototype. These local externs pin the signatures the
- * harness CALLS, but they are independent of serial.c's definitions: a
- * RENAME in serial.c fails at link (undefined symbol), while a
- * parameter-type change of these four still links and is not detected
- * here (no shared header proto — residual; under -Werror the serial.c
- * definitions themselves must stay warning-clean against serial.h where
- * a header proto exists). */
-void serial_init(void);
-int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len);
-int serial_data_write(uint8_t channel, const uint8_t *buf, uint8_t len);
-void serial_atu_irq_handler(void);
+/* serial_init / serial_data_read / serial_data_write /
+ * serial_atu_irq_handler: prototypes come from the real serial.h (the
+ * same header serial.c includes) — NO local externs. A parameter-type
+ * change in serial.c is then a `conflicting types` compile error in the
+ * serial.c TU under -Werror, not a silent link; a rename stays a link
+ * error. */
 
 static int failures = 0;
 
