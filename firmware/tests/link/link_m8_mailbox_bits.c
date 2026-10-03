@@ -39,7 +39,19 @@
  *   - Same unused-static relaxation as h1 (can_parse_mailbox_id/dir;
  *     firmware sources untouched).
  *
- * Proves (every assert killable; zero-expects are primed first):
+ * Proves (killability audited against a /tmp single-edit mutant battery
+ * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
+ * least one demonstrated firmware mutant — (a)/(f) die to the dropped
+ * enable store, (b) to the pre-fix 8-bit mask alias, (c) to the unmasked-
+ * shift revert, (d) to the write-only-store revert (RMW read dropped),
+ * (e) to the bank-select revert — m7-style honesty, NO kill claimed
+ * beyond the demonstrated set. Every expect is nonzero (own-bit values,
+ * primed high bytes, or 0xFFFF), so no zero-expect is at issue. The four
+ * can.h contract _Static_asserts are compile-time kills by constant
+ * revert, one demonstrated (HCAN_MBOX_REG_ADDR fires at build). One
+ * documented exception, NOT a claimed kill: the two self-referential
+ * page asserts below pin the harness map only (see the note there) — the
+ * runtime CHECKs on the mapped words carry revert detection):
  *   (a) mailboxes 0-15 on CAN0 each set exactly their own bit
  *       (16 nonzero expects, reg primed 0 before each);
  *   (b) MB10 -> 0x0400 and MB11 -> 0x0800 (no alias onto bits 2/3);

@@ -46,7 +46,22 @@
  * context frame sizes 0x34/0x44, dispatch table base 0x6873C, and full
  * page membership of the queue region and both index addresses.
  *
- * Proves (every assert killable):
+ * Proves (killability audited against a /tmp single-edit mutant battery
+ * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
+ * least one demonstrated firmware mutant — m7-style honesty, NO kill
+ * claimed beyond the demonstrated set; the two documented survivors are
+ * in NOT covered below. Contract _Static_asserts are compile-time kills
+ * by constant revert, one demonstrated (RTOS_QUEUE_ENTRY_SIZE 8->7 fires
+ * at build). Two holes this audit found were fixed harness-side by
+ * adding kill vectors: (e) gained the w=99/r=0 state — the only index
+ * pair where is_full's `% RTOS_QUEUE_MAX_SLOTS` decides — killing the
+ * no-modulo mutant the other states miss; (j) gained an in-dispatch dip
+ * probe reading current_priority FROM INSIDE the handler, killing a
+ * dropped `current_priority = priority` that the post-dispatch restore
+ * checks cannot see. (k)'s four expects each die to their own mutant:
+ * frame-size revert (sp save/restore), core-slot nonzero (52-byte
+ * zeroing), BASIC FP-guard removal (primed A5 survives), TIMER FP-guard
+ * kill (68-byte zeroing):
  *   (a) rtos_init: indexes primed nonzero -> 0, queue primed 0x00 -> all
  *       800 bytes 0xFF, empty/full/count/priority contracts;
  *   (b) dequeue on empty -> -1 with output params untouched (primed);
@@ -54,7 +69,9 @@
  *       bytes, index advance (kills dropped enqueue stores);
  *   (d) 3-item FIFO order + count decrements;
  *   (e) index-arithmetic contracts across wrap (count=15 at r=90/w=5,
- *       full at r=98/w=97) — the rtos_queue_count/ is_full wrap branches;
+ *       full at r=98/w=97, full at w=99/r=0 — audit-added vector killing
+ *       the no-modulo is_full mutant) — the rtos_queue_count/ is_full
+ *       wrap branches;
  *   (f) enqueue/dequeue across the 99->0 slot wrap (fresh 0xFF slots);
  *   (g) fill-to-full: 99 pending, is_full, 100th -> -1 with write index
  *       frozen, then full FIFO drain;
@@ -65,7 +82,10 @@
  *       removal calls through NULL -> SIGSEGV, also red);
  *   (j) scheduler: empty no-op with latch released, single-task dispatch
  *       with exact arg, current_priority restored to S3 after an S0
- *       dispatch, FIFO across mixed priorities, re-entrancy latch (nested
+ *       dispatch, an in-dispatch dip probe (inside the S0 dispatch the
+ *       priority must read S0 — kills a dropped `current_priority =
+ *       priority`, which the restore checks cannot see), FIFO across
+ *       mixed priorities, re-entrancy latch (nested
  *       rtos_scheduler from inside a handler must NOT re-enter: log must
  *       be "AaB", a removed latch yields "ABa"), null-handler task
  *       survives, rtos_yield dispatches pending work and restores
@@ -74,11 +94,34 @@
  *       bytes zeroed (primed A5), FP 16 bytes untouched for BASIC (primed
  *       A5 survives) but zeroed for TIMER.
  *
- * NOT covered (documented residual): the scheduler re-enqueue/skip_count
- * branch (priority > current_priority at loop level) is unreachable via
- * the public API on the host: current_priority only dips below S3 DURING a
- * dispatch, and the scheduler_running latch blocks re-entry from handlers,
- * so loop-level priority is always S3 and every valid task (0..3) dispatches.
+ * NOT covered (documented residual, NOT claimed kills): the scheduler
+ * else-branch (priority > current_priority at loop level — rtos.c
+ * skip_count++ + re-enqueue) is unreachable via the public API on the
+ * host: current_priority only dips below S3 DURING a dispatch, the
+ * scheduler_running latch blocks re-entry from handlers, and no public
+ * setter exists, so loop-level priority is always S3 and every valid
+ * task (0..3) dispatches (prior gcov: 0% on those lines). Two single-
+ * edit mutants therefore survive this battery by design, measured:
+ *   - RT-D (skip_count++ -> += 2): observationally equivalent even IF
+ *     the branch were reached — the >=RTOS_QUEUE_MAX_SLOTS break then
+ *     fires after 50 cycles instead of 100, which shifts only ABSOLUTE
+ *     index values, while every scheduler CHECK in (j) is relative
+ *     (counts, emptiness, args, order). Measured: a two-edit diagnostic
+ *     that forces the branch (init priority S3 -> S0) plus this mutant
+ *     produced an IDENTICAL FAIL set (count and exact texts) to the
+ *     priority revert alone. Killing RT-D needs BOTH else-path
+ *     reachability AND an absolute-index assert after the skip-break.
+ *   - RT-D2 (else-path re-enqueue dropped): WOULD die under else-path
+ *     coverage — the same two-edit diagnostic flips the existing
+ *     asserts: "queue not empty after scheduler", "latch: queue not
+ *     empty", "null-handler task not drained" and "yield dispatched
+ *     calls=2" all change state (measured: 4 FAILs disappear).
+ * Follow-up (needs an FW_HOST_TEST current_priority setter, i.e. a
+ * firmware/tests/Makefile edit — OUT OF SCOPE here): add an else-path
+ * section asserting queue retention (kills RT-D2) and the absolute
+ * write/read index after the skip-break (kills RT-D). Separately, the
+ * init-priority constant itself IS killed (S3 -> S0 revert reds every
+ * post-init priority expect).
  *
  * Build (see firmware/tests/Makefile link-check):
  *   gcc -std=c11 -Wall -Wextra -Werror -O2 -no-pie -I../include \
@@ -209,6 +252,21 @@ static void h_order(uint32_t a, uint32_t b)
         seen[seen_n] = b;
     }
     seen_n++;
+}
+
+/* Dip probe: records current_priority FROM INSIDE a dispatched handler.
+ * rtos_scheduler must drop current_priority to the task's priority before
+ * rtos_dispatch, so an S0 dispatch must observe 0 — this kills a dropped
+ * `current_priority = priority` store, which the post-dispatch restore
+ * checks cannot see (old_priority would still restore S3). */
+static uint32_t dip_prio = 0xEEu;
+
+static void h_dip(uint32_t a, uint32_t b)
+{
+    (void)a;
+    (void)b;
+    h_calls++;
+    dip_prio = rtos_get_current_priority();
 }
 
 /* Re-entrancy latch probe: A logs entry, calls the scheduler (must be a
@@ -415,6 +473,15 @@ int main(void)
     CHECK(rtos_queue_is_full() == 1, "w=97 r=98 must be full");
     CHECK(rtos_queue_count() == 99, "wrap-full count=%d want 99",
           rtos_queue_count());
+    /* w=99 / r=0: the ONLY index state where is_full's `w+1` crosses 100
+     * and the modulo arm decides (100%100 == 0 == r). Without the vector
+     * the `% RTOS_QUEUE_MAX_SLOTS` in is_full is observationally dead
+     * (audit: a no-modulo mutant survived), so prime-and-check it here. */
+    rtos_set_read_index(0);
+    rtos_set_write_index(99);
+    CHECK(rtos_queue_is_full() == 1, "w=99 r=0 must be full (wrap modulo)");
+    CHECK(rtos_queue_count() == 99, "w99/r0 count=%d want 99",
+          rtos_queue_count());
     rtos_set_read_index(7);
     rtos_set_write_index(7);
     CHECK(rtos_queue_is_empty() == 1, "w=r=7 must be empty");
@@ -599,6 +666,23 @@ int main(void)
     CHECK(h_calls == 1, "S0 scheduler calls=%u want 1", h_calls);
     CHECK(rtos_get_current_priority() == RTOS_PRIORITY_S3,
           "priority after S0 dispatch=%u want 3 (restore dropped?)",
+          rtos_get_current_priority());
+
+    /* Dip probe: inside the S0 dispatch current_priority must read S0
+     * (kills a dropped `current_priority = priority` — the restore checks
+     * above/below cannot see it: old_priority still restores S3). */
+    h_calls = 0;
+    dip_prio = 0xEEu;
+    CHECK(rtos_task_enqueue(rtos_build_dispatch(
+              (uint32_t)(uintptr_t)&h_dip, RTOS_TYPE_SUBFUNC,
+              RTOS_PRIORITY_S0), 0x222u) == 0, "dip enqueue");
+    rtos_scheduler();
+    CHECK(h_calls == 1, "dip scheduler calls=%u want 1", h_calls);
+    CHECK(dip_prio == RTOS_PRIORITY_S0,
+          "dip priority=%u want 0 (current_priority never dropped?)",
+          dip_prio);
+    CHECK(rtos_get_current_priority() == RTOS_PRIORITY_S3,
+          "priority after dip dispatch=%u want 3",
           rtos_get_current_priority());
 
     /* Mixed priorities: at loop level current is S3, so all four
