@@ -743,3 +743,8 @@ Waves 1-5 of analysis completed. All results consolidated in `docs/notes/IDA_ANA
 - drawPWM renderer clamps duty 0..1: `Math.max(0, Math.min(1, pwm.duty))` (web/ecu-emu/src/app.js:1587, mirrored web/ecu-emu/dist/app.js:1587).
 - L4 dormant fix: CAN_DIR_BIT 0x0100→0x80 (bit 7 of byte 4; 0x0100 was always 0 on uint8_t entry[4]) (firmware/include/can.h:62, consumed firmware/c/can.c:89).
 - Batch E landed as commit 4237d84 (6 files: c/tests/test_setSR_getSR.py, c/tests/test_task_context_switch_3AD8.py, firmware/c/uds.c, firmware/include/can.h, web/ecu-emu/src/app.js, web/ecu-emu/dist/app.js).
+
+## 2026-10-03 — 10th stock ROM imported: 60E32000_N3N5EB (upstream equinox311 fe4fa71)
+- CONFIRMED: `roms/stock/60E32000_N3N5EB.bin` imported from `Stock_ROMs/60E32000_N3N5EB.bin` of equinox311/Mazda_RX8_PCM_ReverseEngineering commit `fe4fa71725a99422d80279cb1fa30aca6b53aa00` (pushed 2026-09-25; upstream states no license = all rights reserved) — 524288 B, md5 `246df6d053707cbd980a7cf9bee0516d`, sha256 `6c043bd4c9581f611919c187da95aeca152627212f235505d7b5ead34294a0a8` (re-verified after copy).
+- Re-derived from the binary itself: cal ID `60E32000` @0x2000, `SW-N3N5EB000.HEX` @0x71043, task `N3N5E_2W.T01` @0x71000, key `MazdA` @0x64C84 (sole occurrence). `python3 tools/denso_ck.py` → OK (Sum `0x3E0AFC3D`, Stored `0x1C9AA91D`). Byte-exact rebuild via `make ROM=roms/stock/60E32000_N3N5EB.bin verify` → OK (93.8% lift, 257 raw fallbacks).
+- Sibling of shipped `60E32000_N3M5E`: same cal ID, genuinely distinct SW build (N3N5EB vs N3M5EK) — 415,621/524,288 bytes differ (~79%). No other external files imported (byte-identical or non-shipped).

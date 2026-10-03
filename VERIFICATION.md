@@ -1,8 +1,8 @@
 # VERIFICATION — evidence that the release does what it claims
 
-Measured 2026-07-31 (sh-elf binutils 2.46, capstone 5.0.7, Python 3.14); re-run in this public tree. All rebuild claims are **9/9** for the 9-ROM set.
+Measured 2026-07-31 (sh-elf binutils 2.46, capstone 5.0.7, Python 3.14); re-run in this public tree. All rebuild claims are **9/9** for the 9-ROM `verify-all` set; the 10th image, `60E32000_N3N5EB` (added 2026-10-03), rebuilds byte-exact via the documented single-ROM target (same `rom_rebuild.py` pipeline, measured 2026-10-03) — current claim **10/10**.
 
-## 1. Byte-exact rebuild — 9/9 public stock ROMs
+## 1. Byte-exact rebuild — 10/10 public stock ROMs (9 via `verify-all` + 1 single-ROM target)
 
 `make verify-all` → `tools/verify_all.sh` → `tools/rom_rebuild.py` (capstone SH-2 + `disasm_sh2e.py` fallback → single `.s` → `sh-elf-as -big` + `sh-elf-ld -Ttext=0x0` + `sh-elf-objcopy -O binary` → `sha256sum`).
 
@@ -23,6 +23,13 @@ ROM                            sha256 match                    cov%    raw  STAT
 OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
+> **10th image (2026-10-03).** `60E32000_N3N5EB.bin` (added after this capture)
+> is not yet in the `tools/verify_all.sh` loop. It was verified with the
+> documented single-ROM target
+> `make ROM=roms/stock/60E32000_N3N5EB.bin verify` →
+> `OK: byte-exact rebuild of roms/stock/60E32000_N3N5EB.bin`
+> (lift 183,438/195,584 words = 93.8%, 257 raw fallbacks, ~1.5 s).
+
 `raw` = code-window words self-correction forced back to `.word` (GNU-as has no syntax: SH-2E `0x82nn/0x86nn` `mov.l @(disp,Rm)`) or capstone over-decoded as data; emitted verbatim ⇒ byte-exact by construction.
 
 ### sha256 — source ROM vs rebuilt output (identical)
@@ -38,6 +45,7 @@ OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 | 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68` | public, 9/9 |
 | 60E1D400.bin | `344cb8b960eb6dde973bdb8e8c3e3e96cac542166cd7158c6f5f24d71eb7af78` | public, 9/9 |
 | 60E32000_N3M5E.bin | `d5406459cc0b19f831a73a021ad2ae47179127097a15cfa323a34bfa47e330de` | public, 9/9 |
+| 60E32000_N3N5EB.bin | `6c043bd4c9581f611919c187da95aeca152627212f235505d7b5ead34294a0a8` | public, 10/10 |
 
 Single-ROM spot check: `make ROM=roms/stock/60E1D400.bin verify` → `OK: byte-exact rebuild of roms/stock/60E1D400.bin`.
 
@@ -93,7 +101,7 @@ Regeneration check: `make src` → file **byte-identical** to shipped `src/60E1D
 
 ## 6. ROM inventory hashes (also in roms/ROMS.md)
 
-All 9 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor @0x7FB80, target 0x5AA5A55A); `python3 tools/denso_ck.py roms/stock/60E1D400.bin` → `OK — checksum corretto`.
+All 10 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor @0x7FB80, target 0x5AA5A55A); `python3 tools/denso_ck.py roms/stock/60E1D400.bin` → `OK — checksum corretto`.
 
 | ROM | sha256[:16] | Status |
 |---|---|---|
@@ -106,6 +114,7 @@ All 9 shipped stock ROMs: 512 KB each, valid Denso additive checksum (descriptor
 | 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c` | public |
 | 60E1D400.bin | `344cb8b960eb6dde` | public |
 | 60E32000_N3M5E.bin | `d5406459cc0b19f8` | public |
+| 60E32000_N3N5EB.bin | `6c043bd4c9581f61` | public |
 
 ## 7. Self-containedness
 
