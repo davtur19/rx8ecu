@@ -14,15 +14,19 @@ Provenance: the community stock ROMs come from
 [equinox311/Mazda_RX8_PCM_ReverseEngineering](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering)
 (`Stock_ROMs/`). The six images originally in this repo were verified
 **byte-for-byte identical** to that source; three more (`60E15120`, `60E1C500`,
-`60E32000`) were added from it to widen the dataset.
+`60E32000`) were added from it to widen the dataset. The newest,
+`60E32000_N3N5EB`, was taken from upstream commit
+[`fe4fa71`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/fe4fa71725a99422d80279cb1fa30aca6b53aa00)
+(pushed 2026-09-25); upstream states **no license** for the repository (all
+rights reserved — see [CREDITS.md](../CREDITS.md)).
 
-> **What is (and is not) shipped.** This repo ships **9 public stock ROMs**
+> **What is (and is not) shipped.** This repo ships **10 public stock ROMs**
 > (the table below). No tuned-ROM rows are added here, and any IDA `.i64`/Ghidra
 > `.gar` project files are excluded. Every image listed here is stock factory
 > firmware already in public circulation and verified byte-exact
 > (see [VERIFICATION.md](../VERIFICATION.md)).
 
-## Stock ROMs (9 shipped)
+## Stock ROMs (10 shipped)
 
 | Cal ID (@0x2000) | Denso SW module | Task module | Sec key | Key offset | Checksum | sha256[:10] | Role / notes |
 |------------------|-----------------|-------------|---------|-----------|----------|-------------|--------------|
@@ -35,6 +39,7 @@ Provenance: the community stock ROMs come from
 | 60E1B900 | SW-N3ZDEH000.HEX | N3ZDEBWW.T50 | MazdA | 0x5DBA4 | OK | `b0dc94f96e` | community ref |
 | 60E1C500 | SW-N3J6EN000.HEX | N3J6EBMW.T50 | MazdA | 0x5E730 | OK | `b3b6e1e416` | community ref (file tagged `_N3J6EB`) |
 | 60E32000 | SW-N3M5EK000.HEX | N3M5E_SW.T01 | MazdA | 0x65134 | OK | `d5406459cc` | community ref (file tagged `_N3M5E`); **structurally distinct** — key ~0x65000 vs ~0x5Exxx elsewhere, task suffix `.T01` not `.T50` (likely a later/different-market build) |
+| 60E32000 | SW-N3N5EB000.HEX | N3N5E_2W.T01 | MazdA | 0x64C84 | OK | `6c043bd4c9` | community ref (file tagged `_N3N5EB`); **sibling of `60E32000_N3M5E`** — same cal ID but a genuinely distinct SW build (N3N5EB vs N3M5EK: 415,621/524,288 bytes differ, ~79%); same `.T01` task-suffix style as its sibling |
 
 Full sha256 for every shipped image: see
 [VERIFICATION.md](../VERIFICATION.md).
@@ -43,7 +48,9 @@ Full sha256 for every shipped image: see
 `60E0E500` and `60E32000` lack **public address-level defs** (RomRaider/EcuFlash
 table maps). `60E0E500` is likely address-compatible with its sibling `60E0E600`
 (same family — verify with a diff); `60E32000` has Ghidra labels (cjv0513) but no
-table defs. All other shipped ROMs have published defs.
+table defs, and **two shipped images now share this cal ID**
+(`60E32000_N3M5E` and `60E32000_N3N5EB`) — neither has published table defs.
+All other shipped ROMs have published defs.
 
 Observations:
 
@@ -51,7 +58,9 @@ Observations:
   key *offset* moves between builds (0x5D90C → 0x65134). It follows the
   code-layout size. The LFSR init table (`C5 41 A9`) is unchanged across builds.
 - Denso SW-module prefixes cluster into families: `N3J1`/`N3J6` (the "J" line),
-  `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z" line), and the outlier `N3M5`.
+  `N3YL`/`N3YM`, `N3Z2`/`N3ZD`/`N3ZH` (the "Z" line), and the outliers
+  `N3M5`/`N3N5` (both seen only on cal ID `60E32000` in this set — two distinct
+  SW builds of the same cal ID).
   The "J" line includes the documented baseline. `N3` is the RENESIS 13B
   engine-code prefix in Mazda's `N3xx-18-881` PCM part numbers.
 - Market / spec per cal ID, **confirmed** from equinox92's guide: `60E0FC00` =
@@ -77,7 +86,8 @@ physical PCM** the dump was pulled from. It usually — but **not always** —
 matches the internal `SW-*.HEX` calibration flashed on it:
 
 - Consistent: `60E0E700_N3YLEE` → internal `SW-N3YLEE000.HEX`; `60E1C500_N3J6EB`
-  → task `N3J6EBMW`; `60E32000_N3M5E` → `SW-N3M5EK000.HEX`.
+  → task `N3J6EBMW`; `60E32000_N3M5E` → `SW-N3M5EK000.HEX`;
+  `60E32000_N3N5EB` → `SW-N3N5EB000.HEX`.
 - **Mismatch**: `60E15120_N3J1E` carries internal `SW-N3ZHEB000.HEX` (a "Z"-line
   cal), not an `N3J1` cal. Treat the internal `SW-*.HEX` as authoritative for the
   software; the suffix identifies the donor hardware.

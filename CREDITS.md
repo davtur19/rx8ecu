@@ -9,9 +9,12 @@ This project builds on prior reverse-engineering work. Full credit and thanks to
 
   What this project takes from it:
 
-  - **Community stock-ROM collection** — the 9 public ROM images in `roms/stock/`
+  - **Community stock-ROM collection** — the 10 public ROM images in `roms/stock/`
     came from that repository's `Stock_ROMs/`. They are verified **byte-for-byte
-    identical** to it (see `roms/ROMS.md` for the provenance statement).
+    identical** to it (see `roms/ROMS.md` for the provenance statement). The
+    newest, `roms/stock/60E32000_N3N5EB.bin`, comes from upstream commit
+    [`fe4fa71`](https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering/commit/fe4fa71725a99422d80279cb1fa30aca6b53aa00)
+    (pushed 2026-09-25).
   - **931 hand-annotated function names** — equinox's hand-done Ghidra work on the
     US 6-port `60E0FC00` ROM (revised 1000+ times): 3,459 functions. Of these,
     931 carry real hand-written names. They are exported to

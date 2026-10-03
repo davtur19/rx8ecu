@@ -104,7 +104,7 @@ Reviewed 2026-08-04 (curl + GitHub REST API + indexed web search). **No public r
 - Cross-validates (i) 3-byte seed in `67 01`, (ii) NRC semantics of {0x12, 0x31, 0x22, 0x35}, (iii) working SendKey subfunc **0x02, not 0x04** — consistent with subfunc 0x04 → silence in run-mode handler. Caveat: tool path runs in diag/programming session (0x81/0x85 + bootloader), **outside** normal run-mode handler. No license — reference only.
 
 ### 7.3 Public stock ROM dumps (incl. byte-identical baseline) — equinox311/Mazda_RX8_PCM_ReverseEngineering
-- https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering — `Stock_ROMs/` (9 ROMs incl. `60E1D400.bin`), `Data_binaries/` (`60E0FC00.bin`, `RX8_93c56_ECU_IC420_Read.bin`, `ram_capture.bin`, `se3p_ecm_eeprom.bin`), `Ghidra_Archives/`.
+- https://github.com/equinox311/Mazda_RX8_PCM_ReverseEngineering — `Stock_ROMs/` (10 ROMs incl. `60E1D400.bin`), `Data_binaries/` (`60E0FC00.bin`, `RX8_93c56_ECU_IC420_Read.bin`, `ram_capture.bin`, `se3p_ecm_eeprom.bin`), `Ghidra_Archives/`.
 - Verified 2026-08-04: external `Stock_ROMs/60E1D400.bin` **byte-identical** to baseline — md5 `5e4236d29b7c05820240fa076dffdd40`, 524288 B. `ram_capture.bin` = live RAM capture (output of a security-access session).
 - Reuse: `ram_capture.bin` / EEPROM dumps diffable against future live capture. No license stated.
 
