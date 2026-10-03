@@ -118,6 +118,51 @@ jobs:
       - name: make verify-all (10/10 byte-exact ROM rebuild)
         run: make verify-all
 
+      # P2-4 (adversarial tools review): tools/denso_ck.py, the ROM checksum
+      # oracle, had zero automated invocations. Run it on every shipped stock
+      # ROM and pin each full-file sha256 against the authoritative section-1
+      # table in VERIFICATION.md. Fail-closed: a ROM not pinned in that table,
+      # a hash mismatch, or a malformed table row all fail the step.
+      - name: denso_ck checksum + sha256 pin (roms/stock vs VERIFICATION.md §1)
+        run: |
+          ulimit -v 1572864
+          python3 - <<'EOF'
+          import glob, os, re, subprocess, sys
+          def fail(msg): print("::error::" + msg); sys.exit(1)
+          lines = open("VERIFICATION.md", encoding="utf-8").read().splitlines()
+          s = next((i for i, l in enumerate(lines) if l.startswith("## 1.")), None)
+          if s is None: fail("VERIFICATION.md section 1 not found")
+          e = next((i for i in range(s + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+          hdr = next((i for i, l in enumerate(lines[s:e]) if l.startswith("|") and "sha256(source)" in l), None)
+          if hdr is None: fail("VERIFICATION.md section 1 sha256 table not found")
+          pinned, seen = {}, False
+          for l in lines[s + hdr + 1:e]:
+              if not l.startswith("|"):
+                  if seen: break
+                  continue
+              seen = True
+              if re.fullmatch(r"[\s|:-]+", l): continue  # separator row
+              cells = [c.strip() for c in l.strip().strip("|").split("|")]
+              if not (len(cells) == 3 and re.fullmatch(r"\w+\.bin", cells[0])
+                      and re.fullmatch(r"`[0-9a-fA-F]{64}`|[0-9a-fA-F]{64}", cells[1])):
+                  fail("malformed VERIFICATION.md section 1 table row: " + l)
+              pinned[cells[0]] = cells[1].strip("`")
+          if not pinned: fail("VERIFICATION.md section 1 sha256 table is empty")
+          roms = sorted(glob.glob("roms/stock/*.bin"))
+          if not roms: fail("no roms/stock/*.bin found")
+          rc = 0
+          for p in roms:
+              n = os.path.basename(p)
+              if n not in pinned:
+                  print(f"::error::{n} is not pinned in VERIFICATION.md section 1"); rc = 1
+                  continue
+              r = subprocess.run([sys.executable, "tools/denso_ck.py", p, "--expect-sha256", pinned[n]])
+              if r.returncode:
+                  print(f"::error::denso_ck failed for {n} (rc={r.returncode})"); rc = 1
+          print(f"denso_ck + sha256 pin: {len(roms)} ROMs checked against {len(pinned)} pinned rows")
+          sys.exit(rc)
+          EOF
+
       - name: make c-test (host-compiled behavior-equivalence suites)
         run: make c-test
 
@@ -345,6 +390,11 @@ jobs:
             formal:
               - 'src/**'
               - 'tools/verify_formal.py'
+              # P2-5 (adversarial tools review): P1 executes rom_rebuild.py
+              # (verify_formal.py:480), which imports disasm_sh2e.py
+              # (rom_rebuild.py:48) — changes there left cert stale-green.
+              - 'tools/rom_rebuild.py'
+              - 'tools/disasm_sh2e.py'
               - 'analysis/coverage/**'
               # P2-2: `make cert` reads roms/stock/*.bin (CERT_ROMS list in
               # the root Makefile) — ROM image or Makefile changes must
