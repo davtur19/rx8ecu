@@ -17,10 +17,10 @@ Columns: **totali** (functions in the catalog), **descrittivi** (name not FUN_/s
 
 | ROM | CSV | total | descrittivi | anonimi | fonte | note |
 |-----|-----|-------|------------|---------|-------|------|
-| 60E0FC00 | symbols_60E0FC00.csv | 3459 | 985 | 2474 | ghidra-hand 931 + ghidra-auto | **canonico** (equiname reference) |
-| 60E0FC00 | symbols_60E0FC00_merged2.csv | 3459 | **1357** | **2102** | +ida-ai-xmap 374 | canonico + fusione IDA-ai (NUOVO) |
-| 60E1D400 | symbols_60E1D400_ida.csv | 2789 | 2747 | 42 | ida-ai 2788 + c-lift 1 | baseline, fonte IDA-ai |
-| 60E1D400 | symbols_60E1D400_merged.csv | 2789 | 2747 | 42 | ida-ai + ghidra-hand-xmap 313 | baseline fusa |
+| 60E0FC00 | symbols_60E0FC00.csv | 3457 | 1704 | 1753 | ghidra-auto 2526 + ghidra-hand 899 + c-lift 32 | **canonico** (equiname reference) |
+| 60E0FC00 | symbols_60E0FC00_merged2.csv | 3457 | **1355** | **2102** | ghidra-auto 2154 + ghidra-hand 899 + ida-ai-xmap 372 + c-lift 32 | canonico + fusione IDA-ai (NUOVO) |
+| 60E1D400 | symbols_60E1D400_ida.csv | 2790 | 2789 | 1 | ida-ai 2771 + c-lift 19 | baseline, fonte IDA-ai |
+| 60E1D400 | symbols_60E1D400_merged.csv | 2790 | 2790 | 0 | ida-ai 2462 + ghidra-hand-xmap 309 + c-lift 19 | baseline fusa |
 | 60E0E500 | symbols_60E0E500.csv | 7305 | 277 | 7028 | ghidra-hand-xmap 277 (derive) | NUOVO, derivato (*) |
 | 60E0E700 | symbols_60E0E700.csv | 7306 | 277 | 7029 | ghidra-hand-xmap 277 (derive) | NUOVO, derivato (*) |
 | 60E0FB00 | symbols_60E0FB00.csv | 7197 | 300 | 6897 | ghidra-hand-xmap 300 (derive) | NUOVO, derivato (*) |
@@ -29,7 +29,7 @@ Columns: **totali** (functions in the catalog), **descrittivi** (name not FUN_/s
 | 60E1C500 | symbols_60E1C500.csv | 7315 | 275 | 7040 | ghidra-hand-xmap 275 (derive) | NUOVO, derivato (*) |
 | 60E32000 | symbols_60E32000.csv | 6899 | 239 | 6660 | ghidra-hand-xmap 239 (derive) | NUOVO, derivato (*) |
 
-(*) Over-segmentation: ~6.9–7.5k functions vs 3459 of the canonical — function boundaries not reliable; only the `ghidra-hand-xmap` names are trustworthy. The desc>i counts here are **only the 1:1 transferred names**, not a complete coverage.
+(*) Over-segmentation: ~6.9–7.5k functions vs 3457 of the canonical — function boundaries not reliable; only the `ghidra-hand-xmap` names are trustworthy. The desc>i counts here are **only the 1:1 transferred names**, not a complete coverage.
 
 ## Delta canonico vs recce precedente
 
@@ -61,11 +61,11 @@ It links the authoritative lift names (`c/*.c`, `c/tests/test_*.py`) to the CSVs
 | 60E0E500 | symbols_60E0E500.csv<br/>symbols_60E0E500_connor.csv | 7312 | 7305 | 416 | 6889 | 189 | 56 | derivata over-segmentata | +139 |
 | 60E0E700 | symbols_60E0E700.csv<br/>symbols_60E0E700_connor.csv | 7313 | 7306 | 435 | 6871 | 200 | 58 | derivata over-segmentata | +158 |
 | 60E0FB00 | symbols_60E0FB00.csv<br/>symbols_60E0FB00_connor.csv | 7203 | 7197 | 832 | 6365 | 805 | 64 | derivata over-segmentata | +532 |
-| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9014 | 3491 | 1758 | 1733 | 845 | 61 | canonico affidabile (equiname) | +248 |
+| 60E0FC00 | equinox311_60E0FC00_named.csv<br/>symbols_60E0FC00.csv<br/>symbols_60E0FC00_connor.csv<br/>symbols_60E0FC00_ghidra.csv<br/>symbols_60E0FC00_merged2.csv | 9014 | 3503 | 1770 | 1733 | 845 | 61 | canonico affidabile (equiname) | +248 |
 | 60E15120 | symbols_60E15120.csv<br/>symbols_60E15120_connor.csv | 7480 | 7473 | 388 | 7085 | 179 | 54 | derivata over-segmentata | +133 |
 | 60E1B900 | symbols_60E1B900.csv<br/>symbols_60E1B900_connor.csv | 7185 | 7173 | 457 | 6716 | 215 | 68 | derivata over-segmentata | +162 |
 | 60E1C500 | symbols_60E1C500.csv<br/>symbols_60E1C500_connor.csv | 7327 | 7315 | 459 | 6856 | 234 | 78 | derivata over-segmentata | +184 |
-| 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5609 | 2795 | 2794 | 1 | 936 | 189 | canonico affidabile (IDA-ai) | +0 |
+| 60E1D400 | symbols_60E1D400_connor.csv<br/>symbols_60E1D400_ida.csv<br/>symbols_60E1D400_merged.csv | 5609 | 2795 | 2794 | 1 | 936 | 189 | canonico affidabile (IDA-ai) | +-1 |
 | 60E32000 | symbols_60E32000.csv<br/>symbols_60E32000_connor.csv | 6911 | 6899 | 382 | 6517 | 176 | 54 | derivata over-segmentata | +143 |
 
 Dedup: `rows (incl. variants)` (cumulative variants) vs `total (unique)` (post-dedup) — the difference is the number of redundant rows removed. `also_sources` in the CSV lists the lost sources.

@@ -25,6 +25,19 @@ Total rows: 37121.
 
 ## Notes
 
+### Counts include exact duplicates
+
+The per-ROM `Tables` counts and `Total rows` count **every data row, including
+exact duplicates** — they are raw definition counts, not counts of distinct
+tables. Measured 2026-10-04 with a streaming `LC_ALL=C sort | uniq` pass
+(`ulimit -v`, sort spills to disk): the 37,121 data rows contain only
+**19,870 distinct** lines, so **17,251 rows (46.5%) are exact duplicates** of
+another row (17,163 distinct duplicated definitions, covering 34,414 rows).
+All 13 per-ROM counts and address ranges above were re-verified against the
+CSV (13/13 exact, total 37121 exact). The CSV is intentionally **not
+deduplicated**: dedup is out of scope (upstream RomRaider/GROM source churn
+risk), so consumers must dedup themselves if they need distinct tables.
+
 ### 5 ROMs we do not possess
 
 These ROM codes appear in the table definitions but are **not** present as a binary in `roms/stock/`:
