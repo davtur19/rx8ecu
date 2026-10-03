@@ -23,8 +23,10 @@ simboli (symbols/symbols_*.csv) e produce tre artefatti:
       (non-FUN_/non-sub_), anonime, lift-named (di cui VERIFIED), note +
       nota LIFT_ONLY addrs (boundary non in IDA).
 
-  symbols/NAMES_STATUS.md --- accoda una sezione "## v2 -- catalogo master"
-      e una "## v2b -- LIFT_ONLY orphans adopted".
+  symbols/NAMES_STATUS.md --- accoda una sezione "## v2 -- master catalog"
+      e una "## v2b -- LIFT_ONLY orphans adopted" (prosa in inglese STE:
+      deve riprodurre byte-a-byte i documenti committati, altrimenti la
+      guard CI `git diff --exit-code` fallisce).
 
 Idempotente ed autonomo:  python3 tools/gen_catalog.py
 Non tocca i CSV originali, non tocca c/, non tocca tools/xmap.
@@ -756,10 +758,17 @@ def load_category_map():
 def load_curated_fallback():
     """Read the CURRENT committed symbols/CATALOG_MASTER.csv into a fallback
     map {(bank.upper(), int(addr,16)): {col: value}} for the curated-only
-    columns (category, src_name) that the regeneration cannot reproduce from
-    the per-bank CSVs + FUNCTION_CATEGORIES join. Returns an empty dict if the
-    master file is missing (first generation). Deterministic: pure read of a
-    committed input, so a stable input yields a stable output.
+    columns (category, src_name, end) that the regeneration cannot reproduce
+    from the per-bank CSVs + FUNCTION_CATEGORIES join. Returns an empty dict
+    if the master file is missing (first generation). Deterministic: pure
+    read of a committed input, so a stable input yields a stable output.
+
+    `end` matters because hand-curated span boundaries live only in the
+    master: commits 2238a0ec (8 spans extended to the real RTS), 8239d561
+    (0x05E918/0x02BBD4) and 575cb0ac (0x054D12 tail-jmp) fixed corpus
+    differential FAILs there, and neither the twin backfill nor the
+    capped refine can regenerate those values. An empty committed end means
+    no curation: the pipeline value stands.
     """
     fallback = {}
     if not os.path.exists(MASTER_CSV):
@@ -777,6 +786,7 @@ def load_curated_fallback():
             fallback[key] = {
                 "category": rec.get("category") or "",
                 "src_name": rec.get("src_name") or "",
+                "end": rec.get("end") or "",
             }
     return fallback
 
@@ -803,8 +813,18 @@ def load_committed_master_rows():
     return rows
 
 
+# Sources that exist ONLY as hand curation inside the committed master: no
+# input CSV carries them, so the pipeline can never regenerate them.
+# `gap-fill` rows mark code gaps as callable functions (commit 09a73e90,
+# kept/extended by 8239d561) and a gap-fill row can sit OUTSIDE every
+# pipeline span (0x308ea sits in a 0x46-byte gap), so the span rule alone
+# silently deletes it on regen. Re-adopt these rows unconditionally.
+CURATED_ONLY_SOURCES = {"gap-fill"}
+
+
 def adopt_master_splits(out):
-    """Re-adopt curated span-split rows of the canonical bank (60E0FC00).
+    """Re-adopt curated rows of the canonical bank (60E0FC00) that the
+    pipeline cannot produce.
 
     Commits 0313cff/153a0fb split a real function span at a mid-body entry
     (e.g. can_clear_txcr_and_init_mailbox 0xCF74..0xD13C split at 0xCF96,
@@ -813,9 +833,11 @@ def adopt_master_splits(out):
     derived banks (60E0E500/60E0E700/60E0FB00) encode the split in their own
     CSVs and survive; the canonical bank's row is curated-only. Rule: a
     committed-master row of the canonical bank that the pipeline does NOT
-    produce, whose addr lies strictly inside [addr, end) of a pipeline row of
-    the same bank, is re-adopted with its committed values. Deterministic:
-    pure read of a committed input.
+    produce is re-adopted with its committed values when EITHER it lies
+    strictly inside [addr, end) of a pipeline row of the same bank, OR its
+    `source` is a curated-only source (CURATED_ONLY_SOURCES, e.g. `gap-fill`
+    rows that live in a code gap with no enclosing pipeline span).
+    Deterministic: pure read of a committed input.
     """
     committed = load_committed_master_rows()
     if not committed:
@@ -830,34 +852,42 @@ def adopt_master_splits(out):
             spans.append((int(r["addr"], 16), int(r.get("end") or r["addr"], 16)))
         except ValueError:
             continue
-    n = 0
+    n = n_curated = 0
     for key in sorted(committed):
         bank, addr = key
         if bank != EQUINOX_BANK or key in have:
             continue
-        if any(lo < addr < hi for lo, hi in spans):
-            rec = committed[key]
-            out.append({
-                "bank": rec["bank"], "addr": rec["addr"],
-                "end": rec.get("end") or "", "src_name": rec.get("src_name") or "",
-                "source": rec.get("source") or "", "flag": rec.get("flag") or "",
-                "lift_name": rec.get("lift_name") or "",
-                "verified": rec.get("verified") or "",
-                "also_sources": rec.get("also_sources") or "",
-                "_file": "committed-split",
-            })
-            n += 1
+        rec = committed[key]
+        in_span = any(lo < addr < hi for lo, hi in spans)
+        curated_only = (rec.get("source") or "").strip() in CURATED_ONLY_SOURCES
+        if not (in_span or curated_only):
+            continue
+        n += 1
+        if curated_only and not in_span:
+            n_curated += 1
+        out.append({
+            "bank": rec["bank"], "addr": rec["addr"],
+            "end": rec.get("end") or "", "src_name": rec.get("src_name") or "",
+            "source": rec.get("source") or "", "flag": rec.get("flag") or "",
+            "lift_name": rec.get("lift_name") or "",
+            "verified": rec.get("verified") or "",
+            "also_sources": rec.get("also_sources") or "",
+            "_file": "committed-split",
+        })
     if n:
-        print(f"  master split rows re-adopted (canonical bank): {n}")
+        print(f"  master split rows re-adopted (canonical bank): {n}"
+              + (f" (curated-only source, no enclosing span: {n_curated})"
+                 if n_curated else ""))
     return n
 
 
 def write_master(out, categories=None):
+    """Write symbols/CATALOG_MASTER.csv. Returns the category-join count."""
     if categories is None:
         categories = load_category_map()
     curated = load_curated_fallback()
     matched = 0
-    preserved_cat = preserved_src = 0
+    preserved_cat = preserved_src = preserved_end = 0
     with open(MASTER_CSV, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=[
             "bank", "addr", "end", "src_name", "source", "flag", "lift_name",
@@ -878,11 +908,15 @@ def write_master(out, categories=None):
                 matched += 1
             row["category"] = category
             # Merge fallback: per (bank, addr) rows present in the CURRENT
-            # committed master, keep the curated-only values (category, src_name)
-            # that the pipeline cannot reproduce. Pipeline values win when
-            # non-empty; for src_name a generic placeholder (FUN_/sub_/...) from
-            # a lesser dedup source is treated as "empty" so a curated name is
-            # preserved. New rows (not in the committed master) are untouched.
+            # committed master, keep the curated-only values (category,
+            # src_name, end) that the pipeline cannot reproduce. Pipeline
+            # values win when non-empty; for src_name a generic placeholder
+            # (FUN_/sub_/...) from a lesser dedup source is treated as "empty"
+            # so a curated name is preserved. New rows (not in the committed
+            # master) are untouched. For `end` a non-empty committed value is
+            # authoritative: it is a hand-curated span boundary (real RTS /
+            # tail-jmp fixes, see load_curated_fallback); an empty committed
+            # end means no curation, so the backfilled/refined end stands.
             if key is not None and key in curated:
                 cur = curated[(bank, int(addr, 16))]
                 if cur["category"] and not category:
@@ -892,9 +926,14 @@ def write_master(out, categories=None):
                     if row["src_name"] != cur["src_name"]:
                         preserved_src += 1
                     row["src_name"] = cur["src_name"]
+                if cur["end"] and cur["end"] != row["end"]:
+                    row["end"] = cur["end"]
+                    preserved_end += 1
             w.writerow(row)
     print(f"CATALOG_MASTER category join: {matched} righe matchate")
-    print(f"  curated fallback preserved: category={preserved_cat} src_name={preserved_src}")
+    print(f"  curated fallback preserved: category={preserved_cat} "
+          f"src_name={preserved_src} end={preserved_end}")
+    return matched
 
 
 def aggregate(records):
@@ -917,21 +956,38 @@ def aggregate(records):
     return agg
 
 
+def _fmt_count(n):
+    """6083 -> '6.083' (the dot-as-separator style the committed docs use)."""
+    return f"{n:,}".replace(",", ".")
+
+
 def write_status(agg, input_count, raw_per_bank, orphan_records=None,
-                 noise_counts=None):
+                 noise_counts=None, matched=None):
+    """Write symbols/CATALOG_STATUS.md.
+
+    Prose is ASD-STE100 Simplified Technical English (docs commit 03d0c1e5
+    translated this file; the generator must reproduce it byte-for-byte, else
+    the CI catalog guard goes red). The H1 and the table headers are left in
+    their original form because the STE rewrite kept them unchanged.
+    `matched` is the category-join row count of this run: emitted live so a
+    count change is caught by the guard instead of silently going stale.
+    """
+    if matched is None:
+        raise ValueError("write_status: matched (category-join count) required")
     noise_counts = noise_counts or {}
     def file_of(bank_file):
         return ", ".join(sorted(f for (b, f) in input_count if b == bank_file))
     lines = []
     lines.append("# CATALOG_STATUS -- stato catalogo master (post lift-merge, DEDUP)\n")
-    lines.append("Merge di TUTTI i `symbols_*.csv` (varianti incluse) con i nomi lift "
-                 "(`c/*.c`, `c/tests/test_*.py`). `CATALOG_MASTER.csv` e' DEDUP per "
-                 "`(bank, addr)`: per chiave si tiene UNA sola riga (source piu' "
-                 "autorevole); le altre sorgenti perse sono elencate in `also_sources`. "
-                 "`lift_name` porta il nome autorevole se disponibile, altrimenti coincide "
-                 "con `src_name`. Colonna `category` in coda: join con "
-                 "`FUNCTION_CATEGORIES.csv` su `(bank normalizzato, int(addr,16))` — "
-                 "~6.082 righe matchate, cella vuota per le non classificate.\n")
+    lines.append("All `symbols_*.csv` files (variants included) are merged with the lift names "
+                 "(`c/*.c`, `c/tests/test_*.py`) into `CATALOG_MASTER.csv`. The catalog is "
+                 "DEDUP per `(bank, addr)`. Each key keeps ONE row (the most authoritative "
+                 "source). The other lost sources are listed in `also_sources`. `lift_name` "
+                 "carries the authoritative name if available, otherwise it matches "
+                 "`src_name`. The `category` column is at the end. Join it with "
+                 "`FUNCTION_CATEGORIES.csv` on `(bank normalizzato, int(addr,16))` — "
+                 f"it matched ~{_fmt_count(matched)} rows, with an empty cell for the "
+                 "unclassified rows.\n")
     lines.append("| bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note |")
     lines.append("|-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|")
     for bank in sorted(agg):
@@ -943,27 +999,27 @@ def write_status(agg, input_count, raw_per_bank, orphan_records=None,
             f"| {bank} | {inline} | {raw} | {g['total']} | {g['named']} | {g['anon']} | "
             f"{g['lift_named']} | {g['verified_lift']} | {bank_note(bank)} |")
     lines.append("")
-    lines.append("* `rows (incl. variants)` = righe CUMULATIVE da TUTTI i CSV della bank "
-                 "(varianti ridondanti incluse); `total (unique)` = righe uniche per "
-                 "(bank, addr) dopo il dedup — questa e' la cifra reale per bank.")
+    lines.append("* `rows (incl. variants)` = cumulative rows from ALL CSVs of the bank "
+                 "(redundant variants included); `total (unique)` = unique rows per "
+                 "(bank, addr) after the dedup — this is the real figure per bank.")
     orphan_records = orphan_records or []
     if orphan_records:
         n = len(orphan_records)
         nv = sum(1 for r in orphan_records if r["verified"] == "YES")
         lines.append("")
-        lines.append(f"**LIFT_ONLY addrs (boundary non in IDA): {n}** — lift addrs senza "
-                     f"START di riga in alcun CSV, adottati come entry del catalogo "
-                     f"(`source=lift`, `flag=LIFT_ONLY`; di cui {nv} VERIFIED). "
-                     f"Attribuzione bank via range CSV, fallback 60E1D400.")
+        lines.append(f"**LIFT_ONLY addrs (boundary not in IDA): {n}** — lift addrs without "
+                     f"a row START in any CSV, adopted as catalog entries "
+                     f"(`source=lift`, `flag=LIFT_ONLY`; {nv} of them VERIFIED). "
+                     f"Bank attribution through the CSV range, fallback 60E1D400.")
 
     if noise_counts:
         lines.append("")
         lines.append("## NOISE (span<=4, derived only)\n")
-        lines.append("Righe `source=derived` (banche derivate over-segmentate), non "
-                     "LIFT_ONLY, non nominate, con span `(end - addr) <= 4` byte — "
-                     "quasi certamente rumore di segmentazione (puntatori pooled / "
-                     "boundary falsi). La riga NON e' cancellata: `flag` riceve "
-                     "`NOISE` (aggiunto con `|` se gia' presente).\n")
+        lines.append("Rows `source=derived` (over-segmented derived banks), not "
+                     "LIFT_ONLY, not named, with span `(end - addr) <= 4` bytes — "
+                     "almost certainly segmentation noise (pooled pointers / "
+                     "false boundaries). The row is NOT deleted: `flag` receives "
+                     "`NOISE` (added with `|` if already present).\n")
         lines.append("| bank | unique | noise | real-estimate (unique - noise) |")
         lines.append("|-----:|-------:|------:|-------------------------------:|")
         for bank in sorted(noise_counts):
@@ -979,9 +1035,23 @@ def write_status(agg, input_count, raw_per_bank, orphan_records=None,
         fh.write("\n".join(lines))
 
 
+# Section markers of symbols/NAMES_STATUS.md: LINE-ANCHORED prefix match.
+# "## v2 " matches the current heading ("## v2 — master catalog", STE rewrite
+# 03d0c1e5) and the older Italian one ("## v2 — catalogo master"), but NEVER
+# "## v2b — ..." (no space after "v2"). The previous literal Italian marker
+# missed after the rewrite, so every regen APPENDED a duplicate v2 section.
+V2_HEADING_PREFIX = "## v2 "
+V2B_HEADING_PREFIX = "## v2b "
+
+
+def _find_heading(text, prefix):
+    """Start index of the first line-anchored `prefix` heading, or -1."""
+    m = re.search(r"^" + re.escape(prefix), text, flags=re.M)
+    return m.start() if m else -1
+
+
 def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per_bank):
     """Aggiorna (sostituisce) la sezione '## v2' a symbols/NAMES_STATUS.md."""
-    v2_marker = "## v2 — catalogo master"
     text = ""
     if os.path.exists(NAMES_STATUS_MD):
         with open(NAMES_STATUS_MD, encoding="utf-8") as fh:
@@ -1002,14 +1072,14 @@ def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per
             g["named"] += 1
 
     lines = []
-    lines.append("## v2 — catalogo master (post-lift-merge, DEDUP)\n")
-    lines.append("Collega i nomi lift autorevoli (`c/*.c`, `c/tests/test_*.py`) ai CSV: "
-                 "ogni riga di `symbols/CATALOG_MASTER.csv` porta `src_name` (originale) e "
-                 "`lift_name` (autorevole se disponibile). Il catalogo e' DEDUP per "
-                 "`(bank, addr)` — `total (unique)` e' il numero reale di funzioni per "
-                 "bank, `rows (incl. variants)` e' il conteggio cumulativo dei CSV "
-                 "varianti (ridondanti). `verified=YES` per addr in "
-                 "`c/verified_addrs.txt`.\n")
+    lines.append("## v2 — master catalog (post-lift-merge, DEDUP)\n")
+    lines.append("It links the authoritative lift names (`c/*.c`, `c/tests/test_*.py`) "
+                 "to the CSVs. Each row of `symbols/CATALOG_MASTER.csv` carries "
+                 "`src_name` (original) and `lift_name` (authoritative if available). "
+                 "The catalog is DEDUP per `(bank, addr)`. `total (unique)` is the real "
+                 "number of functions per bank. `rows (incl. variants)` is the "
+                 "cumulative count of the variant CSVs (redundant). "
+                 "`verified=YES` for addr in `c/verified_addrs.txt`.\n")
     lines.append("| bank | file | rows (incl. variants) | total (unique) | nominate | anonime | lift-named | di cui VERIFIED | note | Δ nominate |")
     lines.append("|-----:|------|----------------------:|---------------:|---------:|--------:|-----------:|----------------:|------|----------:|")
     for bank in sorted(agg):
@@ -1023,12 +1093,13 @@ def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per
             f"| {bank} | {files} | {raw} | {g['total']} | {g['named']} | {g['anon']} | "
             f"{g['lift_named']} | {g['verified_lift']} | {bank_note(bank)} | +{delta} |")
     lines.append("")
-    lines.append("Dedup: `rows (incl. variants)` (cumulativo varianti) vs "
-                 "`total (unique)` (post-dedup) — la differenza e' il numero di righe "
-                 "ridondanti eliminate. `also_sources` nel CSV elenca i source persi.\n")
-    lines.append("Lift addrs senza corrispondenza in alcun CSV (`lift_orphans`): "
+    lines.append("Dedup: `rows (incl. variants)` (cumulative variants) vs "
+                 "`total (unique)` (post-dedup) — the difference is the number of "
+                 "redundant rows removed. `also_sources` in the CSV lists the lost "
+                 "sources.\n")
+    lines.append("Lift addrs without a match in any CSV (`lift_orphans`): "
                  f"{len(orphans)} "
-                 + (f"— es.: 0x{orphans[0]:05X} ({lift_index[orphans[0]]})"
+                 + (f"— for example: 0x{orphans[0]:05X} ({lift_index[orphans[0]]})"
                     + (f", 0x{orphans[1]:05X} ({lift_index[orphans[1]]})" if len(orphans) > 1 else ""))
                  + ".\n")
 
@@ -1036,10 +1107,8 @@ def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per
         text = fh.read()
     # replace-in-place: strip any old v2/v2b section from the file, then append
     # the fresh v2 section (v2b is appended separately by append_names_status_v2b).
-    marker = "## v2 — catalogo master"
-    v2b_marker = "## v2b — LIFT_ONLY orphans adopted"
-    for m in (marker, v2b_marker):
-        i = text.find(m)
+    for prefix in (V2_HEADING_PREFIX, V2B_HEADING_PREFIX):
+        i = _find_heading(text, prefix)
         if i != -1:
             text = text[:i].rstrip("\n")
     text = text.rstrip("\n") + "\n\n" + "\n".join(lines)
@@ -1049,7 +1118,7 @@ def append_names_status(agg, input_count, lift_index, orphans, out_rows, raw_per
 
 def append_names_status_v2b(orphan_records):
     """Accoda/aggiorna la sezione '## v2b' a symbols/NAMES_STATUS.md."""
-    marker = "## v2b — LIFT_ONLY orphans adopted"
+    marker = V2B_HEADING_PREFIX
     if not orphan_records:
         return
     text = ""
@@ -1057,16 +1126,16 @@ def append_names_status_v2b(orphan_records):
         with open(NAMES_STATUS_MD, encoding="utf-8") as fh:
             text = fh.read()
     # remove any existing v2b section
-    i = text.find(marker)
+    i = _find_heading(text, marker)
     if i != -1:
         text = text[:i].rstrip("\n")
 
     lines = []
     lines.append("## v2b — LIFT_ONLY orphans adopted\n")
-    lines.append("Gli `orphan` (lift addrs senza START di riga in alcun CSV) sono ora "
-                 "ENTRY del catalogo master con `flag=LIFT_ONLY` (boundary non in IDA). "
-                 "Attribuzione bank via range CSV (fallback 60E1D400 se fuori range); "
-                 "`verified=YES` per addr in `c/verified_addrs.txt`.\n")
+    lines.append("The `orphan` rows (lift addrs without a row START in any CSV) are now "
+                 "ENTRY of the master catalog with `flag=LIFT_ONLY` (boundary not in IDA). "
+                 "Bank attribution through the CSV range (fallback 60E1D400 if out of range); "
+                 "`verified=YES` for addr in `c/verified_addrs.txt`.\n")
     lines.append("| bank | addr | lift_name | source | flag | verified |")
     lines.append("|-----:|-----:|-----------|--------|------|----------|")
     for r in orphan_records:
@@ -1132,11 +1201,11 @@ def main():
     # ---- re-adopt curated span-split rows (canonical bank) ----------------
     n_split = adopt_master_splits(out)
 
-    write_master(out, load_category_map())
+    matched = write_master(out, load_category_map())
 
     agg = aggregate(out)
     write_status(agg, input_count, raw_per_bank, orphan_records,
-                 noise_counts)
+                 noise_counts, matched)
 
     append_names_status(agg, input_count, lift_index, orphans, out, raw_per_bank)
     append_names_status_v2b(orphan_records)

@@ -118,7 +118,7 @@ or the toolchain install (git-ignored; re-create with
 | `symbols/NAMES_STATUS.md` | `cc60757f2554e5fe764400b72664e89570802638269e4fe3e4b45a7806caa68c` | 6.8K | Tracked file |
 | `symbols/RAM_VARIABLES.csv` | `b7e4892db7b8436979984ab5415929d8f52ef19aec9d849254fd4f72710a4c01` | 263.4K | Tracked file |
 | `symbols/TABLES_STATUS.md` | `ca92dd4fd0560b43ad4a58f4d22d89c2b950666b24b45ba7f8ac452198fca864` | 1.6K | Tracked file |
-| `symbols/cal_tables.csv` | `da77fe746f3da99b89358a3234f74b7774e037b9257bcf895b52b9e31c6b9f17` | 106.2K | Calibration table descriptors (1,210 tables) |
+| `symbols/cal_tables.csv` | `da77fe746f3da99b89358a3234f74b7774e037b9257bcf895b52b9e31c6b9f17` | 106.2K | Calibration table descriptors (1,209 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
 | `symbols/romraider_rx8_tables.csv` | `4cc0863d9b1278e2fb03340441807f7d098d6a1d3ddc025229a72a5cb2b53bd2` | 2.4M | Tracked file |
