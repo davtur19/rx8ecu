@@ -186,8 +186,14 @@ $(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/t
 # 0x400000) — a PIE address would be truncated by the mask. No ROM read:
 # objdump immediates of rtos.o are only 0xFFFFD4E0/0xFFFFD800/
 # 0xFFFFDFB4/0xFFFFDFB6 (0x6873C dispatch table is comment-only).
+# -DFW_HOST_TEST compiles in the host-only rtos_setCurrentPriority_forHostTest
+# accessor (rtos.c/.h) — the scheduler else-path (priority > current_priority)
+# is unreachable via the public API, so the else-path scenario needs the
+# fixture setter; production builds never define it (h4/m6 precedent): the
+# no-flag .text cmp vs HEAD is byte-identical, the flagged .text is the same
+# prefix plus only the appended fixture function.
 $(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos.c $(FW_HDRS) | $(OUTDIR)
-	$(CC) $(CFLAGS_LINK) -no-pie $(filter %.c,$^) -o $@ -lm
+	$(CC) $(CFLAGS_LINK) -no-pie -DFW_HOST_TEST $(filter %.c,$^) -o $@ -lm
 
 # eeprom links the REAL eeprom.c TU (link pilot #14 — adversarial-review
 # P1 zero-coverage TU: SPI EEPROM bit-bang, CS framing, timeout-bounded
