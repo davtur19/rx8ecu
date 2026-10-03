@@ -670,3 +670,32 @@ uint8_t rtos_get_current_priority(void)
 {
     return current_priority;
 }
+
+#ifdef FW_HOST_TEST
+/**
+ * rtos_setCurrentPriority_forHostTest — fixture setter for the file-static
+ * current_priority.
+ *
+ * Host link-pilot accessor only (link/link_rtos_queue_dispatch.c). The
+ * scheduler else-branch (priority > current_priority → re-enqueue +
+ * skip_count) is unreachable through the public API: current_priority only
+ * dips between the `current_priority = priority` store and the
+ * `current_priority = old_priority` restore inside rtos_scheduler's
+ * re-entrancy latch (nested rtos_scheduler calls return before the compare),
+ * rtos_init writes S3 BEFORE clearing the latch, and dispatch-record
+ * priorities are masked to 0..3 — so loop level is always S3 and every
+ * valid task dispatches. The else-path test lowers the priority before
+ * calling rtos_scheduler() from outside.
+ *
+ * Production builds never define FW_HOST_TEST, so this definition is
+ * compiled out and the normal build is byte-for-byte unaffected (verified:
+ * no-flag .text cmp vs HEAD = byte-identical, cmp exit 0; the flagged
+ * build's .text is that same prefix plus only this appended function).
+ * Pure write of the static, no logic — same mechanism as
+ * getDwellTimeUs_forHostTest (engine.c).
+ */
+void rtos_setCurrentPriority_forHostTest(uint8_t priority)
+{
+    current_priority = priority;
+}
+#endif /* FW_HOST_TEST */

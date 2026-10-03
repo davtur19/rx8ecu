@@ -49,8 +49,12 @@
  * Proves (killability audited against a /tmp single-edit mutant battery
  * (IDENTICAL Makefile CFLAGS): every runtime CHECK below is red under at
  * least one demonstrated firmware mutant — m7-style honesty, NO kill
- * claimed beyond the demonstrated set; the two documented survivors are
- * in NOT covered below. Contract _Static_asserts are compile-time kills
+ * claimed beyond the demonstrated set. The two survivors the 6bdffc1
+ * audit documented under NOT covered (RT-D, RT-D2) are now killed by the
+ * (j2) else-path vectors added with the FW_HOST_TEST fixture — measured
+ * both ways this session (pristine PASS, RT-D/RT-D2 survive BEFORE the
+ * vectors; both red AFTER), details in NOT covered below. Contract
+ * _Static_asserts are compile-time kills
  * by constant revert, one demonstrated (RTOS_QUEUE_ENTRY_SIZE 8->7 fires
  * at build). Two holes this audit found were fixed harness-side by
  * adding kill vectors: (e) gained the w=99/r=0 state — the only index
@@ -90,41 +94,71 @@
  *       be "AaB", a removed latch yields "ABa"), null-handler task
  *       survives, rtos_yield dispatches pending work and restores
  *       priority;
+ *   (j2) scheduler ELSE-path (FW_HOST_TEST fixture): with
+ *       current_priority lowered below every queued task the else arm
+ *       runs — dequeue + re-enqueue until the skip_count >=
+ *       RTOS_QUEUE_MAX_SLOTS break. Two scenarios: (1) pure else-path
+ *       (current=S0, five S1..S3 tasks) asserting RETENTION (queue not
+ *       empty, count==5, no dispatch) plus the ABSOLUTE read/write
+ *       indexes after the break (0/5: exactly 100 skip cycles return
+ *       both indexes to their pre-scheduler values; 50 cycles -> 50/55)
+ *       and the rotated-back slot bytes; (2) mixed (current=S1, S0
+ *       dispatches once then S2/S3 else-loop) asserting calls==1,
+ *       count==2, absolute indexes 1/3, priority restored to S1.
+ *       Kills: RT-D2 (re-enqueue dropped -> queue drains: empty,
+ *       count 0/r==5 in scenario 1; count 0/r==3 in scenario 2) and
+ *       RT-D (skip_count += 2 -> break at 50 cycles: absolute indexes
+ *       50/55 and 51/53); the no-dispatch expect is also red under a
+ *       priority-compare inversion, the slot-bytes expects under a
+ *       single-edit enqueue-store corruption (entry[7] -> 0x00);
  *   (k) context save/restore: sp -= 0x44 / sp restored exactly, core 52
  *       bytes zeroed (primed A5), FP 16 bytes untouched for BASIC (primed
  *       A5 survives) but zeroed for TIMER.
  *
- * NOT covered (documented residual, NOT claimed kills): the scheduler
- * else-branch (priority > current_priority at loop level — rtos.c
- * skip_count++ + re-enqueue) is unreachable via the public API on the
- * host: current_priority only dips below S3 DURING a dispatch, the
- * scheduler_running latch blocks re-entry from handlers, and no public
- * setter exists, so loop-level priority is always S3 and every valid
- * task (0..3) dispatches (prior gcov: 0% on those lines). Two single-
- * edit mutants therefore survive this battery by design, measured:
- *   - RT-D (skip_count++ -> += 2): observationally equivalent even IF
- *     the branch were reached — the >=RTOS_QUEUE_MAX_SLOTS break then
- *     fires after 50 cycles instead of 100, which shifts only ABSOLUTE
- *     index values, while every scheduler CHECK in (j) is relative
- *     (counts, emptiness, args, order). Measured: a two-edit diagnostic
- *     that forces the branch (init priority S3 -> S0) plus this mutant
- *     produced an IDENTICAL FAIL set (count and exact texts) to the
- *     priority revert alone. Killing RT-D needs BOTH else-path
- *     reachability AND an absolute-index assert after the skip-break.
- *   - RT-D2 (else-path re-enqueue dropped): WOULD die under else-path
- *     coverage — the same two-edit diagnostic flips the existing
- *     asserts: "queue not empty after scheduler", "latch: queue not
- *     empty", "null-handler task not drained" and "yield dispatched
- *     calls=2" all change state (measured: 4 FAILs disappear).
- * Follow-up (needs an FW_HOST_TEST current_priority setter, i.e. a
- * firmware/tests/Makefile edit — OUT OF SCOPE here): add an else-path
- * section asserting queue retention (kills RT-D2) and the absolute
- * write/read index after the skip-break (kills RT-D). Separately, the
- * init-priority constant itself IS killed (S3 -> S0 revert reds every
- * post-init priority expect).
+ * NOT covered (updated after the else-path follow-up, m7-style honesty):
+ * RESOLVED — the scheduler else-branch (priority > current_priority at
+ * loop level — rtos.c skip_count++ + re-enqueue, was gcov 0%) is now
+ * covered by (j2), which reaches it through the -DFW_HOST_TEST fixture
+ * setter rtos_setCurrentPriority_forHostTest (rtos.c/.h — h4/m6
+ * precedent; the link rule gained the flag, LINK_TESTS unchanged).
+ * Why a fixture is REQUIRED (reachability re-verified fail-closed this
+ * session by enumerating every writer of the file static): current_priority
+ * is written only by rtos_init (S3, BEFORE it clears scheduler_running at
+ * rtos.c:66), the scheduler dip/restore pair (rtos.c:605/614 — the
+ * restore always runs after rtos_dispatch returns, and old_priority is
+ * the loop-level value), and rtos_yield's save/S3/restore (rtos.c:652/658
+ * — the S3 write only lasts while the latch blocks the nested scheduler).
+ * So loop level is ALWAYS S3 for any public-API sequence, dispatch-record
+ * priorities mask to 0..3, and priority > current_priority can never
+ * hold at rtos.c:602 without the setter. Both former survivors are now
+ * killed, measured this session against /tmp single-edit mutants
+ * (IDENTICAL Makefile CFLAGS, -no-pie; BEFORE the (j2) vectors both
+ * PASSed — reproduced fail-closed first):
+ *   - RT-D (skip_count++ -> += 2): KILLED by the (j2) ABSOLUTE-index
+ *     expects after the skip-break. The pristine break fires after
+ *     exactly RTOS_QUEUE_MAX_SLOTS (100) dequeue+re-enqueue cycles,
+ *     which returns read/write to their absolute pre-scheduler values
+ *     (scenario 1: r=0/w=5, the five tasks rotated a full lap back into
+ *     slots 0..4; scenario 2: r=1/w=3), while the mutant breaks after
+ *     50 cycles (r=50/w=55; r=51/w=53) — counts/emptiness stay
+ *     identical, only the absolute indexes differ, which is exactly the
+ *     relative-check blind spot the 6bdffc1 audit identified.
+ *   - RT-D2 (else-path re-enqueue dropped): KILLED by the retention
+ *     expects — the else arm must leave the queue intact (not empty,
+ *     count==5 / ==2, r/w back at the absolute values); the mutant
+ *     drains it instead (scenario 1: empty, count 0, r==5; scenario 2:
+ *     count 0, r==3). Also reds the same four existing asserts the
+ *     6bdffc1 two-edit diagnostic flipped (queue-not-empty-after-
+ *     scheduler, latch, null-handler, yield calls).
+ * Residual, NOT claimed: the break-time `skip_count = 0` store
+ * (rtos.c:625) stays unobservable — skip_count is function-local, zeroed
+ * on entry (:589) and dead after the break; no public surface reads it.
+ * Separately, the init-priority constant itself IS killed (S3 -> S0
+ * revert reds every post-init priority expect).
  *
  * Build (see firmware/tests/Makefile link-check):
  *   gcc -std=c11 -Wall -Wextra -Werror -O2 -no-pie -I../include \
+ *       -DFW_HOST_TEST \
  *       link/link_rtos_queue_dispatch.c ../c/rtos.c \
  *       -o /tmp/fwtest/link_rtos_queue_dispatch
  */
@@ -135,6 +169,13 @@
 
 #include "platform.h"
 #include "rtos.h"
+
+/* Same h4/m6 precedent: the else-path section (j2) needs the FW_HOST_TEST
+ * fixture setter compiled into rtos.c — without -DFW_HOST_TEST on the link
+ * rule the build must stop here (and fail at link on the missing symbol). */
+#ifndef FW_HOST_TEST
+#error "link_rtos_queue_dispatch must build with -DFW_HOST_TEST (else-path fixture setter)"
+#endif
 
 /* Real rtos.h/rtos.c prototypes come from the linked TU: a signature
  * change breaks this build. Pin the address-map + dispatch contracts. */
@@ -752,6 +793,119 @@ int main(void)
     CHECK(h_a1 == 0x77u, "yield task arg=%08X want 77", h_a1);
     CHECK(rtos_get_current_priority() == RTOS_PRIORITY_S3,
           "priority after yield=%u want 3", rtos_get_current_priority());
+
+    /* ---- (j2) scheduler ELSE-path: priority > current_priority ------
+     * Reachability (re-verified this session, fail-closed): via the
+     * public API loop level is ALWAYS S3 — current_priority dips only
+     * between rtos.c:605/614 inside the scheduler_running latch, so a
+     * nested scheduler returns before the compare, rtos_init writes S3
+     * BEFORE clearing the latch, and dispatch-record priorities mask to
+     * 0..3. The else arm is therefore presented with a lowered priority
+     * through the FW_HOST_TEST fixture setter, called OUTSIDE the
+     * scheduler (a setter call from inside a handler would be clobbered
+     * by the `current_priority = old_priority` restore, and the latch
+     * still blocks nested scheduling). */
+
+    /* Scenario 1 — pure else-path: current=S0, five tasks S1..S3. Every
+     * task takes the else arm: dequeue + re-enqueue, skip_count++ ...
+     * break at skip_count >= RTOS_QUEUE_MAX_SLOTS (100). Each skip cycle
+     * advances r and w by exactly one, so the pristine break after
+     * EXACTLY 100 cycles returns BOTH indexes to their absolute
+     * pre-scheduler values (r=0 / w=5 — the FIFO rotated a full lap back
+     * into slots 0..4). RT-D (skip_count++ -> += 2) breaks after 50
+     * cycles -> absolute r=50 / w=55: only the absolute expects below
+     * can see it (counts and emptiness are IDENTICAL). RT-D2 (else-arm
+     * re-enqueue dropped) drains the queue -> empty, count 0, r==5. */
+    {
+        static const uint8_t prio1[5] = { RTOS_PRIORITY_S1, RTOS_PRIORITY_S3,
+                                          RTOS_PRIORITY_S2, RTOS_PRIORITY_S3,
+                                          RTOS_PRIORITY_S1 };
+        static const uint32_t arg1[5] = { 0xE0u, 0xE1u, 0xE2u, 0xE3u, 0xE4u };
+        uint32_t hs = (uint32_t)(uintptr_t)&h_sub;
+
+        h_calls = 0;
+        rtos_init();
+        for (int i = 0; i < 5; i++) {
+            CHECK(rtos_task_enqueue(rtos_build_dispatch(hs, RTOS_TYPE_SUBFUNC,
+                                                         prio1[i]),
+                                    arg1[i]) == 0, "else1 enqueue %d", i);
+        }
+        CHECK(rtos_queue_count() == 5, "else1 pre count=%d want 5",
+              rtos_queue_count());
+
+        rtos_setCurrentPriority_forHostTest(RTOS_PRIORITY_S0);
+        rtos_scheduler();
+
+        CHECK(h_calls == 0,
+              "else1 dispatched: calls=%u want 0 (priority compare inverted?)",
+              h_calls);
+        CHECK(rtos_queue_is_empty() == 0,
+              "else1: queue empty after scheduler (re-enqueue dropped?)");
+        CHECK(rtos_queue_count() == 5,
+              "else1 count=%d want 5 (else-arm tasks must be retained)",
+              rtos_queue_count());
+        /* ABSOLUTE index state after the skip-break (kills RT-D): */
+        CHECK(rtos_get_read_index() == 0,
+              "else1 abs read index=%u want 0 (100 skip cycles net zero; "
+              "50 = skip_count += 2)", rtos_get_read_index());
+        CHECK(rtos_get_write_index() == 5,
+              "else1 abs write index=%u want 5 (100 skip cycles net zero; "
+              "55 = skip_count += 2)", rtos_get_write_index());
+        /* FIFO content rotated a full lap back into slots 0..4 (raw BE
+         * bytes — red under an enqueue-store corruption, M5 entry[7]
+         * -> 0x00, same killer family as (c)'s byte stores). */
+        for (int i = 0; i < 5; i++) {
+            rt12_check_slot((unsigned)i,
+                            rtos_build_dispatch(hs, RTOS_TYPE_SUBFUNC,
+                                                prio1[i]),
+                            arg1[i], "else1-retained");
+        }
+        rtos_setCurrentPriority_forHostTest(RTOS_PRIORITY_S3);
+    }
+
+    /* Scenario 2 — dispatch + else-path mix: current=S1, queue
+     * [S0, S2, S3]. S0 dispatches (dip to S0, restore to S1), then
+     * S2/S3 else-loop until the 100-skip break. Absolute post-break
+     * indexes: r=1 (the S0 dequeue + 100 skip cycles mod 100) / w=3
+     * (100 re-enqueues mod 100). RT-D: r=51 / w=53. RT-D2: S2/S3
+     * dropped -> count 0, r==3. The priority expect is red under a
+     * dropped `current_priority = old_priority` restore (the dip in
+     * this scenario would stick at S0). */
+    {
+        h_calls = 0;
+        rtos_init();
+        CHECK(rtos_task_enqueue(rtos_build_dispatch(
+                  (uint32_t)(uintptr_t)&h_sub, RTOS_TYPE_SUBFUNC,
+                  RTOS_PRIORITY_S0), 0x5050u) == 0, "mix enqueue S0");
+        CHECK(rtos_task_enqueue(rtos_build_dispatch(
+                  (uint32_t)(uintptr_t)&h_sub, RTOS_TYPE_SUBFUNC,
+                  RTOS_PRIORITY_S2), 0x5252u) == 0, "mix enqueue S2");
+        CHECK(rtos_task_enqueue(rtos_build_dispatch(
+                  (uint32_t)(uintptr_t)&h_sub, RTOS_TYPE_SUBFUNC,
+                  RTOS_PRIORITY_S3), 0x5353u) == 0, "mix enqueue S3");
+
+        rtos_setCurrentPriority_forHostTest(RTOS_PRIORITY_S1);
+        rtos_scheduler();
+
+        CHECK(h_calls == 1,
+              "mix dispatched calls=%u want 1 (only the S0 task; compare "
+              "inverted?)", h_calls);
+        CHECK(rtos_queue_count() == 2,
+              "mix count=%d want 2 (S2/S3 retained after skip-break)",
+              rtos_queue_count());
+        CHECK(rtos_get_read_index() == 1,
+              "mix abs read index=%u want 1 (S0 dequeue + 100 skip cycles; "
+              "51 = skip_count += 2)", rtos_get_read_index());
+        CHECK(rtos_get_write_index() == 3,
+              "mix abs write index=%u want 3 (100 re-enqueues mod 100; "
+              "53 = skip_count += 2)", rtos_get_write_index());
+        CHECK(rtos_get_current_priority() == RTOS_PRIORITY_S1,
+              "mix priority=%u want S1 (old_priority restore dropped?)",
+              rtos_get_current_priority());
+        /* Leave the fixture state as found (init contract: S3, empty). */
+        rtos_setCurrentPriority_forHostTest(RTOS_PRIORITY_S3);
+        rtos_init();
+    }
 
     /* ---- (k) context save/restore on the in-page fake stack ---- */
     {
