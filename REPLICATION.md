@@ -1,6 +1,6 @@
 # REPLICATION — reproduce byte-perfect RX-8 ECU ROMs from scratch
 
-Copy-paste-able steps from a fresh clone to byte-perfect (sha256-verified) copies of all 9 stock ROMs, plus RE deliverables (annotated assembly, verified C lifts, docs, analysis). Applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
+Copy-paste-able steps from a fresh clone to byte-perfect (sha256-verified) copies of all 10 stock ROMs, plus RE deliverables (annotated assembly, verified C lifts, docs, analysis). Applies to any stock ROM (see [VERIFICATION.md](VERIFICATION.md)).
 
 Self-contained: only Python 3, `capstone` pip, and the sh-elf binutils toolchain — **not shipped**; fresh clone runs `tools/get_toolchain.sh` once (internet required) into `tools/toolchain/` (git-ignored). No root, no `~/.bashrc` exports. Requires: Linux/macOS, Python 3, `make`, `cc` (C test suites only); ~2 GB disk.
 
@@ -24,7 +24,7 @@ Installs GNU **sh-elf binutils 2.46** (`sh-elf-as -big`, `sh-elf-ld -Ttext=0`, `
 
 Makefile and `verify_all.sh` resolve the toolchain path themselves — no `PATH` export for make steps. Standalone `tools/tests/` scripts invoke `sh-elf-as` directly; if not system-wide: `export PATH=$PWD/tools/toolchain/usr/bin:$PATH`.
 
-## Step 3 — Bulk verify: rebuild + byte-compare all 9 ROMs
+## Step 3 — Bulk verify: rebuild + byte-compare all 10 ROMs
 
 ```bash
 make verify-all
@@ -33,20 +33,21 @@ make verify-all
 Expected output (repo's core claim):
 
 ```
-Rebuilding and byte-exact-verifying 9 stock ROMs (code window 0x800..0x60000)...
+Rebuilding and byte-exact-verifying 10 stock ROMs (code window 0x800..0x60000)...
 ROM                            sha256 match                    cov%    raw  STATUS
 -----------------------------------------------------------------------
-60E0E500.bin                   c05dfd0422b2b773027a22dc        93.5    246  BYTE-EXACT
+60E0E500.bin                   c05dfd0422b2b773027a22dc        93.5    247  BYTE-EXACT
 60E0E700_N3YLEE.bin            bba52346a076c35ded281c14        93.5    326  BYTE-EXACT
-60E0FB00.bin                   3d32e2591a1170d5ac3feed7        93.6    315  BYTE-EXACT
+60E0FB00.bin                   3d32e2591a1170d5ac3feed7        93.6    316  BYTE-EXACT
 60E0FC00.bin                   476ddcbed4549d89b9835dfb        93.6    377  BYTE-EXACT
-60E15120_N3J1E.bin             a7cd953c2a87af12ee2814a9        93.7    294  BYTE-EXACT
-60E1B900.bin                   b0dc94f96e8eaf6f154df8e7        93.6    308  BYTE-EXACT
-60E1C500_N3J6EB.bin            b3b6e1e416826d9c9f51ddc8        93.5    253  BYTE-EXACT
-60E1D400.bin                   344cb8b960eb6dde973bdb8e        93.6    252  BYTE-EXACT
+60E15120_N3J1E.bin             a7cd953c2a87af12ee2814a9        93.7    295  BYTE-EXACT
+60E1B900.bin                   b0dc94f96e8eaf6f154df8e7        93.6    309  BYTE-EXACT
+60E1C500_N3J6EB.bin            b3b6e1e416826d9c9f51ddc8        93.5    254  BYTE-EXACT
+60E1D400.bin                   344cb8b960eb6dde973bdb8e        93.6    253  BYTE-EXACT
 60E32000_N3M5E.bin             d5406459cc0b19f831a73a02        93.8    265  BYTE-EXACT
+60E32000_N3N5EB.bin            6c043bd4c9581f611919c187        93.8    257  BYTE-EXACT
 -----------------------------------------------------------------------
-OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
+OK: all 10 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
 Each ROM ~1.5 s; whole run under 20 s; exit 0. `BYTE-EXACT` = `sha256(rebuilt) == sha256(source)` — 100% 1:1 copy (see "What the rebuilt ROM is" below).
@@ -111,7 +112,7 @@ for t in c/tests/test_*.py; do python3 "$t" || exit 1; done   # 112 per-function
 python3 tools/denso_ck.py roms/stock/60E1D400.bin
 ```
 
-Expected: `OK: checksum valid` (Denso additive checksum descriptor @`0x7FB80` sums to `0x5AA5A55A`). **All 9 stock ROMs validate OK.**
+Expected: `OK: checksum valid` (Denso additive checksum descriptor @`0x7FB80` sums to `0x5AA5A55A`). **All 10 stock ROMs validate OK** (re-measured 2026-10-03).
 
 Modified (tuned) images NOT shipped (kept private); those legitimately bypass the Denso checksum → `denso_ck.py` reports `FAIL: checksum mismatch` and exits 1.
 

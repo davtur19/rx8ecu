@@ -3,7 +3,7 @@
 # Runs the full documented verification battery (VERIFICATION.md / REPLICATION.md)
 # on every push/PR against main/master:
 #
-#   verify job  — byte-exact rebuild of all 9 public stock ROMs (make verify-all),
+#   verify job  — byte-exact rebuild of all 10 public stock ROMs (make verify-all),
 #                 host-compiled C behavior-equivalence suites (make c-test),
 #                 C lifts vs emulated ROM cross-check (make c-emu).
 #   tests job   — the full Python regression battery in ONE step via the
@@ -115,7 +115,7 @@ jobs:
           tools/toolchain/usr/bin/sh-elf-as --version | head -1
           python3 -c 'import capstone; print("capstone", capstone.__version__)'
 
-      - name: make verify-all (9/9 byte-exact ROM rebuild)
+      - name: make verify-all (10/10 byte-exact ROM rebuild)
         run: make verify-all
 
       - name: make c-test (host-compiled behavior-equivalence suites)

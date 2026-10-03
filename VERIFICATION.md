@@ -1,31 +1,33 @@
 # VERIFICATION — evidence that the release does what it claims
 
-Measured 2026-07-31 (sh-elf binutils 2.46, capstone 5.0.7, Python 3.14); re-run in this public tree. All rebuild claims are **9/9** for the 9-ROM `verify-all` set; the 10th image, `60E32000_N3N5EB` (added 2026-10-03), rebuilds byte-exact via the documented single-ROM target (same `rom_rebuild.py` pipeline, measured 2026-10-03) — current claim **10/10**.
+Measured 2026-07-31 (sh-elf binutils 2.46, capstone 5.0.7, Python 3.14); re-run in this public tree. All rebuild claims are **10/10** for the 10-ROM `verify-all` set — `60E32000_N3N5EB` (added 2026-10-03) is included in the loop; `make verify-all` re-measured **10/10 BYTE-EXACT, exit 0** on 2026-10-03 (same `rom_rebuild.py` pipeline; capture below).
 
-## 1. Byte-exact rebuild — 10/10 public stock ROMs (9 via `verify-all` + 1 single-ROM target)
+## 1. Byte-exact rebuild — 10/10 public stock ROMs (all 10 via `verify-all`)
 
 `make verify-all` → `tools/verify_all.sh` → `tools/rom_rebuild.py` (capstone SH-2 + `disasm_sh2e.py` fallback → single `.s` → `sh-elf-as -big` + `sh-elf-ld -Ttext=0x0` + `sh-elf-objcopy -O binary` → `sha256sum`).
 
 ```
-Rebuilding and byte-exact-verifying 9 stock ROMs (code window 0x800..0x60000)...
+Rebuilding and byte-exact-verifying 10 stock ROMs (code window 0x800..0x60000)...
 ROM                            sha256 match                    cov%    raw  STATUS
 -----------------------------------------------------------------------
-60E0E500.bin                   c05dfd0422b2b773027a22dc        93.5    246  BYTE-EXACT
+60E0E500.bin                   c05dfd0422b2b773027a22dc        93.5    247  BYTE-EXACT
 60E0E700_N3YLEE.bin            bba52346a076c35ded281c14        93.5    326  BYTE-EXACT
-60E0FB00.bin                   3d32e2591a1170d5ac3feed7        93.6    315  BYTE-EXACT
+60E0FB00.bin                   3d32e2591a1170d5ac3feed7        93.6    316  BYTE-EXACT
 60E0FC00.bin                   476ddcbed4549d89b9835dfb        93.6    377  BYTE-EXACT
-60E15120_N3J1E.bin             a7cd953c2a87af12ee2814a9        93.7    294  BYTE-EXACT
-60E1B900.bin                   b0dc94f96e8eaf6f154df8e7        93.6    308  BYTE-EXACT
-60E1C500_N3J6EB.bin            b3b6e1e416826d9c9f51ddc8        93.5    253  BYTE-EXACT
-60E1D400.bin                   344cb8b960eb6dde973bdb8e        93.6    252  BYTE-EXACT
+60E15120_N3J1E.bin             a7cd953c2a87af12ee2814a9        93.7    295  BYTE-EXACT
+60E1B900.bin                   b0dc94f96e8eaf6f154df8e7        93.6    309  BYTE-EXACT
+60E1C500_N3J6EB.bin            b3b6e1e416826d9c9f51ddc8        93.5    254  BYTE-EXACT
+60E1D400.bin                   344cb8b960eb6dde973bdb8e        93.6    253  BYTE-EXACT
 60E32000_N3M5E.bin             d5406459cc0b19f831a73a02        93.8    265  BYTE-EXACT
+60E32000_N3N5EB.bin            6c043bd4c9581f611919c187        93.8    257  BYTE-EXACT
 -----------------------------------------------------------------------
-OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
+OK: all 10 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 ```
 
-> **10th image (2026-10-03).** `60E32000_N3N5EB.bin` (added after this capture)
-> is not yet in the `tools/verify_all.sh` loop. It was verified with the
-> documented single-ROM target
+> **10th image (2026-10-03).** `60E32000_N3N5EB.bin` is part of the
+> `tools/verify_all.sh` loop (count assertion 10). An actual `make verify-all`
+> run on 2026-10-03 reports `OK: all 10 stock ROMs rebuilt byte-exact`
+> (exit 0) — capture above. Single-ROM spot check:
 > `make ROM=roms/stock/60E32000_N3N5EB.bin verify` →
 > `OK: byte-exact rebuild of roms/stock/60E32000_N3N5EB.bin`
 > (lift 183,438/195,584 words = 93.8%, 257 raw fallbacks, ~1.5 s).
@@ -36,15 +38,15 @@ OK: all 9 stock ROMs rebuilt byte-exact (code window 0x800..0x60000).
 
 | ROM (roms/stock/) | sha256(source) = sha256(rebuilt) | Status |
 |---|---|---|
-| 60E0E500.bin | `c05dfd0422b2b773027a22dcce2c24923969f27b94634bfcbdb44d6157087e11` | public, 9/9 |
-| 60E0E700_N3YLEE.bin | `bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0` | public, 9/9 |
-| 60E0FB00.bin | `3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661` | public, 9/9 |
-| 60E0FC00.bin | `476ddcbed4549d89b9835dfbfb1aac48217d943fb53c73f489ffc9414803e35c` | public, 9/9 |
-| 60E15120_N3J1E.bin | `a7cd953c2a87af12ee2814a95c958dc23959d352ef9c5e7f82b8ab8952f264f1` | public, 9/9 |
-| 60E1B900.bin | `b0dc94f96e8eaf6f154df8e7388d12fba490cf2adf13edb077677c4c82b3b1b5` | public, 9/9 |
-| 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68` | public, 9/9 |
-| 60E1D400.bin | `344cb8b960eb6dde973bdb8e8c3e3e96cac542166cd7158c6f5f24d71eb7af78` | public, 9/9 |
-| 60E32000_N3M5E.bin | `d5406459cc0b19f831a73a021ad2ae47179127097a15cfa323a34bfa47e330de` | public, 9/9 |
+| 60E0E500.bin | `c05dfd0422b2b773027a22dcce2c24923969f27b94634bfcbdb44d6157087e11` | public, 10/10 |
+| 60E0E700_N3YLEE.bin | `bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0` | public, 10/10 |
+| 60E0FB00.bin | `3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661` | public, 10/10 |
+| 60E0FC00.bin | `476ddcbed4549d89b9835dfbfb1aac48217d943fb53c73f489ffc9414803e35c` | public, 10/10 |
+| 60E15120_N3J1E.bin | `a7cd953c2a87af12ee2814a95c958dc23959d352ef9c5e7f82b8ab8952f264f1` | public, 10/10 |
+| 60E1B900.bin | `b0dc94f96e8eaf6f154df8e7388d12fba490cf2adf13edb077677c4c82b3b1b5` | public, 10/10 |
+| 60E1C500_N3J6EB.bin | `b3b6e1e416826d9c9f51ddc853cae0dea3235a3ddbb260cccd23effc77995c68` | public, 10/10 |
+| 60E1D400.bin | `344cb8b960eb6dde973bdb8e8c3e3e96cac542166cd7158c6f5f24d71eb7af78` | public, 10/10 |
+| 60E32000_N3M5E.bin | `d5406459cc0b19f831a73a021ad2ae47179127097a15cfa323a34bfa47e330de` | public, 10/10 |
 | 60E32000_N3N5EB.bin | `6c043bd4c9581f611919c187da95aeca152627212f235505d7b5ead34294a0a8` | public, 10/10 |
 
 Single-ROM spot check: `make ROM=roms/stock/60E1D400.bin verify` → `OK: byte-exact rebuild of roms/stock/60E1D400.bin`.

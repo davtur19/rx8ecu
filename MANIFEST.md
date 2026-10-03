@@ -1,8 +1,8 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **10782 entries, 294.5M.** Regenerated 2026-08-02 for the
-9-ROM public tree; see roms/ROMS.md).
+in the working repository. **10782 entries, 294.5M.** Regenerated 2026-10-03 for the
+10-ROM public tree; see roms/ROMS.md.
 
 ## Summary
 
@@ -70,11 +70,11 @@ or the toolchain install (git-ignored; re-create with
 | `CREDITS.md` | `349a330ba7cc91cbe7fa2790dace65f82334b98e7fd16143c100ca221364a952` | 4.9K | Credits: equinox311 + defs source attribution |
 | `LICENSE` | `d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee` | 33.2K | License (GNU AGPL v3) |
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
-| `Makefile` | `6a0fbb21f528ff9741986902309c40ac609ac38e0a62b92dc872b01ac0223e65` | 13.2K | Build: verify-all / verify / src / c-test / c-emu / clean |
+| `Makefile` | `3b77b8e63a7090308cd9c1b6e8965bb29232b3418a8eb75885dfb7965748a573` | 13.2K | Build: verify-all / verify / src / c-test / c-emu / clean |
 | `PLANS.md` | `b5012f216a38f1f752cb5c5f9959f0047708bfc0f308f63d5faea683439313bc` | 9.8K | Master plan (single source of truth) |
 | `README.md` | `c33c38adf80fdf64155256697a43b83aa748c957a60f644d98f33c8752f42c3e` | 7.4K | Project README |
-| `REPLICATION.md` | `9c6c913832651ead67c4841c03ad43d1c2daa32229b0dda42c03507bd642860d` | 6.5K | Fresh-clone reproduction guide |
-| `VERIFICATION.md` | `bd0b9504c1b5668941e2c105a12d0a70b25e195be0c6b165389278bc0041dd49` | 9.3K | Evidence: byte-exact table, coverage, test results, hashes |
+| `REPLICATION.md` | `d1416ba358f1c45885ab00b54d8166be49fdd1a64b3d3d8694f45926adc23720` | 6.6K | Fresh-clone reproduction guide |
+| `VERIFICATION.md` | `c76367de6827173496ba908e98f42ab6db0bec75d5e37a5084805d816a194ca0` | 9.4K | Evidence: byte-exact table, coverage, test results, hashes |
 
 ## roms
 
@@ -9946,7 +9946,7 @@ or the toolchain install (git-ignored; re-create with
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
 | `tools/ASM_BASELINE.md` | `b11940ad0b7e7e58308a3c2d04f9aaa0933ae1b101f7f563bf86dda16c23e7a6` | 4.4K | Method, byte-exact proof, coverage, limits, next steps |
-| `tools/README.md` | `44f3aea31bf6938b18be1311d57de23208100f1efad4ac5593466e7db663005f` | 3.3K | Directory README |
+| `tools/README.md` | `1fc5696a8e78c374f1296a8b4fa261a02461c796d4f792da756f31e98694570c` | 3.3K | Directory README |
 | `tools/__gcl_dbg.py` | `c9756f3b466257f321634d6f840c99f75ac1fe00afea2c4179e4fed36ad6b54a` | 141.1K | Tracked file |
 | `tools/c_lift_ops.py` | `002953c3baee59daa17069bbe207fd867f53a08a45dd2535cfe9ccc4e45d76f5` | 76.9K | Tracked file |
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
@@ -9964,7 +9964,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/gen_c_lift_v8_patched.py` | `ee79b3701a3a69023a17dbfc066544f49caa231dda05dff9e8632555040ebce1` | 123.3K | Tracked file |
 | `tools/gen_catalog.py` | `3bd166fa03c44c55b9f623355cead3a2fbc23cd756757dedb853976275741949` | 51.2K | Tracked file |
 | `tools/gen_lib_test.py` | `74b78640167ce060812cf5f674265be753454197d75c35ebe732acf004cdcc27` | 14.8K | Tracked file |
-| `tools/gen_manifest.py` | `a5203133dd9bd2295954d082f2a63df0e08552898a15fcc5f7c7e250a6a1ec43` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
+| `tools/gen_manifest.py` | `84e994a7bc7fc85793974a8c10818fc6d39e8143d2a8382f8d9adce6ee4fab31` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/make_elf.py` | `ebf51e814135e78eb0e0b376afb452e7c1d6c21d82dc361df2488ab500c333b5` | 6.1K | Tracked file |
@@ -9977,7 +9977,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/rom_rebuild.py` | `6c07634d0616336746fda8ed998200069349e2de522976ee929d5f690254fc5a` | 7.5K | RE tool (see tools/README.md) |
 | `tools/run_tests_parallel.py` | `9a7de6e8e49a81fa12267815c7e23420d025c9eaac5c31bbc5a42d93f44e510b` | 13.5K | Parallel test runner (pytest, all suites) |
 | `tools/sh2emu.py` | `cacd694ab0ae754f30d5501d4515c4f76bfa3e822af9f8ebe6944a03bb09e2b2` | 42.0K | RE tool (see tools/README.md) |
-| `tools/verify_all.sh` | `532ae54090d86461560542a95a19b9ed3f16654e84ccf0f0dc60531df0f5f53d` | 4.1K | RE tool script (see tools/README.md) |
+| `tools/verify_all.sh` | `ee6c6fb4ad67c2607f62b382fbba0b0f1dbe01bda7ad1893f99f3f6bb221ccdc` | 4.1K | RE tool script (see tools/README.md) |
 | `tools/verify_formal.py` | `6a8c95e44dc887abcf2b8837a33583556938e93ae0306b34c1e8f482a3fc1ef8` | 31.0K | Tracked file |
 | `tools/xmap_names.py` | `ee1bb9ec6bf9dc33695be8527fb4454a291732ae307a8d1ec696b0f77ce358a2` | 5.6K | RE tool (see tools/README.md) |
 
@@ -10319,7 +10319,7 @@ or the toolchain install (git-ignored; re-create with
 | `analysis/data_regions_60E1D400.csv` | `1fdc2a3960369000ffe91991a420688cd8c7927fa1a77cc3b57678fbb9442a55` | 107.6K | Code-window data-region classification |
 | `analysis/data_regions_60E1D400.md` | `c92377b49ed0a0d3a59bd76fedf607dc58470cf1db6bbffe4a5b2eed1493133a` | 5.5K | Code-window data-region classification |
 | `analysis/romdiff/README.md` | `5eb273767583e33ea0537a32c686272c77220040a043eeb6ee596bdb37a06938` | 1.9K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/REPORT.md` | `f552dca1fb3a8cf745c74bffc04d70b637645cf9eb8f55b7e233a636afcac458` | 10.4K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/REPORT.md` | `2a9051c1c9e8d2aa1e91c6b628e140f108e523cedb612a8d92ab24c74c7cd89a` | 10.4K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
 | `analysis/romdiff/cal_table_diffs_baseline.csv` | `1950d28497114ce6e3888dcf66f5a47a51f90374a5f1827af08c8385c50328bf` | 610.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
 | `analysis/romdiff/clusters.txt` | `3073878cf18f2bbb32163b579c5bd1d5ed92e1b7bb00181219c3335552c90d0d` | 2.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
 | `analysis/romdiff/diff_matrix.csv` | `e47dddb705664b858c1e8cb37451d3969679472e0f0ad69fb083697349185285` | 2.0K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
@@ -10333,8 +10333,8 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `.github/dependabot.yml` | `f768eee143a9e1e8f620ec0b27ce983217ce40cfc52d7281fe8b1435e8823fae` | 791B | Tracked file |
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
-| `.github/workflows/README.md` | `bfc237e6a4499dfa04447c4610e88c0ca22cd181a974defed1196587ff66097b` | 4.1K | CI documentation (GitHub Actions) |
-| `.github/workflows/ci.yml` | `0b8a62f87f2e20db6486e0a4a8d984ab81bd0f52c1180b045502f13e3fc41e26` | 14.8K | CI workflow (GitHub Actions) |
+| `.github/workflows/README.md` | `1fe281a91d75c0f88d91f79080f32e820f9224a1a06ca8da0195f381f8273b98` | 4.1K | CI documentation (GitHub Actions) |
+| `.github/workflows/ci.yml` | `d666f9a260baefcd23b0ff348ce4d235b726386735c49b25635ff62dc99ec1f8` | 14.8K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `48763fb8e9169b691323e0cddab8c2b17903192df2099de3a1b612e40e14afd9` | 5.2K | CI workflow (GitHub Actions) |
 
 ## reconstructed/experiments/match
