@@ -30,6 +30,7 @@
  *                _Static_asserted against the real firmware values);
  *   0xFFFFD000 — RAM validation buffer 0xFFFFDFE4..0xFFFFDFED + consume
  *                marker 0xFFFFDFEC.
+ * (same C/D pages as link_l10, D also m7/rtos, E m8, F m4/m6 — separate processes, MAP_FIXED cannot collide)
  * Every load/store the TU performs then executes for real.
  *
  * There is NO init entry in eeprom.c (hw_init_1 @0x170 is ROM-side, not
@@ -45,9 +46,10 @@
  *   (b) CS framing: every transaction ends with CS bit0 SET and the other
  *       15 port bits preserved — exact-value checks (prime 0xA5A4 ->
  *       0xA5A5) kill CS-bit/CS-address corruption, a dropped closing
- *       cs_high, an RMW-to-assign corruption, and a low/high framing
- *       order swap; clock byte must end 0x08 -> 0x09 (bit0 set, status
- *       bit3 preserved) on every transaction;
+ *       cs_high on the final frame, an RMW-to-assign corruption, and a
+ *       low/high framing order swap of the final frame; clock byte must
+ *       end 0x08 -> 0x09 (bit0 set, status bit3 preserved) on every
+ *       transaction;
  *   (c) data round-trip / shift path: parity vectors read(0x14) -> 0x00
  *       and read(0x15) -> 0xFF (the host has no EEPROM device model, so
  *       spi_read_byte samples the static data line = LAST shifted bit =
@@ -60,8 +62,12 @@
  *
  * Documented limits (h5 style — real, not faked asserts):
  *   - a dropped INITIAL cs_low is not observable from a final-state host
- *     snapshot (no interleaving device); the CS RELEASE half of every
- *     frame and all CS-bit/address/order corruption IS observable;
+ *     snapshot (no interleaving device), and only the FINAL frame's CS
+ *     release/order is observable: a non-final frame's dropped or
+ *     reordered cs_low/cs_high is indistinguishable from final state
+ *     (the next frame re-asserts cs_low; no interleaving device) — the
+ *     final frame's release/order and all CS-bit/address corruption ARE
+ *     observable;
  *   - the wait EXIT polarity (bit3 set/clear) is indistinguishable from
  *     final state when the status byte is static memory — the timeout
  *     BOUND (termination) is what is asserted, plus clock-bit side
