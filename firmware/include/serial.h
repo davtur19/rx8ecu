@@ -87,6 +87,55 @@ void serial_tx_direct_path(uint8_t cmd, uint8_t payload_size, const uint8_t *sou
 void serial_queue_message(uint8_t cmd, uint8_t payload_size, const uint8_t *source);
 
 /* ====================================================================== */
+/*  Channel API (shared contract with the serial.c definitions)           */
+/* ====================================================================== */
+
+/* These four are the only serial.c entry points the host link harness
+ * (link_m4_serial_rx) and any other TU CALL directly; declaring them
+ * here makes serial.c itself compile against the same prototypes
+ * (serial.c includes this header), so a parameter-type drift in a
+ * definition becomes a `conflicting types` compile error instead of a
+ * silent link. Signatures mirror firmware/c/serial.c exactly. */
+
+/**
+ * serial_init — Initialize all serial channels.
+ *
+ * Arms each channel with its owned RX/TX buffers and RX capacity
+ * (rx_buf = serial_rx_owned[i], rx_len = SERIAL_RX_CAPACITY), then runs
+ * the ATU timer/capture-compare init and enables serial interrupts.
+ */
+void serial_init(void);
+
+/**
+ * serial_data_read — Drain received bytes from a channel's RX buffer.
+ *
+ * @param channel  Channel number (0-2); >= 3 rejected with -1
+ * @param buf      Destination buffer
+ * @param max_len  Maximum bytes to copy out
+ * @return Bytes delivered (0 while IDLE), or -1 on error
+ */
+int serial_data_read(uint8_t channel, uint8_t *buf, uint8_t max_len);
+
+/**
+ * serial_data_write — Queue bytes on a channel's TX buffer.
+ *
+ * @param channel  Channel number (0-2); >= 3 rejected with -1
+ * @param buf      Source buffer (copied, never aliased)
+ * @param len      Number of bytes to queue
+ * @return Bytes queued, or -1 on error/channel busy
+ */
+int serial_data_write(uint8_t channel, const uint8_t *buf, uint8_t len);
+
+/**
+ * serial_atu_irq_handler — ATU serial interrupt handler.
+ *
+ * Reads TISRA and dispatches RX capture / TX drain per channel; clears
+ * serviced flags with a read-modify-write (flag-only, never a full-mask
+ * write).
+ */
+void serial_atu_irq_handler(void);
+
+/* ====================================================================== */
 /*  RX Handlers (per-channel)                                             */
 /* ====================================================================== */
 

@@ -44,8 +44,18 @@
  *     public static inlines in uds.h. uds_init is never called (h5
  *     boundary); uds.c file-scope statics are plain zero-init.
  *
- * Proves (every assert killable; every zero-expect is primed nonzero
- * first — F1 lesson):
+ * Proves (F1 lesson: zero-expects are primed nonzero first. Killability
+ * is NOT claimed universally — the one honest exception: the sid37 SIZE
+ * B3..B0 stay-0 check in (h) is UNKILLABLE against a store-deletion
+ * mutant, because the remaining==0 gate reads exactly those four bytes
+ * and must see them all zero before the happy path can reach the clear
+ * stores, so those stores only ever execute 0→0 here — a deleted store
+ * leaves 0 and the check stays green (documented coverage gap, see (h),
+ * NOT a claimed kill; a value mutant that leaves a nonzero SIZE residue
+ * IS red). Reject-path coverage added for this hole: every one of the
+ * THREE sid37 reject vectors primes the SIZE bytes nonzero (0xEE/0xEE/
+ * 0xEE/0x04) and asserts they survive, so a "clear SIZE on reject"
+ * mutant at any of those sites is red):
  *   (a) M7: `3E 00` and bare `3E` → positive [7E 00] with the TP-flag
  *       store landing (primed 0xEE → 1); `3E 80`/`3E 01` → NRC
  *       [7F 3E 12] with the TP flag left at its primed nonzero value
@@ -65,13 +75,17 @@
  *       4 → 0, MEM_LO 0 → 4, seq 1 → 2; payload>remaining is capped
  *       (no extra flash write, checksum stable); data_len 0 → 0x13;
  *       state≠ACTIVE → 0x22; default session → 0x22;
- *   (h) sid37: remaining≠0 → 0x71 with state unchanged; happy →
- *       [77 00] clearing STATE 1→0, SEQ 2→0, checksum 0x338→0,
- *       FORMAT 0x33→0, MEM_HI/MEM_MID/MEM_LO nonzero→0; SIZE B3..B0
- *       clear stores are 0→0 only (the remaining==0 gate reads exactly
- *       those four bytes, so a nonzero→0 SIZE transition is unreachable
- *       on the happy path — asserted stay-0 instead); state≠ACTIVE →
- *       0x22; default session → 0x22;
+ *   (h) sid37: remaining≠0 → 0x71 with state unchanged AND all four SIZE
+ *       bytes keeping their nonzero primes (EE EE EE 04 — kills "clear
+ *       SIZE on reject"); happy → [77 00] clearing STATE 1→0, SEQ 2→0,
+ *       checksum 0x338→0, FORMAT 0x33→0, MEM_HI/MEM_MID/MEM_LO
+ *       nonzero→0; SIZE B3..B0 clear stores are 0→0 only (the
+ *       remaining==0 gate reads exactly those four bytes, so a nonzero→0
+ *       SIZE transition is unreachable on the happy path — asserted
+ *       stay-0 instead, which does NOT kill a store-DELETION mutant
+ *       there: documented unkillable, not claimed); the state≠ACTIVE
+ *       and default-session rejects re-prime SIZE nonzero and assert it
+ *       survives too; state≠ACTIVE → 0x22; default session → 0x22;
  *   (i) the three DTC stubs stay uncalled at the end (whole run).
  *
  * Build (see firmware/tests/Makefile link-check):
@@ -515,7 +529,13 @@ int main(void)
 
     /* (h) sid37 exit chain. */
     {
-        /* remaining ≠ 0 → 0x71, state byte keeps its nonzero prime. */
+        /* remaining ≠ 0 → 0x71: state AND all four SIZE bytes keep
+         * their nonzero primes. Priming SIZE nonzero here is the only
+         * way a "clear SIZE on reject" mutant can go red — the happy
+         * path below structurally cannot observe it (stay-0 only). */
+        *m7c2_u8(UDS_DL_SIZE_B3_ADDR) = 0xEEu;
+        *m7c2_u8(UDS_DL_SIZE_B2_ADDR) = 0xEEu;
+        *m7c2_u8(UDS_DL_SIZE_B1_ADDR) = 0xEEu;
         *m7c2_u8(UDS_DL_SIZE_B0_ADDR) = 0x04u;
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0x01u;
         rc = obd_sid37_requestTransferExit(resp);
@@ -523,13 +543,29 @@ int main(void)
         CHECK(*m7c2_u8(UDS_DL_STATE_ADDR) == 0x01u,
               "sid37 remaining: state = 0x%02X want 1 (cleared on reject)",
               (unsigned)*m7c2_u8(UDS_DL_STATE_ADDR));
+        CHECK(*m7c2_u8(UDS_DL_SIZE_B3_ADDR) == 0xEEu &&
+              *m7c2_u8(UDS_DL_SIZE_B2_ADDR) == 0xEEu &&
+              *m7c2_u8(UDS_DL_SIZE_B1_ADDR) == 0xEEu &&
+              *m7c2_u8(UDS_DL_SIZE_B0_ADDR) == 0x04u,
+              "sid37 remaining: SIZE = %02X %02X %02X %02X want EE EE EE 04 "
+              "(SIZE cleared on reject)",
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B3_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B2_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B1_ADDR),
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B0_ADDR));
 
         /* happy: remaining 0 (SIZE B3..B0 all 0 — the firmware gate
          * reads exactly those bytes, so they CANNOT be primed nonzero
-         * here and their clear stores are 0→0; asserted stay-0 below),
-         * state 1, seq 2, checksum 0x338, format 0x33, and MEM_HI /
-         * MEM_MID / MEM_LO primed nonzero — each of those clears is a
-         * killable primed-nonzero → 0 transition. */
+         * here and their clear stores are 0→0; asserted stay-0 below;
+         * a store-DELETION on those four stores is therefore UNKILLABLE
+         * in this harness — documented, not claimed), state 1, seq 2,
+         * checksum 0x338, format 0x33, and MEM_HI / MEM_MID / MEM_LO
+         * primed nonzero — each of those clears is a killable
+         * primed-nonzero → 0 transition. SIZE is re-primed from EE EE
+         * EE 04 (the reject vector above) back to 0 0 0 0 first. */
+        *m7c2_u8(UDS_DL_SIZE_B3_ADDR) = 0x00u;
+        *m7c2_u8(UDS_DL_SIZE_B2_ADDR) = 0x00u;
+        *m7c2_u8(UDS_DL_SIZE_B1_ADDR) = 0x00u;
         *m7c2_u8(UDS_DL_SIZE_B0_ADDR) = 0x00u;
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0x01u;
         *m7c2_u8(UDS_DL_BLOCK_SEQ_ADDR) = 0x02u;
@@ -566,7 +602,10 @@ int main(void)
         /* SIZE clear stores: the remaining==0 gate forces SIZE to all 0
          * BEFORE the happy path, so nonzero→0 is unreachable here —
          * assert the bytes stay 0 after the clear stores (a write of a
-         * nonzero residue, e.g. a left-shifted leftover, is red). */
+         * nonzero residue, e.g. a left-shifted leftover, is red). A
+         * store-DELETION mutant on these four stores is NOT caught by
+         * this check (0 stays 0): documented unkillable gap, see the
+         * header comment — do not cite this check as a kill. */
         CHECK(*m7c2_u8(UDS_DL_SIZE_B3_ADDR) == 0x00u &&
               *m7c2_u8(UDS_DL_SIZE_B2_ADDR) == 0x00u &&
               *m7c2_u8(UDS_DL_SIZE_B1_ADDR) == 0x00u &&
@@ -577,22 +616,34 @@ int main(void)
               (unsigned)*m7c2_u8(UDS_DL_SIZE_B1_ADDR),
               (unsigned)*m7c2_u8(UDS_DL_SIZE_B0_ADDR));
 
-        /* state ≠ ACTIVE → 0x22, prime survives. */
+        /* state ≠ ACTIVE → 0x22 (state gate runs before the SIZE gate):
+         * both primes survive — SIZE is re-primed nonzero so a "clear
+         * SIZE on reject" mutant on THIS path is red as well. */
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0xEEu;
+        *m7c2_u8(UDS_DL_SIZE_B0_ADDR) = 0x04u;
         rc = obd_sid37_requestTransferExit(resp);
         expect_nrc(rc, 0x37, UDS_NRC_CONDITIONS_NOT_CORRECT, "sid37 idle");
         CHECK(*m7c2_u8(UDS_DL_STATE_ADDR) == 0xEEu,
               "sid37 idle: state = 0x%02X want prime 0xEE",
               (unsigned)*m7c2_u8(UDS_DL_STATE_ADDR));
+        CHECK(*m7c2_u8(UDS_DL_SIZE_B0_ADDR) == 0x04u,
+              "sid37 idle: SIZE B0 = 0x%02X want 0x04 (SIZE cleared on reject)",
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B0_ADDR));
         *m7c2_u8(UDS_DL_STATE_ADDR) = 0x01u;
 
-        /* default session → 0x22 (session gate first), state survives. */
+        /* default session → 0x22 (session gate first), state survives
+         * and SIZE keeps its nonzero prime (reject-path priming). */
         uds_set_session(UDS_SESSION_DEFAULT);
+        *m7c2_u8(UDS_DL_SIZE_B0_ADDR) = 0x04u;
         rc = obd_sid37_requestTransferExit(resp);
         expect_nrc(rc, 0x37, UDS_NRC_CONDITIONS_NOT_CORRECT, "sid37 default-session");
         CHECK(*m7c2_u8(UDS_DL_STATE_ADDR) == 0x01u,
               "sid37 default-session: state = 0x%02X want 1",
               (unsigned)*m7c2_u8(UDS_DL_STATE_ADDR));
+        CHECK(*m7c2_u8(UDS_DL_SIZE_B0_ADDR) == 0x04u,
+              "sid37 default-session: SIZE B0 = 0x%02X want 0x04 "
+              "(SIZE cleared on reject)",
+              (unsigned)*m7c2_u8(UDS_DL_SIZE_B0_ADDR));
         uds_set_session(UDS_SESSION_PROGRAMMING);
     }
 
