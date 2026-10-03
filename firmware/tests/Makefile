@@ -49,7 +49,7 @@ BINS = $(addprefix $(OUTDIR)/,$(TESTS))
 
 # Link-pilot harnesses: compile-link-run against the REAL firmware headers
 # (not models). Sources live in link/, binaries are link_<name>.
-LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch link_m6_crank
+LINK_TESTS = link_n2_rtos_mask link_c1_addr_width link_h1_mbox link_m2_checksum link_h5_sid22 link_h4_dwell link_h2_dtc_status link_m8_mailbox_bits link_m7_c2_tp_sid34 link_l10_injector_flag link_m4_serial_rx link_rtos_queue_dispatch link_m6_crank link_eeprom
 LINK_BINS = $(addprefix $(OUTDIR)/,$(LINK_TESTS))
 CFLAGS_LINK = $(CFLAGS) -I$(FW_INC)
 
@@ -188,6 +188,20 @@ $(OUTDIR)/link_m4_serial_rx: link/link_m4_serial_rx.c $(FW_C)/serial.c $(FW_C)/t
 # 0xFFFFDFB4/0xFFFFDFB6 (0x6873C dispatch table is comment-only).
 $(OUTDIR)/link_rtos_queue_dispatch: link/link_rtos_queue_dispatch.c $(FW_C)/rtos.c $(FW_HDRS) | $(OUTDIR)
 	$(CC) $(CFLAGS_LINK) -no-pie $(filter %.c,$^) -o $@ -lm
+
+# eeprom links the REAL eeprom.c TU (link pilot #14 — adversarial-review
+# P1 zero-coverage TU: SPI EEPROM bit-bang, CS framing, timeout-bounded
+# SPI waits). nm -u eeprom.o is EMPTY (zero undefined externs, m2
+# precedent) so no stubs; the TU compiles clean under -Werror (no
+# unused-static relaxation). The harness mmap-maps FOUR 4 KiB pages with
+# MAP_FIXED — 0xFFFFE000 (SPI clk/status 0xFFFFE401 + data line
+# 0xFFFFE406), 0xFFFFF000 (CS port 0xFFFFF730), 0xFFFFC000 (staging
+# 0xFFFFC2FE + inverted verify copy 0xFFFFC3FE), 0xFFFFD000 (validation
+# buffer 0xFFFFDFE4 + marker 0xFFFFDFEC) — so every load/store executes
+# for real; each stuck SPI wait runs under a 3 s SIGALRM watchdog so a
+# broken timeout bound fails the harness instead of hanging the gate.
+$(OUTDIR)/link_eeprom: link/link_eeprom.c $(FW_C)/eeprom.c $(FW_HDRS) | $(OUTDIR)
+	$(CC) $(CFLAGS_LINK) $(filter %.c,$^) -o $@ -lm
 
 link-all: $(LINK_BINS)
 
