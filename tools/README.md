@@ -13,7 +13,7 @@ at the repo root: `roms/`, `src/`, `symbols/`, `analysis/`, `c/`, `docs/`.
 | `organize_src.py` | Emit the **organized, annotated** reassemblable source (`src/*_annotated.s`) |
 | `disasm_sh2e.py` | SH-2E decode-gap fallback disassembler (FPU, fpul/fpscr, `mov.l @(disp,Rm)`, SSR/SPC) |
 | `sh2emu.py` | SH-2E emulator (integer + single-precision FPU) — Track A oracle |
-| `verify_all.sh` | Bulk byte-exact verifier: rebuild + compare **all 9 public stock ROMs** (`make verify-all`) |
+| `verify_all.sh` | Bulk byte-exact verifier: rebuild + compare **all 10 public stock ROMs** (`make verify-all`) |
 | `get_toolchain.sh` | Fetch `sh-elf` binutils without root (apt download + unpack into `./toolchain/usr`; idempotent) |
 | `xmap_names.py` | Transfer equinox hand-names across ROMs by content signature |
 | `idamap.py` | IDA symbol-map ingestion/derivation helper |
@@ -37,7 +37,7 @@ themselves. You do not need **any `~/.bashrc` exports**:
 ```bash
 python3 -m pip install capstone --break-system-packages
 ./tools/get_toolchain.sh        # installs sh-elf binutils locally
-make verify-all                 # rebuilds + verifies all 9 public stock ROMs byte-exact
+make verify-all                 # rebuilds + verifies all 10 public stock ROMs byte-exact
 make ROM=roms/stock/60E1D400.bin verify   # single ROM
 ```
 

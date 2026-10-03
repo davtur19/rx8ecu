@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # verify_all.sh — rebuild EVERY stock ROM and prove each is byte-exact.
 #
-# For each of the 9 public stock ROMs in ../roms/stock/ this runs the same
+# For each of the 10 public stock ROMs in ../roms/stock/ this runs the same
 # asm-first rebuild as `make ROM=<rom> verify` — capstone disassembly + sh-elf
 # binutils, code window 0x800..0x60000, everything else raw .word data (the
 # defaults of rom_rebuild.py) — then compares the rebuilt bytes to the source ROM.
 #
-# NOTE: this verifies the 9 public stock ROMs shipped in this repo
+# NOTE: this verifies the 10 public stock ROMs shipped in this repo
 # (the owner's personal live-ECU dump is kept PRIVATE and is not shipped, so this
-# verifier covers the 9 public images (the private image was verified
+# verifier covers the 10 public images (the private image was verified
 # byte-exact before exclusion — see VERIFICATION.md).
 #
 # Self-contained: resolves the sh-elf toolchain itself (./tools/toolchain/usr/bin,
@@ -46,8 +46,8 @@ command -v sh-elf-as >/dev/null 2>&1 || die "sh-elf-as not found — run ./tools
 
 shopt -s nullglob
 mapfile -t ROMS < <(printf '%s\n' "$ROMS_DIR"/*.bin | sort)
-if [ "${#ROMS[@]}" -ne 9 ]; then
-    die "expected 9 public stock ROMs in $ROMS_DIR, found ${#ROMS[@]}"
+if [ "${#ROMS[@]}" -ne 10 ]; then
+    die "expected 10 public stock ROMs in $ROMS_DIR, found ${#ROMS[@]}"
 fi
 
 mkdir -p "$BUILD"

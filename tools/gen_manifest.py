@@ -185,8 +185,8 @@ def main():
     header = f"""# MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **{total_files} entries, {human_size(total_bytes)}.** Regenerated 2026-08-02 for the
-9-ROM public tree; see roms/ROMS.md).
+in the working repository. **{total_files} entries, {human_size(total_bytes)}.** Regenerated 2026-10-03 for the
+10-ROM public tree; see roms/ROMS.md.
 
 ## Summary
 

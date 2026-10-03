@@ -17,7 +17,7 @@
 #
 #   make            rebuild roms/stock/60E1D400.bin -> build/out.bin
 #   make verify     cmp build/out.bin against the ROM (byte-exact check)
-#   make verify-all rebuild + byte-exact check for ALL 9 public stock ROMs (./tools/verify_all.sh)
+#   make verify-all rebuild + byte-exact check for ALL 10 public stock ROMs (./tools/verify_all.sh)
 #   make src        annotated source (60E1D400, equinox+IDA names) -> src/
 #   make c-test     behavior-equivalence tests (host compiler; alias of c-test-c)
 #   make c-test-c   behavior-equivalence tests (host compiler, 26 C suites)
