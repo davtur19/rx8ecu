@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 """Regenerate MANIFEST.md — full inventory of every git-tracked file.
 
-Hashes/sizes are computed from the COMMITTED blob content (HEAD), so the
-inventory never depends on uncommitted working-tree edits.  Purpose texts for
-previously-listed files are preserved from the current MANIFEST.md; new files
+Hashes/sizes are derived from the COMMITTED tree via `git ls-tree -r HEAD` —
+never from the git index or the working tree — so a staged edit hashes the
+committed (HEAD) content, a staged deletion (`git rm --cached`) cannot drop a
+row, and an entry can only disappear when its removal is itself committed to
+HEAD (the silent-drop class is eliminated by construction; no MANIFEST row
+diffing needed).  Purpose texts for previously-listed files are preserved from
+the current MANIFEST.md (a missing file starts a fresh inventory); new files
 (notably reconstructed/) get rule-based purposes.  Stdlib only.
+
+Fail-closed behavior: a submodule entry, an unresolvable git state, or a file
+whose section is not in the known `sections` list aborts with a nonzero exit
+and a clean message (no KeyError/traceback).
 
 Usage (from the repo root):  python3 tools/gen_manifest.py
 Writes MANIFEST.md in place; deterministic (no timestamps, no absolute paths).
@@ -96,24 +104,34 @@ def purpose_for(path, old):
 
 
 def main():
-    # Existing purposes from current MANIFEST.md.
+    # Existing purposes from current MANIFEST.md (absent file => fresh list).
     old = {}
-    for line in (ROOT / "MANIFEST.md").read_text(encoding="utf-8").splitlines():
-        m = re.match(r"\| `([^`]+)` \| `([0-9a-f]{64}|--)` \| [^|]+ \| (.*) \|$", line)
-        if m:
-            old[m.group(1)] = m.group(3)
+    mp = ROOT / "MANIFEST.md"
+    if mp.exists():
+        for line in mp.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"\| `([^`]+)` \| `([0-9a-f]{64}|--)` \| [^|]+ \| (.*) \|$", line)
+            if m:
+                old[m.group(1)] = m.group(3)
 
-    # Tracked files (index == HEAD; nothing staged) + blob hashes.
-    entries = {}  # path -> (blob_hash, size, sha256)
-    out = git(["ls-files", "-s"])
+    # Tracked files derived from HEAD — never from the index (git ls-files)
+    # or the working tree: `git ls-tree -r HEAD` enumerates the COMMITTED
+    # tree, so staged edits hash committed content, `git rm --cached` cannot
+    # drop a row, and an entry can only disappear when its removal is
+    # committed (see module docstring).
+    entries = {}  # path -> None (ordered set; blob hash looked up below)
+    try:
+        out = git(["ls-tree", "-r", "HEAD"])
+    except subprocess.CalledProcessError as e:
+        raise SystemExit(f"gen_manifest: git ls-tree -r HEAD failed "
+                         f"(no commit?): {e.stderr}")
     blob_hash = {}  # path -> blob
     for line in out.splitlines():
-        # format: <mode> <blob> <stage>\t<path>
+        # format: <mode> <type> <object>\t<path>
         meta, _, path = line.partition("\t")
-        mode, blob, stage = meta.split()
-        if mode == "160000":  # submodule
-            raise SystemExit(f"submodule unsupported: {path}")
-        blob_hash[path] = blob
+        mode, typ, obj = meta.split()
+        if mode == "160000" or typ == "commit":  # submodule
+            raise SystemExit(f"gen_manifest: submodule unsupported: {path}")
+        blob_hash[path] = obj
         entries[path] = None
 
     # Bulk content fetch via git cat-file --batch.
@@ -151,7 +169,13 @@ def main():
     ]
     buckets = {s: [] for s in sections}
     for path in sorted(entries):
-        buckets[section_of(path)].append(path)
+        sec = section_of(path)
+        if sec not in buckets:
+            raise SystemExit(
+                f"gen_manifest: unknown section {sec!r} for {path!r}; add it "
+                "to the `sections` list in tools/gen_manifest.py before "
+                "regenerating MANIFEST.md")
+        buckets[sec].append(path)
 
     summary = []
     out_lines = []

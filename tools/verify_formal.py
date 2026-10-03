@@ -13,9 +13,25 @@ violations are reported so they can be fixed with evidence later.
 
 Properties (P1..P5)
 -------------------
-P1  ROUND-TRIP    Reassemble (rom_rebuild logic) and compare byte-for-byte with
-                    the stock ROM. PASS == the annotated .s re-assembles to the
-                    identical image.
+P1  SOURCE-VALUES + ROUND-TRIP (two independent sub-checks, both must hold)
+                    (a) ANNOTATED-SOURCE VALUES (authoritative, assembler-free):
+                        parse EVERY `.word`/`.byte` directive in the annotated
+                        .s and compare its value against the ROM bytes at that
+                        directive's address. The address walk is anchored by
+                        `L_xxxxxx:` labels and `! ---` headers and is
+                        self-checked (any walk-vs-anchor disagreement is a
+                        violation). PASS (a) == the annotated source values
+                        equal the image byte-for-byte; a single flipped value
+                        in the .s = FAIL. Pure Python, no sh-elf toolchain
+                        needed.
+                    (b) REBUILD ROUND-TRIP: run rom_rebuild.py on a temp source
+                        it generates FROM the ROM and compare rebuild vs ROM
+                        byte-for-byte. This proves rom_rebuild round-trips; it
+                        does NOT re-assemble the annotated .s (the temp source
+                        never touches a.asm). Runs only when sh-elf-as is
+                        available (repo-local toolchain is tried first);
+                        reported as SKIPPED when no assembler exists — (a) is
+                        the fail-closed property in that case.
 P2  PARTITION     Parse the .s into a per-byte class map (instruction / data /
                     padding / other). Check 100% coverage and no byte in two
                     classes.
@@ -53,6 +69,11 @@ P5  GAP-AUDIT     For every uncovered gap probe both word alignments for runs of
                     "dangling branch" flag. Verdict DATA only when there is no
                     code candidate and no LIVE branch-in.
 
+Note on scope: P1(a) is the only property that compares .s data *values*
+(.word/.byte) against ROM bytes; P2-P5 build on the .s-derived address/class
+map and then judge ROM bytes (coverage, branch targets, gap probes), so P1(a)
+is what makes .s value corruption fail closed.
+
 Status:
   v1 (f225689): P3=448, P4=39061, P5=78 CODE-HIDDEN, dead-code FLAG=167368,
   NOT CERTIFIED.
@@ -75,6 +96,7 @@ import argparse
 import hashlib
 import os
 import re
+import shutil
 import struct
 import subprocess
 import sys
@@ -185,6 +207,94 @@ def parse_int_tok(tok, hex_ok=True):
         return int(tok, 16 if (hex_ok and tok.lower().startswith('0x')) else 10)
     except Exception:
         return None
+
+
+def check_annotated_source(asm_path, rom):
+    """P1(a): compare every .word/.byte directive value in the annotated .s
+    against the ROM bytes at the directive's address (assembler-free).
+
+    Address walk (deliberately independent of build_partition's class map):
+      * `L_xxxxxx:` labels and `! --- name 0xS-0xE` headers are ANCHORS: they
+        reset the walk to the declared address, and any walk-vs-anchor
+        disagreement is itself a violation — the walk must be sound for the
+        value comparisons to mean anything.
+      * `!` bookkeeping comment lines (e.g. `! [literal_pool] 0x..0x..`) and
+        the `N total lines for 0x.. 0x..` summary line emit no bytes: they do
+        NOT advance the address. (build_partition counts such lines as one
+        instruction word for coverage purposes; that map is not reused here.)
+      * `.word`/`.byte` directives must equal the ROM at the current address;
+        every other content line is one 16-bit instruction word.
+
+    Returns (value_violations, anchor_violations, n_directives):
+      value_violations  : [(lineno, addr, rom_value, source_value), ...]
+                          (rom_value is None when addr lies beyond the ROM)
+      anchor_violations : [(lineno, walk_addr, declared_addr), ...]
+    Empty lists on a pristine .s prove the annotated values match the ROM.
+    """
+    N = len(rom)
+    header = re.compile(r'!?\s*---\s+(\S+)\s+0x([0-9a-fA-F]+)-0x[0-9a-fA-F]+\s*')
+    labre = re.compile(r'^L_([0-9a-fA-F]+):\s*$')
+    funlab = re.compile(r'^([a-zA-Z_]\w*):\s*$')
+    wordre = re.compile(r'\.word\s+0x([0-9a-fA-F]+)')
+    bytere = re.compile(r'\.byte\s+0x([0-9a-fA-F]+)')
+    stats = re.compile(r'^\d+\s+total lines for 0x[0-9a-fA-F]+'
+                       r'\s+0x[0-9a-fA-F]+\s*$')
+    bad_vals = []
+    bad_anch = []
+    n_dir = 0
+    addr = 0
+    with open(asm_path, 'r', encoding='utf-8', errors='replace') as f:
+        for ln, line in enumerate(f, 1):
+            s = line.strip()
+            if not s or s == '.text':
+                continue
+            if s.startswith('!'):
+                m = header.search(s)
+                if m:
+                    decl = int(m.group(2), 16) & ~1
+                    if decl != addr:
+                        bad_anch.append((ln, addr, decl))
+                    addr = decl
+                continue
+            if stats.match(s):
+                continue    # run-summary line: emits no bytes
+            m = wordre.search(s)
+            if m:
+                v = int(m.group(1), 16)
+                n_dir += 1
+                if addr + 2 <= N:
+                    rv = int.from_bytes(rom[addr:addr + 2], 'big')
+                    if rv != v:
+                        bad_vals.append((ln, addr, rv, v))
+                else:
+                    bad_vals.append((ln, addr, None, v))
+                addr += 2
+                continue
+            m = bytere.search(s)
+            if m:
+                v = int(m.group(1), 16)
+                n_dir += 1
+                if addr + 1 <= N:
+                    rv = rom[addr]
+                    if rv != v:
+                        bad_vals.append((ln, addr, rv, v))
+                else:
+                    bad_vals.append((ln, addr, None, v))
+                addr += 1
+                continue
+            m = labre.match(s)
+            if m:
+                decl = int(m.group(1), 16)
+                if decl != addr:
+                    bad_anch.append((ln, addr, decl))
+                addr = decl
+                continue
+            if funlab.match(s):
+                if addr & 1:
+                    bad_anch.append((ln, addr, addr & ~1))
+                continue
+            addr += 2    # instruction word
+    return bad_vals, bad_anch, n_dir
 
 
 def build_partition(asm_path):
@@ -338,29 +448,75 @@ def main():
     N = len(d)
     results = {}
 
-    # ---------------- P1 ROUND-TRIP ----------------
-    # mkdtemp, not a fixed /tmp name: concurrent runs must not share it.
-    tmp = tempfile.mkdtemp(prefix='formal_rt_')
-    rt_bin = os.path.join(tmp, 'rt.bin')
-    rt_asm = os.path.join(tmp, 'rt.s')
-    try:
-        r = subprocess.run([sys.executable, 'tools/rom_rebuild.py',
-                            '--rom', a.rom, '--asm', rt_asm, '--out', rt_bin],
-                           capture_output=True, text=True, timeout=120)
-        rt_ok = ('BYTE-EXACT' in r.stdout)
-    except Exception as e:
-        rt_ok = False
-        print('P1 rebuild exception:', e)
-    if rt_ok:
-        got = open(rt_bin, 'rb').read()
-        if got == d:
-            results['P1'] = ('PASS', 0, [], 'sha256 %s' % sha256(d))
-        else:
-            off = next((i for i in range(N) if got[i] != d[i]), None)
-            results['P1'] = ('FAIL', 0, [], 'diverge %s' % hx(off))
+    # ---------------- P1: annotated-source values + rebuild round-trip -------
+    # (a) AUTHORITATIVE, assembler-free: every .word/.byte value in the
+    #     annotated .s must equal the ROM bytes at the directive's address
+    #     (anchor-checked walk; catches .s corruption the rebuild round-trip
+    #     cannot see, because that round-trip reuses a source regenerated
+    #     FROM the ROM).
+    bad_vals, bad_anch, n_dir = check_annotated_source(a.asm, d)
+
+    # (b) rom_rebuild temp-source round-trip: tests rom_rebuild itself. Needs
+    #     sh-elf-as; repo-local toolchains are tried before giving up. No
+    #     assembler => SKIPPED (reported, not failed): property (a) is the
+    #     fail-closed check and needs no toolchain.
+    rt_env = os.environ.copy()
+    if shutil.which('sh-elf-as', path=rt_env.get('PATH', '')) is None:
+        here = os.path.dirname(os.path.abspath(__file__))
+        for tc in ('toolchain/usr/bin', 'toolchain/root/usr/bin'):
+            cand = os.path.join(here, tc)
+            if os.path.isfile(os.path.join(cand, 'sh-elf-as')):
+                rt_env['PATH'] = cand + os.pathsep + rt_env.get('PATH', '')
+                break
+    rt_status = None    # 'byte-exact' | 'SKIP (...)' | 'FAIL (...)'
+    if shutil.which('sh-elf-as', path=rt_env.get('PATH', '')) is None:
+        rt_status = 'SKIP (sh-elf-as unavailable; toolchain not installed)'
     else:
-        results['P1'] = ('FAIL', 1, [('', '', 'round-trip rebuild failed')], 'not byte-exact')
-    print('P1 ROUND-TRIP:', results['P1'][0], results['P1'][3])
+        # mkdtemp, not a fixed /tmp name: concurrent runs must not share it.
+        tmp = tempfile.mkdtemp(prefix='formal_rt_')
+        rt_bin = os.path.join(tmp, 'rt.bin')
+        rt_asm = os.path.join(tmp, 'rt.s')
+        try:
+            r = subprocess.run([sys.executable, 'tools/rom_rebuild.py',
+                                '--rom', a.rom, '--asm', rt_asm, '--out', rt_bin],
+                               capture_output=True, text=True, timeout=120,
+                               env=rt_env)
+            rt_ok = ('BYTE-EXACT' in r.stdout)
+        except Exception as e:
+            rt_ok = False
+            print('P1 rebuild exception:', e)
+        if rt_ok:
+            got = open(rt_bin, 'rb').read()
+            if got == d:
+                rt_status = 'byte-exact'
+            else:
+                off = next((i for i in range(N) if got[i] != d[i]), None)
+                rt_status = 'FAIL (rebuild diverges at %s)' % hx(off)
+        else:
+            rt_status = 'FAIL (rom_rebuild error)'
+
+    if bad_vals or bad_anch:
+        lst = []
+        for ln, addr_, rv, sv in bad_vals[:10]:
+            roms = hx(rv) if rv is not None else 'beyond ROM end'
+            lst.append('ln %d @%s: .s=0x%X rom=%s' % (ln, hx(addr_), sv, roms))
+        for ln, walk_, decl in bad_anch[:10]:
+            lst.append('ln %d: anchor declares %s, walk at %s'
+                       % (ln, hx(decl), hx(walk_)))
+        results['P1'] = ('FAIL', len(bad_vals) + len(bad_anch), lst,
+                         'annotated .s value_mismatch=%d anchor_mismatch=%d '
+                         'of %d directives; rebuild=%s'
+                         % (len(bad_vals), len(bad_anch), n_dir, rt_status))
+    elif rt_status.startswith('FAIL'):
+        results['P1'] = ('FAIL', 1, [('', '', 'round-trip rebuild failed')],
+                         'annotated .s OK (%d directives == ROM); rebuild %s'
+                         % (n_dir, rt_status))
+    else:
+        results['P1'] = ('PASS', 0, [],
+                         'sha256 %s; annotated .s %d directives == ROM + '
+                         'anchors OK; rebuild %s'
+                         % (sha256(d), n_dir, rt_status))
+    print('P1 SOURCE+ROUND-TRIP:', results['P1'][0], results['P1'][3])
 
     # ---------------- PARTITION P2 ----------------
     bc, instr_starts, data_words, padding, declared = build_partition(a.asm)

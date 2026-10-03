@@ -7,10 +7,19 @@ Verify or fix the checksum of a Mazda RX-8 ROM (60Exxxxx).
   Algorithm: sum_dwords(ROM, lo, hi, step=4) + diff = 0x5AA5A55A
   Descriptor at 0x7FB80: [lo:4][hi:4][diff:4]
 
+Coverage (read this before trusting "OK"): the algorithm sums only the
+dwords in [lo, hi) from the descriptor (e.g. 0x2000-0x7DAFF on stock
+ROMs). Bytes outside that range (vector table, calibration band tail,
+etc.) are NOT covered, so corruption there is undetectable by this
+algorithm. Every run prints the verified range plus a WARNING naming the
+uncovered segments. For a whole-file gate (e.g. on imports) pass
+--expect-sha256 <hex>: the full-file sha256 must match or the tool fails.
+
 Usage:
   python denso_ck.py <rom.bin>              # verify only
   python denso_ck.py <rom.bin> -f           # fix in place
   python denso_ck.py <rom.bin> -o out.bin   # fix a copy
+  python denso_ck.py <rom.bin> --expect-sha256 <hex>  # gate full-file sha256
 """
 
 import sys
@@ -18,6 +27,8 @@ import os
 import shutil
 import struct
 import argparse
+import hashlib
+import re
 import tempfile
 from pathlib import Path
 
@@ -55,6 +66,10 @@ def main(argv=None):
     ap.add_argument("rom")
     ap.add_argument("-f", "--fix",    action="store_true", help="fix in place")
     ap.add_argument("-o", "--output", metavar="FILE",      help="fix a copy")
+    ap.add_argument("--expect-sha256", metavar="HEX",
+                    help="full-file sha256 of the INPUT file: FAIL (exit 1) "
+                         "when it does not match; whole-file integrity gate "
+                         "for imports")
     args = ap.parse_args(argv)
 
     if args.fix and args.output:
@@ -77,6 +92,20 @@ def main(argv=None):
               f"got {len(raw)} bytes: {args.rom}", file=sys.stderr)
         return 1
 
+    # Optional whole-file integrity gate: the checksum algorithm below covers
+    # only [lo, hi); --expect-sha256 pins the ENTIRE file (imports).
+    if args.expect_sha256 is not None:
+        want = args.expect_sha256.strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", want):
+            print("Error: --expect-sha256 must be a 64-character hex sha256.",
+                  file=sys.stderr)
+            return 2
+        got_sha = hashlib.sha256(raw).hexdigest()
+        if got_sha != want:
+            print(f"FAIL: sha256 mismatch (expected {want}, got {got_sha})")
+            return 1
+        print(f"sha256 : {want} matches --expect-sha256")
+
     rom = bytearray(raw)
     try:
         lo, hi, s, correct = compute(rom)
@@ -96,8 +125,21 @@ def main(argv=None):
         print(f"Error: {bad}; refusing to fix.", file=sys.stderr)
         return 1
 
+    # Honest coverage disclosure: this algorithm verifies ONLY [lo, hi).
+    # Name the segments it cannot see, so a green result is never mistaken
+    # for whole-file integrity (use --expect-sha256 for that).
+    uncovered = []
+    if lo > 0:
+        uncovered.append(f"[0x00000-0x{lo:05X})")
+    if hi < len(rom):
+        uncovered.append(f"[0x{hi:05X}-0x{len(rom):05X})")
+    if uncovered:
+        print(f"WARNING: checksum covers only 0x{lo:05X}-0x{hi:05X}; "
+              f"bytes {', '.join(uncovered)} are NOT covered - corruption "
+              "there is undetectable by this algorithm")
+
     if stored == correct:
-        print("OK: checksum valid")
+        print(f"OK: checksum valid (verified range 0x{lo:05X}-0x{hi:05X})")
         return 0
 
     print("FAIL: checksum mismatch")
