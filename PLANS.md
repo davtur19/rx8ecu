@@ -14,7 +14,7 @@ Single source of truth for goal, tracks, status, milestones, open items.
 Full **1:1 byte-exact firmware reverse engineering** of the Mazda RX-8 ECU. It
 has two reinforcing deliverables: **Track B** — a buildable `.s` source that
 re-assembles to the *identical ROM bytes* (`cmp == 0`) for all stock ROMs in the
-dataset (9 shipped publicly) without the original Renesas/Hitachi SHC compiler —
+dataset (10 shipped publicly) without the original Renesas/Hitachi SHC compiler —
 and **Track A** — readable, behavior-equivalent C lifts (`c/*.c`) proven against
 the *actual ROM bytes* on the SH-2E emulator (`tools/sh2emu.py`). Track B is the
 oracle baseline. Track A lifts functions to C on top of it, one at a time. The
@@ -52,11 +52,11 @@ baseline always rebuilds.
   and `verify_all.sh` resolve that path themselves — **no `~/.bashrc` exports
   needed**; a fresh clone reproduces byte-perfect ROMs with `make verify-all`.
 - Verify a single ROM: `make ROM=roms/stock/<id>.bin verify`.
-- Verify all 9 public stock ROMs: `make verify-all`.
+- Verify all 10 public stock ROMs: `make verify-all`.
 
 ## Current status
 
-- **Track B: all 9 shipped stock ROMs are byte-exact rebuilds** (enforced by
+- **Track B: all 10 shipped stock ROMs are byte-exact rebuilds** (enforced by
   `make verify-all`): 512 KB each, `cmp == 0` against source. Instruction-lift
   coverage in the code window `0x800..0x60000` is **93.46–93.8%** per ROM
   (60E1D400 93.63%, 60E0FC00 93.56%, 60E1C500 93.48%, 60E32000 93.80%).
@@ -76,7 +76,7 @@ baseline always rebuilds.
 
 | Item | Value |
 |------|-------|
-| Stock ROMs (dataset) | 9 shipped publicly, all 512 KB, valid Denso checksum, in `roms/stock/*.bin` |
+| Stock ROMs (dataset) | 10 shipped publicly, all 512 KB, valid Denso checksum, in `roms/stock/*.bin` |
 | Baseline ROM | `60E1D400` (`SW-N3J1EM000.HEX`, `N3J1E_3W.T50`) |
 | Hand-annotated reference | `60E0FC00` (931 equinox names) |
 | Functions (symbol table) | 3459 total; 931 equinox-named + 2528 Ghidra-auto |
@@ -88,7 +88,7 @@ baseline always rebuilds.
 ## Reproducing everything (fresh clone)
 
 Full walkthrough: [REPLICATION.md](REPLICATION.md). Quick reference:
-`make verify-all` (9/9 byte-exact), `make ROM=roms/stock/60E1D400.bin verify`,
+`make verify-all` (10/10 byte-exact), `make ROM=roms/stock/60E1D400.bin verify`,
 `make src`, `make c-test`, `make c-emu` (after `pip install capstone` and
 `./tools/get_toolchain.sh`).
 
@@ -98,7 +98,7 @@ Full walkthrough: [REPLICATION.md](REPLICATION.md). Quick reference:
 - Byte-exact rebuild pipeline without SHC (`tools/rom_rebuild.py` → `cmp == 0`;
   DoD: "`make` reproduces the stock ROM byte-for-byte").
 - 10-ROM dataset assembled and cataloged (`roms/ROMS.md`), all checksums valid;
-  9 shipped publicly.
+  10 shipped publicly (was 9, until 60E32000_N3N5EB shipped).
 - Symbol/name transfer across ROMs (`tools/xmap_names.py`); annotated sources
   (`tools/organize_src.py`, `make src`).
 - Track A verification harness: emulator + 194-suite tests, 266 verified
