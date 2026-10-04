@@ -90,9 +90,11 @@
  *       priority must read S0 — kills a dropped `current_priority =
  *       priority`, which the restore checks cannot see), FIFO across
  *       mixed priorities, re-entrancy latch (nested
- *       rtos_scheduler from inside a handler must NOT re-enter: log must
- *       be "AaB", a removed latch yields "ABa"), null-handler task
- *       survives, rtos_yield dispatches pending work and restores
+ *       rtos_scheduler from inside a handler must NOT re-enter while the
+ *       latch is held — this scenario never clears it mid-loop: log must
+ *       be "AaB", a removed latch yields "ABa"; a mid-loop rtos_init in
+ *       a handler WOULD allow re-entry — see NOT covered), null-handler
+ *       task survives, rtos_yield dispatches pending work and restores
  *       priority;
  *   (j2) scheduler ELSE-path (FW_HOST_TEST fixture): with
  *       current_priority lowered below every queued task the else arm
@@ -121,16 +123,31 @@
  * covered by (j2), which reaches it through the -DFW_HOST_TEST fixture
  * setter rtos_setCurrentPriority_forHostTest (rtos.c/.h — h4/m6
  * precedent; the link rule gained the flag, LINK_TESTS unchanged).
- * Why a fixture is REQUIRED (reachability re-verified fail-closed this
- * session by enumerating every writer of the file static): current_priority
- * is written only by rtos_init (S3, BEFORE it clears scheduler_running at
- * rtos.c:66), the scheduler dip/restore pair (rtos.c:605/614 — the
- * restore always runs after rtos_dispatch returns, and old_priority is
- * the loop-level value), and rtos_yield's save/S3/restore (rtos.c:652/658
- * — the S3 write only lasts while the latch blocks the nested scheduler).
- * So loop level is ALWAYS S3 for any public-API sequence, dispatch-record
- * priorities mask to 0..3, and priority > current_priority can never
- * hold at rtos.c:602 without the setter. Both former survivors are now
+ * Why the fixture — CORRECTED after this section's earlier verdict
+ * ("harness-only drive is IMPOSSIBLE", "loop level is ALWAYS S3 for any
+ * public-API sequence") was falsified by a public-API-only probe (built
+ * WITHOUT -DFW_HOST_TEST). The writer enumeration below was right; the
+ * conclusion was not: current_priority IS written only by rtos_init (S3,
+ * then scheduler_running cleared at rtos.c:66), the scheduler dip/restore
+ * pair (rtos.c:605/614 — the restore always runs after rtos_dispatch
+ * returns, and old_priority is the loop-level value), and rtos_yield's
+ * save/S3/restore (rtos.c:652/658) — but two facts were missed: the
+ * latch is set ONCE at rtos.c:581 and never re-checked inside the while
+ * body, so a handler calling public rtos_init() mid-loop clears it at
+ * :66 while the outer loop keeps running; and a later dispatch in that
+ * same loop dips current_priority (:605), so a handler re-entering
+ * rtos_scheduler() from the dip window finds latch==0 and runs a nested
+ * loop at the dip priority (<=2) — where an S3 task takes the ELSE arm
+ * at :602. Probe evidence (public API only, rebuilt against current
+ * sources, reproduced repeatedly): probe_calls=1 canary_in_window=0
+ * count_after_nested=1 prio_after_nested=1. So a harness-only drive
+ * EXISTS but is convoluted and interleaving-dependent (rtos_init wipes
+ * the queue mid-loop, so the probe must re-prime inside the handler and
+ * count on a later same-loop dispatch, and the else-arm window unwinds
+ * before top level can observe it) — the FW_HOST_TEST setter remains the
+ * deterministic driver for the (j2) scenarios: it makes the else path
+ * directly and deterministically testable, it is not what makes it
+ * reachable. Both former survivors are now
  * killed, measured this session against /tmp single-edit mutants
  * (IDENTICAL Makefile CFLAGS, -no-pie; BEFORE the (j2) vectors both
  * PASSed — reproduced fail-closed first):
@@ -751,8 +768,10 @@ int main(void)
     }
 
     /* Re-entrancy latch: nested rtos_scheduler() from inside a handler
-     * must be a no-op -> log "AaB". A removed latch dispatches B inside
-     * A -> "ABa" (red). */
+     * must be a no-op WHILE the latch is held -> log "AaB" (nothing here
+     * clears it mid-loop; a mid-loop rtos_init in a handler would allow
+     * re-entry — see the corrected reachability note in NOT covered). A
+     * removed latch dispatches B inside A -> "ABa" (red). */
     seq_n = 0;
     seq[0] = '\0';
     CHECK(rtos_task_enqueue(rtos_build_dispatch(
@@ -795,16 +814,26 @@ int main(void)
           "priority after yield=%u want 3", rtos_get_current_priority());
 
     /* ---- (j2) scheduler ELSE-path: priority > current_priority ------
-     * Reachability (re-verified this session, fail-closed): via the
-     * public API loop level is ALWAYS S3 — current_priority dips only
-     * between rtos.c:605/614 inside the scheduler_running latch, so a
-     * nested scheduler returns before the compare, rtos_init writes S3
-     * BEFORE clearing the latch, and dispatch-record priorities mask to
-     * 0..3. The else arm is therefore presented with a lowered priority
-     * through the FW_HOST_TEST fixture setter, called OUTSIDE the
-     * scheduler (a setter call from inside a handler would be clobbered
-     * by the `current_priority = old_priority` restore, and the latch
-     * still blocks nested scheduling). */
+     * Reachability (CORRECTED: the earlier "via the public API loop level
+     * is ALWAYS S3" verdict was falsified by a public-API-only probe) —
+     * the public path EXISTS: a handler calling rtos_init mid-loop clears
+     * the re-entrancy latch (rtos.c:66) while the outer loop is still
+     * inside its while body (latch set once at :581, never re-checked
+     * in-loop); a later dispatch in that same loop dips current_priority
+     * (:605), and a handler re-entering rtos_scheduler() from that window
+     * runs a nested loop at the dip priority (<=2), where an S3 task
+     * takes the else arm at :602 (probe: probe_calls=1
+     * canary_in_window=0 count_after_nested=1 prio_after_nested=1). It is
+     * convoluted to drive from a test, though: the same rtos_init wipes
+     * the queue mid-loop, the re-entry must come from a handler
+     * dispatched later in that loop, and the else-arm window unwinds
+     * before top level can observe it — so these scenarios present the
+     * lowered priority through the FW_HOST_TEST fixture setter, called
+     * OUTSIDE the scheduler (a setter call from inside a handler would be
+     * clobbered by the `current_priority = old_priority` restore as soon
+     * as the handler returns). The fixture makes the else path directly
+     * and deterministically testable; it is not what makes it
+     * reachable. */
 
     /* Scenario 1 — pure else-path: current=S0, five tasks S1..S3. Every
      * task takes the else arm: dequeue + re-enqueue, skip_count++ ...
