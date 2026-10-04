@@ -678,13 +678,25 @@ uint8_t rtos_get_current_priority(void)
  *
  * Host link-pilot accessor only (link/link_rtos_queue_dispatch.c). The
  * scheduler else-branch (priority > current_priority → re-enqueue +
- * skip_count) is unreachable through the public API: current_priority only
- * dips between the `current_priority = priority` store and the
- * `current_priority = old_priority` restore inside rtos_scheduler's
- * re-entrancy latch (nested rtos_scheduler calls return before the compare),
- * rtos_init writes S3 BEFORE clearing the latch, and dispatch-record
- * priorities are masked to 0..3 — so loop level is always S3 and every
- * valid task dispatches. The else-path test lowers the priority before
+ * skip_count) IS reachable through the public API, but only via a
+ * convoluted, interleaving-dependent two-phase latch-clear (public-API
+ * probe, no -DFW_HOST_TEST, reproduced 3/3 — see commit 803a85c): a
+ * handler dispatched in the outer loop calls public rtos_init(), which
+ * clears scheduler_running at rtos.c:66 while the outer loop is still in
+ * its while body (the latch is set once at :581 and never re-checked
+ * in-loop at :591); a later dispatch in that same loop dips
+ * current_priority at :605, and a handler re-entering rtos_scheduler()
+ * from that dip window finds latch==0 → nested loop at the dip priority
+ * (<=2) → an S3 queued task takes the else arm at :602. On the normal
+ * path (no mid-loop rtos_init), current_priority only dips between the
+ * `current_priority = priority` store (:605) and the
+ * `current_priority = old_priority` restore (:614), nested rtos_scheduler
+ * calls return before the compare while the latch is held, rtos_init
+ * writes S3 BEFORE clearing the latch, and dispatch-record priorities are
+ * masked to 0..3 — so loop level is S3 and every valid task dispatches.
+ * This setter is the deterministic driver for testing the else path: it
+ * makes the path directly and deterministically testable, it is not what
+ * makes it reachable. The else-path test lowers the priority before
  * calling rtos_scheduler() from outside.
  *
  * Production builds never define FW_HOST_TEST, so this definition is

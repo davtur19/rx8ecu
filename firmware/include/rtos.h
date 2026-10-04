@@ -283,8 +283,11 @@ uint8_t rtos_get_current_priority(void);
 #ifdef FW_HOST_TEST
 /**
  * rtos_setCurrentPriority_forHostTest — fixture setter for the file-static
- * current_priority (else-path reachability: see rtos.c for why the public
- * API can never present the scheduler loop with current_priority < S3).
+ * current_priority (else-path reachability: see rtos.c — the public API
+ * CAN present the scheduler loop with current_priority < S3, but only via
+ * a convoluted, interleaving-dependent two-phase latch-clear; this setter
+ * is the deterministic driver for testing that path, not what makes it
+ * reachable).
  *
  * Host link-pilot accessor only (firmware/tests/link/link_rtos_queue_dispatch.c).
  * Production builds never define FW_HOST_TEST, so this prototype and the
