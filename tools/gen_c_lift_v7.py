@@ -491,7 +491,7 @@ def emit_compose_test(addr, rom, cat, end_bounds, out_t, seed=42, N=2000,
         '                print("MISMATCH case=%%d addr=0x%%08X mirror=%%02X emu=%%02X" %% (caso, ad, exp_ram.get(ad, 0), got_ram.get(ad, 0)))\n'
         '                sys.exit(1)\n'
         '    ok = N - skipped\n'
-        '    if skipped > 200:\n'
+        '    if skipped > min(200, N // 2) or ok == 0:\n'
         '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(1)\n'
         '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'

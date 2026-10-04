@@ -2300,7 +2300,7 @@ def _emit_v8_test(addr, rom, end, res, callees, out_t, seed=42, cases=500,
         '    if ok == 0 and not has_ret:\n'
         '        print("HALT (correct) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(0)\n'
-        '    if skipped > 200 or ok == 0:\n'
+        '    if skipped > min(200, N // 2) or ok == 0:\n'
         '        print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
         '        sys.exit(1)\n'
         '    print("PASS %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n\n'

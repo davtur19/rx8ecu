@@ -335,7 +335,7 @@ def main():
     if ok == 0 and not has_ret:
         print("HALT (correct) %d/%d (skipped=%d)" % (ok, N, skipped))
         sys.exit(0)
-    if skipped > 200 or ok == 0:
+    if skipped > min(200, N // 2) or ok == 0:
         print("FAIL %d/%d (skipped=%d)" % (ok, N, skipped))
         sys.exit(1)
     print("PASS %d/%d (skipped=%d)" % (ok, N, skipped))
