@@ -2427,7 +2427,7 @@ _V8_VERDICT_TAIL = (
     '    print("LOOP (unverifiable) %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
     '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
     '    sys.exit(1)\n'
-    'if skipped > 200 or ok == 0:\n'
+    'if skipped > min(200, N // 2) or ok == 0:\n'
     '    print("FAIL %%d/%%d (skipped=%%d)" %% (ok, N, skipped))\n'
     '    sys.exit(1)\n'
     'if skipped > 50:\n'
