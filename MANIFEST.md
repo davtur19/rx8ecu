@@ -1,7 +1,7 @@
 # MANIFEST — RX-8 ECU reverse-engineering public release
 
 Every file shipped in this repository, with sha256, size, purpose, and its source path
-in the working repository. **10782 entries, 294.5M.** Regenerated 2026-10-03 for the
+in the working repository. **10786 entries, 295.2M.** Regenerated 2026-10-03 for the
 10-ROM public tree; see roms/ROMS.md.
 
 ## Summary
@@ -14,18 +14,18 @@ in the working repository. **10782 entries, 294.5M.** Regenerated 2026-10-03 for
 | symbols/ | 32 | 10.3M |
 | c/ | 7336 | 25.0M |
 | c/tests/ | 2389 | 194.4M |
-| firmware/ | 57 | 777.0K |
+| firmware/ | 61 | 891.5K |
 | tools/ | 35 | 1.2M |
-| tools/tests/ | 10 | 133.8K |
+| tools/tests/ | 10 | 137.5K |
 | docs/ | 228 | 1.2M |
 | hardware/ | 1 | 2.0K |
 | web/ | 42 | 1.7M |
-| analysis/ | 40 | 9.4M |
-| .github/ | 5 | 25.4K |
+| analysis/ | 40 | 10.0M |
+| .github/ | 5 | 28.6K |
 | reconstructed/experiments/match/ | 74 | 212.8K |
 | reconstructed/samples/ | 464 | 3.3M |
 | tmp/ | 36 | 911.2K |
-| **Total** | **10782** | 294.5M |
+| **Total** | **10786** | 295.2M |
 
 ## External dependencies
 
@@ -67,11 +67,11 @@ or the toolchain install (git-ignored; re-create with
 | `.gitignore` | `97b0e3e05f15df832d43d4878b44258e38990811189b4b5948d218103e372b14` | 563B | Git ignore rules (build artifacts, toolchain, private/local data) |
 | `.nojekyll` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | 0B | Tracked file |
 | `AGENTS.md` | `2622178d22fffc02296e5fe6b049fc686aec310112941e7aa86909eea1f9f117` | 3.4K | Agent working instructions |
-| `CREDITS.md` | `349a330ba7cc91cbe7fa2790dace65f82334b98e7fd16143c100ca221364a952` | 4.9K | Credits: equinox311 + defs source attribution |
+| `CREDITS.md` | `0b585023e09a67b361da9ff313ba0aca55aed05445a14767e9fe6f0fe36ab7ea` | 5.9K | Credits: equinox311 + defs source attribution |
 | `LICENSE` | `d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee` | 33.2K | License (GNU AGPL v3) |
 | `MANIFEST.md` | `--` | -- | This inventory (self-referential; verify with `sha256sum MANIFEST.md`) |
 | `Makefile` | `3b77b8e63a7090308cd9c1b6e8965bb29232b3418a8eb75885dfb7965748a573` | 13.2K | Build: verify-all / verify / src / c-test / c-emu / clean |
-| `PLANS.md` | `b5012f216a38f1f752cb5c5f9959f0047708bfc0f308f63d5faea683439313bc` | 9.8K | Master plan (single source of truth) |
+| `PLANS.md` | `c8c446dc303ef939789286ac4673acf19b506ba67ff781f2204190b69e4921c5` | 9.8K | Master plan (single source of truth) |
 | `README.md` | `c33c38adf80fdf64155256697a43b83aa748c957a60f644d98f33c8752f42c3e` | 7.4K | Project README |
 | `REPLICATION.md` | `d1416ba358f1c45885ab00b54d8166be49fdd1a64b3d3d8694f45926adc23720` | 6.6K | Fresh-clone reproduction guide |
 | `VERIFICATION.md` | `c76367de6827173496ba908e98f42ab6db0bec75d5e37a5084805d816a194ca0` | 9.4K | Evidence: byte-exact table, coverage, test results, hashes |
@@ -80,7 +80,7 @@ or the toolchain install (git-ignored; re-create with
 
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
-| `roms/ROMS.md` | `eb6247b1fecb3813e80585c61e85ee1ef32e67d95447f16ec2845bb5fb069efe` | 7.1K | ROM catalog: cal IDs, SW modules, keys, checksums, hashes |
+| `roms/ROMS.md` | `eaab8d5722cd42ee2a9970da061e80f08c0fadc33171295856215f8723f5c8df` | 9.1K | ROM catalog: cal IDs, SW modules, keys, checksums, hashes |
 | `roms/stock/60E0E500.bin` | `c05dfd0422b2b773027a22dcce2c24923969f27b94634bfcbdb44d6157087e11` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
 | `roms/stock/60E0E700_N3YLEE.bin` | `bba52346a076c35ded281c14b7ff81fcfa6c6e8119b6ec544048e269b0c53dc0` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
 | `roms/stock/60E0FB00.bin` | `3d32e2591a1170d5ac3feed7ae065c650bde525e56693a5ca7499e6c9eb5f661` | 512.0K | Stock ROM image (512 KB, SH-2E, Denso checksum valid) |
@@ -112,12 +112,12 @@ or the toolchain install (git-ignored; re-create with
 | Relative path | sha256 | Size | Purpose |
 |---|--:|---:|---|
 | `symbols/CATALOG_MASTER.csv` | `f9dbfdf9d3dd2acda3830afea35494a8e332ad9a7e300b0c9731a4eb2289efc0` | 3.6M | Tracked file |
-| `symbols/CATALOG_STATUS.md` | `eacff52dd65e5d797c61734906b83032db46428bd7843032d2350ac7f80b740b` | 3.3K | Tracked file |
+| `symbols/CATALOG_STATUS.md` | `109a17290632c9672a280daac07462d42c15c5397b2e3a8a0d72c40e7397db46` | 3.3K | Tracked file |
 | `symbols/FUNCTION_CATEGORIES.csv` | `03fb8659330065d20b6604cca42f88c4ee030841dea4e245c31f0634353d6443` | 396.9K | Tracked file |
 | `symbols/FUNCTION_RENAMES.csv` | `bb3933acf387b3aa7936368a0bfbb0516cf1a4ab4fc0d721f0f9181cb6afade0` | 528.6K | Tracked file |
-| `symbols/NAMES_STATUS.md` | `cc60757f2554e5fe764400b72664e89570802638269e4fe3e4b45a7806caa68c` | 6.8K | Tracked file |
+| `symbols/NAMES_STATUS.md` | `ee97f708b14b1d7677ad02b6c693462eee0958448be97245833df45748025554` | 6.8K | Tracked file |
 | `symbols/RAM_VARIABLES.csv` | `b7e4892db7b8436979984ab5415929d8f52ef19aec9d849254fd4f72710a4c01` | 263.4K | Tracked file |
-| `symbols/TABLES_STATUS.md` | `ca92dd4fd0560b43ad4a58f4d22d89c2b950666b24b45ba7f8ac452198fca864` | 1.6K | Tracked file |
+| `symbols/TABLES_STATUS.md` | `2efa694496db8500e4b3b9cb5c1ef74c1fe4cb0b9d46124150f2ff9eb3784941` | 2.3K | Tracked file |
 | `symbols/cal_tables.csv` | `da77fe746f3da99b89358a3234f74b7774e037b9257bcf895b52b9e31c6b9f17` | 106.2K | Calibration table descriptors (1,209 tables) |
 | `symbols/callgraph.csv` | `ec636769141c7a42b666ecbc72e0342c7f08d9244ea97ecb18b76b45366e211e` | 362.9K | Call-graph edge list (caller->callee) |
 | `symbols/equinox311_60E0FC00_named.csv` | `f50692d5e2782611e6f70d5069f47e552e26719fdb957d67c20a28984ab576d4` | 64.1K | Tracked file |
@@ -9888,9 +9888,9 @@ or the toolchain install (git-ignored; re-create with
 | `firmware/c/can.c` | `7e0c36f359acedcc6df3d404b9a3d83c64b63dc5cf01b05f6325e49f00fe380f` | 77.8K | Tracked file |
 | `firmware/c/dtc.c` | `46bd89919569d60795b90f5d2fad5e4d11895c705920e5d9552ab7dd5b27e8e9` | 75.5K | Tracked file |
 | `firmware/c/eeprom.c` | `c56a22d43b76aa9b90e8b9bd8988f3e7e1302a199f7f98b3a0a0a2aa6066a666` | 14.9K | Tracked file |
-| `firmware/c/engine.c` | `35d2bb13b50ae9c7881df2eaeec502cf222d7bbdf887ee53c59a6e6478f88de6` | 53.7K | Tracked file |
+| `firmware/c/engine.c` | `54e0f4b90cd9e0f12585ffad8d26980df60cf91595284c0631810265a03f8aca` | 54.9K | Tracked file |
 | `firmware/c/main.c` | `62d1ccd0e8d6a6f4dc7ab659005af03471b9118358055a391f41859fe27c6388` | 11.0K | Tracked file |
-| `firmware/c/rtos.c` | `2be1d8618252c3253323e1727d79058929f5efd8b25c26828e79332d8a71abb5` | 24.4K | Tracked file |
+| `firmware/c/rtos.c` | `f752d63523599f59c8d9acb661200721741e6871f3ebe973ea9515180c785503` | 25.7K | Tracked file |
 | `firmware/c/serial.c` | `53c65ee7a691791cca1a125455d6a54e304361c1b3f293b6ba4a98806ac55ea3` | 15.7K | Tracked file |
 | `firmware/c/timer.c` | `bdddf33ccf71bab2db521e70eb7743c0dbc5b1f804cd2db7f94431199bc21c85` | 7.4K | Tracked file |
 | `firmware/c/uds.c` | `a22349a99f5c0443bf5f032be396f5e83e9a9b19bfe490875020906f0b8ea835` | 73.6K | Tracked file |
@@ -9898,26 +9898,30 @@ or the toolchain install (git-ignored; re-create with
 | `firmware/include/can.h` | `1547bb7141151b6ecc658718ba444d7777820637724ea3e3c755404736add6fc` | 20.8K | Tracked file |
 | `firmware/include/dtc.h` | `3fd5740b4a1715c9bddd9b4eda2e8039436b63b6ba701c377676404a55c95bdb` | 17.9K | Tracked file |
 | `firmware/include/eeprom.h` | `9374d38403e61134524bee28c380b2efb5244f5122885b5313271a644c2ee677` | 5.8K | Tracked file |
-| `firmware/include/engine.h` | `abfaec4c66b6a86a475e89fe71835573636b4dd56ac7a373190cbfc123929e56` | 15.7K | Tracked file |
+| `firmware/include/engine.h` | `7b23f75aa7b0656e74a8a2942f05f6f4a570ea6be9e0de933d2d0ca91e36ab11` | 16.4K | Tracked file |
 | `firmware/include/main.h` | `c4953188e4c7f233a5870548aefe9dbcd2e2542a70529db6840c824d2d2d8f01` | 6.2K | Tracked file |
 | `firmware/include/platform.h` | `aaac4bf2144a0d2fb3497178e86fdc64b4458cdb0cc83ed77beed628ecdbbd58` | 18.0K | Tracked file |
-| `firmware/include/rtos.h` | `730aa63c3bdbbe28fff8a2807e3960e09834614a22738559f05553080e6756b2` | 11.9K | Tracked file |
-| `firmware/include/serial.h` | `c3234028127cd25349b8aedeadfdd1eecb44073a5e5cb9c01f0f9a267580d88e` | 7.3K | Tracked file |
+| `firmware/include/rtos.h` | `e51fe899f023cd0c223a9c45ef86a1558dda86425f8ac31994dd57f24656caa4` | 12.5K | Tracked file |
+| `firmware/include/serial.h` | `2c974b8ae867668b13d61e14c7a4b664e3a6378defb92d778600a2f4c09348af` | 9.3K | Tracked file |
 | `firmware/include/timer.h` | `bf4417f0c47ee6683100fc0f5ab0c682e8eb38020cfa052d4513e42b11cdd0e0` | 3.2K | Tracked file |
 | `firmware/include/uds.h` | `2b13592da00c1295e38d97929f489ea9033654fabc63659f39995a7c0b4c8589` | 12.1K | Tracked file |
-| `firmware/tests/Makefile` | `382a348c0969c8a00db387d3ea4769403cea31ecb8db9553c2e57933b25bf39b` | 14.7K | Tracked file |
+| `firmware/tests/Makefile` | `908601fd13a281f107e09de4ff7fab3166f3fba3ebe2e5d4a8ababb7276c6ccb` | 19.7K | Tracked file |
+| `firmware/tests/link/link_boot.c` | `e1df8627246218585ee0317925910ed0636cdda0413ce88b404e892d5669d65d` | 23.5K | Tracked file |
 | `firmware/tests/link/link_c1_addr_width.c` | `af3aefaa75a72c562be56955fe754fdeb5ffb75ccee80f9d54f6e2cb035487c6` | 6.3K | Tracked file |
+| `firmware/tests/link/link_eeprom.c` | `42fac6b2c740b4f45fefcec6d514405f23060eaeabbed219c25bfeb1af469792` | 27.5K | Tracked file |
 | `firmware/tests/link/link_h1_mbox.c` | `dae188564705094dd4b0511afec80e41f9f779a4b58d4d5444d1c0be779be1d7` | 5.9K | Tracked file |
-| `firmware/tests/link/link_h2_dtc_status.c` | `f9389bcc05e230a5f123d9111ca28b331d0e7b6d5e1db5397153196cc75dae07` | 13.8K | Tracked file |
+| `firmware/tests/link/link_h2_dtc_status.c` | `8ff2c32ee7f2faec164e269e5ca027287f6e5e8cd59faa6ec6d850fa3308c7b5` | 15.0K | Tracked file |
 | `firmware/tests/link/link_h4_dwell.c` | `20da5f1c1e120add1689a04131a85a2c95414d0ef313b730f595e007aaa06a5f` | 8.7K | Tracked file |
 | `firmware/tests/link/link_h5_sid22.c` | `e1575ba86dce27c57614fe99f08d83a05a62e678e6b4ade6f4688d6f752e516a` | 10.3K | Tracked file |
-| `firmware/tests/link/link_l10_injector_flag.c` | `66546ba4fa4c47cd55339dedc0c59adf116d3b89f072674461e9d81cc644bd66` | 14.4K | Tracked file |
+| `firmware/tests/link/link_l10_injector_flag.c` | `162060b330ff90ff8626434fe76e7f2f2e569415e0439763607a46f4d0ba78c5` | 15.2K | Tracked file |
 | `firmware/tests/link/link_m2_checksum.c` | `444e70408088572686e113e8bd5e2c34ec5af7cb7e8836233fc3e9a5e13808df` | 8.1K | Tracked file |
-| `firmware/tests/link/link_m4_serial_rx.c` | `19481da8fa8dcded8ccfeeb53f05c433dcbece0a917dbe820be5bc9fda4b5408` | 20.7K | Tracked file |
-| `firmware/tests/link/link_m7_c2_tp_sid34.c` | `c414b9136036a9fa875e6c901a00ce8d4d0e81ded86fad1e1aa90e0dbaaee424` | 28.9K | Tracked file |
-| `firmware/tests/link/link_m8_mailbox_bits.c` | `91faa9bfca6052ffdad21ecaba963253c21f4ecc2e76190f17524689cefab274` | 9.6K | Tracked file |
+| `firmware/tests/link/link_m4_serial_rx.c` | `aff454e88b500d61dbaeb0bcb8109726c3bfbf5c6a37550ca097f989ae4035a5` | 21.8K | Tracked file |
+| `firmware/tests/link/link_m6_crank.c` | `c19eacb884c1bba03cb0666c1d1e4444493361aa8e9e9977decc8c16b719771b` | 16.5K | Tracked file |
+| `firmware/tests/link/link_m7_c2_tp_sid34.c` | `9ea6b270851777dd9a622b35c19400cbaab85d2452656d7402322f6ad429d88d` | 32.1K | Tracked file |
+| `firmware/tests/link/link_m8_mailbox_bits.c` | `eae29a67d14e4f1facf8522ef14f431a38f97b9a34a50cb54d842e3c7dc6c411` | 10.4K | Tracked file |
+| `firmware/tests/link/link_main.c` | `e837f34ba905d8fd8d61cc48dbd7a9a6a934d05b491d317cb52430ca6c1f097f` | 14.0K | Tracked file |
 | `firmware/tests/link/link_n2_rtos_mask.c` | `3631159c3e652398488b9718611356c61f7cd048aada6bdc8254cae55ef2caa9` | 2.4K | Tracked file |
-| `firmware/tests/link/link_rtos_queue_dispatch.c` | `ca79d0e52ad6efef8f63909e0e3336ddff04f623c20738c9d9be4cfc8cf1b429` | 31.0K | Tracked file |
+| `firmware/tests/link/link_rtos_queue_dispatch.c` | `ccbd9eab6a3ffe82cc2e25e3a4ef0295fb14612522ea86d20ed2cd630af74d25` | 46.1K | Tracked file |
 | `firmware/tests/test_c1_addr_width.c` | `3cd6951514874431c06fc2e876a8305bd4a4e8b45fe1f011bb86fe20f1aeea44` | 5.8K | Tracked file |
 | `firmware/tests/test_c2_sid34_size.c` | `172b2aee0ea957dabceb9da9add1c215ee8b4fb6bb742becd449f9c618c341bc` | 8.1K | Tracked file |
 | `firmware/tests/test_c3_crank_tooth.c` | `833897735b09636b7d627d93d942b1122dcc6a50db776d35f930c0e87df08834` | 6.1K | Tracked file |
@@ -9952,7 +9956,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/callgraph.py` | `25a5f5a936ebbca11d2bf7ec888db5de8d9a5fb01c4440992c593e500cc59ee3` | 7.6K | RE tool (see tools/README.md) |
 | `tools/classify_functions.py` | `8897ecac08db134c4915d8ad18aba43ffc2b90cdb168ee8232a0f37980675a4a` | 30.9K | Tracked file |
 | `tools/cross_decode.py` | `32e08ff1b24e27ea455c88809b4d3d070b53da59d456fb89a9f3609a6329dfe4` | 12.4K | RE tool (see tools/README.md) |
-| `tools/denso_ck.py` | `a774d1de5b9a3c61db6afae67353125cb62f36cead7e1cebce65c84a5036b8ed` | 5.4K | RE tool (see tools/README.md) |
+| `tools/denso_ck.py` | `1a616f4a318c25cc94bc2e0c56e64ec09a9ddf0c67be6896dc6340c1e2b54567` | 7.5K | RE tool (see tools/README.md) |
 | `tools/disasm_sh2e.py` | `0eed23586626a73cf0ad2c47e204e13296defa9c2e5b1dc2a9326f041fd776b9` | 20.6K | RE tool (see tools/README.md) |
 | `tools/ecu_pin_emu.py` | `8eac29f3df89860155fbeb753fefef46b2e9defaec3b8e93e3b8a87cddc8b755` | 37.9K | Tracked file |
 | `tools/extract_func.py` | `9470ed47cfe15f275c6478028d735daf225056397ae97140ac59c128019db7a7` | 3.9K | RE tool (see tools/README.md) |
@@ -9962,9 +9966,9 @@ or the toolchain install (git-ignored; re-create with
 | `tools/gen_c_lift_v7.py` | `1b78ceedf33fea2dd707e2ac307607099d4e37ed9d183c660c77e252e3743026` | 42.0K | Tracked file |
 | `tools/gen_c_lift_v8.py` | `21a9c4a8a2fb96eb26d8f6986c290fe24dfde9439702344aba140ba9d0adea78` | 228.2K | Tracked file |
 | `tools/gen_c_lift_v8_patched.py` | `ee79b3701a3a69023a17dbfc066544f49caa231dda05dff9e8632555040ebce1` | 123.3K | Tracked file |
-| `tools/gen_catalog.py` | `3bd166fa03c44c55b9f623355cead3a2fbc23cd756757dedb853976275741949` | 51.2K | Tracked file |
+| `tools/gen_catalog.py` | `b75550be506654b45522f16c3c0be89c3297bcec7e01851ffa85e847854d2fc3` | 55.5K | Tracked file |
 | `tools/gen_lib_test.py` | `74b78640167ce060812cf5f674265be753454197d75c35ebe732acf004cdcc27` | 14.8K | Tracked file |
-| `tools/gen_manifest.py` | `84e994a7bc7fc85793974a8c10818fc6d39e8143d2a8382f8d9adce6ee4fab31` | 9.5K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
+| `tools/gen_manifest.py` | `492558c9bced9a118c10c971e4de68b82295c064d80f50a3b679377d128e8db3` | 10.9K | Regenerates MANIFEST.md (repo inventory; python3 tools/gen_manifest.py) |
 | `tools/get_toolchain.sh` | `869564ff4694cab83827f0fc9299be489a2b7ae76b25bb2d51c00d7a56aab69c` | 3.1K | RE tool script (see tools/README.md) |
 | `tools/idamap.py` | `b9f3102edce605174eb4c90b476b51bb28811e2fa22719cebbfca154305bd3c3` | 4.8K | RE tool (see tools/README.md) |
 | `tools/make_elf.py` | `ebf51e814135e78eb0e0b376afb452e7c1d6c21d82dc361df2488ab500c333b5` | 6.1K | Tracked file |
@@ -9978,7 +9982,7 @@ or the toolchain install (git-ignored; re-create with
 | `tools/run_tests_parallel.py` | `9a7de6e8e49a81fa12267815c7e23420d025c9eaac5c31bbc5a42d93f44e510b` | 13.5K | Parallel test runner (pytest, all suites) |
 | `tools/sh2emu.py` | `cacd694ab0ae754f30d5501d4515c4f76bfa3e822af9f8ebe6944a03bb09e2b2` | 42.0K | RE tool (see tools/README.md) |
 | `tools/verify_all.sh` | `ee6c6fb4ad67c2607f62b382fbba0b0f1dbe01bda7ad1893f99f3f6bb221ccdc` | 4.1K | RE tool script (see tools/README.md) |
-| `tools/verify_formal.py` | `6a8c95e44dc887abcf2b8837a33583556938e93ae0306b34c1e8f482a3fc1ef8` | 31.0K | Tracked file |
+| `tools/verify_formal.py` | `b0a19573ade49d30f3ee3a8c656d501ac7b8b46f264ce139ef801f75e4ae5591` | 38.6K | Tracked file |
 | `tools/xmap_names.py` | `ee1bb9ec6bf9dc33695be8527fb4454a291732ae307a8d1ec696b0f77ce358a2` | 5.6K | RE tool (see tools/README.md) |
 
 ## tools/tests
@@ -9991,8 +9995,8 @@ or the toolchain install (git-ignored; re-create with
 | `tools/tests/test_gen_policy.py` | `2dd7b7f02f9806377dd1bbd9d7da68a07adb5662bc59092f9c3109e60065b484` | 4.6K | Tracked file |
 | `tools/tests/test_lift_fdiv_ieee.py` | `46db8330590d2dbb1bc7baba5f156d57dfbdb9fcd86b1af775071e72fa6aadc2` | 4.7K | Tracked file |
 | `tools/tests/test_lift_sr_sync.py` | `8c80f8f1b854fb87b3b17f57959d578ddf1fe891b3232cd65020a01d9e040c0a` | 16.8K | Tracked file |
-| `tools/tests/test_review_wave1.py` | `c4e47a2f79e915c37a6b026078aa261563121904b9b4336bd79c553ef566a45f` | 27.3K | Tracked file |
-| `tools/tests/test_review_wave2.py` | `586ede47bdf721d05735d5cbaabb6606e206ce4c7d909cb5f66d9b8c232742e9` | 12.6K | Tracked file |
+| `tools/tests/test_review_wave1.py` | `f08482883a76d069b818f539c403512f8cbe916e29300472c468a9e671f1606b` | 29.9K | Tracked file |
+| `tools/tests/test_review_wave2.py` | `479493de8cbb717811eb4b2b6106e2119837c1b9f6e56e0f69f2ae33efda005c` | 13.6K | Tracked file |
 | `tools/tests/test_review_wave3.py` | `9998ef528624279ef53ddd8223ef5ed199e7c2a13407e82848258c4f37e38b18` | 11.6K | Tracked file |
 | `tools/tests/test_v8_verdict.py` | `0b368d5b4776bf3c5e5ccdc765d756c762b1ea1725ac948ac6d72254fd993bba` | 4.8K | Tracked file |
 
@@ -10201,7 +10205,7 @@ or the toolchain install (git-ignored; re-create with
 | `docs/notes/DUMP_ALL.md` | `d7d8dd352ae7a57c0ff0d0e944db047f19d25aa43ca3b915283c4af28163492a` | 5.0K | Project knowledge / session notes |
 | `docs/notes/ECU.md` | `ba107a480e132d49fbac4a2dd1a1fdbe02d1bd62b7d01d585c003e7866b14d4f` | 14.0K | Project knowledge / session notes |
 | `docs/notes/ECU_CAPTURE_PLAN.md` | `3ff4542e1b84c8478c23888bafe069ec74b9a5a58525159de4884593d420ffa0` | 14.7K | Project knowledge / session notes |
-| `docs/notes/FINDINGS.md` | `6b915e139fadd034e2d313b725959b47fa2daa056c6a741893c984da200f8003` | 73.3K | Project knowledge / session notes |
+| `docs/notes/FINDINGS.md` | `9198aea19e3d471f99fd212f6ca11ba1fe5f796ab391b68b3df0e16a7de14f2a` | 76.7K | Project knowledge / session notes |
 | `docs/notes/FORMAL_CERT_60E1D400.md` | `887ec09432d4c0965681cba0a716b2146695b1865b011040eecb39c06f2126c8` | 8.2K | Project knowledge / session notes |
 | `docs/notes/HARDWARE.md` | `c8165c6f60867ef7745f102df4b9e8abc52d1a21b2e272a4996902aabdf87903` | 7.4K | Project knowledge / session notes |
 | `docs/notes/IDA_ANALYSIS.md` | `0a949c38355aacf4c0fd89c8da0f85ccfc0b9fead3eebde3289f49dee506ccb3` | 34.2K | Project knowledge / session notes |
@@ -10318,14 +10322,14 @@ or the toolchain install (git-ignored; re-create with
 | `analysis/cruise/REPORT.md` | `c09c06cb69ba7961e7fd25e7cd68952332784fdbc7a006fdd7325ce6a722dab8` | 12.5K | Analysis report (function identification) |
 | `analysis/data_regions_60E1D400.csv` | `1fdc2a3960369000ffe91991a420688cd8c7927fa1a77cc3b57678fbb9442a55` | 107.6K | Code-window data-region classification |
 | `analysis/data_regions_60E1D400.md` | `c92377b49ed0a0d3a59bd76fedf607dc58470cf1db6bbffe4a5b2eed1493133a` | 5.5K | Code-window data-region classification |
-| `analysis/romdiff/README.md` | `5eb273767583e33ea0537a32c686272c77220040a043eeb6ee596bdb37a06938` | 1.9K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/REPORT.md` | `2a9051c1c9e8d2aa1e91c6b628e140f108e523cedb612a8d92ab24c74c7cd89a` | 10.4K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/cal_table_diffs_baseline.csv` | `1950d28497114ce6e3888dcf66f5a47a51f90374a5f1827af08c8385c50328bf` | 610.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/clusters.txt` | `3073878cf18f2bbb32163b579c5bd1d5ed92e1b7bb00181219c3335552c90d0d` | 2.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/diff_matrix.csv` | `e47dddb705664b858c1e8cb37451d3969679472e0f0ad69fb083697349185285` | 2.0K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/diff_matrix_blocks.csv` | `0755641c44a929669be19a9398058b8afcde1623c5bb98ec613988b060d576a1` | 2.1K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/diff_ranges.csv` | `a377efdfb42286f5ffb9bdddbd98deb8c117ba4eef1e65c9e7434f05338a95c9` | 628.6K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
-| `analysis/romdiff/run_romdiff.py` | `bb50e2c60a27c0cd2baf90be422f3939a0ad815302b0bfeae4dd370c00195d42` | 25.8K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/README.md` | `11526dfc0f8bbe223748ce5fb54a5e3fa3f7611e68cceb762e3b7724342dfc9e` | 1.7K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/REPORT.md` | `e131ac2ee90e6a94bb02b1b06cdd8036c7d8950560a924d1b919625a7ca188b1` | 12.0K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/cal_table_diffs_baseline.csv` | `5e576667b4ea3723cb63941c7cd2c637334cdea8e512af490c5155777159c156` | 974.4K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/clusters.txt` | `c9e1810fdb3c7f4e6d77e0c15463c17de1090440085b1181f8489689025e186b` | 2.7K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_matrix.csv` | `b6371162bde08e43eda9f61ada770394c2a5c944b4dd73961174a29a2319cd93` | 2.5K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_matrix_blocks.csv` | `30c1bf2fbb85c1c641dbf8dc5baad4c61c231b45bb22c4887da87e74e35096b9` | 2.6K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/diff_ranges.csv` | `2dafbf1c50da90021368edd9589e41910bb015cd01aad45ac3bfb3ba2202cca1` | 843.9K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
+| `analysis/romdiff/run_romdiff.py` | `0e79fe34803bce2d6cf219b551daf722c72194daaf1aa3a2a11efb415b612fb4` | 28.1K | Cross-ROM diff analysis (read-only inputs, see analysis/romdiff/README.md) |
 
 ## .github
 
@@ -10333,8 +10337,8 @@ or the toolchain install (git-ignored; re-create with
 |---|--:|---:|---|
 | `.github/dependabot.yml` | `f768eee143a9e1e8f620ec0b27ce983217ce40cfc52d7281fe8b1435e8823fae` | 791B | Tracked file |
 | `.github/requirements.txt` | `2cb78cc09fd13a74714019208e9fecc99de405883c299c6bc0de7aae39709288` | 534B | CI requirements (GitHub Actions) |
-| `.github/workflows/README.md` | `1fe281a91d75c0f88d91f79080f32e820f9224a1a06ca8da0195f381f8273b98` | 4.1K | CI documentation (GitHub Actions) |
-| `.github/workflows/ci.yml` | `d666f9a260baefcd23b0ff348ce4d235b726386735c49b25635ff62dc99ec1f8` | 14.8K | CI workflow (GitHub Actions) |
+| `.github/workflows/README.md` | `723186dc81091e644c89b0835649591e403869f9dd909f51569e2c85733be470` | 4.4K | CI documentation (GitHub Actions) |
+| `.github/workflows/ci.yml` | `b3afe6612b5ee710357ec0e1a7b9769f2d139ba19b9535282c401f12aa93e6bb` | 17.6K | CI workflow (GitHub Actions) |
 | `.github/workflows/pages.yml` | `48763fb8e9169b691323e0cddab8c2b17903192df2099de3a1b612e40e14afd9` | 5.2K | CI workflow (GitHub Actions) |
 
 ## reconstructed/experiments/match
