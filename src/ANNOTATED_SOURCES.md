@@ -1,4 +1,4 @@
-# Annotated assembly sources — 9 public stock ROMs
+# Annotated assembly sources — 9 of the 10 public stock ROMs
 
 `tools/organize_src.py` generated these files (capstone SH-2 + `tools/disasm_sh2e.py`
 fallback, self-correcting force loop). They mirror exactly the byte-exact
@@ -6,7 +6,8 @@ whole-ROM lift of `tools/rom_rebuild.py`. Every file below reassembles with
 `sh-elf-as -big` + `sh-elf-ld -Ttext=0x0` + `sh-elf-objcopy -O binary` to a
 byte-identical copy of the source ROM (`cmp` verified).
 
-The public repo ships annotated sources for the 9 public stock ROMs listed below.
+The public repo ships annotated sources for 9 of the 10 public stock ROMs listed below
+(`60E32000_N3N5EB` has no annotated source).
 They reassemble byte-identically to the shipped ROMs (evidence in
 [VERIFICATION.md](../VERIFICATION.md)).
 

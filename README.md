@@ -17,10 +17,11 @@ Interactive firmware explorer — browse 56k symbols, callgraph, calibration tab
 The verification cascades from L1 to L6. Each claim is machine-checked or tagged `AI draft` / `unverified` / `DRAFT` / `TBD`.
 
 - **L1 — Byte-exact.** Disassemble → one reassemblable GNU-as source → reassemble (`sh-elf`)
-  → `sha256sum` must equal ROM. **9/9 byte-exact** (`make verify-all`; single: `make verify ROM=roms/stock/<id>.bin`). [VERIFICATION.md](VERIFICATION.md) §1.
+  → `sha256sum` must equal ROM. **10/10 byte-exact** (`make verify-all`; single: `make verify ROM=roms/stock/<id>.bin`). [VERIFICATION.md](VERIFICATION.md) §1.
 - **L2 — Formal cert.** `tools/verify_formal.py`: 524288/524288 bytes, CFG (18,088 branches,
-  18 jump tables, LIVE=0), XREF closure, gap audit. **9/9 CERTIFIED**, deterministic, CI-gated
-  (`make cert`). [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
+  18 jump tables, LIVE=0), XREF closure, gap audit. **9/9 CERTIFIED** — the 9 annotated ROMs;
+  `60E32000_N3N5EB` is excluded (no annotated `src/*_annotated.s`, so it is outside the cert
+  corpus). Deterministic, CI-gated (`make cert`). [FORMAL_CERT_60E1D400.md](docs/notes/FORMAL_CERT_60E1D400.md).
 - **L3 — Determinism.** Master catalog/CSVs derived from scripts; drift breaks CI.
 - **L4 — Differential/emulator.** Run 1915 py suites and 26 C suites. Test each lift against the ROM bytes with `tools/sh2emu.py`. The result is **295 emulator-verified** lifts, 100k+ random inputs per lift. [VERIFICATION.md](VERIFICATION.md) §3–4.
 - **L5 — Cross-validation.** Seed/key bit-identical to ConnorRigby (100k clock random +
@@ -43,7 +44,7 @@ Hard gates (each with a command):
 
 ## Quick reference
 
-- **9/9 byte-exact + 9/9 formally certified**; code window 0x800..0x60000; SH-2 round-trip 93.46–93.8%.
+- **10/10 byte-exact + 9/9 formally certified** (cert corpus = annotated sources); code window 0x800..0x60000; SH-2 round-trip 93.46–93.8%.
 - Symbols: 56,953 rows → 50,789 real-fnc estimate, 8,006 named, 6,082 categorized.
 - 1622 C lifts / 1739 `c/*.c`; **295 emulator**-verified (`c/verified_addrs.txt`).
 - Tables: 1,210 cal + 37,121 RomXR/GROM defs / 13 ROM codes; 6,953 call-graph edges; 18 jump tables.
@@ -60,7 +61,7 @@ Prereqs: Python 3, `make`, C compiler (only `make c-test`), `capstone` (the **on
 ```bash
 python3 -m pip install capstone --break-system-packages
 ./tools/get_toolchain.sh      # one-time; sh-elf binutils into tools/toolchain/ (no root)
-make verify-all               # 9/9 BYTE-EXACT
+make verify-all               # 10/10 BYTE-EXACT
 make cert                     # 9/9 CERTIFIED formal cert
 make test                     # full regression gate (~21 s)
 make c-test && make c-emu     # host C equivalence + emulator oracle
@@ -74,7 +75,7 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 
 | Path | Contents |
 |------|----------|
-| `roms/stock/` | 9 stock ROM images (512 KB each) + `roms/ROMS.md`; `src/` annotated reassemblable asm |
+| `roms/stock/` | 10 stock ROM images (512 KB each) + `roms/ROMS.md`; `src/` annotated reassemblable asm |
 | `c/` | verified C lifts (1739 `c/*.c`), `eeprom_immo.h`, host test suites, `verified_addrs.txt` |
 | `tools/` | disassembler, `sh2emu.py`, formal verifier, rebuild scripts, test suites |
 | `symbols/` | per-ROM CSV, CATALOG_MASTER.csv, cal_tables.csv, romraider defs, callgraph |
@@ -89,8 +90,8 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 
 - `build` — rebuild `60E1D400.bin` → `build/out.bin` (default)
 - `verify` — `cmp build/out.bin <ROM>`; any image with `make verify ROM=roms/stock/<id>.bin`
-- `verify-all` — byte-exact check of all 9 ROMs (`./tools/verify_all.sh`)
-- `cert` — formal certification of all 9 ROMs (hard gate, ~31 s)
+- `verify-all` — byte-exact check of all 10 ROMs (`./tools/verify_all.sh`)
+- `cert` — formal certification of the 9 annotated ROMs (hard gate, ~31 s); `60E32000_N3N5EB` has no annotated `src/*_annotated.s`, so it is outside the cert corpus
 - `all` — `catalog classify test`
 - `catalog` — regen `CATALOG_MASTER.csv` + status
 - `classify` — regen `FUNCTION_CATEGORIES.csv`
@@ -105,7 +106,7 @@ Fresh clone: [REPLICATION.md](REPLICATION.md) · evidence: [VERIFICATION.md](VER
 
 | State | Item | Source of truth |
 |---|---|---|
-| **Done** | 9/9 byte-exact; 9/9 formal cert (P1–P5 zero LIVE); seed/key bit-identical | VERIFICATION.md; FORMAL_CERT_60E1D400.md; UDS_SECURITY_MAPPING.md |
+| **Done** | 10/10 byte-exact; 9/9 formal cert (annotated corpus; P1–P5 zero LIVE); seed/key bit-identical | VERIFICATION.md; FORMAL_CERT_60E1D400.md; UDS_SECURITY_MAPPING.md |
 | **Done** | catalog + named/categorized functions, cal tables, explorer | `CATALOG_MASTER.csv`, `FUNCTION_CATEGORIES.csv`, `cal_tables.csv` |
 | **In progress** | assign names to the ~50,789 estimated functions (8,006 named); more lifts + certs | NAMES_STATUS.md, `c/verified_addrs.txt` |
 | **Open** | semantic meaning; runtime on real hardware | RUNTIME_CERT_PLAN.md, ECU_CAPTURE_PLAN.md |
